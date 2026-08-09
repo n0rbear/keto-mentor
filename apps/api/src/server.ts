@@ -15,6 +15,7 @@ import { serializeMeal } from "./nutrition.js";
 
 const logger = pino({ level: env.NODE_ENV === "production" ? "info" : "debug" });
 const app = express();
+const normalizeSearch = (value: string) => value.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
 
 if (env.NODE_ENV === "production") app.set("trust proxy", 1);
 
@@ -89,7 +90,7 @@ app.get("/me", requireAuth, async (req, res) => {
 });
 
 app.get("/foods", requireAuth, async (req, res) => {
-  const query = String(req.query.q ?? "").trim().toLowerCase();
+  const query = normalizeSearch(String(req.query.q ?? "").trim());
   const foods = await prisma.food.findMany({
     where: { createdById: null },
     take: 50,
@@ -97,7 +98,7 @@ app.get("/foods", requireAuth, async (req, res) => {
   });
   const filtered = foods.filter((food) => {
     if (!query) return true;
-    const blob = JSON.stringify([food.name, food.names, food.synonyms]).toLowerCase();
+    const blob = normalizeSearch(JSON.stringify([food.name, food.names, food.synonyms]));
     return blob.includes(query);
   });
   res.json({ foods: filtered });

@@ -116,6 +116,33 @@ const foods: SeedFood[] = [
   }
 ];
 
+const catalogTextOverrides: Record<string, Pick<SeedFood, "names" | "synonyms">> = {
+  "catalog-fried-egg": {
+    names: { hu: "T\u00fck\u00f6rtoj\u00e1s", de: "Spiegelei", en: "Fried egg" },
+    synonyms: { hu: ["t\u00fck\u00f6rtoj\u00e1s", "tukortojas", "s\u00fclt toj\u00e1s", "sult tojas", "toj\u00e1s", "tojas"], de: ["spiegelei", "ei"], en: ["fried egg", "egg"] }
+  },
+  "catalog-avocado": {
+    names: { hu: "Avok\u00e1d\u00f3", de: "Avocado", en: "Avocado" },
+    synonyms: { hu: ["avok\u00e1d\u00f3", "avokado"], de: ["avocado"], en: ["avocado"] }
+  },
+  "catalog-chicken-breast-roasted": {
+    names: { hu: "S\u00fclt csirkemell", de: "Gebratene H\u00e4hnchenbrust", en: "Roasted chicken breast" },
+    synonyms: { hu: ["csirkemell", "s\u00fclt csirkemell", "sult csirkemell"], de: ["h\u00e4hnchenbrust", "hahnchenbrust", "gebratene h\u00e4hnchenbrust"], en: ["chicken breast", "roasted chicken breast"] }
+  },
+  "catalog-cheddar": {
+    names: { hu: "Cheddar sajt", de: "Cheddar", en: "Cheddar cheese" },
+    synonyms: { hu: ["cheddar", "sajt"], de: ["cheddar", "k\u00e4se", "kase"], en: ["cheddar", "cheese"] }
+  },
+  "catalog-spinach": {
+    names: { hu: "Spen\u00f3t", de: "Spinat", en: "Spinach" },
+    synonyms: { hu: ["spen\u00f3t", "spenot"], de: ["spinat"], en: ["spinach"] }
+  }
+};
+
+for (const food of foods) {
+  Object.assign(food, catalogTextOverrides[food.id]);
+}
+
 async function main() {
   await prisma.nutrient.createMany({
     data: [
