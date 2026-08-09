@@ -90,13 +90,12 @@ Seed values are average per-100 g edible-portion values from USDA FoodData Centr
 
 ## Deployment
 
-`render.yaml` describes separate Render resources:
+`render.yaml` describes separate Render services:
 
-- PostgreSQL database
 - API web service
 - Static frontend
 
-Production deploy requires setting strong JWT secrets and applying Prisma migrations with `npm run render:postdeploy`.
+Production deploy requires setting strong JWT secrets and a PostgreSQL `DATABASE_URL`. When sharing an existing Render Postgres database with another app, use a dedicated schema, for example append `?schema=keto_mentor` to the internal connection string. Prisma migrations will then create and use only that schema.
 
 ## Important Folders
 
