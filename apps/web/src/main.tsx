@@ -4,7 +4,8 @@ import { Activity, ExternalLink, LogOut, Mail, Plus, ShieldCheck, Sparkles } fro
 import { dict, type Lang } from "./i18n";
 import { api } from "./api";
 import "./styles.css";
-import norbappMark from "./assets/norbapp-mark.svg";
+import norbappLogo from "./assets/norbapp-logo.webp";
+import ketomentorLogo from "./assets/ketomentor-logo.png";
 
 type User = { id: string; username: string; locale: Lang; profile?: any };
 type Totals = { kcal: number; fat: number; protein: number; carbs: number; fiber: number; netCarbs: number };
