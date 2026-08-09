@@ -1,0 +1,23 @@
+{
+  "name": "keto-mentor",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm:dev -w apps/api\" \"npm:dev -w apps/web\"",
+    "build": "npm run build -w packages/shared && npm run build -w apps/api && npm run build -w apps/web",
+    "test": "npm run test -w apps/api && npm run test -w apps/web",
+    "lint": "npm run lint -w apps/api && npm run lint -w apps/web",
+    "prisma:migrate": "npm run prisma:migrate -w apps/api",
+    "prisma:generate": "npm run prisma:generate -w apps/api",
+    "render:postdeploy": "npm run prisma:deploy -w apps/api && npm run seed -w apps/api"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1",
+    "typescript": "^5.6.3"
+  }
+}

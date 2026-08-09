@@ -1,0 +1,13 @@
+node_modules/
+dist/
+build/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+coverage/
+apps/web/.vite/
+apps/api/prisma/dev.db
+playwright-report/
+test-results/

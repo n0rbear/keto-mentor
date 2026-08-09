@@ -1,0 +1,139 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum FoodSource {
+  open_database
+  open_food_facts
+  manufacturer
+  barcode
+  user_input
+  ai_ocr
+}
+
+enum EntitlementPlan {
+  free
+  premium
+}
+
+model User {
+  id           String        @id @default(cuid())
+  username     String        @unique
+  passwordHash String
+  locale       String        @default("hu")
+  email        String?       @unique
+  emailVerifiedAt DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  profile      Profile?
+  sessions     Session[]
+  meals        Meal[]
+  entitlements Entitlement[]
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  refreshHash  String
+  deviceLabel  String?
+  createdAt    DateTime @default(now())
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Profile {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  goal          String?
+  dailyKcal     Int      @default(1800)
+  dailyNetCarbs Int      @default(25)
+  dailyProtein  Int      @default(110)
+  dailyFat      Int      @default(130)
+  dailyFiber    Int      @default(25)
+  preferences   String[] @default([])
+  avoidedFoods  String[] @default([])
+  allergies     String[] @default([])
+  onboardingDone Boolean @default(false)
+  updatedAt     DateTime @updatedAt
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Entitlement {
+  id        String          @id @default(cuid())
+  userId    String
+  plan      EntitlementPlan @default(free)
+  features  String[]        @default([])
+  active    Boolean         @default(true)
+  createdAt DateTime        @default(now())
+  expiresAt DateTime?
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Food {
+  id          String       @id @default(cuid())
+  name        String
+  names       Json?
+  synonyms    Json?
+  brand       String?
+  barcode     String?
+  source      FoodSource   @default(user_input)
+  provenance  Json?
+  servingUnit String?
+  servingGrams Float?
+  kcalPer100g Float
+  fatPer100g  Float
+  proteinPer100g Float
+  carbsPer100g Float
+  fiberPer100g Float @default(0)
+  createdById String?
+  createdAt   DateTime @default(now())
+  nutrients   FoodNutrient[]
+  mealItems   MealItem[]
+
+  @@index([name])
+  @@index([barcode])
+}
+
+model Nutrient {
+  id       String @id @default(cuid())
+  key      String @unique
+  label    String
+  unit     String
+  group    String
+  foods    FoodNutrient[]
+}
+
+model FoodNutrient {
+  foodId     String
+  nutrientId String
+  amountPer100g Float
+  food       Food     @relation(fields: [foodId], references: [id], onDelete: Cascade)
+  nutrient   Nutrient @relation(fields: [nutrientId], references: [id], onDelete: Cascade)
+
+  @@id([foodId, nutrientId])
+}
+
+model Meal {
+  id        String     @id @default(cuid())
+  userId    String
+  title     String
+  eatenAt   DateTime   @default(now())
+  createdAt DateTime   @default(now())
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     MealItem[]
+}
+
+model MealItem {
+  id            String @id @default(cuid())
+  mealId        String
+  foodId        String
+  quantityGrams Float
+  meal          Meal   @relation(fields: [mealId], references: [id], onDelete: Cascade)
+  food          Food   @relation(fields: [foodId], references: [id])
+}
