@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { Activity, LogOut, Plus, ShieldCheck, Sparkles } from "lucide-react";
+import { Activity, ExternalLink, LogOut, Mail, Plus, ShieldCheck, Sparkles } from "lucide-react";
 import { dict, type Lang } from "./i18n";
 import { api } from "./api";
 import "./styles.css";
+import norbappMark from "./assets/norbapp-mark.svg";
 
 type User = { id: string; username: string; locale: Lang; profile?: any };
 type Totals = { kcal: number; fat: number; protein: number; carbs: number; fiber: number; netCarbs: number };
@@ -92,10 +93,14 @@ function App() {
   const goals = profile ?? { dailyKcal: 1800, dailyFat: 130, dailyProtein: 110, dailyNetCarbs: 25, dailyFiber: 25 };
 
   return (
-    <main>
-      <header className="sticky top-0 z-10 border-b border-borderSoft/80 bg-appBg/80 backdrop-blur">
+    <main className="min-h-screen">
+      <header className="sticky top-0 z-10 border-b border-borderSoft/80 bg-appBg/90 backdrop-blur">
         <div className="mx-auto flex w-[min(1180px,calc(100%-32px))] items-center justify-between py-4">
-          <div className="flex items-center gap-3 font-extrabold text-ink"><span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-brand to-cyan text-white shadow-norb">N</span>{t.app}</div>
+          <a className="brand-link" href="https://norbapp.com" target="_blank" rel="noreferrer" aria-label="NorbApp weboldal megnyitasa">
+            <img src={norbappMark} alt="" className="h-10 w-10 rounded-xl shadow-norb"/>
+            <span>{t.app}</span>
+            <ExternalLink size={15} aria-hidden="true"/>
+          </a>
           <div className="flex items-center gap-2">
             <select className="field compact" value={lang} onChange={(e) => setLang(e.target.value as Lang)}><option value="hu">HU</option><option value="de">DE</option><option value="en">EN</option></select>
             {user && <button className="btn secondary" onClick={async () => { await api("/auth/logout", { method: "POST" }, state); setToken(null); setUser(null); }}><LogOut size={16}/>{t.logout}</button>}
@@ -166,6 +171,18 @@ function App() {
           </form>
         </section>
       )}
+      <footer className="border-t border-borderSoft bg-white/70">
+        <div className="mx-auto flex w-[min(1180px,calc(100%-32px))] flex-col gap-4 py-6 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
+          <a className="brand-link" href="https://norbapp.com" target="_blank" rel="noreferrer" aria-label="NorbApp weboldal megnyitasa">
+            <img src={norbappMark} alt="" className="h-9 w-9 rounded-xl"/>
+            <span>NorbApp</span>
+          </a>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+            <a className="contact-link" href="https://norbapp.com" target="_blank" rel="noreferrer"><ExternalLink size={15}/>norbapp.com</a>
+            <a className="contact-link" href="mailto:norbert@norbapp.com"><Mail size={15}/>norbert@norbapp.com</a>
+          </div>
+        </div>
+      </footer>
     </main>
   );
 }

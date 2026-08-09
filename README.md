@@ -97,6 +97,8 @@ Seed values are average per-100 g edible-portion values from USDA FoodData Centr
 
 Production deploy requires setting strong JWT secrets and a PostgreSQL `DATABASE_URL`. When sharing an existing Render Postgres database with another app, use a dedicated schema, for example append `?schema=keto_mentor` to the internal connection string. Prisma migrations will then create and use only that schema.
 
+The API exposes `GET /health` and the Render web service should use `/health` as its health-check path. On Render free web services, idle services may spin down and the first request after inactivity can be a cold start. This app intentionally does not include artificial keep-alive pinging; the supported always-on path is a Render paid web service plan.
+
 ## Important Folders
 
 - `apps/api`: Express API and Prisma schema
