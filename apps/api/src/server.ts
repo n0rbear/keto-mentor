@@ -16,6 +16,8 @@ import { serializeMeal } from "./nutrition.js";
 const logger = pino({ level: env.NODE_ENV === "production" ? "info" : "debug" });
 const app = express();
 
+if (env.NODE_ENV === "production") app.set("trust proxy", 1);
+
 app.use(helmet());
 app.use(compression());
 app.use(express.json({ limit: "256kb" }));
@@ -25,7 +27,9 @@ app.use(pinoHttp({ logger }));
 
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 20, standardHeaders: true, legacyHeaders: false });
 
-app.get("/health", (_req, res) => res.json({ ok: true, service: "keto-mentor-api" }));
+const healthPayload = { ok: true, service: "keto-mentor-api" };
+app.get("/", (_req, res) => res.json(healthPayload));
+app.get("/health", (_req, res) => res.json(healthPayload));
 
 app.post("/auth/register", authLimiter, async (req, res, next) => {
   try {

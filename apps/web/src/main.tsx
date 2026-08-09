@@ -96,11 +96,7 @@ function App() {
     <main className="min-h-screen">
       <header className="sticky top-0 z-10 border-b border-borderSoft/80 bg-appBg/90 backdrop-blur">
         <div className="mx-auto flex w-[min(1180px,calc(100%-32px))] items-center justify-between py-4">
-          <a className="brand-link" href="https://norbapp.com" target="_blank" rel="noreferrer" aria-label="NorbApp weboldal megnyitasa">
-            <img src={norbappMark} alt="" className="h-10 w-10 rounded-xl shadow-norb"/>
-            <span>{t.app}</span>
-            <ExternalLink size={15} aria-hidden="true"/>
-          </a>
+          <div className="flex items-center gap-3 font-extrabold text-ink"><span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-brand to-cyan text-white shadow-norb">N</span>{t.app}</div>
           <div className="flex items-center gap-2">
             <select className="field compact" value={lang} onChange={(e) => setLang(e.target.value as Lang)}><option value="hu">HU</option><option value="de">DE</option><option value="en">EN</option></select>
             {user && <button className="btn secondary" onClick={async () => { await api("/auth/logout", { method: "POST" }, state); setToken(null); setUser(null); }}><LogOut size={16}/>{t.logout}</button>}
@@ -174,8 +170,8 @@ function App() {
       <footer className="border-t border-borderSoft bg-white/70">
         <div className="mx-auto flex w-[min(1180px,calc(100%-32px))] flex-col gap-4 py-6 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
           <a className="brand-link" href="https://norbapp.com" target="_blank" rel="noreferrer" aria-label="NorbApp weboldal megnyitasa">
-            <img src={norbappMark} alt="" className="h-9 w-9 rounded-xl"/>
-            <span>NorbApp</span>
+            <img src={norbappMark} alt="NorbApp" className="h-10 w-10 rounded-xl"/>
+            <span className="sr-only">NorbApp</span>
           </a>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
             <a className="contact-link" href="https://norbapp.com" target="_blank" rel="noreferrer"><ExternalLink size={15}/>norbapp.com</a>
