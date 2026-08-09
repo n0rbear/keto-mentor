@@ -32,6 +32,7 @@ label { display: grid; gap: 6px; font-size: 13px; font-weight: 800; color: #2437
 .brand-link:hover, .contact-link:hover { color: #047F82; }
 .brand-link:focus-visible, .contact-link:focus-visible { outline: 3px solid rgba(4,174,176,.28); outline-offset: 4px; border-radius: 12px; }
 .contact-link { display: inline-flex; align-items: center; gap: 7px; color: #60727E; font-weight: 800; text-decoration: none; }
+.onboarding-field small { color: #60727E; font-size: 12px; font-weight: 600; line-height: 1.45; }
 @media (max-width: 520px) {
   .meal { flex-direction: column; }
   .btn { padding: 10px 12px; }

@@ -96,7 +96,10 @@ function App() {
     <main className="min-h-screen">
       <header className="sticky top-0 z-10 border-b border-borderSoft/80 bg-appBg/90 backdrop-blur">
         <div className="mx-auto flex w-[min(1180px,calc(100%-32px))] items-center justify-between py-4">
-          <div className="flex items-center gap-3 font-extrabold text-ink"><span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-brand to-cyan text-white shadow-norb">N</span>{t.app}</div>
+          <div className="flex items-center gap-3 font-extrabold text-ink">
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-brand to-cyan text-white shadow-norb" role="img" aria-label="Keto Mentor logó">N</span>
+            {t.app}
+          </div>
           <div className="flex items-center gap-2">
             <select className="field compact" value={lang} onChange={(e) => setLang(e.target.value as Lang)}><option value="hu">HU</option><option value="de">DE</option><option value="en">EN</option></select>
             {user && <button className="btn secondary" onClick={async () => { await api("/auth/logout", { method: "POST" }, state); setToken(null); setUser(null); }}><LogOut size={16}/>{t.logout}</button>}
@@ -118,18 +121,24 @@ function App() {
               <button type="button" className={`seg ${mode === "register" ? "active" : ""}`} onClick={() => setMode("register")}>{t.register}</button>
               <button type="button" className={`seg ${mode === "login" ? "active" : ""}`} onClick={() => setMode("login")}>{t.login}</button>
             </div>
-            <label>{t.username}<input className="field" name="username" required minLength={3}/></label>
-            <label>{t.password}<input className="field" name="password" required minLength={10} type="password"/></label>
+            <label htmlFor="auth-username">{t.username}<input id="auth-username" className="field" name="username" required minLength={3}/></label>
+            <label htmlFor="auth-password">{t.password}<input id="auth-password" className="field" name="password" required minLength={10} type="password"/></label>
             <button className="btn primary w-full" type="submit">{mode === "register" ? t.register : t.login}</button>
           </form>
         ) : !profile?.onboardingDone ? (
           <form onSubmit={saveOnboarding} className="card space-y-3">
             <h2>{t.onboarding}</h2>
-            <select name="goal" className="field"><option value="weight_loss">Weight loss</option><option value="maintenance">Maintenance</option><option value="energy">Energy</option><option value="medical_support">Medical support</option><option value="learning">Learning</option></select>
-            <div className="grid grid-cols-2 gap-3"><input className="field" name="dailyKcal" defaultValue="1800" type="number"/><input className="field" name="dailyNetCarbs" defaultValue="25" type="number"/><input className="field" name="dailyProtein" defaultValue="110" type="number"/><input className="field" name="dailyFat" defaultValue="130" type="number"/><input className="field" name="dailyFiber" defaultValue="25" type="number"/></div>
-            <input className="field" name="preferences" placeholder="eggs, avocado"/>
-            <input className="field" name="avoidedFoods" placeholder="sugar, bread"/>
-            <input className="field" name="allergies" placeholder="nuts, lactose"/>
+            <label htmlFor="goal">{t.goal}<select id="goal" name="goal" className="field"><option value="weight_loss">{t.goals.weight_loss}</option><option value="maintenance">{t.goals.maintenance}</option><option value="energy">{t.goals.energy}</option><option value="medical_support">{t.goals.medical_support}</option><option value="learning">{t.goals.learning}</option></select></label>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <OnboardingField id="dailyKcal" label={t.fields.dailyKcal[0]} help={t.fields.dailyKcal[1]} defaultValue="1800"/>
+              <OnboardingField id="dailyNetCarbs" label={t.fields.dailyNetCarbs[0]} help={t.fields.dailyNetCarbs[1]} defaultValue="25"/>
+              <OnboardingField id="dailyProtein" label={t.fields.dailyProtein[0]} help={t.fields.dailyProtein[1]} defaultValue="110"/>
+              <OnboardingField id="dailyFat" label={t.fields.dailyFat[0]} help={t.fields.dailyFat[1]} defaultValue="130"/>
+              <OnboardingField id="dailyFiber" label={t.fields.dailyFiber[0]} help={t.fields.dailyFiber[1]} defaultValue="25"/>
+            </div>
+            <OnboardingField id="preferences" label={t.fields.preferences[0]} help={t.fields.preferences[1]} placeholder="tojás, avokádó"/>
+            <OnboardingField id="avoidedFoods" label={t.fields.avoidedFoods[0]} help={t.fields.avoidedFoods[1]} placeholder="cukor, kenyér"/>
+            <OnboardingField id="allergies" label={t.fields.allergies[0]} help={t.fields.allergies[1]} placeholder="laktóz, diófélék"/>
             <button className="btn primary w-full">{t.save}</button>
           </form>
         ) : (
@@ -171,7 +180,7 @@ function App() {
         <div className="mx-auto flex w-[min(1180px,calc(100%-32px))] flex-col gap-4 py-6 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
           <a className="brand-link" href="https://norbapp.com" target="_blank" rel="noreferrer" aria-label="NorbApp weboldal megnyitasa">
             <img src={norbappMark} alt="NorbApp" className="h-10 w-10 rounded-xl"/>
-            <span className="sr-only">NorbApp</span>
+            <span>NorbApp</span>
           </a>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
             <a className="contact-link" href="https://norbapp.com" target="_blank" rel="noreferrer"><ExternalLink size={15}/>norbapp.com</a>
@@ -186,6 +195,28 @@ function App() {
 function Macro({ label, value, goal }: { label: string; value: number; goal: number }) {
   const pct = Math.min(100, Math.round((value / goal) * 100));
   return <div className="card !p-4"><div className="text-xs font-bold uppercase tracking-wider text-muted">{label}</div><strong className="text-2xl text-ink">{Math.round(value)}</strong><div className="mt-2 h-2 rounded-full bg-appBg"><div className="h-2 rounded-full bg-gradient-to-r from-brand to-cyan" style={{ width: `${pct}%` }}/></div><small className="text-muted">/ {goal}</small></div>;
+}
+
+function OnboardingField({ id, label, help, defaultValue, placeholder }: { id: string; label: string; help: string; defaultValue?: string; placeholder?: string }) {
+  const helpId = `${id}-help`;
+  const isNumber = defaultValue != null;
+  return (
+    <label htmlFor={id} className="onboarding-field">
+      <span>{label}</span>
+      <small id={helpId}>{help}</small>
+      <input
+        id={id}
+        className="field"
+        name={id}
+        defaultValue={defaultValue}
+        placeholder={placeholder}
+        type={isNumber ? "number" : "text"}
+        min={isNumber ? 0 : undefined}
+        step={isNumber ? 1 : undefined}
+        aria-describedby={helpId}
+      />
+    </label>
+  );
 }
 
 createRoot(document.getElementById("root")!).render(<App />);
