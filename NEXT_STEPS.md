@@ -2,7 +2,7 @@
 
 - Add refresh-token rotation endpoint and per-session logout UI.
 - Add password reset and optional email verification.
-- Build source-specific USDA and licensed BLS column mappings on top of the importer, then run imports outside the repository.
+- Review and merge the source-specific USDA/BLS pilot importer PR; only then run the documented production dry-run and pilot after separate approval.
 - Add barcode lookup and Open Food Facts integration.
 - Add premium feature gates for coach chat, meal plans and shopping lists.
 - Add mobile app clients against the same API.

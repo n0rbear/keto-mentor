@@ -79,13 +79,15 @@ Seed values are average per-100 g edible-portion values from USDA FoodData Centr
 
 ### Catalog imports
 
-`apps/api/src/importers` contains a source-adapter boundary and an idempotent importer. Foods are upserted by `(source, sourceId)`; micronutrients are upserted through the existing `Nutrient` and `FoodNutrient` tables. The CSV adapter is ready for downloaded, license-compliant USDA FoodData Central and BLS extracts after their source-specific columns are mapped to the included fixture format. It deliberately does not fetch remote datasets at application runtime.
+See [`docs/catalog-import.md`](docs/catalog-import.md) for verified 2026 USDA/BLS releases, licensing, pilot scope, dry-run and production-safe runbook.
+
+`apps/api/src/importers` contains native adapters for extracted FoodData Central CSV releases and the official BLS 4.0 XLSX workbook. Foods are upserted by `(source, sourceId)`; normalized nutrients are shared through the existing `Nutrient` and `FoodNutrient` tables. The importer deliberately does not fetch remote datasets at application runtime.
 
 ```bash
-npm run catalog:import -w apps/api -- usda apps/api/fixtures/catalog-sample.csv
+npm run catalog:import -w apps/api -- usda-foundation /data/foundation --dry-run --pilot 395
 ```
 
-Micronutrient columns use `nutrient_<key>_<unit>_<group>`, for example `nutrient_sodium_mg_electrolyte`. The schema supports sodium, potassium, calcium, magnesium, phosphorus, iron, zinc, copper, manganese, selenium, vitamins A, B1/B2/B3/B5/B6/B7/B9/B12, C, D, E and K, plus additional keys without a schema change. Do not import BLS data without confirming its current licensing terms.
+Every real import must first pass `--dry-run`; raw data stays out of Git and imports do not run during deploy. BLS 4.0 is CC BY 4.0 and its required MRI attribution is stored in provenance.
 
 ## API
 
