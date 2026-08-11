@@ -83,6 +83,10 @@ model Food {
   brand       String?
   barcode     String?
   source      FoodSource   @default(user_input)
+  sourceId    String?
+  originalName String?
+  category    String?
+  searchText  String       @default("")
   provenance  Json?
   servingUnit String?
   servingGrams Float?
@@ -98,6 +102,7 @@ model Food {
 
   @@index([name])
   @@index([barcode])
+  @@unique([source, sourceId])
 }
 
 model Nutrient {

@@ -28,7 +28,7 @@ export function signRefreshToken(sessionId: string) {
 export function setRefreshCookie(res: Response, token: string) {
   res.cookie("km_refresh", token, {
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: env.NODE_ENV === "production" ? "none" : "lax",
     secure: env.NODE_ENV === "production",
     maxAge: 30 * 24 * 60 * 60 * 1000
   });

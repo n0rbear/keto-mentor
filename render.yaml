@@ -16,7 +16,7 @@ services:
       - key: JWT_REFRESH_SECRET
         generateValue: true
       - key: CORS_ORIGIN
-        value: https://keto-mentor-web.onrender.com
+        value: https://ketomentor.norbapp.com,https://keto-mentor-web.onrender.com
   - type: web
     name: keto-mentor-web
     runtime: static
