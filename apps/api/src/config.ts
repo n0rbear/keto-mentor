@@ -1,5 +1,6 @@
 import "dotenv/config";
 import { z } from "zod";
+import { assertProductionDatabaseSchema } from "./database-url.js";
 
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
@@ -11,3 +12,4 @@ const envSchema = z.object({
 });
 
 export const env = envSchema.parse(process.env);
+assertProductionDatabaseSchema(env.DATABASE_URL, env.NODE_ENV);

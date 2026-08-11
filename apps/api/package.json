@@ -10,9 +10,12 @@
     "lint": "tsc -p tsconfig.json --noEmit",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
+    "preprisma:deploy": "node dist/src/validate-database-target.js",
     "prisma:deploy": "prisma migrate deploy",
+    "preseed": "node dist/src/validate-database-target.js",
     "seed": "node dist/prisma/seed.js",
     "seed:dev": "tsx prisma/seed.ts",
+    "precatalog:import": "tsx src/validate-database-target.ts",
     "catalog:import": "tsx src/importers/cli.ts",
     "catalog:db-size": "tsx src/importers/db-size.ts",
     "catalog:benchmark": "tsx src/importers/search-benchmark.ts"
