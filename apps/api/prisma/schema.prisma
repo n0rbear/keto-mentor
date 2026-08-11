@@ -8,6 +8,8 @@ datasource db {
 }
 
 enum FoodSource {
+  usda_fdc
+  bls
   open_database
   open_food_facts
   manufacturer

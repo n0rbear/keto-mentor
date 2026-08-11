@@ -19,4 +19,5 @@ describe("food search", () => {
 
   it("returns no foods for an unknown query", async () => expect(await searchFoods(prisma, "quinoa-pizza")).toEqual([]));
   it("does not query the catalog below two characters", async () => expect(await searchFoods(prisma, "c")).toEqual([]));
+  it("builds pilot-compatible original-name search text", async () => expect((await searchFoods(prisma, "roasted chick"))[0]?.id).toBe("chicken"));
 });

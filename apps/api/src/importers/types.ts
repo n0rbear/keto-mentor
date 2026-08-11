@@ -24,5 +24,35 @@ export type ImportFood = {
 
 export interface FoodSourceAdapter {
   readonly sourceName: string;
-  read(filePath: string): AsyncIterable<ImportFood>;
+  readonly source: FoodSource;
+  readonly version: string;
+  readonly diagnostics?: string[];
+  read(filePath: string): AsyncIterable<ImportRow>;
 }
+
+export type ImportRow = { food: ImportFood; row: number } | { error: string; row: number; sourceId?: string };
+
+export type ImportOptions = {
+  dryRun?: boolean;
+  batchSize?: number;
+  maxRecords?: number;
+  onProgress?: (report: ImportReport) => void;
+};
+
+export type ImportReport = {
+  source: string;
+  version: string;
+  dryRun: boolean;
+  inputRecords: number;
+  validRecords: number;
+  skippedRecords: number;
+  duplicateRecords: number;
+  foodsToCreate: number;
+  foodsToUpdate: number;
+  nutrientsToCreate: number;
+  foodNutrientsExpected: number;
+  estimatedGrowthBytes: number;
+  parsingErrors: Array<{ row: number; sourceId?: string; error: string }>;
+  warnings: string[];
+  processed: number;
+};

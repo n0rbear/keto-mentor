@@ -3,14 +3,18 @@ import { parse } from "csv-parse";
 import type { FoodSourceAdapter, ImportFood, ImportNutrient } from "./types.js";
 
 export class PublicFoodCsvAdapter implements FoodSourceAdapter {
+  readonly source = "open_database" as const;
+  readonly version = "fixture-v1";
   readonly sourceName: string;
-  constructor(private readonly source: "open_database", sourceName: string, private readonly sourceUrl: string) {
+  constructor(_source: "open_database", sourceName: string, private readonly sourceUrl: string) {
     this.sourceName = sourceName;
   }
 
-  async *read(filePath: string): AsyncIterable<ImportFood> {
+  async *read(filePath: string) {
     const parser = createReadStream(filePath).pipe(parse({ columns: true, bom: true, skip_empty_lines: true, trim: true }));
+    let rowNumber = 1;
     for await (const row of parser) {
+      rowNumber++;
       const nutrients: ImportNutrient[] = Object.entries(row as Record<string, string>)
         .filter(([key, value]) => key.startsWith("nutrient_") && value !== "")
         .map(([key, value]) => {
@@ -18,7 +22,7 @@ export class PublicFoodCsvAdapter implements FoodSourceAdapter {
           return { key: nutrientKey, label: nutrientKey, unit, group, amountPer100g: Number(value) };
         });
       const names = { hu: row.nameHu, de: row.nameDe, en: row.nameEn };
-      yield {
+      const food: ImportFood = {
         source: this.source,
         sourceId: row.sourceId,
         originalName: row.originalName,
@@ -33,6 +37,7 @@ export class PublicFoodCsvAdapter implements FoodSourceAdapter {
         provenance: { sourceName: this.sourceName, sourceUrl: this.sourceUrl, importedFrom: filePath, valuesPer: "100 g edible portion" },
         nutrients
       };
+      yield { food, row: rowNumber };
     }
   }
 }
