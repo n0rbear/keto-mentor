@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { Activity, ExternalLink, LogOut, Mail, Plus, ShieldCheck, Sparkles } from "lucide-react";
 import { dict, type Lang } from "./i18n";
 import { api, ApiError, type ApiState } from "./api";
+import { authErrorText } from "./auth-error";
 import "./styles.css";
 import norbappLogo from "./assets/norbapp-logo.webp";
 import ketomentorLogo from "./assets/ketomentor-logo.png";
@@ -19,6 +20,7 @@ function App() {
   const [meals, setMeals] = useState<Meal[]>([]);
   const [totals, setTotals] = useState<Totals>({ kcal: 0, fat: 0, protein: 0, carbs: 0, fiber: 0, netCarbs: 0 });
   const [mode, setMode] = useState<"login" | "register">("register");
+  const [authError, setAuthError] = useState<string | null>(null);
   const [selectedFood, setSelectedFood] = useState<Food | null>(null);
   const [mealSaving, setMealSaving] = useState(false);
   const [mealStatus, setMealStatus] = useState<{ kind: "success" | "error"; text: string } | null>(null);
@@ -45,11 +47,16 @@ function App() {
 
   async function submitAuth(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setAuthError(null);
     const form = new FormData(event.currentTarget);
     const body = { username: String(form.get("username")), password: String(form.get("password")), locale: lang };
-    const result = await api<{ user: User; accessToken: string }>(`/auth/${mode}`, { method: "POST", body: JSON.stringify(body) });
-    setUser(result.user);
-    setToken(result.accessToken);
+    try {
+      const result = await api<{ user: User; accessToken: string }>(`/auth/${mode}`, { method: "POST", body: JSON.stringify(body) });
+      setUser(result.user);
+      setToken(result.accessToken);
+    } catch (error) {
+      setAuthError(authErrorText(error, lang));
+    }
   }
 
   async function saveOnboarding(event: React.FormEvent<HTMLFormElement>) {
@@ -133,11 +140,12 @@ function App() {
         {!user ? (
           <form onSubmit={submitAuth} className="card space-y-4">
             <div className="flex rounded-2xl bg-appBg p-1">
-              <button type="button" className={`seg ${mode === "register" ? "active" : ""}`} onClick={() => setMode("register")}>{t.register}</button>
-              <button type="button" className={`seg ${mode === "login" ? "active" : ""}`} onClick={() => setMode("login")}>{t.login}</button>
+              <button type="button" className={`seg ${mode === "register" ? "active" : ""}`} onClick={() => { setMode("register"); setAuthError(null); }}>{t.register}</button>
+              <button type="button" className={`seg ${mode === "login" ? "active" : ""}`} onClick={() => { setMode("login"); setAuthError(null); }}>{t.login}</button>
             </div>
             <label htmlFor="auth-username">{t.username}<input id="auth-username" className="field" name="username" required minLength={3}/></label>
             <label htmlFor="auth-password">{t.password}<input id="auth-password" className="field" name="password" required minLength={10} type="password"/></label>
+            {authError && <div className="status error" role="alert">{authError}</div>}
             <button className="btn primary w-full" type="submit">{mode === "register" ? t.register : t.login}</button>
           </form>
         ) : !profile?.onboardingDone ? (
