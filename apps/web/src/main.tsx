@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Activity, ExternalLink, LogOut, Mail, Plus, ShieldCheck, Sparkles } from "lucide-react";
 import { dict, type Lang } from "./i18n";
-import { api } from "./api";
+import { api, ApiError, type ApiState } from "./api";
 import "./styles.css";
 import norbappLogo from "./assets/norbapp-logo.webp";
 import ketomentorLogo from "./assets/ketomentor-logo.png";
@@ -17,9 +17,12 @@ function App() {
   const [token, setToken] = useState(localStorage.getItem("km_token"));
   const [user, setUser] = useState<User | null>(null);
   const [meals, setMeals] = useState<Meal[]>([]);
-  const [foods, setFoods] = useState<Food[]>([]);
   const [totals, setTotals] = useState<Totals>({ kcal: 0, fat: 0, protein: 0, carbs: 0, fiber: 0, netCarbs: 0 });
   const [mode, setMode] = useState<"login" | "register">("register");
+  const [selectedFood, setSelectedFood] = useState<Food | null>(null);
+  const [mealSaving, setMealSaving] = useState(false);
+  const [mealStatus, setMealStatus] = useState<{ kind: "success" | "error"; text: string } | null>(null);
+  const [foodResetVersion, setFoodResetVersion] = useState(0);
   const t = dict[lang];
   const state = useMemo(() => ({ token, setToken }), [token]);
 
@@ -36,8 +39,6 @@ function App() {
     const today = await api<{ meals: Meal[]; totals: Totals }>("/meals/today", {}, state);
     setMeals(today.meals);
     setTotals(today.totals);
-    const catalog = await api<{ foods: Food[] }>("/foods", {}, state);
-    setFoods(catalog.foods);
   }
 
   useEffect(() => { load().catch(() => setToken(null)); }, [token]);
@@ -74,20 +75,30 @@ function App() {
 
   async function addMeal(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (mealSaving) return;
+    if (!selectedFood) {
+      setMealStatus({ kind: "error", text: t.mealErrors.selectFood });
+      return;
+    }
+    setMealSaving(true);
+    setMealStatus(null);
+    const formElement = event.currentTarget;
     const form = new FormData(event.currentTarget);
-    await api("/meals", {
-      method: "POST",
-      body: JSON.stringify({
-        title: String(form.get("title")),
-        items: [{
-          foodId: String(form.get("foodId")),
-          quantity: Number(form.get("quantity")),
-          unit: String(form.get("unit"))
-        }]
-      })
-    }, state);
-    event.currentTarget.reset();
-    await load();
+    try {
+      await api("/meals", {
+        method: "POST",
+        body: JSON.stringify({ title: String(form.get("title")), items: [{ foodId: selectedFood.id, quantity: Number(form.get("quantity")), unit: String(form.get("unit")) }] })
+      }, state);
+      formElement.reset();
+      setSelectedFood(null);
+      setFoodResetVersion((value) => value + 1);
+      await load();
+      setMealStatus({ kind: "success", text: t.mealSaved });
+    } catch (error) {
+      setMealStatus({ kind: "error", text: mealErrorText(error, t.mealErrors) });
+    } finally {
+      setMealSaving(false);
+    }
   }
 
   const profile = user?.profile;
@@ -168,15 +179,14 @@ function App() {
           <form onSubmit={addMeal} className="card space-y-3">
             <h2 className="flex items-center gap-2"><Plus size={20}/>{t.addMeal}</h2>
             <input className="field" name="title" placeholder={t.mealName} required/>
-            <select className="field" name="foodId" required>
-              {foods.map((food) => <option key={food.id} value={food.id}>{food.names?.[lang] ?? food.name} ({Math.round(food.kcalPer100g)} kcal/100g)</option>)}
-            </select>
+            <FoodCombobox lang={lang} state={state} selected={selectedFood} onSelect={setSelectedFood} labels={t.foodSearch} resetVersion={foodResetVersion}/>
             <div className="grid grid-cols-[1fr_120px] gap-3">
-              <input className="field" name="quantity" placeholder={t.quantity} defaultValue="1" type="number" step="0.1" required/>
-              <select className="field" name="unit"><option value="serving">adag</option><option value="g">g</option></select>
+              <label htmlFor="meal-quantity">{t.quantity}<input id="meal-quantity" className="field" name="quantity" defaultValue="1" type="number" min="0.1" max="5000" step="0.1" required/></label>
+              <label htmlFor="meal-unit">{t.unit}<select id="meal-unit" className="field" name="unit"><option value="serving">{t.serving}</option><option value="g">g</option></select></label>
             </div>
             <p className="text-xs text-muted">USDA FoodData Central alapú átlagértékek. Csomagolt termék és barcode import későbbi adapterként jön.</p>
-            <button className="btn primary w-full">{t.addMeal}</button>
+            {mealStatus && <div className={`status ${mealStatus.kind}`} role={mealStatus.kind === "error" ? "alert" : "status"}>{mealStatus.text}</div>}
+            <button className="btn primary w-full" disabled={mealSaving} aria-busy={mealSaving}>{mealSaving ? t.savingMeal : t.addMeal}</button>
           </form>
         </section>
       )}
@@ -221,6 +231,62 @@ function OnboardingField({ id, label, help, defaultValue, placeholder }: { id: s
       />
     </label>
   );
+}
+
+type SearchLabels = { label: string; placeholder: string; loading: string; noResults: string; hint: string; selected: string };
+
+function FoodCombobox({ lang, state, selected, onSelect, labels, resetVersion }: { lang: Lang; state: ApiState; selected: Food | null; onSelect: (food: Food | null) => void; labels: SearchLabels; resetVersion: number }) {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<Food[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(-1);
+
+  useEffect(() => { setQuery(""); setResults([]); setOpen(false); setActive(-1); }, [resetVersion]);
+
+  useEffect(() => {
+    if (query.trim().length < 2 || selected) { setResults([]); setLoading(false); return; }
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      setLoading(true);
+      try {
+        const result = await api<{ foods: Food[] }>(`/foods?q=${encodeURIComponent(query)}`, { signal: controller.signal }, state);
+        setResults(result.foods); setOpen(true); setActive(result.foods.length ? 0 : -1);
+      } catch (error) {
+        if (!(error instanceof DOMException && error.name === "AbortError")) setResults([]);
+      } finally { setLoading(false); }
+    }, 300);
+    return () => { window.clearTimeout(timer); controller.abort(); };
+  }, [query, selected, state]);
+
+  const choose = (food: Food) => { onSelect(food); setQuery(food.names?.[lang] ?? food.name); setOpen(false); };
+  return (
+    <div className="combobox-wrap">
+      <label htmlFor="food-search">{labels.label}</label>
+      <input id="food-search" className="field" role="combobox" autoComplete="off" value={query} placeholder={labels.placeholder}
+        aria-expanded={open} aria-controls="food-results" aria-autocomplete="list" aria-activedescendant={active >= 0 ? `food-option-${active}` : undefined}
+        onChange={(event) => { setQuery(event.target.value); onSelect(null); setOpen(true); }}
+        onKeyDown={(event) => {
+          if (event.key === "ArrowDown") { event.preventDefault(); setOpen(true); setActive((value) => Math.min(value + 1, results.length - 1)); }
+          if (event.key === "ArrowUp") { event.preventDefault(); setActive((value) => Math.max(value - 1, 0)); }
+          if (event.key === "Enter" && open && active >= 0) { event.preventDefault(); choose(results[active]); }
+          if (event.key === "Escape") setOpen(false);
+        }}/>
+      {selected && <div className="selected-food"><strong>{labels.selected}:</strong> {selected.names?.[lang] ?? selected.name} · {Math.round(selected.kcalPer100g)} kcal/100g</div>}
+      {!selected && query.length < 2 && <small className="search-hint">{labels.hint}</small>}
+      {open && query.length >= 2 && !selected && <div id="food-results" className="food-results" role="listbox">
+        {loading ? <div className="food-state">{labels.loading}</div> : results.length === 0 ? <div className="food-state">{labels.noResults}</div> : results.map((food, index) =>
+          <button id={`food-option-${index}`} type="button" role="option" aria-selected={index === active} className={`food-option ${index === active ? "active" : ""}`} key={food.id} onMouseDown={(event) => event.preventDefault()} onClick={() => choose(food)}>
+            <span>{food.names?.[lang] ?? food.name}</span><small>{Math.round(food.kcalPer100g)} kcal/100g</small>
+          </button>)}
+      </div>}
+    </div>
+  );
+}
+
+function mealErrorText(error: unknown, labels: Record<string, string>) {
+  if (!(error instanceof ApiError)) return labels.unknown;
+  return labels[error.code] ?? (error.status === 401 ? labels.unauthorized : error.status && error.status >= 500 ? labels.server : labels.unknown);
 }
 
 createRoot(document.getElementById("root")!).render(<App />);

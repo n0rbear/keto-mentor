@@ -73,9 +73,19 @@ Tracked MVP macros: kcal, fat, protein, carbs, fiber and net carbs.
 
 ## Food Catalog
 
-The MVP ships with an idempotent Prisma seed for a small starter keto catalog: fried egg, avocado, roasted chicken breast, butter, cheddar and spinach. Foods include Hungarian, German and English names/synonyms, source/provenance metadata, and serving-to-gram defaults. The app can search `tükörtojás`, select the catalog item, and calculate macros server-side from serving count or grams.
+The MVP ships with an idempotent Prisma seed for a small starter keto catalog: fried egg, avocado, roasted chicken breast, butter, cheddar and spinach. This is a development starter set, not the final catalog. Foods include Hungarian, German and English names/synonyms, source/provenance metadata, and serving-to-gram defaults. Search runs in PostgreSQL against an accent-normalized `searchText` column and is protected by a trigram GIN index, so the browser never downloads the whole catalog.
 
 Seed values are average per-100 g edible-portion values from USDA FoodData Central / USDA Standard Reference-derived public nutrition mirrors. They are useful for tracking estimates, not exact lab values for a specific product or preparation. Packaged product import is intentionally left as a future Open Food Facts/barcode adapter and is not required at runtime.
+
+### Catalog imports
+
+`apps/api/src/importers` contains a source-adapter boundary and an idempotent importer. Foods are upserted by `(source, sourceId)`; micronutrients are upserted through the existing `Nutrient` and `FoodNutrient` tables. The CSV adapter is ready for downloaded, license-compliant USDA FoodData Central and BLS extracts after their source-specific columns are mapped to the included fixture format. It deliberately does not fetch remote datasets at application runtime.
+
+```bash
+npm run catalog:import -w apps/api -- usda apps/api/fixtures/catalog-sample.csv
+```
+
+Micronutrient columns use `nutrient_<key>_<unit>_<group>`, for example `nutrient_sodium_mg_electrolyte`. The schema supports sodium, potassium, calcium, magnesium, phosphorus, iron, zinc, copper, manganese, selenium, vitamins A, B1/B2/B3/B5/B6/B7/B9/B12, C, D, E and K, plus additional keys without a schema change. Do not import BLS data without confirming its current licensing terms.
 
 ## API
 
@@ -85,6 +95,7 @@ Seed values are average per-100 g edible-portion values from USDA FoodData Centr
 - `POST /auth/logout`
 - `GET /me`
 - `PUT /me/onboarding`
+- `GET /foods?q=<at-least-2-characters>` (maximum 20 results)
 - `GET /meals/today`
 - `POST /meals`
 

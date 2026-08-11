@@ -1,4 +1,5 @@
 import { PrismaClient, type Prisma } from "@prisma/client";
+import { buildSearchText } from "../src/catalog/normalize.js";
 
 const prisma = new PrismaClient();
 
@@ -148,16 +149,47 @@ async function main() {
     data: [
       { key: "sodium", label: "Sodium", unit: "mg", group: "electrolyte" },
       { key: "potassium", label: "Potassium", unit: "mg", group: "electrolyte" },
-      { key: "magnesium", label: "Magnesium", unit: "mg", group: "mineral" }
+      { key: "calcium", label: "Calcium", unit: "mg", group: "mineral" },
+      { key: "magnesium", label: "Magnesium", unit: "mg", group: "mineral" },
+      { key: "phosphorus", label: "Phosphorus", unit: "mg", group: "mineral" },
+      { key: "iron", label: "Iron", unit: "mg", group: "trace_element" },
+      { key: "zinc", label: "Zinc", unit: "mg", group: "trace_element" },
+      { key: "copper", label: "Copper", unit: "mg", group: "trace_element" },
+      { key: "manganese", label: "Manganese", unit: "mg", group: "trace_element" },
+      { key: "selenium", label: "Selenium", unit: "ug", group: "trace_element" },
+      { key: "vitamin_a", label: "Vitamin A", unit: "ug", group: "vitamin" },
+      { key: "vitamin_b1", label: "Vitamin B1 (thiamin)", unit: "mg", group: "vitamin" },
+      { key: "vitamin_b2", label: "Vitamin B2 (riboflavin)", unit: "mg", group: "vitamin" },
+      { key: "vitamin_b3", label: "Vitamin B3 (niacin)", unit: "mg", group: "vitamin" },
+      { key: "vitamin_b5", label: "Vitamin B5", unit: "mg", group: "vitamin" },
+      { key: "vitamin_b6", label: "Vitamin B6", unit: "mg", group: "vitamin" },
+      { key: "vitamin_b7", label: "Vitamin B7 (biotin)", unit: "ug", group: "vitamin" },
+      { key: "vitamin_b9", label: "Vitamin B9 (folate)", unit: "ug", group: "vitamin" },
+      { key: "vitamin_b12", label: "Vitamin B12", unit: "ug", group: "vitamin" },
+      { key: "vitamin_c", label: "Vitamin C", unit: "mg", group: "vitamin" },
+      { key: "vitamin_d", label: "Vitamin D", unit: "ug", group: "vitamin" },
+      { key: "vitamin_e", label: "Vitamin E", unit: "mg", group: "vitamin" },
+      { key: "vitamin_k", label: "Vitamin K", unit: "ug", group: "vitamin" }
     ],
     skipDuplicates: true
   });
 
   for (const food of foods) {
+    const sourceId = String((food.provenance as Record<string, unknown>).fdcId ?? food.id);
+    const { id, ...foodData } = food;
+    const metadata = {
+      ...foodData,
+      source: "open_database" as const,
+      sourceId,
+      originalName: food.name,
+      category: "starter_catalog",
+      searchText: buildSearchText(food),
+      createdById: null
+    };
     await prisma.food.upsert({
       where: { id: food.id },
-      update: { ...food, source: "open_database", createdById: null },
-      create: { ...food, source: "open_database", createdById: null }
+      update: metadata,
+      create: { id, ...metadata }
     });
   }
 }

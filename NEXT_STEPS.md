@@ -2,7 +2,7 @@
 
 - Add refresh-token rotation endpoint and per-session logout UI.
 - Add password reset and optional email verification.
-- Seed common keto foods from open datasets with clear provenance.
+- Build source-specific USDA and licensed BLS column mappings on top of the importer, then run imports outside the repository.
 - Add barcode lookup and Open Food Facts integration.
 - Add premium feature gates for coach chat, meal plans and shopping lists.
 - Add mobile app clients against the same API.

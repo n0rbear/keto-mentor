@@ -12,10 +12,11 @@ import { env } from "./config.js";
 import { hashPassword, requireAuth, setRefreshCookie, signAccessToken, signRefreshToken, verifyPassword } from "./auth.js";
 import { prisma } from "./db.js";
 import { serializeMeal } from "./nutrition.js";
+import { searchFoods } from "./catalog/food-search.js";
+import { createMeal } from "./meals/create-meal.js";
 
 const logger = pino({ level: env.NODE_ENV === "production" ? "info" : "debug" });
 const app = express();
-const normalizeSearch = (value: string) => value.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
 
 if (env.NODE_ENV === "production") app.set("trust proxy", 1);
 
@@ -23,7 +24,7 @@ app.use(helmet());
 app.use(compression());
 app.use(express.json({ limit: "256kb" }));
 app.use(cookieParser());
-app.use(cors({ origin: env.CORS_ORIGIN.split(","), credentials: true }));
+app.use(cors({ origin: env.CORS_ORIGIN.split(",").map((origin) => origin.trim()), credentials: true }));
 app.use(pinoHttp({ logger }));
 
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 20, standardHeaders: true, legacyHeaders: false });
@@ -89,19 +90,13 @@ app.get("/me", requireAuth, async (req, res) => {
   res.json({ user });
 });
 
-app.get("/foods", requireAuth, async (req, res) => {
-  const query = normalizeSearch(String(req.query.q ?? "").trim());
-  const foods = await prisma.food.findMany({
-    where: { createdById: null },
-    take: 50,
-    orderBy: { name: "asc" }
-  });
-  const filtered = foods.filter((food) => {
-    if (!query) return true;
-    const blob = normalizeSearch(JSON.stringify([food.name, food.names, food.synonyms]));
-    return blob.includes(query);
-  });
-  res.json({ foods: filtered });
+app.get("/foods", requireAuth, async (req, res, next) => {
+  try {
+    const foods = await searchFoods(prisma, String(req.query.q ?? ""));
+    res.json({ foods });
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.put("/me/onboarding", requireAuth, async (req, res, next) => {
@@ -146,44 +141,8 @@ app.get("/meals/today", requireAuth, async (req, res) => {
 app.post("/meals", requireAuth, async (req, res, next) => {
   try {
     const input = createMealSchema.parse(req.body);
-    const catalogFoodIds = input.items.filter((item) => "foodId" in item).map((item) => item.foodId);
-    const catalogFoods = await prisma.food.findMany({ where: { id: { in: catalogFoodIds } } });
-    const byId = new Map(catalogFoods.map((food) => [food.id, food]));
-    const meal = await prisma.meal.create({
-      data: {
-        userId: req.user!.id,
-        title: input.title,
-        eatenAt: input.eatenAt ? new Date(input.eatenAt) : new Date(),
-        items: {
-          create: input.items.map((item) => {
-            if ("foodId" in item) {
-              const food = byId.get(item.foodId);
-              if (!food) throw new Error("food_not_found");
-              const quantityGrams = item.unit === "serving" ? item.quantity * (food.servingGrams ?? 100) : item.quantity;
-              return { quantityGrams, food: { connect: { id: item.foodId } } };
-            }
-            return {
-              quantityGrams: item.quantityGrams,
-              food: {
-                create: {
-                  name: item.foodName,
-                  source: item.source,
-                  provenance: { createdVia: "manual_fallback", userId: req.user!.id },
-                  kcalPer100g: item.kcalPer100g,
-                  fatPer100g: item.fatPer100g,
-                  proteinPer100g: item.proteinPer100g,
-                  carbsPer100g: item.carbsPer100g,
-                  fiberPer100g: item.fiberPer100g,
-                  createdById: req.user!.id
-                }
-              }
-            };
-          })
-        }
-      },
-      include: { items: { include: { food: true } } }
-    });
-    res.status(201).json({ meal: serializeMeal(meal) });
+    const meal = await createMeal(prisma, req.user!.id, input);
+    res.status(201).json({ meal });
   } catch (error) {
     next(error);
   }
@@ -191,6 +150,7 @@ app.post("/meals", requireAuth, async (req, res, next) => {
 
 app.use((error: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   if (error?.name === "ZodError") return res.status(400).json({ error: "validation_error", issues: error.issues });
+  if (error?.status && error?.publicCode) return res.status(error.status).json({ error: error.publicCode });
   logger.error(error);
   res.status(500).json({ error: "internal_error" });
 });
