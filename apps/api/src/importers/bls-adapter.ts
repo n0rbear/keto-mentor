@@ -9,7 +9,11 @@ const CATEGORIES: Record<string, string> = { B: "Bread and baked goods", C: "Cer
 export class BlsAdapter {
   readonly source = "bls" as const;
   readonly sourceName = "Bundeslebensmittelschlüssel";
-  constructor(readonly version = "4.0 (2025)", private readonly pilotLimit?: number) {}
+  constructor(
+    readonly version = "4.0 (2025)",
+    private readonly pilotLimit?: number,
+    private readonly selectedSourceIds?: ReadonlySet<string>
+  ) {}
 
   async *read(filePath: string): AsyncIterable<ImportRow> {
     const workbook = new ExcelJS.Workbook(); await workbook.xlsx.readFile(filePath);
@@ -17,7 +21,10 @@ export class BlsAdapter {
     const headers = (sheet.getRow(1).values as unknown[]).slice(1).map(String);
     const raw: BlsRow[] = [];
     sheet.eachRow((row, rowNumber) => { if (rowNumber === 1) return; const values: Record<string, unknown> = {}; headers.forEach((header, index) => { const code = header.split(" ")[0]; if (!header.includes("Datenherkunft") && !header.includes("Referenz")) values[code] = row.getCell(index + 1).value; }); raw.push({ row: rowNumber, values }); });
-    const selected = balancedPilot(raw, ({ values }) => String(values["BLS"] ?? "").slice(0, 1), this.pilotLimit);
+    const eligible = this.selectedSourceIds
+      ? raw.filter(({ values }) => this.selectedSourceIds?.has(String(values["BLS"] ?? "")))
+      : raw;
+    const selected = balancedPilot(eligible, ({ values }) => String(values["BLS"] ?? "").slice(0, 1), this.pilotLimit);
     for (const item of selected) {
       const code = String(item.values["BLS"] ?? "");
       const originalName = String(item.values["Lebensmittelbezeichnung"] ?? "");

@@ -19,7 +19,7 @@ export async function upsertImportedFood(prisma: PrismaClient, food: ImportFood)
       });
     }
     return saved;
-  });
+  }, { maxWait: 10_000, timeout: 30_000 });
 }
 
 export async function importFoods(prisma: PrismaClient, adapter: FoodSourceAdapter, filePath: string, options: ImportOptions = {}): Promise<ImportReport> {

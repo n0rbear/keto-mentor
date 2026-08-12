@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { PrismaClient } from "@prisma/client";
 import { searchFoods } from "./food-search.js";
+import { normalizeSearch } from "./normalize.js";
 
 const records = [
   { id: "chicken", name: "Roasted chicken breast", searchText: "sult csirkemell gebratene hahnchenbrust roasted chicken breast csirke huhn chicken" },
@@ -20,4 +21,5 @@ describe("food search", () => {
   it("returns no foods for an unknown query", async () => expect(await searchFoods(prisma, "quinoa-pizza")).toEqual([]));
   it("does not query the catalog below two characters", async () => expect(await searchFoods(prisma, "c")).toEqual([]));
   it("builds pilot-compatible original-name search text", async () => expect((await searchFoods(prisma, "roasted chick"))[0]?.id).toBe("chicken"));
+  it("normalizes German sharp s for accentless searches", () => expect(normalizeSearch("Weißkohl Süßrahmbutter")).toBe("weisskohl sussrahmbutter"));
 });
