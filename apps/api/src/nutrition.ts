@@ -1,33 +1,18 @@
-import type { Food, Meal, MealItem } from "@prisma/client";
+import type { Food, Meal, MealItem, Recipe } from "@prisma/client";
+import { addMacros, emptyMacros, scaleMacros } from "./nutrition-core.js";
 
-type MealWithItems = Meal & { items: Array<MealItem & { food: Food }> };
+type MealWithItems = Meal & { items: Array<MealItem & { food: Food | null; recipe?: Recipe | null }> };
 
-export function itemTotals(item: MealItem & { food: Food }) {
-  const factor = item.quantityGrams / 100;
-  const carbs = item.food.carbsPer100g * factor;
-  const fiber = item.food.fiberPer100g * factor;
-  return {
-    kcal: item.food.kcalPer100g * factor,
-    fat: item.food.fatPer100g * factor,
-    protein: item.food.proteinPer100g * factor,
-    carbs,
-    fiber,
-    netCarbs: Math.max(0, carbs - fiber)
-  };
+export function itemTotals(item: MealItem & { food: Food | null }) {
+  if (item.snapshotKcal != null && item.snapshotFat != null && item.snapshotProtein != null && item.snapshotCarbs != null && item.snapshotFiber != null) {
+    return scaleMacros({ kcal: item.snapshotKcal, fat: item.snapshotFat, protein: item.snapshotProtein, carbs: item.snapshotCarbs, fiber: item.snapshotFiber }, 1);
+  }
+  if (!item.food) return emptyMacros();
+  return scaleMacros({ kcal: item.food.kcalPer100g, fat: item.food.fatPer100g, protein: item.food.proteinPer100g, carbs: item.food.carbsPer100g, fiber: item.food.fiberPer100g }, item.quantityGrams / 100);
 }
 
 export function mealTotals(meal: MealWithItems) {
-  return meal.items.map(itemTotals).reduce(
-    (sum, item) => ({
-      kcal: sum.kcal + item.kcal,
-      fat: sum.fat + item.fat,
-      protein: sum.protein + item.protein,
-      carbs: sum.carbs + item.carbs,
-      fiber: sum.fiber + item.fiber,
-      netCarbs: sum.netCarbs + item.netCarbs
-    }),
-    { kcal: 0, fat: 0, protein: 0, carbs: 0, fiber: 0, netCarbs: 0 }
-  );
+  return meal.items.map(itemTotals).reduce(addMacros, emptyMacros());
 }
 
 export function serializeMeal(meal: MealWithItems) {
@@ -36,6 +21,6 @@ export function serializeMeal(meal: MealWithItems) {
     title: meal.title,
     eatenAt: meal.eatenAt,
     totals: mealTotals(meal),
-    items: meal.items.map((item) => ({ id: item.id, quantityGrams: item.quantityGrams, food: item.food, totals: itemTotals(item) }))
+    items: meal.items.map((item) => ({ id: item.id, quantityGrams: item.quantityGrams, displayName: item.displayName ?? item.food?.name ?? item.recipe?.title, food: item.food, recipeId: item.recipeId, snapshotNutrients: item.snapshotNutrients, totals: itemTotals(item) }))
   };
 }

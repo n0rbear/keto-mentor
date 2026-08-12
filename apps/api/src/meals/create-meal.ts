@@ -26,7 +26,7 @@ export async function createMeal(prisma: PrismaClient, userId: string, input: Cr
         })
       }
     },
-    include: { items: { include: { food: true } } }
+    include: { items: { include: { food: true, recipe: true } } }
   });
   return serializeMeal(meal);
 }

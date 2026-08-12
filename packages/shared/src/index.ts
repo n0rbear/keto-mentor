@@ -50,6 +50,37 @@ export const createMealSchema = z.object({
   items: z.array(z.union([catalogMealItemSchema, manualMealItemSchema])).min(1).max(20)
 });
 
+export const recipeVisibilitySchema = z.enum(["private", "public", "unlisted"]);
+export const recipeIngredientSchema = z.object({
+  foodId: z.string().min(1),
+  quantityGrams: z.number().positive().max(50_000),
+  originalText: z.string().trim().max(300).optional(),
+  preparation: z.string().trim().max(200).optional(),
+  sortOrder: z.number().int().min(0).max(100).optional()
+});
+export const recipeInputSchema = z.object({
+  title: z.string().trim().min(2).max(120),
+  description: z.string().trim().max(2_000).optional(),
+  servings: z.number().positive().max(1000).optional(),
+  finishedWeightGrams: z.number().positive().max(100_000).optional(),
+  visibility: recipeVisibilitySchema.default("private"),
+  sourceType: z.enum(["manual", "schema_org", "ai_structured"]).default("manual"),
+  sourceUrl: z.string().url().max(2_000).optional(),
+  ingredients: z.array(recipeIngredientSchema).min(1).max(50)
+});
+export const recipeMealSchema = z.object({
+  title: z.string().trim().min(2).max(100).optional(),
+  quantity: z.number().positive().max(5000),
+  unit: z.enum(["g", "serving"])
+});
+export const recipeListQuerySchema = z.object({
+  q: z.string().trim().max(120).optional(),
+  limit: z.coerce.number().int().min(1).max(50).default(20),
+  cursor: z.string().optional()
+});
+export type RecipeInput = z.infer<typeof recipeInputSchema>;
+export type RecipeMealInput = z.infer<typeof recipeMealSchema>;
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type OnboardingInput = z.infer<typeof onboardingSchema>;

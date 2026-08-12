@@ -23,6 +23,18 @@ enum EntitlementPlan {
   premium
 }
 
+enum RecipeVisibility {
+  private
+  public
+  unlisted
+}
+
+enum RecipeSourceType {
+  manual
+  schema_org
+  ai_structured
+}
+
 model User {
   id           String        @id @default(cuid())
   username     String        @unique
@@ -36,6 +48,7 @@ model User {
   sessions     Session[]
   meals        Meal[]
   entitlements Entitlement[]
+  recipes      Recipe[]
 }
 
 model Session {
@@ -101,6 +114,7 @@ model Food {
   createdAt   DateTime @default(now())
   nutrients   FoodNutrient[]
   mealItems   MealItem[]
+  recipeIngredients RecipeIngredient[]
 
   @@index([name])
   @@index([barcode])
@@ -139,8 +153,60 @@ model Meal {
 model MealItem {
   id            String @id @default(cuid())
   mealId        String
+  foodId        String?
+  recipeId      String?
+  quantityGrams Float
+  displayName   String?
+  snapshotKcal Float?
+  snapshotFat Float?
+  snapshotProtein Float?
+  snapshotCarbs Float?
+  snapshotFiber Float?
+  snapshotNutrients Json?
+  meal          Meal   @relation(fields: [mealId], references: [id], onDelete: Cascade)
+  food          Food?  @relation(fields: [foodId], references: [id])
+  recipe        Recipe? @relation(fields: [recipeId], references: [id], onDelete: SetNull)
+
+  @@index([recipeId])
+}
+
+model Recipe {
+  id                  String @id @default(cuid())
+  userId              String
+  title               String
+  description         String?
+  servings            Float?
+  finishedWeightGrams Float?
+  visibility          RecipeVisibility @default(private)
+  sourceType          RecipeSourceType @default(manual)
+  sourceUrl           String?
+  provenance          Json?
+  forkedFromRecipeId  String?
+  deletedAt           DateTime?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  user                User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ingredients         RecipeIngredient[]
+  mealItems           MealItem[]
+  forkedFrom          Recipe? @relation("RecipeForks", fields: [forkedFromRecipeId], references: [id], onDelete: SetNull)
+  forks               Recipe[] @relation("RecipeForks")
+
+  @@index([userId, deletedAt])
+  @@index([visibility, deletedAt, createdAt])
+  @@index([title])
+}
+
+model RecipeIngredient {
+  id            String @id @default(cuid())
+  recipeId      String
   foodId        String
   quantityGrams Float
-  meal          Meal   @relation(fields: [mealId], references: [id], onDelete: Cascade)
-  food          Food   @relation(fields: [foodId], references: [id])
+  originalText  String?
+  preparation   String?
+  sortOrder     Int @default(0)
+  recipe        Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  food          Food @relation(fields: [foodId], references: [id])
+
+  @@index([recipeId, sortOrder])
+  @@index([foodId])
 }

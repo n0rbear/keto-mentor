@@ -100,6 +100,12 @@ Every real import must first pass `--dry-run`; raw data stays out of Git and imp
 - `GET /foods?q=<at-least-2-characters>` (maximum 20 results)
 - `GET /meals/today`
 - `POST /meals`
+- `GET /recipes` and `GET /recipes/public`
+- `GET /recipes/:id`
+- `POST /recipes` and `PUT/PATCH/DELETE /recipes/:id`
+- `POST /recipes/:id/fork` and `POST /recipes/:id/meals`
+
+Recipe ownership, meal snapshots, public forking and the future safe JSON-LD import design are documented in [`docs/RECIPE_ARCHITECTURE.md`](docs/RECIPE_ARCHITECTURE.md).
 
 ## Deployment
 
@@ -108,7 +114,7 @@ Every real import must first pass `--dry-run`; raw data stays out of Git and imp
 - API web service
 - Static frontend
 
-Production deploy requires setting strong JWT secrets and a PostgreSQL `DATABASE_URL`. When sharing an existing Render Postgres database with another app, use a dedicated schema, for example append `?schema=keto_mentor` to the internal connection string. Prisma migrations will then create and use only that schema.
+Production deploy requires setting strong JWT secrets and a PostgreSQL `DATABASE_URL`. The current shared production database uses the dedicated `ketomentor` schema (for example `?schema=ketomentor`); Prisma's database-target guard rejects any other schema before migration or seed.
 
 The API exposes `GET /health` and the Render web service should use `/health` as its health-check path. On Render free web services, idle services may spin down and the first request after inactivity can be a cold start. This app intentionally does not include artificial keep-alive pinging; the supported always-on path is a Render paid web service plan.
 
