@@ -50,3 +50,9 @@ USDA stores `originalName` and `names.en`; BLS stores the German `originalName` 
 5. Capture after sizes and subtract before values. Run `API_URL=... ACCESS_TOKEN=... npm run catalog:benchmark -w apps/api`, then verify search, select, grams/serving, meal save, totals, and reload persistence.
 
 No production database URL is available in this development environment, so production sizes, authenticated `/foods` timings, and meal-flow regression are intentionally deferred until the branch is merged and a separate production-import instruction is given.
+
+## European essentials supplement
+
+The category-balanced pilot is complemented by a separately reviewed, source-ID-bound 100-food European essentials manifest. See [European essentials pilot](./european-essentials.md). Its default command is dry-run, its only USDA fallback is an explicit SR Legacy Tempeh identity, and it never fuzzy-selects source records.
+
+Recipe composition is intentionally not part of the catalog import. The next-phase data and calculation boundaries are recorded in [Recipe architecture](./recipe-architecture.md).

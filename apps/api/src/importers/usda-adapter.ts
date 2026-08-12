@@ -16,13 +16,21 @@ export class UsdaFoodDataCentralAdapter {
   readonly diagnostics: string[] = [];
   readonly source = "usda_fdc" as const;
   readonly sourceName = "USDA FoodData Central";
-  constructor(readonly dataType: "foundation" | "sr_legacy", readonly version: string, private readonly pilotLimit?: number) {}
+  constructor(
+    readonly dataType: "foundation" | "sr_legacy",
+    readonly version: string,
+    private readonly pilotLimit?: number,
+    private readonly selectedSourceIds?: ReadonlySet<string>
+  ) {}
 
   async *read(directory: string): AsyncIterable<ImportRow> {
     const membershipFile = this.dataType === "foundation" ? "foundation_food.csv" : "sr_legacy_food.csv";
     const membership = new Set((await rows(join(directory, membershipFile))).map((row) => row.fdc_id));
     const categories = new Map((await rows(join(directory, "food_category.csv"))).map((row) => [row.id, row.description]));
-    const foods = balancedPilot((await rows(join(directory, "food.csv"))).filter((row) => membership.has(row.fdc_id)), (row) => row.food_category_id, this.pilotLimit);
+    const eligibleFoods = (await rows(join(directory, "food.csv"))).filter((row) =>
+      membership.has(row.fdc_id) && (!this.selectedSourceIds || this.selectedSourceIds.has(row.fdc_id))
+    );
+    const foods = balancedPilot(eligibleFoods, (row) => row.food_category_id, this.pilotLimit);
     const selected = new Set(foods.map((row) => row.fdc_id));
     const nutrientLists = new Map<string, ImportNutrient[]>();
     for (const row of await rows(join(directory, "food_nutrient.csv"))) {

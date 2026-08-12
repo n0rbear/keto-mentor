@@ -17,6 +17,8 @@
     "seed:dev": "tsx prisma/seed.ts",
     "precatalog:import": "tsx src/validate-database-target.ts",
     "catalog:import": "tsx src/importers/cli.ts",
+    "precatalog:essentials": "tsx src/validate-database-target.ts",
+    "catalog:essentials": "tsx src/importers/european-essentials-cli.ts",
     "catalog:db-size": "tsx src/importers/db-size.ts",
     "catalog:benchmark": "tsx src/importers/search-benchmark.ts"
   },

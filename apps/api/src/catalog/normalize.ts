@@ -2,6 +2,7 @@ export function normalizeSearch(value: string) {
   return value
     .normalize("NFD")
     .replace(/\p{Diacritic}/gu, "")
+    .replace(/ß/g, "ss")
     .toLocaleLowerCase("en")
     .replace(/[^a-z0-9]+/g, " ")
     .trim()
