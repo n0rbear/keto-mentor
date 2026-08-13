@@ -42,6 +42,8 @@ label { display: grid; gap: 6px; font-size: 13px; font-weight: 800; color: #2437
 .food-option small, .search-hint { color: #60727E; }
 .food-state { padding: 14px; color: #60727E; }
 .selected-food { border-radius: 12px; background: #EAF8F8; padding: 10px 12px; color: #047F82; font-size: 13px; }
+.serving-detail { display: grid; gap: 6px; border: 1px solid #D6E6E8; border-radius: 12px; background: #F9FCFD; padding: 10px 12px; color: #60727E; font-size: 12px; }
+.serving-detail strong { color: #047F82; }
 .status { border-radius: 12px; padding: 11px 13px; font-size: 13px; font-weight: 700; }
 .status.success { border: 1px solid #8BD5B1; background: #ECFAF3; color: #17613D; }
 .status.error { border: 1px solid #E8A7A7; background: #FFF1F1; color: #8B2424; }

@@ -81,7 +81,7 @@ Seed values are average per-100 g edible-portion values from USDA FoodData Centr
 
 See [`docs/catalog-import.md`](docs/catalog-import.md) for verified 2026 USDA/BLS releases, licensing, pilot scope, dry-run and production-safe runbook.
 
-`apps/api/src/importers` contains native adapters for extracted FoodData Central CSV releases and the official BLS 4.0 XLSX workbook. Foods are upserted by `(source, sourceId)`; normalized nutrients are shared through the existing `Nutrient` and `FoodNutrient` tables. The importer deliberately does not fetch remote datasets at application runtime.
+`apps/api/src/importers` contains native adapters for extracted FoodData Central CSV releases and the official BLS 4.0 XLSX workbook. Foods are upserted by `(source, sourceId)`; normalized nutrients are shared through the existing `Nutrient` and `FoodNutrient` tables. The importer deliberately does not fetch remote datasets at application runtime. Everyday multilingual resolution, Food-specific serving conversions and the safe web-discovery boundary are documented in [`docs/food-resolution-and-servings.md`](docs/food-resolution-and-servings.md).
 
 ```bash
 npm run catalog:import -w apps/api -- usda-foundation /data/foundation --dry-run --pilot 395

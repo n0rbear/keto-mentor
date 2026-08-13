@@ -2,10 +2,11 @@ import type { PrismaClient } from "@prisma/client";
 import type { CreateMealInput } from "@keto-mentor/shared";
 import { serializeMeal } from "../nutrition.js";
 import { assertExactlyOneMealItemSource } from "./meal-item-source.js";
+import { convertFoodQuantity } from "./food-quantity.js";
 
 export async function createMeal(prisma: PrismaClient, userId: string, input: CreateMealInput) {
   const catalogFoodIds = input.items.filter((item) => "foodId" in item).map((item) => item.foodId);
-  const catalogFoods = await prisma.food.findMany({ where: { id: { in: catalogFoodIds } } });
+  const catalogFoods = await prisma.food.findMany({ where: { id: { in: catalogFoodIds } }, include: { servings: true } });
   const byId = new Map(catalogFoods.map((food) => [food.id, food]));
   const meal = await prisma.meal.create({
     data: {
@@ -18,8 +19,14 @@ export async function createMeal(prisma: PrismaClient, userId: string, input: Cr
             assertExactlyOneMealItemSource({ hasFood: true, hasRecipe: false });
             const food = byId.get(item.foodId);
             if (!food) throw Object.assign(new Error("food_not_found"), { status: 404, publicCode: "food_not_found" });
-            const quantityGrams = item.unit === "serving" ? item.quantity * (food.servingGrams ?? 100) : item.quantity;
-            return { quantityGrams, food: { connect: { id: item.foodId } } };
+            const converted = convertFoodQuantity(item, food.servings);
+            return {
+              quantityGrams: converted.grams,
+              inputQuantity: item.quantity,
+              inputUnit: item.unit,
+              conversionSnapshot: converted.snapshot,
+              food: { connect: { id: item.foodId } }
+            };
           }
           assertExactlyOneMealItemSource({ hasFood: true, hasRecipe: false });
           return {

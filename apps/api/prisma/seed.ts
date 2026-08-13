@@ -191,6 +191,26 @@ async function main() {
       update: metadata,
       create: { id, ...metadata }
     });
+
+    for (const [kind, localized] of [["localized_name", food.names], ["synonym", food.synonyms]] as const) {
+      for (const [locale, values] of Object.entries(localized)) {
+        const aliases = Array.isArray(values) ? values : [values];
+        for (const alias of aliases) {
+        const normalizedAlias = buildSearchText({ name: alias });
+        await prisma.foodAlias.upsert({
+          where: { foodId_normalizedAlias_locale: { foodId: id, normalizedAlias, locale } },
+          update: { alias, kind, confidence: 1 },
+          create: { foodId: id, alias, normalizedAlias, locale, kind, confidence: 1, provenance: { method: "curated_seed" } }
+        });
+        }
+      }
+    }
+
+    await prisma.foodServing.upsert({
+      where: { foodId_key: { foodId: id, key: food.servingUnit } },
+      update: { unit: food.servingUnit, grams: food.servingGrams, labels: { en: food.servingUnit }, isEstimated: false, confidence: 1, provenance: { method: "curated_seed", source: food.provenance } },
+      create: { foodId: id, key: food.servingUnit, unit: food.servingUnit, grams: food.servingGrams, labels: { en: food.servingUnit }, isEstimated: false, confidence: 1, provenance: { method: "curated_seed", source: food.provenance } }
+    });
   }
 }
 

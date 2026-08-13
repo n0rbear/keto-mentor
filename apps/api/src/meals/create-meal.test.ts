@@ -3,7 +3,7 @@ import type { Food, PrismaClient } from "@prisma/client";
 import { createMealSchema } from "@keto-mentor/shared";
 import { createMeal } from "./create-meal.js";
 
-const food = { id: "egg", name: "Fried egg", servingGrams: 50, kcalPer100g: 200, fatPer100g: 15, proteinPer100g: 14, carbsPer100g: 1, fiberPer100g: 0 } as Food;
+const food = { id: "egg", name: "Fried egg", servingGrams: 50, servings: [{ id: "egg-serving", key: "piece", unit: "piece", grams: 50, isEstimated: false, confidence: 1, provenance: { source: "test" } }], kcalPer100g: 200, fatPer100g: 15, proteinPer100g: 14, carbsPer100g: 1, fiberPer100g: 0 } as Food & { servings: any[] };
 
 function fakePrisma(hasFood = true) {
   let capturedGrams = 0;
@@ -27,7 +27,13 @@ describe("meal creation", () => {
 
   it("converts serving units to grams", async () => {
     const fake = fakePrisma();
-    await createMeal(fake.client, "user", createMealSchema.parse({ title: "Breakfast", items: [{ foodId: "egg", quantity: 2, unit: "serving" }] }));
+    await createMeal(fake.client, "user", createMealSchema.parse({ title: "Breakfast", items: [{ foodId: "egg", quantity: 2, unit: "serving", servingId: "egg-serving" }] }));
+    expect(fake.grams()).toBe(100);
+  });
+
+  it("stores the original input and conversion snapshot", async () => {
+    const fake = fakePrisma();
+    await createMeal(fake.client, "user", createMealSchema.parse({ title: "Breakfast", items: [{ foodId: "egg", quantity: 2, unit: "serving", servingId: "egg-serving" }] }));
     expect(fake.grams()).toBe(100);
   });
 
