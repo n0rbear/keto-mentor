@@ -2,6 +2,7 @@ import type { Prisma, PrismaClient } from "@prisma/client";
 import type { RecipeInput, RecipeMealInput } from "@keto-mentor/shared";
 import { calculateRecipeNutrition, scaleRecipeSnapshot, type RecipeWithIngredients } from "./nutrition.js";
 import { serializeMeal } from "../nutrition.js";
+import { assertExactlyOneMealItemSource } from "../meals/meal-item-source.js";
 
 const recipeInclude = {
   user: { select: { id: true, username: true } },
@@ -141,6 +142,7 @@ export async function addRecipeToMeal(prisma: PrismaClient, userId: string, reci
     : input.quantity / baseWeight;
   const snapshot = scaleRecipeSnapshot(nutrition.total.macros, nutrition.total.nutrients, factor);
   const quantityGrams = input.unit === "serving" ? baseWeight * factor : input.quantity;
+  assertExactlyOneMealItemSource({ hasFood: false, hasRecipe: true });
   const meal = await prisma.meal.create({
     data: {
       userId,

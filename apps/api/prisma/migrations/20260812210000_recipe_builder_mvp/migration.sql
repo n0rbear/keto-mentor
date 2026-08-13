@@ -40,6 +40,12 @@ ALTER TABLE "ketomentor"."MealItem" ADD COLUMN "snapshotCarbs" DOUBLE PRECISION;
 ALTER TABLE "ketomentor"."MealItem" ADD COLUMN "snapshotFiber" DOUBLE PRECISION;
 ALTER TABLE "ketomentor"."MealItem" ADD COLUMN "snapshotNutrients" JSONB;
 
+-- Existing production MealItems are Food-backed. Add without an initial table
+-- rewrite, then validate the audited rows before the migration completes.
+ALTER TABLE "ketomentor"."MealItem" ADD CONSTRAINT "MealItem_exactly_one_source_check"
+  CHECK (("foodId" IS NOT NULL AND "recipeId" IS NULL) OR ("foodId" IS NULL AND "recipeId" IS NOT NULL)) NOT VALID;
+ALTER TABLE "ketomentor"."MealItem" VALIDATE CONSTRAINT "MealItem_exactly_one_source_check";
+
 CREATE INDEX "Recipe_userId_deletedAt_idx" ON "ketomentor"."Recipe"("userId", "deletedAt");
 CREATE INDEX "Recipe_visibility_deletedAt_createdAt_idx" ON "ketomentor"."Recipe"("visibility", "deletedAt", "createdAt");
 CREATE INDEX "Recipe_title_idx" ON "ketomentor"."Recipe"("title");
@@ -51,4 +57,4 @@ ALTER TABLE "ketomentor"."Recipe" ADD CONSTRAINT "Recipe_userId_fkey" FOREIGN KE
 ALTER TABLE "ketomentor"."Recipe" ADD CONSTRAINT "Recipe_forkedFromRecipeId_fkey" FOREIGN KEY ("forkedFromRecipeId") REFERENCES "ketomentor"."Recipe"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 ALTER TABLE "ketomentor"."RecipeIngredient" ADD CONSTRAINT "RecipeIngredient_recipeId_fkey" FOREIGN KEY ("recipeId") REFERENCES "ketomentor"."Recipe"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE "ketomentor"."RecipeIngredient" ADD CONSTRAINT "RecipeIngredient_foodId_fkey" FOREIGN KEY ("foodId") REFERENCES "ketomentor"."Food"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-ALTER TABLE "ketomentor"."MealItem" ADD CONSTRAINT "MealItem_recipeId_fkey" FOREIGN KEY ("recipeId") REFERENCES "ketomentor"."Recipe"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "ketomentor"."MealItem" ADD CONSTRAINT "MealItem_recipeId_fkey" FOREIGN KEY ("recipeId") REFERENCES "ketomentor"."Recipe"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

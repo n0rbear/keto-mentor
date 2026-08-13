@@ -151,6 +151,7 @@ model Meal {
 }
 
 model MealItem {
+  /// Exactly one of foodId and recipeId is required by MealItem_exactly_one_source_check.
   id            String @id @default(cuid())
   mealId        String
   foodId        String?
@@ -165,7 +166,7 @@ model MealItem {
   snapshotNutrients Json?
   meal          Meal   @relation(fields: [mealId], references: [id], onDelete: Cascade)
   food          Food?  @relation(fields: [foodId], references: [id])
-  recipe        Recipe? @relation(fields: [recipeId], references: [id], onDelete: SetNull)
+  recipe        Recipe? @relation(fields: [recipeId], references: [id], onDelete: Restrict)
 
   @@index([recipeId])
 }

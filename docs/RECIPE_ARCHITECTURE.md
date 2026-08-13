@@ -6,7 +6,7 @@
 
 Visibility defaults to `private`. Private and prepared `unlisted` recipes are owner-only in the MVP. Public recipes can be listed and read by any authenticated user, but update and soft-delete operations always require ownership. Forking a public recipe creates a detached private copy for the current user while retaining `forkedFromRecipeId`, original author and provenance.
 
-When a recipe is logged, `MealItem` stores recipe identity, display name, selected weight and a complete macro/micronutrient snapshot. Meal totals prefer that snapshot. Later Recipe or Food edits update the live recipe calculation but never rewrite meal history. Recipe deletion is soft deletion; the recipe relation uses `SET NULL`, while display and nutrition snapshots remain readable.
+When a recipe is logged, `MealItem` stores recipe identity, display name, selected weight and a complete macro/micronutrient snapshot. Meal totals prefer that snapshot. Later Recipe or Food edits update the live recipe calculation but never rewrite meal history. Recipe deletion is soft deletion. The database enforces that every MealItem has exactly one source (`foodId` XOR `recipeId`), and the Recipe foreign key restricts physical deletion while historical MealItems refer to it.
 
 All migration SQL is explicitly qualified with `ketomentor`; it does not touch `public`.
 
