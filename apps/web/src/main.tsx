@@ -7,11 +7,12 @@ import { authErrorText } from "./auth-error";
 import "./styles.css";
 import norbappLogo from "./assets/norbapp-logo.webp";
 import ketomentorLogo from "./assets/ketomentor-logo.png";
+import { RecipeBuilder } from "./RecipeBuilder";
 
 type User = { id: string; username: string; locale: Lang; profile?: any };
-type Totals = { kcal: number; fat: number; protein: number; carbs: number; fiber: number; netCarbs: number };
+export type Totals = { kcal: number; fat: number; protein: number; carbs: number; fiber: number; netCarbs: number };
 type Meal = { id: string; title: string; eatenAt: string; totals: Totals };
-type Food = { id: string; name: string; names?: Record<Lang, string>; servingUnit?: string; servingGrams?: number; kcalPer100g: number; fatPer100g: number; proteinPer100g: number; carbsPer100g: number; fiberPer100g: number; provenance?: any };
+export type Food = { id: string; name: string; names?: Record<Lang, string>; servingUnit?: string; servingGrams?: number; kcalPer100g: number; fatPer100g: number; proteinPer100g: number; carbsPer100g: number; fiberPer100g: number; provenance?: any };
 
 function App() {
   const [lang, setLang] = useState<Lang>("hu");
@@ -169,6 +170,7 @@ function App() {
         )}
       </section>
 
+      {user && profile?.onboardingDone && <div className="mx-auto w-[min(1180px,calc(100%-32px))] pb-5"><RecipeBuilder lang={lang} state={state} currentUserId={user.id} onMealAdded={load}/></div>}
       {user && profile?.onboardingDone && (
         <section className="mx-auto grid w-[min(1180px,calc(100%-32px))] gap-5 pb-12 lg:grid-cols-[1fr_380px]">
           <div className="space-y-5">
@@ -243,7 +245,7 @@ function OnboardingField({ id, label, help, defaultValue, placeholder }: { id: s
 
 type SearchLabels = { label: string; placeholder: string; loading: string; noResults: string; hint: string; selected: string };
 
-function FoodCombobox({ lang, state, selected, onSelect, labels, resetVersion }: { lang: Lang; state: ApiState; selected: Food | null; onSelect: (food: Food | null) => void; labels: SearchLabels; resetVersion: number }) {
+export function FoodCombobox({ lang, state, selected, onSelect, labels, resetVersion, idPrefix = "food" }: { lang: Lang; state: ApiState; selected: Food | null; onSelect: (food: Food | null) => void; labels: SearchLabels; resetVersion: number; idPrefix?: string }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Food[]>([]);
   const [loading, setLoading] = useState(false);
@@ -270,9 +272,9 @@ function FoodCombobox({ lang, state, selected, onSelect, labels, resetVersion }:
   const choose = (food: Food) => { onSelect(food); setQuery(food.names?.[lang] ?? food.name); setOpen(false); };
   return (
     <div className="combobox-wrap">
-      <label htmlFor="food-search">{labels.label}</label>
-      <input id="food-search" className="field" role="combobox" autoComplete="off" value={query} placeholder={labels.placeholder}
-        aria-expanded={open} aria-controls="food-results" aria-autocomplete="list" aria-activedescendant={active >= 0 ? `food-option-${active}` : undefined}
+      <label htmlFor={`${idPrefix}-search`}>{labels.label}</label>
+      <input id={`${idPrefix}-search`} className="field" role="combobox" autoComplete="off" value={query} placeholder={labels.placeholder}
+        aria-expanded={open} aria-controls={`${idPrefix}-results`} aria-autocomplete="list" aria-activedescendant={active >= 0 ? `${idPrefix}-option-${active}` : undefined}
         onChange={(event) => { setQuery(event.target.value); onSelect(null); setOpen(true); }}
         onKeyDown={(event) => {
           if (event.key === "ArrowDown") { event.preventDefault(); setOpen(true); setActive((value) => Math.min(value + 1, results.length - 1)); }
@@ -282,9 +284,9 @@ function FoodCombobox({ lang, state, selected, onSelect, labels, resetVersion }:
         }}/>
       {selected && <div className="selected-food"><strong>{labels.selected}:</strong> {selected.names?.[lang] ?? selected.name} · {Math.round(selected.kcalPer100g)} kcal/100g</div>}
       {!selected && query.length < 2 && <small className="search-hint">{labels.hint}</small>}
-      {open && query.length >= 2 && !selected && <div id="food-results" className="food-results" role="listbox">
+      {open && query.length >= 2 && !selected && <div id={`${idPrefix}-results`} className="food-results" role="listbox">
         {loading ? <div className="food-state">{labels.loading}</div> : results.length === 0 ? <div className="food-state">{labels.noResults}</div> : results.map((food, index) =>
-          <button id={`food-option-${index}`} type="button" role="option" aria-selected={index === active} className={`food-option ${index === active ? "active" : ""}`} key={food.id} onMouseDown={(event) => event.preventDefault()} onClick={() => choose(food)}>
+          <button id={`${idPrefix}-option-${index}`} type="button" role="option" aria-selected={index === active} className={`food-option ${index === active ? "active" : ""}`} key={food.id} onMouseDown={(event) => event.preventDefault()} onClick={() => choose(food)}>
             <span>{food.names?.[lang] ?? food.name}</span><small>{Math.round(food.kcalPer100g)} kcal/100g</small>
           </button>)}
       </div>}

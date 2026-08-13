@@ -14,6 +14,7 @@ import { prisma } from "./db.js";
 import { serializeMeal } from "./nutrition.js";
 import { searchFoods } from "./catalog/food-search.js";
 import { createMeal } from "./meals/create-meal.js";
+import { recipeRouter } from "./recipes/router.js";
 
 const logger = pino({ level: env.NODE_ENV === "production" ? "info" : "debug" });
 const app = express();
@@ -124,7 +125,7 @@ app.get("/meals/today", requireAuth, async (req, res) => {
   const meals = await prisma.meal.findMany({
     where: { userId: req.user!.id, eatenAt: { gte: start, lt: end } },
     orderBy: { eatenAt: "desc" },
-    include: { items: { include: { food: true } } }
+    include: { items: { include: { food: true, recipe: true } } }
   });
   const serialized = meals.map(serializeMeal);
   const totals = serialized.reduce((sum, meal) => ({
@@ -147,6 +148,8 @@ app.post("/meals", requireAuth, async (req, res, next) => {
     next(error);
   }
 });
+
+app.use("/recipes", recipeRouter);
 
 app.use((error: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   if (error?.name === "ZodError") return res.status(400).json({ error: "validation_error", issues: error.issues });
