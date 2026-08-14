@@ -13,6 +13,7 @@ import { hashPassword, requireAuth, setRefreshCookie, signAccessToken, signRefre
 import { prisma } from "./db.js";
 import { serializeMeal } from "./nutrition.js";
 import { searchFoods } from "./catalog/food-search.js";
+import { parseNaturalFoodQuery } from "./catalog/natural-food-query.js";
 import { createMeal } from "./meals/create-meal.js";
 import { recipeRouter } from "./recipes/router.js";
 
@@ -93,8 +94,9 @@ app.get("/me", requireAuth, async (req, res) => {
 
 app.get("/foods", requireAuth, async (req, res, next) => {
   try {
-    const foods = await searchFoods(prisma, String(req.query.q ?? ""));
-    res.json({ foods });
+    const parsed = parseNaturalFoodQuery(String(req.query.q ?? ""));
+    const foods = await searchFoods(prisma, parsed.foodQuery);
+    res.json({ foods, parsedQuery: parsed, resolution: foods.length ? "resolved" : "unresolved" });
   } catch (error) {
     next(error);
   }

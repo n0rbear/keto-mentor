@@ -115,10 +115,45 @@ model Food {
   nutrients   FoodNutrient[]
   mealItems   MealItem[]
   recipeIngredients RecipeIngredient[]
+  aliases     FoodAlias[]
+  servings    FoodServing[]
 
   @@index([name])
   @@index([barcode])
   @@unique([source, sourceId])
+}
+
+model FoodAlias {
+  id              String @id @default(cuid())
+  foodId          String
+  alias           String
+  normalizedAlias String
+  locale          String @default("und")
+  kind            String @default("synonym")
+  confidence      Float @default(1)
+  provenance      Json?
+  createdAt       DateTime @default(now())
+  food            Food @relation(fields: [foodId], references: [id], onDelete: Cascade)
+
+  @@unique([foodId, normalizedAlias, locale])
+  @@index([normalizedAlias])
+}
+
+model FoodServing {
+  id          String @id @default(cuid())
+  foodId      String
+  key         String
+  unit        String
+  labels      Json?
+  grams       Float
+  isEstimated Boolean @default(false)
+  confidence  Float @default(1)
+  provenance  Json
+  createdAt   DateTime @default(now())
+  food        Food @relation(fields: [foodId], references: [id], onDelete: Cascade)
+
+  @@unique([foodId, key])
+  @@index([foodId])
 }
 
 model Nutrient {
@@ -164,6 +199,9 @@ model MealItem {
   snapshotCarbs Float?
   snapshotFiber Float?
   snapshotNutrients Json?
+  inputQuantity Float?
+  inputUnit String?
+  conversionSnapshot Json?
   meal          Meal   @relation(fields: [mealId], references: [id], onDelete: Cascade)
   food          Food?  @relation(fields: [foodId], references: [id])
   recipe        Recipe? @relation(fields: [recipeId], references: [id], onDelete: Restrict)

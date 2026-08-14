@@ -41,7 +41,12 @@ export const manualMealItemSchema = z.object({
 export const catalogMealItemSchema = z.object({
   foodId: z.string().min(1),
   quantity: z.number().positive().max(5000),
-  unit: z.enum(["g", "serving"]).default("g")
+  unit: z.enum(["g", "kg", "serving"]).default("g"),
+  servingId: z.string().min(1).optional(),
+  gramsOverride: z.number().positive().max(50_000).optional()
+}).superRefine((item, context) => {
+  if (item.unit === "serving" && !item.servingId) context.addIssue({ code: "custom", path: ["servingId"], message: "servingId is required" });
+  if (item.unit !== "serving" && (item.servingId || item.gramsOverride)) context.addIssue({ code: "custom", path: ["unit"], message: "serving fields require serving unit" });
 });
 
 export const createMealSchema = z.object({

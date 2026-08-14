@@ -12,7 +12,8 @@ import { RecipeBuilder } from "./RecipeBuilder";
 type User = { id: string; username: string; locale: Lang; profile?: any };
 export type Totals = { kcal: number; fat: number; protein: number; carbs: number; fiber: number; netCarbs: number };
 type Meal = { id: string; title: string; eatenAt: string; totals: Totals };
-export type Food = { id: string; name: string; names?: Record<Lang, string>; servingUnit?: string; servingGrams?: number; kcalPer100g: number; fatPer100g: number; proteinPer100g: number; carbsPer100g: number; fiberPer100g: number; provenance?: any };
+export type FoodServing = { id: string; key: string; unit: string; labels?: Partial<Record<Lang, string>>; grams: number; isEstimated: boolean; confidence: number; provenance?: unknown };
+export type Food = { id: string; name: string; names?: Record<Lang, string>; servings?: FoodServing[]; kcalPer100g: number; fatPer100g: number; proteinPer100g: number; carbsPer100g: number; fiberPer100g: number; provenance?: any; match?: { stage: string; score: number } };
 
 function App() {
   const [lang, setLang] = useState<Lang>("hu");
@@ -26,6 +27,8 @@ function App() {
   const [mealSaving, setMealSaving] = useState(false);
   const [mealStatus, setMealStatus] = useState<{ kind: "success" | "error"; text: string } | null>(null);
   const [foodResetVersion, setFoodResetVersion] = useState(0);
+  const [mealMeasure, setMealMeasure] = useState("g");
+  const [gramsOverride, setGramsOverride] = useState("");
   const t = dict[lang];
   const state = useMemo(() => ({ token, setToken }), [token]);
 
@@ -93,12 +96,16 @@ function App() {
     const formElement = event.currentTarget;
     const form = new FormData(event.currentTarget);
     try {
+      const servingId = mealMeasure.startsWith("serving:") ? mealMeasure.slice(8) : undefined;
+      const selectedServing = selectedFood.servings?.find((serving) => serving.id === servingId);
       await api("/meals", {
         method: "POST",
-        body: JSON.stringify({ title: String(form.get("title")), items: [{ foodId: selectedFood.id, quantity: Number(form.get("quantity")), unit: String(form.get("unit")) }] })
+        body: JSON.stringify({ title: String(form.get("title")), items: [{ foodId: selectedFood.id, quantity: Number(form.get("quantity")), unit: servingId ? "serving" : mealMeasure, servingId, gramsOverride: selectedServing?.isEstimated && gramsOverride ? Number(gramsOverride) : undefined }] })
       }, state);
       formElement.reset();
       setSelectedFood(null);
+      setMealMeasure("g");
+      setGramsOverride("");
       setFoodResetVersion((value) => value + 1);
       await load();
       setMealStatus({ kind: "success", text: t.mealSaved });
@@ -189,11 +196,16 @@ function App() {
           <form onSubmit={addMeal} className="card space-y-3">
             <h2 className="flex items-center gap-2"><Plus size={20}/>{t.addMeal}</h2>
             <input className="field" name="title" placeholder={t.mealName} required/>
-            <FoodCombobox lang={lang} state={state} selected={selectedFood} onSelect={setSelectedFood} labels={t.foodSearch} resetVersion={foodResetVersion}/>
+            <FoodCombobox lang={lang} state={state} selected={selectedFood} onSelect={(food) => { setSelectedFood(food); setMealMeasure("g"); setGramsOverride(""); }} labels={t.foodSearch} resetVersion={foodResetVersion}/>
             <div className="grid grid-cols-[1fr_120px] gap-3">
               <label htmlFor="meal-quantity">{t.quantity}<input id="meal-quantity" className="field" name="quantity" defaultValue="1" type="number" min="0.1" max="5000" step="0.1" required/></label>
-              <label htmlFor="meal-unit">{t.unit}<select id="meal-unit" className="field" name="unit"><option value="serving">{t.serving}</option><option value="g">g</option></select></label>
+              <label htmlFor="meal-unit">{t.unit}<select id="meal-unit" className="field" value={mealMeasure} onChange={(event) => { setMealMeasure(event.target.value); setGramsOverride(""); }}><option value="g">g</option><option value="kg">kg</option>{selectedFood?.servings?.map((serving) => <option key={serving.id} value={`serving:${serving.id}`}>{serving.labels?.[lang] ?? serving.unit}</option>)}</select></label>
             </div>
+            {mealMeasure.startsWith("serving:") && (() => {
+              const serving = selectedFood?.servings?.find((candidate) => candidate.id === mealMeasure.slice(8));
+              if (!serving) return null;
+              return <div className="serving-detail"><strong>1 {serving.labels?.[lang] ?? serving.unit} = {serving.grams} g</strong>{serving.isEstimated && <><span>{lang === "hu" ? "Becsült átváltás – módosítható" : lang === "de" ? "Geschätzte Umrechnung – bearbeitbar" : "Estimated conversion – editable"}</span><input className="field" aria-label="Gram equivalent" type="number" min="0.1" max="50000" step="0.1" placeholder={String(serving.grams)} value={gramsOverride} onChange={(event) => setGramsOverride(event.target.value)}/></>}</div>;
+            })()}
             <p className="text-xs text-muted">USDA FoodData Central alapú átlagértékek. Csomagolt termék és barcode import későbbi adapterként jön.</p>
             {mealStatus && <div className={`status ${mealStatus.kind}`} role={mealStatus.kind === "error" ? "alert" : "status"}>{mealStatus.text}</div>}
             <button className="btn primary w-full" disabled={mealSaving} aria-busy={mealSaving}>{mealSaving ? t.savingMeal : t.addMeal}</button>

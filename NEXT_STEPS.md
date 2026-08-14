@@ -8,6 +8,7 @@
 - Add mobile app clients against the same API.
 - Add deeper automated E2E tests with a disposable PostgreSQL instance.
 - Add nutrition micronutrient views for electrolytes, vitamins and minerals.
-- Implement the reviewed Recipe / RecipeIngredient model and deterministic Food-based nutrition calculation described in `docs/recipe-architecture.md`.
+- Add reviewed FoodServing conversions from authoritative portion data for more imported foods; never bulk-estimate them.
+- Implement a reviewed USDA API or admin-URL discovery provider behind `NutritionSourceSearchProvider`; keep automatic web import disabled until fetch security and provenance validation are complete.
 - Add a public attribution/licence page for BLS and other catalog sources before broad catalog promotion.
 - Integrate under a future NorbApp subdomain or route after DNS/production approval.
