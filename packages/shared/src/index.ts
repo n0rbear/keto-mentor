@@ -55,6 +55,10 @@ export const createMealSchema = z.object({
   items: z.array(z.union([catalogMealItemSchema, manualMealItemSchema])).min(1).max(20)
 });
 
+export const mealInterpretationSchema = z.object({
+  text: z.string().trim().min(2).max(300)
+});
+
 export const recipeVisibilitySchema = z.enum(["private", "public", "unlisted"]);
 export const recipeIngredientSchema = z.object({
   foodId: z.string().min(1),

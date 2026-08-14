@@ -6,7 +6,7 @@
 
 Prepared-food expansions are search hints, not nutrient substitutions. For example, `tojásrántotta` searches for `Rührei` and `scrambled egg`; it does not silently use fried-egg nutrition. An absent matching Food remains unresolved.
 
-The natural query parser recognizes deterministic quantities such as `2 db tojás` and `250 g csirkemell`. Dimension-only input such as `12 cm uborka` remains unresolved because length has no safe universal gram conversion.
+The natural query parser recognizes deterministic quantities such as `2 db tojás`, `250 g csirkemell` and `15 cm uborka`. A dimension is parsed but remains without gram weight until a Food-specific serving or an explicitly estimated, confirmable conversion is available.
 
 ## Food-specific servings
 
@@ -24,4 +24,4 @@ When a provider is added, candidates are ordered BLS/MRI, USDA, other official g
 
 DuckDuckGo is intentionally not hard-coded: its public help documents search syntax but does not provide the stable, documented general search API contract required for unattended nutrition ingestion. USDA FoodData Central does provide an official REST search/details API, requiring a data.gov API key, and is the preferred programmatic fallback after local catalog resolution. An admin-supplied URL can later implement the same provider contract without changing the resolver.
 
-An LLM may later help formulate queries, rank candidates or map nutrient labels, but it may never generate nutrition numbers, serving weights or resolve a conflicting source without evidence.
+An LLM may later help formulate queries, rank candidates, map nutrient labels, or estimate a quantity-to-weight conversion. Weight estimates must be labelled, confidence-scored, traceable and user-correctable. An LLM may never generate nutrition numbers or resolve conflicting nutrition sources without evidence.
