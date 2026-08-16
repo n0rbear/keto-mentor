@@ -20,6 +20,21 @@ export type QuantityResolution = {
   reason?: "quantity_missing" | "conversion_missing";
 };
 
+export type FoodResolutionStatus = "resolved" | "preview" | "confirmation_required" | "unresolved" | "multi";
+
+export type InterpretResult = {
+  input: string;
+  parsed: ParsedNaturalFoodQuery;
+  foodResolution: FoodResolutionStatus;
+  selectedFood: ResolvedFood | null;
+  candidates: ResolvedFood[];
+  quantity: QuantityResolution | null;
+  canConfirm: boolean;
+  confidence: number;
+  preparation?: string;
+  items?: InterpretResult[];
+};
+
 function servingMatchesSize(serving: Serving, size: ParsedNaturalFoodQuery["size"]) {
   if (!size) return true;
   return serving.key.toLowerCase().includes(size) || JSON.stringify(serving.labels ?? {}).toLowerCase().includes(size);
@@ -73,23 +88,63 @@ export async function resolveQuantity(
   };
 }
 
+async function interpretOne(
+  prisma: SearchablePrisma,
+  input: string,
+  parsed: ParsedNaturalFoodQuery,
+  provider: QuantityEstimationProvider
+): Promise<InterpretResult> {
+  const foods = await searchFoods(prisma, parsed.foodQuery, 5) as unknown as ResolvedFood[];
+  const top = foods[0];
+  if (!top) {
+    return { input, parsed, foodResolution: "unresolved", selectedFood: null, candidates: [], quantity: null, canConfirm: false, confidence: 0, preparation: parsed.preparation };
+  }
+
+  const score = top.match?.score ?? 0;
+  const stage = top.match?.stage;
+  const quantity = await resolveQuantity(parsed, top, provider);
+
+  const auto = (stage === "exact" || stage === "alias") && score >= 95;
+  const foodResolution: FoodResolutionStatus = auto ? "resolved" : score >= 80 ? "preview" : "confirmation_required";
+  const canConfirm = quantity.status === "resolved" && score >= 80;
+
+  return {
+    input,
+    parsed,
+    foodResolution,
+    selectedFood: top,
+    candidates: foods,
+    quantity,
+    canConfirm,
+    confidence: score / 100,
+    preparation: parsed.preparation
+  };
+}
+
 export async function interpretMealInput(
   prisma: SearchablePrisma,
   text: string,
   provider: QuantityEstimationProvider = new DisabledQuantityEstimationProvider()
-) {
+): Promise<InterpretResult> {
   const parsed = parseNaturalFoodQuery(text);
-  const foods = await searchFoods(prisma, parsed.foodQuery, 5) as unknown as ResolvedFood[];
-  const top = foods[0];
-  const autoResolved = Boolean(top && (top.match?.stage === "exact" || top.match?.stage === "alias") && (top.match?.score ?? 0) >= 95);
-  const quantity = top ? await resolveQuantity(parsed, top, provider) : { status: "unresolved", estimated: false, requiresConfirmation: true, reason: "conversion_missing" } as const;
-  return {
-    input: text,
-    parsed,
-    foodResolution: foods.length === 0 ? "unresolved" : autoResolved ? "resolved" : "confirmation_required",
-    selectedFood: autoResolved ? top : null,
-    candidates: foods,
-    quantity: autoResolved ? quantity : null,
-    canConfirm: autoResolved && quantity.status === "resolved"
-  };
+
+  if (parsed.items && parsed.items.length > 1) {
+    const items = await Promise.all(parsed.items.map((item) => interpretOne(prisma, text, item, provider)));
+    const allConfirmable = items.every((it) => it.canConfirm);
+    const top = items[0];
+    return {
+      input: text,
+      parsed,
+      foodResolution: "multi",
+      selectedFood: top.selectedFood,
+      candidates: top.candidates,
+      quantity: top.quantity,
+      canConfirm: allConfirmable,
+      confidence: top.confidence,
+      preparation: top.preparation,
+      items
+    };
+  }
+
+  return interpretOne(prisma, text, parsed, provider);
 }

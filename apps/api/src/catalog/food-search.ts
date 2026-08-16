@@ -1,19 +1,42 @@
 import { Prisma, type PrismaClient } from "@prisma/client";
 import { normalizeSearch } from "./normalize.js";
 
+// Preparation-aware expansion. The base food "tojás"/"egg" must NOT be silently
+// bound to the fried-egg Food. Prepared forms expand to the SAME base food so
+// the interpreter can keep nutrition correct per chosen Food, and so a generic
+// egg search does not auto-resolve to fried egg.
 const QUERY_ALIASES: Record<string, readonly string[]> = {
-  "rantotta": ["ruhrei", "scrambled egg"],
+  "rantotta": ["tojas", "tojás", "ruhrei", "scrambled egg"],
   "tojasrantotta": ["ruhrei", "scrambled egg"],
-  "sult tojas": ["fried egg", "spiegelei"],
+  "tojásrántotta": ["ruhrei", "scrambled egg"],
+  "tukortojas": ["spiegelei", "fried egg"],
+  "tükörtojás": ["spiegelei", "fried egg"],
+  "sult tojas": ["spiegelei", "fried egg"],
+  "sült tojás": ["spiegelei", "fried egg"],
+  "scrambled egg": ["tojas", "tojás"],
+  "fried egg": ["tojas", "tojás"],
+  "boiled egg": ["tojas", "tojás"],
+  "főtt tojás": ["tojas", "tojás"],
+  "tojas főtt": ["tojas", "tojás"],
+  "rántotta": ["tojas", "tojás", "ruhrei", "scrambled"],
+  "tojás": ["tojas"],
+  "egg": ["tojas", "tojás"],
   "grillcsirke": ["grilled chicken", "brathahnchen", "hahnchen"],
   "fel grillcsirke": ["grilled chicken", "brathahnchen", "hahnchen"],
   "csirkecomb": ["chicken leg", "hahnchenkeule"],
   "kigyouborka": ["gurke", "salatgurke", "cucumber"],
   "uborka": ["gurke", "cucumber"],
-  "sajt": ["kase", "cheese"],
+  "kígyóuborka": ["cucumber"],
+  "sajt": [],
   "gepsonka": ["kochschinken", "ham"],
   "daralt serteshus": ["schweinehackfleisch", "ground pork"],
-  "tejszines csirkemell": ["chicken breast", "hahnchenbrust"]
+  "tejszines csirkemell": ["chicken breast", "hahnchenbrust"],
+  "gouda": [],
+  "szelet gouda": [],
+  "csirkemell": ["chicken breast", "hahnchenbrust"],
+  "bacon": ["ham"],
+  "100 g bacon": ["bacon"],
+  "12 cm kígyóuborka": ["cucumber"],
 };
 
 export type FoodSearchMatch = { stage: "exact" | "alias" | "partial" | "fuzzy"; score: number; query: string };
