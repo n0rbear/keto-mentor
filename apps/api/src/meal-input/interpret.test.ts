@@ -8,8 +8,8 @@ type Food = {
   name: string;
   names: Record<string, string>;
   synonyms: Record<string, string[]>;
-  servingUnit: string;
-  servingGrams: number;
+  servingUnit?: string;
+  servingGrams?: number;
   isEstimated?: boolean;
   confidence?: number;
   kcalPer100g: number;
@@ -18,7 +18,10 @@ type Food = {
 const baseFoods: Food[] = [
   { id: "catalog-egg", name: "Egg", names: { hu: "Tojás", de: "Ei", en: "Egg" }, synonyms: { hu: ["tojás", "tojas"], de: ["ei"], en: ["egg", "eggs"] }, servingUnit: "egg", servingGrams: 46, kcalPer100g: 143 },
   { id: "catalog-fried-egg", name: "Fried egg", names: { hu: "Tükörtojás", de: "Spiegelei", en: "Fried egg" }, synonyms: { hu: ["tükörtojás", "tukortojas", "sült tojás", "sult tojas"], de: ["spiegelei"], en: ["fried egg"] }, servingUnit: "egg", servingGrams: 46, kcalPer100g: 196 },
-  { id: "catalog-scrambled-egg", name: "Scrambled egg", names: { hu: "Rántotta", de: "Rührei", en: "Scrambled egg" }, synonyms: { hu: ["rántotta", "rantotta", "tojásrántotta", "tojasrantotta"], de: ["ruhrei"], en: ["scrambled egg", "eggs scrambled"] }, servingUnit: "egg", servingGrams: 100, isEstimated: true, confidence: 0.5, kcalPer100g: 149 },
+  // Scrambled egg intentionally has NO serving: USDA's 100 g basis is not
+  // evidence that one egg of scrambled egg weighs ~100 g, so no per-egg
+  // FoodServing is created and quantity must be entered manually.
+  { id: "catalog-scrambled-egg", name: "Scrambled egg", names: { hu: "Rántotta", de: "Rührei", en: "Scrambled egg" }, synonyms: { hu: ["rántotta", "rantotta", "tojásrántotta", "tojasrantotta"], de: ["ruhrei"], en: ["scrambled egg", "eggs scrambled"] }, kcalPer100g: 149 },
   { id: "catalog-cheddar", name: "Cheddar cheese", names: { hu: "Cheddar sajt", de: "Cheddar", en: "Cheddar cheese" }, synonyms: { hu: ["cheddar", "sajt"], de: ["cheddar", "käse", "kase"], en: ["cheddar", "cheese"] }, servingUnit: "slice", servingGrams: 28, kcalPer100g: 403 },
   { id: "catalog-gouda", name: "Gouda cheese", names: { hu: "Gouda sajt", de: "Gouda", en: "Gouda cheese" }, synonyms: { hu: ["gouda", "sajt"], de: ["gouda", "käse", "kase"], en: ["gouda", "cheese"] }, servingUnit: "slice", servingGrams: 28, kcalPer100g: 356 },
   { id: "catalog-cucumber", name: "Cucumber", names: { hu: "Kígyóuborka", de: "Gurke", en: "Cucumber" }, synonyms: { hu: ["kígyóuborka", "kigyouborka", "uborka"], de: ["gurke", "salatgurke"], en: ["cucumber"] }, servingUnit: "piece", servingGrams: 300, isEstimated: true, confidence: 0.7, kcalPer100g: 15 }
@@ -29,7 +32,9 @@ function makePrisma() {
     ...f,
     createdById: null,
     searchText: normalizeSearch([f.name, ...Object.values(f.synonyms).flat()].join(" ")),
-    servings: [{ id: `${f.id}-serving`, key: f.servingUnit, unit: f.servingUnit, labels: { en: f.servingUnit }, grams: f.servingGrams, isEstimated: f.isEstimated ?? false, confidence: f.confidence ?? 1, provenance: { method: "curated_seed" } }]
+    servings: f.servingUnit && f.servingGrams != null
+      ? [{ id: `${f.id}-serving`, key: f.servingUnit, unit: f.servingUnit, labels: { en: f.servingUnit }, grams: f.servingGrams, isEstimated: f.isEstimated ?? false, confidence: f.confidence ?? 1, provenance: { method: "curated_seed" } }]
+      : []
   }));
   const aliasRows = baseFoods.flatMap((f) => Object.values(f.synonyms).flat().map((a) => ({ foodId: f.id, normalizedAlias: normalizeSearch(a) })));
 
@@ -70,20 +75,19 @@ describe("meal input interpretation", () => {
     expect(r.canConfirm).toBe(true);
   });
 
-  it("5 tojásból rántotta -> scrambled Egg nutrition, but per-egg weight is not authoritative so it requires confirmation", async () => {
+  it("5 tojásból rántotta -> scrambled Egg food resolved, but no trustworthy per-egg conversion exists", async () => {
     const r = await interpretMealInput(prisma, "5 tojásból rántotta");
     expect(r.selectedFood?.id).toBe("catalog-scrambled-egg");
     expect(r.preparation).toBe("scrambled");
-    // The scrambled-egg 'egg' serving (100 g) is an ESTIMATE of cooked weight,
-    // not a source-backed per-egg weight. We must NOT silently confirm 5 × 100g;
-    // the Food is still resolved, but the quantity requiresConfirmation and
-    // canConfirm stays false so the meal cannot be logged without review.
+    // No per-egg FoodServing exists for scrambled egg (USDA 100 g basis is NOT
+    // a per-egg cooked weight), so the FOOD still resolves but the quantity
+    // cannot be converted: it must be unresolved / conversion_missing and no
+    // 500 g value invented.
     expect(r.foodResolution).toBe("resolved");
-    expect(r.quantity?.requiresConfirmation).toBe(true);
+    expect(r.quantity?.status).toBe("unresolved");
+    expect(r.quantity?.reason).toBe("conversion_missing");
+    expect(r.quantity?.grams).toBeUndefined();
     expect(r.canConfirm).toBe(false);
-    // If a conversion is produced, it must be the estimate (500 g), not invented
-    // as authoritative; never a different silently-derived value.
-    if (r.quantity?.status === "resolved") expect(r.quantity.grams).toBe(5 * 100);
   });
 
   it("főtt tojás -> does NOT confirm/silently use raw/fried/scrambled nutrition when boiled Food is unavailable", async () => {

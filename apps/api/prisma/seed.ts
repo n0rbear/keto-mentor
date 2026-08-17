@@ -8,8 +8,8 @@ type SeedFood = {
   name: string;
   names: Record<string, string>;
   synonyms: Record<string, string[]>;
-  servingUnit: string;
-  servingGrams: number;
+  servingUnit?: string;
+  servingGrams?: number;
   servingEstimated?: boolean;
   servingConfidence?: number;
   servingProvenance?: Prisma.InputJsonValue;
@@ -69,11 +69,10 @@ const foods: SeedFood[] = [
     name: "Scrambled egg",
     names: { hu: "Rántotta", de: "Rührei", en: "Scrambled egg" },
     synonyms: { hu: ["rántotta", "rantotta", "tojásrántotta", "tojasrantotta"], de: ["ruhrei"], en: ["scrambled egg", "eggs scrambled"] },
-    servingUnit: "egg",
-    servingGrams: 100,
-    servingEstimated: true,
-    servingConfidence: 0.5,
-    servingProvenance: { method: "curated_estimate", note: "USDA reports scrambled egg per 100 g edible basis; a per-egg cooked weight is NOT separately itemized, so this egg serving is an estimate, not authoritative." },
+    // No per-egg FoodServing: USDA's 100 g basis is NOT evidence that one egg
+    // of scrambled egg weighs ~100 g. Creating one would expose an invented
+    // "1 egg scrambled = 100 g" conversion, so quantity must be entered
+    // manually (conversion_missing) rather than guessed.
     kcalPer100g: 149,
     fatPer100g: 10.98,
     proteinPer100g: 10.4,
@@ -254,27 +253,29 @@ async function main() {
       }
     }
 
-    await prisma.foodServing.upsert({
-      where: { foodId_key: { foodId: id, key: food.servingUnit } },
-      update: {
-        unit: food.servingUnit,
-        grams: food.servingGrams,
-        labels: { en: food.servingUnit },
-        isEstimated: food.servingEstimated ?? false,
-        confidence: food.servingConfidence ?? 1,
-        provenance: food.servingProvenance ?? { method: "curated_seed", source: food.provenance }
-      },
-      create: {
-        foodId: id,
-        key: food.servingUnit,
-        unit: food.servingUnit,
-        grams: food.servingGrams,
-        labels: { en: food.servingUnit },
-        isEstimated: food.servingEstimated ?? false,
-        confidence: food.servingConfidence ?? 1,
-        provenance: food.servingProvenance ?? { method: "curated_seed", source: food.provenance }
-      }
-    });
+    if (food.servingUnit && food.servingGrams != null) {
+      await prisma.foodServing.upsert({
+        where: { foodId_key: { foodId: id, key: food.servingUnit } },
+        update: {
+          unit: food.servingUnit,
+          grams: food.servingGrams,
+          labels: { en: food.servingUnit },
+          isEstimated: food.servingEstimated ?? false,
+          confidence: food.servingConfidence ?? 1,
+          provenance: food.servingProvenance ?? { method: "curated_seed", source: food.provenance }
+        },
+        create: {
+          foodId: id,
+          key: food.servingUnit,
+          unit: food.servingUnit,
+          grams: food.servingGrams,
+          labels: { en: food.servingUnit },
+          isEstimated: food.servingEstimated ?? false,
+          confidence: food.servingConfidence ?? 1,
+          provenance: food.servingProvenance ?? { method: "curated_seed", source: food.provenance }
+        }
+      });
+    }
   }
 }
 
