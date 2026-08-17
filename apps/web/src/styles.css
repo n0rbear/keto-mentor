@@ -44,6 +44,11 @@ label { display: grid; gap: 6px; font-size: 13px; font-weight: 800; color: #2437
 .selected-food { border-radius: 12px; background: #EAF8F8; padding: 10px 12px; color: #047F82; font-size: 13px; }
 .serving-detail { display: grid; gap: 6px; border: 1px solid #D6E6E8; border-radius: 12px; background: #F9FCFD; padding: 10px 12px; color: #60727E; font-size: 12px; }
 .serving-detail strong { color: #047F82; }
+.natural-input { display: grid; gap: 7px; border: 1px solid #BDE3E4; border-radius: 14px; background: #F3FCFC; padding: 12px; }
+.natural-input-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.interpretation { display: grid; gap: 2px; border-radius: 10px; padding: 9px 11px; font-size: 12px; }
+.interpretation.ready { background: #E5F8EF; color: #17613D; }
+.interpretation.needs-review { background: #FFF7E6; color: #73520B; }
 .status { border-radius: 12px; padding: 11px 13px; font-size: 13px; font-weight: 700; }
 .status.success { border: 1px solid #8BD5B1; background: #ECFAF3; color: #17613D; }
 .status.error { border: 1px solid #E8A7A7; background: #FFF1F1; color: #8B2424; }
@@ -87,4 +92,6 @@ label { display: grid; gap: 6px; font-size: 13px; font-weight: 800; color: #2437
   .recipe-card-actions .btn { flex: 1 1 auto; }
   .recipe-meal-controls { grid-template-columns: minmax(0, 1fr) 90px; }
   .recipe-meal-controls .btn { grid-column: 1 / -1; }
+  .natural-input-row { grid-template-columns: 1fr; }
+  .natural-input-row .btn { width: 100%; }
 }

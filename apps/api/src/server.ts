@@ -7,7 +7,7 @@ import helmet from "helmet";
 import jwt from "jsonwebtoken";
 import pino from "pino";
 import { pinoHttp } from "pino-http";
-import { createMealSchema, loginSchema, onboardingSchema, registerSchema } from "@keto-mentor/shared";
+import { createMealSchema, loginSchema, mealInterpretationSchema, onboardingSchema, registerSchema } from "@keto-mentor/shared";
 import { env } from "./config.js";
 import { hashPassword, requireAuth, setRefreshCookie, signAccessToken, signRefreshToken, verifyPassword } from "./auth.js";
 import { prisma } from "./db.js";
@@ -16,6 +16,7 @@ import { searchFoods } from "./catalog/food-search.js";
 import { parseNaturalFoodQuery } from "./catalog/natural-food-query.js";
 import { createMeal } from "./meals/create-meal.js";
 import { recipeRouter } from "./recipes/router.js";
+import { interpretMealInput } from "./meal-input/interpret.js";
 
 const logger = pino({ level: env.NODE_ENV === "production" ? "info" : "debug" });
 const app = express();
@@ -97,6 +98,15 @@ app.get("/foods", requireAuth, async (req, res, next) => {
     const parsed = parseNaturalFoodQuery(String(req.query.q ?? ""));
     const foods = await searchFoods(prisma, parsed.foodQuery);
     res.json({ foods, parsedQuery: parsed, resolution: foods.length ? "resolved" : "unresolved" });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/meal-input/interpret", requireAuth, async (req, res, next) => {
+  try {
+    const input = mealInterpretationSchema.parse(req.body);
+    res.json(await interpretMealInput(prisma, input.text));
   } catch (error) {
     next(error);
   }

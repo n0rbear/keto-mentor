@@ -1,6 +1,6 @@
 # Catalog pilot import runbook
 
-Verified 2026-08-11 against primary publisher material. Raw archives stay outside Git and imports never run during deploy or the normal seed.
+Verified again 2026-08-14 against primary publisher material. Raw archives stay outside Git and imports never run during deploy or the normal seed.
 
 ## Current importer audit
 
@@ -15,6 +15,8 @@ Before this branch, the importer accepted only a custom, already-normalized CSV 
 | Bundeslebensmittelschlüssel | BLS 4.0 (2025) | ZIP 14.3 MB containing `BLS_4_0_Daten_2025_DE.xlsx`, component workbook and PDF | 7,140 rows; 7,090 pass required-macro validation; 138 components per publisher documentation | CC BY 4.0 Open Data; commercial use allowed | required: `Max Rubner-Institut (2025): Bundeslebensmittelschlüssel (BLS), Version 4.0 - Deutsche Nährstoffdatenbank.` plus license | publisher-managed; 4.0 released December 2025 |
 
 Primary references: [USDA downloads](https://fdc.nal.usda.gov/download-datasets/), [USDA data-type/update documentation](https://fdc.nal.usda.gov/data-documentation/), [USDA API licensing](https://fdc.nal.usda.gov/api-guide/), [BLS download and CC BY statement](https://blsdb.de/download), [BLS 4.0 documentation](https://blsdb.de/bls).
+
+The April 2026 USDA download page currently lists Foundation CSV as 3.7 MB zipped / 32 MB extracted and SR Legacy as the final April 2018 release at 6.7 MB / 54 MB. USDA's API documentation confirms CC0, a data.gov key requirement, a default 1,000 requests/hour/IP limit, and Food search/details endpoints. Foundation documentation explicitly defines `food_portion.gram_weight` as a Food-specific edible-portion conversion. BLS's current download page identifies BLS 4.0 as CC BY 4.0 Open Data and requires Max Rubner-Institut attribution; its documentation lists 7,140 foods, 138 components and an XLSX main file.
 
 Foundation Foods is preferred for its analytical detail and provenance, but it is intentionally small and some records omit one or more required macros. SR Legacy supplies broad, stable basic-food coverage. Branded Foods (2.9 GB extracted in the April 2026 CSV release) is explicitly excluded.
 

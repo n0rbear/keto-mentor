@@ -19,6 +19,7 @@ export function convertFoodQuantity(input: QuantityInput, servings: readonly Foo
     throw Object.assign(new Error("exact_serving_cannot_be_overridden"), { status: 400, publicCode: "exact_serving_cannot_be_overridden" });
   }
   const gramsPerUnit = input.gramsOverride ?? serving.grams;
+  const userCorrected = input.gramsOverride != null && input.gramsOverride !== serving.grams;
   return {
     grams: input.quantity * gramsPerUnit,
     snapshot: {
@@ -26,9 +27,11 @@ export function convertFoodQuantity(input: QuantityInput, servings: readonly Foo
       servingKey: serving.key,
       servingId: serving.id,
       gramsPerUnit,
-      estimated: input.gramsOverride != null ? true : serving.isEstimated,
-      confidence: input.gramsOverride != null ? null : serving.confidence,
-      method: input.gramsOverride != null ? "user_override" : "food_serving",
+      estimated: serving.isEstimated,
+      confidence: userCorrected ? null : serving.confidence,
+      method: userCorrected ? "user_corrected" : "food_serving",
+      proposedGramsPerUnit: serving.grams,
+      userCorrected,
       provenance: serving.provenance
     }
   };

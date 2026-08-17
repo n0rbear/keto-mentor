@@ -14,6 +14,18 @@ export type Totals = { kcal: number; fat: number; protein: number; carbs: number
 type Meal = { id: string; title: string; eatenAt: string; totals: Totals };
 export type FoodServing = { id: string; key: string; unit: string; labels?: Partial<Record<Lang, string>>; grams: number; isEstimated: boolean; confidence: number; provenance?: unknown };
 export type Food = { id: string; name: string; names?: Record<Lang, string>; servings?: FoodServing[]; kcalPer100g: number; fatPer100g: number; proteinPer100g: number; carbsPer100g: number; fiberPer100g: number; provenance?: any; match?: { stage: string; score: number } };
+type MealInterpretation = {
+  input?: string;
+  parsed: { quantity?: number; unit?: string; size?: string; foodQuery: string; preparation?: string };
+  foodResolution: "resolved" | "preview" | "confirmation_required" | "unresolved" | "multi";
+  selectedFood: Food | null;
+  candidates: Food[];
+  quantity: null | { status: "resolved" | "unresolved"; grams?: number; servingId?: string; method?: string; confidence?: number; estimated: boolean; requiresConfirmation: boolean; reason?: string };
+  canConfirm: boolean;
+  confidence?: number;
+  preparation?: string;
+  items?: MealInterpretation[];
+};
 
 function App() {
   const [lang, setLang] = useState<Lang>("hu");
@@ -29,6 +41,10 @@ function App() {
   const [foodResetVersion, setFoodResetVersion] = useState(0);
   const [mealMeasure, setMealMeasure] = useState("g");
   const [gramsOverride, setGramsOverride] = useState("");
+  const [mealQuantity, setMealQuantity] = useState("1");
+  const [naturalInput, setNaturalInput] = useState("");
+  const [interpretation, setInterpretation] = useState<MealInterpretation | null>(null);
+  const [interpreting, setInterpreting] = useState(false);
   const t = dict[lang];
   const state = useMemo(() => ({ token, setToken }), [token]);
 
@@ -105,8 +121,67 @@ function App() {
       formElement.reset();
       setSelectedFood(null);
       setMealMeasure("g");
+      setMealQuantity("1");
       setGramsOverride("");
       setFoodResetVersion((value) => value + 1);
+      await load();
+      setMealStatus({ kind: "success", text: t.mealSaved });
+    } catch (error) {
+      setMealStatus({ kind: "error", text: mealErrorText(error, t.mealErrors) });
+    } finally {
+      setMealSaving(false);
+    }
+  }
+
+  async function interpretNaturalInput() {
+    if (naturalInput.trim().length < 2 || interpreting) return;
+    setInterpreting(true);
+    try {
+      const result = await api<MealInterpretation>("/meal-input/interpret", { method: "POST", body: JSON.stringify({ text: naturalInput }) }, state);
+      setInterpretation(result);
+      // Auto-fill the single-food form only for a single, confirmable interpretation.
+      if (result.canConfirm && result.selectedFood && result.parsed.quantity && !result.items) {
+        setSelectedFood(result.selectedFood);
+        setMealQuantity(String(result.parsed.quantity));
+        setMealMeasure(result.quantity?.servingId ? `serving:${result.quantity.servingId}` : result.parsed.unit === "kg" ? "kg" : "g");
+        setGramsOverride("");
+      } else {
+        setSelectedFood(null);
+        setMealQuantity("1");
+        setMealMeasure("g");
+        setGramsOverride("");
+      }
+    } catch {
+      setInterpretation(null);
+    } finally {
+      setInterpreting(false);
+    }
+  }
+
+  async function confirmMultiMeal() {
+    if (!interpretation?.items || mealSaving) return;
+    const items: Array<{ foodId: string; quantity: number; unit: "g" | "kg" | "serving"; servingId?: string }> = [];
+    for (const it of interpretation.items) {
+      if (!it.canConfirm || !it.selectedFood || it.quantity?.status !== "resolved") {
+        setMealStatus({ kind: "error", text: lang === "hu" ? "Néhány étel nem erősíthető meg biztonságosan." : lang === "de" ? "Einige Lebensmittel konnten nicht sicher bestätigt werden." : "Some items could not be confirmed safely." });
+        return;
+      }
+      const q = it.quantity;
+      // Send the ORIGINAL parsed quantity + unit for exact mass so the backend
+      // applies its single, authoritative conversion (1 kg -> 1000 g). Never
+      // send q.grams (already-converted) together with unit "kg": that would
+      // double-convert. Estimated servings are blocked upstream via canConfirm.
+      if (q.servingId) items.push({ foodId: it.selectedFood.id, quantity: it.parsed.quantity ?? 1, unit: "serving", servingId: q.servingId });
+      else if (it.parsed.unit === "g" || it.parsed.unit === "kg") items.push({ foodId: it.selectedFood.id, quantity: it.parsed.quantity ?? 0, unit: it.parsed.unit });
+      else { setMealStatus({ kind: "error", text: lang === "hu" ? "Bizonytalan mértékegység – add meg kézzel." : lang === "de" ? "Unsicheres Maß – bitte manuell eingeben." : "Uncertain unit – enter manually." }); return; }
+    }
+    if (!items.length) return;
+    setMealSaving(true);
+    setMealStatus(null);
+    try {
+      await api("/meals", { method: "POST", body: JSON.stringify({ title: interpretation.input || (lang === "hu" ? "Ebéd" : lang === "de" ? "Mahlzeit" : "Meal"), items }) }, state);
+      setInterpretation(null);
+      setNaturalInput("");
       await load();
       setMealStatus({ kind: "success", text: t.mealSaved });
     } catch (error) {
@@ -195,10 +270,53 @@ function App() {
           </div>
           <form onSubmit={addMeal} className="card space-y-3">
             <h2 className="flex items-center gap-2"><Plus size={20}/>{t.addMeal}</h2>
+            <div className="natural-input">
+              <label htmlFor="natural-meal-input">{lang === "hu" ? "Mondd el, mit ettél" : lang === "de" ? "Beschreibe, was du gegessen hast" : "Describe what you ate"}</label>
+              <div className="natural-input-row"><input id="natural-meal-input" className="field" value={naturalInput} onChange={(event) => { setNaturalInput(event.target.value); setInterpretation(null); setSelectedFood(null); setMealQuantity("1"); setMealMeasure("g"); setGramsOverride(""); }} placeholder={lang === "hu" ? "Például: 5 tojás" : lang === "de" ? "Zum Beispiel: 3 Scheiben Gouda" : "For example: 5 eggs"}/><button type="button" className="btn secondary" disabled={interpreting || naturalInput.trim().length < 2} onClick={interpretNaturalInput}>{interpreting ? "…" : lang === "hu" ? "Értelmezés" : lang === "de" ? "Verstehen" : "Interpret"}</button></div>
+              {interpretation && <div className={`interpretation ${interpretation.canConfirm ? "ready" : "needs-review"}`} role="status">
+                {interpretation.items ? (
+                  <div>
+                    <strong>{lang === "hu" ? "Több étel értelmezve:" : lang === "de" ? "Mehrere Lebensmittel erkannt:" : "Multiple foods detected:"}</strong>
+                    <ul className="multi-preview-list">
+                      {interpretation.items.map((it, i) => (
+                        <li key={i}>
+                          <span>{it.selectedFood ? (it.selectedFood.names?.[lang] ?? it.selectedFood.name) : it.parsed.foodQuery}</span>
+                          {it.preparation ? <em> · {it.preparation}</em> : null}
+                          {it.parsed.quantity != null ? <span> · {it.parsed.quantity} {it.parsed.unit}</span> : null}
+                          {it.quantity?.status === "resolved" ? <span> = {Math.round(it.quantity.grams ?? 0)} g</span> : <span> · ?</span>}
+                        </li>
+                      ))}
+                    </ul>
+                    <button type="button" className="btn primary" disabled={!interpretation.canConfirm || mealSaving} onClick={confirmMultiMeal}>
+                      {mealSaving ? "…" : lang === "hu" ? "Összes naplózása" : lang === "de" ? "Alle eintragen" : "Log all"}
+                    </button>
+                  </div>
+                ) : interpretation.canConfirm && interpretation.selectedFood && interpretation.quantity ? (
+                  <>
+                    <strong>{interpretation.selectedFood.names?.[lang] ?? interpretation.selectedFood.name}</strong>
+                    {interpretation.preparation ? <em> · {interpretation.preparation}</em> : null}
+                    <span>
+                      {interpretation.parsed.quantity != null ? `${interpretation.parsed.quantity} ${interpretation.parsed.unit ?? ""} · ` : ""}
+                      {interpretation.quantity.estimated ? "≈" : "="} {Math.round((interpretation.quantity.grams ?? 0) * 10) / 10} g
+                      {interpretation.confidence != null ? ` · ${Math.round(interpretation.confidence * 100)}%` : ""}
+                      {interpretation.quantity.estimated ? (lang === "hu" ? " becsült" : lang === "de" ? " geschätzt" : " estimated") : (lang === "hu" ? " ellenőrzött" : lang === "de" ? " geprüft" : " verified")}
+                    </span>
+                  </>
+                ) : (
+                  <span>
+                    {interpretation.foodResolution === "unresolved"
+                      ? (lang === "hu" ? "Az ételt nem találtam meg biztonságosan. Válaszd ki kézzel." : lang === "de" ? "Lebensmittel nicht sicher gefunden. Bitte manuell wählen." : "Food was not resolved safely. Choose it manually.")
+                      : interpretation.quantity?.reason === "conversion_missing"
+                      ? (lang === "hu" ? "Az étel megvan, de ehhez a mértékhez nincs hiteles grammsúly. Add meg kézzel a grammot." : lang === "de" ? "Lebensmittel gefunden, aber kein verlässliches Grammgewicht. Bitte Gramm eingeben." : "Food found, but no reliable gram conversion exists. Enter grams manually.")
+                      : (lang === "hu" ? "Ellenőrizd és válaszd ki a megfelelő ételt." : lang === "de" ? "Bitte das richtige Lebensmittel auswählen." : "Review and choose the correct food.")}
+                  </span>
+                )}
+              </div>}
+            </div>
             <input className="field" name="title" placeholder={t.mealName} required/>
             <FoodCombobox lang={lang} state={state} selected={selectedFood} onSelect={(food) => { setSelectedFood(food); setMealMeasure("g"); setGramsOverride(""); }} labels={t.foodSearch} resetVersion={foodResetVersion}/>
             <div className="grid grid-cols-[1fr_120px] gap-3">
-              <label htmlFor="meal-quantity">{t.quantity}<input id="meal-quantity" className="field" name="quantity" defaultValue="1" type="number" min="0.1" max="5000" step="0.1" required/></label>
+              <label htmlFor="meal-quantity">{t.quantity}<input id="meal-quantity" className="field" name="quantity" value={mealQuantity} onChange={(event) => setMealQuantity(event.target.value)} type="number" min="0.1" max="5000" step="0.1" required/></label>
               <label htmlFor="meal-unit">{t.unit}<select id="meal-unit" className="field" value={mealMeasure} onChange={(event) => { setMealMeasure(event.target.value); setGramsOverride(""); }}><option value="g">g</option><option value="kg">kg</option>{selectedFood?.servings?.map((serving) => <option key={serving.id} value={`serving:${serving.id}`}>{serving.labels?.[lang] ?? serving.unit}</option>)}</select></label>
             </div>
             {mealMeasure.startsWith("serving:") && (() => {
