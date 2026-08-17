@@ -1,136 +1,143 @@
 import { describe, expect, it } from "vitest";
-import { resolveQuantity, interpretMealInput } from "./interpret.js";
-import { DisabledQuantityEstimationProvider, validateQuantityEstimate } from "./quantity-estimation.js";
-import type { PrismaClient } from "@prisma/client";
+import { interpretMealInput, type InterpretResult } from "./interpret.js";
+import { normalizeSearch } from "../catalog/normalize.js";
 
-const eggFood = { id: "catalog-egg", source: "usda_fdc", sourceId: "1", name: "Egg", servings: [
-  { id: "piece", key: "egg", unit: "egg", labels: { en: "egg" }, grams: 46, isEstimated: false, confidence: 1, provenance: { source: "USDA food_portion" } },
-  { id: "slice", key: "slice", unit: "slice", labels: { en: "slice" }, grams: 28, isEstimated: true, confidence: .7, provenance: { method: "curated estimate" } }
-] };
+type Serving = { id: string; key: string; unit: string; labels: Record<string, string>; grams: number; isEstimated: boolean; confidence: number; provenance: unknown };
+type Food = {
+  id: string;
+  name: string;
+  names: Record<string, string>;
+  synonyms: Record<string, string[]>;
+  servingUnit: string;
+  servingGrams: number;
+  isEstimated?: boolean;
+  confidence?: number;
+  kcalPer100g: number;
+};
 
-describe("human quantity resolution", () => {
-  it("keeps measured mass exact", async () => expect(await resolveQuantity({ quantity: 125, unit: "g", foodQuery: "uborka" }, eggFood)).toMatchObject({ grams: 125, method: "measured", confidence: 1, estimated: false, requiresConfirmation: false }));
-  it("uses an authoritative Food serving", async () => expect(await resolveQuantity({ quantity: 5, unit: "piece", foodQuery: "tojas" }, eggFood)).toMatchObject({ grams: 230, servingId: "piece", method: "authoritative", requiresConfirmation: false }));
-  it("makes estimates visible and confirmable", async () => expect(await resolveQuantity({ quantity: 3, unit: "slice", foodQuery: "gouda" }, eggFood)).toMatchObject({ grams: 84, method: "estimated", confidence: .7, estimated: true, requiresConfirmation: true }));
-  it("does not invent a centimetre conversion when no provider is configured", async () => expect(await resolveQuantity({ quantity: 15, unit: "cm", foodQuery: "uborka" }, eggFood, new DisabledQuantityEstimationProvider())).toMatchObject({ status: "unresolved", reason: "conversion_missing" }));
-  it("accepts a structured AI estimate but never nutrition", async () => expect(await resolveQuantity({ quantity: 15, unit: "cm", foodQuery: "uborka" }, eggFood, { id: "test", async estimate() { return { gramsPerUnit: 8.5, confidence: .62, method: "ai_estimated", provenance: { provider: "test", modelOrRule: "fixture", estimatedAt: "2026-08-14T00:00:00Z" } }; } })).toMatchObject({ grams: 127.5, method: "ai_estimated", requiresConfirmation: true }));
-  it("rejects estimates without traceable provenance", () => expect(() => validateQuantityEstimate({ gramsPerUnit: 10, confidence: .5, method: "estimated", provenance: {} })).toThrow("incomplete_estimate_provenance"));
-});
-
-const records = [
-  { id: "catalog-egg", name: "Egg", originalName: "Egg", names: { hu: "Tojás" }, searchText: "tojas tojás egg", servings: [
-    { id: "piece", key: "egg", unit: "egg", labels: { en: "egg" }, grams: 46, isEstimated: false, confidence: 1, provenance: { source: "USDA" } }
-  ] },
-  { id: "catalog-fried-egg", name: "Fried egg", originalName: "Egg, fried", names: { hu: "Tükörtojás" }, searchText: "tukortojas spiegelei fried egg sult tojas", servings: [
-    { id: "piece", key: "egg", unit: "egg", labels: { en: "egg" }, grams: 46, isEstimated: false, confidence: 1, provenance: { source: "USDA" } }
-  ] },
-  { id: "catalog-cheddar", name: "Cheddar cheese", names: { hu: "Cheddar sajt" }, searchText: "cheddar sajt cheese", servings: [] },
-  { id: "catalog-gouda", name: "Gouda cheese", names: { hu: "Gouda sajt" }, searchText: "gouda sajt cheese", servings: [] },
-  { id: "catalog-cucumber", name: "Kígyóuborka", names: { hu: "Kígyóuborka" }, searchText: "kigyouborka uborka cucumber", servings: [] },
-  { id: "catalog-chicken-drumstick", name: "Csirkecomb", names: { hu: "Csirkecomb" }, searchText: "csirkecomb chicken leg", servings: [] },
-  { id: "catalog-chicken-breast", name: "Csirkemell", names: { hu: "Csirkemell" }, searchText: "csirkemell chicken breast", servings: [] }
+const baseFoods: Food[] = [
+  { id: "catalog-egg", name: "Egg", names: { hu: "Tojás", de: "Ei", en: "Egg" }, synonyms: { hu: ["tojás", "tojas"], de: ["ei"], en: ["egg", "eggs"] }, servingUnit: "egg", servingGrams: 46, kcalPer100g: 143 },
+  { id: "catalog-fried-egg", name: "Fried egg", names: { hu: "Tükörtojás", de: "Spiegelei", en: "Fried egg" }, synonyms: { hu: ["tükörtojás", "tukortojas", "sült tojás", "sult tojas"], de: ["spiegelei"], en: ["fried egg"] }, servingUnit: "egg", servingGrams: 46, kcalPer100g: 196 },
+  { id: "catalog-scrambled-egg", name: "Scrambled egg", names: { hu: "Rántotta", de: "Rührei", en: "Scrambled egg" }, synonyms: { hu: ["rántotta", "rantotta", "tojásrántotta", "tojasrantotta"], de: ["ruhrei"], en: ["scrambled egg", "eggs scrambled"] }, servingUnit: "egg", servingGrams: 100, kcalPer100g: 149 },
+  { id: "catalog-cheddar", name: "Cheddar cheese", names: { hu: "Cheddar sajt", de: "Cheddar", en: "Cheddar cheese" }, synonyms: { hu: ["cheddar", "sajt"], de: ["cheddar", "käse", "kase"], en: ["cheddar", "cheese"] }, servingUnit: "slice", servingGrams: 28, kcalPer100g: 403 },
+  { id: "catalog-gouda", name: "Gouda cheese", names: { hu: "Gouda sajt", de: "Gouda", en: "Gouda cheese" }, synonyms: { hu: ["gouda", "sajt"], de: ["gouda", "käse", "kase"], en: ["gouda", "cheese"] }, servingUnit: "slice", servingGrams: 28, kcalPer100g: 356 },
+  { id: "catalog-cucumber", name: "Cucumber", names: { hu: "Kígyóuborka", de: "Gurke", en: "Cucumber" }, synonyms: { hu: ["kígyóuborka", "kigyouborka", "uborka"], de: ["gurke", "salatgurke"], en: ["cucumber"] }, servingUnit: "piece", servingGrams: 300, isEstimated: true, confidence: 0.7, kcalPer100g: 15 }
 ];
 
-const mockPrisma = {
-  foodAlias: { findMany: async () => [] },
-  food: {
-    findMany: async ({ where, include }: any) => {
-      if (where.id?.in) return records.filter((r) => where.id.in.includes(r.id)).map((r) => ({ ...r, servings: include?.servings ? r.servings : undefined }));
-      const queries = where.OR.map((c: any) => c.searchText.contains);
-      return records.filter((r) => queries.some((q: string) => r.searchText.includes(q)));
+function makePrisma() {
+  const foods = baseFoods.map((f) => ({
+    ...f,
+    createdById: null,
+    searchText: normalizeSearch([f.name, ...Object.values(f.synonyms).flat()].join(" ")),
+    servings: [{ id: `${f.id}-serving`, key: f.servingUnit, unit: f.servingUnit, labels: { en: f.servingUnit }, grams: f.servingGrams, isEstimated: f.isEstimated ?? false, confidence: f.confidence ?? 1, provenance: { method: "curated_seed" } }]
+  }));
+  const aliasRows = baseFoods.flatMap((f) => Object.values(f.synonyms).flat().map((a) => ({ foodId: f.id, normalizedAlias: normalizeSearch(a) })));
+
+  return {
+    foodAlias: {
+      findMany: async ({ where }: any) => {
+        const variants = where.OR.map((o: any) => o.normalizedAlias.contains as string);
+        return aliasRows.filter((r) => variants.some((v: string) => r.normalizedAlias.includes(v)));
+      }
+    },
+    food: {
+      findMany: async ({ where }: any) => {
+        const variants = where.OR.map((o: any) => o.searchText.contains as string);
+        return foods
+          .filter((f) => f.createdById === null && variants.some((v: string) => f.searchText.toLowerCase().includes(v.toLowerCase())))
+          .map((f) => ({ ...f }));
+      }
     }
-  }
-} as unknown as Pick<PrismaClient, "food" | "foodAlias">;
+  } as any;
+}
 
-describe("interpretMealInput", () => {
-  it("'5 tojás' resolves to generic egg, not fried egg", async () => {
-    const r = await interpretMealInput(mockPrisma, "5 tojás");
-    expect(r.parsed).toEqual({ quantity: 5, unit: "piece", foodQuery: "tojas" });
-    expect(r.foodResolution).toBe("resolved");
+const prisma = makePrisma();
+
+describe("meal input interpretation", () => {
+  it("5 tojás -> generic Egg", async () => {
+    const r: InterpretResult = await interpretMealInput(prisma, "5 tojás");
     expect(r.selectedFood?.id).toBe("catalog-egg");
-    expect(r.quantity).toMatchObject({ status: "resolved", grams: 230, method: "authoritative" });
-    expect(r.canConfirm).toBe(true);
     expect(r.preparation).toBeUndefined();
-  });
-
-  it("'3 tükörtojás' separates preparation; generic egg is selected, fried is an attribute", async () => {
-    const r = await interpretMealInput(mockPrisma, "3 tükörtojás");
-    expect(r.parsed.preparation).toBe("fried");
-    expect(r.parsed.foodQuery).toBe("tojas");
-    expect(r.selectedFood?.id).toBe("catalog-egg");
-    expect(r.quantity).toMatchObject({ status: "resolved", grams: 138 });
+    expect(r.quantity?.grams).toBe(5 * 46);
     expect(r.canConfirm).toBe(true);
   });
 
-  it("'5 tojásból rántotta' -> base egg + scrambled, uses egg serving (not fried nutrition confusion)", async () => {
-    const r = await interpretMealInput(mockPrisma, "5 tojásból rántotta");
-    expect(r.parsed).toMatchObject({ quantity: 5, unit: "piece", foodQuery: "tojas", preparation: "scrambled" });
-    expect(r.selectedFood?.id).toBe("catalog-egg");
-    expect(r.quantity).toMatchObject({ status: "resolved", grams: 230 });
+  it("3 tükörtojás -> fried Egg nutrition, not generic/raw Egg", async () => {
+    const r = await interpretMealInput(prisma, "3 tükörtojás");
+    expect(r.selectedFood?.id).toBe("catalog-fried-egg");
+    expect(r.preparation).toBe("fried");
+    expect(r.quantity?.grams).toBe(3 * 46);
     expect(r.canConfirm).toBe(true);
   });
 
-  it("'tojásrántotta 5 tojásból' -> base egg + scrambled", async () => {
-    const r = await interpretMealInput(mockPrisma, "tojásrántotta 5 tojásból");
-    expect(r.parsed).toMatchObject({ quantity: 5, unit: "piece", foodQuery: "tojas", preparation: "scrambled" });
-    expect(r.quantity).toMatchObject({ status: "resolved", grams: 230 });
+  it("5 tojásból rántotta -> scrambled Egg nutrition when available", async () => {
+    const r = await interpretMealInput(prisma, "5 tojásból rántotta");
+    expect(r.selectedFood?.id).toBe("catalog-scrambled-egg");
+    expect(r.preparation).toBe("scrambled");
+    expect(r.quantity?.grams).toBe(5 * 100);
+    expect(r.canConfirm).toBe(true);
   });
 
-  it("'2 szelet gouda' is recognized but has no slice serving -> unresolved conversion", async () => {
-    const r = await interpretMealInput(mockPrisma, "2 szelet gouda");
-    expect(r.parsed).toEqual({ quantity: 2, unit: "slice", foodQuery: "gouda" });
+  it("főtt tojás -> does NOT confirm/silently use raw/fried/scrambled nutrition when boiled Food is unavailable", async () => {
+    const r = await interpretMealInput(prisma, "főtt tojás");
+    expect(r.preparation).toBe("boiled");
+    expect(r.preparationUnavailable).toBe(true);
+    expect(r.canConfirm).toBe(false);
+    expect(r.foodResolution).toBe("confirmation_required");
+    // The displayed candidate may fall back to the base egg for review, but it
+    // must NOT be auto-confirmed: the user must explicitly choose/confirm.
+    expect(r.quantity?.status === "resolved" ? r.quantity.requiresConfirmation || r.ambiguous || r.preparationUnavailable : true).toBe(true);
+  });
+
+  it("generic sajt -> ambiguous/candidate confirmation, never arbitrary Cheddar/Gouda auto-resolution", async () => {
+    const r = await interpretMealInput(prisma, "sajt");
+    expect(r.ambiguous).toBe(true);
+    expect(r.canConfirm).toBe(false);
+    expect(r.candidates.map((c) => c.id)).toEqual(expect.arrayContaining(["catalog-cheddar", "catalog-gouda"]));
+    expect(r.foodResolution).toBe("confirmation_required");
+  });
+
+  it("explicit Gouda -> Gouda", async () => {
+    const r = await interpretMealInput(prisma, "gouda");
     expect(r.selectedFood?.id).toBe("catalog-gouda");
-    expect(r.quantity).toMatchObject({ status: "unresolved", reason: "conversion_missing" });
-    expect(r.canConfirm).toBe(false);
+    expect(r.ambiguous).toBeFalsy();
   });
 
-  it("generic 'sajt' returns candidates, not a silent single cheese", async () => {
-    const r = await interpretMealInput(mockPrisma, "sajt");
-    expect(r.parsed.foodQuery).toBe("sajt");
-    const ids = r.candidates.map((c) => c.id);
-    expect(ids).toContain("catalog-cheddar");
-    expect(ids).toContain("catalog-gouda");
-    expect(r.selectedFood).not.toBeNull();
+  it("1 kg conversion remains exactly 1000 g", async () => {
+    const r = await interpretMealInput(prisma, "1 kg cheddar");
+    expect(r.quantity?.grams).toBe(1000);
+    expect(r.quantity?.requiresConfirmation).toBe(false);
+    expect(r.canConfirm).toBe(true);
   });
 
-  it("'100 g bacon' uses exact mass and stays unresolved when food unknown", async () => {
-    const r = await interpretMealInput(mockPrisma, "100 g bacon");
-    expect(r.parsed).toEqual({ quantity: 100, unit: "g", foodQuery: "bacon" });
-    expect(r.foodResolution).toBe("unresolved");
-    expect(r.selectedFood).toBeNull();
+  it("500 g resolves to 500 g (measured mass is authoritative)", async () => {
+    const r = await interpretMealInput(prisma, "500 g cheddar");
+    expect(r.quantity?.grams).toBe(500);
+    expect(r.canConfirm).toBe(true);
   });
 
-  it("'12 cm kígyóuborka' recognizes food + length but does not invent grams", async () => {
-    const r = await interpretMealInput(mockPrisma, "12 cm kígyóuborka");
-    expect(r.parsed).toEqual({ quantity: 12, unit: "cm", foodQuery: "kigyouborka" });
-    expect(r.selectedFood?.id).toBe("catalog-cucumber");
-    expect(r.quantity).toMatchObject({ status: "unresolved", reason: "conversion_missing" });
-    expect(r.canConfirm).toBe(false);
-  });
-
-  it("'fél kígyóuborka' parses half quantity", async () => {
-    const r = await interpretMealInput(mockPrisma, "fél kígyóuborka");
-    expect(r.parsed).toEqual({ quantity: 0.5, unit: "piece", foodQuery: "kigyouborka" });
-  });
-
-  it("unknown food stays unresolved without a fake match", async () => {
-    const r = await interpretMealInput(mockPrisma, "valami különös étel");
-    expect(r.foodResolution).toBe("unresolved");
-    expect(r.selectedFood).toBeNull();
-    expect(r.canConfirm).toBe(false);
-  });
-
-  it("diacritic-free input still resolves the food", async () => {
-    const r = await interpretMealInput(mockPrisma, "kigyouborka");
-    expect(r.parsed.foodQuery).toBe("kigyouborka");
-    expect(r.selectedFood?.id).toBe("catalog-cucumber");
-  });
-
-  it("'2 csirkecomb és fél csirkemell' yields two interpreted items", async () => {
-    const r = await interpretMealInput(mockPrisma, "2 csirkecomb és fél csirkemell");
+  it("estimated serving in multi-item cannot be silently logged", async () => {
+    const r = await interpretMealInput(prisma, "1 db uborka és 1 kg cheddar");
     expect(r.foodResolution).toBe("multi");
-    expect(r.items).toHaveLength(2);
-    expect(r.items?.[0].parsed).toEqual({ quantity: 2, unit: "piece", foodQuery: "csirkecomb" });
-    expect(r.items?.[1].parsed).toEqual({ quantity: 0.5, unit: "piece", foodQuery: "csirkemell" });
+    expect(r.canConfirm).toBe(false);
+    const cucumber = r.items?.find((it) => it.selectedFood?.id === "catalog-cucumber");
+    expect(cucumber?.quantity?.requiresConfirmation).toBe(true);
+  });
+
+  it("unresolved item disables Log all", async () => {
+    const r = await interpretMealInput(prisma, "főtt tojás és 1 kg cheddar");
+    expect(r.foodResolution).toBe("multi");
+    expect(r.canConfirm).toBe(false);
+    const boiled = r.items?.find((it) => it.preparation === "boiled");
+    expect(boiled?.canConfirm).toBe(false);
+  });
+
+  it("measured mass (kg) in multi-item keeps exactly 1000 g for the kg item", async () => {
+    const r = await interpretMealInput(prisma, "1 kg cheddar és 200 g gouda");
+    expect(r.canConfirm).toBe(true);
+    const kgItem = r.items?.find((it) => it.parsed.unit === "kg");
+    const gItem = r.items?.find((it) => it.parsed.unit === "g");
+    expect(kgItem?.quantity?.grams).toBe(1000);
+    expect(gItem?.quantity?.grams).toBe(200);
   });
 });

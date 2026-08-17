@@ -2,10 +2,11 @@ import type { PrismaClient } from "@prisma/client";
 import { parseNaturalFoodQuery, type ParsedNaturalFoodQuery } from "../catalog/natural-food-query.js";
 import { searchFoods } from "../catalog/food-search.js";
 import { DisabledQuantityEstimationProvider, type EstimateMethod, type QuantityEstimationProvider, validateQuantityEstimate } from "./quantity-estimation.js";
+import { normalizeSearch } from "../catalog/normalize.js";
 
 type SearchablePrisma = Pick<PrismaClient, "food" | "foodAlias"> & Partial<Pick<PrismaClient, "$queryRaw">>;
 type Serving = { id: string; key: string; unit: string; labels: unknown; grams: number; isEstimated: boolean; confidence: number; provenance: unknown };
-type ResolvedFood = { id: string; source: string; sourceId: string | null; name: string; servings?: Serving[]; match?: { stage: string; score: number } };
+type ResolvedFood = { id: string; source: string; sourceId: string | null; name: string; originalName?: string; searchText?: string; names?: Record<string, string>; servings?: Serving[]; match?: { stage: string; score: number } };
 
 export type QuantityResolution = {
   status: "resolved" | "unresolved";
@@ -32,8 +33,31 @@ export type InterpretResult = {
   canConfirm: boolean;
   confidence: number;
   preparation?: string;
+  ambiguous?: boolean;
+  preparationUnavailable?: boolean;
   items?: InterpretResult[];
 };
+
+const PREP_KEYWORDS: Record<string, readonly string[]> = {
+  fried: ["fried", "tukortojas", "tükörtojás", "spiegelei", "sult tojas", "sült tojás"],
+  scrambled: ["scrambled", "tojasrantotta", "tojásrántotta", "rantotta", "rántotta", "ruhrei"],
+  boiled: ["boiled", "fott", "főtt"]
+};
+
+const PREP_SEARCH_TOKEN: Record<string, string> = {
+  fried: "tukortojas",
+  scrambled: "tojasrantotta",
+  boiled: "fott tojas"
+};
+
+function foodMatchesPreparation(food: ResolvedFood, preparation: string): boolean {
+  const keywords = PREP_KEYWORDS[preparation];
+  if (!keywords) return false;
+  const haystack = normalizeSearch(
+    [food.name, food.originalName, food.searchText, JSON.stringify(food.names ?? {})].filter(Boolean).join(" ")
+  );
+  return keywords.some((kw) => haystack.includes(normalizeSearch(kw)));
+}
 
 function servingMatchesSize(serving: Serving, size: ParsedNaturalFoodQuery["size"]) {
   if (!size) return true;
@@ -94,30 +118,62 @@ async function interpretOne(
   parsed: ParsedNaturalFoodQuery,
   provider: QuantityEstimationProvider
 ): Promise<InterpretResult> {
-  const foods = await searchFoods(prisma, parsed.foodQuery, 5) as unknown as ResolvedFood[];
-  const top = foods[0];
+  const baseCandidates = (await searchFoods(prisma, parsed.foodQuery, 8)) as unknown as ResolvedFood[];
+
+  let preparedFood: ResolvedFood | null = null;
+  if (parsed.preparation && PREP_SEARCH_TOKEN[parsed.preparation]) {
+    const prepCandidates = (await searchFoods(prisma, PREP_SEARCH_TOKEN[parsed.preparation], 8)) as unknown as ResolvedFood[];
+    preparedFood = prepCandidates.find((food) => foodMatchesPreparation(food, parsed.preparation!)) ?? null;
+  }
+
+  const candidates = preparedFood
+    ? [preparedFood, ...baseCandidates.filter((food) => food.id !== preparedFood!.id)]
+    : baseCandidates;
+
+  const top = candidates[0] ?? null;
   if (!top) {
     return { input, parsed, foodResolution: "unresolved", selectedFood: null, candidates: [], quantity: null, canConfirm: false, confidence: 0, preparation: parsed.preparation };
   }
 
   const score = top.match?.score ?? 0;
   const stage = top.match?.stage;
+  const hasPrep = !!parsed.preparation;
+  const preparedFound = !!preparedFood;
+
+  let ambiguous = false;
+  if (!hasPrep && candidates.length > 1) {
+    const s0 = candidates[0].match?.score ?? 0;
+    const s1 = candidates[1].match?.score ?? 0;
+    // A real generic ambiguity means top candidates are nearly tied (e.g. two
+    // cheeses both at 95). A clear winner (e.g. egg 100 vs 95) must NOT be
+    // flagged ambiguous just because a prepared form shares a base alias.
+    if (s1 >= 80 && s0 - s1 <= 2) ambiguous = true;
+  }
+
   const quantity = await resolveQuantity(parsed, top, provider);
 
-  const auto = (stage === "exact" || stage === "alias") && score >= 95;
-  const foodResolution: FoodResolutionStatus = auto ? "resolved" : score >= 80 ? "preview" : "confirmation_required";
-  const canConfirm = quantity.status === "resolved" && score >= 80;
+  const prepUnavailable = hasPrep && !preparedFound;
+  let foodResolution: FoodResolutionStatus;
+  if (prepUnavailable) foodResolution = "confirmation_required";
+  else if (ambiguous) foodResolution = "confirmation_required";
+  else if ((stage === "exact" || stage === "alias") && score >= 95) foodResolution = "resolved";
+  else if (score >= 80) foodResolution = "preview";
+  else foodResolution = "confirmation_required";
+
+  const canConfirm = quantity.status === "resolved" && !quantity.requiresConfirmation && !ambiguous && !prepUnavailable && score >= 80;
 
   return {
     input,
     parsed,
     foodResolution,
     selectedFood: top,
-    candidates: foods,
+    candidates,
     quantity,
     canConfirm,
     confidence: score / 100,
-    preparation: parsed.preparation
+    preparation: parsed.preparation,
+    ambiguous,
+    preparationUnavailable: prepUnavailable
   };
 }
 

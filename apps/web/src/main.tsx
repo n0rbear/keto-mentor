@@ -167,8 +167,12 @@ function App() {
         return;
       }
       const q = it.quantity;
+      // Send the ORIGINAL parsed quantity + unit for exact mass so the backend
+      // applies its single, authoritative conversion (1 kg -> 1000 g). Never
+      // send q.grams (already-converted) together with unit "kg": that would
+      // double-convert. Estimated servings are blocked upstream via canConfirm.
       if (q.servingId) items.push({ foodId: it.selectedFood.id, quantity: it.parsed.quantity ?? 1, unit: "serving", servingId: q.servingId });
-      else if (it.parsed.unit === "g" || it.parsed.unit === "kg") items.push({ foodId: it.selectedFood.id, quantity: q.grams!, unit: it.parsed.unit });
+      else if (it.parsed.unit === "g" || it.parsed.unit === "kg") items.push({ foodId: it.selectedFood.id, quantity: it.parsed.quantity ?? 0, unit: it.parsed.unit });
       else { setMealStatus({ kind: "error", text: lang === "hu" ? "Bizonytalan mértékegység – add meg kézzel." : lang === "de" ? "Unsicheres Maß – bitte manuell eingeben." : "Uncertain unit – enter manually." }); return; }
     }
     if (!items.length) return;

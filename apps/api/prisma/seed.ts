@@ -10,6 +10,9 @@ type SeedFood = {
   synonyms: Record<string, string[]>;
   servingUnit: string;
   servingGrams: number;
+  servingEstimated?: boolean;
+  servingConfidence?: number;
+  servingProvenance?: Prisma.InputJsonValue;
   kcalPer100g: number;
   fatPer100g: number;
   proteinPer100g: number;
@@ -49,7 +52,7 @@ const foods: SeedFood[] = [
     id: "catalog-fried-egg",
     name: "Fried egg",
     names: { hu: "Tükörtojás", de: "Spiegelei", en: "Fried egg" },
-    synonyms: { hu: ["tükörtojás", "tukortojas", "sült tojás", "sult tojas", "tojás", "tojas"], de: ["spiegelei", "ei"], en: ["fried egg", "egg"] },
+    synonyms: { hu: ["tükörtojás", "tukortojas", "sült tojás", "sult tojas"], de: ["spiegelei"], en: ["fried egg"] },
     servingUnit: "egg",
     servingGrams: 46,
     kcalPer100g: 196,
@@ -63,8 +66,8 @@ const foods: SeedFood[] = [
     id: "catalog-scrambled-egg",
     name: "Scrambled egg",
     names: { hu: "Rántotta", de: "Rührei", en: "Scrambled egg" },
-    synonyms: { hu: ["rántotta", "rantotta", "tojásrántotta", "tojasrantotta", "tojás", "tojas"], de: ["ruhrei"], en: ["scrambled egg", "eggs scrambled"] },
-    servingUnit: "portion",
+    synonyms: { hu: ["rántotta", "rantotta", "tojásrántotta", "tojasrantotta"], de: ["ruhrei"], en: ["scrambled egg", "eggs scrambled"] },
+    servingUnit: "egg",
     servingGrams: 100,
     kcalPer100g: 149,
     fatPer100g: 10.98,
@@ -164,6 +167,9 @@ const foods: SeedFood[] = [
     synonyms: { hu: ["kígyóuborka", "kigyouborka", "uborka"], de: ["gurke", "salatgurke"], en: ["cucumber"] },
     servingUnit: "piece",
     servingGrams: 300,
+    servingEstimated: true,
+    servingConfidence: 0.7,
+    servingProvenance: { method: "curated_estimate", note: "Whole cucumber approximate mass; USDA does not itemize a single piece." },
     kcalPer100g: 15,
     fatPer100g: 0.1,
     proteinPer100g: 0.7,
@@ -205,7 +211,7 @@ async function main() {
 
   for (const food of foods) {
     const sourceId = String((food.provenance as Record<string, unknown>).fdcId ?? food.id);
-    const { id, ...foodData } = food;
+    const { id, servingEstimated, servingConfidence, servingProvenance, ...foodData } = food;
     const metadata = {
       ...foodData,
       source: "open_database" as const,
@@ -237,8 +243,24 @@ async function main() {
 
     await prisma.foodServing.upsert({
       where: { foodId_key: { foodId: id, key: food.servingUnit } },
-      update: { unit: food.servingUnit, grams: food.servingGrams, labels: { en: food.servingUnit }, isEstimated: false, confidence: 1, provenance: { method: "curated_seed", source: food.provenance } },
-      create: { foodId: id, key: food.servingUnit, unit: food.servingUnit, grams: food.servingGrams, labels: { en: food.servingUnit }, isEstimated: false, confidence: 1, provenance: { method: "curated_seed", source: food.provenance } }
+      update: {
+        unit: food.servingUnit,
+        grams: food.servingGrams,
+        labels: { en: food.servingUnit },
+        isEstimated: food.servingEstimated ?? false,
+        confidence: food.servingConfidence ?? 1,
+        provenance: food.servingProvenance ?? { method: "curated_seed", source: food.provenance }
+      },
+      create: {
+        foodId: id,
+        key: food.servingUnit,
+        unit: food.servingUnit,
+        grams: food.servingGrams,
+        labels: { en: food.servingUnit },
+        isEstimated: food.servingEstimated ?? false,
+        confidence: food.servingConfidence ?? 1,
+        provenance: food.servingProvenance ?? { method: "curated_seed", source: food.provenance }
+      }
     });
   }
 }
