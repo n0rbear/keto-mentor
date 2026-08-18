@@ -65,9 +65,10 @@ function servingMatchesSize(serving: Serving, size: ParsedNaturalFoodQuery["size
 }
 
 const SERVING_UNIT_ALIASES: Record<string, readonly string[]> = {
-  piece: ["piece", "egg", "item", "whole", "darab", "db", "stuck", "stuk"],
-  slice: ["slice", "szelet", "scheibe"], portion: ["portion", "serving", "adag"],
-  tbsp: ["tbsp", "tablespoon", "evokanal", "essloffel"], tsp: ["tsp", "teaspoon", "teaskanal"],
+  piece: ["piece", "egg", "item", "whole", "darab", "db", "stuck", "stuk", "stucke", "eier"],
+  slice: ["slice", "szelet", "scheibe", "sh"], portion: ["portion", "serving", "adag"],
+  tbsp: ["tbsp", "tablespoon", "evokanal", "essloffel", "el"], tsp: ["tsp", "teaspoon", "teaskanal", "teeloffel", "tl"],
+  half: ["half", "fel", "fele", "halb", "halbes"],
   handful: ["handful", "marek", "handvoll"], cm: ["cm"], bite: ["bite", "harapas", "bissen"], splash: ["splash", "lottyintes", "schuss"]
 };
 

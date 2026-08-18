@@ -3,16 +3,28 @@ import { buildSearchText } from "../src/catalog/normalize.js";
 
 const prisma = new PrismaClient();
 
+type SeedServing = {
+  key: string;
+  unit: string;
+  grams: number;
+  isEstimated?: boolean;
+  confidence?: number;
+  provenance: Prisma.InputJsonValue;
+};
+
 type SeedFood = {
   id: string;
   name: string;
   names: Record<string, string>;
   synonyms: Record<string, string[]>;
+  // Optional single legacy serving (kept for backwards compatibility). Prefer
+  // `servings` below, which supports multiple authoritative units per food.
   servingUnit?: string;
   servingGrams?: number;
   servingEstimated?: boolean;
   servingConfidence?: number;
   servingProvenance?: Prisma.InputJsonValue;
+  servings?: SeedServing[];
   kcalPer100g: number;
   fatPer100g: number;
   proteinPer100g: number;
@@ -39,9 +51,10 @@ const foods: SeedFood[] = [
     name: "Egg",
     names: { hu: "Tojás", de: "Ei", en: "Egg" },
     synonyms: { hu: ["tojás", "tojas"], de: ["ei"], en: ["egg", "eggs"] },
-    servingUnit: "egg",
-    servingGrams: 46,
-    servingProvenance: { method: "curated_reference", note: "One large egg ≈ 46 g edible portion (USDA standard reference weight)." },
+    servings: [
+      { key: "egg", unit: "egg", grams: 46, provenance: { method: "authoritative", source: "USDA FoodData Central", fdcId: "172395", measure: "1 large egg ≈ 46 g edible portion (USDA standard reference weight)", retrievedAt: "2026-08-09" } },
+      { key: "piece", unit: "piece", grams: 46, provenance: { method: "authoritative", source: "USDA FoodData Central", fdcId: "172395", measure: "1 egg ≈ 46 g edible portion (USDA standard reference weight)", retrievedAt: "2026-08-09" } }
+    ],
     kcalPer100g: 143,
     fatPer100g: 9.5,
     proteinPer100g: 12.6,
@@ -54,9 +67,10 @@ const foods: SeedFood[] = [
     name: "Fried egg",
     names: { hu: "Tükörtojás", de: "Spiegelei", en: "Fried egg" },
     synonyms: { hu: ["tükörtojás", "tukortojas", "sült tojás", "sult tojas"], de: ["spiegelei"], en: ["fried egg"] },
-    servingUnit: "egg",
-    servingGrams: 46,
-    servingProvenance: { method: "curated_reference", note: "One large egg ≈ 46 g edible portion (USDA standard reference weight); fried nutrition from FDC 173423." },
+    servings: [
+      { key: "egg", unit: "egg", grams: 46, provenance: { method: "authoritative", source: "USDA FoodData Central", fdcId: "173423", measure: "1 large egg ≈ 46 g edible portion (USDA standard reference weight)", retrievedAt: "2026-08-09" } },
+      { key: "piece", unit: "piece", grams: 46, provenance: { method: "authoritative", source: "USDA FoodData Central", fdcId: "173423", measure: "1 fried egg ≈ 46 g edible portion (USDA standard reference weight)", retrievedAt: "2026-08-09" } }
+    ],
     kcalPer100g: 196,
     fatPer100g: 14.8,
     proteinPer100g: 13.6,
@@ -85,9 +99,10 @@ const foods: SeedFood[] = [
     name: "Avocado",
     names: { hu: "Avokádó", de: "Avocado", en: "Avocado" },
     synonyms: { hu: ["avokádó", "avokado"], de: ["avocado"], en: ["avocado"] },
-    servingUnit: "half",
-    servingGrams: 68,
-    servingProvenance: { method: "curated_reference", note: "Half medium avocado ≈ 68 g (USDA common measure)." },
+    servings: [
+      { key: "half", unit: "half", grams: 68, provenance: { method: "authoritative", source: "USDA FoodData Central", fdcId: "171705", measure: "1/2 medium avocado ≈ 68 g (USDA common measure)", retrievedAt: "2026-08-09" } },
+      { key: "piece", unit: "piece", grams: 136, provenance: { method: "authoritative", source: "USDA FoodData Central", fdcId: "171705", measure: "1 medium avocado ≈ 136 g edible (USDA common measure; whole fruit ~150 g)", retrievedAt: "2026-08-09" } }
+    ],
     kcalPer100g: 160,
     fatPer100g: 14.66,
     proteinPer100g: 2,
@@ -117,9 +132,10 @@ const foods: SeedFood[] = [
     name: "Butter",
     names: { hu: "Vaj", de: "Butter", en: "Butter" },
     synonyms: { hu: ["vaj"], de: ["butter"], en: ["butter"] },
-    servingUnit: "tbsp",
-    servingGrams: 14,
-    servingProvenance: { method: "curated_reference", note: "One tablespoon butter ≈ 14 g (USDA standard measure)." },
+    servings: [
+      { key: "tbsp", unit: "tbsp", grams: 14, provenance: { method: "authoritative", source: "USDA FoodData Central", fdcId: "01001", measure: "1 tablespoon butter ≈ 14 g (USDA standard measure)", retrievedAt: "2026-08-09" } },
+      { key: "tsp", unit: "tsp", grams: 4.7, provenance: { method: "authoritative", source: "USDA FoodData Central", fdcId: "01001", measure: "1 teaspoon butter ≈ 4.7 g (USDA standard measure)", retrievedAt: "2026-08-09" } }
+    ],
     kcalPer100g: 717,
     fatPer100g: 81.1,
     proteinPer100g: 0.85,
@@ -223,7 +239,7 @@ async function main() {
 
   for (const food of foods) {
     const sourceId = String((food.provenance as Record<string, unknown>).fdcId ?? food.id);
-    const { id, servingEstimated, servingConfidence, servingProvenance, ...foodData } = food;
+    const { id, servingEstimated, servingConfidence, servingProvenance, servings, ...foodData } = food;
     const metadata = {
       ...foodData,
       source: "open_database" as const,
@@ -253,26 +269,42 @@ async function main() {
       }
     }
 
-    if (food.servingUnit && food.servingGrams != null) {
+    // Build the list of servings to upsert: prefer the explicit `servings`
+    // array (multiple authoritative units); fall back to the single legacy
+    // `servingUnit`/`servingGrams` fields for backwards compatibility.
+    const servingList: SeedServing[] =
+      servings ??
+      (food.servingUnit && food.servingGrams != null
+        ? [{
+            key: food.servingUnit,
+            unit: food.servingUnit,
+            grams: food.servingGrams,
+            isEstimated: food.servingEstimated,
+            confidence: food.servingConfidence,
+            provenance: food.servingProvenance ?? { method: "curated_seed", source: food.provenance }
+          }]
+        : []);
+
+    for (const s of servingList) {
       await prisma.foodServing.upsert({
-        where: { foodId_key: { foodId: id, key: food.servingUnit } },
+        where: { foodId_key: { foodId: id, key: s.key } },
         update: {
-          unit: food.servingUnit,
-          grams: food.servingGrams,
-          labels: { en: food.servingUnit },
-          isEstimated: food.servingEstimated ?? false,
-          confidence: food.servingConfidence ?? 1,
-          provenance: food.servingProvenance ?? { method: "curated_seed", source: food.provenance }
+          unit: s.unit,
+          grams: s.grams,
+          labels: { en: s.unit },
+          isEstimated: s.isEstimated ?? false,
+          confidence: s.confidence ?? 1,
+          provenance: s.provenance
         },
         create: {
           foodId: id,
-          key: food.servingUnit,
-          unit: food.servingUnit,
-          grams: food.servingGrams,
-          labels: { en: food.servingUnit },
-          isEstimated: food.servingEstimated ?? false,
-          confidence: food.servingConfidence ?? 1,
-          provenance: food.servingProvenance ?? { method: "curated_seed", source: food.provenance }
+          key: s.key,
+          unit: s.unit,
+          grams: s.grams,
+          labels: { en: s.unit },
+          isEstimated: s.isEstimated ?? false,
+          confidence: s.confidence ?? 1,
+          provenance: s.provenance
         }
       });
     }

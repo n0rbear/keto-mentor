@@ -1,6 +1,6 @@
 import { normalizeSearch } from "./normalize.js";
 
-export type NaturalQuantityUnit = "g" | "kg" | "piece" | "slice" | "portion" | "tbsp" | "tsp" | "handful" | "cm" | "bite" | "splash";
+export type NaturalQuantityUnit = "g" | "kg" | "piece" | "slice" | "portion" | "tbsp" | "tsp" | "handful" | "cm" | "bite" | "splash" | "half";
 
 export type ParsedNaturalFoodQuery = {
   quantity?: number;
@@ -13,11 +13,13 @@ export type ParsedNaturalFoodQuery = {
 
 const UNITS = new Map<string, NaturalQuantityUnit>([
   ["g", "g"], ["gramm", "g"], ["gram", "g"], ["kg", "kg"], ["kilogramm", "kg"],
-  ["db", "piece"], ["darab", "piece"], ["piece", "piece"], ["stuk", "piece"], ["stuck", "piece"],
-  ["szelet", "slice"], ["slice", "slice"], ["adag", "portion"], ["portion", "portion"],
-  ["ek", "tbsp"], ["evokanal", "tbsp"], ["tbsp", "tbsp"], ["tk", "tsp"], ["teaskanal", "tsp"], ["tsp", "tsp"],
+  ["db", "piece"], ["darab", "piece"], ["piece", "piece"], ["stuk", "piece"], ["stuck", "piece"], ["stucke", "piece"],
+  ["szelet", "slice"], ["slice", "slice"], ["slices", "slice"], ["scheibe", "slice"], ["scheiben", "slice"], ["adag", "portion"], ["portion", "portion"],
+  ["ek", "tbsp"], ["el", "tbsp"], ["evokanal", "tbsp"], ["essloffel", "tbsp"], ["tbsp", "tbsp"],
+  ["tk", "tsp"], ["tl", "tsp"], ["teaskanal", "tsp"], ["teeloffel", "tsp"], ["tsp", "tsp"],
   ["marek", "handful"], ["handful", "handful"], ["handvoll", "handful"], ["cm", "cm"],
-  ["harapas", "bite"], ["bite", "bite"], ["bissen", "bite"], ["lottyintes", "splash"], ["splash", "splash"], ["schuss", "splash"]
+  ["harapas", "bite"], ["bite", "bite"], ["bissen", "bite"], ["lottyintes", "splash"], ["splash", "splash"], ["schuss", "splash"],
+  ["half", "half"], ["halbe", "half"], ["halb", "half"]
 ]);
 
 const NUMBERS = new Map([
@@ -142,6 +144,10 @@ function parseSegment(normalized: string): ParsedNaturalFoodQuery {
     const u = UNITS.get(restAfterSize[0]);
     if (u) { unit = u; restAfterUnit = restAfterSize.slice(1); }
   }
+  // A bare "half" qualifier ("fél avokádó" / "half avocado" / "halbe Avocado")
+  // means one half (quantity 1, unit "half"), not 0.5 of a piece. It resolves
+  // via a FoodServing keyed "half".
+  if (unit === "half" && quantity == null) quantity = 1;
 
   let foodText = restAfterUnit.join(" ").trim();
   if (unit === "splash") foodText = foodText.replace(/\b(a kaveba|in den kaffee|in coffee)\b.*$/i, "").trim();
