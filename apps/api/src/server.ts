@@ -9,7 +9,8 @@ import pino from "pino";
 import { pinoHttp } from "pino-http";
 import { createMealSchema, loginSchema, mealInterpretationSchema, onboardingSchema, registerSchema } from "@keto-mentor/shared";
 import { env } from "./config.js";
-import { hashPassword, requireAuth, setRefreshCookie, signAccessToken, signRefreshToken, verifyPassword } from "./auth.js";
+
+import { hashPassword, readRefreshToken, requireAuth, setRefreshCookie, signAccessToken, signRefreshToken, verifyPassword } from "./auth.js";
 import { prisma } from "./db.js";
 import { serializeMeal } from "./nutrition.js";
 import { searchFoods } from "./catalog/food-search.js";
@@ -79,10 +80,44 @@ app.post("/auth/login", authLimiter, async (req, res, next) => {
   }
 });
 
+
 app.post("/auth/logout", requireAuth, async (req, res) => {
+  // Revoke only the active session so other logged-in devices keep working.
+  const payload = readRefreshToken(req);
+  if (payload) {
+    await prisma.session.updateMany({ where: { id: payload.sessionId, userId: req.user!.id, revokedAt: null }, data: { revokedAt: new Date() } });
+  }
   res.clearCookie("km_refresh");
-  await prisma.session.updateMany({ where: { userId: req.user!.id, revokedAt: null }, data: { revokedAt: new Date() } });
   res.status(204).end();
+});
+
+app.post("/auth/refresh", async (req, res) => {
+  const payload = readRefreshToken(req);
+  if (!payload) return res.status(401).json({ error: "invalid_token" });
+  let session;
+  try {
+    session = await prisma.session.findUnique({ where: { id: payload.sessionId } });
+  } catch {
+    return res.status(401).json({ error: "invalid_token" });
+  }
+  if (!session || session.revokedAt || session.expiresAt < new Date()) {
+    res.clearCookie("km_refresh");
+    return res.status(401).json({ error: "invalid_token" });
+  }
+  // Validate the refresh token against the stored hash (rotation / replay guard).
+  if (!(await verifyPassword(session.refreshHash, payload.sessionId))) {
+    res.clearCookie("km_refresh");
+    return res.status(401).json({ error: "invalid_token" });
+  }
+  const user = await prisma.user.findUnique({ where: { id: session.userId }, select: { id: true, username: true, locale: true } });
+  if (!user) return res.status(401).json({ error: "invalid_token" });
+  // Rotate: revoke the old session and issue a fresh one.
+  await prisma.session.update({ where: { id: session.id }, data: { revokedAt: new Date() } });
+  const next = await prisma.session.create({
+    data: { userId: user.id, refreshHash: await hashPassword(`${user.id}:${Date.now()}`), expiresAt: new Date(Date.now() + 30 * 86400_000) }
+  });
+  setRefreshCookie(res, signRefreshToken(next.id));
+  res.status(200).json({ accessToken: signAccessToken(user) });
 });
 
 app.get("/me", requireAuth, async (req, res) => {
