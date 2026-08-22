@@ -10,7 +10,9 @@ import { pinoHttp } from "pino-http";
 import { createMealSchema, loginSchema, mealInterpretationSchema, onboardingSchema, registerSchema } from "@keto-mentor/shared";
 import { env } from "./config.js";
 
-import { hashPassword, readRefreshToken, requireAuth, setRefreshCookie, signAccessToken, signRefreshToken, verifyPassword } from "./auth.js";
+
+import { hashPassword, readRefreshToken, requireAuth, setRefreshCookie, signRefreshToken, verifyPassword } from "./auth.js";
+import { createSession, rotateSession, revokeActiveSession } from "./session.js";
 import { prisma } from "./db.js";
 import { serializeMeal } from "./nutrition.js";
 import { searchFoods } from "./catalog/food-search.js";
@@ -51,11 +53,10 @@ app.post("/auth/register", authLimiter, async (req, res, next) => {
       },
       select: { id: true, username: true, locale: true }
     });
-    const session = await prisma.session.create({
-      data: { userId: user.id, refreshHash: await hashPassword(`${user.id}:${Date.now()}`), expiresAt: new Date(Date.now() + 30 * 86400_000) }
-    });
-    setRefreshCookie(res, signRefreshToken(session.id));
-    res.status(201).json({ user, accessToken: signAccessToken(user) });
+
+    const session = await createSession(prisma, user.id);
+    setRefreshCookie(res, session.refreshToken);
+    res.status(201).json({ user, accessToken: session.accessToken });
   } catch (error: any) {
     if (error?.code === "P2002") return res.status(409).json({ error: "username_taken" });
     next(error);
@@ -69,23 +70,23 @@ app.post("/auth/login", authLimiter, async (req, res, next) => {
     if (!userWithHash || !(await verifyPassword(userWithHash.passwordHash, input.password))) {
       return res.status(401).json({ error: "invalid_credentials" });
     }
+
     const user = { id: userWithHash.id, username: userWithHash.username, locale: userWithHash.locale };
-    const session = await prisma.session.create({
-      data: { userId: user.id, refreshHash: await hashPassword(`${user.id}:${Date.now()}`), expiresAt: new Date(Date.now() + 30 * 86400_000) }
-    });
-    setRefreshCookie(res, signRefreshToken(session.id));
-    res.json({ user, accessToken: signAccessToken(user) });
+    const session = await createSession(prisma, user.id);
+    setRefreshCookie(res, session.refreshToken);
+    res.json({ user, accessToken: session.accessToken });
   } catch (error) {
     next(error);
   }
 });
 
 
+
 app.post("/auth/logout", requireAuth, async (req, res) => {
   // Revoke only the active session so other logged-in devices keep working.
   const payload = readRefreshToken(req);
   if (payload) {
-    await prisma.session.updateMany({ where: { id: payload.sessionId, userId: req.user!.id, revokedAt: null }, data: { revokedAt: new Date() } });
+    await revokeActiveSession(prisma, payload, req.user!.id);
   }
   res.clearCookie("km_refresh");
   res.status(204).end();
@@ -94,30 +95,13 @@ app.post("/auth/logout", requireAuth, async (req, res) => {
 app.post("/auth/refresh", async (req, res) => {
   const payload = readRefreshToken(req);
   if (!payload) return res.status(401).json({ error: "invalid_token" });
-  let session;
-  try {
-    session = await prisma.session.findUnique({ where: { id: payload.sessionId } });
-  } catch {
-    return res.status(401).json({ error: "invalid_token" });
-  }
-  if (!session || session.revokedAt || session.expiresAt < new Date()) {
+  const result = await rotateSession(prisma, payload);
+  if (!result.ok) {
     res.clearCookie("km_refresh");
     return res.status(401).json({ error: "invalid_token" });
   }
-  // Validate the refresh token against the stored hash (rotation / replay guard).
-  if (!(await verifyPassword(session.refreshHash, payload.sessionId))) {
-    res.clearCookie("km_refresh");
-    return res.status(401).json({ error: "invalid_token" });
-  }
-  const user = await prisma.user.findUnique({ where: { id: session.userId }, select: { id: true, username: true, locale: true } });
-  if (!user) return res.status(401).json({ error: "invalid_token" });
-  // Rotate: revoke the old session and issue a fresh one.
-  await prisma.session.update({ where: { id: session.id }, data: { revokedAt: new Date() } });
-  const next = await prisma.session.create({
-    data: { userId: user.id, refreshHash: await hashPassword(`${user.id}:${Date.now()}`), expiresAt: new Date(Date.now() + 30 * 86400_000) }
-  });
-  setRefreshCookie(res, signRefreshToken(next.id));
-  res.status(200).json({ accessToken: signAccessToken(user) });
+  setRefreshCookie(res, result.refreshToken);
+  res.status(200).json({ accessToken: result.accessToken });
 });
 
 app.get("/me", requireAuth, async (req, res) => {

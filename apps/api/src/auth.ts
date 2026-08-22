@@ -21,8 +21,17 @@ export function signAccessToken(user: AuthUser) {
   return jwt.sign(user, env.JWT_ACCESS_SECRET, { expiresIn: "15m", audience: "keto-mentor", issuer: "keto-mentor-api" });
 }
 
-export function signRefreshToken(sessionId: string) {
-  return jwt.sign({ sessionId }, env.JWT_REFRESH_SECRET, { expiresIn: "30d", audience: "keto-mentor", issuer: "keto-mentor-api" });
+
+export function signRefreshToken(sessionId: string, secret: string) {
+  return jwt.sign({ sessionId, secret }, env.JWT_REFRESH_SECRET, { expiresIn: "30d", audience: "keto-mentor", issuer: "keto-mentor-api" });
+}
+
+export function verifyRefreshToken(token: string): { sessionId: string; secret: string } | null {
+  try {
+    return jwt.verify(token, env.JWT_REFRESH_SECRET, { audience: "keto-mentor", issuer: "keto-mentor-api" }) as { sessionId: string; secret: string };
+  } catch {
+    return null;
+  }
 }
 
 
@@ -35,14 +44,11 @@ export function setRefreshCookie(res: Response, token: string) {
   });
 }
 
-export function readRefreshToken(req: Request): { sessionId: string } | null {
+
+export function readRefreshToken(req: Request): { sessionId: string; secret: string } | null {
   const token = req.cookies?.km_refresh;
   if (!token) return null;
-  try {
-    return jwt.verify(token, env.JWT_REFRESH_SECRET, { audience: "keto-mentor", issuer: "keto-mentor-api" }) as { sessionId: string };
-  } catch {
-    return null;
-  }
+  return verifyRefreshToken(token);
 }
 
 export async function requireAuth(req: Request, res: Response, next: NextFunction) {
