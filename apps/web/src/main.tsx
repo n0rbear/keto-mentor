@@ -1,13 +1,15 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Activity, ExternalLink, LogOut, Mail, Plus, ShieldCheck, Sparkles } from "lucide-react";
+
 import { dict, type Lang } from "./i18n";
 import { api, ApiError, type ApiState } from "./api";
-import { authErrorText } from "./auth-error";
 import "./styles.css";
 import norbappLogo from "./assets/norbapp-logo.webp";
 import ketomentorLogo from "./assets/ketomentor-logo.png";
+
 import { RecipeBuilder } from "./RecipeBuilder";
+import { AuthForm } from "./AuthForm";
 
 type User = { id: string; username: string; locale: Lang; profile?: any };
 export type Totals = { kcal: number; fat: number; protein: number; carbs: number; fiber: number; netCarbs: number };
@@ -31,10 +33,9 @@ function App() {
   const [lang, setLang] = useState<Lang>("hu");
   const [token, setToken] = useState(localStorage.getItem("km_token"));
   const [user, setUser] = useState<User | null>(null);
+
   const [meals, setMeals] = useState<Meal[]>([]);
   const [totals, setTotals] = useState<Totals>({ kcal: 0, fat: 0, protein: 0, carbs: 0, fiber: 0, netCarbs: 0 });
-  const [mode, setMode] = useState<"login" | "register">("register");
-  const [authError, setAuthError] = useState<string | null>(null);
   const [selectedFood, setSelectedFood] = useState<Food | null>(null);
   const [mealSaving, setMealSaving] = useState(false);
   const [mealStatus, setMealStatus] = useState<{ kind: "success" | "error"; text: string } | null>(null);
@@ -63,21 +64,8 @@ function App() {
     setTotals(today.totals);
   }
 
-  useEffect(() => { load().catch(() => setToken(null)); }, [token]);
 
-  async function submitAuth(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setAuthError(null);
-    const form = new FormData(event.currentTarget);
-    const body = { username: String(form.get("username")), password: String(form.get("password")), locale: lang };
-    try {
-      const result = await api<{ user: User; accessToken: string }>(`/auth/${mode}`, { method: "POST", body: JSON.stringify(body) });
-      setUser(result.user);
-      setToken(result.accessToken);
-    } catch (error) {
-      setAuthError(authErrorText(error, lang));
-    }
-  }
+  useEffect(() => { load().catch(() => setToken(null)); }, [token]);
 
   async function saveOnboarding(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -220,17 +208,9 @@ function App() {
           <p className="mt-5 rounded-2xl border border-borderSoft bg-white/80 p-4 text-sm text-muted"><ShieldCheck className="mr-2 inline text-brandDark" size={18}/>{t.disclaimer}</p>
         </div>
 
+
         {!user ? (
-          <form onSubmit={submitAuth} className="card space-y-4">
-            <div className="flex rounded-2xl bg-appBg p-1">
-              <button type="button" className={`seg ${mode === "register" ? "active" : ""}`} onClick={() => { setMode("register"); setAuthError(null); }}>{t.register}</button>
-              <button type="button" className={`seg ${mode === "login" ? "active" : ""}`} onClick={() => { setMode("login"); setAuthError(null); }}>{t.login}</button>
-            </div>
-            <label htmlFor="auth-username">{t.username}<input id="auth-username" className="field" name="username" required minLength={3}/></label>
-            <label htmlFor="auth-password">{t.password}<input id="auth-password" className="field" name="password" required minLength={10} type="password"/></label>
-            {authError && <div className="status error" role="alert">{authError}</div>}
-            <button className="btn primary w-full" type="submit">{mode === "register" ? t.register : t.login}</button>
-          </form>
+          <AuthForm mode="register" lang={lang} state={state} onSuccess={setUser} />
         ) : !profile?.onboardingDone ? (
           <form onSubmit={saveOnboarding} className="card space-y-3">
             <h2>{t.onboarding}</h2>
