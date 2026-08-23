@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 import type { Session } from "@prisma/client";
-import { hashPassword, signAccessToken, signRefreshToken, verifyPassword } from "./auth.js";
+import { signAccessToken, signRefreshToken } from "./auth.js";
+import { hashRefreshSecret, verifyRefreshSecret } from "./refresh-crypto.js";
 
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
@@ -20,7 +21,7 @@ export async function createSession(
   userId: string
 ): Promise<{ session: Session; refreshToken: string; accessToken: string }> {
   const secret = newRefreshSecret();
-  const refreshHash = await hashPassword(secret);
+  const refreshHash = hashRefreshSecret(secret);
   const session = await prisma.session.create({
     data: { userId, refreshHash, expiresAt: new Date(Date.now() + SESSION_TTL_MS) }
   });
@@ -50,8 +51,8 @@ export type RefreshResult =
  * successful refresh a brand-new random secret is generated and only its hash
  * is stored in the DB (the raw secret is never persisted).
  *
- * Argon2 hashing of the next secret is done BEFORE entering the transaction so
- * the (potentially slow) CPU work does not hold a DB transaction open.
+ * Hashing of the next secret with a fast HMAC is done BEFORE entering the
+ * transaction so no avoidable CPU/IO work holds a DB transaction open.
  */
 export async function rotateSession(
   prisma: SessionClient,
@@ -59,11 +60,11 @@ export async function rotateSession(
 ): Promise<RefreshResult> {
   const session = await prisma.session.findUnique({ where: { id: payload.sessionId } });
   if (!session || session.revokedAt || session.expiresAt < new Date()) return { ok: false };
-  if (!(await verifyPassword(session.refreshHash, payload.secret))) return { ok: false };
+  if (!(await verifyRefreshSecret(session.refreshHash, payload.secret))) return { ok: false };
 
   // Precompute the next secret + its hash outside the DB transaction.
   const nextSecret = newRefreshSecret();
-  const nextHash = await hashPassword(nextSecret);
+  const nextHash = hashRefreshSecret(nextSecret);
 
   let successorId: string | null = null;
   try {
