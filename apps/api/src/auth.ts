@@ -26,12 +26,23 @@ export function signRefreshToken(sessionId: string, secret: string) {
   return jwt.sign({ sessionId, secret }, env.JWT_REFRESH_SECRET, { expiresIn: "30d", audience: "keto-mentor", issuer: "keto-mentor-api" });
 }
 
-export function verifyRefreshToken(token: string): { sessionId: string; secret: string } | null {
+
+export type RefreshPayload = { sessionId: string; secret: string };
+
+export function verifyRefreshToken(token: string): RefreshPayload | null {
+  let decoded: unknown;
   try {
-    return jwt.verify(token, env.JWT_REFRESH_SECRET, { audience: "keto-mentor", issuer: "keto-mentor-api" }) as { sessionId: string; secret: string };
+    decoded = jwt.verify(token, env.JWT_REFRESH_SECRET, { audience: "keto-mentor", issuer: "keto-mentor-api" });
   } catch {
     return null;
   }
+  // Runtime payload validation: reject legacy tokens ({ sessionId } only) and
+  // any malformed payload so they fail safely as 401 rather than throwing/500.
+  if (typeof decoded !== "object" || decoded === null) return null;
+  const { sessionId, secret } = decoded as Record<string, unknown>;
+  if (typeof sessionId !== "string" || sessionId.length === 0) return null;
+  if (typeof secret !== "string" || secret.length === 0) return null;
+  return { sessionId, secret };
 }
 
 

@@ -195,7 +195,25 @@ function App() {
           </div>
           <div className="flex items-center gap-2">
             <select className="field compact" value={lang} onChange={(e) => setLang(e.target.value as Lang)}><option value="hu">HU</option><option value="de">DE</option><option value="en">EN</option></select>
-            {user && <button className="btn secondary" onClick={async () => { await api("/auth/logout", { method: "POST" }, state); setToken(null); setUser(null); }}><LogOut size={16}/>{t.logout}</button>}
+
+            {user && (
+              <button
+                className="btn secondary"
+                onClick={async () => {
+                  // Always clear local auth state so the user is never left
+                  // visually logged in with a null/invalid token, even if the
+                  // server-side logout request fails.
+                  try {
+                    await api("/auth/logout", { method: "POST" }, state);
+                  } finally {
+                    setToken(null);
+                    setUser(null);
+                  }
+                }}
+              >
+                <LogOut size={16} />{t.logout}
+              </button>
+            )}
           </div>
         </div>
       </header>

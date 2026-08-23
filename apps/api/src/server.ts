@@ -33,7 +33,14 @@ app.use(cookieParser());
 app.use(cors({ origin: env.CORS_ORIGIN.split(",").map((origin) => origin.trim()), credentials: true }));
 app.use(pinoHttp({ logger }));
 
+
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 20, standardHeaders: true, legacyHeaders: false });
+
+// Refresh performs Argon2 verification and mutates session state, so it gets its
+// own limiter. The limit is deliberately generous (per-IP) so that legitimate
+// concurrent/exponential-backoff refreshes are not blocked, while still
+// blunting brute-force/replay against the refresh endpoint.
+const refreshLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 60, standardHeaders: true, legacyHeaders: false });
 
 const healthPayload = { ok: true, service: "keto-mentor-api" };
 app.get("/", (_req, res) => res.json(healthPayload));
@@ -92,7 +99,8 @@ app.post("/auth/logout", requireAuth, async (req, res) => {
   res.status(204).end();
 });
 
-app.post("/auth/refresh", async (req, res) => {
+
+app.post("/auth/refresh", refreshLimiter, async (req, res) => {
   const payload = readRefreshToken(req);
   if (!payload) return res.status(401).json({ error: "invalid_token" });
   const result = await rotateSession(prisma, payload);

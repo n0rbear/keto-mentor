@@ -13,7 +13,9 @@ function makeClient() {
   const sessions: FakeSession[] = [];
   const users: Record<string, { id: string; username: string; locale: string }> = {};
   let counter = 0;
+
   const prisma = {
+    $transaction: (fn: (tx: any) => Promise<any>) => fn(prisma),
     session: {
       async create({ data }: { data: { userId: string; refreshHash: string; expiresAt: Date } }) {
         const id = `sess_${++counter}`;

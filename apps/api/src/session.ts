@@ -1,15 +1,19 @@
-
 import { randomBytes } from "node:crypto";
 import type { Session } from "@prisma/client";
 import { hashPassword, signAccessToken, signRefreshToken, verifyPassword } from "./auth.js";
 
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
-export type SessionClient = Pick<typeof import("./db.js").prisma, "session" | "user">;
+export type SessionClient = Pick<typeof import("./db.js").prisma, "session" | "user"> & {
+  $transaction: <R>(fn: (tx: any) => Promise<R>) => Promise<R>;
+};
 
 function newRefreshSecret(): string {
   return randomBytes(32).toString("hex");
 }
+
+/** Thrown inside a rotation transaction when the old session cannot be consumed. */
+class SessionConsumeError extends Error {}
 
 export async function createSession(
   prisma: SessionClient,
@@ -36,11 +40,18 @@ export type RefreshResult =
   | { ok: false };
 
 /**
- * Validate the refresh token, atomically consume (revoke) the current session,
- * and rotate to a new session + refresh secret. The old session is consumed via
- * an updateMany guarded by `revokedAt: null`, so concurrent/replayed old tokens
- * can only succeed once (count === 1). On every successful refresh a brand-new
- * random secret is generated and only its hash is stored.
+ * Validate the refresh token and rotate to a new session + refresh secret.
+ *
+ * The old session is consumed via `updateMany({ id, revokedAt: null })` inside a
+ * transaction, requiring `count === 1`. Because the consume and the successor
+ * Session creation run in the SAME Prisma transaction, either both commit or
+ * neither does, and concurrent/replayed old tokens can only succeed once
+ * (the loser sees count === 0 and the whole transaction rolls back). On every
+ * successful refresh a brand-new random secret is generated and only its hash
+ * is stored in the DB (the raw secret is never persisted).
+ *
+ * Argon2 hashing of the next secret is done BEFORE entering the transaction so
+ * the (potentially slow) CPU work does not hold a DB transaction open.
  */
 export async function rotateSession(
   prisma: SessionClient,
@@ -50,29 +61,44 @@ export async function rotateSession(
   if (!session || session.revokedAt || session.expiresAt < new Date()) return { ok: false };
   if (!(await verifyPassword(session.refreshHash, payload.secret))) return { ok: false };
 
-  // Atomically consume the old session. Only the first caller wins (count === 1),
-  // which blocks replayed/concurrent old-token refreshes from both succeeding.
-  const consumed = await prisma.session.updateMany({
-    where: { id: session.id, revokedAt: null },
-    data: { revokedAt: new Date() }
-  });
-  if (consumed.count !== 1) return { ok: false };
+  // Precompute the next secret + its hash outside the DB transaction.
+  const nextSecret = newRefreshSecret();
+  const nextHash = await hashPassword(nextSecret);
 
-  const user = await prisma.user.findUnique({
+  let successorId: string | null = null;
+  try {
+    successorId = await prisma.$transaction(async (tx) => {
+      const consumed = await tx.session.updateMany({
+        where: { id: session.id, revokedAt: null },
+        data: { revokedAt: new Date() }
+      });
+      if (consumed.count !== 1) throw new SessionConsumeError();
+      const successor = await tx.session.create({
+        data: { userId: session.userId, refreshHash: nextHash, expiresAt: new Date(Date.now() + SESSION_TTL_MS) }
+      });
+      return successor.id;
+    });
+  } catch (error) {
+    if (error instanceof SessionConsumeError) return { ok: false };
+    throw error;
+  }
+  if (!successorId) return { ok: false };
+
+  const user = await prisma.user.findUniqueOrThrow({
     where: { id: session.userId },
     select: { id: true, username: true, locale: true }
   });
-  if (!user) return { ok: false };
-
-  const next = await createSession(prisma, user.id);
-  return { ok: true, accessToken: next.accessToken, refreshToken: next.refreshToken };
+  return {
+    ok: true,
+    accessToken: signAccessToken(user),
+    refreshToken: signRefreshToken(successorId, nextSecret)
+  };
 }
 
 /**
  * Revoke only the session identified by the refresh token (active session),
  * leaving other sessions for the same user intact.
  */
-
 export async function revokeActiveSession(
   prisma: SessionClient,
   payload: { sessionId: string; secret: string },
