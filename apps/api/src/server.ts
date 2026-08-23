@@ -180,7 +180,11 @@ app.get("/meals/today", requireAuth, async (req, res) => {
   const meals = await prisma.meal.findMany({
     where: { userId: req.user!.id, eatenAt: { gte: start, lt: end } },
     orderBy: { eatenAt: "desc" },
-    include: { items: { include: { food: true, recipe: true } } }
+    // Totals are computed server-side from the (full) `food` relation, while
+    // recipe-derived items already carry a stored `displayName`. The
+    // `recipe` relation is therefore never consumed by the UI and is dropped
+    // here to avoid a large unnecessary join/payload.
+    include: { items: { include: { food: true } } }
   });
   const serialized = meals.map(serializeMeal);
   const totals = serialized.reduce((sum, meal) => ({

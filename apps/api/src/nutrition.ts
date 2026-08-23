@@ -21,6 +21,17 @@ export function serializeMeal(meal: MealWithItems) {
     title: meal.title,
     eatenAt: meal.eatenAt,
     totals: mealTotals(meal),
-    items: meal.items.map((item) => ({ id: item.id, quantityGrams: item.quantityGrams, displayName: item.displayName ?? item.food?.name ?? item.recipe?.title, food: item.food, recipeId: item.recipeId, snapshotNutrients: item.snapshotNutrients, totals: itemTotals(item) }))
+    items: meal.items.map((item) => ({
+      id: item.id,
+      quantityGrams: item.quantityGrams,
+      displayName: item.displayName ?? item.food?.name ?? item.recipe?.title,
+      // Emit only the fields the dashboard actually renders. Nutrition totals
+      // are computed server-side; the full `food`/`recipe` records are not
+      // needed by the UI and were bloating the payload.
+      food: item.food ? { id: item.food.id, name: item.food.name, names: item.food.names } : null,
+      recipeId: item.recipeId,
+      snapshotNutrients: item.snapshotNutrients,
+      totals: itemTotals(item)
+    }))
   };
 }
