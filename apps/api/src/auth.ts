@@ -21,9 +21,30 @@ export function signAccessToken(user: AuthUser) {
   return jwt.sign(user, env.JWT_ACCESS_SECRET, { expiresIn: "15m", audience: "keto-mentor", issuer: "keto-mentor-api" });
 }
 
-export function signRefreshToken(sessionId: string) {
-  return jwt.sign({ sessionId }, env.JWT_REFRESH_SECRET, { expiresIn: "30d", audience: "keto-mentor", issuer: "keto-mentor-api" });
+
+export function signRefreshToken(sessionId: string, secret: string) {
+  return jwt.sign({ sessionId, secret }, env.JWT_REFRESH_SECRET, { expiresIn: "30d", audience: "keto-mentor", issuer: "keto-mentor-api" });
 }
+
+
+export type RefreshPayload = { sessionId: string; secret: string };
+
+export function verifyRefreshToken(token: string): RefreshPayload | null {
+  let decoded: unknown;
+  try {
+    decoded = jwt.verify(token, env.JWT_REFRESH_SECRET, { audience: "keto-mentor", issuer: "keto-mentor-api" });
+  } catch {
+    return null;
+  }
+  // Runtime payload validation: reject legacy tokens ({ sessionId } only) and
+  // any malformed payload so they fail safely as 401 rather than throwing/500.
+  if (typeof decoded !== "object" || decoded === null) return null;
+  const { sessionId, secret } = decoded as Record<string, unknown>;
+  if (typeof sessionId !== "string" || sessionId.length === 0) return null;
+  if (typeof secret !== "string" || secret.length === 0) return null;
+  return { sessionId, secret };
+}
+
 
 export function setRefreshCookie(res: Response, token: string) {
   res.cookie("km_refresh", token, {
@@ -32,6 +53,13 @@ export function setRefreshCookie(res: Response, token: string) {
     secure: env.NODE_ENV === "production",
     maxAge: 30 * 24 * 60 * 60 * 1000
   });
+}
+
+
+export function readRefreshToken(req: Request): { sessionId: string; secret: string } | null {
+  const token = req.cookies?.km_refresh;
+  if (!token) return null;
+  return verifyRefreshToken(token);
 }
 
 export async function requireAuth(req: Request, res: Response, next: NextFunction) {

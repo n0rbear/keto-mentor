@@ -8,7 +8,28 @@ export class ApiError extends Error {
   }
 }
 
-export async function api<T>(path: string, init: RequestInit = {}, state?: ApiState): Promise<T> {
+let refreshInFlight: Promise<string | null> | null = null;
+
+async function refreshAccessToken(state: ApiState): Promise<string | null> {
+  // Single-flight: concurrent 401s share one refresh call.
+  if (refreshInFlight) return refreshInFlight;
+  refreshInFlight = (async () => {
+    try {
+      const res = await fetch(`${API_URL}/auth/refresh`, { method: "POST", credentials: "include" });
+      if (!res.ok) return null;
+      const data = (await res.json()) as { accessToken: string };
+      state.setToken(data.accessToken);
+      return data.accessToken;
+    } catch {
+      return null;
+    } finally {
+      refreshInFlight = null;
+    }
+  })();
+  return refreshInFlight;
+}
+
+export async function api<T>(path: string, init: RequestInit = {}, state?: ApiState, retry = true): Promise<T> {
   let res: Response;
   try {
     res = await fetch(`${API_URL}${path}`, {
@@ -19,6 +40,16 @@ export async function api<T>(path: string, init: RequestInit = {}, state?: ApiSt
   } catch {
     throw new ApiError("network_error");
   }
+
+
+  if (res.status === 401 && retry && state?.token) {
+    const nextToken = await refreshAccessToken(state);
+    if (nextToken) {
+      return api<T>(path, { ...init, headers: { ...init.headers, Authorization: `Bearer ${nextToken}` } }, state, false);
+    }
+    state.setToken(null);
+  }
+
   if (!res.ok) {
     const payload = await res.json().catch(() => ({ error: res.statusText || "request_failed" }));
     throw new ApiError(payload.error ?? "request_failed", res.status, payload.issues);

@@ -9,7 +9,10 @@ import pino from "pino";
 import { pinoHttp } from "pino-http";
 import { createMealSchema, loginSchema, mealInterpretationSchema, onboardingSchema, registerSchema } from "@keto-mentor/shared";
 import { env } from "./config.js";
-import { hashPassword, requireAuth, setRefreshCookie, signAccessToken, signRefreshToken, verifyPassword } from "./auth.js";
+
+
+import { hashPassword, readRefreshToken, requireAuth, setRefreshCookie, signRefreshToken, verifyPassword } from "./auth.js";
+import { createSession, rotateSession, revokeActiveSession } from "./session.js";
 import { prisma } from "./db.js";
 import { serializeMeal } from "./nutrition.js";
 import { searchFoods } from "./catalog/food-search.js";
@@ -30,7 +33,14 @@ app.use(cookieParser());
 app.use(cors({ origin: env.CORS_ORIGIN.split(",").map((origin) => origin.trim()), credentials: true }));
 app.use(pinoHttp({ logger }));
 
+
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 20, standardHeaders: true, legacyHeaders: false });
+
+// Refresh performs Argon2 verification and mutates session state, so it gets its
+// own limiter. The limit is deliberately generous (per-IP) so that legitimate
+// concurrent/exponential-backoff refreshes are not blocked, while still
+// blunting brute-force/replay against the refresh endpoint.
+const refreshLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 60, standardHeaders: true, legacyHeaders: false });
 
 const healthPayload = { ok: true, service: "keto-mentor-api" };
 app.get("/", (_req, res) => res.json(healthPayload));
@@ -50,11 +60,10 @@ app.post("/auth/register", authLimiter, async (req, res, next) => {
       },
       select: { id: true, username: true, locale: true }
     });
-    const session = await prisma.session.create({
-      data: { userId: user.id, refreshHash: await hashPassword(`${user.id}:${Date.now()}`), expiresAt: new Date(Date.now() + 30 * 86400_000) }
-    });
-    setRefreshCookie(res, signRefreshToken(session.id));
-    res.status(201).json({ user, accessToken: signAccessToken(user) });
+
+    const session = await createSession(prisma, user.id);
+    setRefreshCookie(res, session.refreshToken);
+    res.status(201).json({ user, accessToken: session.accessToken });
   } catch (error: any) {
     if (error?.code === "P2002") return res.status(409).json({ error: "username_taken" });
     next(error);
@@ -68,21 +77,55 @@ app.post("/auth/login", authLimiter, async (req, res, next) => {
     if (!userWithHash || !(await verifyPassword(userWithHash.passwordHash, input.password))) {
       return res.status(401).json({ error: "invalid_credentials" });
     }
+
     const user = { id: userWithHash.id, username: userWithHash.username, locale: userWithHash.locale };
-    const session = await prisma.session.create({
-      data: { userId: user.id, refreshHash: await hashPassword(`${user.id}:${Date.now()}`), expiresAt: new Date(Date.now() + 30 * 86400_000) }
-    });
-    setRefreshCookie(res, signRefreshToken(session.id));
-    res.json({ user, accessToken: signAccessToken(user) });
+    const session = await createSession(prisma, user.id);
+    setRefreshCookie(res, session.refreshToken);
+    res.json({ user, accessToken: session.accessToken });
   } catch (error) {
     next(error);
   }
 });
 
-app.post("/auth/logout", requireAuth, async (req, res) => {
-  res.clearCookie("km_refresh");
-  await prisma.session.updateMany({ where: { userId: req.user!.id, revokedAt: null }, data: { revokedAt: new Date() } });
-  res.status(204).end();
+
+
+
+app.post("/auth/logout", requireAuth, async (req, res, next) => {
+  try {
+    // Revoke only the active session so other logged-in devices keep working.
+    const payload = readRefreshToken(req);
+    if (payload) {
+      await revokeActiveSession(prisma, payload, req.user!.id);
+    }
+    res.clearCookie("km_refresh");
+    res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+});
+
+
+app.post("/auth/refresh", refreshLimiter, async (req, res, next) => {
+  try {
+    const payload = readRefreshToken(req);
+    // Genuine invalid/malformed/expired/replayed tokens are normal 401s, not
+    // infrastructure failures; the refresh cookie is cleared for them.
+    if (!payload) {
+      res.clearCookie("km_refresh");
+      return res.status(401).json({ error: "invalid_token" });
+    }
+    const result = await rotateSession(prisma, payload);
+    if (!result.ok) {
+      res.clearCookie("km_refresh");
+      return res.status(401).json({ error: "invalid_token" });
+    }
+    setRefreshCookie(res, result.refreshToken);
+    res.status(200).json({ accessToken: result.accessToken });
+  } catch (error) {
+    // Unexpected Prisma/transaction/Argon2/system failures must reach the
+    // centralized error handler (next) rather than becoming unhandled rejections.
+    next(error);
+  }
 });
 
 app.get("/me", requireAuth, async (req, res) => {
