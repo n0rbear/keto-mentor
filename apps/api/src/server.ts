@@ -89,27 +89,43 @@ app.post("/auth/login", authLimiter, async (req, res, next) => {
 
 
 
-app.post("/auth/logout", requireAuth, async (req, res) => {
-  // Revoke only the active session so other logged-in devices keep working.
-  const payload = readRefreshToken(req);
-  if (payload) {
-    await revokeActiveSession(prisma, payload, req.user!.id);
+
+app.post("/auth/logout", requireAuth, async (req, res, next) => {
+  try {
+    // Revoke only the active session so other logged-in devices keep working.
+    const payload = readRefreshToken(req);
+    if (payload) {
+      await revokeActiveSession(prisma, payload, req.user!.id);
+    }
+    res.clearCookie("km_refresh");
+    res.status(204).end();
+  } catch (error) {
+    next(error);
   }
-  res.clearCookie("km_refresh");
-  res.status(204).end();
 });
 
 
-app.post("/auth/refresh", refreshLimiter, async (req, res) => {
-  const payload = readRefreshToken(req);
-  if (!payload) return res.status(401).json({ error: "invalid_token" });
-  const result = await rotateSession(prisma, payload);
-  if (!result.ok) {
-    res.clearCookie("km_refresh");
-    return res.status(401).json({ error: "invalid_token" });
+app.post("/auth/refresh", refreshLimiter, async (req, res, next) => {
+  try {
+    const payload = readRefreshToken(req);
+    // Genuine invalid/malformed/expired/replayed tokens are normal 401s, not
+    // infrastructure failures; the refresh cookie is cleared for them.
+    if (!payload) {
+      res.clearCookie("km_refresh");
+      return res.status(401).json({ error: "invalid_token" });
+    }
+    const result = await rotateSession(prisma, payload);
+    if (!result.ok) {
+      res.clearCookie("km_refresh");
+      return res.status(401).json({ error: "invalid_token" });
+    }
+    setRefreshCookie(res, result.refreshToken);
+    res.status(200).json({ accessToken: result.accessToken });
+  } catch (error) {
+    // Unexpected Prisma/transaction/Argon2/system failures must reach the
+    // centralized error handler (next) rather than becoming unhandled rejections.
+    next(error);
   }
-  setRefreshCookie(res, result.refreshToken);
-  res.status(200).json({ accessToken: result.accessToken });
 });
 
 app.get("/me", requireAuth, async (req, res) => {

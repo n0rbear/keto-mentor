@@ -154,6 +154,61 @@ describe("session refresh token binding", () => {
   });
 });
 
+
 async function rev_ok(prisma: any, payload: { sessionId: string; secret: string }, userId: string) {
   await revokeActiveSession(prisma, payload, userId);
 }
+
+// A client whose DB work throws unexpectedly (simulates Prisma/transaction/Argon2
+// failure). This proves the awaited async work rejects rather than being silently
+// swallowed, so the Express 4 route's `catch (error) { next(error) }` path is
+// reached (the failure is forwarded, not turned into an unhandled rejection or a 401).
+function makeFailingClient() {
+  const sessions: FakeSession[] = [];
+  const users: Record<string, { id: string; username: string; locale: string }> = { u1: { id: "u1", username: "u1", locale: "en" } };
+  let counter = 0;
+  const prisma = {
+    $transaction: () => Promise.reject(new Error("simulated db failure")),
+    session: {
+      async create({ data }: { data: { userId: string; refreshHash: string; expiresAt: Date } }) {
+        const id = `sess_${++counter}`;
+        const row = { ...data, id, revokedAt: null as Date | null } as FakeSession;
+        sessions.push(row);
+        return row;
+      },
+      async findUnique({ where }: { where: { id: string } }) {
+        return sessions.find((s) => s.id === where.id) ?? null;
+      },
+      async updateMany() {
+        throw new Error("simulated db failure");
+      }
+    },
+    user: {
+      async findUnique({ where }: { where: { id: string } }) {
+        return users[where.id] ?? null;
+      },
+      async findUniqueOrThrow({ where }: { where: { id: string } }) {
+        const u = users[where.id];
+        if (!u) throw new Error("user not found");
+        return u;
+      }
+    }
+  };
+  return { prisma: prisma as any, counter };
+}
+
+describe("session service forwards unexpected failures", () => {
+  it("rotateSession rejects on an unexpected DB/transaction error", async () => {
+    const { prisma } = makeFailingClient();
+    const created = await createSession(prisma, "u1");
+    const payload = verifyRefreshToken(created.refreshToken)!;
+    await expect(rotateSession(prisma, payload)).rejects.toThrow("simulated db failure");
+  });
+
+  it("revokeActiveSession rejects on an unexpected DB error", async () => {
+    const { prisma } = makeFailingClient();
+    const created = await createSession(prisma, "u1");
+    const payload = verifyRefreshToken(created.refreshToken)!;
+    await expect(revokeActiveSession(prisma, payload, "u1")).rejects.toThrow("simulated db failure");
+  });
+});
