@@ -1,4 +1,5 @@
 import type { FoodSource, PrismaClient } from "@prisma/client";
+import { z } from "zod";
 import { buildSearchText, normalizeSearch } from "./normalize.js";
 import { searchFoods } from "./food-search.js";
 import type { ImportFood, ImportNutrient } from "../importers/types.js";
@@ -18,6 +19,15 @@ export interface StructuredFoodLookupAdapter {
   readonly sourceName: string;
   lookup(query: string): Promise<unknown[]>;
 }
+
+export interface ConfirmableFoodLookupAdapter extends StructuredFoodLookupAdapter {
+  lookupById(sourceId: string): Promise<unknown>;
+}
+
+export const externalFoodConfirmationSchema = z.object({
+  source: z.literal("usda_fdc"),
+  sourceId: z.string().regex(/^\d{1,12}$/)
+}).strict();
 
 export type ResolutionOutcome =
   | { status: "resolved_local"; food: any }
@@ -92,6 +102,51 @@ async function persistCandidate(prisma: ResolutionPrisma, candidate: ExternalFoo
     }
     return saved;
   });
+}
+
+export type ConfirmationOutcome =
+  | { status: "confirmed" | "existing"; food: any }
+  | { status: "confirmation_required"; reason: "possible_duplicate"; candidate: ExternalFoodCandidate }
+  | { status: "unresolved"; reason: "external_unavailable" | "invalid_external_data" };
+
+export async function confirmAuthoritativeFood(
+  prisma: ResolutionPrisma,
+  source: FoodSource,
+  sourceId: string,
+  adapters: readonly ConfirmableFoodLookupAdapter[]
+): Promise<ConfirmationOutcome> {
+  const existing = await prisma.food.findUnique({
+    where: { source_sourceId: { source, sourceId } },
+    include: { servings: true }
+  });
+  if (existing) return { status: "existing", food: existing };
+
+  const adapter = adapters.find((candidate) => candidate.source === source);
+  if (!adapter) return { status: "unresolved", reason: "external_unavailable" };
+
+  let raw: unknown;
+  try { raw = await adapter.lookupById(sourceId); }
+  catch { return { status: "unresolved", reason: "external_unavailable" }; }
+  const candidate = validateExternalCandidate(raw);
+  if (!candidate || candidate.source !== source || candidate.sourceId !== sourceId) {
+    return { status: "unresolved", reason: "invalid_external_data" };
+  }
+
+  const duplicate = await findDuplicate(prisma, candidate);
+  if (duplicate) {
+    if (duplicate.source === source && duplicate.sourceId === sourceId) return { status: "existing", food: duplicate };
+    return { status: "confirmation_required", reason: "possible_duplicate", candidate };
+  }
+
+  try {
+    return { status: "confirmed", food: await persistCandidate(prisma, candidate) };
+  } catch (error: any) {
+    if (error?.code === "P2002") {
+      const raced = await prisma.food.findUnique({ where: { source_sourceId: { source, sourceId } }, include: { servings: true } });
+      if (raced) return { status: "existing", food: raced };
+    }
+    throw error;
+  }
 }
 
 export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: string, adapters: readonly StructuredFoodLookupAdapter[]): Promise<ResolutionOutcome> {

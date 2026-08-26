@@ -385,7 +385,8 @@ export function FoodCombobox({ lang, state, selected, onSelect, labels, resetVer
   const [active, setActive] = useState(-1);
   const [externalLoading, setExternalLoading] = useState(false);
   const [externalMessage, setExternalMessage] = useState("");
-  const [externalCandidates, setExternalCandidates] = useState<Array<{ name: string; source: string; sourceId: string; confidence: number; kcalPer100g: number }>>([]);
+  const [externalCandidates, setExternalCandidates] = useState<Array<{ name: string; source: "usda_fdc"; sourceId: string; confidence: number; kcalPer100g: number; fatPer100g: number; proteinPer100g: number; carbsPer100g: number; fiberPer100g: number }>>([]);
+  const [confirmingSourceId, setConfirmingSourceId] = useState<string | null>(null);
 
   useEffect(() => { setQuery(""); setResults([]); setOpen(false); setActive(-1); setExternalMessage(""); setExternalCandidates([]); }, [resetVersion]);
 
@@ -422,6 +423,22 @@ export function FoodCombobox({ lang, state, selected, onSelect, labels, resetVer
     } catch { setExternalMessage("External source lookup is currently unavailable."); }
     finally { setExternalLoading(false); }
   }
+  async function confirmExternal(candidate: (typeof externalCandidates)[number]) {
+    if (confirmingSourceId) return;
+    setConfirmingSourceId(candidate.sourceId); setExternalMessage("");
+    try {
+      const result = await api<any>("/foods/resolve-external/confirm", {
+        method: "POST", body: JSON.stringify({ source: candidate.source, sourceId: candidate.sourceId })
+      }, state);
+      if (result.status === "confirmed" || result.status === "existing") {
+        choose(result.food as Food);
+        setExternalMessage(lang === "hu" ? "A hiteles élelmiszer bekerült és ki lett választva." : lang === "de" ? "Das geprüfte Lebensmittel wurde hinzugefügt und ausgewählt." : "The authoritative food was added and selected.");
+      } else if (result.status === "confirmation_required") {
+        setExternalMessage(lang === "hu" ? "Lehetséges duplikátum miatt semmi nem került hozzáadásra." : lang === "de" ? "Wegen eines möglichen Duplikats wurde nichts hinzugefügt." : "Nothing was added because a possible duplicate needs review.");
+      } else setExternalMessage(lang === "hu" ? "A forrásadat nem volt elérhető vagy érvényes; semmi nem került hozzáadásra." : lang === "de" ? "Die Quelldaten waren nicht verfügbar oder ungültig; nichts wurde hinzugefügt." : "The source data was unavailable or invalid; nothing was added.");
+    } catch { setExternalMessage(lang === "hu" ? "A hozzáadás nem sikerült; semmi nem került hozzáadásra." : lang === "de" ? "Das Hinzufügen ist fehlgeschlagen; nichts wurde hinzugefügt." : "The food could not be added; nothing was added."); }
+    finally { setConfirmingSourceId(null); }
+  }
   return (
     <div className="combobox-wrap">
       <label htmlFor={`${idPrefix}-search`}>{labels.label}</label>
@@ -444,7 +461,13 @@ export function FoodCombobox({ lang, state, selected, onSelect, labels, resetVer
       </div>}
       {!selected && !loading && results.length === 0 && query.trim().length >= 2 && <button type="button" className="btn secondary" disabled={externalLoading} onClick={searchExternal}>{externalLoading ? "…" : "Search trusted external sources"}</button>}
       {externalMessage && <small className="search-hint" role="status">{externalMessage}</small>}
-      {externalCandidates.length > 0 && <ul className="search-hint">{externalCandidates.map((candidate) => <li key={`${candidate.source}:${candidate.sourceId}`}>{candidate.name} · {Math.round(candidate.kcalPer100g)} kcal/100g · {Math.round(candidate.confidence * 100)}%</li>)}</ul>}
+      {externalCandidates.length > 0 && <ul className="space-y-2">{externalCandidates.map((candidate) => <li className="rounded-xl border border-borderSoft p-3" key={`${candidate.source}:${candidate.sourceId}`}>
+        <strong>{candidate.name}</strong>
+        <div className="text-xs text-muted">USDA · {Math.round(candidate.kcalPer100g)} kcal · fat {candidate.fatPer100g} g · protein {candidate.proteinPer100g} g · carbs {candidate.carbsPer100g} g · fiber {candidate.fiberPer100g} g / 100 g · policy {Math.round(candidate.confidence * 100)}</div>
+        <button type="button" className="btn secondary mt-2" disabled={confirmingSourceId !== null} aria-busy={confirmingSourceId === candidate.sourceId} onClick={() => confirmExternal(candidate)}>
+          {confirmingSourceId === candidate.sourceId ? "…" : lang === "hu" ? "Hozzáadás az adatbázishoz" : lang === "de" ? "Zur Datenbank hinzufügen" : "Add to catalog"}
+        </button>
+      </li>)}</ul>}
     </div>
   );
 }
@@ -454,4 +477,5 @@ function mealErrorText(error: unknown, labels: Record<string, string>) {
   return labels[error.code] ?? (error.status === 401 ? labels.unauthorized : error.status && error.status >= 500 ? labels.server : labels.unknown);
 }
 
-createRoot(document.getElementById("root")!).render(<App />);
+const rootElement = document.getElementById("root");
+if (rootElement) createRoot(rootElement).render(<App />);

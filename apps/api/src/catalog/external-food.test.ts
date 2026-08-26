@@ -4,8 +4,8 @@ process.env.JWT_ACCESS_SECRET = "a".repeat(32);
 process.env.JWT_REFRESH_SECRET = "b".repeat(32);
 
 import { describe, expect, it, vi } from "vitest";
-import { resolveAuthoritativeFood, validateExternalCandidate, type ExternalFoodCandidate } from "./external-food.js";
-import { EXTERNAL_FOOD_RATE_LIMIT, externalFoodRateLimitKey } from "./external-food-rate-limit.js";
+import { confirmAuthoritativeFood, externalFoodConfirmationSchema, resolveAuthoritativeFood, validateExternalCandidate, type ExternalFoodCandidate } from "./external-food.js";
+import { EXTERNAL_FOOD_CONFIRM_RATE_LIMIT, EXTERNAL_FOOD_RATE_LIMIT, externalFoodRateLimitKey } from "./external-food-rate-limit.js";
 import { normalizeUsdaNutrients, UsdaFoodDataCentralLookupAdapter } from "./structured-source-adapters.js";
 
 function candidate(overrides: Partial<ExternalFoodCandidate> = {}): ExternalFoodCandidate {
@@ -19,8 +19,9 @@ function candidate(overrides: Partial<ExternalFoodCandidate> = {}): ExternalFood
   };
 }
 
-function fakePrisma(options: { local?: any; sourceDuplicate?: any; nameDuplicate?: any; aliasDuplicate?: any } = {}) {
+function fakePrisma(options: { local?: any; sourceDuplicate?: any; nameDuplicate?: any; aliasDuplicate?: any; raceDuplicate?: any } = {}) {
   let created: any = null;
+  let uniqueCalls = 0;
   const prisma: any = {
     foodAlias: {
       findMany: async () => [],
@@ -28,7 +29,7 @@ function fakePrisma(options: { local?: any; sourceDuplicate?: any; nameDuplicate
       createMany: async () => ({ count: 1 })
     },
     food: {
-      findUnique: async () => options.sourceDuplicate ?? null,
+      findUnique: async () => { uniqueCalls += 1; return options.sourceDuplicate ?? (uniqueCalls > 2 ? options.raceDuplicate : null) ?? null; },
       findMany: async (args: any) => {
         if (args.where?.OR?.some((part: any) => part.name?.equals || part.originalName?.equals)) return options.nameDuplicate ? [options.nameDuplicate] : [];
         if (args.where?.OR?.some((part: any) => part.searchText?.contains)) return options.local ? [options.local] : [];
@@ -49,6 +50,7 @@ describe("authoritative food resolution", () => {
     expect(externalFoodRateLimitKey({ user: { id: "user-1" } })).toBe("user-1");
     expect(() => externalFoodRateLimitKey({})).toThrow("Authenticated user required");
   });
+  it("uses a separate confirmation quota", () => expect(EXTERNAL_FOOD_CONFIRM_RATE_LIMIT).toEqual({ windowMs: 900_000, limit: 10 }));
   it("lets a local match win without calling an external adapter", async () => {
     const local = { id: "local", name: "Spinach", originalName: "Spinach", names: {}, searchText: "spinach", servings: [] };
     const { prisma } = fakePrisma({ local });
@@ -117,6 +119,50 @@ describe("authoritative food resolution", () => {
   });
 });
 
+describe("authoritative food confirmation", () => {
+  const adapter = (lookupById: (sourceId: string) => Promise<unknown>) => ({ source: "usda_fdc" as const, sourceName: "USDA", lookup: async () => [], lookupById });
+
+  it("re-fetches and persists authoritative data using only source identity", async () => {
+    const { prisma, getCreated } = fakePrisma();
+    const lookupById = vi.fn(async () => candidate({ matchPolicy: "review_required" }));
+    const result = await confirmAuthoritativeFood(prisma, "usda_fdc", "123", [adapter(lookupById)]);
+    expect(lookupById).toHaveBeenCalledWith("123");
+    expect(result.status).toBe("confirmed");
+    expect(getCreated()).toMatchObject({ source: "usda_fdc", sourceId: "123", kcalPer100g: 23 });
+  });
+
+  it("returns an existing source record without overwriting it", async () => {
+    const existing = { id: "existing", source: "usda_fdc", sourceId: "123", servings: [] };
+    const { prisma, getCreated } = fakePrisma({ sourceDuplicate: existing });
+    const lookupById = vi.fn();
+    await expect(confirmAuthoritativeFood(prisma, "usda_fdc", "123", [adapter(lookupById)])).resolves.toMatchObject({ status: "existing", food: { id: "existing" } });
+    expect(lookupById).not.toHaveBeenCalled(); expect(getCreated()).toBeNull();
+  });
+
+  it("does not overwrite a semantic duplicate", async () => {
+    const duplicate = { id: "bls", name: "Raw spinach", originalName: "Raw spinach", source: "bls", sourceId: "B1", servings: [] };
+    const { prisma, getCreated } = fakePrisma({ nameDuplicate: duplicate });
+    await expect(confirmAuthoritativeFood(prisma, "usda_fdc", "123", [adapter(async () => candidate())])).resolves.toMatchObject({ status: "confirmation_required", reason: "possible_duplicate" });
+    expect(getCreated()).toBeNull();
+  });
+
+  it("handles missing config, upstream failure, malformed data, and missing fiber safely", async () => {
+    const { prisma, getCreated } = fakePrisma();
+    await expect(confirmAuthoritativeFood(prisma, "usda_fdc", "123", [])).resolves.toMatchObject({ reason: "external_unavailable" });
+    await expect(confirmAuthoritativeFood(prisma, "usda_fdc", "123", [adapter(async () => { throw new Error("secret"); })])).resolves.toMatchObject({ reason: "external_unavailable" });
+    await expect(confirmAuthoritativeFood(prisma, "usda_fdc", "123", [adapter(async () => ({ arbitrary: "client nutrition" }))])).resolves.toMatchObject({ reason: "invalid_external_data" });
+    await expect(confirmAuthoritativeFood(prisma, "usda_fdc", "123", [adapter(async () => candidate({ fiberPer100g: undefined as any }))])).resolves.toMatchObject({ reason: "invalid_external_data" });
+    expect(getCreated()).toBeNull();
+  });
+
+  it("resolves a concurrent unique-key race to the existing record", async () => {
+    const raced = { id: "raced", source: "usda_fdc", sourceId: "123", servings: [] };
+    const { prisma } = fakePrisma({ raceDuplicate: raced });
+    prisma.food.create = async () => { throw { code: "P2002" }; };
+    await expect(confirmAuthoritativeFood(prisma, "usda_fdc", "123", [adapter(async () => candidate())])).resolves.toMatchObject({ status: "existing", food: { id: "raced" } });
+  });
+});
+
 describe("USDA structured lookup adapter", () => {
   it("normalizes authoritative per-100-g macros and traceable provenance", async () => {
     const fetcher = vi.fn(async () => ({ ok: true, json: async () => ({ foods: [{ fdcId: 123, description: "Raw spinach", dataType: "Foundation", foodCategory: "Vegetables", foodNutrients: [
@@ -181,4 +227,22 @@ describe("USDA structured lookup adapter", () => {
     await expect(new UsdaFoodDataCentralLookupAdapter("test-key", vi.fn(async () => ({ ok: true, headers: { get: () => null }, text: async () => "{" })) as any).lookup("x")).rejects.toThrow("USDA response invalid");
     await expect(new UsdaFoodDataCentralLookupAdapter("test-key", vi.fn(async () => ({ ok: true, headers: { get: () => "1000001" }, text: async () => "{}" })) as any).lookup("x")).rejects.toThrow("USDA response too large");
   });
+
+  it("fetches a USDA detail by FDC ID and normalizes nested nutrient metadata", async () => {
+    const fetcher = vi.fn(async () => ({ ok: true, json: async () => ({ fdcId: 123, description: "Spinach, raw", dataType: "Foundation", foodNutrients: [
+      { nutrient: { id: 1008, unitName: "kcal" }, amount: 23 }, { nutrient: { id: 1003, unitName: "g" }, amount: 2.9 },
+      { nutrient: { id: 1004, unitName: "g" }, amount: 0.4 }, { nutrient: { id: 1005, unitName: "g" }, amount: 3.6 },
+      { nutrient: { id: 1079, unitName: "g" }, amount: 0 }
+    ] }) })) as any;
+    const food = await new UsdaFoodDataCentralLookupAdapter("secret", fetcher).lookupById("123");
+    expect(fetcher.mock.calls[0][0]).toContain("/food/123?");
+    expect(food).toMatchObject({ sourceId: "123", fiberPer100g: 0, matchPolicy: "review_required" });
+    expect(validateExternalCandidate(food)).not.toBeNull();
+  });
 });
+  it("accepts only an approved source and FDC ID, never client nutrition", () => {
+    expect(externalFoodConfirmationSchema.parse({ source: "usda_fdc", sourceId: "123" })).toEqual({ source: "usda_fdc", sourceId: "123" });
+    expect(() => externalFoodConfirmationSchema.parse({ source: "open_food_facts", sourceId: "123" })).toThrow();
+    expect(() => externalFoodConfirmationSchema.parse({ source: "usda_fdc", sourceId: "abc" })).toThrow();
+    expect(() => externalFoodConfirmationSchema.parse({ source: "usda_fdc", sourceId: "123", fiberPer100g: 0 })).toThrow();
+  });
