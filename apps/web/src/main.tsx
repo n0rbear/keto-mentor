@@ -383,8 +383,11 @@ export function FoodCombobox({ lang, state, selected, onSelect, labels, resetVer
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
+  const [externalLoading, setExternalLoading] = useState(false);
+  const [externalMessage, setExternalMessage] = useState("");
+  const [externalCandidates, setExternalCandidates] = useState<Array<{ name: string; source: string; sourceId: string; confidence: number; kcalPer100g: number }>>([]);
 
-  useEffect(() => { setQuery(""); setResults([]); setOpen(false); setActive(-1); }, [resetVersion]);
+  useEffect(() => { setQuery(""); setResults([]); setOpen(false); setActive(-1); setExternalMessage(""); setExternalCandidates([]); }, [resetVersion]);
 
   useEffect(() => {
     if (query.trim().length < 2 || selected) { setResults([]); setLoading(false); return; }
@@ -401,13 +404,28 @@ export function FoodCombobox({ lang, state, selected, onSelect, labels, resetVer
     return () => { window.clearTimeout(timer); controller.abort(); };
   }, [query, selected, state]);
 
-  const choose = (food: Food) => { onSelect(food); setQuery(food.names?.[lang] ?? food.name); setOpen(false); };
+  const choose = (food: Food) => { onSelect(food); setQuery(food.names?.[lang] ?? food.name); setOpen(false); setExternalMessage(""); setExternalCandidates([]); };
+  async function searchExternal() {
+    if (externalLoading || query.trim().length < 2) return;
+    setExternalLoading(true); setExternalMessage(""); setExternalCandidates([]);
+    try {
+      const result = await api<any>("/foods/resolve-external", { method: "POST", body: JSON.stringify({ query }) }, state);
+      if (result.status === "resolved_local" || result.status === "resolved_external") {
+        choose(result.food as Food);
+        setExternalMessage(result.status === "resolved_external" ? "Authoritative external food added." : "Existing catalog food found.");
+      } else if (result.status === "confirmation_required") {
+        setExternalCandidates(result.candidates);
+        setExternalMessage("Multiple or duplicate candidates need confirmation; nothing was added.");
+      } else setExternalMessage("No trustworthy structured-source match was found.");
+    } catch { setExternalMessage("External source lookup is currently unavailable."); }
+    finally { setExternalLoading(false); }
+  }
   return (
     <div className="combobox-wrap">
       <label htmlFor={`${idPrefix}-search`}>{labels.label}</label>
       <input id={`${idPrefix}-search`} className="field" role="combobox" autoComplete="off" value={query} placeholder={labels.placeholder}
         aria-expanded={open} aria-controls={`${idPrefix}-results`} aria-autocomplete="list" aria-activedescendant={active >= 0 ? `${idPrefix}-option-${active}` : undefined}
-        onChange={(event) => { setQuery(event.target.value); onSelect(null); setOpen(true); }}
+        onChange={(event) => { setQuery(event.target.value); onSelect(null); setOpen(true); setExternalMessage(""); setExternalCandidates([]); }}
         onKeyDown={(event) => {
           if (event.key === "ArrowDown") { event.preventDefault(); setOpen(true); setActive((value) => Math.min(value + 1, results.length - 1)); }
           if (event.key === "ArrowUp") { event.preventDefault(); setActive((value) => Math.max(value - 1, 0)); }
@@ -422,6 +440,9 @@ export function FoodCombobox({ lang, state, selected, onSelect, labels, resetVer
             <span>{food.names?.[lang] ?? food.name}</span><small>{Math.round(food.kcalPer100g)} kcal/100g</small>
           </button>)}
       </div>}
+      {!selected && !loading && results.length === 0 && query.trim().length >= 2 && <button type="button" className="btn secondary" disabled={externalLoading} onClick={searchExternal}>{externalLoading ? "…" : "Search trusted external sources"}</button>}
+      {externalMessage && <small className="search-hint" role="status">{externalMessage}</small>}
+      {externalCandidates.length > 0 && <ul className="search-hint">{externalCandidates.map((candidate) => <li key={`${candidate.source}:${candidate.sourceId}`}>{candidate.name} · {Math.round(candidate.kcalPer100g)} kcal/100g · {Math.round(candidate.confidence * 100)}%</li>)}</ul>}
     </div>
   );
 }
