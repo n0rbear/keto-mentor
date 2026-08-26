@@ -7,6 +7,7 @@ import helmet from "helmet";
 import jwt from "jsonwebtoken";
 import pino from "pino";
 import { pinoHttp } from "pino-http";
+import { z } from "zod";
 import { createMealSchema, loginSchema, mealInterpretationSchema, onboardingSchema, registerSchema } from "@keto-mentor/shared";
 import { env } from "./config.js";
 
@@ -16,6 +17,9 @@ import { createSession, rotateSession, revokeActiveSession } from "./session.js"
 import { prisma } from "./db.js";
 import { serializeMeal, serializeMealSummary } from "./nutrition.js";
 import { searchFoods } from "./catalog/food-search.js";
+import { resolveAuthoritativeFood } from "./catalog/external-food.js";
+import { EXTERNAL_FOOD_RATE_LIMIT, externalFoodRateLimitKey } from "./catalog/external-food-rate-limit.js";
+import { UsdaFoodDataCentralLookupAdapter } from "./catalog/structured-source-adapters.js";
 import { parseNaturalFoodQuery } from "./catalog/natural-food-query.js";
 import { createMeal } from "./meals/create-meal.js";
 import { recipeRouter } from "./recipes/router.js";
@@ -23,6 +27,7 @@ import { interpretMealInput } from "./meal-input/interpret.js";
 
 const logger = pino({ level: env.NODE_ENV === "production" ? "info" : "debug" });
 const app = express();
+const externalFoodAdapters = env.USDA_FDC_API_KEY ? [new UsdaFoodDataCentralLookupAdapter(env.USDA_FDC_API_KEY)] : [];
 
 if (env.NODE_ENV === "production") app.set("trust proxy", 1);
 
@@ -36,11 +41,17 @@ app.use(pinoHttp({ logger }));
 
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 20, standardHeaders: true, legacyHeaders: false });
 
-// Refresh performs Argon2 verification and mutates session state, so it gets its
-// own limiter. The limit is deliberately generous (per-IP) so that legitimate
+// Refresh verifies a secret and mutates session state, so it gets its own
+// limiter. The limit is deliberately generous (per-IP) so that legitimate
 // concurrent/exponential-backoff refreshes are not blocked, while still
 // blunting brute-force/replay against the refresh endpoint.
 const refreshLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 60, standardHeaders: true, legacyHeaders: false });
+const externalFoodLimiter = rateLimit({
+  ...EXTERNAL_FOOD_RATE_LIMIT,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: externalFoodRateLimitKey
+});
 
 const healthPayload = { ok: true, service: "keto-mentor-api" };
 app.get("/", (_req, res) => res.json(healthPayload));
@@ -141,6 +152,15 @@ app.get("/foods", requireAuth, async (req, res, next) => {
     const parsed = parseNaturalFoodQuery(String(req.query.q ?? ""));
     const foods = await searchFoods(prisma, parsed.foodQuery);
     res.json({ foods, parsedQuery: parsed, resolution: foods.length ? "resolved" : "unresolved" });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/foods/resolve-external", requireAuth, externalFoodLimiter, async (req, res, next) => {
+  try {
+    const { query } = z.object({ query: z.string().trim().min(2).max(120) }).parse(req.body);
+    res.json(await resolveAuthoritativeFood(prisma, query, externalFoodAdapters));
   } catch (error) {
     next(error);
   }
