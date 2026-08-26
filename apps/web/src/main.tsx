@@ -56,10 +56,14 @@ function App() {
 
   async function load() {
     if (!token) return;
-    const me = await api<{ user: User }>("/me", {}, state);
+    // /me and /meals/today are independent; fetch them concurrently to cut
+    // initial dashboard latency (previously awaited sequentially).
+    const [me, today] = await Promise.all([
+      api<{ user: User }>("/me", {}, state),
+      api<{ meals: Meal[]; totals: Totals }>("/meals/today?view=summary", {}, state)
+    ]);
     setUser(me.user);
     setLang(me.user.locale);
-    const today = await api<{ meals: Meal[]; totals: Totals }>("/meals/today", {}, state);
     setMeals(today.meals);
     setTotals(today.totals);
   }
