@@ -49,7 +49,7 @@ export function RecipeBuilder({ lang, state, currentUserId, onMealAdded }: { lan
   async function saveRecipe() {
     if (!title.trim() || ingredients.length === 0) return setStatus("A recept neve és legalább egy alapanyag kötelező.");
     const body = { title, description: description || undefined, servings: servings ? Number(servings) : undefined, finishedWeightGrams: finishedWeight ? Number(finishedWeight) : undefined, visibility, sourceType: "manual", ingredients: ingredients.map(({ foodId, quantityGrams, preparation }, sortOrder) => ({ foodId, quantityGrams, ...(preparation ? { preparation } : {}), sortOrder })) };
-    await api(editing ? `/recipes/${editing.id}` : "/recipes", { method: editing ? "PUT" : "POST", body: JSON.stringify(body) }, state); setStatus("Recept elmentve."); setTab("mine"); await loadRecipes("mine");
+    await api(editing ? `/recipes/${editing.id}` : "/recipes", { method: editing ? "PUT" : "POST", body: JSON.stringify(body) }, state); setStatus("Recept elmentve."); setTab("mine");
   }
   async function removeRecipe(recipe: Recipe) { if (!window.confirm(`Törlöd ezt a receptet: ${recipe.title}?`)) return; await api(`/recipes/${recipe.id}`, { method: "DELETE" }, state); await loadRecipes(); }
   async function fork(recipe: Recipe) { await api(`/recipes/${recipe.id}/fork`, { method: "POST" }, state); setStatus("Privát másolat elmentve a saját receptjeid közé."); }

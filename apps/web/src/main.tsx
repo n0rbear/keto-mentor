@@ -60,7 +60,7 @@ function App() {
     // initial dashboard latency (previously awaited sequentially).
     const [me, today] = await Promise.all([
       api<{ user: User }>("/me", {}, state),
-      api<{ meals: Meal[]; totals: Totals }>("/meals/today", {}, state)
+      api<{ meals: Meal[]; totals: Totals }>("/meals/today?view=summary", {}, state)
     ]);
     setUser(me.user);
     setLang(me.user.locale);

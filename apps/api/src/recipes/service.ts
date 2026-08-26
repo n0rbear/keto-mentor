@@ -159,7 +159,7 @@ export async function addRecipeToMeal(prisma: PrismaClient, userId: string, reci
         snapshotNutrients: snapshot.nutrients
       } }
     },
-    include: { items: { include: { food: true } } }
+    include: { items: { include: { food: true, recipe: true } } }
   });
   return serializeMeal(meal);
 }
