@@ -9,6 +9,7 @@ export type ExternalFoodCandidate = ImportFood & {
   nutrientBasis: "per_100_g";
   retrievedAt: string;
   confidence: number;
+  matchPolicy: "exact_normalized_name" | "review_required";
   language?: string;
 };
 
@@ -21,7 +22,7 @@ export interface StructuredFoodLookupAdapter {
 export type ResolutionOutcome =
   | { status: "resolved_local"; food: any }
   | { status: "resolved_external"; food: any; provenance: ExternalFoodCandidate["provenance"] }
-  | { status: "confirmation_required"; candidates: ExternalFoodCandidate[]; reason: "ambiguous" | "possible_duplicate" }
+  | { status: "confirmation_required"; candidates: ExternalFoodCandidate[]; reason: "ambiguous" | "possible_duplicate" | "weak_match" }
   | { status: "unresolved"; candidates: []; reason: "not_found" | "invalid_external_data" | "external_unavailable" };
 
 const REQUIRED_MACROS = ["kcalPer100g", "fatPer100g", "proteinPer100g", "carbsPer100g"] as const;
@@ -33,9 +34,13 @@ function finiteNonNegative(value: unknown): value is number {
 export function validateExternalCandidate(value: unknown): ExternalFoodCandidate | null {
   if (!value || typeof value !== "object") return null;
   const candidate = value as Partial<ExternalFoodCandidate>;
-  if (!candidate.source || !candidate.sourceId || !candidate.name || !candidate.originalName) return null;
+  if (candidate.source !== "usda_fdc" || !/^\d+$/.test(candidate.sourceId ?? "") || !candidate.name || !candidate.originalName) return null;
   if (!candidate.sourceUrl || !candidate.retrievedAt || candidate.nutrientBasis !== "per_100_g") return null;
+  try {
+    if (new URL(candidate.sourceUrl).hostname !== "fdc.nal.usda.gov") return null;
+  } catch { return null; }
   if (!finiteNonNegative(candidate.confidence) || candidate.confidence > 1) return null;
+  if (candidate.matchPolicy !== "exact_normalized_name" && candidate.matchPolicy !== "review_required") return null;
   if (REQUIRED_MACROS.some((key) => !finiteNonNegative(candidate[key]))) return null;
   if (!finiteNonNegative(candidate.fiberPer100g)) return null;
   const normalizedName = normalizeSearch(candidate.normalizedName || candidate.name);
@@ -65,25 +70,17 @@ async function findDuplicate(prisma: ResolutionPrisma, candidate: ExternalFoodCa
       OR: [
         { name: { equals: candidate.name, mode: "insensitive" } },
         { originalName: { equals: candidate.originalName, mode: "insensitive" } },
-        { searchText: { contains: candidate.normalizedName, mode: "insensitive" } },
         ...(aliasMatch ? [{ id: aliasMatch.foodId }] : [])
       ]
     },
     include: { servings: true },
     take: 5
   });
-  const tokens = (value: string) => new Set(normalizeSearch(value).split(" ").filter(Boolean));
-  const similarity = (left: string, right: string) => {
-    const a = tokens(left); const b = tokens(right);
-    const intersection = [...a].filter((token) => b.has(token)).length;
-    const union = new Set([...a, ...b]).size;
-    return union ? intersection / union : 0;
-  };
-  return possible.find((food) => normalizeSearch(food.name) === candidate.normalizedName || normalizeSearch(food.originalName ?? "") === candidate.normalizedName || food.id === aliasMatch?.foodId || similarity(food.name, candidate.name) >= 0.9) ?? null;
+  return possible.find((food) => normalizeSearch(food.name) === candidate.normalizedName || normalizeSearch(food.originalName ?? "") === candidate.normalizedName || food.id === aliasMatch?.foodId) ?? null;
 }
 
 async function persistCandidate(prisma: ResolutionPrisma, candidate: ExternalFoodCandidate) {
-  const { nutrients, confidence: _confidence, language: _language, normalizedName: _normalizedName, nutrientBasis: _basis, retrievedAt: _retrievedAt, sourceUrl: _sourceUrl, ...foodData } = candidate;
+  const { nutrients, confidence: _confidence, matchPolicy: _matchPolicy, language: _language, normalizedName: _normalizedName, nutrientBasis: _basis, retrievedAt: _retrievedAt, sourceUrl: _sourceUrl, ...foodData } = candidate;
   return prisma.$transaction(async (tx) => {
     const saved = await tx.food.create({ data: { ...foodData, searchText: buildSearchText(foodData), createdById: null } });
     const aliases = [...new Set([candidate.name, candidate.originalName, ...Object.values(candidate.names ?? {})].map(normalizeSearch).filter(Boolean))];
@@ -103,15 +100,17 @@ export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: 
   if (!adapters.length) return { status: "unresolved", candidates: [], reason: "external_unavailable" };
 
   let rawCandidates: unknown[] = [];
+  let successfulProviders = 0;
   for (const adapter of adapters) {
     try {
-      rawCandidates = await adapter.lookup(query);
+      const result = await adapter.lookup(query);
+      successfulProviders += 1;
+      rawCandidates.push(...result.slice(0, 5));
     } catch {
       continue;
     }
-    if (rawCandidates.length) break;
   }
-  if (!rawCandidates.length) return { status: "unresolved", candidates: [], reason: "not_found" };
+  if (!rawCandidates.length) return { status: "unresolved", candidates: [], reason: successfulProviders > 0 ? "not_found" : "external_unavailable" };
   const candidates = rawCandidates.map(validateExternalCandidate).filter((candidate): candidate is ExternalFoodCandidate => Boolean(candidate)).sort((a, b) => b.confidence - a.confidence);
   if (!candidates.length) return { status: "unresolved", candidates: [], reason: "invalid_external_data" };
 
@@ -122,6 +121,9 @@ export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: 
   }
   const top = candidates[0];
   const second = candidates[1];
+  if (top.matchPolicy !== "exact_normalized_name" || normalizeSearch(query) !== top.normalizedName) {
+    return { status: "confirmation_required", candidates: candidates.slice(0, 5), reason: "weak_match" };
+  }
   if (top.confidence < 0.95 || (second && top.confidence - second.confidence < 0.1)) {
     return { status: "confirmation_required", candidates: candidates.slice(0, 5), reason: "ambiguous" };
   }

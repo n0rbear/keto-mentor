@@ -18,6 +18,7 @@ import { prisma } from "./db.js";
 import { serializeMeal, serializeMealSummary } from "./nutrition.js";
 import { searchFoods } from "./catalog/food-search.js";
 import { resolveAuthoritativeFood } from "./catalog/external-food.js";
+import { EXTERNAL_FOOD_RATE_LIMIT, externalFoodRateLimitKey } from "./catalog/external-food-rate-limit.js";
 import { UsdaFoodDataCentralLookupAdapter } from "./catalog/structured-source-adapters.js";
 import { parseNaturalFoodQuery } from "./catalog/natural-food-query.js";
 import { createMeal } from "./meals/create-meal.js";
@@ -45,6 +46,12 @@ const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 20, standardHea
 // concurrent/exponential-backoff refreshes are not blocked, while still
 // blunting brute-force/replay against the refresh endpoint.
 const refreshLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 60, standardHeaders: true, legacyHeaders: false });
+const externalFoodLimiter = rateLimit({
+  ...EXTERNAL_FOOD_RATE_LIMIT,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: externalFoodRateLimitKey
+});
 
 const healthPayload = { ok: true, service: "keto-mentor-api" };
 app.get("/", (_req, res) => res.json(healthPayload));
@@ -150,7 +157,7 @@ app.get("/foods", requireAuth, async (req, res, next) => {
   }
 });
 
-app.post("/foods/resolve-external", requireAuth, async (req, res, next) => {
+app.post("/foods/resolve-external", requireAuth, externalFoodLimiter, async (req, res, next) => {
   try {
     const { query } = z.object({ query: z.string().trim().min(2).max(120) }).parse(req.body);
     res.json(await resolveAuthoritativeFood(prisma, query, externalFoodAdapters));

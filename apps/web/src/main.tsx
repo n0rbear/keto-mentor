@@ -416,7 +416,9 @@ export function FoodCombobox({ lang, state, selected, onSelect, labels, resetVer
       } else if (result.status === "confirmation_required") {
         setExternalCandidates(result.candidates);
         setExternalMessage("Multiple or duplicate candidates need confirmation; nothing was added.");
-      } else setExternalMessage("No trustworthy structured-source match was found.");
+      } else if (result.reason === "external_unavailable") setExternalMessage("Trusted external sources are currently unavailable; nothing was added.");
+      else if (result.reason === "invalid_external_data") setExternalMessage("The external result was incomplete or invalid; nothing was added.");
+      else setExternalMessage("No trustworthy structured-source match was found; nothing was added.");
     } catch { setExternalMessage("External source lookup is currently unavailable."); }
     finally { setExternalLoading(false); }
   }
