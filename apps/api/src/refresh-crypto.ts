@@ -19,9 +19,15 @@ import { env } from "./config.js";
  * or the scheduled production cleanup removes them. New secrets always use HMAC.
  */
 
-// Derive a stable HMAC key from the already-present refresh signing secret.
-// Using utf8 bytes keeps the key length well above the HMAC-SHA256 block size.
-const HMAC_KEY = Buffer.from(env.JWT_REFRESH_SECRET, "utf8");
+// Derive a stable, domain-separated HMAC key from the already-present refresh
+// signing secret. We deliberately do NOT reuse JWT_REFRESH_SECRET directly as the
+// MAC key: instead we derive a refresh-hash-specific subkey via HMAC-KDF so that
+// the key used here is cryptographically distinct from the JWT signing context
+// (explicit domain separation, prefix "km.refresh-hash.v1"). The raw secret is
+// not persisted; using utf8 bytes keeps the derived key length well above the
+// HMAC-SHA256 block size.
+const REFRESH_HASH_DOMAIN = "km.refresh-hash.v1";
+const HMAC_KEY = createHmac("sha256", env.JWT_REFRESH_SECRET).update(REFRESH_HASH_DOMAIN, "utf8").digest();
 
 function hmacHex(secret: string): string {
   return createHmac("sha256", HMAC_KEY).update(secret).digest("hex");
@@ -51,9 +57,8 @@ export async function verifyRefreshSecret(hash: string, secret: string): Promise
       return false;
     }
   }
-  const expected = hmacHex(secret);
-  const a = Buffer.from(expected, "hex");
-  const b = Buffer.from(hash, "hex");
-  if (a.length !== b.length) return false;
-  return timingSafeEqual(a, b);
+  if (!/^[0-9a-f]{64}$/.test(hash)) return false;
+  const expected = Buffer.from(hmacHex(secret), "hex");
+  const stored = Buffer.from(hash, "hex");
+  return timingSafeEqual(expected, stored);
 }
