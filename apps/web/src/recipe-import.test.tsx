@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { RecipeBuilder } from "./RecipeBuilder";
+import { ingredientsFromImport, RecipeBuilder } from "./RecipeBuilder";
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -10,6 +10,14 @@ const state = { token: "token", setToken: vi.fn() };
 const renderBuilder = () => render(<RecipeBuilder lang="en" state={state} currentUserId="user" onMealAdded={vi.fn()}/>);
 
 describe("recipe URL import UI", () => {
+  it("fills a reviewed middle row in source order and excludes only explicit omissions", () => {
+    const row = (originalText: string, selectedFood: typeof food | null, omitted = false) => ({ originalText, omitted, parsedFoodQuery: originalText, resolution: selectedFood ? "resolved" : "unresolved", selectedFood, candidates: selectedFood ? [selectedFood] : [], quantity: selectedFood ? { status: "resolved", grams: 100, requiresConfirmation: false } : null, canConfirm: !!selectedFood });
+    const rows = [row("first", food), row("middle", null), row("third", { ...food, id: "egg", name: "Egg" })];
+    rows[1] = row("middle", { ...food, id: "middle", name: "Middle" });
+    expect(ingredientsFromImport(rows as any).map((item) => [item.originalText, item.sortOrder])).toEqual([["first", 0], ["middle", 1], ["third", 2]]);
+    rows[1].omitted = true;
+    expect(ingredientsFromImport(rows as any).map((item) => item.originalText)).toEqual(["first", "third"]);
+  });
   it("shows loading, prevents double submit, and renders a resolved preview", async () => {
     let finish!: (value: Response) => void;
     let previewCalls = 0;
@@ -24,7 +32,7 @@ describe("recipe URL import UI", () => {
     const button = screen.getByRole("button", { name: "Preview" }); fireEvent.click(button); fireEvent.click(button);
     await waitFor(() => expect(previewCalls).toBe(1)); expect((screen.getByRole("button", { name: "Loading…" }) as HTMLButtonElement).disabled).toBe(true);
     finish(new Response(JSON.stringify({ preview: { title: "Spinach", sourceUrl: "https://example.com/recipe", servings: 2, instructions: ["Mix"], extractionMethod: "schema_org_json_ld", ingredients: [{ originalText: "200 g spinach", parsedQuantity: 200, parsedUnit: "g", parsedFoodQuery: "spinach", resolution: "resolved", selectedFood: food, candidates: [food], quantity: { status: "resolved", grams: 200, requiresConfirmation: false }, canConfirm: true }] } }), { status: 200 }));
-    expect(await screen.findByText(/200 g spinach/)).toBeTruthy(); expect(screen.getByText("Mix")).toBeTruthy();
+    expect(await screen.findByText(/200 g spinach/)).toBeTruthy(); expect(screen.getAllByText("Mix")).toHaveLength(2);
     expect((screen.getByRole("button", { name: /Mentés/i }) as HTMLButtonElement).disabled).toBe(false);
   });
 
