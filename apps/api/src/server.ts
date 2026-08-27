@@ -17,8 +17,8 @@ import { createSession, rotateSession, revokeActiveSession } from "./session.js"
 import { prisma } from "./db.js";
 import { serializeMeal, serializeMealSummary } from "./nutrition.js";
 import { searchFoods } from "./catalog/food-search.js";
-import { resolveAuthoritativeFood } from "./catalog/external-food.js";
-import { EXTERNAL_FOOD_RATE_LIMIT, externalFoodRateLimitKey } from "./catalog/external-food-rate-limit.js";
+import { confirmAuthoritativeFood, externalFoodConfirmationSchema, resolveAuthoritativeFood } from "./catalog/external-food.js";
+import { EXTERNAL_FOOD_CONFIRM_RATE_LIMIT, EXTERNAL_FOOD_RATE_LIMIT, externalFoodRateLimitKey } from "./catalog/external-food-rate-limit.js";
 import { UsdaFoodDataCentralLookupAdapter } from "./catalog/structured-source-adapters.js";
 import { parseNaturalFoodQuery } from "./catalog/natural-food-query.js";
 import { createMeal } from "./meals/create-meal.js";
@@ -52,6 +52,7 @@ const externalFoodLimiter = rateLimit({
   legacyHeaders: false,
   keyGenerator: externalFoodRateLimitKey
 });
+const externalFoodConfirmLimiter = rateLimit({ ...EXTERNAL_FOOD_CONFIRM_RATE_LIMIT, standardHeaders: true, legacyHeaders: false, keyGenerator: externalFoodRateLimitKey });
 
 const healthPayload = { ok: true, service: "keto-mentor-api" };
 app.get("/", (_req, res) => res.json(healthPayload));
@@ -164,6 +165,13 @@ app.post("/foods/resolve-external", requireAuth, externalFoodLimiter, async (req
   } catch (error) {
     next(error);
   }
+});
+
+app.post("/foods/resolve-external/confirm", requireAuth, externalFoodConfirmLimiter, async (req, res, next) => {
+  try {
+    const input = externalFoodConfirmationSchema.parse(req.body);
+    res.json(await confirmAuthoritativeFood(prisma, input.source, input.sourceId, externalFoodAdapters));
+  } catch (error) { next(error); }
 });
 
 app.post("/meal-input/interpret", requireAuth, async (req, res, next) => {
