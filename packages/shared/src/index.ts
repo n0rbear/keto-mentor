@@ -67,14 +67,20 @@ export const recipeIngredientSchema = z.object({
   preparation: z.string().trim().max(200).optional(),
   sortOrder: z.number().int().min(0).max(100).optional()
 });
+const safeRecipeSourceUrlSchema = z.string().trim().url().max(2_000).superRefine((value, context) => {
+  const url = new URL(value);
+  if (!["http:", "https:"].includes(url.protocol) || url.username || url.password) context.addIssue({ code: "custom", message: "sourceUrl must be an HTTP(S) URL without credentials" });
+});
 export const recipeInputSchema = z.object({
   title: z.string().trim().min(2).max(120),
   description: z.string().trim().max(2_000).optional(),
+  instructions: z.array(z.string().trim().min(1).max(1_000)).max(100).default([]),
   servings: z.number().positive().max(1000).optional(),
   finishedWeightGrams: z.number().positive().max(100_000).optional(),
   visibility: recipeVisibilitySchema.default("private"),
   sourceType: z.enum(["manual", "schema_org", "ai_structured"]).default("manual"),
-  sourceUrl: z.string().url().max(2_000).optional(),
+  sourceUrl: safeRecipeSourceUrlSchema.optional(),
+  importProof: z.string().max(4_000).optional(),
   ingredients: z.array(recipeIngredientSchema).min(1).max(50)
 });
 export const recipeMealSchema = z.object({
@@ -88,7 +94,7 @@ export const recipeListQuerySchema = z.object({
   cursor: z.string().optional()
 });
 export const recipeImportPreviewSchema = z.object({
-  url: z.string().trim().url().max(2_000)
+  url: safeRecipeSourceUrlSchema
 }).strict();
 export type RecipeInput = z.infer<typeof recipeInputSchema>;
 export type RecipeMealInput = z.infer<typeof recipeMealSchema>;

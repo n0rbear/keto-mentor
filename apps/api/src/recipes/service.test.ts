@@ -26,14 +26,21 @@ function fakePrisma(seed = [fullRecipe()]) {
 const input: any = { title: "Changed", visibility: "private", sourceType: "manual", ingredients: [{ foodId: "f1", quantityGrams: 100 }] };
 
 describe("recipe visibility and ownership", () => {
+  it("persists ordered instructions on create and update", async () => {
+    const { prisma, recipes } = fakePrisma([]);
+    await createRecipe(prisma, "owner", { ...input, instructions: ["First", "Second"] });
+    expect(recipes[0].instructions).toEqual(["First", "Second"]);
+    await updateRecipe(prisma, "owner", recipes[0].id, { ...input, instructions: ["Updated"] });
+    expect(recipes[0].instructions).toEqual(["Updated"]);
+  });
   it("creates a private multi-ingredient recipe by default", async () => { const { prisma } = fakePrisma([]); const created: any = await createRecipe(prisma, "owner", { ...input, ingredients: [{ foodId: "f1", quantityGrams: 50 }, { foodId: "f1", quantityGrams: 75 }] }); expect(created.userId).toBe("owner"); expect(created.visibility).toBe("private"); expect(created.ingredients).toHaveLength(2); });
   it("rejects a missing Food", async () => { const { prisma } = fakePrisma([]); prisma.food.count = async () => 0; await expect(createRecipe(prisma, "owner", input)).rejects.toMatchObject({ publicCode: "food_not_found" }); });
   it("rejects zero and negative ingredient quantities", () => { expect(recipeInputSchema.safeParse({ ...input, ingredients: [{ foodId: "f1", quantityGrams: 0 }] }).success).toBe(false); expect(recipeInputSchema.safeParse({ ...input, ingredients: [{ foodId: "f1", quantityGrams: -1 }] }).success).toBe(false); });
   it("strips browser-supplied macros and saves only Food IDs with server provenance", async () => {
     const parsed: any = recipeInputSchema.parse({ ...input, sourceType: "schema_org", sourceUrl: "https://example.com/r", kcal: 9999, ingredients: [{ foodId: "f1", quantityGrams: 100, kcalPer100g: 9999, originalText: "100 g Food" }] });
     expect(parsed).not.toHaveProperty("kcal"); expect(parsed.ingredients[0]).not.toHaveProperty("kcalPer100g");
-    const { prisma, recipes } = fakePrisma([]); await createRecipe(prisma, "owner", parsed);
-    expect(recipes[0]).toMatchObject({ sourceType: "schema_org", sourceUrl: "https://example.com/r", provenance: { extractionMethod: "schema_org_json_ld" } });
+    const { prisma, recipes } = fakePrisma([]); await createRecipe(prisma, "owner", parsed, { sourceUrl: "https://example.com/r", extractionMethod: "schema_org_json_ld" });
+    expect(recipes[0]).toMatchObject({ sourceType: "schema_org", sourceUrl: "https://example.com/r", provenance: { extractionMethod: "schema_org_json_ld", trust: "server_verified" } });
     expect(recipes[0].ingredients[0]).toMatchObject({ foodId: "f1", quantityGrams: 100, originalText: "100 g Food" });
   });
   it("does not reveal a private recipe to another user", async () => { await expect(getVisibleRecipe(fakePrisma().prisma, "other", "r1")).rejects.toMatchObject({ publicCode: "recipe_not_found" }); });
@@ -42,7 +49,7 @@ describe("recipe visibility and ownership", () => {
   it("does not allow another user to edit a public recipe", async () => { const { prisma } = fakePrisma([fullRecipe({ visibility: "public" })]); await expect(updateRecipe(prisma, "other", "r1", input)).rejects.toMatchObject({ publicCode: "recipe_not_found" }); });
   it("does not allow another user to delete a public recipe", async () => { const { prisma } = fakePrisma([fullRecipe({ visibility: "public" })]); await expect(deleteRecipe(prisma, "other", "r1")).rejects.toMatchObject({ publicCode: "recipe_not_found" }); });
   it("allows a public recipe to be added to another user's meal", async () => { const { prisma, meals } = fakePrisma([fullRecipe({ visibility: "public" })]); await addRecipeToMeal(prisma, "other", "r1", { quantity: 1, unit: "serving" }); expect(meals[0].userId).toBe("other"); expect(meals[0].items[0].snapshotKcal).toBe(100); });
-  it("forks to a new owner as a private detached recipe", async () => { const { prisma, recipes } = fakePrisma([fullRecipe({ visibility: "public" })]); const copy: any = await forkRecipe(prisma, "other", "r1"); expect(copy.userId).toBe("other"); expect(copy.visibility).toBe("private"); expect(copy.forkedFromRecipeId).toBe("r1"); recipes[1].title = "Fork edit"; expect(recipes[0].title).toBe("Recipe"); });
+  it("forks to a new owner as a private detached recipe and preserves instructions", async () => { const { prisma, recipes } = fakePrisma([fullRecipe({ visibility: "public", instructions: ["Cook", "Serve"] })]); const copy: any = await forkRecipe(prisma, "other", "r1"); expect(copy.userId).toBe("other"); expect(copy.visibility).toBe("private"); expect(copy.forkedFromRecipeId).toBe("r1"); expect(copy.instructions).toEqual(["Cook", "Serve"]); recipes[1].title = "Fork edit"; expect(recipes[0].title).toBe("Recipe"); });
   it("private to public appears in community list", async () => { const { prisma } = fakePrisma(); await updateRecipe(prisma, "owner", "r1", { ...input, visibility: "public" }); expect((await listPublicRecipes(prisma, { limit: 20 })).recipes).toHaveLength(1); });
   it("public to private immediately leaves community list", async () => { const { prisma } = fakePrisma([fullRecipe({ visibility: "public" })]); await updateRecipe(prisma, "owner", "r1", input); expect((await listPublicRecipes(prisma, { limit: 20 })).recipes).toHaveLength(0); });
 });

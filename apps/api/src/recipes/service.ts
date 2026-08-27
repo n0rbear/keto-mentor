@@ -28,19 +28,20 @@ async function ensureFoodsExist(prisma: PrismaClient, input: RecipeInput) {
 
 const ingredientCreates = (input: RecipeInput) => input.ingredients.map((ingredient, index) => ({ ...ingredient, sortOrder: ingredient.sortOrder ?? index }));
 
-export async function createRecipe(prisma: PrismaClient, userId: string, input: RecipeInput) {
+export async function createRecipe(prisma: PrismaClient, userId: string, input: RecipeInput, trustedImport?: { sourceUrl: string; extractionMethod: "schema_org_json_ld" }) {
   await ensureFoodsExist(prisma, input);
   const recipe = await prisma.recipe.create({
     data: {
       userId,
       title: input.title,
       description: input.description,
+      instructions: input.instructions,
       servings: input.servings,
       finishedWeightGrams: input.finishedWeightGrams,
       visibility: input.visibility,
-      sourceType: input.sourceType,
-      sourceUrl: input.sourceUrl,
-      provenance: input.sourceType === "schema_org" ? { importedAt: new Date().toISOString(), extractionMethod: "schema_org_json_ld", sourceUrl: input.sourceUrl } : undefined,
+      sourceType: trustedImport ? "schema_org" : "manual",
+      sourceUrl: trustedImport?.sourceUrl ?? input.sourceUrl,
+      provenance: trustedImport ? { importedAt: new Date().toISOString(), extractionMethod: trustedImport.extractionMethod, sourceUrl: trustedImport.sourceUrl, trust: "server_verified" } : undefined,
       ingredients: { create: ingredientCreates(input) }
     },
     include: recipeInclude
@@ -94,11 +95,10 @@ export async function updateRecipe(prisma: PrismaClient, userId: string, recipeI
       data: {
         title: input.title,
         description: input.description,
+        instructions: input.instructions,
         servings: input.servings,
         finishedWeightGrams: input.finishedWeightGrams,
         visibility: input.visibility,
-        sourceType: input.sourceType,
-        sourceUrl: input.sourceUrl,
         ingredients: { create: ingredientCreates(input) }
       },
       include: recipeInclude
@@ -120,6 +120,7 @@ export async function forkRecipe(prisma: PrismaClient, userId: string, recipeId:
       userId,
       title: source.title,
       description: source.description,
+      instructions: source.instructions,
       servings: source.servings,
       finishedWeightGrams: source.finishedWeightGrams,
       visibility: "private",

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { extractRecipeJsonLd, previewRecipeImport, RecipeImportError, sanitizeRemoteText } from "./recipe-import.js";
+import { extractRecipeJsonLd, mapWithConcurrency, previewRecipeImport, RecipeImportError, sanitizeRemoteText } from "./recipe-import.js";
 import { normalizeSearch } from "../catalog/normalize.js";
 
 const wrap = (json: unknown) => `<html><script type="application/ld+json">${typeof json === "string" ? json : JSON.stringify(json)}</script></html>`;
@@ -13,6 +13,10 @@ describe("schema.org Recipe extraction", () => {
   });
   it("finds Recipe in an array", () => expect(extractRecipeJsonLd(wrap([{ "@type": "WebPage" }, base]), "https://e.test").title).toBe("Spinach eggs"));
   it("finds Recipe in @graph", () => expect(extractRecipeJsonLd(wrap({ "@graph": [{ "@type": "WebPage" }, base] }), "https://e.test").title).toBe("Spinach eggs"));
+  it("accepts @type arrays and skips a malformed block before a valid block", () => {
+    const html = `${wrap("{")}${wrap({ ...base, "@type": ["Thing", "Recipe"] })}`;
+    expect(extractRecipeJsonLd(html, "https://e.test").title).toBe("Spinach eggs");
+  });
   it("normalizes string, HowToStep and nested HowToSection instructions", () => {
     const recipe = { ...base, recipeInstructions: ["Prepare", { "@type": "HowToStep", text: "Cook" }, { "@type": "HowToSection", itemListElement: [{ "@type": "HowToStep", text: "Serve" }] }] };
     expect(extractRecipeJsonLd(wrap(recipe), "https://e.test").instructions).toEqual(["Prepare", "Cook", "Serve"]);
@@ -24,6 +28,25 @@ describe("schema.org Recipe extraction", () => {
     expect(() => extractRecipeJsonLd(wrap({ ...base, recipeIngredient: Array(51).fill("1 g egg") }), "https://e.test")).toThrowError(expect.objectContaining({ publicCode: "too_many_ingredients" }));
   });
   it("strips remote HTML and control characters", () => expect(sanitizeRemoteText("<img src=x> Egg\u0000 &amp; oil", 100)).toBe("Egg & oil"));
+  it("does not throw for invalid numeric entities", () => expect(sanitizeRemoteText("Egg &#99999999;", 100)).toBe("Egg �"));
+  it("bounds pathological JSON-LD nesting", () => {
+    let nested: unknown = base;
+    for (let index = 0; index < 100; index++) nested = [nested];
+    expect(() => extractRecipeJsonLd(wrap(nested), "https://e.test")).toThrowError(expect.objectContaining({ publicCode: "recipe_not_found" }));
+  });
+});
+
+describe("bounded ingredient resolution", () => {
+  it("limits concurrency and preserves source order", async () => {
+    let active = 0; let maximum = 0;
+    const results = await mapWithConcurrency([0, 1, 2, 3, 4, 5, 6], 4, async (value) => {
+      active++; maximum = Math.max(maximum, active);
+      await new Promise((resolve) => setTimeout(resolve, (6 - value) * 2));
+      active--; return `item-${value}`;
+    });
+    expect(maximum).toBe(4);
+    expect(results).toEqual(["item-0", "item-1", "item-2", "item-3", "item-4", "item-5", "item-6"]);
+  });
 });
 
 function prisma() {

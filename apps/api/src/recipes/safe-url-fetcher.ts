@@ -14,8 +14,15 @@ export class SafeFetchError extends Error {
 type LookupAddress = { address: string; family: number };
 type Resolver = (hostname: string) => Promise<LookupAddress[]>;
 type RawResponse = { status: number; headers: Record<string, string | string[] | undefined>; body: Buffer };
-type Requester = (url: URL, address: LookupAddress, maxBytes: number, timeoutMs: number) => Promise<RawResponse>;
-export type SafeFetcherDependencies = { resolve?: Resolver; request?: Requester };
+type Requester = (url: URL, address: LookupAddress, maxBytes: number, remainingMs: number, signal: AbortSignal) => Promise<RawResponse>;
+type TimerHandle = ReturnType<typeof setTimeout>;
+export type SafeFetcherDependencies = {
+  resolve?: Resolver;
+  request?: Requester;
+  now?: () => number;
+  setTimer?: (callback: () => void, ms: number) => TimerHandle;
+  clearTimer?: (handle: TimerHandle) => void;
+};
 
 function ipv4Number(address: string) {
   const parts = address.split(".").map(Number);
@@ -73,9 +80,11 @@ export function isPublicAddress(address: string) {
     if (value == null) return false;
     const mappedPrefix = ipv6BigInt("::ffff:0:0")!;
     if ((value >> 32n) === (mappedPrefix >> 32n)) return isPublicAddress(`${Number((value >> 24n) & 255n)}.${Number((value >> 16n) & 255n)}.${Number((value >> 8n) & 255n)}.${Number(value & 255n)}`);
+    if (!inV6Range(value, "2000::", 3)) return false;
     return ![
       ["::", 128], ["::1", 128], ["fc00::", 7], ["fe80::", 10], ["ff00::", 8],
-      ["2001:db8::", 32], ["2001:2::", 48], ["2001:10::", 28]
+      ["2001::", 32], ["2001:2::", 48], ["2001:10::", 28], ["2001:20::", 28],
+      ["2001:db8::", 32], ["2002::", 16], ["3fff::", 20]
     ].some(([base, bits]) => inV6Range(value, String(base), Number(bits)));
   }
   return false;
@@ -92,16 +101,24 @@ async function resolvePublic(hostname: string, resolver: Resolver) {
 
 const defaultResolver: Resolver = (hostname) => dnsLookup(hostname, { all: true, verbatim: true });
 
-const defaultRequester: Requester = (url, address, maxBytes, timeoutMs) => new Promise((resolve, reject) => {
-  const client = url.protocol === "https:" ? https : http;
-  const request = client.request(url, {
+export function pinnedRequestOptions(url: URL, address: LookupAddress) {
+  return {
     method: "GET",
     headers: { Accept: "text/html,application/xhtml+xml;q=0.9", "User-Agent": "KetoMentorRecipeImporter/1.0" },
-    lookup: (_hostname, _options, callback) => callback(null, address.address, address.family as 4 | 6)
-  }, (response) => {
+    servername: url.hostname,
+    rejectUnauthorized: true,
+    lookup: (_hostname: string, _options: unknown, callback: (error: NodeJS.ErrnoException | null, address: string, family: 4 | 6) => void) => callback(null, address.address, address.family as 4 | 6)
+  };
+}
+
+const defaultRequester: Requester = (url, address, maxBytes, remainingMs, signal) => new Promise((resolve, reject) => {
+  const client = url.protocol === "https:" ? https : http;
+  let settled = false;
+  const finish = (callback: () => void) => { if (settled) return; settled = true; signal.removeEventListener("abort", abort); callback(); };
+  const request = client.request(url, pinnedRequestOptions(url, address), (response) => {
     const headers = response.headers;
     const declared = Number(headers["content-length"]);
-    if (Number.isFinite(declared) && declared > maxBytes) { response.destroy(); return reject(new SafeFetchError("response_too_large")); }
+    if (Number.isFinite(declared) && declared > maxBytes) { response.destroy(); return finish(() => reject(new SafeFetchError("response_too_large"))); }
     const chunks: Buffer[] = [];
     let bytes = 0;
     response.on("data", (chunk: Buffer) => {
@@ -109,24 +126,46 @@ const defaultRequester: Requester = (url, address, maxBytes, timeoutMs) => new P
       if (bytes > maxBytes) { response.destroy(new SafeFetchError("response_too_large")); return; }
       chunks.push(Buffer.from(chunk));
     });
-    response.on("end", () => resolve({ status: response.statusCode ?? 0, headers, body: Buffer.concat(chunks) }));
-    response.on("error", reject);
+    response.on("end", () => finish(() => resolve({ status: response.statusCode ?? 0, headers, body: Buffer.concat(chunks) })));
+    response.on("error", (error) => finish(() => reject(error)));
   });
-  request.setTimeout(timeoutMs, () => request.destroy(new SafeFetchError("fetch_timeout")));
-  request.on("error", (error) => reject(error instanceof SafeFetchError ? error : new SafeFetchError("fetch_failed")));
+  const abort = () => request.destroy(new SafeFetchError("fetch_timeout"));
+  signal.addEventListener("abort", abort, { once: true });
+  request.setTimeout(remainingMs, abort);
+  request.on("error", (error) => finish(() => reject(error instanceof SafeFetchError ? error : new SafeFetchError("fetch_failed"))));
   request.end();
 });
+
+function raceDeadline<T>(operation: Promise<T>, signal: AbortSignal) {
+  if (signal.aborted) return Promise.reject(new SafeFetchError("fetch_timeout"));
+  return new Promise<T>((resolve, reject) => {
+    const abort = () => reject(new SafeFetchError("fetch_timeout"));
+    signal.addEventListener("abort", abort, { once: true });
+    operation.then((value) => { signal.removeEventListener("abort", abort); resolve(value); }, (error) => { signal.removeEventListener("abort", abort); reject(error); });
+  });
+}
 
 export async function fetchPublicHtml(rawUrl: string, dependencies: SafeFetcherDependencies = {}) {
   const resolver = dependencies.resolve ?? defaultResolver;
   const requester = dependencies.request ?? defaultRequester;
+  const now = dependencies.now ?? Date.now;
+  const schedule = dependencies.setTimer ?? ((callback, ms) => setTimeout(callback, ms));
+  const cancel = dependencies.clearTimer ?? clearTimeout;
+  const deadlineAt = now() + RECIPE_FETCH_TIMEOUT_MS;
+  const controller = new AbortController();
+  const deadlineTimer = schedule(() => controller.abort(), RECIPE_FETCH_TIMEOUT_MS);
   let current: URL;
-  try { current = new URL(rawUrl); } catch { throw new SafeFetchError("invalid_url"); }
+  try { current = new URL(rawUrl); } catch { cancel(deadlineTimer); throw new SafeFetchError("invalid_url"); }
 
-  for (let redirect = 0; redirect <= RECIPE_MAX_REDIRECTS; redirect += 1) {
-    if (!['http:', 'https:'].includes(current.protocol) || current.username || current.password) throw new SafeFetchError("invalid_url");
-    const address = await resolvePublic(current.hostname, resolver);
-    const response = await requester(current, address, RECIPE_PAGE_MAX_BYTES, RECIPE_FETCH_TIMEOUT_MS);
+  try {
+   for (let redirect = 0; redirect <= RECIPE_MAX_REDIRECTS; redirect += 1) {
+    const remaining = deadlineAt - now();
+    if (remaining <= 0 || controller.signal.aborted) throw new SafeFetchError("fetch_timeout");
+    if (!["http:", "https:"].includes(current.protocol) || current.username || current.password) throw new SafeFetchError("invalid_url");
+    const address = await raceDeadline(resolvePublic(current.hostname, resolver), controller.signal);
+    const afterDns = deadlineAt - now();
+    if (afterDns <= 0) throw new SafeFetchError("fetch_timeout");
+    const response = await raceDeadline(requester(current, address, RECIPE_PAGE_MAX_BYTES, afterDns, controller.signal), controller.signal);
     const declaredLength = Number(response.headers["content-length"]);
     if (Number.isFinite(declaredLength) && declaredLength > RECIPE_PAGE_MAX_BYTES) throw new SafeFetchError("response_too_large");
     if ([301, 302, 303, 307, 308].includes(response.status)) {
@@ -141,6 +180,7 @@ export async function fetchPublicHtml(rawUrl: string, dependencies: SafeFetcherD
     if (!contentType.startsWith("text/html") && !contentType.startsWith("application/xhtml+xml")) throw new SafeFetchError("unsupported_content_type");
     if (response.body.length > RECIPE_PAGE_MAX_BYTES) throw new SafeFetchError("response_too_large");
     return { html: response.body.toString("utf8"), finalUrl: current.toString() };
-  }
-  throw new SafeFetchError("redirect_limit");
+   }
+   throw new SafeFetchError("redirect_limit");
+  } finally { cancel(deadlineTimer); }
 }
