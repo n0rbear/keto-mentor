@@ -87,6 +87,9 @@ export const recipeListQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(50).default(20),
   cursor: z.string().optional()
 });
+export const recipeImportPreviewSchema = z.object({
+  url: z.string().trim().url().max(2_000)
+}).strict();
 export type RecipeInput = z.infer<typeof recipeInputSchema>;
 export type RecipeMealInput = z.infer<typeof recipeMealSchema>;
 

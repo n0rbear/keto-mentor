@@ -40,6 +40,7 @@ export async function createRecipe(prisma: PrismaClient, userId: string, input: 
       visibility: input.visibility,
       sourceType: input.sourceType,
       sourceUrl: input.sourceUrl,
+      provenance: input.sourceType === "schema_org" ? { importedAt: new Date().toISOString(), extractionMethod: "schema_org_json_ld", sourceUrl: input.sourceUrl } : undefined,
       ingredients: { create: ingredientCreates(input) }
     },
     include: recipeInclude

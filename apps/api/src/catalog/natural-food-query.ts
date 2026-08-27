@@ -23,7 +23,7 @@ const UNITS = new Map<string, NaturalQuantityUnit>([
 const NUMBERS = new Map([
   ["egy", 1], ["ket", 2], ["ketto", 2], ["harom", 3], ["negy", 4], ["ot", 5], ["fel", 0.5], ["fele", 0.5],
   ["ein", 1], ["eine", 1], ["zwei", 2], ["drei", 3], ["vier", 4], ["funf", 5], ["halb", 0.5],
-  ["one", 1], ["two", 2], ["three", 3], ["four", 4], ["five", 5], ["half", 0.5]
+  ["one", 1], ["two", 2], ["three", 3], ["four", 4], ["five", 5], ["half", 0.5], ["quarter", 0.25], ["threequarters", 0.75]
 ]);
 
 const SIZES = new Map<string, NonNullable<ParsedNaturalFoodQuery["size"]>>([
@@ -166,7 +166,7 @@ function parseSegment(normalized: string): ParsedNaturalFoodQuery {
 }
 
 export function parseNaturalFoodQuery(raw: string): ParsedNaturalFoodQuery {
-  const normalized = normalizeSearch(raw).replace(/\s+/g, " ").trim();
+  const normalized = normalizeSearch(raw.replace(/½/g, " half ").replace(/¼/g, " quarter ").replace(/¾/g, " threequarters ")).replace(/\s+/g, " ").trim();
   if (!normalized) return { foodQuery: "" };
 
   const tokens = normalized.split(" ");

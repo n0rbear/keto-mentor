@@ -29,6 +29,13 @@ describe("recipe visibility and ownership", () => {
   it("creates a private multi-ingredient recipe by default", async () => { const { prisma } = fakePrisma([]); const created: any = await createRecipe(prisma, "owner", { ...input, ingredients: [{ foodId: "f1", quantityGrams: 50 }, { foodId: "f1", quantityGrams: 75 }] }); expect(created.userId).toBe("owner"); expect(created.visibility).toBe("private"); expect(created.ingredients).toHaveLength(2); });
   it("rejects a missing Food", async () => { const { prisma } = fakePrisma([]); prisma.food.count = async () => 0; await expect(createRecipe(prisma, "owner", input)).rejects.toMatchObject({ publicCode: "food_not_found" }); });
   it("rejects zero and negative ingredient quantities", () => { expect(recipeInputSchema.safeParse({ ...input, ingredients: [{ foodId: "f1", quantityGrams: 0 }] }).success).toBe(false); expect(recipeInputSchema.safeParse({ ...input, ingredients: [{ foodId: "f1", quantityGrams: -1 }] }).success).toBe(false); });
+  it("strips browser-supplied macros and saves only Food IDs with server provenance", async () => {
+    const parsed: any = recipeInputSchema.parse({ ...input, sourceType: "schema_org", sourceUrl: "https://example.com/r", kcal: 9999, ingredients: [{ foodId: "f1", quantityGrams: 100, kcalPer100g: 9999, originalText: "100 g Food" }] });
+    expect(parsed).not.toHaveProperty("kcal"); expect(parsed.ingredients[0]).not.toHaveProperty("kcalPer100g");
+    const { prisma, recipes } = fakePrisma([]); await createRecipe(prisma, "owner", parsed);
+    expect(recipes[0]).toMatchObject({ sourceType: "schema_org", sourceUrl: "https://example.com/r", provenance: { extractionMethod: "schema_org_json_ld" } });
+    expect(recipes[0].ingredients[0]).toMatchObject({ foodId: "f1", quantityGrams: 100, originalText: "100 g Food" });
+  });
   it("does not reveal a private recipe to another user", async () => { await expect(getVisibleRecipe(fakePrisma().prisma, "other", "r1")).rejects.toMatchObject({ publicCode: "recipe_not_found" }); });
   it("keeps the prepared unlisted state owner-only in the MVP", async () => { const { prisma } = fakePrisma([fullRecipe({ visibility: "unlisted" })]); await expect(getVisibleRecipe(prisma, "other", "r1")).rejects.toMatchObject({ publicCode: "recipe_not_found" }); expect((await getVisibleRecipe(prisma, "owner", "r1")).id).toBe("r1"); });
   it("allows another user to read a public recipe", async () => { const { prisma } = fakePrisma([fullRecipe({ visibility: "public" })]); expect((await getVisibleRecipe(prisma, "other", "r1")).id).toBe("r1"); });
