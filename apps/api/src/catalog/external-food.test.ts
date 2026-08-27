@@ -228,6 +228,14 @@ describe("USDA structured lookup adapter", () => {
     await expect(new UsdaFoodDataCentralLookupAdapter("test-key", vi.fn(async () => ({ ok: true, headers: { get: () => "1000001" }, text: async () => "{}" })) as any).lookup("x")).rejects.toThrow("USDA response too large");
   });
 
+  it("enforces the response limit using UTF-8 bytes for multibyte text", async () => {
+    const multibyteBody = `{"note":"${"é".repeat(500_000)}"}`;
+    expect(multibyteBody.length).toBeLessThanOrEqual(1_000_000);
+    expect(Buffer.byteLength(multibyteBody, "utf8")).toBeGreaterThan(1_000_000);
+    const fetcher = vi.fn(async () => ({ ok: true, headers: { get: () => null }, text: async () => multibyteBody })) as any;
+    await expect(new UsdaFoodDataCentralLookupAdapter("test-key", fetcher).lookup("x")).rejects.toThrow("USDA response too large");
+  });
+
   it("fetches a USDA detail by FDC ID and normalizes nested nutrient metadata", async () => {
     const fetcher = vi.fn(async () => ({ ok: true, json: async () => ({ fdcId: 123, description: "Spinach, raw", dataType: "Foundation", foodNutrients: [
       { nutrient: { id: 1008, unitName: "kcal" }, amount: 23 }, { nutrient: { id: 1003, unitName: "g" }, amount: 2.9 },

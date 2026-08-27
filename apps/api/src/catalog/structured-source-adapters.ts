@@ -36,7 +36,7 @@ async function readBoundedJson(response: Response) {
   if (Number.isFinite(contentLength) && contentLength > MAX_USDA_RESPONSE_BYTES) throw new Error("USDA response too large");
   if (typeof response.text !== "function") return response.json();
   const body = await response.text();
-  if (body.length > MAX_USDA_RESPONSE_BYTES) throw new Error("USDA response too large");
+  if (Buffer.byteLength(body, "utf8") > MAX_USDA_RESPONSE_BYTES) throw new Error("USDA response too large");
   try { return JSON.parse(body); } catch { throw new Error("USDA response invalid"); }
 }
 

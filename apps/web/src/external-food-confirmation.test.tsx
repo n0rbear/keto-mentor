@@ -1,11 +1,20 @@
 // @vitest-environment jsdom
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { FoodCombobox } from "./main";
+import { externalConfirmationSuccessText, FoodCombobox } from "./main";
 
 afterEach(() => vi.restoreAllMocks());
 
 describe("external food confirmation", () => {
+  it("distinguishes newly confirmed food from an existing catalog item in every locale", () => {
+    expect(externalConfirmationSuccessText("en", "confirmed")).toBe("The food was added and selected.");
+    expect(externalConfirmationSuccessText("en", "existing")).toBe("An existing catalog item was found and selected.");
+    expect(externalConfirmationSuccessText("hu", "confirmed")).toContain("hozzá lett adva");
+    expect(externalConfirmationSuccessText("hu", "existing")).toContain("Meglévő katalóguselem");
+    expect(externalConfirmationSuccessText("de", "confirmed")).toContain("hinzugefügt");
+    expect(externalConfirmationSuccessText("de", "existing")).toContain("vorhandener Katalogeintrag");
+  });
+
   it("submits only source identity, disables double submit, then selects the server Food", async () => {
     let finishConfirmation!: (response: Response) => void;
     let confirmationCalls = 0;

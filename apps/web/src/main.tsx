@@ -377,6 +377,11 @@ function OnboardingField({ id, label, help, defaultValue, placeholder }: { id: s
 
 type SearchLabels = { label: string; placeholder: string; loading: string; noResults: string; hint: string; selected: string };
 
+export function externalConfirmationSuccessText(lang: Lang, status: "confirmed" | "existing") {
+  if (status === "confirmed") return lang === "hu" ? "Az élelmiszer hozzá lett adva és ki lett választva." : lang === "de" ? "Das Lebensmittel wurde hinzugefügt und ausgewählt." : "The food was added and selected.";
+  return lang === "hu" ? "Meglévő katalóguselem található, és ki lett választva." : lang === "de" ? "Ein vorhandener Katalogeintrag wurde gefunden und ausgewählt." : "An existing catalog item was found and selected.";
+}
+
 export function FoodCombobox({ lang, state, selected, onSelect, labels, resetVersion, idPrefix = "food" }: { lang: Lang; state: ApiState; selected: Food | null; onSelect: (food: Food | null) => void; labels: SearchLabels; resetVersion: number; idPrefix?: string }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Food[]>([]);
@@ -432,7 +437,7 @@ export function FoodCombobox({ lang, state, selected, onSelect, labels, resetVer
       }, state);
       if (result.status === "confirmed" || result.status === "existing") {
         choose(result.food as Food);
-        setExternalMessage(lang === "hu" ? "A hiteles élelmiszer bekerült és ki lett választva." : lang === "de" ? "Das geprüfte Lebensmittel wurde hinzugefügt und ausgewählt." : "The authoritative food was added and selected.");
+        setExternalMessage(externalConfirmationSuccessText(lang, result.status));
       } else if (result.status === "confirmation_required") {
         setExternalMessage(lang === "hu" ? "Lehetséges duplikátum miatt semmi nem került hozzáadásra." : lang === "de" ? "Wegen eines möglichen Duplikats wurde nichts hinzugefügt." : "Nothing was added because a possible duplicate needs review.");
       } else setExternalMessage(lang === "hu" ? "A forrásadat nem volt elérhető vagy érvényes; semmi nem került hozzáadásra." : lang === "de" ? "Die Quelldaten waren nicht verfügbar oder ungültig; nichts wurde hinzugefügt." : "The source data was unavailable or invalid; nothing was added.");
