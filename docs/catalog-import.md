@@ -38,6 +38,8 @@ USDA stores `originalName` and `names.en`; BLS stores the German `originalName` 
 
 ## Safe execution (only after merge and explicit production approval)
 
+BLS XLSX import requires tooling/dev dependencies to be installed (`npm ci`, not `npm ci --omit=dev`) because ExcelJS is intentionally dev-only. Omitting dev dependencies prevents the BLS importer from running, but does not affect the running API or normal Render service runtime.
+
 1. Download archives from the official links into ephemeral job storage and verify the release/file names above. Extract USDA ZIPs; point BLS at the XLSX.
 2. Capture before sizes: `npm run catalog:db-size -w apps/api`.
 3. Run each command with `--dry-run`; review every parse error and the create/update/link totals:
