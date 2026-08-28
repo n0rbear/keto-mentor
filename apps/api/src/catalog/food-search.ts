@@ -46,16 +46,19 @@ export function expandFoodQuery(rawQuery: string) {
   return [...new Set([normalized, ...(QUERY_ALIASES[normalized] ?? [])].map(normalizeSearch).filter((value) => value.length >= 2))];
 }
 
-function scoreFood(food: any, variants: readonly string[], aliasFoods: Set<string>, fuzzyIds: Set<string>): FoodSearchMatch {
+function scoreFood(food: any, variants: readonly string[], aliasesByFood: ReadonlyMap<string, readonly string[]>, fuzzyIds: Set<string>): FoodSearchMatch {
   const searchable = normalizeSearch(food.searchText || food.name);
   const names = [food.name, food.originalName, ...Object.values(food.names ?? {})].map((value) => normalizeSearch(String(value)));
+  const aliases = aliasesByFood.get(food.id) ?? [];
   let best: FoodSearchMatch = { stage: "partial", score: 0, query: variants[0] ?? "" };
   for (const variant of variants) {
     const exact = names.includes(variant);
-    const alias = aliasFoods.has(food.id);
+    const exactAlias = aliases.includes(variant);
+    const aliasPrefix = aliases.some((alias) => alias.startsWith(`${variant} `));
+    const aliasContains = aliases.some((alias) => alias.includes(variant));
     const tokenCoverage = variant.split(" ").filter((token) => searchable.includes(token)).length / variant.split(" ").length;
-    const score = exact ? 100 : alias ? 95 : searchable.startsWith(variant) ? 80 : searchable.includes(variant) ? 70 : Math.round(tokenCoverage * 50);
-    if (score > best.score) best = { stage: exact ? "exact" : alias ? "alias" : "partial", score, query: variant };
+    const score = exact ? 100 : exactAlias ? 95 : searchable.startsWith(variant) ? 80 : aliasPrefix ? 75 : searchable.includes(variant) ? 70 : aliasContains ? 65 : Math.round(tokenCoverage * 50);
+    if (score > best.score) best = { stage: exact ? "exact" : exactAlias ? "alias" : "partial", score, query: variant };
   }
   return best.score === 0 && fuzzyIds.has(food.id) ? { stage: "fuzzy", score: 35, query: variants[0] ?? "" } : best;
 }
@@ -78,7 +81,12 @@ export async function searchFoods(prisma: CatalogPrisma, rawQuery: string, limit
       take: 90
     })
   ]);
-  const aliasFoods = new Set(aliases.map((alias) => alias.foodId));
+  const aliasesByFood = new Map<string, string[]>();
+  for (const alias of aliases) {
+    const values = aliasesByFood.get(alias.foodId) ?? [];
+    values.push(normalizeSearch(alias.normalizedAlias));
+    aliasesByFood.set(alias.foodId, values);
+  }
   const fuzzyIds = new Set<string>();
   if (candidates.length < take && prisma.$queryRaw) {
     const fuzzy = await prisma.$queryRaw<Array<{ id: string }>>(Prisma.sql`
@@ -95,7 +103,7 @@ export async function searchFoods(prisma: CatalogPrisma, rawQuery: string, limit
     candidates.push(...await prisma.food.findMany({ where: { id: { in: missingIds }, createdById: null }, include: { servings: true } }) as any);
   }
   return candidates
-    .map((food) => ({ ...food, match: scoreFood(food, variants, aliasFoods, fuzzyIds) }))
+    .map((food) => ({ ...food, match: scoreFood(food, variants, aliasesByFood, fuzzyIds) }))
     .filter((food) => food.match.score > 0)
     .sort((a, b) => b.match.score - a.match.score || a.name.localeCompare(b.name))
     .slice(0, take);
