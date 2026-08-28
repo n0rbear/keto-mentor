@@ -4,7 +4,7 @@ services:
     runtime: node
     plan: free
     rootDir: .
-    buildCommand: npm install && npm run build -w packages/shared && npm run build -w apps/api
+    buildCommand: npm install --include=dev && npm run build -w packages/shared && npm run build -w apps/api && npm prune --omit=dev
     startCommand: npm run render:postdeploy && npm run start -w apps/api
     envVars:
       - key: NODE_ENV
