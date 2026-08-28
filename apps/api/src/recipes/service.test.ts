@@ -33,6 +33,11 @@ describe("recipe visibility and ownership", () => {
     await updateRecipe(prisma, "owner", recipes[0].id, { ...input, instructions: ["Updated"] });
     expect(recipes[0].instructions).toEqual(["Updated"]);
   });
+  it("persists explicit source sortOrder gaps without reindexing", async () => {
+    const { prisma, recipes } = fakePrisma([]);
+    await createRecipe(prisma, "owner", { ...input, ingredients: [{ foodId: "f1", quantityGrams: 50, sortOrder: 0 }, { foodId: "f1", quantityGrams: 75, sortOrder: 2 }] });
+    expect(recipes[0].ingredients.map((ingredient: any) => ingredient.sortOrder)).toEqual([0, 2]);
+  });
   it("creates a private multi-ingredient recipe by default", async () => { const { prisma } = fakePrisma([]); const created: any = await createRecipe(prisma, "owner", { ...input, ingredients: [{ foodId: "f1", quantityGrams: 50 }, { foodId: "f1", quantityGrams: 75 }] }); expect(created.userId).toBe("owner"); expect(created.visibility).toBe("private"); expect(created.ingredients).toHaveLength(2); });
   it("rejects a missing Food", async () => { const { prisma } = fakePrisma([]); prisma.food.count = async () => 0; await expect(createRecipe(prisma, "owner", input)).rejects.toMatchObject({ publicCode: "food_not_found" }); });
   it("rejects zero and negative ingredient quantities", () => { expect(recipeInputSchema.safeParse({ ...input, ingredients: [{ foodId: "f1", quantityGrams: 0 }] }).success).toBe(false); expect(recipeInputSchema.safeParse({ ...input, ingredients: [{ foodId: "f1", quantityGrams: -1 }] }).success).toBe(false); });
@@ -40,8 +45,32 @@ describe("recipe visibility and ownership", () => {
     const parsed: any = recipeInputSchema.parse({ ...input, sourceType: "schema_org", sourceUrl: "https://example.com/r", kcal: 9999, ingredients: [{ foodId: "f1", quantityGrams: 100, kcalPer100g: 9999, originalText: "100 g Food" }] });
     expect(parsed).not.toHaveProperty("kcal"); expect(parsed.ingredients[0]).not.toHaveProperty("kcalPer100g");
     const { prisma, recipes } = fakePrisma([]); await createRecipe(prisma, "owner", parsed, { sourceUrl: "https://example.com/r", extractionMethod: "schema_org_json_ld" });
-    expect(recipes[0]).toMatchObject({ sourceType: "schema_org", sourceUrl: "https://example.com/r", provenance: { extractionMethod: "schema_org_json_ld", trust: "server_verified" } });
+    expect(recipes[0]).toMatchObject({ sourceType: "schema_org", sourceUrl: "https://example.com/r", provenance: { extractionMethod: "schema_org_json_ld", trust: "source_verified" } });
     expect(recipes[0].ingredients[0]).toMatchObject({ foodId: "f1", quantityGrams: 100, originalText: "100 g Food" });
+  });
+  it("preserves manual and ai_structured source types but rejects unproved schema_org", async () => {
+    const manual = fakePrisma([]); await createRecipe(manual.prisma, "owner", { ...input, sourceType: "manual", sourceUrl: "https://manual.example/r" });
+    expect(manual.recipes[0]).toMatchObject({ sourceType: "manual", sourceUrl: "https://manual.example/r", provenance: undefined });
+    const ai = fakePrisma([]); await createRecipe(ai.prisma, "owner", { ...input, sourceType: "ai_structured", sourceUrl: "https://ai.example/r" });
+    expect(ai.recipes[0]).toMatchObject({ sourceType: "ai_structured", sourceUrl: "https://ai.example/r", provenance: undefined });
+    await expect(createRecipe(fakePrisma([]).prisma, "owner", { ...input, sourceType: "schema_org", sourceUrl: "https://example.com/r" })).rejects.toMatchObject({ publicCode: "invalid_import_proof" });
+  });
+  it("preserves trusted source metadata on edit", async () => {
+    const provenance = { trust: "source_verified", extractionMethod: "schema_org_json_ld", sourceUrl: "https://source.example/r" };
+    const { prisma, recipes } = fakePrisma([fullRecipe({ sourceType: "schema_org", sourceUrl: "https://source.example/r", provenance })]);
+    await updateRecipe(prisma, "owner", "r1", { ...input, sourceType: "manual", sourceUrl: "https://attacker.example/r" });
+    expect(recipes[0]).toMatchObject({ sourceType: "schema_org", sourceUrl: "https://source.example/r", provenance });
+  });
+  it("allows safe source metadata updates for ordinary recipes", async () => {
+    const { prisma, recipes } = fakePrisma([fullRecipe({ sourceType: "manual", sourceUrl: "https://old.example/r" })]);
+    await updateRecipe(prisma, "owner", "r1", { ...input, sourceType: "ai_structured", sourceUrl: "https://new.example/r" });
+    expect(recipes[0]).toMatchObject({ sourceType: "ai_structured", sourceUrl: "https://new.example/r" });
+    await updateRecipe(prisma, "owner", "r1", { ...input, sourceType: "manual", sourceUrl: "https://manual.example/r" });
+    expect(recipes[0]).toMatchObject({ sourceType: "manual", sourceUrl: "https://manual.example/r" });
+  });
+  it("rejects unsafe source URLs at the schema boundary", () => {
+    for (const sourceUrl of ["javascript:alert(1)", "file:///etc/passwd", "https://user:pass@example.com/r"])
+      expect(recipeInputSchema.safeParse({ ...input, sourceUrl }).success).toBe(false);
   });
   it("does not reveal a private recipe to another user", async () => { await expect(getVisibleRecipe(fakePrisma().prisma, "other", "r1")).rejects.toMatchObject({ publicCode: "recipe_not_found" }); });
   it("keeps the prepared unlisted state owner-only in the MVP", async () => { const { prisma } = fakePrisma([fullRecipe({ visibility: "unlisted" })]); await expect(getVisibleRecipe(prisma, "other", "r1")).rejects.toMatchObject({ publicCode: "recipe_not_found" }); expect((await getVisibleRecipe(prisma, "owner", "r1")).id).toBe("r1"); });

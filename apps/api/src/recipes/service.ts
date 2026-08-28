@@ -27,8 +27,15 @@ async function ensureFoodsExist(prisma: PrismaClient, input: RecipeInput) {
 }
 
 const ingredientCreates = (input: RecipeInput) => input.ingredients.map((ingredient, index) => ({ ...ingredient, sortOrder: ingredient.sortOrder ?? index }));
+const invalidImportProof = () => Object.assign(new Error("invalid_import_proof"), { status: 400, publicCode: "invalid_import_proof" });
+function hasTrustedSourceProvenance(recipe: FullRecipe) {
+  const provenance = recipe.provenance;
+  return recipe.sourceType === "schema_org" && !!provenance && typeof provenance === "object" && !Array.isArray(provenance)
+    && ["source_verified", "server_verified"].includes(String((provenance as Record<string, unknown>).trust));
+}
 
 export async function createRecipe(prisma: PrismaClient, userId: string, input: RecipeInput, trustedImport?: { sourceUrl: string; extractionMethod: "schema_org_json_ld" }) {
+  if ((input.sourceType === "schema_org") !== !!trustedImport) throw invalidImportProof();
   await ensureFoodsExist(prisma, input);
   const recipe = await prisma.recipe.create({
     data: {
@@ -39,9 +46,9 @@ export async function createRecipe(prisma: PrismaClient, userId: string, input: 
       servings: input.servings,
       finishedWeightGrams: input.finishedWeightGrams,
       visibility: input.visibility,
-      sourceType: trustedImport ? "schema_org" : "manual",
+      sourceType: trustedImport ? "schema_org" : input.sourceType,
       sourceUrl: trustedImport?.sourceUrl ?? input.sourceUrl,
-      provenance: trustedImport ? { importedAt: new Date().toISOString(), extractionMethod: trustedImport.extractionMethod, sourceUrl: trustedImport.sourceUrl, trust: "server_verified" } : undefined,
+      provenance: trustedImport ? { importedAt: new Date().toISOString(), extractionMethod: trustedImport.extractionMethod, sourceUrl: trustedImport.sourceUrl, trust: "source_verified" } : undefined,
       ingredients: { create: ingredientCreates(input) }
     },
     include: recipeInclude
@@ -86,7 +93,9 @@ async function getOwnedRecipe(prisma: PrismaClient, userId: string, recipeId: st
 }
 
 export async function updateRecipe(prisma: PrismaClient, userId: string, recipeId: string, input: RecipeInput) {
-  await getOwnedRecipe(prisma, userId, recipeId);
+  const existing = await getOwnedRecipe(prisma, userId, recipeId);
+  const preserveTrustedSource = hasTrustedSourceProvenance(existing);
+  if (!preserveTrustedSource && input.sourceType === "schema_org") throw invalidImportProof();
   await ensureFoodsExist(prisma, input);
   const recipe = await prisma.$transaction(async (tx) => {
     await tx.recipeIngredient.deleteMany({ where: { recipeId } });
@@ -99,6 +108,7 @@ export async function updateRecipe(prisma: PrismaClient, userId: string, recipeI
         servings: input.servings,
         finishedWeightGrams: input.finishedWeightGrams,
         visibility: input.visibility,
+        ...(preserveTrustedSource ? {} : { sourceType: input.sourceType, sourceUrl: input.sourceUrl }),
         ingredients: { create: ingredientCreates(input) }
       },
       include: recipeInclude

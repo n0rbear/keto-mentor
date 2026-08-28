@@ -15,6 +15,22 @@ export function ingredientsFromImport(rows: ImportIngredient[]): Ingredient[] {
     ? [{ foodId: item.selectedFood.id, quantityGrams: item.quantity.grams, preparation: item.preparation, sortOrder, originalText: item.originalText, food: item.selectedFood }]
     : []);
 }
+export function combineRecipeIngredients(rows: ImportIngredient[], manualIngredients: Ingredient[]): Ingredient[] {
+  if (rows.length === 0) {
+    const used = new Set<number>();
+    let next = Math.max(-1, ...manualIngredients.map((ingredient) => ingredient.sortOrder ?? -1)) + 1;
+    return manualIngredients.map((ingredient) => {
+      const requested = ingredient.sortOrder;
+      const sortOrder = requested != null && !used.has(requested) ? requested : next++;
+      used.add(sortOrder);
+      return { ...ingredient, sortOrder };
+    });
+  }
+  return [
+    ...ingredientsFromImport(rows),
+    ...manualIngredients.map((ingredient, index) => ({ ...ingredient, sortOrder: rows.length + index }))
+  ];
+}
 
 const importText = {
   hu: { heading: "Recept importálása URL-ből", url: "Nyilvános recept URL", preview: "Előnézet", loading: "Betöltés…", resolved: "Feloldva", review: "Ellenőrzést igényel", unresolved: "Nincs feloldva", resolve: "Alapanyag ellenőrzése", blocked: "A mentéshez minden alapanyagnak biztos Food-találat és grammérték kell.", failed: "A recept előnézete nem készíthető el." },
@@ -51,8 +67,7 @@ export function RecipeBuilder({ lang, state, currentUserId, onMealAdded }: { lan
   }
   useEffect(() => { loadRecipes().catch(() => setStatus("A receptek betöltése nem sikerült.")); }, [tab]);
 
-  const importedIngredients = useMemo(() => ingredientsFromImport(importPreview?.ingredients ?? []), [importPreview]);
-  const allIngredients = useMemo(() => [...importedIngredients, ...ingredients], [importedIngredients, ingredients]);
+  const allIngredients = useMemo(() => combineRecipeIngredients(importPreview?.ingredients ?? [], ingredients), [importPreview, ingredients]);
   const importBlocked = !!importPreview && importPreview.ingredients.some((item) => !item.omitted && (!item.canConfirm || !item.selectedFood || item.quantity?.status !== "resolved" || !item.quantity.grams));
   const live = useMemo(() => allIngredients.reduce((sum, ingredient) => {
     const factor = ingredient.quantityGrams / 100;
@@ -77,14 +92,14 @@ export function RecipeBuilder({ lang, state, currentUserId, onMealAdded }: { lan
     const grams = Number(candidateGrams);
     if (!candidate || !Number.isFinite(grams) || grams <= 0) return setStatus("Válassz alapanyagot és adj meg pozitív grammértéket.");
     const originalText = reviewIndex == null ? undefined : importPreview?.ingredients[reviewIndex]?.originalText;
-    if (reviewIndex == null) setIngredients((items) => [...items, { foodId: candidate.id, quantityGrams: grams, food: candidate, originalText, sortOrder: items.length }]);
+    if (reviewIndex == null) setIngredients((items) => [...items, { foodId: candidate.id, quantityGrams: grams, food: candidate, originalText, sortOrder: Math.max(-1, ...items.map((item) => item.sortOrder ?? -1)) + 1 }]);
     if (reviewIndex != null) setImportPreview((preview) => preview ? { ...preview, ingredients: preview.ingredients.map((item, index) => index === reviewIndex ? { ...item, selectedFood: candidate, candidates: [candidate], resolution: "resolved", quantity: { status: "resolved", grams, requiresConfirmation: false }, canConfirm: true } : item) } : preview);
     setReviewIndex(null); setCandidate(null); setCandidateGrams("100"); setResetVersion((value) => value + 1); setStatus("");
   }
   async function saveRecipe() {
     if (!title.trim() || allIngredients.length === 0) return setStatus("A recept neve és legalább egy alapanyag kötelező.");
     if (importBlocked) return setStatus(importText[lang].blocked);
-    const body = { title, description: description || undefined, instructions, servings: servings ? Number(servings) : undefined, finishedWeightGrams: finishedWeight ? Number(finishedWeight) : undefined, visibility, sourceType: importPreview ? "schema_org" : "manual", ...(importPreview ? { sourceUrl: importPreview.sourceUrl, importProof: importPreview.importProof } : {}), ingredients: allIngredients.map(({ foodId, quantityGrams, preparation, originalText }, sortOrder) => ({ foodId, quantityGrams, ...(preparation ? { preparation } : {}), ...(originalText ? { originalText } : {}), sortOrder })) };
+    const body = { title, description: description || undefined, instructions, servings: servings ? Number(servings) : undefined, finishedWeightGrams: finishedWeight ? Number(finishedWeight) : undefined, visibility, sourceType: importPreview ? "schema_org" : "manual", ...(importPreview ? { sourceUrl: importPreview.sourceUrl, importProof: importPreview.importProof } : {}), ingredients: allIngredients.map(({ foodId, quantityGrams, preparation, originalText, sortOrder }) => ({ foodId, quantityGrams, ...(preparation ? { preparation } : {}), ...(originalText ? { originalText } : {}), sortOrder })) };
     await api(editing ? `/recipes/${editing.id}` : "/recipes", { method: editing ? "PUT" : "POST", body: JSON.stringify(body) }, state); setStatus("Recept elmentve."); setTab("mine");
   }
   async function removeRecipe(recipe: Recipe) { if (!window.confirm(`Törlöd ezt a receptet: ${recipe.title}?`)) return; await api(`/recipes/${recipe.id}`, { method: "DELETE" }, state); await loadRecipes(); }

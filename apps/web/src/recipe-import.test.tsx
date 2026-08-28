@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ingredientsFromImport, RecipeBuilder } from "./RecipeBuilder";
+import { combineRecipeIngredients, ingredientsFromImport, RecipeBuilder } from "./RecipeBuilder";
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -16,7 +16,10 @@ describe("recipe URL import UI", () => {
     rows[1] = row("middle", { ...food, id: "middle", name: "Middle" });
     expect(ingredientsFromImport(rows as any).map((item) => [item.originalText, item.sortOrder])).toEqual([["first", 0], ["middle", 1], ["third", 2]]);
     rows[1].omitted = true;
-    expect(ingredientsFromImport(rows as any).map((item) => item.originalText)).toEqual(["first", "third"]);
+    expect(ingredientsFromImport(rows as any).map((item) => [item.originalText, item.sortOrder])).toEqual([["first", 0], ["third", 2]]);
+    const manual = { foodId: "manual", quantityGrams: 50, food: { ...food, id: "manual", name: "Manual" } };
+    expect(combineRecipeIngredients(rows as any, [manual]).map((item) => [item.originalText ?? item.food.name, item.sortOrder])).toEqual([["first", 0], ["third", 2], ["Manual", 3]]);
+    expect(combineRecipeIngredients([], [{ ...manual, sortOrder: 0 }, { ...manual, foodId: "second", sortOrder: 2 }, { ...manual, foodId: "new", sortOrder: 2 }]).map((item) => item.sortOrder)).toEqual([0, 2, 3]);
   });
   it("shows loading, prevents double submit, and renders a resolved preview", async () => {
     let finish!: (value: Response) => void;
