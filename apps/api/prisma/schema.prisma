@@ -214,6 +214,7 @@ model Recipe {
   userId              String
   title               String
   description         String?
+  instructions        String[] @default([])
   servings            Float?
   finishedWeightGrams Float?
   visibility          RecipeVisibility @default(private)

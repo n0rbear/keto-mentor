@@ -27,6 +27,7 @@ describe("natural food query parser", () => {
   it("parses '100 g bacon'", () => expect(parseNaturalFoodQuery("100 g bacon")).toEqual({ quantity: 100, unit: "g", foodQuery: "bacon" }));
   it("parses diacritic-free input", () => expect(parseNaturalFoodQuery("kigyouborka")).toEqual({ foodQuery: "kigyouborka" }));
   it("parses an unknown free-form food without inventing structure", () => expect(parseNaturalFoodQuery("valami különös étel")).toEqual({ foodQuery: "valami kulonos etel" }));
+  it("parses Unicode recipe fractions without guessing a weight", () => expect(parseNaturalFoodQuery("½ onion, chopped")).toMatchObject({ quantity: 0.5, unit: "piece", foodQuery: expect.stringContaining("onion") }));
   it("splits multiple foods joined by 'és'", () => {
     const result = parseNaturalFoodQuery("2 csirkecomb és fél csirkemell");
     expect(result.items).toHaveLength(2);
