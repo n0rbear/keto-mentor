@@ -6,7 +6,7 @@ const food = (sourceId: string): ImportFood => ({ source: "usda_fdc", sourceId, 
 const adapter = (items: ImportRow[]): FoodSourceAdapter => ({ source: "usda_fdc", sourceName: "USDA", version: "test", async *read() { yield* items; } });
 function mock(existing: string[] = []) {
   let writes = 0; let queries = 0;
-  const tx = { food: { upsert: async ({ create }: any) => { writes++; return { id: create.sourceId }; } }, nutrient: { upsert: async ({ create }: any) => ({ id: create.key }) }, foodNutrient: { upsert: async () => undefined } };
+  const tx = { food: { upsert: async ({ create }: any) => { writes++; return { id: create.sourceId }; } }, foodAlias: { upsert: async () => undefined }, nutrient: { upsert: async ({ create }: any) => ({ id: create.key }) }, foodNutrient: { upsert: async () => undefined } };
   const prisma: any = { nutrient: { findMany: async () => [] }, food: { findMany: async ({ where }: any) => { queries++; return where.sourceId.in.filter((id: string) => existing.includes(id)).map((sourceId: string) => ({ sourceId })); } }, $transaction: async (fn: any) => fn(tx) };
   return { prisma, writes: () => writes, queries: () => queries };
 }
