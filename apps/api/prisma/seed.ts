@@ -1,5 +1,6 @@
 import { PrismaClient, type Prisma } from "@prisma/client";
 import { buildSearchText } from "../src/catalog/normalize.js";
+import { USDA_FOOD_IDENTITIES, USDA_SERVING_PROVENANCE, USDA_SR_LEGACY_SOURCE } from "./seed-provenance.js";
 import { upsertSeedServings, type SeedServing } from "./seed-servings.js";
 
 const prisma = new PrismaClient();
@@ -23,15 +24,6 @@ type SeedFood = {
   provenance: Prisma.InputJsonValue;
 };
 
-const source = {
-  sourceName: "USDA FoodData Central SR Legacy",
-  licenseNote: "Public-domain USDA average nutrient values. Values are per 100 g edible portion and may vary by brand, preparation and country.",
-  dataset: "FoodData Central SR Legacy CSV 2018-04",
-  referenceDate: "2019-04-01",
-  retrievedAt: "2026-08-28",
-  sourceUrls: ["https://fdc.nal.usda.gov/download-datasets.html"]
-};
-
 const foods: SeedFood[] = [
   {
     id: "catalog-egg",
@@ -40,16 +32,16 @@ const foods: SeedFood[] = [
     synonyms: { hu: ["tojás", "tojas"], de: ["ei", "eier"], en: ["egg", "eggs"] },
     servingUnit: "egg",
     servingGrams: 50,
-    servingProvenance: { method: "authoritative", source: "USDA FoodData Central SR Legacy", fdcId: "171287", portionId: "88374", measure: "1 large egg", grams: 50, referenceDate: "2019-04-01", retrievedAt: "2026-08-28" },
+    servingProvenance: USDA_SERVING_PROVENANCE.egg,
     servings: [
-      { key: "egg", unit: "egg", labels: { en: "egg", hu: "tojás", de: "Ei" }, grams: 50, provenance: { method: "authoritative", source: "USDA FoodData Central SR Legacy", fdcId: "171287", portionId: "88374", measure: "1 large egg", grams: 50, referenceDate: "2019-04-01", retrievedAt: "2026-08-28" } }
+      { key: "egg", unit: "egg", labels: { en: "egg", hu: "tojás", de: "Ei" }, grams: 50, provenance: USDA_SERVING_PROVENANCE.egg }
     ],
     kcalPer100g: 143,
     fatPer100g: 9.5,
     proteinPer100g: 12.6,
     carbsPer100g: 0.7,
     fiberPer100g: 0,
-    provenance: { ...source, fdcDescription: "Egg, whole, raw, fresh", fdcId: "171287" }
+    provenance: { ...USDA_SR_LEGACY_SOURCE, fdcDescription: "Egg, whole, raw, fresh", fdcId: "171287" }
   },
   {
     id: "catalog-fried-egg",
@@ -58,16 +50,16 @@ const foods: SeedFood[] = [
     synonyms: { hu: ["tükörtojás", "tukortojas", "sült tojás", "sult tojas"], de: ["spiegelei"], en: ["fried egg"] },
     servingUnit: "egg",
     servingGrams: 46,
-    servingProvenance: { method: "authoritative", source: "USDA FoodData Central SR Legacy", fdcId: "173423", portionId: "92497", measure: "1 large fried egg", grams: 46, referenceDate: "2019-04-01", retrievedAt: "2026-08-28" },
+    servingProvenance: USDA_SERVING_PROVENANCE.friedEgg,
     servings: [
-      { key: "egg", unit: "egg", labels: { en: "egg", hu: "tojás", de: "Ei" }, grams: 46, provenance: { method: "authoritative", source: "USDA FoodData Central SR Legacy", fdcId: "173423", portionId: "92497", measure: "1 large fried egg", grams: 46, referenceDate: "2019-04-01", retrievedAt: "2026-08-28" } }
+      { key: "egg", unit: "egg", labels: { en: "egg", hu: "tojás", de: "Ei" }, grams: 46, provenance: USDA_SERVING_PROVENANCE.friedEgg }
     ],
     kcalPer100g: 196,
     fatPer100g: 14.8,
     proteinPer100g: 13.6,
     carbsPer100g: 0.8,
     fiberPer100g: 0,
-    provenance: { ...source, fdcDescription: "Egg, whole, cooked, fried", fdcId: "173423" }
+    provenance: { ...USDA_SR_LEGACY_SOURCE, fdcDescription: "Egg, whole, cooked, fried", fdcId: "173423" }
   },
   {
     id: "catalog-scrambled-egg",
@@ -82,7 +74,7 @@ const foods: SeedFood[] = [
     proteinPer100g: 10.4,
     carbsPer100g: 1.68,
     fiberPer100g: 0,
-    provenance: { ...source, fdcDescription: "Egg, whole, cooked, scrambled", fdcId: "172187" }
+    provenance: { ...USDA_SR_LEGACY_SOURCE, fdcDescription: "Egg, whole, cooked, scrambled", fdcId: "172187" }
   },
   {
     id: "catalog-avocado",
@@ -91,17 +83,17 @@ const foods: SeedFood[] = [
     synonyms: { hu: ["avokádó", "avokado"], de: ["avocado"], en: ["avocado"] },
     servingUnit: "half",
     servingGrams: 100.5,
-    servingProvenance: { method: "authoritative_derived", source: "USDA FoodData Central SR Legacy", fdcId: "171705", portionId: "89226", measure: "1/2 avocado, NS as to Florida or California", grams: 100.5, derivedFrom: "201 g whole edible avocado / 2", referenceDate: "2019-04-01", retrievedAt: "2026-08-28" },
+    servingProvenance: USDA_SERVING_PROVENANCE.avocadoHalf,
     servings: [
-      { key: "half", unit: "half", labels: { en: "half", hu: "fél", de: "halbe" }, grams: 100.5, provenance: { method: "authoritative_derived", source: "USDA FoodData Central SR Legacy", fdcId: "171705", portionId: "89226", measure: "1/2 avocado, NS as to Florida or California", grams: 100.5, derivedFrom: "201 g whole edible avocado / 2", referenceDate: "2019-04-01", retrievedAt: "2026-08-28" } },
-      { key: "piece", unit: "piece", labels: { en: "whole avocado", hu: "egész avokádó", de: "ganze Avocado" }, grams: 201, provenance: { method: "authoritative", source: "USDA FoodData Central SR Legacy", fdcId: "171705", portionId: "89226", measure: "1 avocado, NS as to Florida or California", grams: 201, referenceDate: "2019-04-01", retrievedAt: "2026-08-28" } }
+      { key: "half", unit: "half", labels: { en: "half", hu: "fél", de: "halbe" }, grams: 100.5, provenance: USDA_SERVING_PROVENANCE.avocadoHalf },
+      { key: "piece", unit: "piece", labels: { en: "whole avocado", hu: "egész avokádó", de: "ganze Avocado" }, grams: 201, provenance: USDA_SERVING_PROVENANCE.avocadoWhole }
     ],
     kcalPer100g: 160,
     fatPer100g: 14.66,
     proteinPer100g: 2,
     carbsPer100g: 8.53,
     fiberPer100g: 6.7,
-    provenance: { ...source, fdcDescription: "Avocados, raw, all commercial varieties", fdcId: "171705" }
+    provenance: { ...USDA_SR_LEGACY_SOURCE, fdcDescription: "Avocados, raw, all commercial varieties", fdcId: "171705" }
   },
   {
     id: "catalog-chicken-breast-roasted",
@@ -118,7 +110,7 @@ const foods: SeedFood[] = [
     proteinPer100g: 25,
     carbsPer100g: 0,
     fiberPer100g: 0,
-    provenance: { ...source, fdcDescription: "Chicken, roasting, meat only, cooked, roasted" }
+    provenance: { ...USDA_SR_LEGACY_SOURCE, ...USDA_FOOD_IDENTITIES.roastedChicken }
   },
   {
     id: "catalog-butter",
@@ -127,17 +119,17 @@ const foods: SeedFood[] = [
     synonyms: { hu: ["vaj"], de: ["butter"], en: ["butter"] },
     servingUnit: "tbsp",
     servingGrams: 14.2,
-    servingProvenance: { method: "authoritative", source: "USDA FoodData Central SR Legacy", fdcId: "173430", portionId: "92512", measure: "1 tbsp butter, without salt", grams: 14.2, referenceDate: "2019-04-01", retrievedAt: "2026-08-28" },
+    servingProvenance: USDA_SERVING_PROVENANCE.butterTablespoon,
     servings: [
-      { key: "tbsp", unit: "tbsp", labels: { en: "tablespoon", hu: "evőkanál", de: "Esslöffel" }, grams: 14.2, provenance: { method: "authoritative", source: "USDA FoodData Central SR Legacy", fdcId: "173430", portionId: "92512", measure: "1 tbsp butter, without salt", grams: 14.2, referenceDate: "2019-04-01", retrievedAt: "2026-08-28" } },
-      { key: "tsp", unit: "tsp", labels: { en: "teaspoon", hu: "teáskanál", de: "Teelöffel" }, grams: 4.733333333333333, provenance: { method: "authoritative_derived", source: "USDA FoodData Central SR Legacy", fdcId: "173430", portionId: "92512", measure: "1 tsp butter, without salt", grams: 4.733333333333333, derivedFrom: "14.2 g tablespoon / 3", referenceDate: "2019-04-01", retrievedAt: "2026-08-28" } }
+      { key: "tbsp", unit: "tbsp", labels: { en: "tablespoon", hu: "evőkanál", de: "Esslöffel" }, grams: 14.2, provenance: USDA_SERVING_PROVENANCE.butterTablespoon },
+      { key: "tsp", unit: "tsp", labels: { en: "teaspoon", hu: "teáskanál", de: "Teelöffel" }, grams: 4.733333333333333, provenance: USDA_SERVING_PROVENANCE.butterTeaspoon }
     ],
     kcalPer100g: 717,
     fatPer100g: 81.1,
     proteinPer100g: 0.85,
     carbsPer100g: 0.06,
     fiberPer100g: 0,
-    provenance: { ...source, fdcDescription: "Butter, without salt", fdcId: "173430" }
+    provenance: { ...USDA_SR_LEGACY_SOURCE, fdcDescription: "Butter, without salt", fdcId: "173430" }
   },
   {
     id: "catalog-cheddar",
@@ -146,16 +138,16 @@ const foods: SeedFood[] = [
     synonyms: { hu: ["cheddar", "sajt"], de: ["cheddar", "käse", "kase"], en: ["cheddar", "cheese"] },
     servingUnit: "slice",
     servingGrams: 28,
-    servingProvenance: { method: "authoritative", source: "USDA FoodData Central SR Legacy", fdcId: "173414", portionId: "92472", measure: "1 slice (1 oz) cheddar", grams: 28, referenceDate: "2019-04-01", retrievedAt: "2026-08-28" },
+    servingProvenance: USDA_SERVING_PROVENANCE.cheddarSlice,
     servings: [
-      { key: "slice", unit: "slice", labels: { en: "slice", hu: "szelet", de: "Scheibe" }, grams: 28, provenance: { method: "authoritative", source: "USDA FoodData Central SR Legacy", fdcId: "173414", portionId: "92472", measure: "1 slice (1 oz) cheddar", grams: 28, referenceDate: "2019-04-01", retrievedAt: "2026-08-28" } }
+      { key: "slice", unit: "slice", labels: { en: "slice", hu: "szelet", de: "Scheibe" }, grams: 28, provenance: USDA_SERVING_PROVENANCE.cheddarSlice }
     ],
     kcalPer100g: 403,
     fatPer100g: 33.1,
     proteinPer100g: 22.9,
     carbsPer100g: 3.37,
     fiberPer100g: 0,
-    provenance: { ...source, fdcDescription: "Cheese, cheddar (Includes foods for USDA's Food Distribution Program)", fdcId: "173414" }
+    provenance: { ...USDA_SR_LEGACY_SOURCE, fdcDescription: "Cheese, cheddar (Includes foods for USDA's Food Distribution Program)", fdcId: "173414" }
   },
   {
     id: "catalog-gouda",
@@ -166,16 +158,16 @@ const foods: SeedFood[] = [
     servingGrams: 28.35,
     servingEstimated: true,
     servingConfidence: 0.7,
-    servingProvenance: { method: "reference_estimate", source: "USDA FoodData Central SR Legacy", fdcId: "171241", portionId: "88235", measure: "1 oz Gouda reference used as an estimated slice", grams: 28.35, note: "The generic USDA Gouda record has no slice portion; this must require confirmation.", referenceDate: "2019-04-01", retrievedAt: "2026-08-28" },
+    servingProvenance: USDA_SERVING_PROVENANCE.goudaSliceEstimate,
     servings: [
-      { key: "slice", unit: "slice", labels: { en: "slice", hu: "szelet", de: "Scheibe" }, grams: 28.35, isEstimated: true, confidence: 0.7, provenance: { method: "reference_estimate", source: "USDA FoodData Central SR Legacy", fdcId: "171241", portionId: "88235", measure: "1 oz Gouda reference used as an estimated slice", grams: 28.35, note: "The generic USDA Gouda record has no slice portion; this must require confirmation.", referenceDate: "2019-04-01", retrievedAt: "2026-08-28" } }
+      { key: "slice", unit: "slice", labels: { en: "slice", hu: "szelet", de: "Scheibe" }, grams: 28.35, isEstimated: true, confidence: 0.7, provenance: USDA_SERVING_PROVENANCE.goudaSliceEstimate }
     ],
     kcalPer100g: 356,
     fatPer100g: 27,
     proteinPer100g: 25,
     carbsPer100g: 2.2,
     fiberPer100g: 0,
-    provenance: { ...source, fdcDescription: "Cheese, gouda", fdcId: "171241" }
+    provenance: { ...USDA_SR_LEGACY_SOURCE, fdcDescription: "Cheese, gouda", fdcId: "171241" }
   },
   {
     id: "catalog-spinach",
@@ -190,7 +182,7 @@ const foods: SeedFood[] = [
     proteinPer100g: 2.86,
     carbsPer100g: 3.63,
     fiberPer100g: 2.2,
-    provenance: { ...source, fdcDescription: "Spinach, raw" }
+    provenance: { ...USDA_SR_LEGACY_SOURCE, ...USDA_FOOD_IDENTITIES.rawSpinach }
   },
   {
     id: "catalog-cucumber",
@@ -207,7 +199,7 @@ const foods: SeedFood[] = [
     proteinPer100g: 0.7,
     carbsPer100g: 3.6,
     fiberPer100g: 0.5,
-    provenance: { ...source, fdcDescription: "Cucumber, with peel, raw" }
+    provenance: { ...USDA_SR_LEGACY_SOURCE, ...USDA_FOOD_IDENTITIES.rawCucumberWithPeel }
   }
 ];
 
