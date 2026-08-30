@@ -8,23 +8,27 @@ type Food = {
   name: string;
   names: Record<string, string>;
   synonyms: Record<string, string[]>;
-  servingUnit?: string;
-  servingGrams?: number;
-  isEstimated?: boolean;
-  confidence?: number;
+  servings?: Serving[];
   kcalPer100g: number;
 };
 
 const baseFoods: Food[] = [
-  { id: "catalog-egg", name: "Egg", names: { hu: "Tojás", de: "Ei", en: "Egg" }, synonyms: { hu: ["tojás", "tojas"], de: ["ei"], en: ["egg", "eggs"] }, servingUnit: "egg", servingGrams: 46, kcalPer100g: 143 },
-  { id: "catalog-fried-egg", name: "Fried egg", names: { hu: "Tükörtojás", de: "Spiegelei", en: "Fried egg" }, synonyms: { hu: ["tükörtojás", "tukortojas", "sült tojás", "sult tojas"], de: ["spiegelei"], en: ["fried egg"] }, servingUnit: "egg", servingGrams: 46, kcalPer100g: 196 },
-  // Scrambled egg intentionally has NO serving: USDA's 100 g basis is not
-  // evidence that one egg of scrambled egg weighs ~100 g, so no per-egg
-  // FoodServing is created and quantity must be entered manually.
+  { id: "catalog-egg", name: "Egg", names: { hu: "Tojás", de: "Ei", en: "Egg" }, synonyms: { hu: ["tojás", "tojas"], de: ["ei", "eier"], en: ["egg", "eggs"] }, servings: [{ id: "egg", key: "egg", unit: "egg", labels: { en: "egg", hu: "tojás", de: "Ei" }, grams: 50, isEstimated: false, confidence: 1, provenance: { method: "authoritative", fdcId: "171287", portionId: "88374" } }], kcalPer100g: 143 },
+  { id: "catalog-fried-egg", name: "Fried egg", names: { hu: "Tükörtojás", de: "Spiegelei", en: "Fried egg" }, synonyms: { hu: ["tükörtojás", "tukortojas", "sült tojás", "sult tojas"], de: ["spiegelei"], en: ["fried egg"] }, servings: [{ id: "fried-egg", key: "egg", unit: "egg", labels: { en: "egg", hu: "tojás", de: "Ei" }, grams: 46, isEstimated: false, confidence: 1, provenance: { method: "authoritative", fdcId: "173423", portionId: "92497" } }], kcalPer100g: 196 },
+  // Generic scrambled egg intentionally has no per-egg serving until a
+  // preparation-specific confirmation flow exists.
   { id: "catalog-scrambled-egg", name: "Scrambled egg", names: { hu: "Rántotta", de: "Rührei", en: "Scrambled egg" }, synonyms: { hu: ["rántotta", "rantotta", "tojásrántotta", "tojasrantotta"], de: ["ruhrei"], en: ["scrambled egg", "eggs scrambled"] }, kcalPer100g: 149 },
-  { id: "catalog-cheddar", name: "Cheddar cheese", names: { hu: "Cheddar sajt", de: "Cheddar", en: "Cheddar cheese" }, synonyms: { hu: ["cheddar", "sajt"], de: ["cheddar", "käse", "kase"], en: ["cheddar", "cheese"] }, servingUnit: "slice", servingGrams: 28, kcalPer100g: 403 },
-  { id: "catalog-gouda", name: "Gouda cheese", names: { hu: "Gouda sajt", de: "Gouda", en: "Gouda cheese" }, synonyms: { hu: ["gouda", "sajt"], de: ["gouda", "käse", "kase"], en: ["gouda", "cheese"] }, servingUnit: "slice", servingGrams: 28, kcalPer100g: 356 },
-  { id: "catalog-cucumber", name: "Cucumber", names: { hu: "Kígyóuborka", de: "Gurke", en: "Cucumber" }, synonyms: { hu: ["kígyóuborka", "kigyouborka", "uborka"], de: ["gurke", "salatgurke"], en: ["cucumber"] }, servingUnit: "piece", servingGrams: 300, isEstimated: true, confidence: 0.7, kcalPer100g: 15 }
+  { id: "catalog-avocado", name: "Avocado", names: { hu: "Avokádó", de: "Avocado", en: "Avocado" }, synonyms: { hu: ["avokádó", "avokado"], de: ["avocado"], en: ["avocado"] }, servings: [
+    { id: "avocado-half", key: "half", unit: "half", labels: { en: "half", hu: "fél", de: "halbe" }, grams: 100.5, isEstimated: false, confidence: 1, provenance: { method: "authoritative_derived", fdcId: "171705", portionId: "89226" } },
+    { id: "avocado-piece", key: "piece", unit: "piece", labels: { en: "whole avocado" }, grams: 201, isEstimated: false, confidence: 1, provenance: { method: "authoritative", fdcId: "171705", portionId: "89226" } }
+  ], kcalPer100g: 160 },
+  { id: "catalog-butter", name: "Butter", names: { hu: "Vaj", de: "Butter", en: "Butter" }, synonyms: { hu: ["vaj"], de: ["butter"], en: ["butter"] }, servings: [
+    { id: "butter-tbsp", key: "tbsp", unit: "tbsp", labels: { en: "tablespoon", hu: "evőkanál", de: "Esslöffel" }, grams: 14.2, isEstimated: false, confidence: 1, provenance: { method: "authoritative", fdcId: "173430", portionId: "92512" } },
+    { id: "butter-tsp", key: "tsp", unit: "tsp", labels: { en: "teaspoon", hu: "teáskanál", de: "Teelöffel" }, grams: 14.2 / 3, isEstimated: false, confidence: 1, provenance: { method: "authoritative_derived", fdcId: "173430", portionId: "92512" } }
+  ], kcalPer100g: 717 },
+  { id: "catalog-cheddar", name: "Cheddar cheese", names: { hu: "Cheddar sajt", de: "Cheddar", en: "Cheddar cheese" }, synonyms: { hu: ["cheddar", "sajt"], de: ["cheddar", "käse", "kase"], en: ["cheddar", "cheese"] }, servings: [{ id: "cheddar-slice", key: "slice", unit: "slice", labels: { en: "slice" }, grams: 28, isEstimated: false, confidence: 1, provenance: { method: "authoritative", fdcId: "173414", portionId: "92472" } }], kcalPer100g: 403 },
+  { id: "catalog-gouda", name: "Gouda cheese", names: { hu: "Gouda sajt", de: "Gouda", en: "Gouda cheese" }, synonyms: { hu: ["gouda", "sajt"], de: ["gouda", "käse", "kase"], en: ["gouda", "cheese"] }, servings: [{ id: "gouda-slice", key: "slice", unit: "slice", labels: { en: "slice" }, grams: 28.35, isEstimated: true, confidence: 0.7, provenance: { method: "reference_estimate", fdcId: "171241", portionId: "88235" } }], kcalPer100g: 356 },
+  { id: "catalog-cucumber", name: "Cucumber", names: { hu: "Kígyóuborka", de: "Gurke", en: "Cucumber" }, synonyms: { hu: ["kígyóuborka", "kigyouborka", "uborka"], de: ["gurke", "salatgurke"], en: ["cucumber"] }, servings: [{ id: "cucumber-piece", key: "piece", unit: "piece", labels: { en: "piece" }, grams: 300, isEstimated: true, confidence: 0.7, provenance: { method: "curated_estimate" } }], kcalPer100g: 15 }
 ];
 
 function makePrisma() {
@@ -32,9 +36,7 @@ function makePrisma() {
     ...f,
     createdById: null,
     searchText: normalizeSearch([f.name, ...Object.values(f.synonyms).flat()].join(" ")),
-    servings: f.servingUnit && f.servingGrams != null
-      ? [{ id: `${f.id}-serving`, key: f.servingUnit, unit: f.servingUnit, labels: { en: f.servingUnit }, grams: f.servingGrams, isEstimated: f.isEstimated ?? false, confidence: f.confidence ?? 1, provenance: { method: "curated_seed" } }]
-      : []
+    servings: f.servings ?? []
   }));
   const aliasRows = baseFoods.flatMap((f) => Object.values(f.synonyms).flat().map((a) => ({ foodId: f.id, normalizedAlias: normalizeSearch(a) })));
 
@@ -63,7 +65,7 @@ describe("meal input interpretation", () => {
     const r: InterpretResult = await interpretMealInput(prisma, "5 tojás");
     expect(r.selectedFood?.id).toBe("catalog-egg");
     expect(r.preparation).toBeUndefined();
-    expect(r.quantity?.grams).toBe(5 * 46);
+    expect(r.quantity?.grams).toBe(5 * 50);
     expect(r.canConfirm).toBe(true);
   });
 
@@ -113,6 +115,86 @@ describe("meal input interpretation", () => {
     const r = await interpretMealInput(prisma, "gouda");
     expect(r.selectedFood?.id).toBe("catalog-gouda");
     expect(r.ambiguous).toBeFalsy();
+  });
+
+  it("2 eggs resolve to the exact base Egg in HU / DE / EN", async () => {
+    for (const input of ["2 tojás", "2 Eier", "2 eggs"]) {
+      const r = await interpretMealInput(prisma, input);
+      expect(r.selectedFood?.id).toBe("catalog-egg");
+      expect(r.ambiguous).toBe(false);
+      expect(r.quantity?.grams).toBe(100);
+      expect(r.canConfirm).toBe(true);
+    }
+  });
+
+  it("fried egg keeps the prepared identity and its own serving", async () => {
+    const r = await interpretMealInput(prisma, "1 fried egg");
+    expect(r.selectedFood?.id).toBe("catalog-fried-egg");
+    expect(r.quantity?.grams).toBe(46);
+    expect(r.canConfirm).toBe(true);
+  });
+
+  it("half avocado prefers the explicit authoritative half serving in HU / DE / EN", async () => {
+    for (const input of ["fél avokádó", "halbe Avocado", "half avocado"]) {
+      const r = await interpretMealInput(prisma, input);
+      expect(r.selectedFood?.id).toBe("catalog-avocado");
+      expect(r.parsed).toMatchObject({ quantity: 1, unit: "half" });
+      expect(r.quantity?.servingId).toBe("avocado-half");
+      expect(r.quantity?.grams).toBe(100.5);
+      expect(r.canConfirm).toBe(true);
+    }
+  });
+
+  it("whole avocado uses the authoritative whole-food serving", async () => {
+    const r = await interpretMealInput(prisma, "whole avocado");
+    expect(r.quantity?.servingId).toBe("avocado-piece");
+    expect(r.quantity?.grams).toBe(201);
+    expect(r.canConfirm).toBe(true);
+  });
+
+  it("butter tablespoon resolves authoritatively in HU / DE / EN", async () => {
+    for (const input of ["1 evőkanál vaj", "1 EL Butter", "1 tbsp butter"]) {
+      const r = await interpretMealInput(prisma, input);
+      expect(r.selectedFood?.id).toBe("catalog-butter");
+      expect(r.quantity?.grams).toBe(14.2);
+      expect(r.canConfirm).toBe(true);
+    }
+  });
+
+  it("butter teaspoon resolves separately in HU / DE / EN", async () => {
+    for (const input of ["1 teáskanál vaj", "1 TL Butter", "1 tsp butter"]) {
+      const r = await interpretMealInput(prisma, input);
+      expect(r.quantity?.grams).toBeCloseTo(14.2 / 3, 8);
+      expect(r.canConfirm).toBe(true);
+    }
+  });
+
+  it("3 Gouda slices remain estimated because USDA has no generic Gouda slice portion", async () => {
+    for (const input of ["3 szelet gouda", "3 Scheiben Gouda", "3 slices gouda"]) {
+      const r = await interpretMealInput(prisma, input);
+      expect(r.selectedFood?.id).toBe("catalog-gouda");
+      expect(r.quantity?.grams).toBeCloseTo(85.05, 8);
+      expect(r.quantity?.estimated).toBe(true);
+      expect(r.quantity?.requiresConfirmation).toBe(true);
+      expect(r.canConfirm).toBe(false);
+    }
+  });
+
+  it("generic cheese remains ambiguous in HU / DE / EN", async () => {
+    for (const input of ["sajt", "Käse", "cheese"]) {
+      const r = await interpretMealInput(prisma, input);
+      expect(r.ambiguous).toBe(true);
+      expect(r.canConfirm).toBe(false);
+      expect(r.candidates.map((candidate) => candidate.id)).toEqual(expect.arrayContaining(["catalog-cheddar", "catalog-gouda"]));
+    }
+  });
+
+  it("half of an estimated piece preserves the confirmation requirement", async () => {
+    const r = await interpretMealInput(prisma, "fél kígyóuborka");
+    expect(r.quantity?.grams).toBe(150);
+    expect(r.quantity?.estimated).toBe(true);
+    expect(r.quantity?.requiresConfirmation).toBe(true);
+    expect(r.canConfirm).toBe(false);
   });
 
   it("1 kg conversion remains exactly 1000 g", async () => {

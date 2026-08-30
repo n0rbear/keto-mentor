@@ -1,6 +1,6 @@
 import { normalizeSearch } from "./normalize.js";
 
-export type NaturalQuantityUnit = "g" | "kg" | "piece" | "slice" | "portion" | "tbsp" | "tsp" | "handful" | "cm" | "bite" | "splash";
+export type NaturalQuantityUnit = "g" | "kg" | "piece" | "slice" | "portion" | "tbsp" | "tsp" | "handful" | "cm" | "bite" | "splash" | "half";
 
 export type ParsedNaturalFoodQuery = {
   quantity?: number;
@@ -13,18 +13,24 @@ export type ParsedNaturalFoodQuery = {
 
 const UNITS = new Map<string, NaturalQuantityUnit>([
   ["g", "g"], ["gramm", "g"], ["gram", "g"], ["kg", "kg"], ["kilogramm", "kg"],
-  ["db", "piece"], ["darab", "piece"], ["piece", "piece"], ["stuk", "piece"], ["stuck", "piece"],
-  ["szelet", "slice"], ["slice", "slice"], ["adag", "portion"], ["portion", "portion"],
-  ["ek", "tbsp"], ["evokanal", "tbsp"], ["tbsp", "tbsp"], ["tk", "tsp"], ["teaskanal", "tsp"], ["tsp", "tsp"],
+  ["db", "piece"], ["darab", "piece"], ["piece", "piece"], ["pieces", "piece"], ["stuk", "piece"], ["stuck", "piece"], ["stucke", "piece"],
+  ["whole", "piece"], ["egesz", "piece"], ["ganz", "piece"], ["ganze", "piece"], ["ganzen", "piece"],
+  ["szelet", "slice"], ["slice", "slice"], ["slices", "slice"], ["scheibe", "slice"], ["scheiben", "slice"], ["adag", "portion"], ["portion", "portion"],
+  ["ek", "tbsp"], ["el", "tbsp"], ["evokanal", "tbsp"], ["essloffel", "tbsp"], ["tbsp", "tbsp"], ["tablespoon", "tbsp"], ["tablespoons", "tbsp"],
+  ["tk", "tsp"], ["tl", "tsp"], ["teaskanal", "tsp"], ["teeloffel", "tsp"], ["tsp", "tsp"], ["teaspoon", "tsp"], ["teaspoons", "tsp"],
   ["marek", "handful"], ["handful", "handful"], ["handvoll", "handful"], ["cm", "cm"],
-  ["harapas", "bite"], ["bite", "bite"], ["bissen", "bite"], ["lottyintes", "splash"], ["splash", "splash"], ["schuss", "splash"]
+  ["harapas", "bite"], ["bite", "bite"], ["bissen", "bite"], ["lottyintes", "splash"], ["splash", "splash"], ["schuss", "splash"],
+  ["fel", "half"], ["fele", "half"], ["half", "half"], ["halb", "half"], ["halbe", "half"]
 ]);
 
 const NUMBERS = new Map([
-  ["egy", 1], ["ket", 2], ["ketto", 2], ["harom", 3], ["negy", 4], ["ot", 5], ["fel", 0.5], ["fele", 0.5],
-  ["ein", 1], ["eine", 1], ["zwei", 2], ["drei", 3], ["vier", 4], ["funf", 5], ["halb", 0.5],
-  ["one", 1], ["two", 2], ["three", 3], ["four", 4], ["five", 5], ["half", 0.5], ["quarter", 0.25], ["threequarters", 0.75]
+  ["egy", 1], ["ket", 2], ["ketto", 2], ["harom", 3], ["negy", 4], ["ot", 5],
+  ["ein", 1], ["eine", 1], ["zwei", 2], ["drei", 3], ["vier", 4], ["funf", 5],
+  ["one", 1], ["two", 2], ["three", 3], ["four", 4], ["five", 5], ["quarter", 0.25], ["threequarters", 0.75]
 ]);
+
+const HALF_WORDS = new Set(["fel", "fele", "half", "halb", "halbe"]);
+const IMPLICIT_ONE_UNIT_WORDS = new Set(["fel", "fele", "half", "halb", "halbe", "whole", "egesz", "ganz", "ganze", "ganzen"]);
 
 const SIZES = new Map<string, NonNullable<ParsedNaturalFoodQuery["size"]>>([
   ["kis", "small"], ["small", "small"], ["klein", "small"], ["kozepes", "medium"], ["medium", "medium"], ["mittel", "medium"],
@@ -122,8 +128,13 @@ function parseSegment(normalized: string): ParsedNaturalFoodQuery {
   let quantity: number | undefined;
   let quantityIndex = -1;
   for (let i = 0; i < tokens.length; i++) {
-    const numeric = Number(tokens[i].replace(",", "."));
+    const numeric = Number(tokens[i].replace("decimal", ".").replace(",", "."));
     if (Number.isFinite(numeric) && tokens[i].trim() !== "") { quantity = numeric; quantityIndex = i; break; }
+    if (HALF_WORDS.has(tokens[i])) {
+      const followingUnit = UNITS.get(tokens[i + 1] ?? "");
+      if (followingUnit && followingUnit !== "half") { quantity = 0.5; quantityIndex = i; break; }
+      continue;
+    }
     if (NUMBERS.has(tokens[i])) { quantity = NUMBERS.get(tokens[i]); quantityIndex = i; break; }
   }
 
@@ -137,11 +148,13 @@ function parseSegment(normalized: string): ParsedNaturalFoodQuery {
   }
 
   let unit: NaturalQuantityUnit = "piece";
+  let explicitUnitWord: string | undefined;
   let restAfterUnit = restAfterSize;
   if (restAfterSize.length) {
     const u = UNITS.get(restAfterSize[0]);
-    if (u) { unit = u; restAfterUnit = restAfterSize.slice(1); }
+    if (u) { unit = u; explicitUnitWord = restAfterSize[0]; restAfterUnit = restAfterSize.slice(1); }
   }
+  if (quantity == null && explicitUnitWord && IMPLICIT_ONE_UNIT_WORDS.has(explicitUnitWord)) quantity = 1;
 
   let foodText = restAfterUnit.join(" ").trim();
   if (unit === "splash") foodText = foodText.replace(/\b(a kaveba|in den kaffee|in coffee)\b.*$/i, "").trim();
@@ -166,7 +179,12 @@ function parseSegment(normalized: string): ParsedNaturalFoodQuery {
 }
 
 export function parseNaturalFoodQuery(raw: string): ParsedNaturalFoodQuery {
-  const normalized = normalizeSearch(raw.replace(/½/g, " half ").replace(/¼/g, " quarter ").replace(/¾/g, " threequarters ")).replace(/\s+/g, " ").trim();
+  const numericSafe = raw
+    .replace(/½/g, " 0decimal5 ")
+    .replace(/¼/g, " 0decimal25 ")
+    .replace(/¾/g, " 0decimal75 ")
+    .replace(/(\d)[.,](\d)/g, "$1decimal$2");
+  const normalized = normalizeSearch(numericSafe).replace(/\s+/g, " ").trim();
   if (!normalized) return { foodQuery: "" };
 
   const tokens = normalized.split(" ");

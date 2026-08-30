@@ -65,9 +65,11 @@ function servingMatchesSize(serving: Serving, size: ParsedNaturalFoodQuery["size
 }
 
 const SERVING_UNIT_ALIASES: Record<string, readonly string[]> = {
-  piece: ["piece", "egg", "item", "whole", "darab", "db", "stuck", "stuk"],
-  slice: ["slice", "szelet", "scheibe"], portion: ["portion", "serving", "adag"],
-  tbsp: ["tbsp", "tablespoon", "evokanal", "essloffel"], tsp: ["tsp", "teaspoon", "teaskanal"],
+  piece: ["piece", "pieces", "egg", "item", "whole", "darab", "db", "stuck", "stuk", "stucke"],
+  slice: ["slice", "slices", "szelet", "scheibe", "scheiben"], portion: ["portion", "serving", "adag"],
+  tbsp: ["tbsp", "tablespoon", "tablespoons", "evokanal", "essloffel", "ek", "el"],
+  tsp: ["tsp", "teaspoon", "teaspoons", "teaskanal", "teeloffel", "tk", "tl"],
+  half: ["half", "fel", "fele", "halb", "halbe"],
   handful: ["handful", "marek", "handvoll"], cm: ["cm"], bite: ["bite", "harapas", "bissen"], splash: ["splash", "lottyintes", "schuss"]
 };
 
@@ -92,14 +94,25 @@ export async function resolveQuantity(
     return { status: "resolved", grams: parsed.quantity * gramsPerUnit, gramsPerUnit, method: "measured", confidence: 1, estimated: false, requiresConfirmation: false, provenance: { method: "exact_mass", unit: parsed.unit } };
   }
 
-  const matching = (food.servings ?? []).filter((serving) => servingMatchesUnit(serving, parsed.unit!) && servingMatchesSize(serving, parsed.size));
-  const serving = matching.sort((a, b) => Number(a.isEstimated) - Number(b.isEstimated) || b.confidence - a.confidence)[0];
+  const bestServing = (unit: string) => (food.servings ?? [])
+    .filter((candidate) => servingMatchesUnit(candidate, unit) && servingMatchesSize(candidate, parsed.size))
+    .sort((a, b) => Number(a.isEstimated) - Number(b.isEstimated) || b.confidence - a.confidence)[0];
+
+  let serving = bestServing(parsed.unit);
+  let servingScale = 1;
+  let provenance = serving?.provenance;
+  if (!serving && parsed.unit === "half") {
+    serving = bestServing("piece");
+    servingScale = 0.5;
+    if (serving) provenance = { method: "half_of_piece", sourceServing: serving.provenance };
+  }
   if (serving) {
     const method = servingMethod(serving);
+    const gramsPerUnit = serving.grams * servingScale;
     return {
-      status: "resolved", grams: parsed.quantity * serving.grams, gramsPerUnit: serving.grams, servingId: serving.id,
+      status: "resolved", grams: parsed.quantity * gramsPerUnit, gramsPerUnit, servingId: serving.id,
       method, confidence: serving.confidence, estimated: serving.isEstimated,
-      requiresConfirmation: serving.isEstimated || serving.confidence < 0.85, provenance: serving.provenance
+      requiresConfirmation: serving.isEstimated || serving.confidence < 0.85, provenance
     };
   }
 
