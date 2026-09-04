@@ -7,7 +7,11 @@ import { EverydayCoverageAdapter, auditEverydayMustFind } from "./everyday-cover
 import { parseEverydayCoverageCliOptions } from "./everyday-coverage-cli-options.js";
 import { EVERYDAY_COVERAGE_V2, EVERYDAY_SEARCH_CORPUS } from "./everyday-coverage-manifest.js";
 import { importFoods } from "./import-foods.js";
+import { applyEverydayExternalAliasTargets, assertEverydayAliasTargetsExist, planEverydayAliasUpserts } from "./everyday-alias-overlay.js";
+import { auditCrossSourceCollisions, auditProjectedMealInput, auditProjectedSearch, auditShortAliasSafety } from "./everyday-projected-audit.js";
 import { planImportFromSnapshot, type CatalogReadOnlySnapshot } from "./import-plan.js";
+import { buildProjectedCatalog, type ProjectedCatalog, type ProjectedCatalogAlias, type ProjectedCatalogFood } from "./projected-catalog.js";
+import { NUTRIENTS } from "./nutrient-mapping.js";
 
 const options = parseEverydayCoverageCliOptions(process.argv.slice(2));
 if (options.apply) {
@@ -27,7 +31,18 @@ try {
     ? JSON.parse(await readFile(resolve(options.snapshotFile), "utf8")) as CatalogReadOnlySnapshot
     : undefined;
   if (snapshot && snapshot.schema !== "ketomentor") throw new Error("read-only snapshot must target the ketomentor schema");
-  const knownNutrients = new Set(snapshot?.nutrientKeys ?? []);
+  const knownNutrients = new Set(snapshot?.nutrientKeys ?? Object.keys(NUTRIENTS));
+  const liveCatalog = snapshot ? undefined : {
+    foods: await prisma.food.findMany({
+      where: { createdById: null },
+      include: { servings: { orderBy: [{ isEstimated: "asc" }, { confidence: "desc" }] } }
+    }) as unknown as ProjectedCatalogFood[],
+    aliases: await prisma.foodAlias.findMany() as unknown as ProjectedCatalogAlias[]
+  };
+  const currentCatalog: ProjectedCatalog | undefined = snapshot?.foods && snapshot.aliases
+    ? { foods: snapshot.foods, aliases: snapshot.aliases as ProjectedCatalogAlias[] }
+    : liveCatalog;
+  if (options.apply) await assertEverydayAliasTargetsExist(prisma);
   const reports = [];
   const foods = [];
   for (const { adapter, path } of adapters) {
@@ -52,6 +67,31 @@ try {
       foods.push(...adapter.resolvedFoods);
     }
   }
+
+  const aliasPlan = currentCatalog
+    ? planEverydayAliasUpserts(foods, currentCatalog.foods, currentCatalog.aliases)
+    : undefined;
+  const projectedCatalog = currentCatalog ? buildProjectedCatalog(currentCatalog, foods) : undefined;
+  const currentSearch = currentCatalog ? await auditProjectedSearch(currentCatalog) : undefined;
+  const projectedSearch = projectedCatalog ? await auditProjectedSearch(projectedCatalog) : undefined;
+  const projectedMealInput = projectedCatalog ? await auditProjectedMealInput(projectedCatalog) : undefined;
+  const preFixEntries = EVERYDAY_COVERAGE_V2.map((entry) => ({ ...entry, aliasTarget: { kind: "source_identity" as const } }));
+  const entryByIdentity = new Map(EVERYDAY_COVERAGE_V2.map((entry) => [`${entry.source === "bls" ? "bls" : "usda_fdc"}:${entry.sourceId}`, entry]));
+  const preFixFoods = foods.map((food) => {
+    const entry = entryByIdentity.get(`${food.source}:${food.sourceId}`);
+    if (!entry || entry.aliasTarget.kind !== "food_id") return food;
+    return {
+      ...food,
+      names: { ...(food.names ?? {}), ...Object.fromEntries(Object.entries(entry.aliases).map(([locale, aliases]) => [locale, aliases[0]])) },
+      synonyms: { ...(food.synonyms ?? {}), ...Object.fromEntries(Object.entries(entry.aliases).map(([locale, aliases]) => [locale, [...aliases]])) }
+    };
+  });
+  const preFixCatalog = currentCatalog ? buildProjectedCatalog(currentCatalog, preFixFoods, preFixEntries) : undefined;
+  const collisionAudit = currentCatalog && projectedCatalog && preFixCatalog
+    ? await auditCrossSourceCollisions(currentCatalog, projectedCatalog, preFixCatalog)
+    : undefined;
+  const shortAliasSafety = projectedCatalog ? await auditShortAliasSafety(projectedCatalog) : undefined;
+  if (options.apply) await applyEverydayExternalAliasTargets(prisma);
 
   const mustFind = auditEverydayMustFind(foods);
   const totals = reports.reduce((sum, report) => ({
@@ -91,9 +131,22 @@ try {
     } : undefined,
     reports,
     totals,
-    mustFind
+    sourceBinding: mustFind,
+    aliasPlan: aliasPlan ? {
+      aliasesToCreate: aliasPlan.aliasesToCreate,
+      aliasesToUpdate: aliasPlan.aliasesToUpdate,
+      targetFoodIds: aliasPlan.targetFoodIds,
+      overlayEstimatedGrowthBytes: aliasPlan.items.filter((item) => item.targetKind === "food_id").length * 180,
+      totalEstimatedGrowthBytes: totals.estimatedGrowthBytes + aliasPlan.items.filter((item) => item.targetKind === "food_id").length * 180
+    } : undefined,
+    currentSearch,
+    projectedSearch,
+    projectedMealInput,
+    collisionAudit,
+    shortAliasSafety
   }, null, 2));
-  if (mustFind.failed.length || totals.skippedRecords || totals.duplicateRecords) process.exitCode = 2;
+  if (mustFind.failed.length || totals.skippedRecords || totals.duplicateRecords ||
+      projectedSearch?.categories.WRONG_TOP_RESULT || projectedSearch?.categories.MISSING) process.exitCode = 2;
 } finally {
   await prisma.$disconnect();
 }

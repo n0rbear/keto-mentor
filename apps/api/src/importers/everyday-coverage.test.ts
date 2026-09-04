@@ -46,6 +46,9 @@ describe("Everyday Coverage v2", () => {
     expect(EVERYDAY_SEARCH_CORPUS.filter((item) => item.expectedConcept === "red-onion").every((item) => item.expectedSourceId === "790577")).toBe(true);
     expect(EVERYDAY_SEARCH_CORPUS.some((item) => item.query === "weisskohl")).toBe(true);
     expect(EVERYDAY_SEARCH_CORPUS.some((item) => item.query === "susskirsche")).toBe(true);
+    expect(EVERYDAY_COVERAGE_V2.filter((entry) => entry.aliasTarget.kind === "food_id").map((entry) => entry.key).sort()).toEqual([
+      "avocado", "butter", "cheddar", "cucumber", "egg", "gouda", "spinach"
+    ]);
   });
 
   it("has no duplicate normalized alias for a food and covers HU, DE and EN", () => {

@@ -53,8 +53,13 @@ export class EverydayCoverageAdapter implements FoodSourceAdapter {
         yield { row: row.row, sourceId: row.food.sourceId, error: `source name does not match approved identity tokens: ${missingTokens.join(", ")}` };
         continue;
       }
-      const names = Object.fromEntries(Object.entries(entry.aliases).map(([locale, aliases]) => [locale, aliases[0]]));
-      const synonyms = Object.fromEntries(Object.entries(entry.aliases).map(([locale, aliases]) => [locale, [...new Set(aliases)]]));
+      const targetsSourceIdentity = entry.aliasTarget.kind === "source_identity";
+      const names = targetsSourceIdentity
+        ? Object.fromEntries(Object.entries(entry.aliases).map(([locale, aliases]) => [locale, aliases[0]]))
+        : {};
+      const synonyms = targetsSourceIdentity
+        ? Object.fromEntries(Object.entries(entry.aliases).map(([locale, aliases]) => [locale, [...new Set(aliases)]]))
+        : row.food.synonyms;
       const food: ImportFood = { ...row.food, names: { ...(row.food.names ?? {}), ...names }, synonyms };
       seen.add(entry.sourceId);
       this.resolvedFoods.push(food);
@@ -70,16 +75,13 @@ export class EverydayCoverageAdapter implements FoodSourceAdapter {
 
 export function auditEverydayMustFind(foods: readonly ImportFood[]): EverydayMustFindAudit {
   const byIdentity = new Map(foods.map((food) => [`${food.source}:${food.sourceId}`, food]));
+  const manifestByIdentity = new Map(EVERYDAY_COVERAGE_V2.map((entry) => [`${entry.source === "bls" ? "bls" : "usda_fdc"}:${entry.sourceId}`, entry]));
   const cases = EVERYDAY_SEARCH_CORPUS.filter((item) => item.expectedSource && item.expectedSourceId);
   const failed = cases.flatMap((item) => {
     const food = byIdentity.get(`${item.expectedSource}:${item.expectedSourceId}`);
-    const exactTerms = food ? new Set([
-      food.name,
-      food.originalName,
-      ...Object.values(food.names ?? {}),
-      ...Object.values(food.synonyms ?? {}).flat()
-    ].map(normalizeSearch)) : new Set<string>();
-    if (exactTerms.has(normalizeSearch(item.query))) return [];
+    const entry = manifestByIdentity.get(`${item.expectedSource}:${item.expectedSourceId}`);
+    const representedTerms = new Set(Object.values(entry?.aliases ?? {}).flat().map(normalizeSearch));
+    if (food && entry && representedTerms.has(normalizeSearch(item.query))) return [];
     return [{ concept: item.expectedConcept, query: item.query, source: item.expectedSource!, sourceId: item.expectedSourceId! }];
   });
   return { total: cases.length, passed: cases.length - failed.length, failed };

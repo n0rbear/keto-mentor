@@ -1,50 +1,67 @@
 # Everyday Coverage v2
 
-This increment improves ordinary Hungarian, German and English ingredient search without importing the full publisher catalogs. It is a reviewed overlay of exact publisher identities and localized aliases. It does not add fuzzy identity binding, browser-shipped manifest data, external search calls, or a schema migration.
+This increment improves ordinary Hungarian, German and English ingredient search without importing the full publisher catalogs. It is a reviewed set of exact publisher identities plus an explicit search-alias overlay. It does not add fuzzy identity binding, browser-shipped manifest data, external search calls, a schema migration, or a cross-source Food merge.
 
-## Scope and source binding
+## Source binding and alias policy
 
-- 106 source-bound entries covering 106 food concepts: 81 European Essentials identities reused for better aliases and 25 concepts beyond the original 100-food set.
-- 101 exact BLS 4.0 identities.
-- 4 exact USDA SR Legacy 2018-04 identities.
-- 1 exact USDA Foundation Foods 2026-04-30 identity: red onion FDC `790577`, already present in production and updated rather than duplicated.
-- 401 locale-specific alias rows after per-food/per-locale normalization: 139 HU, 125 DE and 137 EN.
-- 244 reviewed search cases across 109 expected concepts, including high-carb controls and four deliberately generic ambiguity cases.
+- 106 exact source-bound entries: 81 reused European Essentials identities and 25 additional concepts.
+- 101 BLS 4.0, 4 USDA SR Legacy 2018-04 and 1 USDA Foundation Foods 2026-04-30 identity.
+- Red onion remains bound to USDA Foundation FDC `790577`.
+- 240 source-bound corpus terms are represented by their reviewed manifest entry. This is source-binding evidence only; it is not the final search metric.
+- Generic aliases for egg, avocado, butter, spinach, cucumber, cheddar and gouda target the stable starter Foods `catalog-egg`, `catalog-avocado`, `catalog-butter`, `catalog-spinach`, `catalog-cucumber`, `catalog-cheddar` and `catalog-gouda`.
+- The remaining 99 concepts target their imported source identity. In particular, generic chicken breast targets raw BLS `V416100`; the existing `catalog-chicken-breast-roasted` keeps preparation-specific meaning.
 
-Every raw-data selection is by exact source ID. The adapter also requires the reviewed tokens to occur in the normalized publisher name. A missing ID or changed name fails explicitly; no nearby record or cross-source name match is substituted. Nutrition remains sourced from the publisher files and is never copied into the manifest.
+Every publisher selection is by exact source ID and the adapter also requires the reviewed tokens in the normalized publisher name. A missing ID, changed publisher name, or missing explicit starter target fails closed. Nutrition stays on its source-bound Food; the alias overlay never changes nutrition, deletes rows, or merges sources.
 
-## Measured coverage
+## Real projected search audit
 
-The production baseline was evaluated read-only with the application ranking rules. A non-empty result counted as a failure when its top identity was wrong.
+The audit builds an in-memory catalog from all 978 production Foods and all 53 production FoodAlias rows, applies the exact proposed Food fields and alias upserts, and invokes the unchanged application `searchFoods()` implementation for every corpus query. `interpretMealInput()` is separately exercised for the serving-sensitive and collision-prone inputs.
 
-| Classification | Before | Projected after guarded import |
+| Classification | Current production | Projected apply result |
 |---|---:|---:|
-| Exact or alias pass | 20 | 240 |
-| Partial or fuzzy pass | 44 | 0 |
-| Ambiguous | 16 | 4 |
-| Wrong top result | 38 | 0 |
-| Missing | 126 | 0 |
-| Pass rate | 26.2% | 98.4% |
+| PASS_EXACT | 18 | 239 |
+| PASS_ALIAS | 0 | 1 |
+| PASS_PARTIAL | 40 | 0 |
+| PASS_FUZZY | 0 | 0 |
+| AMBIGUOUS | 26 | 4 |
+| WRONG_TOP_RESULT | 25 | 0 |
+| MISSING | 135 | 0 |
+| Pass rate | 23.8% | 98.4% |
 
-The projected result combines all 240 source-bound cases passing the exact alias/name audit with the four intentionally generic production cases (`sajt`, `Käse`, `fish`, `bread`) remaining ambiguous. No ambiguity rule was weakened.
+The projected 98.4% is now based on 244 real `searchFoods()` runs: 240 correct top results and four observed generic score ties. `sajt` and `Käse` tie Cheddar and Gouda at 95/95 and would be marked ambiguous by `interpretMealInput()`. `fish` ties two results at 80/80 and also crosses that ambiguity threshold. `bread` returns two equal partial results at 70/70; it is a real search-rank tie, but `interpretMealInput()` correctly keeps it low-confidence rather than setting its `ambiguous` flag. No ranking threshold was changed to obtain these results.
 
-Initial failures grouped as: 49 queries with a missing identity, 85 with an existing identity but missing localized alias, 30 ranking/wrong-top failures, 16 genuine ambiguities and 0 provenance failures.
+The original alias-membership audit also printed 98.4%, but did not establish ranking correctness. The numerical percentage is unchanged; its evidentiary basis is now the real projected search implementation.
+
+## Collision evidence
+
+The previous proposed import would have produced exact 100/100 cross-source ties and `confirmation_required` results for common inputs including `tojás`/`tojas`, `avokádó`/`avocado`, `vaj`/`Butter`, `Spinat`, `uborka`/`Gurke`, `Gouda` and `Cheddar`. The explicit alias targets remove those accidental ties. After projection these everyday terms have one clear accepted top result, while preparation-specific fried and scrambled egg Foods remain selectable.
+
+`2 eggs`, `2 tojás` and `2 Eier` all resolve to `catalog-egg`, remain unambiguous, and use its authoritative 50 g serving (100 g total). Butter, avocado, spinach, cucumber, Gouda and Cheddar resolve to their serving-preserving starter records. Plain `chicken breast` resolves to raw BLS `V416100`; `fried egg`/`tükörtojás` and `scrambled egg`/`rántotta` still select their preparation-specific Foods.
+
+## Alias safety
+
+Alias planning uses the production uniqueness key `(foodId, normalizedAlias, locale)`. It reports 381 creates, 29 updates and the seven explicit target Food IDs. Upserts are scoped and restart-safe; stale and unrelated aliases are retained. A localized name wins over a synonym with the same food/locale/normalized value. User-created Foods are excluded by the source import identity and explicit-target preflight.
+
+The bounded `contains + take 60` alias lookup was exercised for `Ei`, `oil`, `ham`, `rice` and every 2–3-character alias present in the projected catalog. The measured examples do not exceed 60 matching alias rows (`Ei`: 26, `oil`: 3, `ham`: 3, `rice`: 1); exact aliases remained inside the bound where one exists. No evidence justified a search-order change or new index.
 
 ## Read-only production dry-run
 
-The command was run against an exact read-only snapshot of the `ketomentor` production catalog and the official BLS, SR Legacy and Foundation files:
+The guarded command was run against an exact read-only production snapshot and the official publisher files:
 
 - 106 input / 106 valid / 0 skipped / 0 duplicates.
-- 19 foods to create and 87 exact identities to update.
+- 19 Foods to create and 87 exact source identities to update.
+- 381 FoodAlias creates and 29 FoodAlias updates.
 - 3,191 expected FoodNutrient upserts and 0 new nutrient definitions.
-- 487,460 bytes (about 476 KiB) conservative estimated growth, including alias rows and indexes.
-- 240/240 source-bound must-find cases passed.
+- 488,661 bytes (about 477 KiB) conservative estimated growth, including the explicit alias overlay.
+- 240/240 source-bound terms represented; separately, 244/244 real projected searches are either correct-top or intentionally tied.
 
-Before and after the dry-run, production remained exactly 978 Food rows, 24,843 FoodNutrient rows, 53 FoodAlias rows and 6,307,840 catalog bytes. Therefore the dry-run made no production writes.
+Before and after the dry-run, production remained exactly 978 Food rows, 53 FoodAlias rows, 24,843 FoodNutrient rows and 6,307,840 catalog bytes. The snapshot path and Render verification are read-only, and the dry-run reports `writesAttempted: 0`.
+
+An eventual separately approved apply would perform only the reported 19 Food creates, 87 source-identity Food updates, 410 idempotent alias upserts and 3,191 nutrient-link upserts. It would delete nothing and would not modify user-owned Foods. Exact final FoodAlias count is projected as 434; nutrient-link row growth is not claimed because existing links are updated in place.
 
 ## Guarded command
 
-Raw publisher files stay outside Git. Dry-run is the default:
+Dry-run is the default. Write mode requires both `--apply` and `--confirm everyday-coverage-v2`; snapshot mode cannot be combined with apply. The command is not referenced by seed, start or Render postdeploy scripts. Production apply has not occurred and needs separate approval.
 
 ```bash
 npm run catalog:coverage -w apps/api -- \
@@ -53,21 +70,3 @@ npm run catalog:coverage -w apps/api -- \
   --usda-foundation /data/FoodData_Central_foundation_food_csv_2026-04-30 \
   --batch-size 75
 ```
-
-Write mode requires both guards:
-
-```bash
-npm run catalog:coverage -w apps/api -- \
-  --bls /data/BLS_4_0_Daten_2025_DE.xlsx \
-  --usda-sr /data/FoodData_Central_sr_legacy_food_csv_2018-04 \
-  --usda-foundation /data/FoodData_Central_foundation_food_csv_2026-04-30 \
-  --batch-size 75 --apply --confirm everyday-coverage-v2
-```
-
-Production write has **not** occurred. The command is not referenced by normal seed, start, or Render postdeploy scripts. A separate approval and a fresh dry-run are required before any later apply operation.
-
-## Search safety
-
-Normal `GET /foods` remains local-database only. Alias lookup is capped at 60 rows, normal Food lookup at 90, final results at 30 and trigram fallback at 60. Alias upserts happen inside the existing per-food transaction, so no request-time N+1 behavior or per-keystroke external call was added.
-
-Read-only production `EXPLAIN ANALYZE` checks on the current 978-food catalog measured 0.111 ms for the bounded alias path, 0.370 ms for the bounded Food path and 0.459 ms for the indexed bounded trigram fallback. The proposed growth does not justify a new index migration.

@@ -1,12 +1,16 @@
 import { buildSearchText } from "../catalog/normalize.js";
 import { aliasesForImportedFood } from "./import-foods.js";
+import type { CatalogAliasSnapshot } from "./everyday-alias-overlay.js";
+import type { ProjectedCatalogFood } from "./projected-catalog.js";
 import type { FoodSourceAdapter, ImportFood, ImportReport } from "./types.js";
 
 export type CatalogReadOnlySnapshot = {
   capturedAt: string;
   schema: string;
-  identities: string[];
-  nutrientKeys: string[];
+  identities?: string[];
+  nutrientKeys?: string[];
+  foods?: ProjectedCatalogFood[];
+  aliases?: CatalogAliasSnapshot[];
   foodCount?: number;
   foodNutrientCount?: number;
   totalBytes?: number;
@@ -16,7 +20,7 @@ export async function planImportFromSnapshot(
   adapter: FoodSourceAdapter,
   filePath: string,
   snapshot: CatalogReadOnlySnapshot,
-  knownNutrients = new Set(snapshot.nutrientKeys)
+  knownNutrients = new Set(snapshot.nutrientKeys ?? [])
 ): Promise<{ report: ImportReport; foods: ImportFood[] }> {
   const report: ImportReport = {
     source: adapter.sourceName,
@@ -35,7 +39,7 @@ export async function planImportFromSnapshot(
     warnings: [],
     processed: 0
   };
-  const identities = new Set(snapshot.identities);
+  const identities = new Set(snapshot.identities ?? snapshot.foods?.filter((food) => food.sourceId).map((food) => `${food.source}:${food.sourceId}`) ?? []);
   const seen = new Set<string>();
   const foods: ImportFood[] = [];
   for await (const row of adapter.read(filePath)) {

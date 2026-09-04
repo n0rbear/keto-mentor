@@ -26,6 +26,7 @@ describe("natural food query parser", () => {
   it("parses 'főtt tojás' as tojás + boiled", () => expect(parseNaturalFoodQuery("2 főtt tojás")).toEqual({ quantity: 2, unit: "piece", foodQuery: "tojas", preparation: "boiled" }));
   it("parses '100 g bacon'", () => expect(parseNaturalFoodQuery("100 g bacon")).toEqual({ quantity: 100, unit: "g", foodQuery: "bacon" }));
   it("parses diacritic-free input", () => expect(parseNaturalFoodQuery("kigyouborka")).toEqual({ foodQuery: "kigyouborka" }));
+  it("does not strip the Hungarian accusative suffix from German Spinat", () => expect(parseNaturalFoodQuery("Spinat")).toEqual({ foodQuery: "spinat" }));
   it("parses an unknown free-form food without inventing structure", () => expect(parseNaturalFoodQuery("valami különös étel")).toEqual({ foodQuery: "valami kulonos etel" }));
   it("parses Unicode recipe fractions without guessing a weight", () => expect(parseNaturalFoodQuery("½ onion, chopped")).toMatchObject({ quantity: 0.5, unit: "piece", foodQuery: expect.stringContaining("onion") }));
   it.each([

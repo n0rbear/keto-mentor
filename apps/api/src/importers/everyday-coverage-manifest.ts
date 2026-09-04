@@ -4,6 +4,7 @@ import { EUROPEAN_ESSENTIALS, type EssentialSource } from "./european-essentials
 export type EverydayLocale = "hu" | "de" | "en";
 export type EverydayCoverageSource = EssentialSource | "usda_foundation";
 export type LocalizedAliases = Record<EverydayLocale, readonly string[]>;
+export type EverydayAliasTarget = { kind: "source_identity" } | { kind: "food_id"; foodId: string };
 
 export type EverydayCoverageEntry = {
   key: string;
@@ -12,12 +13,16 @@ export type EverydayCoverageEntry = {
   sourceId: string;
   expectedNameTokens: readonly string[];
   aliases: LocalizedAliases;
+  aliasTarget: EverydayAliasTarget;
   reusesEuropeanEssential: boolean;
 };
 
 const words = (hu: string[], de: string[], en: string[]): LocalizedAliases => ({ hu, de, en });
 
-function reuse(key: string, category: string, aliases: LocalizedAliases): EverydayCoverageEntry {
+const sourceIdentityTarget = (): EverydayAliasTarget => ({ kind: "source_identity" });
+const starterTarget = (foodId: string): EverydayAliasTarget => ({ kind: "food_id", foodId });
+
+function reuse(key: string, category: string, aliases: LocalizedAliases, aliasTarget: EverydayAliasTarget = sourceIdentityTarget()): EverydayCoverageEntry {
   const existing = EUROPEAN_ESSENTIALS.find((entry) => entry.key === key);
   if (!existing) throw new Error(`European essential not found for Everyday Coverage v2: ${key}`);
   return {
@@ -27,6 +32,7 @@ function reuse(key: string, category: string, aliases: LocalizedAliases): Everyd
     sourceId: existing.sourceId,
     expectedNameTokens: existing.expectedNameTokens,
     aliases,
+    aliasTarget,
     reusesEuropeanEssential: true
   };
 }
@@ -37,8 +43,9 @@ const add = (
   source: EverydayCoverageSource,
   sourceId: string,
   expectedNameTokens: string[],
-  aliases: LocalizedAliases
-): EverydayCoverageEntry => ({ key, category, source, sourceId, expectedNameTokens, aliases, reusesEuropeanEssential: false });
+  aliases: LocalizedAliases,
+  aliasTarget: EverydayAliasTarget = sourceIdentityTarget()
+): EverydayCoverageEntry => ({ key, category, source, sourceId, expectedNameTokens, aliases, aliasTarget, reusesEuropeanEssential: false });
 
 // This is an alias-and-identity increment beyond EUROPEAN_ESSENTIALS. Reused
 // identities intentionally update the same (source, sourceId); new identities
@@ -70,7 +77,7 @@ export const EVERYDAY_COVERAGE_V2: readonly EverydayCoverageEntry[] = [
   reuse("shrimp", "fish", words(["garnéla", "garnela", "rák"], ["Garnele"], ["shrimp", "prawn"])),
   reuse("mussel", "fish", words(["kagyló", "kagylo"], ["Miesmuschel"], ["mussel"])),
 
-  reuse("egg", "dairy", words(["tojás", "tojas"], ["Hühnerei", "Ei"], ["egg"])),
+  reuse("egg", "dairy", words(["tojás", "tojas"], ["Hühnerei", "Ei", "Eier"], ["egg", "eggs"]), starterTarget("catalog-egg")),
   reuse("cream", "dairy", words(["tejszín", "tejszin"], ["Schlagsahne"], ["cream", "whipping cream"])),
   reuse("sour-cream", "dairy", words(["tejföl", "tejfol"], ["Saure Sahne", "Sauerrahm"], ["sour cream"])),
   add("greek-yogurt", "dairy", "usda_sr_legacy", "171304", ["yogurt", "greek", "plain", "whole", "milk"], words(["görög joghurt", "gorog joghurt"], ["griechischer Joghurt"], ["Greek yogurt", "plain Greek yogurt"])),
@@ -82,9 +89,9 @@ export const EVERYDAY_COVERAGE_V2: readonly EverydayCoverageEntry[] = [
   reuse("parmesan", "dairy", words(["parmezán", "parmezan"], ["Parmesan"], ["parmesan"])),
   reuse("emmental", "dairy", words(["ementáli", "ementali"], ["Emmentaler"], ["emmental"])),
   add("edam", "dairy", "bls", "M401600", ["edamer", "45", "fett"], words(["edami sajt", "edami"], ["Edamer"], ["edam", "edam cheese"])),
-  reuse("gouda", "dairy", words(["gouda", "gouda sajt"], ["Gouda"], ["gouda", "gouda cheese"])),
-  add("cheddar", "dairy", "bls", "M303600", ["chester", "cheddar", "45", "fett"], words(["cheddar", "cheddar sajt"], ["Cheddar", "Chester"], ["cheddar", "cheddar cheese"])),
-  reuse("butter", "dairy", words(["vaj"], ["Butter", "Süßrahmbutter"], ["butter"])),
+  reuse("gouda", "dairy", words(["gouda", "gouda sajt"], ["Gouda"], ["gouda", "gouda cheese"]), starterTarget("catalog-gouda")),
+  add("cheddar", "dairy", "bls", "M303600", ["chester", "cheddar", "45", "fett"], words(["cheddar", "cheddar sajt"], ["Cheddar", "Chester"], ["cheddar", "cheddar cheese"]), starterTarget("catalog-cheddar")),
+  reuse("butter", "dairy", words(["vaj"], ["Butter", "Süßrahmbutter"], ["butter"]), starterTarget("catalog-butter")),
   add("mascarpone", "dairy", "bls", "M7A6800", ["mascarpone", "80", "fett"], words(["mascarpone"], ["Mascarpone"], ["mascarpone"])),
 
   reuse("broccoli", "vegetable", words(["brokkoli"], ["Brokkoli"], ["broccoli"])),
@@ -93,9 +100,9 @@ export const EVERYDAY_COVERAGE_V2: readonly EverydayCoverageEntry[] = [
   reuse("white-cabbage", "vegetable", words(["fejes káposzta", "fejes kaposzta", "káposzta"], ["Weißkohl"], ["white cabbage", "cabbage"])),
   reuse("red-cabbage", "vegetable", words(["vörös káposzta", "voros kaposzta", "lila káposzta"], ["Rotkohl"], ["red cabbage"])),
   reuse("sauerkraut", "vegetable", words(["savanyú káposzta", "savanyu kaposzta"], ["Sauerkraut"], ["sauerkraut"])),
-  reuse("spinach", "vegetable", words(["spenót", "spenot"], ["Spinat"], ["spinach"])),
+  reuse("spinach", "vegetable", words(["spenót", "spenot"], ["Spinat"], ["spinach"]), starterTarget("catalog-spinach")),
   reuse("lettuce", "vegetable", words(["fejes saláta", "fejes salata", "saláta"], ["Kopfsalat"], ["lettuce"])),
-  reuse("cucumber", "vegetable", words(["uborka", "kígyóuborka", "kigyouborka"], ["Gurke", "Salatgurke"], ["cucumber"])),
+  reuse("cucumber", "vegetable", words(["uborka", "kígyóuborka", "kigyouborka"], ["Gurke", "Salatgurke"], ["cucumber"]), starterTarget("catalog-cucumber")),
   reuse("zucchini", "vegetable", words(["cukkini"], ["Zucchini"], ["zucchini", "courgette"])),
   reuse("aubergine", "vegetable", words(["padlizsán", "padlizsan"], ["Aubergine"], ["eggplant", "aubergine"])),
   reuse("tomato", "vegetable", words(["paradicsom"], ["Tomate"], ["tomato"])),
@@ -115,7 +122,7 @@ export const EVERYDAY_COVERAGE_V2: readonly EverydayCoverageEntry[] = [
   add("beetroot", "vegetable", "bls", "G613100", ["rote", "bete", "roh"], words(["cékla", "cekla"], ["Rote Bete", "Rote Rübe"], ["beetroot", "beet"])),
   reuse("pumpkin", "vegetable", words(["sütőtök", "sutotok"], ["Hokkaidokürbis", "Kürbis"], ["pumpkin"])),
 
-  reuse("avocado", "fruit", words(["avokádó", "avokado"], ["Avocado"], ["avocado"])),
+  reuse("avocado", "fruit", words(["avokádó", "avokado"], ["Avocado"], ["avocado"]), starterTarget("catalog-avocado")),
   reuse("lemon", "fruit", words(["citrom"], ["Zitrone"], ["lemon"])),
   reuse("lime", "fruit", words(["lime", "zöldcitrom"], ["Limette"], ["lime"])),
   reuse("strawberry", "fruit", words(["eper", "szamóca", "szamoca"], ["Erdbeere"], ["strawberry"])),
@@ -173,7 +180,6 @@ const corpus: EverydaySearchCase[] = [];
 const acceptedIdentityByConcept: Readonly<Record<string, readonly string[]>> = {
   egg: ["open_database:171287"],
   avocado: ["open_database:171705"],
-  "chicken-breast": ["open_database:172395"],
   butter: ["open_database:173430"],
   cheddar: ["open_database:173414"],
   gouda: ["open_database:171241"],
