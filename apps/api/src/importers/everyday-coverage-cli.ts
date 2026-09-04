@@ -8,7 +8,7 @@ import { parseEverydayCoverageCliOptions } from "./everyday-coverage-cli-options
 import { EVERYDAY_COVERAGE_V2, EVERYDAY_SEARCH_CORPUS } from "./everyday-coverage-manifest.js";
 import { importFoods } from "./import-foods.js";
 import { applyEverydayExternalAliasTargets, assertEverydayAliasTargetsExist, planEverydayAliasUpserts } from "./everyday-alias-overlay.js";
-import { auditCrossSourceCollisions, auditProjectedMealInput, auditProjectedSearch, auditShortAliasSafety } from "./everyday-projected-audit.js";
+import { auditCrossSourceCollisions, auditProjectedEuropeanEssentials, auditProjectedMealInput, auditProjectedSearch, auditShortAliasSafety } from "./everyday-projected-audit.js";
 import { planImportFromSnapshot, type CatalogReadOnlySnapshot } from "./import-plan.js";
 import { buildProjectedCatalog, type ProjectedCatalog, type ProjectedCatalogAlias, type ProjectedCatalogFood } from "./projected-catalog.js";
 import { NUTRIENTS } from "./nutrient-mapping.js";
@@ -73,7 +73,15 @@ try {
     : undefined;
   const projectedCatalog = currentCatalog ? buildProjectedCatalog(currentCatalog, foods) : undefined;
   const currentSearch = currentCatalog ? await auditProjectedSearch(currentCatalog) : undefined;
+  const currentLegacyCompatibility = currentCatalog ? await auditProjectedEuropeanEssentials(currentCatalog) : undefined;
   const projectedSearch = projectedCatalog ? await auditProjectedSearch(projectedCatalog) : undefined;
+  const legacyCompatibility = projectedCatalog ? await auditProjectedEuropeanEssentials(projectedCatalog) : undefined;
+  const legacySeverity = { CORRECT: 0, AMBIGUOUS: 1, WRONG_TOP_RESULT: 2, MISSING: 3 } as const;
+  const currentLegacyByKey = new Map(currentLegacyCompatibility?.results.map((result) => [result.key, result]));
+  const legacyRegressions = legacyCompatibility?.results.filter((result) => {
+    const current = currentLegacyByKey.get(result.key);
+    return current && legacySeverity[result.category as keyof typeof legacySeverity] > legacySeverity[current.category as keyof typeof legacySeverity];
+  }) ?? [];
   const projectedMealInput = projectedCatalog ? await auditProjectedMealInput(projectedCatalog) : undefined;
   const preFixEntries = EVERYDAY_COVERAGE_V2.map((entry) => ({ ...entry, aliasTarget: { kind: "source_identity" as const } }));
   const entryByIdentity = new Map(EVERYDAY_COVERAGE_V2.map((entry) => [`${entry.source === "bls" ? "bls" : "usda_fdc"}:${entry.sourceId}`, entry]));
@@ -140,13 +148,17 @@ try {
       totalEstimatedGrowthBytes: totals.estimatedGrowthBytes + aliasPlan.items.filter((item) => item.targetKind === "food_id").length * 180
     } : undefined,
     currentSearch,
+    currentLegacyCompatibility,
     projectedSearch,
+    legacyCompatibility,
+    legacyRegressions,
     projectedMealInput,
     collisionAudit,
     shortAliasSafety
   }, null, 2));
   if (mustFind.failed.length || totals.skippedRecords || totals.duplicateRecords ||
-      projectedSearch?.categories.WRONG_TOP_RESULT || projectedSearch?.categories.MISSING) process.exitCode = 2;
+      projectedSearch?.categories.WRONG_TOP_RESULT || projectedSearch?.categories.MISSING ||
+      legacyRegressions.length) process.exitCode = 2;
 } finally {
   await prisma.$disconnect();
 }

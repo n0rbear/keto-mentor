@@ -24,6 +24,8 @@ The audit builds an in-memory catalog from all 978 production Foods and all 53 p
 | PASS_PARTIAL | 40 | 0 |
 | PASS_FUZZY | 0 | 0 |
 | AMBIGUOUS | 26 | 4 |
+| ↳ true interpreter ambiguity | — | 3 |
+| ↳ generic low-confidence rank tie | — | 1 |
 | WRONG_TOP_RESULT | 25 | 0 |
 | MISSING | 135 | 0 |
 | Pass rate | 23.8% | 98.4% |
@@ -31,6 +33,12 @@ The audit builds an in-memory catalog from all 978 production Foods and all 53 p
 The projected 98.4% is now based on 244 real `searchFoods()` runs: 240 correct top results and four observed generic score ties. `sajt` and `Käse` tie Cheddar and Gouda at 95/95 and would be marked ambiguous by `interpretMealInput()`. `fish` ties two results at 80/80 and also crosses that ambiguity threshold. `bread` returns two equal partial results at 70/70; it is a real search-rank tie, but `interpretMealInput()` correctly keeps it low-confidence rather than setting its `ambiguous` flag. No ranking threshold was changed to obtain these results.
 
 The original alias-membership audit also printed 98.4%, but did not establish ranking correctness. The numerical percentage is unchanged; its evidentiary basis is now the real projected search implementation.
+
+## Original European Essentials compatibility
+
+All 100 original must-find queries are also executed through the unchanged `searchFoods()` and `interpretMealInput()` paths against the same real production projection. Current production classifies 75 as correct, 19 as ambiguous, 6 as wrong-top and 0 as missing. The projected apply improves this to 91 correct, 8 ambiguous, 1 wrong-top and 0 missing, with zero per-query regressions.
+
+The remaining wrong-top result is the pre-existing `pork-chop` query: both before and after projection, `Schweinekotelett` ranks BLS `Y321222` first at 80 and the expected BLS `U622100` second at 70. That concept is outside the 81 reused Essentials identities, so this targeted compatibility pass does not change search ranking to mask it. A permanent deterministic regression test runs all 100 original searches, requires zero wrong and zero missing results in the controlled source fixture, and documents the intentional chicken-breast and Gouda confirmation cases.
 
 ## Collision evidence
 

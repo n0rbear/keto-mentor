@@ -1,6 +1,8 @@
 import { searchFoods } from "../catalog/food-search.js";
 import { interpretMealInput } from "../meal-input/interpret.js";
 import { EVERYDAY_SEARCH_CORPUS, type EverydaySearchCase } from "./everyday-coverage-manifest.js";
+import { EVERYDAY_COVERAGE_V2 } from "./everyday-coverage-manifest.js";
+import { EUROPEAN_ESSENTIALS, EUROPEAN_ESSENTIAL_MUST_FIND } from "./european-essentials-manifest.js";
 import { projectedCatalogPrisma, type ProjectedCatalog } from "./projected-catalog.js";
 
 export type ProjectedSearchCategory = "PASS_EXACT" | "PASS_ALIAS" | "PASS_PARTIAL" | "PASS_FUZZY" | "AMBIGUOUS" | "WRONG_TOP_RESULT" | "MISSING";
@@ -45,7 +47,47 @@ export async function auditProjectedSearch(catalog: ProjectedCatalog, cases: rea
   const categories = Object.fromEntries((["PASS_EXACT", "PASS_ALIAS", "PASS_PARTIAL", "PASS_FUZZY", "AMBIGUOUS", "WRONG_TOP_RESULT", "MISSING"] as const)
     .map((category) => [category, results.filter((result) => result.category === category).length]));
   const passed = categories.PASS_EXACT + categories.PASS_ALIAS + categories.PASS_PARTIAL + categories.PASS_FUZZY;
-  return { total: results.length, passed, passRate: Number((passed / results.length * 100).toFixed(1)), categories, results };
+  return {
+    total: results.length, passed, passRate: Number((passed / results.length * 100).toFixed(1)), categories,
+    ambiguity: {
+      trueInterpreterAmbiguity: results.filter((result) => result.category === "AMBIGUOUS" && result.interpretWouldBeAmbiguous).length,
+      genericLowConfidenceTie: results.filter((result) => result.category === "AMBIGUOUS" && !result.interpretWouldBeAmbiguous).length
+    },
+    results
+  };
+}
+
+export async function auditProjectedEuropeanEssentials(catalog: ProjectedCatalog) {
+  const prisma = projectedCatalogPrisma(catalog);
+  const results = [];
+  for (const mustFind of EUROPEAN_ESSENTIAL_MUST_FIND) {
+    const essential = EUROPEAN_ESSENTIALS.find((entry) => entry.key === mustFind.key)!;
+    const coverage = EVERYDAY_COVERAGE_V2.find((entry) => entry.key === essential.key);
+    const expectedIdentity = `${essential.source === "bls" ? "bls" : "usda_fdc"}:${essential.sourceId}`;
+    const acceptedFoodId = coverage?.aliasTarget.kind === "food_id" ? coverage.aliasTarget.foodId : null;
+    const candidates = await searchFoods(prisma, mustFind.query, 20);
+    const interpreted = await interpretMealInput(prisma, mustFind.query);
+    const top = candidates[0];
+    const second = candidates[1];
+    const topIdentity = identity(top);
+    const isAccepted = !!top && (topIdentity === expectedIdentity || top.id === acceptedFoodId);
+    const category = !top ? "MISSING" : interpreted.ambiguous ? "AMBIGUOUS" : isAccepted ? "CORRECT" : "WRONG_TOP_RESULT";
+    results.push({
+      key: mustFind.key, query: mustFind.query, expectedIdentity, acceptedFoodId,
+      actualTopIdentity: topIdentity, actualTopFoodId: top?.id ?? null,
+      stage: top?.match.stage ?? null, score: top?.match.score ?? 0,
+      secondIdentity: identity(second), secondFoodId: second?.id ?? null, secondScore: second?.match.score ?? 0,
+      category
+    });
+  }
+  return {
+    total: results.length,
+    correct: results.filter((result) => result.category === "CORRECT").length,
+    wrong: results.filter((result) => result.category === "WRONG_TOP_RESULT").length,
+    missing: results.filter((result) => result.category === "MISSING").length,
+    ambiguous: results.filter((result) => result.category === "AMBIGUOUS").length,
+    results
+  };
 }
 
 export const MEAL_REGRESSION_INPUTS = [

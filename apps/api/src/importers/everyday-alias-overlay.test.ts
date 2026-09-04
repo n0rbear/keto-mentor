@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { searchFoods } from "../catalog/food-search.js";
+import { buildSearchText } from "../catalog/normalize.js";
 import { applyEverydayExternalAliasTargets, planEverydayAliasUpserts } from "./everyday-alias-overlay.js";
-import { EVERYDAY_COVERAGE_V2 } from "./everyday-coverage-manifest.js";
+import { EVERYDAY_COVERAGE_V2, EVERYDAY_SEARCH_CORPUS } from "./everyday-coverage-manifest.js";
+import { auditProjectedEuropeanEssentials, auditProjectedSearch } from "./everyday-projected-audit.js";
+import { EUROPEAN_ESSENTIALS } from "./european-essentials-manifest.js";
 import { buildProjectedCatalog, projectedCatalogPrisma, type ProjectedCatalog } from "./projected-catalog.js";
 import type { ImportFood } from "./types.js";
 
@@ -56,5 +59,69 @@ describe("Everyday alias overlay", () => {
     await applyEverydayExternalAliasTargets(prisma, entries);
     expect(calls.map((call) => call.where)).toEqual(first);
     expect(calls.every((call) => call.create.foodId === "catalog-egg")).toBe(true);
+  });
+
+  it("keeps all 100 original European Essentials searches usable after projected apply", async () => {
+    const sourceFoods = EUROPEAN_ESSENTIALS.map((entry) => {
+      const source = entry.source === "bls" ? "bls" : "usda_fdc";
+      const language = entry.source === "bls" ? "de" : "en";
+      const value = {
+        id: `essential:${source}:${entry.sourceId}`, source, sourceId: entry.sourceId, createdById: null,
+        name: entry.label, originalName: entry.expectedNameTokens.join(" "), names: { [language]: entry.label },
+        synonyms: { [language]: [entry.label, ...entry.synonyms] }, servings: []
+      };
+      return { ...value, searchText: buildSearchText(value) };
+    });
+    const starters = [
+      ["catalog-egg", "Egg", "171287"], ["catalog-avocado", "Avocado", "171705"],
+      ["catalog-butter", "Butter", "173430"], ["catalog-spinach", "Spinach", "168462"],
+      ["catalog-cucumber", "Cucumber", "168409"], ["catalog-gouda", "Gouda", "171241"],
+      ["catalog-cheddar", "Cheddar", "173414"]
+    ].map(([id, name, sourceId]) => ({ id, name, originalName: name, names: { en: name }, searchText: name.toLowerCase(), source: "open_database", sourceId, createdById: null, servings: [] }));
+    const resolved = EVERYDAY_COVERAGE_V2.map((entry) => {
+      const source = entry.source === "bls" ? "bls" : "usda_fdc";
+      const language = entry.source === "bls" ? "de" : "en";
+      const names = entry.aliasTarget.kind === "source_identity"
+        ? Object.fromEntries(Object.entries(entry.aliases).map(([locale, aliases]) => [locale, aliases[0]]))
+        : { [language]: entry.expectedNameTokens.join(" ") };
+      const synonyms = entry.aliasTarget.kind === "source_identity"
+        ? Object.fromEntries(Object.entries(entry.aliases).map(([locale, aliases]) => [locale, [...aliases]]))
+        : {};
+      return {
+        source, sourceId: entry.sourceId, originalName: entry.expectedNameTokens.join(" "), name: entry.expectedNameTokens.join(" "),
+        names, synonyms, kcalPer100g: 1, proteinPer100g: 1, fatPer100g: 1, carbsPer100g: 1, fiberPer100g: 1,
+        provenance: { source: "test" }, nutrients: []
+      } as ImportFood;
+    });
+    const projected = buildProjectedCatalog({
+      foods: [...sourceFoods, ...starters],
+      aliases: [
+        { foodId: "catalog-gouda", alias: "Käse", normalizedAlias: "kase", locale: "de", kind: "synonym" },
+        { foodId: "catalog-cheddar", alias: "Käse", normalizedAlias: "kase", locale: "de", kind: "synonym" }
+      ]
+    }, resolved);
+    const audit = await auditProjectedEuropeanEssentials(projected);
+    expect(audit.total).toBe(100);
+    expect(audit.wrong).toBe(0);
+    expect(audit.missing).toBe(0);
+    expect(audit.results.filter((result) => result.category === "AMBIGUOUS").map((result) => result.key)).toEqual(["chicken-breast", "gouda"]);
+  });
+
+  it("separates true interpreter ambiguity from a low-confidence generic rank tie", async () => {
+    const foods = [
+      ["cheddar", "Cheddar"], ["gouda", "Gouda"], ["cod", "Fish cod"],
+      ["salmon", "Fish salmon"], ["wheat", "Wheat bread"], ["rye", "Rye bread"]
+    ].map(([id, name]) => ({
+      id, name, originalName: name, names: { en: name }, searchText: name.toLowerCase(),
+      source: "test", sourceId: id, createdById: null, servings: []
+    }));
+    const aliases = ["sajt", "kase"].flatMap((normalizedAlias) => ["cheddar", "gouda"].map((foodId) => ({
+      foodId, alias: normalizedAlias, normalizedAlias, locale: normalizedAlias === "sajt" ? "hu" : "de", kind: "synonym"
+    })));
+    const genericCases = EVERYDAY_SEARCH_CORPUS.filter((item) => item.expectedAmbiguous);
+    const audit = await auditProjectedSearch({ foods, aliases }, genericCases);
+    expect(audit.categories.AMBIGUOUS).toBe(4);
+    expect(audit.ambiguity).toEqual({ trueInterpreterAmbiguity: 3, genericLowConfidenceTie: 1 });
+    expect(audit.results.filter((result) => result.category === "AMBIGUOUS" && !result.interpretWouldBeAmbiguous).map((result) => result.query)).toEqual(["bread"]);
   });
 });
