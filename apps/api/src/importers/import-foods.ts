@@ -1,6 +1,22 @@
 import type { PrismaClient } from "@prisma/client";
-import { buildSearchText } from "../catalog/normalize.js";
+import { buildSearchText, normalizeSearch } from "../catalog/normalize.js";
 import type { FoodSourceAdapter, ImportFood, ImportOptions, ImportReport } from "./types.js";
+
+export type ImportedFoodAlias = { alias: string; normalizedAlias: string; locale: string; kind: "localized_name" | "synonym" };
+
+export function aliasesForImportedFood(food: ImportFood): ImportedFoodAlias[] {
+  const aliases = new Map<string, ImportedFoodAlias>();
+  const add = (alias: string, locale: string, kind: ImportedFoodAlias["kind"]) => {
+    const normalizedAlias = normalizeSearch(alias);
+    if (normalizedAlias.length < 2) return;
+    const key = `${locale}:${normalizedAlias}`;
+    const current = aliases.get(key);
+    if (!current || kind === "localized_name") aliases.set(key, { alias, normalizedAlias, locale, kind });
+  };
+  for (const [locale, name] of Object.entries(food.names ?? {})) add(name, locale, "localized_name");
+  for (const [locale, values] of Object.entries(food.synonyms ?? {})) for (const alias of values) add(alias, locale, "synonym");
+  return [...aliases.values()];
+}
 
 export async function upsertImportedFood(prisma: PrismaClient, food: ImportFood) {
   const searchText = buildSearchText(food);
@@ -10,6 +26,13 @@ export async function upsertImportedFood(prisma: PrismaClient, food: ImportFood)
       where: { source_sourceId: { source: food.source, sourceId: food.sourceId } },
       create: { ...foodData, searchText, createdById: null }, update: { ...foodData, searchText, createdById: null }
     });
+    for (const alias of aliasesForImportedFood(food)) {
+      await tx.foodAlias.upsert({
+        where: { foodId_normalizedAlias_locale: { foodId: saved.id, normalizedAlias: alias.normalizedAlias, locale: alias.locale } },
+        create: { foodId: saved.id, ...alias, confidence: 1, provenance: { method: "curated_import", source: food.source, sourceId: food.sourceId } },
+        update: { alias: alias.alias, kind: alias.kind, confidence: 1, provenance: { method: "curated_import", source: food.source, sourceId: food.sourceId } }
+      });
+    }
     for (const nutrient of nutrients) {
       const { amountPer100g, ...definitionData } = nutrient;
       const definition = await tx.nutrient.upsert({ where: { key: nutrient.key }, create: definitionData, update: definitionData });
@@ -41,7 +64,7 @@ export async function importFoods(prisma: PrismaClient, adapter: FoodSourceAdapt
       report.processed++;
     }
     // Conservative planning estimate: food row/search/provenance + nutrient links + indexes.
-    report.estimatedGrowthBytes += batch.reduce((sum, food) => sum + 900 + food.nutrients.length * 96 + buildSearchText(food).length, 0);
+    report.estimatedGrowthBytes += batch.reduce((sum, food) => sum + 900 + food.nutrients.length * 96 + buildSearchText(food).length + aliasesForImportedFood(food).length * 180, 0);
     batch = [];
     options.onProgress?.({ ...report, parsingErrors: [...report.parsingErrors] });
   };

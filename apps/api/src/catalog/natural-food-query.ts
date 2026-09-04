@@ -82,7 +82,7 @@ const CASE_SUFFIXES = [
 
 const CONJUNCTIONS = new Set(["es", "and", "und", "meg"]);
 
-const FOOD_FORMS: Record<string, string> = { tojast: "tojas", goudat: "gouda" };
+const FOOD_FORMS: Record<string, string> = { tojast: "tojas", goudat: "gouda", spinat: "spinat" };
 
 const SPEECH_VERBS = new Set(["ettem", "belole", "ate", "gegessen"]);
 
@@ -116,9 +116,11 @@ function extractBaseFood(token: string): { base: string; preparation?: string } 
       }
     }
   }
-  const stripped = stripCaseSuffix(base);
-  if (stripped.length >= 2) base = stripped;
   if (FOOD_FORMS[base]) base = FOOD_FORMS[base];
+  else {
+    const stripped = stripCaseSuffix(base);
+    if (stripped.length >= 2) base = stripped;
+  }
   return { base, preparation };
 }
 

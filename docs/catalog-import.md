@@ -59,4 +59,6 @@ No production database URL is available in this development environment, so prod
 
 The category-balanced pilot is complemented by a separately reviewed, source-ID-bound 100-food European essentials manifest. See [European essentials pilot](./european-essentials.md). Its default command is dry-run, its only USDA fallback is an explicit SR Legacy Tempeh identity, and it never fuzzy-selects source records.
 
+The next deterministic alias-and-identity increment is documented in [Everyday Coverage v2](./everyday-coverage-v2.md). It uses exact BLS, USDA SR Legacy and USDA Foundation identities, defaults to dry-run, and is not part of deploy or seed.
+
 Recipe composition is intentionally not part of the catalog import. The next-phase data and calculation boundaries are recorded in [Recipe architecture](./recipe-architecture.md).

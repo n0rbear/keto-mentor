@@ -6,10 +6,12 @@ import type { ImportFood } from "./types.js";
 describe("catalog importer", () => {
   it("is idempotent by source and sourceId", async () => {
     const foods = new Map<string, any>();
+    const aliases = new Map<string, any>();
     const nutrients = new Map<string, any>();
     const links = new Map<string, any>();
     const tx = {
       food: { upsert: async ({ where, create, update }: any) => { const key = `${where.source_sourceId.source}:${where.source_sourceId.sourceId}`; const saved = { id: "food-1", ...(foods.has(key) ? update : create) }; foods.set(key, saved); return saved; } },
+      foodAlias: { upsert: async ({ where, create, update }: any) => { const identity = where.foodId_normalizedAlias_locale; const key = `${identity.foodId}:${identity.normalizedAlias}:${identity.locale}`; aliases.set(key, aliases.has(key) ? { ...aliases.get(key), ...update } : create); } },
       nutrient: { upsert: async ({ where, create }: any) => { const saved = nutrients.get(where.key) ?? { id: `nutrient-${where.key}`, ...create }; nutrients.set(where.key, saved); return saved; } },
       foodNutrient: { upsert: async ({ where, create, update }: any) => { const key = `${where.foodId_nutrientId.foodId}:${where.foodId_nutrientId.nutrientId}`; links.set(key, links.has(key) ? { ...links.get(key), ...update } : create); } }
     };
@@ -20,6 +22,8 @@ describe("catalog importer", () => {
     await upsertImportedFood(prisma, { ...food, name: "Raw spinach" });
     expect(foods.size).toBe(1);
     expect([...foods.values()][0].name).toBe("Raw spinach");
+    expect(aliases.size).toBe(3);
+    expect([...aliases.values()].find((alias) => alias.normalizedAlias === "spenot")).toMatchObject({ kind: "localized_name", confidence: 1 });
     expect(links.size).toBe(1);
     expect(transactionOptions).toEqual({ maxWait: 10_000, timeout: 30_000 });
   });
