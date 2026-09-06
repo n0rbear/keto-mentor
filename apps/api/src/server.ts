@@ -5,11 +5,11 @@ import express from "express";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import jwt from "jsonwebtoken";
-import pino from "pino";
 import { pinoHttp } from "pino-http";
 import { z } from "zod";
 import { createMealSchema, loginSchema, mealInterpretationSchema, onboardingSchema, registerSchema } from "@keto-mentor/shared";
 import { env } from "./config.js";
+import { createLogger } from "./logger.js";
 
 
 import { hashPassword, readRefreshToken, requireAuth, setRefreshCookie, signRefreshToken, verifyPassword } from "./auth.js";
@@ -28,7 +28,7 @@ import { configuredFoodAiProvider } from "./ai/food-ai-gateway.js";
 import { FoodNlpUserRateLimiter, rateLimitedFoodNlpProvider } from "./ai/food-nlp-rate-limit.js";
 import { configuredQuantityAiProvider } from "./meal-input/quantity-ai-gateway.js";
 
-const logger = pino({ level: env.NODE_ENV === "production" ? "info" : "debug" });
+const logger = createLogger(env.NODE_ENV === "production" ? "info" : "debug");
 const app = express();
 const externalFoodAdapters = env.USDA_FDC_API_KEY ? [new UsdaFoodDataCentralLookupAdapter(env.USDA_FDC_API_KEY)] : [];
 const foodNlpProvider = configuredFoodAiProvider(env);
