@@ -15,13 +15,14 @@ import { createLogger } from "./logger.js";
 import { hashPassword, readRefreshToken, requireAuth, setRefreshCookie, signRefreshToken, verifyPassword } from "./auth.js";
 import { createSession, rotateSession, revokeActiveSession } from "./session.js";
 import { prisma } from "./db.js";
-import { serializeMeal, serializeMealSummary } from "./nutrition.js";
 import { searchFoods } from "./catalog/food-search.js";
 import { confirmAuthoritativeFood, externalFoodConfirmationSchema, resolveAuthoritativeFood } from "./catalog/external-food.js";
 import { EXTERNAL_FOOD_CONFIRM_RATE_LIMIT, EXTERNAL_FOOD_RATE_LIMIT, externalFoodRateLimitKey } from "./catalog/external-food-rate-limit.js";
 import { UsdaFoodDataCentralLookupAdapter } from "./catalog/structured-source-adapters.js";
 import { parseNaturalFoodQuery } from "./catalog/natural-food-query.js";
 import { createMeal } from "./meals/create-meal.js";
+import { resolveDiaryDateRange } from "./meals/diary-date.js";
+import { getMealsForDay } from "./meals/diary-query.js";
 import { recipeRouter } from "./recipes/router.js";
 import { interpretMealInput } from "./meal-input/interpret.js";
 import { configuredFoodAiProvider } from "./ai/food-ai-gateway.js";
@@ -207,47 +208,20 @@ app.put("/me/onboarding", requireAuth, async (req, res, next) => {
   }
 });
 
-app.get("/meals/today", requireAuth, async (req, res) => {
-  const now = new Date();
-  const start = new Date(now);
-  start.setHours(0, 0, 0, 0);
-  const end = new Date(start);
-  end.setDate(end.getDate() + 1);
-  const summary = req.query.view === "summary";
-  const where = { userId: req.user!.id, eatenAt: { gte: start, lt: end } };
-  // Keep the historical detailed response shape by default. The dashboard
-  // explicitly opts into a narrow database projection and summary response.
-  const serialized = summary
-    ? (await prisma.meal.findMany({
-        where,
-        orderBy: { eatenAt: "desc" },
-        select: {
-          id: true, title: true, eatenAt: true,
-          items: { select: {
-            quantityGrams: true,
-            snapshotKcal: true, snapshotFat: true, snapshotProtein: true,
-            snapshotCarbs: true, snapshotFiber: true,
-            food: { select: {
-              kcalPer100g: true, fatPer100g: true, proteinPer100g: true,
-              carbsPer100g: true, fiberPer100g: true
-            } }
-          } }
-        }
-      })).map(serializeMealSummary)
-    : (await prisma.meal.findMany({
-        where,
-        orderBy: { eatenAt: "desc" },
-        include: { items: { include: { food: true, recipe: true } } }
-      })).map(serializeMeal);
-  const totals = serialized.reduce((sum, meal) => ({
-    kcal: sum.kcal + meal.totals.kcal,
-    fat: sum.fat + meal.totals.fat,
-    protein: sum.protein + meal.totals.protein,
-    carbs: sum.carbs + meal.totals.carbs,
-    fiber: sum.fiber + meal.totals.fiber,
-    netCarbs: sum.netCarbs + meal.totals.netCarbs
-  }), { kcal: 0, fat: 0, protein: 0, carbs: 0, fiber: 0, netCarbs: 0 });
-  res.json({ meals: serialized, totals });
+// Kept at /meals/today for backward compatibility; ?date=YYYY-MM-DD (with an
+// optional ?tzOffsetMinutes, per Date.prototype.getTimezoneOffset()) selects
+// any calendar day in the caller's own timezone instead of defaulting to today.
+app.get("/meals/today", requireAuth, async (req, res, next) => {
+  try {
+    const dateParam = typeof req.query.date === "string" ? req.query.date : undefined;
+    const tzOffsetParam = typeof req.query.tzOffsetMinutes === "string" ? req.query.tzOffsetMinutes : undefined;
+    const range = resolveDiaryDateRange({ date: dateParam, tzOffsetMinutes: tzOffsetParam });
+    const view = req.query.view === "summary" ? "summary" : "detailed";
+    const result = await getMealsForDay(prisma, req.user!.id, range, view);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.post("/meals", requireAuth, async (req, res, next) => {

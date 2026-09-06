@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { Activity, ExternalLink, LogOut, Mail, Plus, ShieldCheck, Sparkles } from "lucide-react";
+import { Activity, ChevronLeft, ChevronRight, ExternalLink, LogOut, Mail, Plus, ShieldCheck, Sparkles } from "lucide-react";
 
 import { dict, type Lang } from "./i18n";
 import { api, ApiError, type ApiState } from "./api";
+import { shiftDate, todayLocalDate } from "./date";
 import "./styles.css";
 import norbappLogo from "./assets/norbapp-logo-new.png";
 
@@ -44,6 +45,7 @@ function App() {
 
   const [meals, setMeals] = useState<Meal[]>([]);
   const [totals, setTotals] = useState<Totals>({ kcal: 0, fat: 0, protein: 0, carbs: 0, fiber: 0, netCarbs: 0 });
+  const [selectedDate, setSelectedDate] = useState(() => todayLocalDate());
   const [selectedFood, setSelectedFood] = useState<Food | null>(null);
   const [mealSaving, setMealSaving] = useState(false);
   const [mealStatus, setMealStatus] = useState<{ kind: "success" | "error"; text: string } | null>(null);
@@ -62,22 +64,46 @@ function App() {
     else localStorage.removeItem("km_token");
   }, [token]);
 
-  async function load() {
+  function fetchMealsForDate(dateStr: string) {
+    const tzOffsetMinutes = new Date().getTimezoneOffset();
+    return api<{ meals: Meal[]; totals: Totals; date: string }>(
+      `/meals/today?view=summary&date=${dateStr}&tzOffsetMinutes=${tzOffsetMinutes}`, {}, state
+    );
+  }
+
+  function applyMealsResult(result: { meals: Meal[]; totals: Totals }) {
+    setMeals(result.meals);
+    setTotals(result.totals);
+  }
+
+  async function loadAll(dateStr: string) {
     if (!token) return;
-    // /me and /meals/today are independent; fetch them concurrently to cut
+    // /me and the diary day are independent; fetch them concurrently to cut
     // initial dashboard latency (previously awaited sequentially).
-    const [me, today] = await Promise.all([
+    const [me, day] = await Promise.all([
       api<{ user: User }>("/me", {}, state),
-      api<{ meals: Meal[]; totals: Totals }>("/meals/today?view=summary", {}, state)
+      fetchMealsForDate(dateStr)
     ]);
     setUser(me.user);
     setLang(me.user.locale);
-    setMeals(today.meals);
-    setTotals(today.totals);
+    applyMealsResult(day);
   }
 
+  // A meal is always logged against "now", so jump the diary back to today
+  // when one is added — otherwise a meal added while browsing a past day
+  // would silently not appear in the list the user is looking at.
+  async function handleMealLogged() {
+    const today = todayLocalDate();
+    setSelectedDate(today);
+    await loadAll(today);
+  }
 
-  useEffect(() => { load().catch(() => setToken(null)); }, [token]);
+  useEffect(() => { loadAll(selectedDate).catch(() => setToken(null)); }, [token]);
+
+  useEffect(() => {
+    if (!token || !user) return;
+    fetchMealsForDate(selectedDate).then(applyMealsResult).catch(() => {});
+  }, [selectedDate]);
 
   async function saveOnboarding(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -97,7 +123,7 @@ function App() {
         allergies: String(form.get("allergies")).split(",").map((x) => x.trim()).filter(Boolean)
       })
     }, state);
-    await load();
+    await loadAll(selectedDate);
   }
 
   async function addMeal(event: React.FormEvent<HTMLFormElement>) {
@@ -124,7 +150,7 @@ function App() {
       setMealQuantity("1");
       setGramsOverride("");
       setFoodResetVersion((value) => value + 1);
-      await load();
+      await handleMealLogged();
       setMealStatus({ kind: "success", text: t.mealSaved });
     } catch (error) {
       setMealStatus({ kind: "error", text: mealErrorText(error, t.mealErrors) });
@@ -180,7 +206,7 @@ function App() {
       await api("/meals", { method: "POST", body: JSON.stringify({ title: interpretation.input || (lang === "hu" ? "Ebéd" : lang === "de" ? "Mahlzeit" : "Meal"), items }) }, state);
       setInterpretation(null);
       setNaturalInput("");
-      await load();
+      await handleMealLogged();
       setMealStatus({ kind: "success", text: t.mealSaved });
     } catch (error) {
       setMealStatus({ kind: "error", text: mealErrorText(error, t.mealErrors) });
@@ -302,8 +328,17 @@ function App() {
               <Macro label="fiber" value={totals.fiber} goal={goals.dailyFiber}/>
             </div>
             <div className="card today-card">
-              <h2 className="section-heading"><Activity size={20}/>{t.today}</h2>
-              <div className="meal-list">{meals.map((m) => <div className="meal" key={m.id}><div className="meal-copy"><strong>{m.title}</strong><time dateTime={m.eatenAt}>{formatMealTime(m.eatenAt, lang)}</time></div><span className="meal-macros">{Math.round(m.totals.kcal)} kcal · <b>{Math.round(m.totals.netCarbs)} g net</b></span></div>)}</div>
+              <div className="diary-date-nav">
+                <button type="button" className="btn secondary icon-button" aria-label={t.diary.previousDay} onClick={() => setSelectedDate((current) => shiftDate(current, -1))}><ChevronLeft size={18}/></button>
+                <h2 className="section-heading diary-date-heading"><Activity size={20}/>{selectedDate === todayLocalDate() ? t.today : formatDiaryDate(selectedDate, lang)}</h2>
+                <button type="button" className="btn secondary icon-button" aria-label={t.diary.nextDay} disabled={selectedDate === todayLocalDate()} onClick={() => setSelectedDate((current) => shiftDate(current, 1))}><ChevronRight size={18}/></button>
+              </div>
+              <input type="date" className="field diary-date-input" aria-label={t.diary.selectDate} value={selectedDate} max={todayLocalDate()} onChange={(event) => event.target.value && setSelectedDate(event.target.value)}/>
+              {meals.length === 0 ? (
+                <p className="diary-empty text-xs text-muted">{t.diary.noMeals}</p>
+              ) : (
+                <div className="meal-list">{meals.map((m) => <div className="meal" key={m.id}><div className="meal-copy"><strong>{m.title}</strong><time dateTime={m.eatenAt}>{formatMealTime(m.eatenAt, lang)}</time></div><span className="meal-macros">{Math.round(m.totals.kcal)} kcal · <b>{Math.round(m.totals.netCarbs)} g net</b></span></div>)}</div>
+              )}
             </div>
           </div>
           <form onSubmit={addMeal} className="card meal-entry-card space-y-3">
@@ -332,7 +367,7 @@ function App() {
           </form>
         </section>
       )}
-      {user && profile?.onboardingDone && <RecipeBuilder lang={lang} state={state} currentUserId={user.id} onMealAdded={load}/>}
+      {user && profile?.onboardingDone && <RecipeBuilder lang={lang} state={state} currentUserId={user.id} onMealAdded={handleMealLogged}/>}
       <footer className="app-footer">
         <div className="footer-inner">
           <a className="brand-link" href="https://norbapp.com" target="_blank" rel="noreferrer" aria-label="NorbApp weboldal megnyitasa">
@@ -357,6 +392,12 @@ function formatMealTime(value: string, lang: Lang) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
   return new Intl.DateTimeFormat(lang === "hu" ? "hu-HU" : lang === "de" ? "de-DE" : "en-GB", { hour: "2-digit", minute: "2-digit" }).format(date);
+}
+
+function formatDiaryDate(dateStr: string, lang: Lang) {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+  return new Intl.DateTimeFormat(lang === "hu" ? "hu-HU" : lang === "de" ? "de-DE" : "en-GB", { weekday: "short", month: "short", day: "numeric" }).format(date);
 }
 
 function OnboardingField({ id, label, help, defaultValue, placeholder }: { id: string; label: string; help: string; defaultValue?: string; placeholder?: string }) {
