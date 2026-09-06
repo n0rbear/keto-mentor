@@ -5,7 +5,7 @@ import { Activity, ExternalLink, LogOut, Mail, Plus, ShieldCheck, Sparkles } fro
 import { dict, type Lang } from "./i18n";
 import { api, ApiError, type ApiState } from "./api";
 import "./styles.css";
-import norbappLogo from "./assets/norbapp-logo.webp";
+import norbappLogo from "./assets/norbapp-logo-new.png";
 
 import { RecipeBuilder } from "./RecipeBuilder";
 import { AuthForm } from "./AuthForm";
@@ -195,7 +195,7 @@ function App() {
       <header className="app-header">
         <div className="app-header-inner">
           <a className="product-lockup" href="#top" aria-label="NorbApp Keto Mentor">
-            <span className="brand-logo-slot"><img src={norbappLogo} alt=""/></span>
+            <span className="brand-logo-slot"><img src={norbappLogo} alt="NorbApp"/></span>
             <span className="product-lockup-copy"><small>NorbApp health</small><strong>{t.app}</strong></span>
           </a>
           <div className="header-actions">
@@ -304,7 +304,7 @@ function App() {
       <footer className="app-footer">
         <div className="footer-inner">
           <a className="brand-link" href="https://norbapp.com" target="_blank" rel="noreferrer" aria-label="NorbApp weboldal megnyitasa">
-            <img src={norbappLogo} alt=""/><span>NorbApp · Keto Mentor</span>
+            <img src={norbappLogo} alt="NorbApp"/><span>NorbApp · Keto Mentor</span>
           </a>
           <div className="footer-links">
             <a className="contact-link" href="https://norbapp.com" target="_blank" rel="noreferrer"><ExternalLink size={15}/>norbapp.com</a>

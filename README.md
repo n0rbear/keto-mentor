@@ -20,7 +20,7 @@ Keto Mentor uses the current dark NorbApp product system:
 - Subtle compass-inspired geometry, low-cost radial light and quiet glass/metal depth
 - System sans typography, compact app-oriented hierarchy and highly legible numeric metrics
 
-Colors are centralized as semantic CSS tokens in `apps/web/src/styles.css` and exposed through Tailwind-compatible semantic aliases. The parent-brand area intentionally has a replaceable logo slot. The exact approved bird/compass asset is still required at `apps/web/src/assets/norbapp-logo-new.svg` (or the approved source format); the legacy lightweight NorbApp wordmark remains temporary and must not be treated as the new official logo.
+Colors are centralized as semantic CSS tokens in `apps/web/src/styles.css` and exposed through Tailwind-compatible semantic aliases. The approved NorbApp bird/compass parent-brand artwork is integrated unchanged from its supplied PNG source at `apps/web/src/assets/norbapp-logo-new.png`; Keto Mentor remains the product identity in typography.
 
 ## Local Development
 
