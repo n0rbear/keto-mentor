@@ -94,6 +94,11 @@ export const editMealSchema = z.object({
 });
 export type EditMealInput = z.infer<typeof editMealSchema>;
 
+// Repeat carries no client-authored content at all — the server loads the
+// trusted source meal itself, so any field here (identity, quantity,
+// nutrition, another userId) would only ever be a forgery attempt.
+export const repeatMealSchema = z.object({}).strict();
+
 export const mealInterpretationSchema = z.object({
   text: z.string().trim().min(2).max(300)
 }).strict();
