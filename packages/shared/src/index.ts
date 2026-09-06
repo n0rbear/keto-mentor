@@ -57,7 +57,45 @@ export const createMealSchema = z.object({
 
 export const mealInterpretationSchema = z.object({
   text: z.string().trim().min(2).max(300)
+}).strict();
+
+export const foodUnderstandingLanguageSchema = z.enum(["hu", "de", "en", "unknown"]);
+export const foodUnderstandingKindSchema = z.enum(["single_food", "multiple_foods", "compound_dish"]);
+export const foodUnderstandingUnitSchema = z.enum([
+  "g", "kg", "piece", "slice", "portion", "plate", "bowl", "ladle",
+  "tbsp", "tsp", "cup", "handful", "half", "quarter", "unknown"
+]);
+export const foodUnderstandingItemSchema = z.object({
+  originalText: z.string().trim().min(1).max(160),
+  canonicalName: z.string().trim().min(1).max(120),
+  quantity: z.number().finite().positive().max(10_000).optional(),
+  unit: foodUnderstandingUnitSchema.optional(),
+  size: z.enum(["small", "medium", "large"]).optional(),
+  preparation: z.string().trim().min(1).max(60).optional(),
+  modifiers: z.array(z.string().trim().min(1).max(80)).max(12).optional(),
+  excludedModifiers: z.array(z.string().trim().min(1).max(80)).max(12).optional(),
+  evidence: z.enum(["explicit", "inferred_common"]),
+  confidence: z.number().finite().min(0).max(1)
+}).strict();
+export const foodUnderstandingSchema = z.object({
+  language: foodUnderstandingLanguageSchema,
+  kind: foodUnderstandingKindSchema,
+  dishName: z.string().trim().min(1).max(120).optional(),
+  items: z.array(foodUnderstandingItemSchema).min(1).max(12),
+  clarificationNeeded: z.boolean(),
+  clarificationReason: z.string().trim().min(1).max(240).optional(),
+  confidence: z.number().finite().min(0).max(1)
+}).strict().superRefine((value, context) => {
+  if (value.kind === "compound_dish" && !value.dishName) {
+    context.addIssue({ code: "custom", path: ["dishName"], message: "dishName is required for compound dishes" });
+  }
+  if (value.clarificationNeeded && !value.clarificationReason) {
+    context.addIssue({ code: "custom", path: ["clarificationReason"], message: "clarificationReason is required" });
+  }
 });
+
+export type FoodUnderstanding = z.infer<typeof foodUnderstandingSchema>;
+export type FoodUnderstandingItem = z.infer<typeof foodUnderstandingItemSchema>;
 
 export const recipeVisibilitySchema = z.enum(["private", "public", "unlisted"]);
 export const recipeIngredientSchema = z.object({

@@ -49,6 +49,13 @@ label { display: grid; gap: 6px; font-size: 13px; font-weight: 800; color: #2437
 .interpretation { display: grid; gap: 2px; border-radius: 10px; padding: 9px 11px; font-size: 12px; }
 .interpretation.ready { background: #E5F8EF; color: #17613D; }
 .interpretation.needs-review { background: #FFF7E6; color: #73520B; }
+.understanding-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; }
+.ai-assisted-badge { border: 1px solid currentColor; border-radius: 999px; padding: 2px 7px; font-size: 10px; font-weight: 700; opacity: .82; }
+.understanding-item { display: grid; gap: 2px; padding: 6px 0; }
+.understanding-item + .understanding-item { border-top: 1px solid rgb(0 0 0 / 8%); }
+.understanding-item small { display: block; }
+.inferred-label { font-style: italic; }
+.clarification-note { margin-top: 5px; border-left: 3px solid currentColor; padding-left: 8px; }
 .status { border-radius: 12px; padding: 11px 13px; font-size: 13px; font-weight: 700; }
 .status.success { border: 1px solid #8BD5B1; background: #ECFAF3; color: #17613D; }
 .status.error { border: 1px solid #E8A7A7; background: #FFF1F1; color: #8B2424; }

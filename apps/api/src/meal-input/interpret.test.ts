@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { interpretMealInput, type InterpretResult } from "./interpret.js";
 import { normalizeSearch } from "../catalog/normalize.js";
+import type { AiProvider } from "../ai/provider.js";
+import type { FoodUnderstanding } from "@keto-mentor/shared";
 
 type Serving = { id: string; key: string; unit: string; labels: Record<string, string>; grams: number; isEstimated: boolean; confidence: number; provenance: unknown };
 type Food = {
@@ -28,7 +30,9 @@ const baseFoods: Food[] = [
   ], kcalPer100g: 717 },
   { id: "catalog-cheddar", name: "Cheddar cheese", names: { hu: "Cheddar sajt", de: "Cheddar", en: "Cheddar cheese" }, synonyms: { hu: ["cheddar", "sajt"], de: ["cheddar", "käse", "kase"], en: ["cheddar", "cheese"] }, servings: [{ id: "cheddar-slice", key: "slice", unit: "slice", labels: { en: "slice" }, grams: 28, isEstimated: false, confidence: 1, provenance: { method: "authoritative", fdcId: "173414", portionId: "92472" } }], kcalPer100g: 403 },
   { id: "catalog-gouda", name: "Gouda cheese", names: { hu: "Gouda sajt", de: "Gouda", en: "Gouda cheese" }, synonyms: { hu: ["gouda", "sajt"], de: ["gouda", "käse", "kase"], en: ["gouda", "cheese"] }, servings: [{ id: "gouda-slice", key: "slice", unit: "slice", labels: { en: "slice" }, grams: 28.35, isEstimated: true, confidence: 0.7, provenance: { method: "reference_estimate", fdcId: "171241", portionId: "88235" } }], kcalPer100g: 356 },
-  { id: "catalog-cucumber", name: "Cucumber", names: { hu: "Kígyóuborka", de: "Gurke", en: "Cucumber" }, synonyms: { hu: ["kígyóuborka", "kigyouborka", "uborka"], de: ["gurke", "salatgurke"], en: ["cucumber"] }, servings: [{ id: "cucumber-piece", key: "piece", unit: "piece", labels: { en: "piece" }, grams: 300, isEstimated: true, confidence: 0.7, provenance: { method: "curated_estimate" } }], kcalPer100g: 15 }
+  { id: "catalog-cucumber", name: "Cucumber", names: { hu: "Kígyóuborka", de: "Gurke", en: "Cucumber" }, synonyms: { hu: ["kígyóuborka", "kigyouborka", "uborka"], de: ["gurke", "salatgurke"], en: ["cucumber"] }, servings: [{ id: "cucumber-piece", key: "piece", unit: "piece", labels: { en: "piece" }, grams: 300, isEstimated: true, confidence: 0.7, provenance: { method: "curated_estimate" } }], kcalPer100g: 15 },
+  { id: "catalog-sausage", name: "Sausage", names: { hu: "Virsli", de: "Würstchen", en: "Sausage" }, synonyms: { hu: ["virsli"], de: ["wurstchen"], en: ["sausage"] }, servings: [{ id: "sausage-piece", key: "piece", unit: "piece", labels: { en: "piece" }, grams: 50, isEstimated: false, confidence: 1, provenance: { method: "authoritative" } }], kcalPer100g: 300 },
+  { id: "catalog-pepper", name: "Pepper", names: { hu: "Paprika", de: "Paprika", en: "Pepper" }, synonyms: { hu: ["paprika"], de: ["paprika"], en: ["pepper"] }, kcalPer100g: 20 }
 ];
 
 function makePrisma() {
@@ -59,6 +63,19 @@ function makePrisma() {
 }
 
 const prisma = makePrisma();
+
+class MockFoodNlpProvider implements AiProvider {
+  id = "mock-food-nlp";
+  model = "fixture-v1";
+  calls = 0;
+  constructor(private readonly result: FoodUnderstanding | Error) {}
+  supports(capability: string) { return capability === "food_nlp"; }
+  async run<TInput, TOutput>(): Promise<TOutput> {
+    this.calls += 1;
+    if (this.result instanceof Error) throw this.result;
+    return this.result as TOutput;
+  }
+}
 
 describe("meal input interpretation", () => {
   it("5 tojás -> generic Egg", async () => {
@@ -233,5 +250,123 @@ describe("meal input interpretation", () => {
     const gItem = r.items?.find((it) => it.parsed.unit === "g");
     expect(kgItem?.quantity?.grams).toBe(1000);
     expect(gItem?.quantity?.grams).toBe(200);
+  });
+
+  it("does not call AI for safe deterministic egg or Gouda inputs", async () => {
+    const ai = new MockFoodNlpProvider(new Error("must not be called"));
+    const egg = await interpretMealInput(prisma, "2 tojás", undefined, ai);
+    const gouda = await interpretMealInput(prisma, "3 szelet Gouda", undefined, ai);
+    expect(egg.interpretationSource).toBe("deterministic");
+    expect(gouda.interpretationSource).toBe("deterministic");
+    expect(ai.calls).toBe(0);
+  });
+
+  it("represents a compound dish and independently resolves only explicit trusted components", async () => {
+    const ai = new MockFoodNlpProvider({
+      language: "hu", kind: "compound_dish", dishName: "lecsó", confidence: 0.96,
+      clarificationNeeded: true, clarificationReason: "A lecsó adagjának összetétele pontosítandó.",
+      items: [
+        { originalText: "egy tányér lecsó", canonicalName: "lecsó", quantity: 1, unit: "plate", evidence: "explicit", confidence: 0.98 },
+        { originalText: "két virsli", canonicalName: "sausage", quantity: 2, unit: "piece", evidence: "explicit", confidence: 0.97 },
+        { originalText: "három tojás", canonicalName: "egg", quantity: 3, unit: "piece", evidence: "explicit", confidence: 0.98 },
+        { originalText: "paprika", canonicalName: "pepper", evidence: "inferred_common", confidence: 0.6 }
+      ]
+    });
+    const result = await interpretMealInput(prisma, "egy tányér lecsó két virslivel és három tojással", undefined, ai);
+    expect(result.interpretationSource).toBe("ai_assisted");
+    expect(result.foodResolution).toBe("compound");
+    expect(result.semantic?.dishName).toBe("lecsó");
+    expect(result.canConfirm).toBe(false);
+    expect(result.items?.map((item) => item.selectedFood?.id ?? null)).toEqual([null, "catalog-sausage", "catalog-egg", null]);
+    expect(result.items?.[1].quantity?.grams).toBe(100);
+    expect(result.items?.[2].quantity?.grams).toBe(150);
+    expect(result.items?.[3].semanticItem?.evidence).toBe("inferred_common");
+    expect(result.items?.[3].selectedFood).toBeNull();
+    expect(result.items?.[3].nutritionEligible).toBe(false);
+  });
+
+  it("supports an AI-assisted single food and re-resolves it through the trusted catalog", async () => {
+    const ai = new MockFoodNlpProvider({
+      language: "en", kind: "single_food", confidence: 0.95, clarificationNeeded: false,
+      items: [{ originalText: "half of the creamy green fruit", canonicalName: "avocado", quantity: 1, unit: "half", evidence: "explicit", confidence: 0.96 }]
+    });
+    const result = await interpretMealInput(prisma, "half of the creamy green fruit", undefined, ai);
+    expect(result).toMatchObject({ interpretationSource: "ai_assisted", selectedFood: { id: "catalog-avocado" }, nutritionEligible: true, canConfirm: true });
+    expect(result.quantity?.grams).toBe(100.5);
+  });
+
+  it("preserves order and independently resolves AI-extracted multiple foods", async () => {
+    const ai = new MockFoodNlpProvider({
+      language: "en", kind: "multiple_foods", confidence: 0.96, clarificationNeeded: false,
+      items: [
+        { originalText: "an egg", canonicalName: "egg", quantity: 1, unit: "piece", evidence: "explicit", confidence: 0.98 },
+        { originalText: "half an avocado", canonicalName: "avocado", quantity: 1, unit: "half", evidence: "explicit", confidence: 0.97 }
+      ]
+    });
+    const result = await interpretMealInput(prisma, "an egg alongside half an avocado", undefined, ai);
+    expect(result.interpretationSource).toBe("ai_assisted");
+    expect(result.foodResolution).toBe("multi");
+    expect(result.items?.map((item) => item.selectedFood?.id)).toEqual(["catalog-egg", "catalog-avocado"]);
+    expect(result.items?.map((item) => item.quantity?.grams)).toEqual([50, 100.5]);
+  });
+
+  it("preserves modifiers and exclusions without inventing weight or nutrition", async () => {
+    const ai = new MockFoodNlpProvider({
+      language: "de", kind: "compound_dish", dishName: "Döner", confidence: 0.93,
+      clarificationNeeded: true, clarificationReason: "Portion and trusted dish record are unresolved.",
+      items: [{ originalText: "Döner", canonicalName: "döner", modifiers: ["extra meat"], excludedModifiers: ["sauce"], evidence: "explicit", confidence: 0.94 }]
+    });
+    const result = await interpretMealInput(prisma, "ein Döner mit extra Fleisch ohne Soße", undefined, ai);
+    expect(result.semantic?.dishName).toBe("Döner");
+    expect(result.items?.[0].semanticItem).toMatchObject({ modifiers: ["extra meat"], excludedModifiers: ["sauce"] });
+    expect(result.items?.[0].quantity).toBeNull();
+    expect(result.canConfirm).toBe(false);
+  });
+
+  it("falls back to unchanged deterministic behavior when the provider fails", async () => {
+    const ai = new MockFoodNlpProvider(new Error("upstream unavailable"));
+    const result = await interpretMealInput(prisma, "unrecognized compound meal with sauce", undefined, ai);
+    expect(ai.calls).toBe(1);
+    expect(result.interpretationSource).toBe("deterministic");
+    expect(result.foodResolution).toBe("unresolved");
+  });
+
+  it("rejects nutrition-bearing output at the provider-neutral boundary before trusted resolution", async () => {
+    const poisoned = {
+      language: "en", kind: "single_food", confidence: 0.99, clarificationNeeded: false, kcal: 500,
+      items: [{ originalText: "mystery meal", canonicalName: "egg", evidence: "explicit", confidence: 0.99 }]
+    } as unknown as FoodUnderstanding;
+    const ai = new MockFoodNlpProvider(poisoned);
+    const result = await interpretMealInput(prisma, "mystery meal phrase", undefined, ai);
+    expect(ai.calls).toBe(1);
+    expect(result.interpretationSource).toBe("deterministic");
+    expect(result.selectedFood).toBeNull();
+    expect(result.nutritionEligible).not.toBe(true);
+  });
+
+  it.each([
+    ["egy döner extra hússal, szósz nélkül", "hu", "compound_dish", "döner", ["extra meat"], ["sauce"]],
+    ["fél grillcsirke", "hu", "single_food", "roast chicken", [], []],
+    ["ein Döner mit extra Fleisch ohne Soße", "de", "compound_dish", "döner", ["extra meat"], ["sauce"]],
+    ["a Caesar salad without croutons", "en", "compound_dish", "Caesar salad", [], ["croutons"]],
+    ["two ladles of beef stew", "en", "compound_dish", "beef stew", [], []]
+  ] as const)("produces a safe mock product preview for %s", async (input, language, kind, dishName, modifiers, exclusions) => {
+    const ai = new MockFoodNlpProvider({
+      language, kind, dishName: kind === "compound_dish" ? dishName : undefined, confidence: 0.94,
+      clarificationNeeded: true, clarificationReason: "A trusted dish or quantity conversion is still required.",
+      items: [{
+        originalText: input, canonicalName: dishName, quantity: input.includes("two ladles") ? 2 : input.includes("fél") ? 1 : undefined,
+        unit: input.includes("two ladles") ? "ladle" : input.includes("fél") ? "half" : undefined,
+        modifiers: [...modifiers], excludedModifiers: [...exclusions], evidence: "explicit", confidence: 0.94
+      }]
+    });
+    const result = await interpretMealInput(prisma, input, undefined, ai);
+    const item = result.items?.[0] ?? result;
+    expect(result.interpretationSource).toBe("ai_assisted");
+    expect(result.semantic).toMatchObject({ language, clarificationNeeded: true });
+    if (kind === "compound_dish") expect(result.semantic?.dishName).toBe(dishName);
+    expect(item.semanticItem).toMatchObject({ modifiers: [...modifiers], excludedModifiers: [...exclusions] });
+    expect(item.nutritionEligible).toBe(false);
+    expect(result.canConfirm).toBe(false);
   });
 });
