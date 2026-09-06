@@ -10,6 +10,7 @@ import ketomentorLogo from "./assets/ketomentor-logo.png";
 
 import { RecipeBuilder } from "./RecipeBuilder";
 import { AuthForm } from "./AuthForm";
+import { FoodUnderstandingPreview } from "./FoodUnderstandingPreview";
 
 type User = { id: string; username: string; locale: Lang; profile?: any };
 export type Totals = { kcal: number; fat: number; protein: number; carbs: number; fiber: number; netCarbs: number };
@@ -19,7 +20,7 @@ export type Food = { id: string; name: string; names?: Record<Lang, string>; ser
 type MealInterpretation = {
   input?: string;
   parsed: { quantity?: number; unit?: string; size?: string; foodQuery: string; preparation?: string };
-  foodResolution: "resolved" | "preview" | "confirmation_required" | "unresolved" | "multi";
+  foodResolution: "resolved" | "preview" | "confirmation_required" | "unresolved" | "multi" | "compound";
   selectedFood: Food | null;
   candidates: Food[];
   quantity: null | { status: "resolved" | "unresolved"; grams?: number; servingId?: string; method?: string; confidence?: number; estimated: boolean; requiresConfirmation: boolean; reason?: string };
@@ -27,6 +28,10 @@ type MealInterpretation = {
   confidence?: number;
   preparation?: string;
   items?: MealInterpretation[];
+  interpretationSource?: "deterministic" | "ai_assisted";
+  semantic?: { language: Lang | "unknown"; kind: "single_food" | "multiple_foods" | "compound_dish"; dishName?: string; clarificationNeeded: boolean; clarificationReason?: string };
+  semanticItem?: { canonicalName: string; evidence: "explicit" | "inferred_common"; modifiers?: string[]; excludedModifiers?: string[] };
+  nutritionEligible?: boolean;
 };
 
 function App() {
@@ -275,45 +280,7 @@ function App() {
             <div className="natural-input">
               <label htmlFor="natural-meal-input">{lang === "hu" ? "Mondd el, mit ettél" : lang === "de" ? "Beschreibe, was du gegessen hast" : "Describe what you ate"}</label>
               <div className="natural-input-row"><input id="natural-meal-input" className="field" value={naturalInput} onChange={(event) => { setNaturalInput(event.target.value); setInterpretation(null); setSelectedFood(null); setMealQuantity("1"); setMealMeasure("g"); setGramsOverride(""); }} placeholder={lang === "hu" ? "Például: 5 tojás" : lang === "de" ? "Zum Beispiel: 3 Scheiben Gouda" : "For example: 5 eggs"}/><button type="button" className="btn secondary" disabled={interpreting || naturalInput.trim().length < 2} onClick={interpretNaturalInput}>{interpreting ? "…" : lang === "hu" ? "Értelmezés" : lang === "de" ? "Verstehen" : "Interpret"}</button></div>
-              {interpretation && <div className={`interpretation ${interpretation.canConfirm ? "ready" : "needs-review"}`} role="status">
-                {interpretation.items ? (
-                  <div>
-                    <strong>{lang === "hu" ? "Több étel értelmezve:" : lang === "de" ? "Mehrere Lebensmittel erkannt:" : "Multiple foods detected:"}</strong>
-                    <ul className="multi-preview-list">
-                      {interpretation.items.map((it, i) => (
-                        <li key={i}>
-                          <span>{it.selectedFood ? (it.selectedFood.names?.[lang] ?? it.selectedFood.name) : it.parsed.foodQuery}</span>
-                          {it.preparation ? <em> · {it.preparation}</em> : null}
-                          {it.parsed.quantity != null ? <span> · {it.parsed.quantity} {it.parsed.unit}</span> : null}
-                          {it.quantity?.status === "resolved" ? <span> = {Math.round(it.quantity.grams ?? 0)} g</span> : <span> · ?</span>}
-                        </li>
-                      ))}
-                    </ul>
-                    <button type="button" className="btn primary" disabled={!interpretation.canConfirm || mealSaving} onClick={confirmMultiMeal}>
-                      {mealSaving ? "…" : lang === "hu" ? "Összes naplózása" : lang === "de" ? "Alle eintragen" : "Log all"}
-                    </button>
-                  </div>
-                ) : interpretation.canConfirm && interpretation.selectedFood && interpretation.quantity ? (
-                  <>
-                    <strong>{interpretation.selectedFood.names?.[lang] ?? interpretation.selectedFood.name}</strong>
-                    {interpretation.preparation ? <em> · {interpretation.preparation}</em> : null}
-                    <span>
-                      {interpretation.parsed.quantity != null ? `${interpretation.parsed.quantity} ${interpretation.parsed.unit ?? ""} · ` : ""}
-                      {interpretation.quantity.estimated ? "≈" : "="} {Math.round((interpretation.quantity.grams ?? 0) * 10) / 10} g
-                      {interpretation.confidence != null ? ` · ${Math.round(interpretation.confidence * 100)}%` : ""}
-                      {interpretation.quantity.estimated ? (lang === "hu" ? " becsült" : lang === "de" ? " geschätzt" : " estimated") : (lang === "hu" ? " ellenőrzött" : lang === "de" ? " geprüft" : " verified")}
-                    </span>
-                  </>
-                ) : (
-                  <span>
-                    {interpretation.foodResolution === "unresolved"
-                      ? (lang === "hu" ? "Az ételt nem találtam meg biztonságosan. Válaszd ki kézzel." : lang === "de" ? "Lebensmittel nicht sicher gefunden. Bitte manuell wählen." : "Food was not resolved safely. Choose it manually.")
-                      : interpretation.quantity?.reason === "conversion_missing"
-                      ? (lang === "hu" ? "Az étel megvan, de ehhez a mértékhez nincs hiteles grammsúly. Add meg kézzel a grammot." : lang === "de" ? "Lebensmittel gefunden, aber kein verlässliches Grammgewicht. Bitte Gramm eingeben." : "Food found, but no reliable gram conversion exists. Enter grams manually.")
-                      : (lang === "hu" ? "Ellenőrizd és válaszd ki a megfelelő ételt." : lang === "de" ? "Bitte das richtige Lebensmittel auswählen." : "Review and choose the correct food.")}
-                  </span>
-                )}
-              </div>}
+              {interpretation && <FoodUnderstandingPreview value={interpretation} lang={lang} labels={t.foodUnderstanding} busy={mealSaving} onConfirmAll={confirmMultiMeal}/>}
             </div>
             <input className="field" name="title" placeholder={t.mealName} required/>
             <FoodCombobox lang={lang} state={state} selected={selectedFood} onSelect={(food) => { setSelectedFood(food); setMealMeasure("g"); setGramsOverride(""); }} labels={t.foodSearch} resetVersion={foodResetVersion}/>

@@ -1,6 +1,6 @@
 import { normalizeSearch } from "./normalize.js";
 
-export type NaturalQuantityUnit = "g" | "kg" | "piece" | "slice" | "portion" | "tbsp" | "tsp" | "handful" | "cm" | "bite" | "splash" | "half";
+export type NaturalQuantityUnit = "g" | "kg" | "piece" | "slice" | "portion" | "plate" | "bowl" | "ladle" | "tbsp" | "tsp" | "cup" | "handful" | "quarter" | "unknown" | "cm" | "bite" | "splash" | "half";
 
 export type ParsedNaturalFoodQuery = {
   quantity?: number;

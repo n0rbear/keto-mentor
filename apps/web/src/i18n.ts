@@ -24,6 +24,14 @@ export const dict = {
     savingMeal: "Mentés...",
     mealSaved: "Az étkezés elmentve, a napi összesítés frissült.",
     foodSearch: { label: "Étel keresése", placeholder: "Például: csirkemell", loading: "Keresés...", noResults: "Nincs találat.", hint: "A kereséshez írj be legalább 2 karaktert.", selected: "Kiválasztva" },
+    foodUnderstanding: {
+      understood: "Így értettem:", aiAssisted: "AI-segített értelmezés", dish: "Étel",
+      preparation: "Elkészítés", modifiers: "Kiegészítések", excluded: "Nélküle",
+      inferred: "Szokásos összetevő – megerősítés szükséges", trusted: "Megbízható ételadathoz kapcsolva",
+      unresolved: "A tápérték még nincs megbízható ételadathoz kapcsolva", needsDetail: "Pontosítás szükséges.",
+      conversionMissing: "Az étel megvan, de ehhez a mértékhez nincs hiteles grammsúly. Add meg kézzel a grammot.",
+      review: "Ellenőrizd és válaszd ki a megfelelő ételt.", verified: "ellenőrzött", estimated: "becsült", logAll: "Összes naplózása"
+    },
     mealErrors: { selectFood: "Válassz ételt a találati listából.", network_error: "Az API nem érhető el. Ellenőrizd a kapcsolatot; ezt CORS vagy hálózati hiba is okozhatja.", validation_error: "Ellenőrizd az étkezés nevét és a mennyiséget.", food_not_found: "A kiválasztott étel már nem található. Keress rá újra.", unauthorized: "A munkamenet lejárt. Jelentkezz be újra.", server: "A szerver nem tudta elmenteni az étkezést. Próbáld meg később.", unknown: "Az étkezést nem sikerült elmenteni." },
     disclaimer: "A Keto Mentor tájékoztató jellegű étkezéskövető. Nem diagnosztizál, nem kezel betegséget, és egészségügyi döntéshez kérj szakembert.",
     explain: "A nettó szénhidrát a szénhidrát mínusz rost. Kezdőként ezt érdemes figyelni, de a teljes ételminőség is számít.",
@@ -68,6 +76,14 @@ export const dict = {
     savingMeal: "Speichern...",
     mealSaved: "Mahlzeit gespeichert und Tageswerte aktualisiert.",
     foodSearch: { label: "Lebensmittel suchen", placeholder: "Zum Beispiel: Hähnchenbrust", loading: "Suche...", noResults: "Keine Treffer.", hint: "Mindestens 2 Zeichen eingeben.", selected: "Ausgewählt" },
+    foodUnderstanding: {
+      understood: "So habe ich es verstanden:", aiAssisted: "KI-gestützte Interpretation", dish: "Gericht",
+      preparation: "Zubereitung", modifiers: "Zusätze", excluded: "Ohne",
+      inferred: "Übliche Zutat – Bestätigung erforderlich", trusted: "Mit verlässlichen Lebensmitteldaten verknüpft",
+      unresolved: "Nährwerte noch nicht mit verlässlichen Lebensmitteldaten verknüpft", needsDetail: "Präzisierung erforderlich.",
+      conversionMissing: "Lebensmittel gefunden, aber kein verlässliches Grammgewicht. Bitte Gramm eingeben.",
+      review: "Bitte das richtige Lebensmittel auswählen.", verified: "geprüft", estimated: "geschätzt", logAll: "Alle eintragen"
+    },
     mealErrors: { selectFood: "Bitte ein Lebensmittel aus der Trefferliste wählen.", network_error: "Die API ist nicht erreichbar. Netzwerk oder CORS prüfen.", validation_error: "Name und Menge der Mahlzeit prüfen.", food_not_found: "Das gewählte Lebensmittel ist nicht mehr verfügbar.", unauthorized: "Die Sitzung ist abgelaufen. Bitte neu anmelden.", server: "Die Mahlzeit konnte serverseitig nicht gespeichert werden.", unknown: "Die Mahlzeit konnte nicht gespeichert werden." },
     disclaimer: "Keto Mentor ist ein informativer Tracker. Er diagnostiziert oder behandelt nicht; medizinische Entscheidungen gehören zu Fachleuten.",
     explain: "Netto-Kohlenhydrate sind Kohlenhydrate minus Ballaststoffe. Für Einsteiger ist das hilfreich, aber Lebensmittelqualität zählt ebenfalls.",
@@ -112,6 +128,14 @@ export const dict = {
     savingMeal: "Saving...",
     mealSaved: "Meal saved and daily totals updated.",
     foodSearch: { label: "Search foods", placeholder: "For example: chicken breast", loading: "Searching...", noResults: "No results.", hint: "Enter at least 2 characters to search.", selected: "Selected" },
+    foodUnderstanding: {
+      understood: "Here’s how I understood it:", aiAssisted: "AI-assisted interpretation", dish: "Dish",
+      preparation: "Preparation", modifiers: "Modifiers", excluded: "Without",
+      inferred: "Common ingredient – confirmation required", trusted: "Linked to trusted food data",
+      unresolved: "Nutrition is not yet linked to trusted food data", needsDetail: "Clarification needed.",
+      conversionMissing: "Food found, but no reliable gram conversion exists. Enter grams manually.",
+      review: "Review and choose the correct food.", verified: "verified", estimated: "estimated", logAll: "Log all"
+    },
     mealErrors: { selectFood: "Choose a food from the results.", network_error: "The API is unreachable. Check the network or CORS configuration.", validation_error: "Check the meal name and quantity.", food_not_found: "The selected food is no longer available. Search again.", unauthorized: "Your session expired. Log in again.", server: "The server could not save the meal. Try again later.", unknown: "The meal could not be saved." },
     disclaimer: "Keto Mentor is an informational food tracker. It does not diagnose or treat disease; ask a professional for medical decisions.",
     explain: "Net carbs are carbs minus fiber. Beginners can use this as a simple guardrail, while overall food quality still matters.",

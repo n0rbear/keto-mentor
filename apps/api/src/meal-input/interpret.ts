@@ -1,8 +1,10 @@
 import type { PrismaClient } from "@prisma/client";
+import type { FoodUnderstanding, FoodUnderstandingItem } from "@keto-mentor/shared";
 import { parseNaturalFoodQuery, type ParsedNaturalFoodQuery } from "../catalog/natural-food-query.js";
 import { searchFoods } from "../catalog/food-search.js";
 import { DisabledQuantityEstimationProvider, type EstimateMethod, type QuantityEstimationProvider, validateQuantityEstimate } from "./quantity-estimation.js";
 import { normalizeSearch } from "../catalog/normalize.js";
+import { StubAiProvider, type AiProvider, understandFood } from "../ai/provider.js";
 
 type SearchablePrisma = Pick<PrismaClient, "food" | "foodAlias"> & Partial<Pick<PrismaClient, "$queryRaw">>;
 type Serving = { id: string; key: string; unit: string; labels: unknown; grams: number; isEstimated: boolean; confidence: number; provenance: unknown };
@@ -21,7 +23,7 @@ export type QuantityResolution = {
   reason?: "quantity_missing" | "conversion_missing";
 };
 
-export type FoodResolutionStatus = "resolved" | "preview" | "confirmation_required" | "unresolved" | "multi";
+export type FoodResolutionStatus = "resolved" | "preview" | "confirmation_required" | "unresolved" | "multi" | "compound";
 
 export type InterpretResult = {
   input: string;
@@ -36,6 +38,17 @@ export type InterpretResult = {
   ambiguous?: boolean;
   preparationUnavailable?: boolean;
   items?: InterpretResult[];
+  interpretationSource: "deterministic" | "ai_assisted";
+  semantic?: {
+    language: FoodUnderstanding["language"];
+    kind: FoodUnderstanding["kind"];
+    dishName?: string;
+    clarificationNeeded: boolean;
+    clarificationReason?: string;
+  };
+  semanticItem?: FoodUnderstandingItem;
+  nutritionEligible?: boolean;
+  ai?: { provider: string; model?: string; confidence: number };
 };
 
 const PREP_KEYWORDS: Record<string, readonly string[]> = {
@@ -70,7 +83,9 @@ const SERVING_UNIT_ALIASES: Record<string, readonly string[]> = {
   tbsp: ["tbsp", "tablespoon", "tablespoons", "evokanal", "essloffel", "ek", "el"],
   tsp: ["tsp", "teaspoon", "teaspoons", "teaskanal", "teeloffel", "tk", "tl"],
   half: ["half", "fel", "fele", "halb", "halbe"],
-  handful: ["handful", "marek", "handvoll"], cm: ["cm"], bite: ["bite", "harapas", "bissen"], splash: ["splash", "lottyintes", "schuss"]
+  handful: ["handful", "marek", "handvoll"], cm: ["cm"], bite: ["bite", "harapas", "bissen"], splash: ["splash", "lottyintes", "schuss"],
+  plate: ["plate", "tanyer", "teller"], bowl: ["bowl", "tal", "schussel"], ladle: ["ladle", "merokanal", "kelle"],
+  cup: ["cup", "csesze", "tasse"], quarter: ["quarter", "negyed", "viertel"]
 };
 
 function servingMatchesUnit(serving: Serving, unit: string) {
@@ -145,7 +160,7 @@ async function interpretOne(
 
   const top = candidates[0] ?? null;
   if (!top) {
-    return { input, parsed, foodResolution: "unresolved", selectedFood: null, candidates: [], quantity: null, canConfirm: false, confidence: 0, preparation: parsed.preparation };
+    return { input, parsed, foodResolution: "unresolved", selectedFood: null, candidates: [], quantity: null, canConfirm: false, confidence: 0, preparation: parsed.preparation, interpretationSource: "deterministic" };
   }
 
   const score = top.match?.score ?? 0;
@@ -186,11 +201,12 @@ async function interpretOne(
     confidence: score / 100,
     preparation: parsed.preparation,
     ambiguous,
-    preparationUnavailable: prepUnavailable
+    preparationUnavailable: prepUnavailable,
+    interpretationSource: "deterministic"
   };
 }
 
-export async function interpretMealInput(
+async function interpretDeterministically(
   prisma: SearchablePrisma,
   text: string,
   provider: QuantityEstimationProvider = new DisabledQuantityEstimationProvider()
@@ -211,9 +227,133 @@ export async function interpretMealInput(
       canConfirm: allConfirmable,
       confidence: top.confidence,
       preparation: top.preparation,
-      items
+      items,
+      interpretationSource: "deterministic"
     };
   }
 
   return interpretOne(prisma, text, parsed, provider);
+}
+
+function shouldUseAiFallback(result: InterpretResult, aiProvider: AiProvider) {
+  if (!aiProvider.supports("food_nlp")) return false;
+  if (result.ambiguous) return false;
+  if (result.items?.length) {
+    return !result.items.every((item) => item.selectedFood && item.confidence >= 0.8 && !item.preparationUnavailable);
+  }
+  if (result.selectedFood && result.confidence >= 0.95 && !result.preparationUnavailable) return false;
+  return result.foodResolution === "unresolved" || result.confidence < 0.95 || !!result.preparationUnavailable;
+}
+
+function semanticParsed(item: FoodUnderstandingItem): ParsedNaturalFoodQuery {
+  const parsed: ParsedNaturalFoodQuery = { foodQuery: item.canonicalName };
+  if (item.quantity != null) parsed.quantity = item.quantity;
+  if (item.unit) parsed.unit = item.unit;
+  if (item.size) parsed.size = item.size;
+  if (item.preparation) parsed.preparation = item.preparation;
+  return parsed;
+}
+
+function unresolvedSemanticItem(input: string, item: FoodUnderstandingItem): InterpretResult {
+  return {
+    input,
+    parsed: semanticParsed(item),
+    foodResolution: "unresolved",
+    selectedFood: null,
+    candidates: [],
+    quantity: null,
+    canConfirm: false,
+    confidence: item.confidence,
+    preparation: item.preparation,
+    interpretationSource: "ai_assisted",
+    semanticItem: item,
+    nutritionEligible: false
+  };
+}
+
+async function interpretAiUnderstanding(
+  prisma: SearchablePrisma,
+  text: string,
+  understanding: FoodUnderstanding,
+  quantityProvider: QuantityEstimationProvider,
+  aiProvider: AiProvider
+): Promise<InterpretResult> {
+  const dishNormalized = normalizeSearch(understanding.dishName ?? "");
+  const hasDishItem = !!dishNormalized && understanding.items.some((item) => normalizeSearch(item.canonicalName) === dishNormalized);
+  const semanticItems = hasDishItem || !understanding.dishName
+    ? understanding.items
+    : [{
+        originalText: understanding.dishName,
+        canonicalName: understanding.dishName,
+        evidence: "explicit" as const,
+        confidence: understanding.confidence
+      }, ...understanding.items];
+  const items: InterpretResult[] = [];
+  for (const item of semanticItems) {
+    if (item.evidence !== "explicit") {
+      items.push(unresolvedSemanticItem(text, item));
+      continue;
+    }
+    const resolved = await interpretOne(prisma, item.originalText, semanticParsed(item), quantityProvider);
+    items.push({
+      ...resolved,
+      interpretationSource: "ai_assisted",
+      semanticItem: item,
+      nutritionEligible: !!resolved.selectedFood && resolved.foodResolution === "resolved"
+    });
+  }
+  const metadata = {
+    language: understanding.language,
+    kind: understanding.kind,
+    dishName: understanding.dishName,
+    clarificationNeeded: understanding.clarificationNeeded,
+    clarificationReason: understanding.clarificationReason
+  };
+  const ai = { provider: aiProvider.id, model: aiProvider.model, confidence: understanding.confidence };
+  if (understanding.kind === "single_food" && items.length === 1) {
+    return {
+      ...items[0],
+      input: text,
+      canConfirm: items[0].canConfirm && !understanding.clarificationNeeded,
+      interpretationSource: "ai_assisted",
+      semantic: metadata,
+      ai
+    };
+  }
+  const explicitItems = items.filter((item) => item.semanticItem?.evidence === "explicit");
+  const allExplicitConfirmable = explicitItems.length > 0 && explicitItems.every((item) => item.canConfirm);
+  const hasInferred = items.some((item) => item.semanticItem?.evidence === "inferred_common");
+  const top = items[0] ?? unresolvedSemanticItem(text, semanticItems[0]);
+  return {
+    input: text,
+    parsed: top.parsed,
+    foodResolution: understanding.kind === "compound_dish" ? "compound" : "multi",
+    selectedFood: top.selectedFood,
+    candidates: top.candidates,
+    quantity: top.quantity,
+    canConfirm: allExplicitConfirmable && !hasInferred && !understanding.clarificationNeeded,
+    confidence: understanding.confidence,
+    preparation: top.preparation,
+    items,
+    interpretationSource: "ai_assisted",
+    semantic: metadata,
+    nutritionEligible: false,
+    ai
+  };
+}
+
+export async function interpretMealInput(
+  prisma: SearchablePrisma,
+  text: string,
+  quantityProvider: QuantityEstimationProvider = new DisabledQuantityEstimationProvider(),
+  aiProvider: AiProvider = new StubAiProvider()
+): Promise<InterpretResult> {
+  const deterministic = await interpretDeterministically(prisma, text, quantityProvider);
+  if (!shouldUseAiFallback(deterministic, aiProvider)) return deterministic;
+  try {
+    const understanding = await understandFood(aiProvider, { text });
+    return interpretAiUnderstanding(prisma, text, understanding, quantityProvider, aiProvider);
+  } catch {
+    return deterministic;
+  }
 }

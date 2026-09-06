@@ -1,5 +1,7 @@
 # Next Steps
 
+> **Authoritative delivery plan:** [`docs/PRODUCT_ROADMAP.md`](docs/PRODUCT_ROADMAP.md). The items below are supporting historical technical debt and backlog; they do not define feature order.
+
 - Add refresh-token rotation endpoint and per-session logout UI.
 - Add password reset and optional email verification.
 - Review and merge the source-specific USDA/BLS pilot importer PR; only then run the documented production dry-run and pilot after separate approval.
