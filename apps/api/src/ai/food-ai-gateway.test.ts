@@ -35,6 +35,11 @@ describe("food AI gateway selection", () => {
     expect(provider.supports("food_nlp")).toBe(false);
   });
 
+  it("degrades to disabled instead of throwing when the key is whitespace-only", () => {
+    const provider = configuredFoodAiProvider({ FOOD_AI_PROVIDER: "openrouter", OPENROUTER_API_KEY: " ", FOOD_AI_MODEL: "some/model:free" });
+    expect(provider.supports("food_nlp")).toBe(false);
+  });
+
   it("never includes the OpenRouter key in a thrown error", async () => {
     const provider = configuredFoodAiProvider({
       FOOD_AI_PROVIDER: "openrouter",

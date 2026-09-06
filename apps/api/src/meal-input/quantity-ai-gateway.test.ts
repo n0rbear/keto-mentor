@@ -32,6 +32,10 @@ describe("quantity AI gateway selection", () => {
     expect(configuredQuantityAiProvider({ FOOD_AI_PROVIDER: "openrouter", FOOD_AI_MODEL: "some/model:free" })).toBeInstanceOf(DisabledQuantityEstimationProvider);
   });
 
+  it("degrades to disabled instead of throwing when the key is whitespace-only", () => {
+    expect(configuredQuantityAiProvider({ FOOD_AI_PROVIDER: "openrouter", OPENROUTER_API_KEY: " ", FOOD_AI_MODEL: "some/model:free" })).toBeInstanceOf(DisabledQuantityEstimationProvider);
+  });
+
   it.each([429, 500])("an OpenRouter HTTP %s response falls back to asking for grams instead of a 500", async (status) => {
     const provider = new OpenRouterQuantityEstimationProvider({
       apiKey: "test-secret", model: "some/model:free",
