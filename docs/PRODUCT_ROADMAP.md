@@ -7,7 +7,7 @@ This document is the authoritative product delivery order for Keto Mentor. Techn
 | Phase | Status |
 | --- | --- |
 | Phase 1 — Understand what the user ate | DONE |
-| Phase 2 — Human quantities and clarification | NOT STARTED |
+| Phase 2 — Human quantities and clarification | IN PROGRESS |
 | Phase 3 — Real meal diary | PARTIAL FOUNDATION |
 | Phase 4 — Complete recipe experience | PARTIAL FOUNDATION |
 | Phase 5 — Packaged food and barcode | NOT STARTED |
@@ -27,6 +27,8 @@ Mistral is permitted only as a semantic food-understanding fallback. It may iden
 ## Phase 2 — Human quantities and clarification
 
 Understand human quantities such as plate, bowl, ladle, small or large piece, half portion and handful. Use authoritative `FoodServing` records where available. Controlled AI estimation may later be used when a quantity has no trusted weight conversion. Ask only the minimum useful clarification questions.
+
+Implementation scope: exact mass remains deterministic; authoritative, curated and estimated servings are resolved in that order. A resolved food with an unsupported human unit may receive a bounded edible-weight estimate. Every estimated value requires explicit confirmation or a meal-only gram correction, and provider failures fall back to manual grams. Quantity AI cannot supply nutrition or mutate the global catalog.
 
 ## Phase 3 — Real meal diary
 

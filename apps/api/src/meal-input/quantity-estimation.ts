@@ -15,7 +15,7 @@ export interface QuantityEstimationProvider {
   estimate(input: {
     parsed: ParsedNaturalFoodQuery;
     food: { id: string; source: string; sourceId: string | null; name: string };
-  }, signal?: AbortSignal): Promise<QuantityEstimate | null>;
+  }, signal?: AbortSignal, beforeCall?: () => void): Promise<QuantityEstimate | null>;
 }
 
 export class DisabledQuantityEstimationProvider implements QuantityEstimationProvider {
@@ -28,5 +28,7 @@ export function validateQuantityEstimate(value: QuantityEstimate) {
   if (!Number.isFinite(value.confidence) || value.confidence < 0 || value.confidence > 1) throw new Error("invalid_estimate_confidence");
   if (value.method !== "estimated" && value.method !== "ai_estimated") throw new Error("invalid_estimate_method");
   if (!value.provenance.provider || !value.provenance.modelOrRule || !value.provenance.estimatedAt) throw new Error("incomplete_estimate_provenance");
+  const range = value.rangeGramsPerUnit;
+  if (range && (!Number.isFinite(range.min) || !Number.isFinite(range.max) || range.min <= 0 || range.max > 50_000 || range.max <= range.min || value.gramsPerUnit < range.min || value.gramsPerUnit > range.max)) throw new Error("invalid_estimate_range");
   return value;
 }

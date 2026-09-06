@@ -82,6 +82,10 @@ export class MistralAiProvider implements AiProvider {
   async run<TInput, TOutput>(capability: AiCapability, input: TInput): Promise<TOutput> {
     if (capability !== "food_nlp") throw new AiProviderError("unsupported_capability");
     const { text } = foodNlpInputSchema.parse(input as FoodNlpInput);
+    return this.complete(FOOD_NLP_SYSTEM_INSTRUCTION, text, (value) => foodUnderstandingSchema.parse(value)) as Promise<TOutput>;
+  }
+
+  async complete<T>(instruction: string, input: string, validate: (value: unknown) => T): Promise<T> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), this.timeoutMs);
     try {
@@ -91,8 +95,8 @@ export class MistralAiProvider implements AiProvider {
         body: JSON.stringify({
           model: this.model,
           messages: [
-            { role: "system", content: FOOD_NLP_SYSTEM_INSTRUCTION },
-            { role: "user", content: text }
+            { role: "system", content: instruction },
+            { role: "user", content: input }
           ],
           response_format: { type: "json_object" },
           safe_prompt: true,
@@ -106,7 +110,7 @@ export class MistralAiProvider implements AiProvider {
       if (!response.ok) throw new AiProviderError("http_error");
       try {
         const envelope = mistralEnvelopeSchema.parse(JSON.parse(body));
-        return foodUnderstandingSchema.parse(JSON.parse(envelope.choices[0].message.content)) as TOutput;
+        return validate(JSON.parse(envelope.choices[0].message.content));
       } catch (error) {
         if (error instanceof AiProviderError) throw error;
         throw new AiProviderError("invalid_response");

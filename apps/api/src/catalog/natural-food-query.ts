@@ -12,6 +12,11 @@ export type ParsedNaturalFoodQuery = {
 };
 
 const UNITS = new Map<string, NaturalQuantityUnit>([
+  ["tanyer", "plate"], ["plate", "plate"], ["plates", "plate"], ["teller", "plate"],
+  ["tal", "bowl"], ["bowl", "bowl"], ["bowls", "bowl"], ["schussel", "bowl"],
+  ["merokanal", "ladle"], ["ladle", "ladle"], ["ladles", "ladle"], ["kelle", "ladle"], ["kellen", "ladle"],
+  ["csesze", "cup"], ["cup", "cup"], ["cups", "cup"], ["tasse", "cup"],
+  ["negyed", "quarter"], ["quarter", "quarter"], ["viertel", "quarter"], ["halbes", "half"],
   ["g", "g"], ["gramm", "g"], ["gram", "g"], ["kg", "kg"], ["kilogramm", "kg"],
   ["db", "piece"], ["darab", "piece"], ["piece", "piece"], ["pieces", "piece"], ["stuk", "piece"], ["stuck", "piece"], ["stucke", "piece"],
   ["whole", "piece"], ["egesz", "piece"], ["ganz", "piece"], ["ganze", "piece"], ["ganzen", "piece"],
@@ -30,9 +35,10 @@ const NUMBERS = new Map([
 ]);
 
 const HALF_WORDS = new Set(["fel", "fele", "half", "halb", "halbe"]);
-const IMPLICIT_ONE_UNIT_WORDS = new Set(["fel", "fele", "half", "halb", "halbe", "whole", "egesz", "ganz", "ganze", "ganzen"]);
+const IMPLICIT_ONE_UNIT_WORDS = new Set(["fel", "fele", "half", "halb", "halbe", "halbes", "negyed", "quarter", "viertel", "whole", "egesz", "ganz", "ganze", "ganzen"]);
 
 const SIZES = new Map<string, NonNullable<ParsedNaturalFoodQuery["size"]>>([
+  ["kleine", "small"], ["kleines", "small"], ["grosse", "large"], ["grosses", "large"], ["mittlere", "medium"],
   ["kis", "small"], ["small", "small"], ["klein", "small"], ["kozepes", "medium"], ["medium", "medium"], ["mittel", "medium"],
   ["nagy", "large"], ["large", "large"], ["gross", "large"]
 ]);
@@ -125,7 +131,7 @@ function extractBaseFood(token: string): { base: string; preparation?: string } 
 }
 
 function parseSegment(normalized: string): ParsedNaturalFoodQuery {
-  const tokens = normalized.split(" ").filter(Boolean).filter((token) => !SPEECH_VERBS.has(token));
+  const tokens = normalized.replace(/^a(n)?\s+/, "one ").split(" ").filter(Boolean).filter((token) => !SPEECH_VERBS.has(token) && !["a", "an", "of"].includes(token));
 
   let quantity: number | undefined;
   let quantityIndex = -1;
@@ -137,6 +143,7 @@ function parseSegment(normalized: string): ParsedNaturalFoodQuery {
       if (followingUnit && followingUnit !== "half") { quantity = 0.5; quantityIndex = i; break; }
       continue;
     }
+    if (tokens[i] === "quarter") continue;
     if (NUMBERS.has(tokens[i])) { quantity = NUMBERS.get(tokens[i]); quantityIndex = i; break; }
   }
 
@@ -159,7 +166,7 @@ function parseSegment(normalized: string): ParsedNaturalFoodQuery {
   if (quantity == null && explicitUnitWord && IMPLICIT_ONE_UNIT_WORDS.has(explicitUnitWord)) quantity = 1;
 
   let foodText = restAfterUnit.join(" ").trim();
-  if (unit === "splash") foodText = foodText.replace(/\b(a kaveba|in den kaffee|in coffee)\b.*$/i, "").trim();
+  if (unit === "splash") foodText = foodText.replace(/\b(kaveba|in den kaffee|in coffee)\b.*$/i, "").trim();
 
   const foodTokens: string[] = [];
   const preparations: string[] = [];
