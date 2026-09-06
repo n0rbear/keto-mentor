@@ -21,5 +21,13 @@ const envSchema = z.object({
   OPENROUTER_APP_TITLE: z.string().min(1).max(120).optional()
 });
 
-export const env = envSchema.parse(process.env);
+// Dashboards like Render can leave an optional var present but blank (e.g. a key
+// added without a value yet); treat that the same as unset instead of failing
+// enum/min(1) checks meant for a genuinely missing variable.
+export function parseEnv(rawEnv: NodeJS.ProcessEnv) {
+  const sanitized = Object.fromEntries(Object.entries(rawEnv).filter(([, value]) => value !== ""));
+  return envSchema.parse(sanitized);
+}
+
+export const env = parseEnv(process.env);
 assertProductionDatabaseSchema(env.DATABASE_URL, env.NODE_ENV);
