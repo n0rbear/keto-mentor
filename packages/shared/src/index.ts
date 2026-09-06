@@ -61,6 +61,39 @@ export const createMealSchema = z.object({
   items: z.array(z.union([catalogMealItemSchema, manualMealItemSchema])).min(1).max(20)
 });
 
+// Editing an existing meal never re-specifies food/recipe identity or nutrition —
+// only the trusted existing MealItem may have its grams corrected or be removed.
+// `items`/`removeItemIds` reference existing MealItem ids explicitly; omitting an
+// id from `items` never implies removal (that is only ever removeItemIds), so a
+// client can safely correct one item's grams without risking dropping the rest.
+export const editMealItemSchema = z.object({
+  mealItemId: z.string().min(1),
+  quantityGrams: z.number().finite().positive().max(50_000)
+}).strict();
+
+export const editMealSchema = z.object({
+  title: z.string().trim().min(2).max(100).optional(),
+  eatenAt: z.string().datetime().optional(),
+  items: z.array(editMealItemSchema).max(20).optional(),
+  removeItemIds: z.array(z.string().min(1)).max(20).optional()
+}).strict().superRefine((value, context) => {
+  if (value.title === undefined && value.eatenAt === undefined && !value.items?.length && !value.removeItemIds?.length) {
+    context.addIssue({ code: "custom", message: "no_changes_provided" });
+  }
+  if (value.items) {
+    const ids = value.items.map((item) => item.mealItemId);
+    if (new Set(ids).size !== ids.length) context.addIssue({ code: "custom", path: ["items"], message: "duplicate_meal_item_id" });
+  }
+  if (value.removeItemIds) {
+    if (new Set(value.removeItemIds).size !== value.removeItemIds.length) context.addIssue({ code: "custom", path: ["removeItemIds"], message: "duplicate_remove_id" });
+  }
+  if (value.items && value.removeItemIds) {
+    const removeSet = new Set(value.removeItemIds);
+    if (value.items.some((item) => removeSet.has(item.mealItemId))) context.addIssue({ code: "custom", message: "conflicting_item_action" });
+  }
+});
+export type EditMealInput = z.infer<typeof editMealSchema>;
+
 export const mealInterpretationSchema = z.object({
   text: z.string().trim().min(2).max(300)
 }).strict();

@@ -140,14 +140,31 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
 .diary-date-input { width: auto; margin-bottom: .8rem; color-scheme: dark; }
 .diary-empty { padding: .8rem .25rem; }
 .meal-list { display: grid; gap: .55rem; }
-.meal { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 1rem; border-bottom: 1px solid rgb(var(--border) / .09); padding: .8rem .25rem; }
+.meal { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: .6rem; border-bottom: 1px solid rgb(var(--border) / .09); padding: .8rem .25rem; }
 .meal:last-child { border-bottom: 0; }
 .meal-copy { display: grid; min-width: 0; }
 .meal-copy strong { overflow: hidden; color: rgb(var(--text)); text-overflow: ellipsis; white-space: nowrap; }
 .meal time { color: rgb(var(--text-soft)); font-size: .72rem; }
 .meal-macros { color: rgb(var(--text-muted)); font-size: .8rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .meal-macros b { color: rgb(var(--brand-bright)); }
+.meal-actions { display: flex; flex: 0 0 auto; gap: .3rem; }
+.meal-action-btn { min-width: 32px; min-height: 32px; border-radius: 8px; }
 .meal-entry-card { position: sticky; top: 92px; border-color: rgb(var(--brand) / .2); }
+
+.btn.danger { color: rgb(var(--bg)); background: rgb(var(--danger)); }
+.btn.danger:hover:not(:disabled) { background: rgb(var(--danger) / .85); }
+
+.modal-backdrop { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; background: rgb(var(--bg) / .72); backdrop-filter: blur(4px); padding: 1rem; }
+.modal-panel { width: 100%; max-width: 420px; max-height: 85vh; overflow-y: auto; display: grid; gap: .8rem; box-shadow: var(--shadow-lg); }
+.modal-header { display: flex; align-items: center; justify-content: space-between; gap: .6rem; }
+.modal-header h3 { margin: 0; }
+.modal-field { display: grid; gap: .3rem; font-size: .8rem; color: rgb(var(--text-muted)); }
+.modal-actions { display: flex; justify-content: flex-end; gap: .6rem; margin-top: .2rem; }
+.edit-items { display: grid; gap: .5rem; }
+.edit-item-row { display: grid; grid-template-columns: minmax(0, 1fr) 90px auto auto; align-items: center; gap: .5rem; }
+.edit-item-name { overflow: hidden; color: rgb(var(--text)); text-overflow: ellipsis; white-space: nowrap; font-size: .82rem; }
+.edit-item-grams { min-height: 38px; padding: .4rem .6rem; }
+.edit-item-unit { color: rgb(var(--text-soft)); font-size: .78rem; }
 
 .natural-input { display: grid; gap: .7rem; margin: .35rem 0 .2rem; border: 1px solid rgb(var(--brand) / .28); border-radius: 15px; background: linear-gradient(145deg, rgb(var(--surface-active) / .72), rgb(var(--bg-elevated) / .72)); padding: .9rem; box-shadow: inset 0 1px rgb(255 255 255 / .035); }
 .natural-input label, .natural-input-title { color: rgb(var(--text)); font-size: .95rem; font-weight: 850; }
