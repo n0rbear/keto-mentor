@@ -135,6 +135,10 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
 .today-card { box-shadow: none; }
 .section-heading { display: flex; margin-bottom: 1rem; align-items: center; gap: .6rem; }
 .section-heading svg { color: rgb(var(--brand)); }
+.diary-date-nav { display: flex; align-items: center; justify-content: space-between; gap: .6rem; margin-bottom: .6rem; }
+.diary-date-heading { margin-bottom: 0; }
+.diary-date-input { width: auto; margin-bottom: .8rem; color-scheme: dark; }
+.diary-empty { padding: .8rem .25rem; }
 .meal-list { display: grid; gap: .55rem; }
 .meal { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 1rem; border-bottom: 1px solid rgb(var(--border) / .09); padding: .8rem .25rem; }
 .meal:last-child { border-bottom: 0; }
