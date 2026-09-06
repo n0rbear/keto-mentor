@@ -7,7 +7,7 @@ import helmet from "helmet";
 import jwt from "jsonwebtoken";
 import { pinoHttp } from "pino-http";
 import { z } from "zod";
-import { createMealSchema, loginSchema, mealInterpretationSchema, onboardingSchema, registerSchema } from "@keto-mentor/shared";
+import { createMealSchema, editMealSchema, loginSchema, mealInterpretationSchema, onboardingSchema, registerSchema } from "@keto-mentor/shared";
 import { env } from "./config.js";
 import { createLogger } from "./logger.js";
 
@@ -21,6 +21,7 @@ import { EXTERNAL_FOOD_CONFIRM_RATE_LIMIT, EXTERNAL_FOOD_RATE_LIMIT, externalFoo
 import { UsdaFoodDataCentralLookupAdapter } from "./catalog/structured-source-adapters.js";
 import { parseNaturalFoodQuery } from "./catalog/natural-food-query.js";
 import { createMeal } from "./meals/create-meal.js";
+import { editMeal, deleteMeal, getMeal } from "./meals/edit-meal.js";
 import { resolveDiaryDateRange } from "./meals/diary-date.js";
 import { getMealsForDay } from "./meals/diary-query.js";
 import { recipeRouter } from "./recipes/router.js";
@@ -229,6 +230,38 @@ app.post("/meals", requireAuth, async (req, res, next) => {
     const input = createMealSchema.parse(req.body);
     const meal = await createMeal(prisma, req.user!.id, input);
     res.status(201).json({ meal });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Single-meal detail, backing the web edit UI (the dashboard list uses the
+// slim ?view=summary shape and intentionally has no per-item data).
+app.get("/meals/:mealId", requireAuth, async (req, res, next) => {
+  try {
+    const meal = await getMeal(prisma, req.user!.id, req.params.mealId);
+    res.json({ meal });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Corrects title/eatenAt and/or existing item grams, or removes existing items.
+// Never accepts food/recipe identity or nutrition fields from the client.
+app.patch("/meals/:mealId", requireAuth, async (req, res, next) => {
+  try {
+    const input = editMealSchema.parse(req.body);
+    const meal = await editMeal(prisma, req.user!.id, req.params.mealId, input);
+    res.json({ meal });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.delete("/meals/:mealId", requireAuth, async (req, res, next) => {
+  try {
+    await deleteMeal(prisma, req.user!.id, req.params.mealId);
+    res.status(204).end();
   } catch (error) {
     next(error);
   }

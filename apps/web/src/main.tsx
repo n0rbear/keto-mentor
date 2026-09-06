@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { Activity, ChevronLeft, ChevronRight, ExternalLink, LogOut, Mail, Plus, ShieldCheck, Sparkles } from "lucide-react";
+import { Activity, ChevronLeft, ChevronRight, ExternalLink, LogOut, Mail, Pencil, Plus, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
 
 import { dict, type Lang } from "./i18n";
 import { api, ApiError, type ApiState } from "./api";
@@ -9,6 +9,7 @@ import "./styles.css";
 import norbappLogo from "./assets/norbapp-logo-new.png";
 
 import { RecipeBuilder } from "./RecipeBuilder";
+import { MealEditDialog, DeleteMealDialog, type MealDetail } from "./MealActions";
 import { AuthForm } from "./AuthForm";
 import { FoodUnderstandingPreview } from "./FoodUnderstandingPreview";
 import { QuantityClarification } from "./QuantityClarification";
@@ -38,7 +39,7 @@ type MealInterpretation = {
   nutritionEligible?: boolean;
 };
 
-function App() {
+export function App() {
   const [lang, setLang] = useState<Lang>("hu");
   const [token, setToken] = useState(localStorage.getItem("km_token"));
   const [user, setUser] = useState<User | null>(null);
@@ -46,6 +47,8 @@ function App() {
   const [meals, setMeals] = useState<Meal[]>([]);
   const [totals, setTotals] = useState<Totals>({ kcal: 0, fat: 0, protein: 0, carbs: 0, fiber: 0, netCarbs: 0 });
   const [selectedDate, setSelectedDate] = useState(() => todayLocalDate());
+  const [editingMeal, setEditingMeal] = useState<MealDetail | null>(null);
+  const [deletingMealId, setDeletingMealId] = useState<string | null>(null);
   const [selectedFood, setSelectedFood] = useState<Food | null>(null);
   const [mealSaving, setMealSaving] = useState(false);
   const [mealStatus, setMealStatus] = useState<{ kind: "success" | "error"; text: string } | null>(null);
@@ -96,6 +99,31 @@ function App() {
     const today = todayLocalDate();
     setSelectedDate(today);
     await loadAll(today);
+  }
+
+  // Editing/deleting must keep the user on whatever day they're currently
+  // viewing — refresh that same selected day, never snap back to today.
+  async function openEditMeal(mealId: string) {
+    try {
+      const result = await api<{ meal: MealDetail }>(`/meals/${mealId}`, {}, state);
+      setEditingMeal(result.meal);
+    } catch (error) {
+      setMealStatus({ kind: "error", text: mealErrorText(error, t.mealErrors) });
+    }
+  }
+
+  async function handleMealEdited() {
+    await fetchMealsForDate(selectedDate).then(applyMealsResult);
+    setEditingMeal(null);
+    setMealStatus({ kind: "success", text: t.diary.mealUpdated });
+  }
+
+  async function confirmDeleteMeal() {
+    if (!deletingMealId) return;
+    await api(`/meals/${deletingMealId}`, { method: "DELETE" }, state);
+    await fetchMealsForDate(selectedDate).then(applyMealsResult);
+    setDeletingMealId(null);
+    setMealStatus({ kind: "success", text: t.diary.mealDeleted });
   }
 
   useEffect(() => { loadAll(selectedDate).catch(() => setToken(null)); }, [token]);
@@ -334,10 +362,20 @@ function App() {
                 <button type="button" className="btn secondary icon-button" aria-label={t.diary.nextDay} disabled={selectedDate === todayLocalDate()} onClick={() => setSelectedDate((current) => shiftDate(current, 1))}><ChevronRight size={18}/></button>
               </div>
               <input type="date" className="field diary-date-input" aria-label={t.diary.selectDate} value={selectedDate} max={todayLocalDate()} onChange={(event) => event.target.value && setSelectedDate(event.target.value)}/>
+              {mealStatus && <div className={`status ${mealStatus.kind}`} role={mealStatus.kind === "error" ? "alert" : "status"}>{mealStatus.text}</div>}
               {meals.length === 0 ? (
                 <p className="diary-empty text-xs text-muted">{t.diary.noMeals}</p>
               ) : (
-                <div className="meal-list">{meals.map((m) => <div className="meal" key={m.id}><div className="meal-copy"><strong>{m.title}</strong><time dateTime={m.eatenAt}>{formatMealTime(m.eatenAt, lang)}</time></div><span className="meal-macros">{Math.round(m.totals.kcal)} kcal · <b>{Math.round(m.totals.netCarbs)} g net</b></span></div>)}</div>
+                <div className="meal-list">{meals.map((m) => (
+                  <div className="meal" key={m.id}>
+                    <div className="meal-copy"><strong>{m.title}</strong><time dateTime={m.eatenAt}>{formatMealTime(m.eatenAt, lang)}</time></div>
+                    <span className="meal-macros">{Math.round(m.totals.kcal)} kcal · <b>{Math.round(m.totals.netCarbs)} g net</b></span>
+                    <div className="meal-actions">
+                      <button type="button" className="icon-button meal-action-btn" aria-label={t.diary.editMeal} onClick={() => openEditMeal(m.id)}><Pencil size={14}/></button>
+                      <button type="button" className="icon-button meal-action-btn" aria-label={t.diary.deleteMeal} onClick={() => setDeletingMealId(m.id)}><Trash2 size={14}/></button>
+                    </div>
+                  </div>
+                ))}</div>
               )}
             </div>
           </div>
@@ -379,6 +417,8 @@ function App() {
           </div>
         </div>
       </footer>
+      {editingMeal && <MealEditDialog meal={editingMeal} lang={lang} state={state} onCancel={() => setEditingMeal(null)} onSaved={handleMealEdited}/>}
+      {deletingMealId && <DeleteMealDialog lang={lang} onCancel={() => setDeletingMealId(null)} onConfirm={confirmDeleteMeal}/>}
     </main>
   );
 }
