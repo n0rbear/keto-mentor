@@ -39,8 +39,13 @@ export function AuthForm({ mode: initialMode, lang, state, onSuccess }: { mode: 
 
   return (
 
-    <form onSubmit={submit} className="card space-y-4">
-      <div className="flex rounded-2xl bg-appBg p-1">
+    <form onSubmit={submit} className="card auth-panel space-y-4">
+      <div className="auth-intro">
+        <p className="panel-kicker">NorbApp · Keto Mentor</p>
+        <h2>{lang === "hu" ? "Kezdjük egyszerűen" : lang === "de" ? "Einfach starten" : "Start with clarity"}</h2>
+        <p className="panel-copy">{lang === "hu" ? "Jelentkezz be, vagy hozz létre egy biztonságos fiókot." : lang === "de" ? "Anmelden oder ein sicheres Konto erstellen." : "Sign in or create a secure account."}</p>
+      </div>
+      <div className="auth-mode-switch">
         <button type="button" data-testid="auth-mode-register" className={`seg ${mode === "register" ? "active" : ""}`} disabled={submitting} onClick={() => { setMode("register"); setError(null); }}>{t.register}</button>
         <button type="button" data-testid="auth-mode-login" className={`seg ${mode === "login" ? "active" : ""}`} disabled={submitting} onClick={() => { setMode("login"); setError(null); }}>{t.login}</button>
       </div>

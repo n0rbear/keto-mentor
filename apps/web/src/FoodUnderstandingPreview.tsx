@@ -1,4 +1,5 @@
 import type { Lang } from "./i18n";
+import { CheckCircle2, CircleDashed, Sparkles } from "lucide-react";
 
 type PreviewItem = {
   parsed: { quantity?: number; unit?: string; foodQuery: string; preparation?: string };
@@ -53,7 +54,7 @@ function PreviewRow({ item, lang, labels }: { item: PreviewItem; lang: Lang; lab
     {!!item.semanticItem?.modifiers?.length && <small>{labels.modifiers}: {item.semanticItem.modifiers.join(", ")}</small>}
     {!!item.semanticItem?.excludedModifiers?.length && <small>{labels.excluded}: {item.semanticItem.excludedModifiers.join(", ")}</small>}
     {item.semanticItem?.evidence === "inferred_common" && <small className="inferred-label">{labels.inferred}</small>}
-    <small>{item.selectedFood && item.nutritionEligible !== false ? labels.trusted : labels.unresolved}</small>
+    <small className="understanding-resolution">{item.selectedFood && item.nutritionEligible !== false ? <CheckCircle2 aria-hidden="true" size={13}/> : <CircleDashed aria-hidden="true" size={13}/>} {item.selectedFood && item.nutritionEligible !== false ? labels.trusted : labels.unresolved}</small>
     {item.quantity?.status === "resolved" && <small>{item.quantity.estimated ? "≈" : "="} {Math.round((item.quantity.grams ?? 0) * 10) / 10} g</small>}
   </li>;
 }
@@ -70,7 +71,7 @@ export function FoodUnderstandingPreview({ value, lang, labels, busy, onConfirmA
   return <div className={`interpretation ${value.canConfirm ? "ready" : "needs-review"}`} role="status">
     <div className="understanding-heading">
       <strong>{labels.understood}</strong>
-      {value.interpretationSource === "ai_assisted" && <span className="ai-assisted-badge">{labels.aiAssisted}</span>}
+      {value.interpretationSource === "ai_assisted" && <span className="ai-assisted-badge"><Sparkles aria-hidden="true" size={11}/>{labels.aiAssisted}</span>}
     </div>
     {value.semantic?.dishName && <div><strong>{labels.dish}:</strong> {value.semantic.dishName}</div>}
     {(value.items?.length || value.interpretationSource === "ai_assisted") && <ul className="multi-preview-list">

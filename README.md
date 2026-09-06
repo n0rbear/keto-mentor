@@ -12,14 +12,15 @@ Keto Mentor is a NorbApp-style MVP for beginner-friendly keto tracking. It provi
 
 ## Brand Direction
 
-The UI follows `E:\_munkák\norbapp_arculatterv.html` as the primary NorbApp reference:
+Keto Mentor uses the current dark NorbApp product system:
 
-- Background `#F5FAFB`
-- Ink `#162B38`, muted text `#60727E`
-- White cards with `#D6E6E8` borders
-- Main accents `#04AEB0`, `#00D8FF`
-- Secondary gold accent `#D4AF37`
-- Inter/system sans typography, compact rounded components and soft shadows
+- Near-black `#080C0D` foundation with charcoal `#0C1214`, `#121B1D` and `#162124` surfaces
+- Off-white `#F2F7F6` primary text with silver-teal secondary text
+- Teal `#18C8C0` primary actions, restrained cyan-teal highlights and deep teal active states
+- Subtle compass-inspired geometry, low-cost radial light and quiet glass/metal depth
+- System sans typography, compact app-oriented hierarchy and highly legible numeric metrics
+
+Colors are centralized as semantic CSS tokens in `apps/web/src/styles.css` and exposed through Tailwind-compatible semantic aliases. The approved NorbApp bird/compass parent-brand artwork is integrated unchanged from its supplied PNG source at `apps/web/src/assets/norbapp-logo-new.png`; Keto Mentor remains the product identity in typography.
 
 ## Local Development
 
