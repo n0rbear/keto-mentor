@@ -49,14 +49,14 @@ async function main() {
   const food = { id: "bls-H110600", source: "bls", sourceId: "H110600", name: "Erdnuss geröstet (peanuts roasted)" };
   const cases: ParsedNaturalFoodQuery[] = [
     { foodQuery: "peanuts", quantity: 1, unit: "handful" },
-    { foodQuery: "peanuts", quantity: 1, unit: "handful", size: "small" },
-    { foodQuery: "peanuts", quantity: 1, unit: "handful", size: "large" },
+    { foodQuery: "peanuts", quantity: 1, unit: "plate" },
     { foodQuery: "peanuts", quantity: 1, unit: "bowl" },
     { foodQuery: "peanuts", quantity: 1, unit: "cup" },
     { foodQuery: "peanuts", quantity: 1, unit: "portion" },
     { foodQuery: "peanuts", quantity: 1, unit: "tbsp" },
     { foodQuery: "peanuts", quantity: 1, unit: "ladle" },
-    { foodQuery: "peanuts", quantity: 1, unit: "half" }
+    { foodQuery: "peanuts", quantity: 1, unit: "half" },
+    { foodQuery: "peanuts", quantity: 1, unit: "quarter" }
   ];
   const results = [];
   const limit = args.includes("--limit") ? Math.max(1, Math.min(cases.length, Number(args[args.indexOf("--limit") + 1]) || 1)) : cases.length;

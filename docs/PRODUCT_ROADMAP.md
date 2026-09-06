@@ -7,7 +7,7 @@ This document is the authoritative product delivery order for Keto Mentor. Techn
 | Phase | Status |
 | --- | --- |
 | Phase 1 — Understand what the user ate | DONE |
-| Phase 2 — Human quantities and clarification | IN PROGRESS |
+| Phase 2 — Human quantities and clarification | DONE |
 | Phase 3 — Real meal diary | PARTIAL FOUNDATION |
 | Phase 4 — Complete recipe experience | PARTIAL FOUNDATION |
 | Phase 5 — Packaged food and barcode | NOT STARTED |
