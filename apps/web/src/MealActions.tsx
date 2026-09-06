@@ -123,3 +123,35 @@ export function DeleteMealDialog({ lang, onCancel, onConfirm }: { lang: Lang; on
     </div>
   );
 }
+
+export function RepeatMealDialog({ title, lang, onCancel, onConfirm }: { title: string; lang: Lang; onCancel: () => void; onConfirm: () => Promise<void> | void }) {
+  const t = dict[lang];
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function confirm() {
+    if (pending) return;
+    setPending(true);
+    setError(null);
+    try {
+      await onConfirm();
+    } catch (caught) {
+      setError(mealErrorText(caught, t.mealErrors));
+      setPending(false);
+    }
+  }
+
+  return (
+    <div className="modal-backdrop" role="alertdialog" aria-modal="true">
+      <div className="modal-panel card">
+        <p><strong>{title}</strong></p>
+        <p>{t.diary.confirmRepeat}</p>
+        {error && <div className="status error" role="alert">{error}</div>}
+        <div className="modal-actions">
+          <button type="button" className="btn secondary" onClick={onCancel} disabled={pending}>{t.diary.cancel}</button>
+          <button type="button" className="btn primary" onClick={confirm} disabled={pending} aria-busy={pending}>{pending ? t.savingMeal : t.diary.repeatMeal}</button>
+        </div>
+      </div>
+    </div>
+  );
+}

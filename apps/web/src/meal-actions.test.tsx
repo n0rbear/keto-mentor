@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { MealEditDialog, DeleteMealDialog, type MealDetail } from "./MealActions";
+import { MealEditDialog, DeleteMealDialog, RepeatMealDialog, type MealDetail } from "./MealActions";
 import { dict } from "./i18n";
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
@@ -92,5 +92,51 @@ describe("DeleteMealDialog", () => {
     fireEvent.click(screen.getByText(dict.en.diary.cancel));
     expect(onConfirm).not.toHaveBeenCalled();
     expect(onCancel).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("RepeatMealDialog", () => {
+  it.each(["hu", "de", "en"] as const)("shows the meal title and a localized repeat confirmation: %s", (lang) => {
+    render(<RepeatMealDialog title="Breakfast" lang={lang} onCancel={vi.fn()} onConfirm={vi.fn()}/>);
+    expect(screen.getByText("Breakfast")).toBeTruthy();
+    expect(screen.getByText(dict[lang].diary.confirmRepeat)).toBeTruthy();
+    expect(screen.getByText(dict[lang].diary.repeatMeal)).toBeTruthy();
+  });
+
+  it("only repeats after the confirm button is explicitly clicked", () => {
+    const onConfirm = vi.fn();
+    render(<RepeatMealDialog title="Breakfast" lang="en" onCancel={vi.fn()} onConfirm={onConfirm}/>);
+    expect(onConfirm).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByText(dict.en.diary.repeatMeal));
+    expect(onConfirm).toHaveBeenCalledTimes(1);
+  });
+
+  it("clicking cancel never triggers a repeat", () => {
+    const onConfirm = vi.fn();
+    const onCancel = vi.fn();
+    render(<RepeatMealDialog title="Breakfast" lang="en" onCancel={onCancel} onConfirm={onConfirm}/>);
+    fireEvent.click(screen.getByText(dict.en.diary.cancel));
+    expect(onConfirm).not.toHaveBeenCalled();
+    expect(onCancel).toHaveBeenCalledTimes(1);
+  });
+
+  it("disables the confirm button while the request is pending, preventing a double-click duplicate", async () => {
+    let resolveConfirm!: () => void;
+    const onConfirm = vi.fn(() => new Promise<void>((resolve) => { resolveConfirm = resolve; }));
+    render(<RepeatMealDialog title="Breakfast" lang="en" onCancel={vi.fn()} onConfirm={onConfirm}/>);
+    const confirmButton = screen.getByText(dict.en.diary.repeatMeal) as HTMLButtonElement;
+    fireEvent.click(confirmButton);
+    await waitFor(() => expect(confirmButton.disabled).toBe(true));
+    fireEvent.click(confirmButton); // a second click while pending must not fire a second request
+    expect(onConfirm).toHaveBeenCalledTimes(1);
+    resolveConfirm();
+  });
+
+  it("shows a localized error and re-enables the button when the repeat fails", async () => {
+    const onConfirm = vi.fn().mockRejectedValue(new Error("boom"));
+    render(<RepeatMealDialog title="Breakfast" lang="en" onCancel={vi.fn()} onConfirm={onConfirm}/>);
+    fireEvent.click(screen.getByText(dict.en.diary.repeatMeal));
+    await waitFor(() => expect(screen.getByRole("alert")).toBeTruthy());
+    expect((screen.getByText(dict.en.diary.repeatMeal) as HTMLButtonElement).disabled).toBe(false);
   });
 });

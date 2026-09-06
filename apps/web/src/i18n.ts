@@ -20,7 +20,8 @@ export const dict = {
     diary: {
       previousDay: "Előző nap", nextDay: "Következő nap", selectDate: "Dátum kiválasztása", noMeals: "Ezen a napon nem volt rögzített étkezés.",
       editMeal: "Étkezés szerkesztése", deleteMeal: "Törlés", editTime: "Időpont", removeItem: "Tétel eltávolítása",
-      cancel: "Mégse", confirmDelete: "Biztosan törlöd ezt az étkezést?", mealDeleted: "Az étkezés törölve, a napi összesítés frissült.", mealUpdated: "Az étkezés frissítve."
+      cancel: "Mégse", confirmDelete: "Biztosan törlöd ezt az étkezést?", mealDeleted: "Az étkezés törölve, a napi összesítés frissült.", mealUpdated: "Az étkezés frissítve.",
+      repeatMeal: "Ismét", confirmRepeat: "Újra rögzíted ezt az étkezést most?", mealRepeated: "Étkezés újra rögzítve a mai naphoz."
     },
     onboarding: "Kezdő beállítások",
     dashboard: "Napi áttekintés",
@@ -43,7 +44,7 @@ export const dict = {
       conversionMissing: "Az étel megvan, de ehhez a mértékhez nincs hiteles grammsúly. Add meg kézzel a grammot.",
       review: "Ellenőrizd és válaszd ki a megfelelő ételt.", verified: "ellenőrzött", estimated: "becsült", logAll: "Összes naplózása"
     },
-    mealErrors: { selectFood: "Válassz ételt a találati listából.", network_error: "Az API nem érhető el. Ellenőrizd a kapcsolatot; ezt CORS vagy hálózati hiba is okozhatja.", validation_error: "Ellenőrizd az étkezés nevét és a mennyiséget.", food_not_found: "A kiválasztott étel már nem található. Keress rá újra.", unauthorized: "A munkamenet lejárt. Jelentkezz be újra.", server: "A szerver nem tudta elmenteni az étkezést. Próbáld meg később.", unknown: "Az étkezést nem sikerült elmenteni.", meal_not_found: "Ez az étkezés már nem található.", meal_item_not_found: "Ez a tétel már nem található ebben az étkezésben.", meal_items_empty: "Egy étkezésben legalább egy tételnek maradnia kell — inkább töröld az egész étkezést.", future_eaten_at: "Az időpont nem lehet a jövőben." },
+    mealErrors: { selectFood: "Válassz ételt a találati listából.", network_error: "Az API nem érhető el. Ellenőrizd a kapcsolatot; ezt CORS vagy hálózati hiba is okozhatja.", validation_error: "Ellenőrizd az étkezés nevét és a mennyiséget.", food_not_found: "A kiválasztott étel már nem található. Keress rá újra.", unauthorized: "A munkamenet lejárt. Jelentkezz be újra.", server: "A szerver nem tudta elmenteni az étkezést. Próbáld meg később.", unknown: "Az étkezést nem sikerült elmenteni.", meal_not_found: "Ez az étkezés már nem található.", meal_item_not_found: "Ez a tétel már nem található ebben az étkezésben.", meal_items_empty: "Egy étkezésben legalább egy tételnek maradnia kell — inkább töröld az egész étkezést.", future_eaten_at: "Az időpont nem lehet a jövőben.", meal_repeat_invalid_source: "Ez az étkezés sérült, nem ismételhető meg." },
     disclaimer: "A Keto Mentor tájékoztató jellegű étkezéskövető. Nem diagnosztizál, nem kezel betegséget, és egészségügyi döntéshez kérj szakembert.",
     explain: "A nettó szénhidrát a szénhidrát mínusz rost. Kezdőként ezt érdemes figyelni, de a teljes ételminőség is számít.",
     goals: {
@@ -77,7 +78,8 @@ export const dict = {
     diary: {
       previousDay: "Vorheriger Tag", nextDay: "Nächster Tag", selectDate: "Datum auswählen", noMeals: "An diesem Tag wurden keine Mahlzeiten erfasst.",
       editMeal: "Mahlzeit bearbeiten", deleteMeal: "Löschen", editTime: "Uhrzeit", removeItem: "Zutat entfernen",
-      cancel: "Abbrechen", confirmDelete: "Diese Mahlzeit wirklich löschen?", mealDeleted: "Mahlzeit gelöscht und Tageswerte aktualisiert.", mealUpdated: "Mahlzeit aktualisiert."
+      cancel: "Abbrechen", confirmDelete: "Diese Mahlzeit wirklich löschen?", mealDeleted: "Mahlzeit gelöscht und Tageswerte aktualisiert.", mealUpdated: "Mahlzeit aktualisiert.",
+      repeatMeal: "Erneut", confirmRepeat: "Diese Mahlzeit jetzt erneut protokollieren?", mealRepeated: "Mahlzeit erneut für heute protokolliert."
     },
     onboarding: "Erste Einstellungen",
     dashboard: "Tagesübersicht",
@@ -100,7 +102,7 @@ export const dict = {
       conversionMissing: "Lebensmittel gefunden, aber kein verlässliches Grammgewicht. Bitte Gramm eingeben.",
       review: "Bitte das richtige Lebensmittel auswählen.", verified: "geprüft", estimated: "geschätzt", logAll: "Alle eintragen"
     },
-    mealErrors: { selectFood: "Bitte ein Lebensmittel aus der Trefferliste wählen.", network_error: "Die API ist nicht erreichbar. Netzwerk oder CORS prüfen.", validation_error: "Name und Menge der Mahlzeit prüfen.", food_not_found: "Das gewählte Lebensmittel ist nicht mehr verfügbar.", unauthorized: "Die Sitzung ist abgelaufen. Bitte neu anmelden.", server: "Die Mahlzeit konnte serverseitig nicht gespeichert werden.", unknown: "Die Mahlzeit konnte nicht gespeichert werden.", meal_not_found: "Diese Mahlzeit gibt es nicht mehr.", meal_item_not_found: "Diese Zutat gibt es in dieser Mahlzeit nicht mehr.", meal_items_empty: "Eine Mahlzeit braucht mindestens eine Zutat — lösche stattdessen die ganze Mahlzeit.", future_eaten_at: "Die Uhrzeit darf nicht in der Zukunft liegen." },
+    mealErrors: { selectFood: "Bitte ein Lebensmittel aus der Trefferliste wählen.", network_error: "Die API ist nicht erreichbar. Netzwerk oder CORS prüfen.", validation_error: "Name und Menge der Mahlzeit prüfen.", food_not_found: "Das gewählte Lebensmittel ist nicht mehr verfügbar.", unauthorized: "Die Sitzung ist abgelaufen. Bitte neu anmelden.", server: "Die Mahlzeit konnte serverseitig nicht gespeichert werden.", unknown: "Die Mahlzeit konnte nicht gespeichert werden.", meal_not_found: "Diese Mahlzeit gibt es nicht mehr.", meal_item_not_found: "Diese Zutat gibt es in dieser Mahlzeit nicht mehr.", meal_items_empty: "Eine Mahlzeit braucht mindestens eine Zutat — lösche stattdessen die ganze Mahlzeit.", future_eaten_at: "Die Uhrzeit darf nicht in der Zukunft liegen.", meal_repeat_invalid_source: "Diese Mahlzeit ist beschädigt und kann nicht wiederholt werden." },
     disclaimer: "Keto Mentor ist ein informativer Tracker. Er diagnostiziert oder behandelt nicht; medizinische Entscheidungen gehören zu Fachleuten.",
     explain: "Netto-Kohlenhydrate sind Kohlenhydrate minus Ballaststoffe. Für Einsteiger ist das hilfreich, aber Lebensmittelqualität zählt ebenfalls.",
     goals: {
@@ -134,7 +136,8 @@ export const dict = {
     diary: {
       previousDay: "Previous day", nextDay: "Next day", selectDate: "Select date", noMeals: "No meals logged for this day.",
       editMeal: "Edit meal", deleteMeal: "Delete", editTime: "Time", removeItem: "Remove item",
-      cancel: "Cancel", confirmDelete: "Delete this meal?", mealDeleted: "Meal deleted and daily totals updated.", mealUpdated: "Meal updated."
+      cancel: "Cancel", confirmDelete: "Delete this meal?", mealDeleted: "Meal deleted and daily totals updated.", mealUpdated: "Meal updated.",
+      repeatMeal: "Repeat", confirmRepeat: "Log this meal again now?", mealRepeated: "Meal repeated for today."
     },
     onboarding: "Starter settings",
     dashboard: "Daily overview",
@@ -157,7 +160,7 @@ export const dict = {
       conversionMissing: "Food found, but no reliable gram conversion exists. Enter grams manually.",
       review: "Review and choose the correct food.", verified: "verified", estimated: "estimated", logAll: "Log all"
     },
-    mealErrors: { selectFood: "Choose a food from the results.", network_error: "The API is unreachable. Check the network or CORS configuration.", validation_error: "Check the meal name and quantity.", food_not_found: "The selected food is no longer available. Search again.", unauthorized: "Your session expired. Log in again.", server: "The server could not save the meal. Try again later.", unknown: "The meal could not be saved.", meal_not_found: "This meal no longer exists.", meal_item_not_found: "This item no longer exists in this meal.", meal_items_empty: "A meal needs at least one item — delete the whole meal instead.", future_eaten_at: "The time can't be in the future." },
+    mealErrors: { selectFood: "Choose a food from the results.", network_error: "The API is unreachable. Check the network or CORS configuration.", validation_error: "Check the meal name and quantity.", food_not_found: "The selected food is no longer available. Search again.", unauthorized: "Your session expired. Log in again.", server: "The server could not save the meal. Try again later.", unknown: "The meal could not be saved.", meal_not_found: "This meal no longer exists.", meal_item_not_found: "This item no longer exists in this meal.", meal_items_empty: "A meal needs at least one item — delete the whole meal instead.", future_eaten_at: "The time can't be in the future.", meal_repeat_invalid_source: "This meal is corrupted and can't be repeated." },
     disclaimer: "Keto Mentor is an informational food tracker. It does not diagnose or treat disease; ask a professional for medical decisions.",
     explain: "Net carbs are carbs minus fiber. Beginners can use this as a simple guardrail, while overall food quality still matters.",
     goals: {

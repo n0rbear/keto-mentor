@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { Activity, ChevronLeft, ChevronRight, ExternalLink, LogOut, Mail, Pencil, Plus, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
+import { Activity, ChevronLeft, ChevronRight, ExternalLink, LogOut, Mail, Pencil, Plus, Repeat, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
 
 import { dict, type Lang } from "./i18n";
 import { api, ApiError, type ApiState } from "./api";
@@ -9,7 +9,7 @@ import "./styles.css";
 import norbappLogo from "./assets/norbapp-logo-new.png";
 
 import { RecipeBuilder } from "./RecipeBuilder";
-import { MealEditDialog, DeleteMealDialog, type MealDetail } from "./MealActions";
+import { MealEditDialog, DeleteMealDialog, RepeatMealDialog, type MealDetail } from "./MealActions";
 import { AuthForm } from "./AuthForm";
 import { FoodUnderstandingPreview } from "./FoodUnderstandingPreview";
 import { QuantityClarification } from "./QuantityClarification";
@@ -49,6 +49,7 @@ export function App() {
   const [selectedDate, setSelectedDate] = useState(() => todayLocalDate());
   const [editingMeal, setEditingMeal] = useState<MealDetail | null>(null);
   const [deletingMealId, setDeletingMealId] = useState<string | null>(null);
+  const [repeatingMeal, setRepeatingMeal] = useState<{ id: string; title: string } | null>(null);
   const [selectedFood, setSelectedFood] = useState<Food | null>(null);
   const [mealSaving, setMealSaving] = useState(false);
   const [mealStatus, setMealStatus] = useState<{ kind: "success" | "error"; text: string } | null>(null);
@@ -124,6 +125,17 @@ export function App() {
     await fetchMealsForDate(selectedDate).then(applyMealsResult);
     setDeletingMealId(null);
     setMealStatus({ kind: "success", text: t.diary.mealDeleted });
+  }
+
+  // Repeat always logs at now, so — unlike Edit/Delete — jump the diary to
+  // today even when repeating from a historical date, so the new entry is
+  // immediately visible instead of appearing to do nothing.
+  async function confirmRepeatMeal() {
+    if (!repeatingMeal) return;
+    await api(`/meals/${repeatingMeal.id}/repeat`, { method: "POST", body: JSON.stringify({}) }, state);
+    setRepeatingMeal(null);
+    await handleMealLogged();
+    setMealStatus({ kind: "success", text: t.diary.mealRepeated });
   }
 
   useEffect(() => { loadAll(selectedDate).catch(() => setToken(null)); }, [token]);
@@ -371,6 +383,7 @@ export function App() {
                     <div className="meal-copy"><strong>{m.title}</strong><time dateTime={m.eatenAt}>{formatMealTime(m.eatenAt, lang)}</time></div>
                     <span className="meal-macros">{Math.round(m.totals.kcal)} kcal · <b>{Math.round(m.totals.netCarbs)} g net</b></span>
                     <div className="meal-actions">
+                      <button type="button" className="icon-button meal-action-btn" aria-label={t.diary.repeatMeal} onClick={() => setRepeatingMeal({ id: m.id, title: m.title })}><Repeat size={14}/></button>
                       <button type="button" className="icon-button meal-action-btn" aria-label={t.diary.editMeal} onClick={() => openEditMeal(m.id)}><Pencil size={14}/></button>
                       <button type="button" className="icon-button meal-action-btn" aria-label={t.diary.deleteMeal} onClick={() => setDeletingMealId(m.id)}><Trash2 size={14}/></button>
                     </div>
@@ -419,6 +432,7 @@ export function App() {
       </footer>
       {editingMeal && <MealEditDialog meal={editingMeal} lang={lang} state={state} onCancel={() => setEditingMeal(null)} onSaved={handleMealEdited}/>}
       {deletingMealId && <DeleteMealDialog lang={lang} onCancel={() => setDeletingMealId(null)} onConfirm={confirmDeleteMeal}/>}
+      {repeatingMeal && <RepeatMealDialog title={repeatingMeal.title} lang={lang} onCancel={() => setRepeatingMeal(null)} onConfirm={confirmRepeatMeal}/>}
     </main>
   );
 }

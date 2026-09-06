@@ -7,7 +7,7 @@ import helmet from "helmet";
 import jwt from "jsonwebtoken";
 import { pinoHttp } from "pino-http";
 import { z } from "zod";
-import { createMealSchema, editMealSchema, loginSchema, mealInterpretationSchema, onboardingSchema, registerSchema } from "@keto-mentor/shared";
+import { createMealSchema, editMealSchema, repeatMealSchema, loginSchema, mealInterpretationSchema, onboardingSchema, registerSchema } from "@keto-mentor/shared";
 import { env } from "./config.js";
 import { createLogger } from "./logger.js";
 
@@ -22,6 +22,7 @@ import { UsdaFoodDataCentralLookupAdapter } from "./catalog/structured-source-ad
 import { parseNaturalFoodQuery } from "./catalog/natural-food-query.js";
 import { createMeal } from "./meals/create-meal.js";
 import { editMeal, deleteMeal, getMeal } from "./meals/edit-meal.js";
+import { repeatMeal } from "./meals/repeat-meal.js";
 import { resolveDiaryDateRange } from "./meals/diary-date.js";
 import { getMealsForDay } from "./meals/diary-query.js";
 import { recipeRouter } from "./recipes/router.js";
@@ -262,6 +263,19 @@ app.delete("/meals/:mealId", requireAuth, async (req, res, next) => {
   try {
     await deleteMeal(prisma, req.user!.id, req.params.mealId);
     res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Quick repeat: logs a new meal reproducing an existing one (same title,
+// items, trusted Food/Recipe references, quantities), timestamped at now.
+// The body carries nothing — the server loads the trusted source itself.
+app.post("/meals/:mealId/repeat", requireAuth, async (req, res, next) => {
+  try {
+    repeatMealSchema.parse(req.body ?? {});
+    const meal = await repeatMeal(prisma, req.user!.id, req.params.mealId);
+    res.status(201).json({ meal });
   } catch (error) {
     next(error);
   }
