@@ -1,0 +1,146 @@
+import { foodUnderstandingSchema } from "@keto-mentor/shared";
+import { z } from "zod";
+import type { AiCapability, AiProvider, FoodNlpInput } from "./provider.js";
+import { FOOD_NLP_SYSTEM_INSTRUCTION } from "./food-nlp-prompt.js";
+
+const foodNlpInputSchema = z.object({ text: z.string().trim().min(2).max(300) }).strict();
+const chatCompletionEnvelopeSchema = z.object({
+  choices: z.array(z.object({
+    message: z.object({ content: z.string().max(60_000).nullable() }).passthrough()
+  }).passthrough()).min(1).max(4)
+}).passthrough();
+
+export type ChatCompletionsOptions = {
+  id: string;
+  apiKey: string;
+  model: string;
+  baseUrl: string;
+  timeoutMs?: number;
+  maxResponseBytes?: number;
+  maxTokens?: number;
+  fetchImpl?: typeof fetch;
+  extraHeaders?: Record<string, string>;
+  extraBodyFields?: Record<string, unknown>;
+};
+
+export class AiProviderError extends Error {
+  constructor(readonly code: "unsupported_capability" | "timeout" | "http_error" | "response_too_large" | "invalid_response") {
+    super(code);
+    this.name = "AiProviderError";
+  }
+}
+
+export function completionUrl(baseUrl: string) {
+  const parsed = new URL(baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`);
+  if (parsed.username || parsed.password) throw new Error("AI base URL must not contain credentials");
+  if (parsed.protocol !== "https:" && parsed.hostname !== "localhost" && parsed.hostname !== "127.0.0.1") {
+    throw new Error("AI base URL must use HTTPS");
+  }
+  return new URL("v1/chat/completions", parsed).toString();
+}
+
+async function boundedText(response: Response, maxBytes: number) {
+  const declared = Number(response.headers.get("content-length"));
+  if (Number.isFinite(declared) && declared > maxBytes) throw new AiProviderError("response_too_large");
+  if (!response.body) return "";
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let bytes = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    bytes += value.byteLength;
+    if (bytes > maxBytes) {
+      await reader.cancel();
+      throw new AiProviderError("response_too_large");
+    }
+    chunks.push(value);
+  }
+  const merged = new Uint8Array(bytes);
+  let offset = 0;
+  for (const chunk of chunks) { merged.set(chunk, offset); offset += chunk.byteLength; }
+  return new TextDecoder().decode(merged);
+}
+
+// Some OpenAI-compatible models ignore response_format and wrap JSON in a markdown code fence.
+function stripCodeFence(content: string) {
+  const fenced = content.trim().match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+  return fenced ? fenced[1] : content;
+}
+
+/** Generic OpenAI-compatible chat-completions transport shared by every food-AI gateway. */
+export class ChatCompletionsProvider implements AiProvider {
+  readonly id: string;
+  readonly model: string;
+  private readonly apiKey: string;
+  private readonly url: string;
+  private readonly timeoutMs: number;
+  private readonly maxResponseBytes: number;
+  private readonly maxTokens: number;
+  private readonly fetchImpl: typeof fetch;
+  private readonly extraHeaders: Record<string, string>;
+  private readonly extraBodyFields: Record<string, unknown>;
+
+  constructor(options: ChatCompletionsOptions) {
+    if (!options.apiKey.trim() || !options.model.trim()) throw new Error("AI provider API key and model are required");
+    this.id = options.id;
+    this.apiKey = options.apiKey;
+    this.model = options.model;
+    this.url = completionUrl(options.baseUrl);
+    this.timeoutMs = options.timeoutMs ?? 8_000;
+    this.maxResponseBytes = options.maxResponseBytes ?? 64 * 1024;
+    this.maxTokens = options.maxTokens ?? 900;
+    this.fetchImpl = options.fetchImpl ?? fetch;
+    this.extraHeaders = options.extraHeaders ?? {};
+    this.extraBodyFields = options.extraBodyFields ?? {};
+  }
+
+  supports(capability: AiCapability) { return capability === "food_nlp"; }
+
+  async run<TInput, TOutput>(capability: AiCapability, input: TInput): Promise<TOutput> {
+    if (capability !== "food_nlp") throw new AiProviderError("unsupported_capability");
+    const { text } = foodNlpInputSchema.parse(input as FoodNlpInput);
+    return this.complete(FOOD_NLP_SYSTEM_INSTRUCTION, text, (value) => foodUnderstandingSchema.parse(value)) as Promise<TOutput>;
+  }
+
+  async complete<T>(instruction: string, input: string, validate: (value: unknown) => T): Promise<T> {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), this.timeoutMs);
+    try {
+      const response = await this.fetchImpl(this.url, {
+        method: "POST",
+        headers: { "content-type": "application/json", authorization: `Bearer ${this.apiKey}`, ...this.extraHeaders },
+        body: JSON.stringify({
+          model: this.model,
+          messages: [
+            { role: "system", content: instruction },
+            { role: "user", content: input }
+          ],
+          response_format: { type: "json_object" },
+          temperature: 0,
+          max_tokens: this.maxTokens,
+          stream: false,
+          ...this.extraBodyFields
+        }),
+        signal: controller.signal
+      });
+      const body = await boundedText(response, this.maxResponseBytes);
+      if (!response.ok) throw new AiProviderError("http_error");
+      try {
+        const envelope = chatCompletionEnvelopeSchema.parse(JSON.parse(body));
+        const content = envelope.choices[0].message.content;
+        if (content === null) throw new AiProviderError("invalid_response");
+        return validate(JSON.parse(stripCodeFence(content)));
+      } catch (error) {
+        if (error instanceof AiProviderError) throw error;
+        throw new AiProviderError("invalid_response");
+      }
+    } catch (error) {
+      if (error instanceof AiProviderError) throw error;
+      if (controller.signal.aborted || (error instanceof Error && error.name === "AbortError")) throw new AiProviderError("timeout");
+      throw new AiProviderError("http_error");
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+}

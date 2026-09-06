@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { interpretMealInput, type InterpretResult } from "./interpret.js";
 import { normalizeSearch } from "../catalog/normalize.js";
 import type { AiProvider } from "../ai/provider.js";
@@ -32,7 +32,11 @@ const baseFoods: Food[] = [
   { id: "catalog-gouda", name: "Gouda cheese", names: { hu: "Gouda sajt", de: "Gouda", en: "Gouda cheese" }, synonyms: { hu: ["gouda", "sajt"], de: ["gouda", "käse", "kase"], en: ["gouda", "cheese"] }, servings: [{ id: "gouda-slice", key: "slice", unit: "slice", labels: { en: "slice" }, grams: 28.35, isEstimated: true, confidence: 0.7, provenance: { method: "reference_estimate", fdcId: "171241", portionId: "88235" } }], kcalPer100g: 356 },
   { id: "catalog-cucumber", name: "Cucumber", names: { hu: "Kígyóuborka", de: "Gurke", en: "Cucumber" }, synonyms: { hu: ["kígyóuborka", "kigyouborka", "uborka"], de: ["gurke", "salatgurke"], en: ["cucumber"] }, servings: [{ id: "cucumber-piece", key: "piece", unit: "piece", labels: { en: "piece" }, grams: 300, isEstimated: true, confidence: 0.7, provenance: { method: "curated_estimate" } }], kcalPer100g: 15 },
   { id: "catalog-sausage", name: "Sausage", names: { hu: "Virsli", de: "Würstchen", en: "Sausage" }, synonyms: { hu: ["virsli"], de: ["wurstchen"], en: ["sausage"] }, servings: [{ id: "sausage-piece", key: "piece", unit: "piece", labels: { en: "piece" }, grams: 50, isEstimated: false, confidence: 1, provenance: { method: "authoritative" } }], kcalPer100g: 300 },
-  { id: "catalog-pepper", name: "Pepper", names: { hu: "Paprika", de: "Paprika", en: "Pepper" }, synonyms: { hu: ["paprika"], de: ["paprika"], en: ["pepper"] }, kcalPer100g: 20 }
+  { id: "catalog-pepper", name: "Pepper", names: { hu: "Paprika", de: "Paprika", en: "Pepper" }, synonyms: { hu: ["paprika"], de: ["paprika"], en: ["pepper"] }, kcalPer100g: 20 },
+  { id: "catalog-peanut", name: "Peanuts", names: { hu: "Földimogyoró", de: "Erdnüsse", en: "Peanuts" }, synonyms: { hu: ["mogyoró", "foldimogyoro"], de: ["erdnusse"], en: ["peanut", "peanuts"] }, kcalPer100g: 567 },
+  { id: "catalog-broth", name: "Soup", names: { hu: "Húsleves", de: "Suppe", en: "Soup" }, synonyms: { hu: ["húsleves", "husleves"], de: ["suppe"], en: ["soup"] }, kcalPer100g: 35 },
+  { id: "catalog-roast-chicken", name: "Roast chicken", names: { hu: "Grillcsirke", de: "Grillhähnchen", en: "Roast chicken" }, synonyms: { hu: ["grillcsirke"], de: ["grillhahnchen"], en: ["roast chicken"] }, kcalPer100g: 239 },
+  { id: "catalog-chicken-breast", name: "Chicken breast", names: { hu: "Csirkemell", de: "Hähnchenbrust", en: "Chicken breast" }, synonyms: { hu: ["csirkemell"], de: ["hahnchenbrust"], en: ["chicken breast"] }, kcalPer100g: 120 }
 ];
 
 function makePrisma() {
@@ -206,6 +210,70 @@ describe("meal input interpretation", () => {
     }
   });
 
+  it("never calls quantity AI for unresolved or ambiguous food", async () => {
+    const quantity = { id: "spy", estimate: vi.fn() };
+    await interpretMealInput(prisma, "egy marék ismeretlenétel", quantity);
+    await interpretMealInput(prisma, "egy szelet sajt", quantity);
+    expect(quantity.estimate).not.toHaveBeenCalled();
+  });
+
+  it("asks only the first useful quantity clarification in a multi-item meal", async () => {
+    const quantity = { id: "fixture", estimate: vi.fn(async () => ({ gramsPerUnit: 30, rangeGramsPerUnit: { min: 25, max: 35 }, confidence: .8, method: "ai_estimated" as const, provenance: { provider: "fixture", modelOrRule: "fixture", estimatedAt: "2026-09-06T00:00:00Z" } })) };
+    const result = await interpretMealInput(prisma, "egy marék mogyoró és mogyoró", quantity);
+    expect(result.clarification).toMatchObject({ itemIndex: 0, type: "estimate_confirmation", suggestedGrams: 30 });
+    expect(quantity.estimate).toHaveBeenCalledOnce();
+  });
+
+  it("uses quantity AI only after a trusted food resolves", async () => {
+    const quantity = { id: "fixture", estimate: vi.fn(async () => ({ gramsPerUnit: 30, rangeGramsPerUnit: { min: 25, max: 35 }, confidence: .8, method: "ai_estimated" as const, provenance: { provider: "fixture", modelOrRule: "fixture", estimatedAt: "2026-09-06T00:00:00Z" } })) };
+    const result = await interpretMealInput(prisma, "egy marék mogyoró", quantity);
+    expect(result.selectedFood?.id).toBe("catalog-peanut");
+    expect(result.quantity).toMatchObject({ grams: 30, method: "ai_estimated", requiresConfirmation: true });
+    expect(result.clarification?.type).toBe("estimate_confirmation");
+    expect(quantity.estimate).toHaveBeenCalledOnce();
+  });
+
+  it("missing quantity asks the user and does not invoke AI", async () => {
+    const quantity = { id: "spy", estimate: vi.fn() };
+    const result = await interpretMealInput(prisma, "mogyoró", quantity);
+    expect(result.clarification?.type).toBe("quantity_missing");
+    expect(quantity.estimate).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["2 tojás", "catalog-egg", 100, "authoritative", 0, false],
+    ["3 szelet Gouda", "catalog-gouda", 85.05, "estimated", 0, true],
+    ["egy marék mogyoró", "catalog-peanut", 30, "ai_estimated", 1, true],
+    ["két merőkanál húsleves", "catalog-broth", 500, "ai_estimated", 1, true],
+    ["fél grillcsirke", "catalog-roast-chicken", 400, "ai_estimated", 1, true],
+    ["200 g csirkemell", "catalog-chicken-breast", 200, "measured", 0, false],
+    ["eine Handvoll Erdnüsse", "catalog-peanut", 30, "ai_estimated", 1, true],
+    ["zwei Kellen Suppe", "catalog-broth", 500, "ai_estimated", 1, true],
+    ["ein halbes Grillhähnchen", "catalog-roast-chicken", 400, "ai_estimated", 1, true],
+    ["a handful of peanuts", "catalog-peanut", 30, "ai_estimated", 1, true],
+    ["two ladles of soup", "catalog-broth", 500, "ai_estimated", 1, true],
+    ["half a roast chicken", "catalog-roast-chicken", 400, "ai_estimated", 1, true]
+  ] as const)("Phase 2 demo: %s", async (input, foodId, grams, method, calls, confirmation) => {
+    const estimate = vi.fn(async ({ parsed }: any) => {
+      const gramsPerUnit = parsed.unit === "handful" ? 30 : parsed.unit === "ladle" ? 250 : 400;
+      return { gramsPerUnit, rangeGramsPerUnit: { min: gramsPerUnit * .8, max: gramsPerUnit * 1.2 }, confidence: .75, method: "ai_estimated" as const, provenance: { provider: "fixture", modelOrRule: "fixture", estimatedAt: "2026-09-06T00:00:00Z" } };
+    });
+    const result = await interpretMealInput(prisma, input, { id: "fixture", estimate });
+    expect(result.selectedFood?.id).toBe(foodId);
+    expect(result.quantity?.grams).toBeCloseTo(grams, 6);
+    expect(result.quantity?.method).toBe(method);
+    expect(result.quantity?.requiresConfirmation).toBe(confirmation);
+    expect(estimate).toHaveBeenCalledTimes(calls);
+  });
+
+  it("Phase 2 demo keeps unresolved lecsó out of quantity AI", async () => {
+    const estimate = vi.fn();
+    const result = await interpretMealInput(prisma, "egy tányér lecsó", { id: "spy", estimate });
+    expect(result.selectedFood).toBeNull();
+    expect(result.canConfirm).toBe(false);
+    expect(estimate).not.toHaveBeenCalled();
+  });
+
   it("half of an estimated piece preserves the confirmation requirement", async () => {
     const r = await interpretMealInput(prisma, "fél kígyóuborka");
     expect(r.quantity?.grams).toBe(150);
@@ -346,7 +414,6 @@ describe("meal input interpretation", () => {
 
   it.each([
     ["egy döner extra hússal, szósz nélkül", "hu", "compound_dish", "döner", ["extra meat"], ["sauce"]],
-    ["fél grillcsirke", "hu", "single_food", "roast chicken", [], []],
     ["ein Döner mit extra Fleisch ohne Soße", "de", "compound_dish", "döner", ["extra meat"], ["sauce"]],
     ["a Caesar salad without croutons", "en", "compound_dish", "Caesar salad", [], ["croutons"]],
     ["two ladles of beef stew", "en", "compound_dish", "beef stew", [], []]

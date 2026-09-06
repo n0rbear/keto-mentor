@@ -24,15 +24,16 @@ import { parseNaturalFoodQuery } from "./catalog/natural-food-query.js";
 import { createMeal } from "./meals/create-meal.js";
 import { recipeRouter } from "./recipes/router.js";
 import { interpretMealInput } from "./meal-input/interpret.js";
-import { configuredFoodNlpProvider } from "./ai/mistral-provider.js";
+import { configuredFoodAiProvider } from "./ai/food-ai-gateway.js";
 import { FoodNlpUserRateLimiter, rateLimitedFoodNlpProvider } from "./ai/food-nlp-rate-limit.js";
-import { DisabledQuantityEstimationProvider } from "./meal-input/quantity-estimation.js";
+import { configuredQuantityAiProvider } from "./meal-input/quantity-ai-gateway.js";
 
 const logger = pino({ level: env.NODE_ENV === "production" ? "info" : "debug" });
 const app = express();
 const externalFoodAdapters = env.USDA_FDC_API_KEY ? [new UsdaFoodDataCentralLookupAdapter(env.USDA_FDC_API_KEY)] : [];
-const foodNlpProvider = configuredFoodNlpProvider(env);
+const foodNlpProvider = configuredFoodAiProvider(env);
 const foodNlpLimiter = new FoodNlpUserRateLimiter();
+const quantityProvider = configuredQuantityAiProvider(env);
 
 if (env.NODE_ENV === "production") app.set("trust proxy", 1);
 
@@ -183,7 +184,8 @@ app.post("/meal-input/interpret", requireAuth, async (req, res, next) => {
   try {
     const input = mealInterpretationSchema.parse(req.body);
     const requestProvider = rateLimitedFoodNlpProvider(foodNlpProvider, foodNlpLimiter, req.user!.id);
-    res.json(await interpretMealInput(prisma, input.text, new DisabledQuantityEstimationProvider(), requestProvider));
+    const requestQuantityProvider = { id: quantityProvider.id, estimate: (input: Parameters<typeof quantityProvider.estimate>[0]) => quantityProvider.estimate(input, undefined, () => foodNlpLimiter.consume(req.user!.id)) };
+    res.json(await interpretMealInput(prisma, input.text, requestQuantityProvider, requestProvider));
   } catch (error) {
     next(error);
   }

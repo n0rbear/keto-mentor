@@ -273,3 +273,7 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
 }
+.quantity-clarification { display: grid; gap: .65rem; margin-top: .8rem; padding: 1rem; border: 1px solid rgb(var(--brand-deep)); border-radius: 12px; overflow-wrap: anywhere; }
+.quantity-actions { display: flex; flex-wrap: wrap; align-items: end; gap: .6rem; }
+.quantity-actions label { flex: 1 1 140px; min-width: 0; }
+.quantity-actions input { width: 100%; min-width: 0; }

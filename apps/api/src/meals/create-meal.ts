@@ -24,7 +24,7 @@ export async function createMeal(prisma: PrismaClient, userId: string, input: Cr
               quantityGrams: converted.grams,
               inputQuantity: item.quantity,
               inputUnit: item.unit,
-              conversionSnapshot: converted.snapshot,
+              conversionSnapshot: item.quantityConfirmation ? { ...converted.snapshot, quantityConfirmation: item.quantityConfirmation } : converted.snapshot,
               food: { connect: { id: item.foodId } }
             };
           }

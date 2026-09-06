@@ -43,8 +43,14 @@ export const catalogMealItemSchema = z.object({
   quantity: z.number().positive().max(5000),
   unit: z.enum(["g", "kg", "serving"]).default("g"),
   servingId: z.string().min(1).optional(),
-  gramsOverride: z.number().positive().max(50_000).optional()
+  gramsOverride: z.number().positive().max(50_000).optional(),
+  quantityConfirmation: z.object({
+    method: z.enum(["estimated", "ai_estimated", "user_corrected"]),
+    accepted: z.literal(true),
+    grams: z.number().finite().positive().max(5000)
+  }).strict().optional()
 }).superRefine((item, context) => {
+  if (item.quantityConfirmation && (item.unit !== "g" || item.quantity !== item.quantityConfirmation.grams)) context.addIssue({ code: "custom", message: "confirmed_grams_mismatch" });
   if (item.unit === "serving" && !item.servingId) context.addIssue({ code: "custom", path: ["servingId"], message: "servingId is required" });
   if (item.unit !== "serving" && (item.servingId || item.gramsOverride)) context.addIssue({ code: "custom", path: ["unit"], message: "serving fields require serving unit" });
 });
@@ -58,6 +64,16 @@ export const createMealSchema = z.object({
 export const mealInterpretationSchema = z.object({
   text: z.string().trim().min(2).max(300)
 }).strict();
+
+export type QuantityClarification = {
+  type: "quantity_missing" | "estimate_confirmation" | "grams_required";
+  itemIndex: number;
+  suggestedGrams?: number;
+  rangeGrams?: { min: number; max: number };
+  confidence?: number;
+  method?: "estimated" | "ai_estimated";
+  allowCustomGrams: boolean;
+};
 
 export const foodUnderstandingLanguageSchema = z.enum(["hu", "de", "en", "unknown"]);
 export const foodUnderstandingKindSchema = z.enum(["single_food", "multiple_foods", "compound_dish"]);

@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@prisma/client";
-import type { FoodUnderstanding, FoodUnderstandingItem } from "@keto-mentor/shared";
+import type { FoodUnderstanding, FoodUnderstandingItem, QuantityClarification } from "@keto-mentor/shared";
 import { parseNaturalFoodQuery, type ParsedNaturalFoodQuery } from "../catalog/natural-food-query.js";
 import { searchFoods } from "../catalog/food-search.js";
 import { DisabledQuantityEstimationProvider, type EstimateMethod, type QuantityEstimationProvider, validateQuantityEstimate } from "./quantity-estimation.js";
@@ -20,12 +20,14 @@ export type QuantityResolution = {
   estimated: boolean;
   requiresConfirmation: boolean;
   provenance?: unknown;
+  rangeGrams?: { min: number; max: number };
   reason?: "quantity_missing" | "conversion_missing";
 };
 
 export type FoodResolutionStatus = "resolved" | "preview" | "confirmation_required" | "unresolved" | "multi" | "compound";
 
 export type InterpretResult = {
+  clarification?: QuantityClarification;
   input: string;
   parsed: ParsedNaturalFoodQuery;
   foodResolution: FoodResolutionStatus;
@@ -111,14 +113,14 @@ export async function resolveQuantity(
 
   const bestServing = (unit: string) => (food.servings ?? [])
     .filter((candidate) => servingMatchesUnit(candidate, unit) && servingMatchesSize(candidate, parsed.size))
-    .sort((a, b) => Number(a.isEstimated) - Number(b.isEstimated) || b.confidence - a.confidence)[0];
+    .sort((a, b) => servingPriority(a) - servingPriority(b) || b.confidence - a.confidence)[0];
 
   let serving = bestServing(parsed.unit);
   let servingScale = 1;
   let provenance = serving?.provenance;
-  if (!serving && parsed.unit === "half") {
+  if (!serving && (parsed.unit === "half" || parsed.unit === "quarter")) {
     serving = bestServing("piece");
-    servingScale = 0.5;
+    servingScale = parsed.unit === "half" ? 0.5 : 0.25;
     if (serving) provenance = { method: "half_of_piece", sourceServing: serving.provenance };
   }
   if (serving) {
@@ -131,13 +133,23 @@ export async function resolveQuantity(
     };
   }
 
-  const estimated = await provider.estimate({ parsed, food });
-  if (!estimated) return { status: "unresolved", estimated: false, requiresConfirmation: true, reason: "conversion_missing" };
-  const valid = validateQuantityEstimate(estimated);
-  return {
-    status: "resolved", grams: parsed.quantity * valid.gramsPerUnit, gramsPerUnit: valid.gramsPerUnit,
-    method: valid.method, confidence: valid.confidence, estimated: true, requiresConfirmation: true, provenance: valid.provenance
-  };
+  try {
+    const estimated = await provider.estimate({ parsed, food });
+    if (!estimated) return { status: "unresolved", estimated: false, requiresConfirmation: true, reason: "conversion_missing" };
+    const valid = validateQuantityEstimate(estimated);
+    return {
+      status: "resolved", grams: parsed.quantity * valid.gramsPerUnit, gramsPerUnit: valid.gramsPerUnit,
+      method: valid.method, confidence: valid.confidence, estimated: true, requiresConfirmation: true, provenance: valid.provenance,
+      rangeGrams: valid.rangeGramsPerUnit ? { min: parsed.quantity * valid.rangeGramsPerUnit.min, max: parsed.quantity * valid.rangeGramsPerUnit.max } : undefined
+    };
+  } catch {
+    return { status: "unresolved", estimated: false, requiresConfirmation: true, reason: "conversion_missing" };
+  }
+}
+
+function servingPriority(serving: Serving) {
+  const method = servingMethod(serving);
+  return method === "authoritative" ? 0 : method === "curated" ? 1 : 2;
 }
 
 async function interpretOne(
@@ -178,8 +190,6 @@ async function interpretOne(
     if (s1 >= 80 && s0 - s1 <= 2) ambiguous = true;
   }
 
-  const quantity = await resolveQuantity(parsed, top, provider);
-
   const prepUnavailable = hasPrep && !preparedFound;
   let foodResolution: FoodResolutionStatus;
   if (prepUnavailable) foodResolution = "confirmation_required";
@@ -187,6 +197,8 @@ async function interpretOne(
   else if ((stage === "exact" || stage === "alias") && score >= 95) foodResolution = "resolved";
   else if (score >= 80) foodResolution = "preview";
   else foodResolution = "confirmation_required";
+
+  const quantity = await resolveQuantity(parsed, top, foodResolution === "resolved" ? provider : new DisabledQuantityEstimationProvider());
 
   const canConfirm = quantity.status === "resolved" && !quantity.requiresConfirmation && !ambiguous && !prepUnavailable && score >= 80;
 
@@ -348,12 +360,43 @@ export async function interpretMealInput(
   quantityProvider: QuantityEstimationProvider = new DisabledQuantityEstimationProvider(),
   aiProvider: AiProvider = new StubAiProvider()
 ): Promise<InterpretResult> {
-  const deterministic = await interpretDeterministically(prisma, text, quantityProvider);
-  if (!shouldUseAiFallback(deterministic, aiProvider)) return deterministic;
-  try {
-    const understanding = await understandFood(aiProvider, { text });
-    return interpretAiUnderstanding(prisma, text, understanding, quantityProvider, aiProvider);
-  } catch {
-    return deterministic;
+  // Resolve food semantics before allowing any external weight estimation.
+  const disabled = new DisabledQuantityEstimationProvider();
+  const deterministic = await interpretDeterministically(prisma, text, disabled);
+  let result = deterministic;
+  if (shouldUseAiFallback(deterministic, aiProvider)) {
+    try {
+      const understanding = await understandFood(aiProvider, { text });
+      result = await interpretAiUnderstanding(prisma, text, understanding, disabled, aiProvider);
+    } catch {
+      result = deterministic;
+    }
+  }
+  if (!result.semantic?.clarificationNeeded && result.foodResolution !== "compound") {
+    for (const item of result.items ?? [result]) {
+      if (item.foodResolution !== "resolved" || !item.selectedFood || item.ambiguous || item.preparationUnavailable || item.nutritionEligible === false) continue;
+      if (item.quantity?.reason === "conversion_missing") item.quantity = await resolveQuantity(item.parsed, item.selectedFood, quantityProvider);
+      item.canConfirm = item.quantity?.status === "resolved" && !item.quantity.requiresConfirmation;
+    }
+    if (result.items) result.canConfirm = result.items.every((item) => item.canConfirm);
+  }
+  result.clarification = firstQuantityClarification(result);
+  return result;
+}
+
+export function firstQuantityClarification(result: InterpretResult): QuantityClarification | undefined {
+  if (result.semantic?.clarificationNeeded || result.foodResolution === "compound") return;
+  const items = result.items ?? [result];
+  for (let itemIndex = 0; itemIndex < items.length; itemIndex++) {
+    const item = items[itemIndex];
+    if (item.canConfirm) continue;
+    if (!item.selectedFood || item.foodResolution !== "resolved" || item.ambiguous || item.preparationUnavailable || item.nutritionEligible === false) return;
+    const quantity = item.quantity;
+    if (!quantity || quantity.reason === "quantity_missing") return { type: "quantity_missing", itemIndex, allowCustomGrams: true };
+    if (quantity.status === "resolved" && quantity.requiresConfirmation) return {
+      type: "estimate_confirmation", itemIndex, allowCustomGrams: true, suggestedGrams: quantity.grams,
+      rangeGrams: quantity.rangeGrams, confidence: quantity.confidence, method: quantity.method === "ai_estimated" ? "ai_estimated" : "estimated"
+    };
+    return { type: "grams_required", itemIndex, allowCustomGrams: true };
   }
 }

@@ -10,6 +10,8 @@ import norbappLogo from "./assets/norbapp-logo-new.png";
 import { RecipeBuilder } from "./RecipeBuilder";
 import { AuthForm } from "./AuthForm";
 import { FoodUnderstandingPreview } from "./FoodUnderstandingPreview";
+import { QuantityClarification } from "./QuantityClarification";
+import type { QuantityClarification as Clarification } from "@keto-mentor/shared";
 
 type User = { id: string; username: string; locale: Lang; profile?: any };
 export type Totals = { kcal: number; fat: number; protein: number; carbs: number; fiber: number; netCarbs: number };
@@ -17,12 +19,14 @@ type Meal = { id: string; title: string; eatenAt: string; totals: Totals };
 export type FoodServing = { id: string; key: string; unit: string; labels?: Partial<Record<Lang, string>>; grams: number; isEstimated: boolean; confidence: number; provenance?: unknown };
 export type Food = { id: string; name: string; names?: Record<Lang, string>; servings?: FoodServing[]; kcalPer100g: number; fatPer100g: number; proteinPer100g: number; carbsPer100g: number; fiberPer100g: number; provenance?: any; match?: { stage: string; score: number } };
 type MealInterpretation = {
+  clarification?: Clarification;
+  quantityConfirmation?: { method: "estimated" | "ai_estimated" | "user_corrected"; accepted: true; grams: number };
   input?: string;
   parsed: { quantity?: number; unit?: string; size?: string; foodQuery: string; preparation?: string };
   foodResolution: "resolved" | "preview" | "confirmation_required" | "unresolved" | "multi" | "compound";
   selectedFood: Food | null;
   candidates: Food[];
-  quantity: null | { status: "resolved" | "unresolved"; grams?: number; servingId?: string; method?: string; confidence?: number; estimated: boolean; requiresConfirmation: boolean; reason?: string };
+  quantity: null | { status: "resolved" | "unresolved"; grams?: number; servingId?: string; method?: string; confidence?: number; estimated: boolean; requiresConfirmation: boolean; reason?: string; rangeGrams?: { min: number; max: number } };
   canConfirm: boolean;
   confidence?: number;
   preparation?: string;
@@ -112,7 +116,7 @@ function App() {
       const selectedServing = selectedFood.servings?.find((serving) => serving.id === servingId);
       await api("/meals", {
         method: "POST",
-        body: JSON.stringify({ title: String(form.get("title")), items: [{ foodId: selectedFood.id, quantity: Number(form.get("quantity")), unit: servingId ? "serving" : mealMeasure, servingId, gramsOverride: selectedServing?.isEstimated && gramsOverride ? Number(gramsOverride) : undefined }] })
+        body: JSON.stringify({ title: String(form.get("title")), items: [{ foodId: selectedFood.id, quantity: Number(form.get("quantity")), unit: servingId ? "serving" : mealMeasure, servingId, gramsOverride: selectedServing?.isEstimated && gramsOverride ? Number(gramsOverride) : undefined, quantityConfirmation: interpretation?.selectedFood?.id === selectedFood.id && mealMeasure === "g" && interpretation.quantityConfirmation ? { ...interpretation.quantityConfirmation, grams: Number(form.get("quantity")), method: Number(form.get("quantity")) === interpretation.quantityConfirmation.grams ? interpretation.quantityConfirmation.method : "user_corrected" } : undefined }] })
       }, state);
       formElement.reset();
       setSelectedFood(null);
@@ -156,20 +160,18 @@ function App() {
 
   async function confirmMultiMeal() {
     if (!interpretation?.items || mealSaving) return;
-    const items: Array<{ foodId: string; quantity: number; unit: "g" | "kg" | "serving"; servingId?: string }> = [];
+    const items: Array<{ foodId: string; quantity: number; unit: "g" | "kg" | "serving"; servingId?: string; quantityConfirmation?: MealInterpretation["quantityConfirmation"] }> = [];
     for (const it of interpretation.items) {
       if (!it.canConfirm || !it.selectedFood || it.quantity?.status !== "resolved") {
         setMealStatus({ kind: "error", text: lang === "hu" ? "Néhány étel nem erősíthető meg biztonságosan." : lang === "de" ? "Einige Lebensmittel konnten nicht sicher bestätigt werden." : "Some items could not be confirmed safely." });
         return;
       }
       const q = it.quantity;
-      // Send the ORIGINAL parsed quantity + unit for exact mass so the backend
-      // applies its single, authoritative conversion (1 kg -> 1000 g). Never
-      // send q.grams (already-converted) together with unit "kg": that would
-      // double-convert. Estimated servings are blocked upstream via canConfirm.
-      if (q.servingId) items.push({ foodId: it.selectedFood.id, quantity: it.parsed.quantity ?? 1, unit: "serving", servingId: q.servingId });
+      if (!q.grams || q.requiresConfirmation) return;
+      if (it.quantityConfirmation) items.push({ foodId: it.selectedFood.id, quantity: q.grams, unit: "g", quantityConfirmation: it.quantityConfirmation });
+      else if (q.servingId) items.push({ foodId: it.selectedFood.id, quantity: it.parsed.quantity ?? 1, unit: "serving", servingId: q.servingId });
       else if (it.parsed.unit === "g" || it.parsed.unit === "kg") items.push({ foodId: it.selectedFood.id, quantity: it.parsed.quantity ?? 0, unit: it.parsed.unit });
-      else { setMealStatus({ kind: "error", text: lang === "hu" ? "Bizonytalan mértékegység – add meg kézzel." : lang === "de" ? "Unsicheres Maß – bitte manuell eingeben." : "Uncertain unit – enter manually." }); return; }
+      else return;
     }
     if (!items.length) return;
     setMealSaving(true);
@@ -184,6 +186,35 @@ function App() {
       setMealStatus({ kind: "error", text: mealErrorText(error, t.mealErrors) });
     } finally {
       setMealSaving(false);
+    }
+  }
+
+  function resolveClarification(grams: number, corrected: boolean) {
+    if (!interpretation?.clarification || !Number.isFinite(grams) || grams <= 0 || grams > 5000) return;
+    const next = structuredClone(interpretation);
+    const rows = next.items ?? [next];
+    const item = rows[next.clarification!.itemIndex];
+    if (!item?.selectedFood || item.foodResolution !== "resolved" || item.nutritionEligible === false) return;
+    const method = corrected ? "user_corrected" : next.clarification!.method ?? "estimated";
+    item.quantityConfirmation = { method, accepted: true, grams };
+    item.quantity = { ...item.quantity, status: "resolved", grams, method, estimated: !corrected, requiresConfirmation: false };
+    item.canConfirm = true;
+    next.canConfirm = rows.every((row) => row.canConfirm);
+    next.clarification = undefined;
+    const index = rows.findIndex((row) => !row.canConfirm);
+    if (index >= 0) {
+      const row = rows[index];
+      if (row.foodResolution === "resolved" && row.selectedFood && row.nutritionEligible !== false) {
+        const q = row.quantity;
+        next.clarification = { type: q?.status === "resolved" ? "estimate_confirmation" : q?.reason === "quantity_missing" ? "quantity_missing" : "grams_required", itemIndex: index, allowCustomGrams: true, suggestedGrams: q?.grams, rangeGrams: q?.rangeGrams, confidence: q?.confidence, method: q?.method === "ai_estimated" ? "ai_estimated" : "estimated" };
+      }
+    }
+    setInterpretation(next);
+    if (!next.items && next.canConfirm) {
+      setSelectedFood(next.selectedFood);
+      setMealQuantity(String(grams));
+      setMealMeasure("g");
+      setGramsOverride("");
     }
   }
 
@@ -282,6 +313,7 @@ function App() {
               <p className="natural-input-helper">{lang === "hu" ? "Írj természetesen — az ellenőrzött tápértékeket mindig a katalógus adja." : lang === "de" ? "Natürlich formulieren — geprüfte Nährwerte kommen immer aus dem Katalog." : "Use natural language — verified nutrition always comes from the catalog."}</p>
               <div className="natural-input-row"><input id="natural-meal-input" className="field" value={naturalInput} onChange={(event) => { setNaturalInput(event.target.value); setInterpretation(null); setSelectedFood(null); setMealQuantity("1"); setMealMeasure("g"); setGramsOverride(""); }} placeholder={lang === "hu" ? "Például: 5 tojás" : lang === "de" ? "Zum Beispiel: 3 Scheiben Gouda" : "For example: 5 eggs"}/><button type="button" className="btn primary" disabled={interpreting || naturalInput.trim().length < 2} onClick={interpretNaturalInput}>{interpreting ? "…" : lang === "hu" ? "Értelmezés" : lang === "de" ? "Verstehen" : "Interpret"}</button></div>
               {interpretation && <FoodUnderstandingPreview value={interpretation} lang={lang} labels={t.foodUnderstanding} busy={mealSaving} onConfirmAll={confirmMultiMeal}/>}
+              {interpretation?.clarification && (() => { const row = (interpretation.items ?? [interpretation])[interpretation.clarification!.itemIndex]; return <QuantityClarification key={`${interpretation.input}:${interpretation.clarification.itemIndex}`} value={interpretation.clarification} foodName={row?.selectedFood?.names?.[lang] ?? row?.selectedFood?.name ?? ""} quantity={row?.parsed.quantity} unit={row?.parsed.unit} lang={lang} onResolve={resolveClarification}/>; })()}
             </div>
             <input className="field" name="title" placeholder={t.mealName} required/>
             <FoodCombobox lang={lang} state={state} selected={selectedFood} onSelect={(food) => { setSelectedFood(food); setMealMeasure("g"); setGramsOverride(""); }} labels={t.foodSearch} resetVersion={foodResetVersion}/>

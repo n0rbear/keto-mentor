@@ -12,7 +12,13 @@ const envSchema = z.object({
   USDA_FDC_API_KEY: z.string().min(1).optional(),
   MISTRAL_API_KEY: z.string().min(1).optional(),
   MISTRAL_MODEL: z.string().min(1).max(120).optional(),
-  MISTRAL_BASE_URL: z.string().url().max(500).optional()
+  MISTRAL_BASE_URL: z.string().url().max(500).optional(),
+  FOOD_AI_PROVIDER: z.enum(["mistral", "openrouter"]).optional(),
+  FOOD_AI_MODEL: z.string().min(1).max(160).optional(),
+  OPENROUTER_API_KEY: z.string().min(1).optional(),
+  OPENROUTER_BASE_URL: z.string().url().max(500).optional(),
+  OPENROUTER_APP_REFERER: z.string().url().max(300).optional(),
+  OPENROUTER_APP_TITLE: z.string().min(1).max(120).optional()
 });
 
 export const env = envSchema.parse(process.env);

@@ -1,5 +1,11 @@
 export type Lang = "hu" | "de" | "en";
 
+export const quantityLabels = {
+  hu: { estimated: "Becsült mennyiség", aiEstimated: "AI-val becsült mennyiség", range: "Valószínű tartomány", confidence: "Becslési bizonyosság", accept: "Elfogadom", change: "Módosítom", missing: "Mennyit ettél belőle?", gramsRequired: "Hány grammot ettél belőle?", grams: "Elfogyasztott gramm" },
+  de: { estimated: "Geschätzte Menge", aiEstimated: "KI-geschätzte Menge", range: "Wahrscheinlicher Bereich", confidence: "Schätzsicherheit", accept: "Akzeptieren", change: "Ändern", missing: "Wie viel hast du davon gegessen?", gramsRequired: "Wie viele Gramm hast du davon gegessen?", grams: "Verzehrte Gramm" },
+  en: { estimated: "Estimated amount", aiEstimated: "AI-estimated amount", range: "Likely range", confidence: "Estimate confidence", accept: "Accept", change: "Change", missing: "How much did you eat?", gramsRequired: "How many grams did you eat?", grams: "Grams consumed" }
+};
+
 export const dict = {
   hu: {
     app: "Keto Mentor",
