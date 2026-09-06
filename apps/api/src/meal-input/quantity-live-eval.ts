@@ -21,7 +21,27 @@ async function main() {
     return;
   }
   const httpStatuses: number[] = [];
-  const provider = new MistralQuantityEstimationProvider({ apiKey, model, baseUrl: config.MISTRAL_BASE_URL, fetchImpl: async (url, init) => { const response = await fetch(url, init); httpStatuses.push(response.status); return response; } });
+  const httpDiagnostics: Array<{ status: number; rateLimitRemainingPerMinute: string | null; errorType?: string; errorCode?: string }> = [];
+  const provider = new MistralQuantityEstimationProvider({
+    apiKey, model, baseUrl: config.MISTRAL_BASE_URL,
+    fetchImpl: async (url, init) => {
+      const response = await fetch(url, init);
+      httpStatuses.push(response.status);
+      if (!response.ok) {
+        const diagnostic: { status: number; rateLimitRemainingPerMinute: string | null; errorType?: string; errorCode?: string } = {
+          status: response.status,
+          rateLimitRemainingPerMinute: response.headers.get("x-ratelimit-remaining-req-minute")
+        };
+        try {
+          const parsed = JSON.parse(await response.clone().text());
+          if (typeof parsed.type === "string") diagnostic.errorType = parsed.type;
+          if (typeof parsed.code === "string") diagnostic.errorCode = parsed.code;
+        } catch { /* body not parseable JSON; keep diagnostic generic */ }
+        httpDiagnostics.push(diagnostic);
+      }
+      return response;
+    }
+  });
   // Source binding is the reviewed European Essentials peanut identity, not model-generated.
   const food = { id: "bls-H110600", source: "bls", sourceId: "H110600", name: "Erdnuss geröstet (peanuts roasted)" };
   const cases: ParsedNaturalFoodQuery[] = [
@@ -45,7 +65,7 @@ async function main() {
     }
   }
   console.log(JSON.stringify({ model, requests: results.length, successes: results.filter(r => r.status === "success").length, invalidSchema: results.filter(r => r.status === "invalid_response").length, timeouts: results.filter(r => r.status === "timeout").length, averageLatencyMs: Math.round(results.reduce((n, r) => n + r.latencyMs, 0) / results.length), unsafeNutritionAccepted: 0, results }, null, 2));
-  console.log(JSON.stringify({ httpStatuses }));
+  console.log(JSON.stringify({ httpStatuses, httpDiagnostics }));
   if (results.some(r => r.status !== "success")) process.exitCode = 2;
 }
 main().catch(() => { console.error("quantity_live_evaluation_unavailable"); process.exitCode = 2; });
