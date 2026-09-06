@@ -40,6 +40,7 @@ describe("external food confirmation", () => {
     fireEvent.change(screen.getByRole("combobox"), { target: { value: "spenót" } });
     await waitFor(() => expect(screen.getByRole("button", { name: "Search trusted external sources" })).toBeTruthy());
     fireEvent.click(screen.getByRole("button", { name: "Search trusted external sources" }));
+    await waitFor(() => expect(screen.queryByRole("listbox")).toBeNull());
     const confirm = await screen.findByRole("button", { name: "Add to catalog" });
     fireEvent.click(confirm); fireEvent.click(confirm);
     await waitFor(() => expect(confirmationCalls).toBe(1));

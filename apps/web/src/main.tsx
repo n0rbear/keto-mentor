@@ -6,7 +6,6 @@ import { dict, type Lang } from "./i18n";
 import { api, ApiError, type ApiState } from "./api";
 import "./styles.css";
 import norbappLogo from "./assets/norbapp-logo.webp";
-import ketomentorLogo from "./assets/ketomentor-logo.png";
 
 import { RecipeBuilder } from "./RecipeBuilder";
 import { AuthForm } from "./AuthForm";
@@ -193,21 +192,19 @@ function App() {
 
   return (
     <main className="min-h-screen">
-      <header className="sticky top-0 z-10 border-b border-borderSoft/80 bg-appBg/90 backdrop-blur">
-        <div className="mx-auto flex w-[min(1180px,calc(100%-32px))] items-center justify-between py-4">
-          <div className="flex items-center gap-3 font-extrabold text-ink">
-<img
-  src={ketomentorLogo}
-  alt="Keto Mentor"
-  className="h-12 w-auto object-contain"
-/>            {t.app}
-          </div>
-          <div className="flex items-center gap-2">
-            <select className="field compact" value={lang} onChange={(e) => setLang(e.target.value as Lang)}><option value="hu">HU</option><option value="de">DE</option><option value="en">EN</option></select>
+      <header className="app-header">
+        <div className="app-header-inner">
+          <a className="product-lockup" href="#top" aria-label="NorbApp Keto Mentor">
+            <span className="brand-logo-slot"><img src={norbappLogo} alt=""/></span>
+            <span className="product-lockup-copy"><small>NorbApp health</small><strong>{t.app}</strong></span>
+          </a>
+          <div className="header-actions">
+            <select aria-label={lang === "hu" ? "Nyelv" : lang === "de" ? "Sprache" : "Language"} className="field compact" value={lang} onChange={(e) => setLang(e.target.value as Lang)}><option value="hu">HU</option><option value="de">DE</option><option value="en">EN</option></select>
 
             {user && (
               <button
-                className="btn secondary"
+                className="btn ghost"
+                aria-label={t.logout}
                 onClick={async () => {
                   // Always clear local auth state so the user is never left
                   // visually logged in with a null/invalid token, even if the
@@ -220,66 +217,70 @@ function App() {
                   }
                 }}
               >
-                <LogOut size={16} />{t.logout}
+                <LogOut size={17} /><span>{t.logout}</span>
               </button>
             )}
           </div>
         </div>
       </header>
 
-      <section className="mx-auto grid w-[min(1180px,calc(100%-32px))] gap-8 py-8 md:grid-cols-[1fr_.9fr] md:py-14">
-        <div>
-          <div className="eyebrow"><Sparkles size={14}/> NorbApp MVP</div>
-          <h1 className="mt-5 max-w-3xl text-5xl font-extrabold leading-none tracking-tight text-ink md:text-7xl">{t.hero}</h1>
-          <p className="mt-5 max-w-2xl text-lg text-muted">{t.lead}</p>
-          <p className="mt-5 rounded-2xl border border-borderSoft bg-white/80 p-4 text-sm text-muted"><ShieldCheck className="mr-2 inline text-brandDark" size={18}/>{t.disclaimer}</p>
+      <section id="top" className={`hero-shell ${user ? "is-authenticated" : ""}`}>
+        <div className="hero-copy">
+          <div className="eyebrow"><Sparkles size={13}/> NorbApp · Keto Mentor</div>
+          <h1 className="hero-title">{t.hero}</h1>
+          <p className="hero-lead">{t.lead}</p>
+          <p className="health-note"><ShieldCheck size={18}/><span>{t.disclaimer}</span></p>
         </div>
 
 
         {!user ? (
           <AuthForm mode="register" lang={lang} state={state} onSuccess={setUser} />
         ) : !profile?.onboardingDone ? (
-          <form onSubmit={saveOnboarding} className="card space-y-3">
-            <h2>{t.onboarding}</h2>
-            <label htmlFor="goal">{t.goal}<select id="goal" name="goal" className="field"><option value="weight_loss">{t.goals.weight_loss}</option><option value="maintenance">{t.goals.maintenance}</option><option value="energy">{t.goals.energy}</option><option value="medical_support">{t.goals.medical_support}</option><option value="learning">{t.goals.learning}</option></select></label>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <OnboardingField id="dailyKcal" label={t.fields.dailyKcal[0]} help={t.fields.dailyKcal[1]} defaultValue="1800"/>
-              <OnboardingField id="dailyNetCarbs" label={t.fields.dailyNetCarbs[0]} help={t.fields.dailyNetCarbs[1]} defaultValue="25"/>
-              <OnboardingField id="dailyProtein" label={t.fields.dailyProtein[0]} help={t.fields.dailyProtein[1]} defaultValue="110"/>
-              <OnboardingField id="dailyFat" label={t.fields.dailyFat[0]} help={t.fields.dailyFat[1]} defaultValue="130"/>
-              <OnboardingField id="dailyFiber" label={t.fields.dailyFiber[0]} help={t.fields.dailyFiber[1]} defaultValue="25"/>
+          <form onSubmit={saveOnboarding} className="card onboarding-panel">
+            <div className="auth-intro"><p className="panel-kicker">01 · {lang === "hu" ? "Személyre szabás" : lang === "de" ? "Personalisierung" : "Personal setup"}</p><h2>{t.onboarding}</h2></div>
+            <div className="onboarding-groups">
+              <section className="setup-group"><span className="setup-group-title">{lang === "hu" ? "Cél" : lang === "de" ? "Ziel" : "Goal"}</span><label htmlFor="goal">{t.goal}<select id="goal" name="goal" className="field"><option value="weight_loss">{t.goals.weight_loss}</option><option value="maintenance">{t.goals.maintenance}</option><option value="energy">{t.goals.energy}</option><option value="medical_support">{t.goals.medical_support}</option><option value="learning">{t.goals.learning}</option></select></label></section>
+              <section className="setup-group"><span className="setup-group-title">{lang === "hu" ? "Napi célértékek" : lang === "de" ? "Tagesziele" : "Daily targets"}</span><div className="grid gap-3 sm:grid-cols-2">
+                <OnboardingField id="dailyKcal" label={t.fields.dailyKcal[0]} help={t.fields.dailyKcal[1]} defaultValue="1800"/>
+                <OnboardingField id="dailyNetCarbs" label={t.fields.dailyNetCarbs[0]} help={t.fields.dailyNetCarbs[1]} defaultValue="25"/>
+                <OnboardingField id="dailyProtein" label={t.fields.dailyProtein[0]} help={t.fields.dailyProtein[1]} defaultValue="110"/>
+                <OnboardingField id="dailyFat" label={t.fields.dailyFat[0]} help={t.fields.dailyFat[1]} defaultValue="130"/>
+                <OnboardingField id="dailyFiber" label={t.fields.dailyFiber[0]} help={t.fields.dailyFiber[1]} defaultValue="25"/>
+              </div></section>
+              <section className="setup-group"><span className="setup-group-title">{lang === "hu" ? "Ételprofil" : lang === "de" ? "Lebensmittelprofil" : "Food profile"}</span><div className="grid gap-3 sm:grid-cols-2">
+                <OnboardingField id="preferences" label={t.fields.preferences[0]} help={t.fields.preferences[1]} placeholder="tojás, avokádó"/>
+                <OnboardingField id="avoidedFoods" label={t.fields.avoidedFoods[0]} help={t.fields.avoidedFoods[1]} placeholder="cukor, kenyér"/>
+                <OnboardingField id="allergies" label={t.fields.allergies[0]} help={t.fields.allergies[1]} placeholder="laktóz, diófélék"/>
+              </div></section>
+              <button className="btn primary w-full">{t.save}</button>
             </div>
-            <OnboardingField id="preferences" label={t.fields.preferences[0]} help={t.fields.preferences[1]} placeholder="tojás, avokádó"/>
-            <OnboardingField id="avoidedFoods" label={t.fields.avoidedFoods[0]} help={t.fields.avoidedFoods[1]} placeholder="cukor, kenyér"/>
-            <OnboardingField id="allergies" label={t.fields.allergies[0]} help={t.fields.allergies[1]} placeholder="laktóz, diófélék"/>
-            <button className="btn primary w-full">{t.save}</button>
           </form>
         ) : (
-          <div className="card"><h2>{t.dashboard}</h2><p className="mt-3 text-muted">{t.explain}</p></div>
+          <div className="card welcome-panel"><p className="panel-kicker">{lang === "hu" ? "Mai fókusz" : lang === "de" ? "Heutiger Fokus" : "Today’s focus"}</p><h2>{t.dashboard}</h2><p>{t.explain}</p></div>
         )}
       </section>
 
-      {user && profile?.onboardingDone && <div className="mx-auto w-[min(1180px,calc(100%-32px))] pb-5"><RecipeBuilder lang={lang} state={state} currentUserId={user.id} onMealAdded={load}/></div>}
       {user && profile?.onboardingDone && (
-        <section className="mx-auto grid w-[min(1180px,calc(100%-32px))] gap-5 pb-12 lg:grid-cols-[1fr_380px]">
-          <div className="space-y-5">
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+        <section className="dashboard-shell">
+          <div className="dashboard-main">
+            <div className="macro-grid" aria-label={lang === "hu" ? "Napi makrók" : lang === "de" ? "Tägliche Makros" : "Daily macros"}>
               <Macro label="kcal" value={totals.kcal} goal={goals.dailyKcal}/>
               <Macro label="fat" value={totals.fat} goal={goals.dailyFat}/>
               <Macro label="protein" value={totals.protein} goal={goals.dailyProtein}/>
-              <Macro label="net carbs" value={totals.netCarbs} goal={goals.dailyNetCarbs}/>
+              <Macro label="net carbs" value={totals.netCarbs} goal={goals.dailyNetCarbs} emphasis/>
               <Macro label="fiber" value={totals.fiber} goal={goals.dailyFiber}/>
             </div>
-            <div className="card">
-              <h2 className="mb-4 flex items-center gap-2"><Activity size={20}/>{t.today}</h2>
-              <div className="space-y-3">{meals.map((m) => <div className="meal" key={m.id}><strong>{m.title}</strong><span>{Math.round(m.totals.kcal)} kcal / {Math.round(m.totals.netCarbs)}g net</span></div>)}</div>
+            <div className="card today-card">
+              <h2 className="section-heading"><Activity size={20}/>{t.today}</h2>
+              <div className="meal-list">{meals.map((m) => <div className="meal" key={m.id}><div className="meal-copy"><strong>{m.title}</strong><time dateTime={m.eatenAt}>{formatMealTime(m.eatenAt, lang)}</time></div><span className="meal-macros">{Math.round(m.totals.kcal)} kcal · <b>{Math.round(m.totals.netCarbs)} g net</b></span></div>)}</div>
             </div>
           </div>
-          <form onSubmit={addMeal} className="card space-y-3">
-            <h2 className="flex items-center gap-2"><Plus size={20}/>{t.addMeal}</h2>
+          <form onSubmit={addMeal} className="card meal-entry-card space-y-3">
+            <h2 className="section-heading"><Plus size={20}/>{t.addMeal}</h2>
             <div className="natural-input">
               <label htmlFor="natural-meal-input">{lang === "hu" ? "Mondd el, mit ettél" : lang === "de" ? "Beschreibe, was du gegessen hast" : "Describe what you ate"}</label>
-              <div className="natural-input-row"><input id="natural-meal-input" className="field" value={naturalInput} onChange={(event) => { setNaturalInput(event.target.value); setInterpretation(null); setSelectedFood(null); setMealQuantity("1"); setMealMeasure("g"); setGramsOverride(""); }} placeholder={lang === "hu" ? "Például: 5 tojás" : lang === "de" ? "Zum Beispiel: 3 Scheiben Gouda" : "For example: 5 eggs"}/><button type="button" className="btn secondary" disabled={interpreting || naturalInput.trim().length < 2} onClick={interpretNaturalInput}>{interpreting ? "…" : lang === "hu" ? "Értelmezés" : lang === "de" ? "Verstehen" : "Interpret"}</button></div>
+              <p className="natural-input-helper">{lang === "hu" ? "Írj természetesen — az ellenőrzött tápértékeket mindig a katalógus adja." : lang === "de" ? "Natürlich formulieren — geprüfte Nährwerte kommen immer aus dem Katalog." : "Use natural language — verified nutrition always comes from the catalog."}</p>
+              <div className="natural-input-row"><input id="natural-meal-input" className="field" value={naturalInput} onChange={(event) => { setNaturalInput(event.target.value); setInterpretation(null); setSelectedFood(null); setMealQuantity("1"); setMealMeasure("g"); setGramsOverride(""); }} placeholder={lang === "hu" ? "Például: 5 tojás" : lang === "de" ? "Zum Beispiel: 3 Scheiben Gouda" : "For example: 5 eggs"}/><button type="button" className="btn primary" disabled={interpreting || naturalInput.trim().length < 2} onClick={interpretNaturalInput}>{interpreting ? "…" : lang === "hu" ? "Értelmezés" : lang === "de" ? "Verstehen" : "Interpret"}</button></div>
               {interpretation && <FoodUnderstandingPreview value={interpretation} lang={lang} labels={t.foodUnderstanding} busy={mealSaving} onConfirmAll={confirmMultiMeal}/>}
             </div>
             <input className="field" name="title" placeholder={t.mealName} required/>
@@ -299,13 +300,13 @@ function App() {
           </form>
         </section>
       )}
-      <footer className="border-t border-borderSoft bg-white/70">
-        <div className="mx-auto flex w-[min(1180px,calc(100%-32px))] flex-col gap-4 py-6 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
+      {user && profile?.onboardingDone && <RecipeBuilder lang={lang} state={state} currentUserId={user.id} onMealAdded={load}/>}
+      <footer className="app-footer">
+        <div className="footer-inner">
           <a className="brand-link" href="https://norbapp.com" target="_blank" rel="noreferrer" aria-label="NorbApp weboldal megnyitasa">
-            <img src={norbappLogo} alt="NorbApp" className="h-10 w-auto object-contain"/>
-            <span>NorbApp</span>
+            <img src={norbappLogo} alt=""/><span>NorbApp · Keto Mentor</span>
           </a>
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+          <div className="footer-links">
             <a className="contact-link" href="https://norbapp.com" target="_blank" rel="noreferrer"><ExternalLink size={15}/>norbapp.com</a>
             <a className="contact-link" href="mailto:norbert@norbapp.com"><Mail size={15}/>norbert@norbapp.com</a>
           </div>
@@ -315,9 +316,15 @@ function App() {
   );
 }
 
-function Macro({ label, value, goal }: { label: string; value: number; goal: number }) {
+function Macro({ label, value, goal, emphasis = false }: { label: string; value: number; goal: number; emphasis?: boolean }) {
   const pct = Math.min(100, Math.round((value / goal) * 100));
-  return <div className="card !p-4"><div className="text-xs font-bold uppercase tracking-wider text-muted">{label}</div><strong className="text-2xl text-ink">{Math.round(value)}</strong><div className="mt-2 h-2 rounded-full bg-appBg"><div className="h-2 rounded-full bg-gradient-to-r from-brand to-cyan" style={{ width: `${pct}%` }}/></div><small className="text-muted">/ {goal}</small></div>;
+  return <div className={`metric-tile ${emphasis ? "is-primary" : ""}`}><div className="metric-label">{label}</div><strong className="metric-value">{Math.round(value)}</strong><div className="metric-track" role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={goal} aria-valuenow={Math.round(value)}><div className="metric-progress" style={{ width: `${pct}%` }}/></div><small className="metric-goal">{pct}% · {goal}</small></div>;
+}
+
+function formatMealTime(value: string, lang: Lang) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat(lang === "hu" ? "hu-HU" : lang === "de" ? "de-DE" : "en-GB", { hour: "2-digit", minute: "2-digit" }).format(date);
 }
 
 function OnboardingField({ id, label, help, defaultValue, placeholder }: { id: string; label: string; help: string; defaultValue?: string; placeholder?: string }) {
@@ -380,7 +387,7 @@ export function FoodCombobox({ lang, state, selected, onSelect, labels, resetVer
   const choose = (food: Food) => { onSelect(food); setQuery(food.names?.[lang] ?? food.name); setOpen(false); setExternalMessage(""); setExternalCandidates([]); };
   async function searchExternal() {
     if (externalLoading || query.trim().length < 2) return;
-    setExternalLoading(true); setExternalMessage(""); setExternalCandidates([]);
+    setOpen(false); setExternalLoading(true); setExternalMessage(""); setExternalCandidates([]);
     try {
       const result = await api<any>("/foods/resolve-external", { method: "POST", body: JSON.stringify({ query }) }, state);
       if (result.status === "resolved_local" || result.status === "resolved_external") {
