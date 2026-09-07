@@ -226,6 +226,8 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
 .recipe-tabs button { display: flex; align-items: center; gap: .35rem; }
 .recipe-editor { display: grid; gap: 1rem; }
 .recipe-editor > section { background: rgb(var(--bg) / .3); }
+.recipe-detail { display: grid; gap: 1rem; }
+.recipe-detail-body { display: grid; gap: .9rem; }
 .visibility-toggle { display: flex; gap: 1.25rem; flex-wrap: wrap; border: 1px solid rgb(var(--border) / .13); border-radius: 12px; padding: .8rem 1rem; }
 .visibility-toggle legend { padding: 0 .35rem; color: rgb(var(--text)); font-weight: 800; }
 .visibility-toggle label { display: flex; align-items: center; gap: .4rem; }

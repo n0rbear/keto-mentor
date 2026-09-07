@@ -50,6 +50,38 @@ export const dict = {
       review: "Ellenőrizd és válaszd ki a megfelelő ételt.", verified: "ellenőrzött", estimated: "becsült", logAll: "Összes naplózása"
     },
     mealErrors: { selectFood: "Válassz ételt a találati listából.", network_error: "Az API nem érhető el. Ellenőrizd a kapcsolatot; ezt CORS vagy hálózati hiba is okozhatja.", validation_error: "Ellenőrizd az étkezés nevét és a mennyiséget.", food_not_found: "A kiválasztott étel már nem található. Keress rá újra.", unauthorized: "A munkamenet lejárt. Jelentkezz be újra.", server: "A szerver nem tudta elmenteni az étkezést. Próbáld meg később.", unknown: "Az étkezést nem sikerült elmenteni.", meal_not_found: "Ez az étkezés már nem található.", meal_item_not_found: "Ez a tétel már nem található ebben az étkezésben.", meal_items_empty: "Egy étkezésben legalább egy tételnek maradnia kell — inkább töröld az egész étkezést.", future_eaten_at: "Az időpont nem lehet a jövőben.", meal_repeat_invalid_source: "Ez az étkezés sérült, nem ismételhető meg." },
+    recipes: {
+      heading: "Receptek", subheading: "Saját alapanyagokból, kizárólag a Food katalógus tápértékeivel.",
+      newRecipe: "Új recept", myRecipes: "Receptjeim", publicRecipes: "Közösségi receptek",
+      searchMinePlaceholder: "Keresés a saját receptekben", searchPublicPlaceholder: "Keresés publikus receptek címében", search: "Keresés",
+      emptyLibrary: "Még nincs megjeleníthető recept.", view: "Megnyitás", badgePrivate: "Privát", badgePublic: "Publikus", byAuthor: "Szerző:", netCarbsShort: "g nettó szh.",
+      back: "Vissza a receptekhez", editAction: "Szerkesztés", deleteAction: "Törlés", saveAsMine: "Mentés sajátként",
+      addToMeal: "Hozzáadás étkezéshez", addedToMealSuffix: " hozzáadva a mai étkezéshez.",
+      deleteConfirmTitle: "Törlöd ezt a receptet?", deleteConfirmBody: "A recept eltűnik a receptkönyvtáradból. A korábbi étkezésnapló-bejegyzések változatlanok maradnak.",
+      recipeDeleted: "A recept törölve, a receptkönyvtár frissült.", recipeSaved: "Recept elmentve.",
+      titleLabel: "Recept neve", descriptionLabel: "Leírás (opcionális)", instructionsLabel: "Elkészítési lépések",
+      servingsFieldLabel: "Adagok", finishedWeightLabel: "Kész tömeg (g)",
+      visibilityLegend: "Láthatóság", visibilityPrivateOption: "Privát recept", visibilityPublicOption: "Publikus recept",
+      ingredientLabel: "Alapanyag", gramsFieldLabel: "Gramm", addIngredient: "Hozzáadás", removeIngredient: "Alapanyag törlése",
+      totalNutrition: "Teljes recept", perServing: "Adagonként", per100g: "100 grammonként",
+      noDescription: "Nincs leírás.", noInstructions: "Nincs elkészítési leírás.", sourceLabel: "Forrás",
+      ingredientsRequired: "A recept neve és legalább egy alapanyag kötelező.", invalidIngredient: "Válassz alapanyagot és adj meg pozitív grammértéket.",
+      loadFailed: "A receptek betöltése nem sikerült.",
+      import: {
+        heading: "Recept importálása URL-ből", url: "Nyilvános recept URL", preview: "Előnézet", loading: "Betöltés…",
+        resolved: "Feloldva", review: "Ellenőrzést igényel", unresolved: "Nincs feloldva", resolve: "Alapanyag ellenőrzése",
+        blocked: "A mentéshez minden alapanyagnak biztos Food-találat és grammérték kell.", failed: "A recept előnézete nem készíthető el.",
+        omit: "Kihagyás", restore: "Visszaállítás", servingsUnit: "adag"
+      }
+    },
+    recipeErrors: {
+      recipe_not_found: "Ez a recept már nem található.", food_not_found: "Az egyik kiválasztott alapanyag már nem található a katalógusban.",
+      invalid_import_proof: "Az importált recept ellenőrzése sikertelen. Próbáld újra importálni.",
+      recipe_servings_required: "Ehhez az adagonkénti hozzáadáshoz a receptnek meg kell adnia az adagok számát.",
+      validation_error: "Ellenőrizd a recept adatait.", network_error: "Az API nem érhető el. Ellenőrizd a kapcsolatot.",
+      unauthorized: "A munkamenet lejárt. Jelentkezz be újra.", server: "A szerver nem tudta feldolgozni a kérést. Próbáld meg később.",
+      unknown: "Váratlan hiba történt."
+    },
     disclaimer: "A Keto Mentor tájékoztató jellegű étkezéskövető. Nem diagnosztizál, nem kezel betegséget, és egészségügyi döntéshez kérj szakembert.",
     explain: "A nettó szénhidrát a szénhidrát mínusz rost. Kezdőként ezt érdemes figyelni, de a teljes ételminőség is számít.",
     goals: {
@@ -113,6 +145,38 @@ export const dict = {
       review: "Bitte das richtige Lebensmittel auswählen.", verified: "geprüft", estimated: "geschätzt", logAll: "Alle eintragen"
     },
     mealErrors: { selectFood: "Bitte ein Lebensmittel aus der Trefferliste wählen.", network_error: "Die API ist nicht erreichbar. Netzwerk oder CORS prüfen.", validation_error: "Name und Menge der Mahlzeit prüfen.", food_not_found: "Das gewählte Lebensmittel ist nicht mehr verfügbar.", unauthorized: "Die Sitzung ist abgelaufen. Bitte neu anmelden.", server: "Die Mahlzeit konnte serverseitig nicht gespeichert werden.", unknown: "Die Mahlzeit konnte nicht gespeichert werden.", meal_not_found: "Diese Mahlzeit gibt es nicht mehr.", meal_item_not_found: "Diese Zutat gibt es in dieser Mahlzeit nicht mehr.", meal_items_empty: "Eine Mahlzeit braucht mindestens eine Zutat — lösche stattdessen die ganze Mahlzeit.", future_eaten_at: "Die Uhrzeit darf nicht in der Zukunft liegen.", meal_repeat_invalid_source: "Diese Mahlzeit ist beschädigt und kann nicht wiederholt werden." },
+    recipes: {
+      heading: "Rezepte", subheading: "Aus deinen eigenen Zutaten, ausschließlich mit den Nährwerten aus dem Food-Katalog.",
+      newRecipe: "Neues Rezept", myRecipes: "Meine Rezepte", publicRecipes: "Community-Rezepte",
+      searchMinePlaceholder: "In den eigenen Rezepten suchen", searchPublicPlaceholder: "Nach öffentlichen Rezepttiteln suchen", search: "Suchen",
+      emptyLibrary: "Es gibt noch keine anzeigbaren Rezepte.", view: "Öffnen", badgePrivate: "Privat", badgePublic: "Öffentlich", byAuthor: "Von:", netCarbsShort: "g Netto-KH",
+      back: "Zurück zu den Rezepten", editAction: "Bearbeiten", deleteAction: "Löschen", saveAsMine: "Als eigenes speichern",
+      addToMeal: "Zur Mahlzeit hinzufügen", addedToMealSuffix: " wurde der heutigen Mahlzeit hinzugefügt.",
+      deleteConfirmTitle: "Dieses Rezept löschen?", deleteConfirmBody: "Das Rezept wird aus deiner Rezeptbibliothek entfernt. Frühere Tagebucheinträge bleiben unverändert.",
+      recipeDeleted: "Rezept gelöscht, die Rezeptbibliothek wurde aktualisiert.", recipeSaved: "Rezept gespeichert.",
+      titleLabel: "Rezeptname", descriptionLabel: "Beschreibung (optional)", instructionsLabel: "Zubereitungsschritte",
+      servingsFieldLabel: "Portionen", finishedWeightLabel: "Fertiggewicht (g)",
+      visibilityLegend: "Sichtbarkeit", visibilityPrivateOption: "Privates Rezept", visibilityPublicOption: "Öffentliches Rezept",
+      ingredientLabel: "Zutat", gramsFieldLabel: "Gramm", addIngredient: "Hinzufügen", removeIngredient: "Zutat entfernen",
+      totalNutrition: "Gesamtes Rezept", perServing: "Pro Portion", per100g: "Pro 100 Gramm",
+      noDescription: "Keine Beschreibung.", noInstructions: "Keine Zubereitungsschritte.", sourceLabel: "Quelle",
+      ingredientsRequired: "Rezeptname und mindestens eine Zutat sind erforderlich.", invalidIngredient: "Wähle eine Zutat und gib eine positive Grammzahl an.",
+      loadFailed: "Die Rezepte konnten nicht geladen werden.",
+      import: {
+        heading: "Rezept aus URL importieren", url: "Öffentliche Rezept-URL", preview: "Vorschau", loading: "Laden…",
+        resolved: "Aufgelöst", review: "Prüfung erforderlich", unresolved: "Nicht aufgelöst", resolve: "Zutat prüfen",
+        blocked: "Zum Speichern braucht jede Zutat eine sichere Food-Zuordnung und Grammmenge.", failed: "Die Rezeptvorschau konnte nicht erstellt werden.",
+        omit: "Auslassen", restore: "Wiederherstellen", servingsUnit: "Portionen"
+      }
+    },
+    recipeErrors: {
+      recipe_not_found: "Dieses Rezept gibt es nicht mehr.", food_not_found: "Eine der gewählten Zutaten ist nicht mehr im Katalog.",
+      invalid_import_proof: "Die Überprüfung des importierten Rezepts ist fehlgeschlagen. Bitte erneut importieren.",
+      recipe_servings_required: "Für die portionsweise Zugabe muss das Rezept eine Portionsanzahl angeben.",
+      validation_error: "Bitte die Rezeptangaben prüfen.", network_error: "Die API ist nicht erreichbar. Bitte die Verbindung prüfen.",
+      unauthorized: "Die Sitzung ist abgelaufen. Bitte neu anmelden.", server: "Der Server konnte die Anfrage nicht verarbeiten. Bitte später erneut versuchen.",
+      unknown: "Ein unerwarteter Fehler ist aufgetreten."
+    },
     disclaimer: "Keto Mentor ist ein informativer Tracker. Er diagnostiziert oder behandelt nicht; medizinische Entscheidungen gehören zu Fachleuten.",
     explain: "Netto-Kohlenhydrate sind Kohlenhydrate minus Ballaststoffe. Für Einsteiger ist das hilfreich, aber Lebensmittelqualität zählt ebenfalls.",
     goals: {
@@ -176,6 +240,38 @@ export const dict = {
       review: "Review and choose the correct food.", verified: "verified", estimated: "estimated", logAll: "Log all"
     },
     mealErrors: { selectFood: "Choose a food from the results.", network_error: "The API is unreachable. Check the network or CORS configuration.", validation_error: "Check the meal name and quantity.", food_not_found: "The selected food is no longer available. Search again.", unauthorized: "Your session expired. Log in again.", server: "The server could not save the meal. Try again later.", unknown: "The meal could not be saved.", meal_not_found: "This meal no longer exists.", meal_item_not_found: "This item no longer exists in this meal.", meal_items_empty: "A meal needs at least one item — delete the whole meal instead.", future_eaten_at: "The time can't be in the future.", meal_repeat_invalid_source: "This meal is corrupted and can't be repeated." },
+    recipes: {
+      heading: "Recipes", subheading: "From your own ingredients, using only the Food catalog's nutrition.",
+      newRecipe: "New recipe", myRecipes: "My recipes", publicRecipes: "Community recipes",
+      searchMinePlaceholder: "Search your own recipes", searchPublicPlaceholder: "Search public recipe titles", search: "Search",
+      emptyLibrary: "No recipes to show yet.", view: "View", badgePrivate: "Private", badgePublic: "Public", byAuthor: "By:", netCarbsShort: "g net carbs",
+      back: "Back to recipes", editAction: "Edit", deleteAction: "Delete", saveAsMine: "Save as mine",
+      addToMeal: "Add to meal", addedToMealSuffix: " added to today's meal.",
+      deleteConfirmTitle: "Delete this recipe?", deleteConfirmBody: "The recipe is removed from your recipe library. Past diary entries stay unchanged.",
+      recipeDeleted: "Recipe deleted and the recipe library updated.", recipeSaved: "Recipe saved.",
+      titleLabel: "Recipe name", descriptionLabel: "Description (optional)", instructionsLabel: "Instructions",
+      servingsFieldLabel: "Servings", finishedWeightLabel: "Finished weight (g)",
+      visibilityLegend: "Visibility", visibilityPrivateOption: "Private recipe", visibilityPublicOption: "Public recipe",
+      ingredientLabel: "Ingredient", gramsFieldLabel: "Grams", addIngredient: "Add", removeIngredient: "Remove ingredient",
+      totalNutrition: "Whole recipe", perServing: "Per serving", per100g: "Per 100 g",
+      noDescription: "No description.", noInstructions: "No instructions.", sourceLabel: "Source",
+      ingredientsRequired: "Recipe name and at least one ingredient are required.", invalidIngredient: "Choose an ingredient and enter a positive gram amount.",
+      loadFailed: "The recipes could not be loaded.",
+      import: {
+        heading: "Import recipe from URL", url: "Public recipe URL", preview: "Preview", loading: "Loading…",
+        resolved: "Resolved", review: "Needs review", unresolved: "Unresolved", resolve: "Review ingredient",
+        blocked: "Every ingredient needs a safe Food match and gram quantity before saving.", failed: "The recipe preview could not be created.",
+        omit: "Omit", restore: "Restore", servingsUnit: "servings"
+      }
+    },
+    recipeErrors: {
+      recipe_not_found: "This recipe no longer exists.", food_not_found: "One of the selected ingredients is no longer in the catalog.",
+      invalid_import_proof: "The imported recipe could not be verified. Try importing it again.",
+      recipe_servings_required: "Adding by serving requires the recipe to specify a number of servings.",
+      validation_error: "Check the recipe details.", network_error: "The API is unreachable. Check your connection.",
+      unauthorized: "Your session expired. Log in again.", server: "The server could not process the request. Try again later.",
+      unknown: "An unexpected error occurred."
+    },
     disclaimer: "Keto Mentor is an informational food tracker. It does not diagnose or treat disease; ask a professional for medical decisions.",
     explain: "Net carbs are carbs minus fiber. Beginners can use this as a simple guardrail, while overall food quality still matters.",
     goals: {

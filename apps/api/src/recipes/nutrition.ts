@@ -1,8 +1,13 @@
 import type { Food, FoodNutrient, Nutrient, Recipe, RecipeIngredient } from "@prisma/client";
 import { addMacros, emptyMacros, scaleMacros, type MacroTotals } from "../nutrition-core.js";
 
+// `nutrients` is optional: the lean recipe-list query (see service.ts's
+// recipeSummaryInclude) intentionally omits the Food->FoodNutrient->Nutrient
+// join for every row — a card only needs macro totals, not the full
+// micronutrient tree — so this must degrade to an empty nutrient dict rather
+// than throw when it's absent.
 export type RecipeIngredientWithFood = RecipeIngredient & {
-  food: Food & { nutrients: Array<FoodNutrient & { nutrient: Nutrient }> };
+  food: Pick<Food, "kcalPer100g" | "fatPer100g" | "proteinPer100g" | "carbsPer100g" | "fiberPer100g"> & { nutrients?: Array<FoodNutrient & { nutrient: Nutrient }> };
 };
 export type RecipeWithIngredients = Recipe & { ingredients: RecipeIngredientWithFood[] };
 export type NutrientTotal = { key: string; label: string; unit: string; group: string; amount: number };
@@ -26,7 +31,7 @@ export function calculateRecipeNutrition(recipe: RecipeWithIngredients) {
       carbs: ingredient.food.carbsPer100g,
       fiber: ingredient.food.fiberPer100g
     }, factor));
-    for (const value of ingredient.food.nutrients) {
+    for (const value of ingredient.food.nutrients ?? []) {
       const existing = nutrients[value.nutrient.key] ?? { ...value.nutrient, amount: 0 };
       existing.amount += value.amountPer100g * factor;
       nutrients[value.nutrient.key] = existing;
