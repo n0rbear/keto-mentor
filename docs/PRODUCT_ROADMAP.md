@@ -10,7 +10,7 @@ This document is the authoritative product delivery order for Keto Mentor. Techn
 | Phase 2 — Human quantities and clarification | DONE |
 | Phase 3 — Real meal diary | DONE |
 | Phase 4 — Complete recipe experience | DONE |
-| Phase 5 — Packaged food and barcode | NOT STARTED |
+| Phase 5 — Packaged food and barcode | IN PROGRESS |
 | Phase 6 — Android + iOS mobile app | NOT STARTED |
 | Phase 7 — Beta and public release | NOT STARTED |
 
@@ -41,6 +41,10 @@ Complete manual recipes and add URL recipe import. Prefer schema.org JSON-LD, wi
 ## Phase 5 — Packaged food and barcode
 
 Add Open Food Facts, barcode scanning and packaged-product lookup with safe persistence, deduplication and provenance.
+
+**Increment 1 (done):** data pipeline foundation — GTIN barcode validation, local-first resolution (never calls Open Food Facts once a barcode is trusted locally), a bounded Open Food Facts adapter with strict nutrient mapping and physical-plausibility checks, and manual barcode entry in the web UI that reuses the existing confirm-by-re-fetch trust architecture so browser-supplied nutrition is never persisted directly. No camera/native scanning yet.
+
+**Remaining — Increment 2:** barcode scanning UX / camera integration. A safe browser-based camera scanner (e.g. the `BarcodeDetector` API or a bundled JS decoder) could plausibly be delivered as a web-only increment without pulling Phase 6 native/React Native work forward, since it would only replace manual digit entry ahead of the same `/foods/resolve-barcode` pipeline already shipped — but this has not been scoped or implemented.
 
 ## Phase 6 — Android + iOS mobile app
 
