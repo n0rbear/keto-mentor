@@ -4,9 +4,9 @@ process.env.JWT_ACCESS_SECRET = "a".repeat(32);
 process.env.JWT_REFRESH_SECRET = "b".repeat(32);
 
 import { describe, expect, it, vi } from "vitest";
-import { confirmAuthoritativeFood, externalFoodConfirmationSchema, resolveAuthoritativeFood, validateExternalCandidate, type ExternalFoodCandidate } from "./external-food.js";
+import { confirmAuthoritativeFood, externalFoodConfirmationSchema, resolveAuthoritativeFood, resolveBarcodeFood, validateExternalCandidate, type ExternalFoodCandidate } from "./external-food.js";
 import { EXTERNAL_FOOD_CONFIRM_RATE_LIMIT, EXTERNAL_FOOD_RATE_LIMIT, externalFoodRateLimitKey } from "./external-food-rate-limit.js";
-import { normalizeUsdaNutrients, UsdaFoodDataCentralLookupAdapter } from "./structured-source-adapters.js";
+import { normalizeOffProduct, normalizeUsdaNutrients, OpenFoodFactsProductAdapter, UsdaFoodDataCentralLookupAdapter } from "./structured-source-adapters.js";
 
 function candidate(overrides: Partial<ExternalFoodCandidate> = {}): ExternalFoodCandidate {
   return {
@@ -248,9 +248,304 @@ describe("USDA structured lookup adapter", () => {
     expect(validateExternalCandidate(food)).not.toBeNull();
   });
 });
-  it("accepts only an approved source and FDC ID, never client nutrition", () => {
+
+describe("external food confirmation schema", () => {
+  it("accepts only an approved source and correctly-shaped ID, never client nutrition", () => {
     expect(externalFoodConfirmationSchema.parse({ source: "usda_fdc", sourceId: "123" })).toEqual({ source: "usda_fdc", sourceId: "123" });
-    expect(() => externalFoodConfirmationSchema.parse({ source: "open_food_facts", sourceId: "123" })).toThrow();
+    expect(externalFoodConfirmationSchema.parse({ source: "open_food_facts", sourceId: "4008400404127" })).toEqual({ source: "open_food_facts", sourceId: "4008400404127" });
+    expect(() => externalFoodConfirmationSchema.parse({ source: "open_food_facts", sourceId: "123" })).toThrow(); // not a valid barcode length
     expect(() => externalFoodConfirmationSchema.parse({ source: "usda_fdc", sourceId: "abc" })).toThrow();
     expect(() => externalFoodConfirmationSchema.parse({ source: "usda_fdc", sourceId: "123", fiberPer100g: 0 })).toThrow();
+    expect(() => externalFoodConfirmationSchema.parse({ source: "other", sourceId: "123" })).toThrow();
   });
+  it("strips/rejects a forged nutrition payload riding along with a valid source+sourceId", () => {
+    // .strict() on every branch of the discriminated union means any extra
+    // client-supplied field (forged kcal, foodId, etc.) fails validation
+    // outright rather than being silently accepted or merged in.
+    expect(() => externalFoodConfirmationSchema.parse({ source: "open_food_facts", sourceId: "4008400404127", kcalPer100g: 1, fatPer100g: 1, proteinPer100g: 1, carbsPer100g: 1 })).toThrow();
+  });
+});
+
+function offCandidate(overrides: Partial<ExternalFoodCandidate> = {}): ExternalFoodCandidate {
+  const barcode = (overrides.sourceId as string) ?? "4008400404127";
+  return {
+    source: "open_food_facts", sourceId: barcode, originalName: "Choco Spread", name: "Choco Spread",
+    names: { en: "Choco Spread" }, brand: "ChocoCo", barcode, kcalPer100g: 539, fatPer100g: 30.9, proteinPer100g: 6.3,
+    carbsPer100g: 57.5, fiberPer100g: 3.4, nutrients: [],
+    provenance: { source: "Open Food Facts", sourceId: barcode, sourceUrl: `https://world.openfoodfacts.org/product/${barcode}`, retrievedAt: "2026-09-07T00:00:00.000Z", valuesPer: "100 g", barcode },
+    sourceUrl: `https://world.openfoodfacts.org/product/${barcode}`, normalizedName: "choco spread", nutrientBasis: "per_100_g",
+    retrievedAt: "2026-09-07T00:00:00.000Z", confidence: 1, matchPolicy: "exact_normalized_name", ...overrides
+  };
+}
+
+function fakeBarcodePrisma(options: { local?: any; sourceDuplicate?: any; nameDuplicate?: any } = {}) {
+  let created: any = null;
+  const prisma: any = {
+    food: {
+      findFirst: async ({ where }: any) => (where?.barcode ? options.local ?? null : null),
+      findUnique: async () => options.sourceDuplicate ?? null,
+      findMany: async () => (options.nameDuplicate ? [options.nameDuplicate] : []),
+      create: async ({ data }: any) => (created = { id: "new-food", ...data })
+    },
+    foodAlias: { findFirst: async () => null, findMany: async () => [], createMany: async () => ({ count: 1 }) },
+    nutrient: { upsert: async ({ create }: any) => ({ id: `nutrient-${create.key}`, ...create }) },
+    foodNutrient: { create: async () => ({}) },
+    $transaction: async (fn: any) => fn(prisma)
+  };
+  return { prisma, getCreated: () => created };
+}
+
+describe("barcode resolution (local-first)", () => {
+  it("returns a local match immediately without calling the external adapter", async () => {
+    const local = { id: "local-1", barcode: "4008400404127", name: "Choco Spread", servings: [] };
+    const { prisma } = fakeBarcodePrisma({ local });
+    const lookupBarcode = vi.fn();
+    const result = await resolveBarcodeFood(prisma, "4008400404127", { lookupBarcode });
+    expect(result).toMatchObject({ status: "resolved_local", food: { id: "local-1" } });
+    expect(lookupBarcode).not.toHaveBeenCalled();
+  });
+
+  it("returns not_found when Open Food Facts has no such product", async () => {
+    const { prisma } = fakeBarcodePrisma();
+    const result = await resolveBarcodeFood(prisma, "4008400404127", { lookupBarcode: async () => [] });
+    expect(result).toEqual({ status: "not_found" });
+  });
+
+  it("returns external_unavailable when no adapter is configured", async () => {
+    const { prisma } = fakeBarcodePrisma();
+    await expect(resolveBarcodeFood(prisma, "4008400404127", null)).resolves.toEqual({ status: "external_unavailable" });
+  });
+
+  it("returns external_unavailable (not a crash) when the adapter throws", async () => {
+    const { prisma } = fakeBarcodePrisma();
+    const result = await resolveBarcodeFood(prisma, "4008400404127", { lookupBarcode: async () => { throw new Error("upstream secret detail"); } });
+    expect(result).toEqual({ status: "external_unavailable" });
+  });
+
+  it("requires confirmation for a valid external candidate — never auto-persists from a barcode lookup", async () => {
+    const { prisma, getCreated } = fakeBarcodePrisma();
+    const result = await resolveBarcodeFood(prisma, "4008400404127", { lookupBarcode: async () => [offCandidate()] });
+    expect(result).toMatchObject({ status: "confirmation_required", candidate: { source: "open_food_facts", sourceId: "4008400404127" } });
+    expect(getCreated()).toBeNull();
+  });
+
+  it("resolves to the existing local record when the exact same source+barcode is already saved", async () => {
+    const existing = { id: "existing", source: "open_food_facts", sourceId: "4008400404127", servings: [] };
+    const { prisma, getCreated } = fakeBarcodePrisma({ sourceDuplicate: existing });
+    const result = await resolveBarcodeFood(prisma, "4008400404127", { lookupBarcode: async () => [offCandidate()] });
+    expect(result).toEqual({ status: "resolved_local", food: existing });
+    expect(getCreated()).toBeNull();
+  });
+
+  it("requires confirmation (not a silent match) for a name-based duplicate against a different existing Food", async () => {
+    const nameDuplicate = { id: "different-food", name: "Choco Spread", originalName: "Choco Spread", source: "bls", sourceId: "B1", servings: [] };
+    const { prisma } = fakeBarcodePrisma({ nameDuplicate });
+    const result = await resolveBarcodeFood(prisma, "4008400404127", { lookupBarcode: async () => [offCandidate()] });
+    expect(result).toMatchObject({ status: "confirmation_required", reason: "possible_duplicate" });
+  });
+
+  it("marks an incomplete product (found, but nutrition missing/invalid) rather than inventing macros", async () => {
+    const { prisma } = fakeBarcodePrisma();
+    const result = await resolveBarcodeFood(prisma, "4008400404127", { lookupBarcode: async () => [{ name: "Mystery Product", brand: "Acme" }] });
+    expect(result).toEqual({ status: "incomplete", product: { name: "Mystery Product", brand: "Acme", barcode: "4008400404127" } });
+  });
+
+  it("treats a product with no usable name at all as not_found", async () => {
+    const { prisma } = fakeBarcodePrisma();
+    const result = await resolveBarcodeFood(prisma, "4008400404127", { lookupBarcode: async () => [{}] });
+    expect(result).toEqual({ status: "not_found" });
+  });
+});
+
+describe("Open Food Facts structured lookup adapter", () => {
+  function offResponse(product: any) {
+    return { ok: true, headers: { get: () => null }, text: async () => JSON.stringify({ status: 1, product }) };
+  }
+
+  it("normalizes a complete product using energy-kcal_100g directly", () => {
+    const raw = { status: 1, product: { product_name: "Choco Spread", brands: "ChocoCo, Other", nutriments: { "energy-kcal_100g": 539, proteins_100g: 6.3, fat_100g: 30.9, carbohydrates_100g: 57.5, fiber_100g: 3.4, sugars_100g: 56.3, sodium_100g: 0.107 } } };
+    const candidate = normalizeOffProduct(raw, "4008400404127") as ExternalFoodCandidate;
+    expect(candidate).toMatchObject({ source: "open_food_facts", sourceId: "4008400404127", name: "Choco Spread", brand: "ChocoCo", kcalPer100g: 539, fatPer100g: 30.9, proteinPer100g: 6.3, carbsPer100g: 57.5, fiberPer100g: 3.4 });
+    expect(candidate.nutrients).toEqual(expect.arrayContaining([expect.objectContaining({ key: "sugar", amountPer100g: 56.3 })]));
+    // sodium_100g is grams on the wire; the shared Nutrient definition is mg.
+    expect(candidate.nutrients).toEqual(expect.arrayContaining([expect.objectContaining({ key: "sodium", amountPer100g: 107 })]));
+    expect(validateExternalCandidate(candidate)).not.toBeNull();
+  });
+
+  it("falls back to energy_100g (kJ) and converts to kcal when energy-kcal_100g is absent", () => {
+    const raw = { status: 1, product: { product_name: "Kilojoule Bar", nutriments: { energy_100g: 2255, proteins_100g: 6.3, fat_100g: 30.9, carbohydrates_100g: 57.5, fiber_100g: 3.4 } } };
+    const candidate = normalizeOffProduct(raw, "4008400404127") as ExternalFoodCandidate;
+    expect(candidate.kcalPer100g).toBeCloseTo(2255 / 4.184, 1);
+  });
+
+  it("marks a product incomplete (not a full candidate) when a required macro is missing", () => {
+    const raw = { status: 1, product: { product_name: "No Fiber Data", brands: "Acme", nutriments: { "energy-kcal_100g": 200, proteins_100g: 5, fat_100g: 5, carbohydrates_100g: 20 } } };
+    const result = normalizeOffProduct(raw, "4008400404127");
+    expect(result).toEqual({ name: "No Fiber Data", brand: "Acme" });
+  });
+
+  it("rejects negative nutrition as incomplete rather than persisting it", () => {
+    const raw = { status: 1, product: { product_name: "Bad Data", nutriments: { "energy-kcal_100g": -50, proteins_100g: 5, fat_100g: 5, carbohydrates_100g: 20, fiber_100g: 2 } } };
+    expect(normalizeOffProduct(raw, "4008400404127")).toEqual({ name: "Bad Data", brand: undefined });
+  });
+
+  it("rejects implausibly large nutrition values", () => {
+    const raw = { status: 1, product: { product_name: "Absurd", nutriments: { "energy-kcal_100g": 50000, proteins_100g: 5, fat_100g: 5, carbohydrates_100g: 20, fiber_100g: 2 } } };
+    expect(normalizeOffProduct(raw, "4008400404127")).toMatchObject({ name: "Absurd" });
+  });
+
+  it("treats string-typed nutriment values as valid numbers but rejects genuinely non-numeric ones", () => {
+    const stringy = { status: 1, product: { product_name: "Stringy", nutriments: { "energy-kcal_100g": "200", proteins_100g: "5", fat_100g: "5", carbohydrates_100g: "20", fiber_100g: "2" } } };
+    expect(normalizeOffProduct(stringy, "4008400404127")).toMatchObject({ kcalPer100g: 200 });
+    const garbage = { status: 1, product: { product_name: "Garbage", nutriments: { "energy-kcal_100g": "not-a-number", proteins_100g: 5, fat_100g: 5, carbohydrates_100g: 20, fiber_100g: 2 } } };
+    expect(normalizeOffProduct(garbage, "4008400404127")).toEqual({ name: "Garbage", brand: undefined });
+  });
+
+  it("returns null for a genuine not-found response (status 0)", () => {
+    expect(normalizeOffProduct({ status: 0, status_verbose: "product not found" }, "4008400404127")).toBeNull();
+    expect(normalizeOffProduct({ status: 1 }, "4008400404127")).toBeNull(); // no product object at all
+    expect(normalizeOffProduct(null, "4008400404127")).toBeNull();
+  });
+
+  it("only reads _100g nutriment keys, never _serving ones", () => {
+    const raw = { status: 1, product: { product_name: "Per Serving Only", nutriments: { "energy-kcal_100g": 100, "energy-kcal_serving": 300, proteins_serving: 10, fat_100g: 5, carbohydrates_100g: 20, fiber_100g: 2, proteins_100g: 5 } } };
+    const candidate = normalizeOffProduct(raw, "4008400404127") as ExternalFoodCandidate;
+    expect(candidate.proteinPer100g).toBe(5); // not the _serving value
+  });
+
+  it("fetches by barcode with the documented v2 endpoint and identifies the app via User-Agent", async () => {
+    const fetcher = vi.fn(async (url: string, init: any) => {
+      expect(url).toContain("/api/v2/product/4008400404127.json");
+      expect(init.headers["User-Agent"]).toContain("KetoMentor");
+      return offResponse({ product_name: "Choco Spread", brands: "ChocoCo", nutriments: { "energy-kcal_100g": 539, proteins_100g: 6.3, fat_100g: 30.9, carbohydrates_100g: 57.5, fiber_100g: 3.4 } });
+    }) as any;
+    const [food] = await new OpenFoodFactsProductAdapter(fetcher).lookupBarcode("4008400404127");
+    expect(food).toMatchObject({ source: "open_food_facts", sourceId: "4008400404127" });
+  });
+
+  it("never performs a generic text search against Open Food Facts", async () => {
+    const fetcher = vi.fn();
+    await expect(new OpenFoodFactsProductAdapter(fetcher as any).lookup()).resolves.toEqual([]);
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it("lookupById re-fetches by barcode (sourceId is the barcode for this source)", async () => {
+    const fetcher = vi.fn(async () => offResponse({ product_name: "Choco Spread", nutriments: { "energy-kcal_100g": 539, proteins_100g: 6.3, fat_100g: 30.9, carbohydrates_100g: 57.5, fiber_100g: 3.4 } })) as any;
+    const food: any = await new OpenFoodFactsProductAdapter(fetcher).lookupById("4008400404127");
+    expect(food.sourceId).toBe("4008400404127");
+    expect(fetcher.mock.calls[0][0]).toContain("4008400404127");
+  });
+
+  it("rejects non-OK, malformed JSON and oversized payloads without leaking upstream detail", async () => {
+    await expect(new OpenFoodFactsProductAdapter(vi.fn(async () => ({ ok: false })) as any).lookupBarcode("4008400404127")).rejects.toThrow("Open Food Facts lookup failed");
+    await expect(new OpenFoodFactsProductAdapter(vi.fn(async () => ({ ok: true, headers: { get: () => null }, text: async () => "{" })) as any).lookupBarcode("4008400404127")).rejects.toThrow("Open Food Facts response invalid");
+    await expect(new OpenFoodFactsProductAdapter(vi.fn(async () => ({ ok: true, headers: { get: () => "1000001" }, text: async () => "{}" })) as any).lookupBarcode("4008400404127")).rejects.toThrow("Open Food Facts response too large");
+  });
+
+  it("enforces the response size limit using UTF-8 byte length", async () => {
+    const multibyteBody = `{"status":1,"product":{"note":"${"é".repeat(500_000)}"}}`;
+    expect(Buffer.byteLength(multibyteBody, "utf8")).toBeGreaterThan(1_000_000);
+    const fetcher = vi.fn(async () => ({ ok: true, headers: { get: () => null }, text: async () => multibyteBody })) as any;
+    await expect(new OpenFoodFactsProductAdapter(fetcher).lookupBarcode("4008400404127")).rejects.toThrow("Open Food Facts response too large");
+  });
+});
+
+describe("Open Food Facts confirmation (reuses confirmAuthoritativeFood unchanged)", () => {
+  const offAdapter = (lookupById: (sourceId: string) => Promise<unknown>) => ({ source: "open_food_facts" as const, sourceName: "Open Food Facts", lookup: async () => [], lookupById });
+
+  it("re-fetches from Open Food Facts and persists using only source identity, ignoring any client-sent nutrition", async () => {
+    const { prisma, getCreated } = fakeBarcodePrisma();
+    const lookupById = vi.fn(async () => offCandidate());
+    const result = await confirmAuthoritativeFood(prisma, "open_food_facts", "4008400404127", [offAdapter(lookupById)]);
+    expect(lookupById).toHaveBeenCalledWith("4008400404127");
+    expect(result.status).toBe("confirmed");
+    expect(getCreated()).toMatchObject({ source: "open_food_facts", sourceId: "4008400404127", kcalPer100g: 539 });
+  });
+
+  it("labels provenance as Open Food Facts, never USDA/BLS", async () => {
+    const { prisma, getCreated } = fakeBarcodePrisma();
+    await confirmAuthoritativeFood(prisma, "open_food_facts", "4008400404127", [offAdapter(async () => offCandidate())]);
+    expect(getCreated().provenance).toMatchObject({ source: "Open Food Facts" });
+  });
+
+  it("rejects a barcode mismatch between the requested sourceId and the re-fetched product", async () => {
+    const { prisma, getCreated } = fakeBarcodePrisma();
+    // Client claims sourceId 4008400404127, but the (re-fetched, trusted) adapter
+    // response is actually for a different barcode — confirmAuthoritativeFood
+    // must reject this, not silently persist under the requested id.
+    const result = await confirmAuthoritativeFood(prisma, "open_food_facts", "4008400404127", [offAdapter(async () => offCandidate({ sourceId: "5901234123457" }))]);
+    expect(result).toMatchObject({ status: "unresolved", reason: "invalid_external_data" });
+    expect(getCreated()).toBeNull();
+  });
+
+  it("does not duplicate on a second confirmation of the same barcode", async () => {
+    const existing = { id: "already-saved", source: "open_food_facts", sourceId: "4008400404127", servings: [] };
+    const { prisma, getCreated } = fakeBarcodePrisma({ sourceDuplicate: existing });
+    const lookupById = vi.fn();
+    const result = await confirmAuthoritativeFood(prisma, "open_food_facts", "4008400404127", [offAdapter(lookupById)]);
+    expect(result).toMatchObject({ status: "existing", food: { id: "already-saved" } });
+    expect(lookupById).not.toHaveBeenCalled(); // existing check short-circuits before any re-fetch
+    expect(getCreated()).toBeNull();
+  });
+
+  it("resolves a concurrent duplicate confirmation race safely instead of erroring", async () => {
+    const raced = { id: "raced-off", source: "open_food_facts", sourceId: "4008400404127", servings: [] };
+    const { prisma } = fakeBarcodePrisma();
+    let uniqueCalls = 0;
+    prisma.food.findUnique = async () => { uniqueCalls += 1; return uniqueCalls > 1 ? raced : null; };
+    prisma.food.create = async () => { throw { code: "P2002" }; };
+    const result = await confirmAuthoritativeFood(prisma, "open_food_facts", "4008400404127", [offAdapter(async () => offCandidate())]);
+    expect(result).toEqual({ status: "existing", food: raced });
+  });
+
+  it("existing USDA confirmation still works unaffected by the Open Food Facts addition", async () => {
+    const { prisma, getCreated } = fakeBarcodePrisma();
+    const usdaCandidate: ExternalFoodCandidate = {
+      source: "usda_fdc", sourceId: "999", originalName: "Test Food", name: "Test Food", names: { en: "Test Food" },
+      kcalPer100g: 100, fatPer100g: 1, proteinPer100g: 1, carbsPer100g: 1, fiberPer100g: 1, nutrients: [],
+      provenance: { source: "USDA FoodData Central", sourceId: "999", sourceUrl: "https://fdc.nal.usda.gov/999", retrievedAt: "2026-09-07T00:00:00.000Z", valuesPer: "100 g" },
+      sourceUrl: "https://fdc.nal.usda.gov/999", normalizedName: "test food", nutrientBasis: "per_100_g",
+      retrievedAt: "2026-09-07T00:00:00.000Z", confidence: 0.97, matchPolicy: "exact_normalized_name"
+    };
+    const usdaAdapter = { source: "usda_fdc" as const, sourceName: "USDA", lookup: async () => [], lookupById: async () => usdaCandidate };
+    const result = await confirmAuthoritativeFood(prisma, "usda_fdc", "999", [usdaAdapter, offAdapter(async () => offCandidate())]);
+    expect(result.status).toBe("confirmed");
+    expect(getCreated()).toMatchObject({ source: "usda_fdc", sourceId: "999" });
+  });
+});
+
+describe("full barcode round-trip integration", () => {
+  it("local miss -> OFF product -> preview -> confirm -> persisted Food -> next lookup is local and never calls OFF again", async () => {
+    const foods: any[] = [];
+    let offCalls = 0;
+    const prisma: any = {
+      food: {
+        findFirst: async ({ where }: any) => (where?.barcode ? foods.find((food) => food.barcode === where.barcode) ?? null : null),
+        findUnique: async ({ where }: any) => foods.find((food) => food.source === where.source_sourceId.source && food.sourceId === where.source_sourceId.sourceId) ?? null,
+        findMany: async () => [],
+        create: async ({ data }: any) => { const food = { id: `food-${foods.length}`, ...data }; foods.push(food); return food; }
+      },
+      foodAlias: { findFirst: async () => null, findMany: async () => [], createMany: async () => ({ count: 1 }) },
+      nutrient: { upsert: async ({ create }: any) => ({ id: `nutrient-${create.key}`, ...create }) },
+      foodNutrient: { create: async () => ({}) },
+      $transaction: async (fn: any) => fn(prisma)
+    };
+    const adapter = { source: "open_food_facts" as const, sourceName: "Open Food Facts", lookup: async () => [], lookupBarcode: async () => { offCalls += 1; return [offCandidate()]; }, lookupById: async (id: string) => { offCalls += 1; return offCandidate({ sourceId: id }); } };
+
+    // 1. Barcode lookup: local miss -> OFF called once, returns a reviewable candidate.
+    const preview = await resolveBarcodeFood(prisma, "4008400404127", adapter);
+    expect(preview.status).toBe("confirmation_required");
+    expect(offCalls).toBe(1);
+
+    // 2. User confirms -> server re-fetches (2nd OFF call) and persists.
+    const confirmed = await confirmAuthoritativeFood(prisma, "open_food_facts", "4008400404127", [adapter]);
+    expect(confirmed.status).toBe("confirmed");
+    expect(offCalls).toBe(2);
+    expect(foods).toHaveLength(1);
+
+    // 3. Subsequent barcode lookup finds it locally — OFF call count does not increase.
+    const second = await resolveBarcodeFood(prisma, "4008400404127", adapter);
+    expect(second).toMatchObject({ status: "resolved_local", food: { id: "food-0" } });
+    expect(offCalls).toBe(2);
+  });
+});

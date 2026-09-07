@@ -14,6 +14,7 @@ import { WeekOverviewCard, type WeekOverviewData } from "./WeekOverview";
 import { AuthForm } from "./AuthForm";
 import { FoodUnderstandingPreview } from "./FoodUnderstandingPreview";
 import { QuantityClarification } from "./QuantityClarification";
+import { BarcodeLookup } from "./BarcodeLookup";
 import type { QuantityClarification as Clarification } from "@keto-mentor/shared";
 
 type User = { id: string; username: string; locale: Lang; profile?: any };
@@ -628,6 +629,7 @@ export function FoodCombobox({ lang, state, selected, onSelect, labels, resetVer
           {confirmingSourceId === candidate.sourceId ? "…" : lang === "hu" ? "Hozzáadás az adatbázishoz" : lang === "de" ? "Zur Datenbank hinzufügen" : "Add to catalog"}
         </button>
       </li>)}</ul>}
+      {!selected && <BarcodeLookup lang={lang} state={state} onFoodConfirmed={choose}/>}
     </div>
   );
 }

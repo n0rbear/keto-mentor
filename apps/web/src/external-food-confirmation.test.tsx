@@ -49,4 +49,38 @@ describe("external food confirmation", () => {
     finishConfirmation(new Response(JSON.stringify({ status: "confirmed", food: { id: "food-1", name: "Spinach, raw", kcalPer100g: 23 } }), { status: 200 }));
     await waitFor(() => expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ id: "food-1" })));
   });
+
+  it("integrates barcode lookup: a confirmed packaged Food is selected through the same FoodCombobox used everywhere", async () => {
+    const barcode = "4008400404127";
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = new URL(String(input));
+      if (url.pathname === "/foods/resolve-barcode") {
+        expect(url.searchParams.get("barcode")).toBe(barcode);
+        return new Response(JSON.stringify({
+          status: "confirmation_required",
+          candidate: { source: "open_food_facts", sourceId: barcode, name: "Choco Spread", brand: "ChocoCo", kcalPer100g: 539, fatPer100g: 30.9, proteinPer100g: 6.3, carbsPer100g: 57.5, fiberPer100g: 3.4 }
+        }), { status: 200 });
+      }
+      if (url.pathname === "/foods/resolve-external/confirm") {
+        expect(JSON.parse(String(init?.body))).toEqual({ source: "open_food_facts", sourceId: barcode });
+        return new Response(JSON.stringify({ status: "confirmed", food: { id: "packaged-1", name: "Choco Spread", kcalPer100g: 539 } }), { status: 200 });
+      }
+      throw new Error(`Unexpected request: ${url.pathname}${url.search}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const onSelect = vi.fn();
+    render(<FoodCombobox lang="en" state={{ token: "token", setToken: vi.fn() }} selected={null} onSelect={onSelect} resetVersion={0}
+      labels={{ label: "Food", placeholder: "Search", loading: "Loading", noResults: "None", hint: "Hint", selected: "Selected" }}/>);
+
+    fireEvent.click(screen.getByRole("button", { name: /Barcode \/ EAN lookup/ }));
+    fireEvent.change(screen.getByLabelText("Barcode (EAN/UPC)"), { target: { value: barcode } });
+    fireEvent.click(screen.getByRole("button", { name: "Look up" }));
+
+    const confirm = await screen.findByRole("button", { name: "Add to catalog" });
+    fireEvent.click(confirm);
+    await waitFor(() => expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ id: "packaged-1" })));
+    // No further lookup is needed to use the confirmed Food normally — the
+    // same onSelect path a text-searched/confirmed Food uses.
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
 });
