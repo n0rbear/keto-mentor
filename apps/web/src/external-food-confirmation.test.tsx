@@ -3,6 +3,12 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { externalConfirmationSuccessText, FoodCombobox } from "./main";
 
+vi.mock("./BarcodeScanner", () => ({
+  BarcodeScanner: (props: { onDetected: (barcode: string) => void }) => (
+    <button type="button" onClick={() => props.onDetected("4008400404127")}>simulate-camera-detect</button>
+  )
+}));
+
 afterEach(() => vi.restoreAllMocks());
 
 describe("external food confirmation", () => {
@@ -82,5 +88,60 @@ describe("external food confirmation", () => {
     // No further lookup is needed to use the confirmed Food normally — the
     // same onSelect path a text-searched/confirmed Food uses.
     expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("camera scan: a detected barcode feeds the existing barcode pipeline through to confirmation, same as manual entry", async () => {
+    const barcode = "4008400404127";
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = new URL(String(input));
+      if (url.pathname === "/foods/resolve-barcode") {
+        expect(url.searchParams.get("barcode")).toBe(barcode);
+        return new Response(JSON.stringify({
+          status: "confirmation_required",
+          candidate: { source: "open_food_facts", sourceId: barcode, name: "Choco Spread", brand: "ChocoCo", kcalPer100g: 539, fatPer100g: 30.9, proteinPer100g: 6.3, carbsPer100g: 57.5, fiberPer100g: 3.4 }
+        }), { status: 200 });
+      }
+      if (url.pathname === "/foods/resolve-external/confirm") {
+        expect(JSON.parse(String(init?.body))).toEqual({ source: "open_food_facts", sourceId: barcode });
+        return new Response(JSON.stringify({ status: "confirmed", food: { id: "scanned-1", name: "Choco Spread", kcalPer100g: 539 } }), { status: 200 });
+      }
+      throw new Error(`Unexpected request: ${url.pathname}${url.search}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const onSelect = vi.fn();
+    render(<FoodCombobox lang="en" state={{ token: "token", setToken: vi.fn() }} selected={null} onSelect={onSelect} resetVersion={0}
+      labels={{ label: "Food", placeholder: "Search", loading: "Loading", noResults: "None", hint: "Hint", selected: "Selected" }}/>);
+
+    fireEvent.click(screen.getByRole("button", { name: /Barcode \/ EAN lookup/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Scan with camera/ }));
+    fireEvent.click(screen.getByText("simulate-camera-detect"));
+
+    expect((screen.getByLabelText("Barcode (EAN/UPC)") as HTMLInputElement).value).toBe(barcode);
+    const confirm = await screen.findByRole("button", { name: "Add to catalog" });
+    fireEvent.click(confirm);
+    await waitFor(() => expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ id: "scanned-1" })));
+    expect(fetchMock).toHaveBeenCalledTimes(2); // one resolve-barcode lookup, one confirm — no camera frames/images ever sent
+  });
+
+  it("camera scan + local-first regression: a scanned barcode already in the catalog is selected without any OFF confirmation UI", async () => {
+    const barcode = "4008400404127";
+    const localFood = { id: "local-1", name: "Choco Spread", kcalPer100g: 539, fatPer100g: 30.9, proteinPer100g: 6.3, carbsPer100g: 57.5, fiberPer100g: 3.4 };
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = new URL(String(input));
+      expect(url.pathname).toBe("/foods/resolve-barcode");
+      return new Response(JSON.stringify({ status: "resolved_local", food: localFood }), { status: 200 });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const onSelect = vi.fn();
+    render(<FoodCombobox lang="en" state={{ token: "token", setToken: vi.fn() }} selected={null} onSelect={onSelect} resetVersion={0}
+      labels={{ label: "Food", placeholder: "Search", loading: "Loading", noResults: "None", hint: "Hint", selected: "Selected" }}/>);
+
+    fireEvent.click(screen.getByRole("button", { name: /Barcode \/ EAN lookup/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Scan with camera/ }));
+    fireEvent.click(screen.getByText("simulate-camera-detect"));
+
+    await waitFor(() => expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ id: "local-1" })));
+    expect(fetchMock).toHaveBeenCalledTimes(1); // local-first: no Open Food Facts confirmation round trip at all
+    expect(screen.queryByRole("button", { name: "Add to catalog" })).toBeNull();
   });
 });

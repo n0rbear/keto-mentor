@@ -4,7 +4,20 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { BarcodeLookup } from "./BarcodeLookup";
 import { dict } from "./i18n";
 
-afterEach(() => { cleanup(); vi.restoreAllMocks(); });
+const { lastScannerProps } = vi.hoisted(() => ({ lastScannerProps: { current: null as any } }));
+vi.mock("./BarcodeScanner", () => ({
+  BarcodeScanner: (props: any) => {
+    lastScannerProps.current = props;
+    return (
+      <div>
+        <button type="button" onClick={() => props.onDetected("4008400404127")}>simulate-detect</button>
+        <button type="button" onClick={props.onClose}>simulate-close</button>
+      </div>
+    );
+  }
+}));
+
+afterEach(() => { cleanup(); vi.restoreAllMocks(); lastScannerProps.current = null; });
 
 const state = { token: "token", setToken: vi.fn() };
 const BARCODE = "4008400404127";
@@ -139,5 +152,54 @@ describe("BarcodeLookup", () => {
     fireEvent.change(screen.getByLabelText("Barcode (EAN/UPC)"), { target: { value: BARCODE } });
     fireEvent.keyDown(screen.getByLabelText("Barcode (EAN/UPC)"), { key: "Enter" });
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+  });
+
+  it("camera permission is not requested merely by expanding the barcode panel — only by pressing Scan", () => {
+    render(<BarcodeLookup lang="en" state={state} onFoodConfirmed={vi.fn()}/>);
+    fireEvent.click(screen.getByRole("button", { name: /Barcode \/ EAN lookup/ }));
+    expect(lastScannerProps.current).toBeNull();
+    expect(screen.getByLabelText("Barcode (EAN/UPC)")).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Scan with camera/ })).toBeTruthy();
+  });
+
+  it("Scan with camera opens the scanner, and a detected barcode feeds the same lookup flow as manual entry", async () => {
+    const localFood = { id: "local-1", name: "Choco Spread", kcalPer100g: 539, fatPer100g: 30.9, proteinPer100g: 6.3, carbsPer100g: 57.5, fiberPer100g: 3.4 };
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = new URL(String(input));
+      expect(url.pathname).toBe("/foods/resolve-barcode");
+      expect(url.searchParams.get("barcode")).toBe(BARCODE);
+      return new Response(JSON.stringify({ status: "resolved_local", food: localFood }), { status: 200 });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const onFoodConfirmed = vi.fn();
+    render(<BarcodeLookup lang="en" state={state} onFoodConfirmed={onFoodConfirmed}/>);
+    fireEvent.click(screen.getByRole("button", { name: /Barcode \/ EAN lookup/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Scan with camera/ }));
+    expect(lastScannerProps.current).not.toBeNull();
+    fireEvent.click(screen.getByText("simulate-detect"));
+    await waitFor(() => expect(onFoodConfirmed).toHaveBeenCalledWith(localFood));
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect((screen.getByLabelText("Barcode (EAN/UPC)") as HTMLInputElement).value).toBe(BARCODE);
+    expect(screen.queryByText("simulate-detect")).toBeNull(); // scanner closed after a detection
+  });
+
+  it("cancelling the scanner leaves manual entry fully usable, with no network call", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    render(<BarcodeLookup lang="en" state={state} onFoodConfirmed={vi.fn()}/>);
+    fireEvent.click(screen.getByRole("button", { name: /Barcode \/ EAN lookup/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Scan with camera/ }));
+    fireEvent.click(screen.getByText("simulate-close"));
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(screen.queryByText("simulate-close")).toBeNull();
+    // manual entry still fully works after cancelling a scan
+    fireEvent.change(screen.getByLabelText("Barcode (EAN/UPC)"), { target: { value: BARCODE } });
+    expect((screen.getByRole("button", { name: "Look up" }) as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  it.each(["hu", "de", "en"] as const)("renders the Scan with camera button localized: %s", (lang) => {
+    render(<BarcodeLookup lang={lang} state={state} onFoodConfirmed={vi.fn()}/>);
+    fireEvent.click(screen.getByRole("button", { name: new RegExp(dict[lang].barcode.toggleLabel) }));
+    expect(screen.getByText(dict[lang].barcodeScanner.scanButton, { exact: false })).toBeTruthy();
   });
 });
