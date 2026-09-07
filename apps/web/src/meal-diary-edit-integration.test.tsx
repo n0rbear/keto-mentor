@@ -13,6 +13,7 @@ const zeroTotals = { kcal: 0, fat: 0, protein: 0, carbs: 0, fiber: 0, netCarbs: 
 const todayMeal = { id: "meal-today", title: "Breakfast", eatenAt: new Date().toISOString(), totals: zeroTotals };
 const pastMeal = { id: "meal-past", title: "Old Lunch", eatenAt: "2026-01-01T12:00:00.000Z", totals: zeroTotals };
 const pastMealDetail = { ...pastMeal, items: [{ id: "item-1", quantityGrams: 100, displayName: "Fried egg", totals: zeroTotals }] };
+const emptyWeek = { weekStart: "2026-01-01", weekEnd: "2026-01-07", days: [], summary: { mealCount: 0, loggedDays: 0 } };
 
 function mockFetchTracking(dateFetches: string[]) {
   return vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -20,6 +21,10 @@ function mockFetchTracking(dateFetches: string[]) {
     const method = init?.method ?? "GET";
 
     if (url.pathname === "/me") return new Response(JSON.stringify({ user }), { status: 200 });
+
+    if (url.pathname === "/meals/week" && method === "GET") {
+      return new Response(JSON.stringify(emptyWeek), { status: 200 });
+    }
 
     if (url.pathname === "/meals/today" && method === "GET") {
       const date = url.searchParams.get("date")!;

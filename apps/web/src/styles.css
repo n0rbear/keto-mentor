@@ -132,7 +132,24 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
 .metric-goal { position: relative; z-index: 1; color: rgb(var(--text-soft)); font-size: .7rem; font-variant-numeric: tabular-nums; }
 .metric-track { position: relative; z-index: 1; height: 5px; margin: .72rem 0 .35rem; overflow: hidden; border-radius: 999px; background: rgb(var(--bg)); }
 .metric-progress { height: 100%; border-radius: inherit; background: linear-gradient(90deg, rgb(var(--brand-deep)), rgb(var(--brand-bright))); box-shadow: 0 0 12px rgb(var(--brand-glow) / .25); }
+.metric-tile.is-over-limit { border-color: rgb(var(--warning) / .4); }
+.metric-tile.is-over-limit .metric-progress { background: linear-gradient(90deg, rgb(var(--warning)), rgb(var(--danger))); box-shadow: 0 0 12px rgb(var(--warning) / .3); }
+.metric-tile.is-over-limit .metric-goal { color: rgb(var(--warning)); font-weight: 800; }
+.metric-tile-count { display: flex; flex-direction: column; justify-content: center; }
 .today-card { box-shadow: none; }
+.week-nav { display: flex; align-items: center; justify-content: space-between; gap: .6rem; margin-bottom: .5rem; }
+.week-heading { margin-bottom: 0; }
+.week-summary { margin: 0 0 .7rem; }
+.week-strip { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .5rem; }
+.week-day { display: flex; min-width: 0; flex-direction: column; align-items: center; gap: .15rem; border: 1px solid rgb(var(--border) / .12); border-radius: 12px; background: rgb(var(--surface) / .7); padding: .55rem .3rem; color: rgb(var(--text)); text-align: center; }
+.week-day:hover:not(:disabled) { border-color: rgb(var(--brand) / .3); background: rgb(var(--surface-active)); }
+.week-day.is-selected { border-color: rgb(var(--brand)); background: rgb(var(--surface-active)); box-shadow: 0 0 0 1px rgb(var(--brand) / .4); }
+.week-day:disabled { opacity: .35; cursor: not-allowed; }
+.week-day-label { font-size: .66rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: rgb(var(--text-soft)); }
+.week-day.is-selected .week-day-label { color: rgb(var(--brand-bright)); }
+.week-day-kcal { font-size: .78rem; font-weight: 750; font-variant-numeric: tabular-nums; }
+.week-day-netcarbs { color: rgb(var(--text-muted)); font-size: .68rem; font-variant-numeric: tabular-nums; }
+.week-day-meals { color: rgb(var(--text-soft)); font-size: .62rem; }
 .section-heading { display: flex; margin-bottom: 1rem; align-items: center; gap: .6rem; }
 .section-heading svg { color: rgb(var(--brand)); }
 .diary-date-nav { display: flex; align-items: center; justify-content: space-between; gap: .6rem; margin-bottom: .6rem; }
@@ -248,6 +265,7 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
   .dashboard-shell { grid-template-columns: 1fr; }
   .meal-entry-card { position: static; grid-row: 1; }
   .macro-grid { grid-template-columns: repeat(5, minmax(118px, 1fr)); overflow-x: auto; padding-bottom: .3rem; scrollbar-color: rgb(var(--brand-deep)) rgb(var(--bg)); }
+  .week-strip { grid-template-columns: repeat(7, minmax(84px, 1fr)); overflow-x: auto; padding-bottom: .3rem; scrollbar-color: rgb(var(--brand-deep)) rgb(var(--bg)); }
 }
 @media (max-width: 640px) {
   .app-header-inner, .hero-shell, .dashboard-shell, .recipe-shell, .footer-inner { width: min(100% - 24px, 1180px); }
@@ -286,6 +304,7 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
   .compact { min-width: 57px; }
   .hero-copy::after { display: none; }
   .macro-grid { grid-template-columns: repeat(5, minmax(108px, 1fr)); }
+  .week-strip { grid-template-columns: repeat(7, minmax(72px, 1fr)); }
   .meal { flex-direction: column; }
   .meal-macros { text-align: left; }
   .ingredient-row { grid-template-columns: minmax(0, 1fr) 76px auto; }

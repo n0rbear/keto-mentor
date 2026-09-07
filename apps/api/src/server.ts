@@ -23,8 +23,9 @@ import { parseNaturalFoodQuery } from "./catalog/natural-food-query.js";
 import { createMeal } from "./meals/create-meal.js";
 import { editMeal, deleteMeal, getMeal } from "./meals/edit-meal.js";
 import { repeatMeal } from "./meals/repeat-meal.js";
-import { resolveDiaryDateRange } from "./meals/diary-date.js";
+import { resolveDiaryDateRange, resolveWeekRange } from "./meals/diary-date.js";
 import { getMealsForDay } from "./meals/diary-query.js";
+import { getWeekOverview } from "./meals/week-query.js";
 import { recipeRouter } from "./recipes/router.js";
 import { interpretMealInput } from "./meal-input/interpret.js";
 import { configuredFoodAiProvider } from "./ai/food-ai-gateway.js";
@@ -231,6 +232,21 @@ app.post("/meals", requireAuth, async (req, res, next) => {
     const input = createMealSchema.parse(req.body);
     const meal = await createMeal(prisma, req.user!.id, input);
     res.status(201).json({ meal });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Compact 7-day (Monday-Sunday) overview, timezone-aware via the same
+// convention as /meals/today. Must stay registered before /meals/:mealId so
+// Express never matches "week" as a mealId.
+app.get("/meals/week", requireAuth, async (req, res, next) => {
+  try {
+    const dateParam = typeof req.query.date === "string" ? req.query.date : undefined;
+    const tzOffsetParam = typeof req.query.tzOffsetMinutes === "string" ? req.query.tzOffsetMinutes : undefined;
+    const week = resolveWeekRange({ date: dateParam, tzOffsetMinutes: tzOffsetParam });
+    const result = await getWeekOverview(prisma, req.user!.id, week);
+    res.json(result);
   } catch (error) {
     next(error);
   }
