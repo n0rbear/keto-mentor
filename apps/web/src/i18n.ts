@@ -86,6 +86,24 @@ export const dict = {
       recipe_ai_timeout: "Az automatikus felismerés túl sokáig tartott. Add meg a receptet kézzel, vagy próbáld újra.",
       recipe_ai_invalid_output: "Az automatikus felismerés nem hozott használható eredményt. Add meg a receptet kézzel."
     },
+    barcode: {
+      toggleLabel: "Vonalkód / EAN keresés", inputLabel: "Vonalkód (EAN/UPC)", placeholder: "pl. 4008400404127",
+      lookupButton: "Keresés", looking: "Keresés…", sourceLabel: "Forrás", sourceName: "Open Food Facts",
+      confirmButton: "Hozzáadás a katalógushoz", confirming: "Hozzáadás…",
+      incompleteWarning: "Ehhez a termékhez hiányos vagy nem megbízható a tápérték-adat, ezért nem adható hozzá automatikusan.",
+      notFound: "Nem található termék ezzel a vonalkóddal.",
+      addedSuccess: "A termék hozzáadva a katalógushoz és kiválasztva."
+    },
+    barcodeErrors: {
+      invalid_barcode_format: "Érvénytelen vonalkód formátum. Csak számjegyeket adj meg (8, 12, 13 vagy 14 hosszan).",
+      invalid_barcode_checksum: "A vonalkód ellenőrző száma nem egyezik — nézd át a beírt számjegyeket.",
+      external_unavailable: "A termékadatbázis jelenleg nem érhető el. Próbáld meg később.",
+      confirmation_required: "Lehetséges duplikátum miatt semmi nem került hozzáadásra.",
+      invalid_external_data: "A forrásadat nem volt elérhető vagy érvényes; semmi nem került hozzáadásra.",
+      network_error: "Az API nem érhető el. Ellenőrizd a kapcsolatot.",
+      unauthorized: "A munkamenet lejárt. Jelentkezz be újra.",
+      unknown: "Váratlan hiba történt."
+    },
     disclaimer: "A Keto Mentor tájékoztató jellegű étkezéskövető. Nem diagnosztizál, nem kezel betegséget, és egészségügyi döntéshez kérj szakembert.",
     explain: "A nettó szénhidrát a szénhidrát mínusz rost. Kezdőként ezt érdemes figyelni, de a teljes ételminőség is számít.",
     goals: {
@@ -185,6 +203,24 @@ export const dict = {
       recipe_ai_timeout: "Die automatische Erkennung hat zu lange gedauert. Bitte das Rezept manuell eingeben oder erneut versuchen.",
       recipe_ai_invalid_output: "Die automatische Erkennung lieferte kein brauchbares Ergebnis. Bitte das Rezept manuell eingeben."
     },
+    barcode: {
+      toggleLabel: "Barcode-/EAN-Suche", inputLabel: "Barcode (EAN/UPC)", placeholder: "z. B. 4008400404127",
+      lookupButton: "Suchen", looking: "Suche…", sourceLabel: "Quelle", sourceName: "Open Food Facts",
+      confirmButton: "Zum Katalog hinzufügen", confirming: "Wird hinzugefügt…",
+      incompleteWarning: "Für dieses Produkt sind die Nährwertdaten unvollständig oder unzuverlässig, daher kann es nicht automatisch hinzugefügt werden.",
+      notFound: "Kein Produkt mit diesem Barcode gefunden.",
+      addedSuccess: "Produkt zum Katalog hinzugefügt und ausgewählt."
+    },
+    barcodeErrors: {
+      invalid_barcode_format: "Ungültiges Barcode-Format. Bitte nur Ziffern eingeben (Länge 8, 12, 13 oder 14).",
+      invalid_barcode_checksum: "Die Prüfziffer des Barcodes stimmt nicht — bitte die eingegebenen Ziffern prüfen.",
+      external_unavailable: "Die Produktdatenbank ist derzeit nicht erreichbar. Bitte später erneut versuchen.",
+      confirmation_required: "Wegen eines möglichen Duplikats wurde nichts hinzugefügt.",
+      invalid_external_data: "Die Quelldaten waren nicht verfügbar oder ungültig; nichts wurde hinzugefügt.",
+      network_error: "Die API ist nicht erreichbar. Bitte die Verbindung prüfen.",
+      unauthorized: "Die Sitzung ist abgelaufen. Bitte neu anmelden.",
+      unknown: "Ein unerwarteter Fehler ist aufgetreten."
+    },
     disclaimer: "Keto Mentor ist ein informativer Tracker. Er diagnostiziert oder behandelt nicht; medizinische Entscheidungen gehören zu Fachleuten.",
     explain: "Netto-Kohlenhydrate sind Kohlenhydrate minus Ballaststoffe. Für Einsteiger ist das hilfreich, aber Lebensmittelqualität zählt ebenfalls.",
     goals: {
@@ -283,6 +319,24 @@ export const dict = {
       recipe_ai_unavailable: "Automatic extraction is currently unavailable. Enter the recipe manually.",
       recipe_ai_timeout: "Automatic extraction took too long. Enter the recipe manually, or try again.",
       recipe_ai_invalid_output: "Automatic extraction didn't produce a usable result. Enter the recipe manually."
+    },
+    barcode: {
+      toggleLabel: "Barcode / EAN lookup", inputLabel: "Barcode (EAN/UPC)", placeholder: "e.g. 4008400404127",
+      lookupButton: "Look up", looking: "Looking up…", sourceLabel: "Source", sourceName: "Open Food Facts",
+      confirmButton: "Add to catalog", confirming: "Adding…",
+      incompleteWarning: "This product's nutrition data is incomplete or unreliable, so it can't be added automatically.",
+      notFound: "No product found for this barcode.",
+      addedSuccess: "Product added to the catalog and selected."
+    },
+    barcodeErrors: {
+      invalid_barcode_format: "Invalid barcode format. Use digits only (length 8, 12, 13, or 14).",
+      invalid_barcode_checksum: "The barcode's check digit doesn't match — double-check the digits you entered.",
+      external_unavailable: "The product database is currently unavailable. Try again later.",
+      confirmation_required: "Nothing was added because a possible duplicate needs review.",
+      invalid_external_data: "The source data was unavailable or invalid; nothing was added.",
+      network_error: "The API is unreachable. Check your connection.",
+      unauthorized: "Your session expired. Log in again.",
+      unknown: "An unexpected error occurred."
     },
     disclaimer: "Keto Mentor is an informational food tracker. It does not diagnose or treat disease; ask a professional for medical decisions.",
     explain: "Net carbs are carbs minus fiber. Beginners can use this as a simple guardrail, while overall food quality still matters.",

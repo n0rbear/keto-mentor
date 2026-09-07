@@ -45,6 +45,20 @@ export const BLS_NUTRIENT_MAP: Record<string, NutrientMapping> = {
   BIOT: usd("vitamin_b7"), FOL: usd("vitamin_b9"), VITB12: usd("vitamin_b12"), VITC: usd("vitamin_c"), VITD: usd("vitamin_d"), VITE: usd("vitamin_e"), VITK: usd("vitamin_k")
 };
 
+// Open Food Facts nutriments are always suffixed _100g or _serving; only the
+// _100g keys are read here so a per-serving value can never be mistaken for
+// a per-100g one. Deliberately smaller than USDA_NUTRIENT_MAP/BLS_NUTRIENT_MAP:
+// OFF's micronutrient coverage is too inconsistent across products to trust,
+// so only the macros the app actually needs plus two commonly-present,
+// genuinely useful extras (sugar, saturated fat) are mapped.
+export const OFF_NUTRIENT_MAP: Record<string, NutrientMapping> = {
+  proteins_100g: usd("protein"), fat_100g: usd("total_fat"), carbohydrates_100g: usd("carbohydrate"), fiber_100g: usd("fiber"),
+  sugars_100g: usd("sugar"), "saturated-fat_100g": usd("saturated_fat"),
+  // OFF reports sodium_100g in grams; the shared Nutrient definition for
+  // "sodium" is in mg, so convert here rather than at every call site.
+  sodium_100g: usd("sodium", 1000)
+};
+
 export function mapNutrient(mapping: Record<string, NutrientMapping>, sourceKey: string, amount: unknown): ImportNutrient | undefined {
   const definition = mapping[sourceKey];
   const value = typeof amount === "number" ? amount : Number(amount);

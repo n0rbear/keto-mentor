@@ -214,6 +214,10 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
 .selected-food strong { color: rgb(var(--success)); }
 .serving-detail { display: grid; gap: .3rem; border: 1px solid rgb(var(--border) / .12); border-radius: 10px; background: rgb(var(--bg) / .45); padding: .7rem .75rem; color: rgb(var(--text-soft)); font-size: .72rem; }
 .serving-detail strong { color: rgb(var(--brand-bright)); }
+.barcode-lookup { display: grid; gap: .55rem; }
+.barcode-panel { display: grid; gap: .55rem; border: 1px solid rgb(var(--border) / .12); border-radius: 12px; background: rgb(var(--bg) / .4); padding: .8rem; }
+.barcode-input-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .5rem; margin-top: .3rem; }
+.barcode-preview { display: grid; gap: .5rem; border: 1px solid rgb(var(--border) / .12); border-radius: 10px; background: rgb(var(--surface) / .6); padding: .7rem .8rem; }
 
 .status { border: 1px solid; border-radius: 10px; padding: .65rem .75rem; font-size: .78rem; font-weight: 700; }
 .status.success { border-color: rgb(var(--success) / .26); color: rgb(var(--success)); background: rgb(var(--success) / .07); }

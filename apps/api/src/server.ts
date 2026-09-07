@@ -16,9 +16,10 @@ import { hashPassword, readRefreshToken, requireAuth, setRefreshCookie, signRefr
 import { createSession, rotateSession, revokeActiveSession } from "./session.js";
 import { prisma } from "./db.js";
 import { searchFoods } from "./catalog/food-search.js";
-import { confirmAuthoritativeFood, externalFoodConfirmationSchema, resolveAuthoritativeFood } from "./catalog/external-food.js";
+import { confirmAuthoritativeFood, externalFoodConfirmationSchema, resolveAuthoritativeFood, resolveBarcodeFood } from "./catalog/external-food.js";
 import { EXTERNAL_FOOD_CONFIRM_RATE_LIMIT, EXTERNAL_FOOD_RATE_LIMIT, externalFoodRateLimitKey } from "./catalog/external-food-rate-limit.js";
-import { UsdaFoodDataCentralLookupAdapter } from "./catalog/structured-source-adapters.js";
+import { UsdaFoodDataCentralLookupAdapter, OpenFoodFactsProductAdapter } from "./catalog/structured-source-adapters.js";
+import { validateBarcode } from "./catalog/barcode.js";
 import { parseNaturalFoodQuery } from "./catalog/natural-food-query.js";
 import { createMeal } from "./meals/create-meal.js";
 import { editMeal, deleteMeal, getMeal } from "./meals/edit-meal.js";
@@ -34,7 +35,16 @@ import { configuredQuantityAiProvider } from "./meal-input/quantity-ai-gateway.j
 
 const logger = createLogger(env.NODE_ENV === "production" ? "info" : "debug");
 const app = express();
-const externalFoodAdapters = env.USDA_FDC_API_KEY ? [new UsdaFoodDataCentralLookupAdapter(env.USDA_FDC_API_KEY)] : [];
+const usdaAdapter = env.USDA_FDC_API_KEY ? new UsdaFoodDataCentralLookupAdapter(env.USDA_FDC_API_KEY) : null;
+// Open Food Facts needs no API key/config, so it's always constructed.
+const openFoodFactsAdapter = new OpenFoodFactsProductAdapter();
+// Ordinary text search (resolveAuthoritativeFood) intentionally never
+// includes Open Food Facts — its own lookup() is a no-op anyway, but it is
+// also kept out of this array so a text search can never even attempt the
+// external call. Barcode lookup and confirmation use openFoodFactsAdapter
+// directly/via externalFoodConfirmAdapters instead.
+const externalFoodAdapters = usdaAdapter ? [usdaAdapter] : [];
+const externalFoodConfirmAdapters = usdaAdapter ? [usdaAdapter, openFoodFactsAdapter] : [openFoodFactsAdapter];
 const foodNlpProvider = configuredFoodAiProvider(env);
 const foodNlpLimiter = new FoodNlpUserRateLimiter();
 const quantityProvider = configuredQuantityAiProvider(env);
@@ -180,7 +190,20 @@ app.post("/foods/resolve-external", requireAuth, externalFoodLimiter, async (req
 app.post("/foods/resolve-external/confirm", requireAuth, externalFoodConfirmLimiter, async (req, res, next) => {
   try {
     const input = externalFoodConfirmationSchema.parse(req.body);
-    res.json(await confirmAuthoritativeFood(prisma, input.source, input.sourceId, externalFoodAdapters));
+    res.json(await confirmAuthoritativeFood(prisma, input.source, input.sourceId, externalFoodConfirmAdapters));
+  } catch (error) { next(error); }
+});
+
+// Local-first barcode lookup: a bounded, purely numeric GTIN with a correct
+// check digit is required before any Open Food Facts call is even attempted.
+// Never persists anything — a matched external candidate always requires the
+// existing /foods/resolve-external/confirm flow (re-fetch + review) to save.
+app.get("/foods/resolve-barcode", requireAuth, externalFoodLimiter, async (req, res, next) => {
+  try {
+    const raw = typeof req.query.barcode === "string" ? req.query.barcode : "";
+    const validated = validateBarcode(raw);
+    if (!validated.ok) return res.status(400).json({ error: validated.reason === "invalid_checksum" ? "invalid_barcode_checksum" : "invalid_barcode_format" });
+    res.json(await resolveBarcodeFood(prisma, validated.barcode, openFoodFactsAdapter));
   } catch (error) { next(error); }
 });
 

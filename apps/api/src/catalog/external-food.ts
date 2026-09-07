@@ -24,10 +24,13 @@ export interface ConfirmableFoodLookupAdapter extends StructuredFoodLookupAdapte
   lookupById(sourceId: string): Promise<unknown>;
 }
 
-export const externalFoodConfirmationSchema = z.object({
-  source: z.literal("usda_fdc"),
-  sourceId: z.string().regex(/^\d{1,12}$/)
-}).strict();
+export const externalFoodConfirmationSchema = z.discriminatedUnion("source", [
+  z.object({ source: z.literal("usda_fdc"), sourceId: z.string().regex(/^\d{1,12}$/) }).strict(),
+  // sourceId for open_food_facts is the product's barcode itself (OFF's own
+  // product identifier), so it uses the same bounded GTIN length set as the
+  // barcode lookup endpoint rather than USDA's numeric-ID shape.
+  z.object({ source: z.literal("open_food_facts"), sourceId: z.string().regex(/^(\d{8}|\d{12}|\d{13}|\d{14})$/) }).strict()
+]);
 
 export type ResolutionOutcome =
   | { status: "resolved_local"; food: any }
@@ -36,6 +39,10 @@ export type ResolutionOutcome =
   | { status: "unresolved"; candidates: []; reason: "not_found" | "invalid_external_data" | "external_unavailable" };
 
 const REQUIRED_MACROS = ["kcalPer100g", "fatPer100g", "proteinPer100g", "carbsPer100g"] as const;
+// Every trusted external source must resolve to exactly this hostname in its
+// own sourceUrl — a candidate claiming source: "open_food_facts" but linking
+// to some other host (or vice versa) is rejected outright.
+const TRUSTED_SOURCE_HOSTS: Partial<Record<string, string>> = { usda_fdc: "fdc.nal.usda.gov", open_food_facts: "world.openfoodfacts.org" };
 
 function finiteNonNegative(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value) && value >= 0;
@@ -44,10 +51,11 @@ function finiteNonNegative(value: unknown): value is number {
 export function validateExternalCandidate(value: unknown): ExternalFoodCandidate | null {
   if (!value || typeof value !== "object") return null;
   const candidate = value as Partial<ExternalFoodCandidate>;
-  if (candidate.source !== "usda_fdc" || !/^\d+$/.test(candidate.sourceId ?? "") || !candidate.name || !candidate.originalName) return null;
+  const expectedHost = TRUSTED_SOURCE_HOSTS[candidate.source ?? ""];
+  if (!expectedHost || !/^\d+$/.test(candidate.sourceId ?? "") || !candidate.name || !candidate.originalName) return null;
   if (!candidate.sourceUrl || !candidate.retrievedAt || candidate.nutrientBasis !== "per_100_g") return null;
   try {
-    if (new URL(candidate.sourceUrl).hostname !== "fdc.nal.usda.gov") return null;
+    if (new URL(candidate.sourceUrl).hostname !== expectedHost) return null;
   } catch { return null; }
   if (!finiteNonNegative(candidate.confidence) || candidate.confidence > 1) return null;
   if (candidate.matchPolicy !== "exact_normalized_name" && candidate.matchPolicy !== "review_required") return null;
@@ -194,4 +202,64 @@ export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: 
     }
     throw error;
   }
+}
+
+export type BarcodeResolution =
+  | { status: "resolved_local"; food: any }
+  | { status: "confirmation_required"; candidate: ExternalFoodCandidate; reason?: "possible_duplicate" }
+  | { status: "incomplete"; product: { name: string; brand?: string; barcode: string } }
+  | { status: "not_found" }
+  | { status: "external_unavailable" };
+
+/** Minimal shape needed for barcode lookup — matches OpenFoodFactsLookupAdapter
+ * without importing it, since structured-source-adapters.ts already imports
+ * from this module (importing it back here would be circular). */
+export type BarcodeLookupAdapter = { lookupBarcode(barcode: string): Promise<unknown[]> };
+
+/**
+ * Barcode identity is exact, not fuzzy: a local match returns immediately
+ * without ever calling the external adapter (local-first), and a validated
+ * external candidate always goes to confirmation_required — a barcode
+ * lookup alone must never auto-persist anything.
+ */
+export async function resolveBarcodeFood(prisma: ResolutionPrisma, barcode: string, adapter: BarcodeLookupAdapter | null): Promise<BarcodeResolution> {
+  const local = await prisma.food.findFirst({
+    where: { barcode, createdById: null },
+    include: { servings: true }
+  });
+  if (local) return { status: "resolved_local", food: local };
+  if (!adapter) return { status: "external_unavailable" };
+
+  let raw: unknown[];
+  try {
+    raw = await adapter.lookupBarcode(barcode);
+  } catch {
+    return { status: "external_unavailable" };
+  }
+  if (!raw.length) return { status: "not_found" };
+
+  const candidate = validateExternalCandidate(raw[0]);
+  if (candidate) {
+    const duplicate = await findDuplicate(prisma, candidate);
+    if (duplicate) {
+      // Same source+sourceId: this really is the same product already in the
+      // catalog (e.g. a re-lookup), safe to hand back directly. A duplicate
+      // found only by name/alias is a DIFFERENT existing Food that merely
+      // shares a name — that must go to review, never be silently returned
+      // as if it were the barcode's product.
+      if (duplicate.source === candidate.source && duplicate.sourceId === candidate.sourceId) return { status: "resolved_local", food: duplicate };
+      return { status: "confirmation_required", candidate, reason: "possible_duplicate" };
+    }
+    return { status: "confirmation_required", candidate };
+  }
+
+  // The product exists on the external source but failed strict nutrition
+  // validation (e.g. missing fiber) — surface a safe, honest "incomplete"
+  // notice with whatever name/brand text is available, rather than either
+  // inventing missing macros or discarding the product silently.
+  const partial = raw[0] as { name?: unknown; brand?: unknown };
+  const name = typeof partial?.name === "string" ? partial.name.trim() : "";
+  if (!name) return { status: "not_found" };
+  const brand = typeof partial?.brand === "string" ? partial.brand.trim() : undefined;
+  return { status: "incomplete", product: { name, brand: brand || undefined, barcode } };
 }

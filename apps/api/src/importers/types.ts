@@ -11,6 +11,7 @@ export type ImportFood = {
   synonyms?: Record<string, string[]>;
   category?: string;
   brand?: string;
+  barcode?: string;
   servingUnit?: string;
   servingGrams?: number;
   kcalPer100g: number;
