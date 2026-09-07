@@ -16,3 +16,14 @@ export function shiftDate(dateStr: string, days: number): string {
   date.setDate(date.getDate() + days);
   return toDateString(date);
 }
+
+// Monday of the local week containing `dateStr` (Monday-Sunday convention,
+// matching the server's /meals/week resolution) — used to detect when the
+// selected diary date has moved into a different week than the one on screen.
+export function mondayOf(dateStr: string): string {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+  const daysSinceMonday = (date.getDay() + 6) % 7;
+  date.setDate(date.getDate() - daysSinceMonday);
+  return toDateString(date);
+}

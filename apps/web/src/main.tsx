@@ -4,12 +4,13 @@ import { Activity, ChevronLeft, ChevronRight, ExternalLink, LogOut, Mail, Pencil
 
 import { dict, type Lang } from "./i18n";
 import { api, ApiError, type ApiState } from "./api";
-import { shiftDate, todayLocalDate } from "./date";
+import { mondayOf, shiftDate, todayLocalDate } from "./date";
 import "./styles.css";
 import norbappLogo from "./assets/norbapp-logo-new.png";
 
 import { RecipeBuilder } from "./RecipeBuilder";
 import { MealEditDialog, DeleteMealDialog, RepeatMealDialog, type MealDetail } from "./MealActions";
+import { WeekOverviewCard, type WeekOverviewData } from "./WeekOverview";
 import { AuthForm } from "./AuthForm";
 import { FoodUnderstandingPreview } from "./FoodUnderstandingPreview";
 import { QuantityClarification } from "./QuantityClarification";
@@ -47,6 +48,8 @@ export function App() {
   const [meals, setMeals] = useState<Meal[]>([]);
   const [totals, setTotals] = useState<Totals>({ kcal: 0, fat: 0, protein: 0, carbs: 0, fiber: 0, netCarbs: 0 });
   const [selectedDate, setSelectedDate] = useState(() => todayLocalDate());
+  const [weekAnchor, setWeekAnchor] = useState(() => todayLocalDate());
+  const [week, setWeek] = useState<WeekOverviewData | null>(null);
   const [editingMeal, setEditingMeal] = useState<MealDetail | null>(null);
   const [deletingMealId, setDeletingMealId] = useState<string | null>(null);
   const [repeatingMeal, setRepeatingMeal] = useState<{ id: string; title: string } | null>(null);
@@ -75,6 +78,11 @@ export function App() {
     );
   }
 
+  function fetchWeekForAnchor(dateStr: string) {
+    const tzOffsetMinutes = new Date().getTimezoneOffset();
+    return api<WeekOverviewData>(`/meals/week?date=${dateStr}&tzOffsetMinutes=${tzOffsetMinutes}`, {}, state);
+  }
+
   function applyMealsResult(result: { meals: Meal[]; totals: Totals }) {
     setMeals(result.meals);
     setTotals(result.totals);
@@ -82,15 +90,18 @@ export function App() {
 
   async function loadAll(dateStr: string) {
     if (!token) return;
-    // /me and the diary day are independent; fetch them concurrently to cut
-    // initial dashboard latency (previously awaited sequentially).
-    const [me, day] = await Promise.all([
+    // /me, the diary day and the week overview are independent; fetch them
+    // concurrently to cut initial dashboard latency.
+    const [me, day, weekResult] = await Promise.all([
       api<{ user: User }>("/me", {}, state),
-      fetchMealsForDate(dateStr)
+      fetchMealsForDate(dateStr),
+      fetchWeekForAnchor(dateStr)
     ]);
     setUser(me.user);
     setLang(me.user.locale);
     applyMealsResult(day);
+    setWeek(weekResult);
+    setWeekAnchor(dateStr);
   }
 
   // A meal is always logged against "now", so jump the diary back to today
@@ -143,7 +154,18 @@ export function App() {
   useEffect(() => {
     if (!token || !user) return;
     fetchMealsForDate(selectedDate).then(applyMealsResult).catch(() => {});
+    // Keep the week strip showing the week that contains whatever day the
+    // user is now looking at (prev/next day, or the date picker) — but only
+    // re-anchor when it actually left the currently displayed week, so
+    // explicit prev/next-week navigation (which doesn't move selectedDate)
+    // is never fought by this effect.
+    if (mondayOf(selectedDate) !== mondayOf(weekAnchor)) setWeekAnchor(selectedDate);
   }, [selectedDate]);
+
+  useEffect(() => {
+    if (!token || !user) return;
+    fetchWeekForAnchor(weekAnchor).then(setWeek).catch(() => {});
+  }, [weekAnchor]);
 
   async function saveOnboarding(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -286,6 +308,8 @@ export function App() {
 
   const profile = user?.profile;
   const goals = profile ?? { dailyKcal: 1800, dailyFat: 130, dailyProtein: 110, dailyNetCarbs: 25, dailyFiber: 25 };
+  const today = todayLocalDate();
+  const isCurrentWeek = mondayOf(weekAnchor) === mondayOf(today);
 
   return (
     <main className="min-h-screen">
@@ -364,9 +388,21 @@ export function App() {
               <Macro label="kcal" value={totals.kcal} goal={goals.dailyKcal}/>
               <Macro label="fat" value={totals.fat} goal={goals.dailyFat}/>
               <Macro label="protein" value={totals.protein} goal={goals.dailyProtein}/>
-              <Macro label="net carbs" value={totals.netCarbs} goal={goals.dailyNetCarbs} emphasis/>
+              <Macro label="net carbs" value={totals.netCarbs} goal={goals.dailyNetCarbs} emphasis warnOverLimit/>
               <Macro label="fiber" value={totals.fiber} goal={goals.dailyFiber}/>
+              <MealCountTile label={t.diary.mealsLabel} value={meals.length}/>
             </div>
+            <WeekOverviewCard
+              week={week}
+              lang={lang}
+              selectedDate={selectedDate}
+              today={today}
+              isCurrentWeek={isCurrentWeek}
+              onSelectDate={setSelectedDate}
+              onPrevWeek={() => setWeekAnchor((current) => shiftDate(current, -7))}
+              onNextWeek={() => setWeekAnchor((current) => shiftDate(current, 7))}
+              labels={{ previousWeek: t.diary.week.previousWeek, nextWeek: t.diary.week.nextWeek, heading: t.diary.week.heading, loggedDaysSuffix: t.diary.week.loggedDaysSuffix, mealsLabel: t.diary.mealsLabel }}
+            />
             <div className="card today-card">
               <div className="diary-date-nav">
                 <button type="button" className="btn secondary icon-button" aria-label={t.diary.previousDay} onClick={() => setSelectedDate((current) => shiftDate(current, -1))}><ChevronLeft size={18}/></button>
@@ -437,9 +473,27 @@ export function App() {
   );
 }
 
-function Macro({ label, value, goal, emphasis = false }: { label: string; value: number; goal: number; emphasis?: boolean }) {
-  const pct = Math.min(100, Math.round((value / goal) * 100));
-  return <div className={`metric-tile ${emphasis ? "is-primary" : ""}`}><div className="metric-label">{label}</div><strong className="metric-value">{Math.round(value)}</strong><div className="metric-track" role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={goal} aria-valuenow={Math.round(value)}><div className="metric-progress" style={{ width: `${pct}%` }}/></div><small className="metric-goal">{pct}% · {goal}</small></div>;
+function Macro({ label, value, goal, emphasis = false, warnOverLimit = false }: { label: string; value: number; goal: number; emphasis?: boolean; warnOverLimit?: boolean }) {
+  const rawPct = goal > 0 ? Math.round((value / goal) * 100) : 0;
+  const isOverLimit = warnOverLimit && value > goal;
+  const barPct = Math.min(100, rawPct);
+  // Every other macro caps its displayed percentage at 100%, same as the
+  // progress bar. Net carbs (warnOverLimit) is the one macro where going
+  // over the limit is itself the signal worth seeing, so its number is
+  // allowed to read past 100% instead of looking identical to "on target".
+  const displayPct = warnOverLimit ? rawPct : barPct;
+  return (
+    <div className={`metric-tile ${emphasis ? "is-primary" : ""} ${isOverLimit ? "is-over-limit" : ""}`}>
+      <div className="metric-label">{label}</div>
+      <strong className="metric-value">{Math.round(value)}</strong>
+      <div className="metric-track" role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={goal} aria-valuenow={Math.round(value)}><div className="metric-progress" style={{ width: `${barPct}%` }}/></div>
+      <small className="metric-goal">{displayPct}% · {goal}</small>
+    </div>
+  );
+}
+
+function MealCountTile({ label, value }: { label: string; value: number }) {
+  return <div className="metric-tile metric-tile-count"><div className="metric-label">{label}</div><strong className="metric-value">{value}</strong></div>;
 }
 
 function formatMealTime(value: string, lang: Lang) {

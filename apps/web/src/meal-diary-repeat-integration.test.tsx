@@ -14,6 +14,7 @@ const todayIso = new Date().toISOString();
 const todayMeal = { id: "meal-today", title: "Breakfast", eatenAt: todayIso, totals: zeroTotals };
 const pastMeal = { id: "meal-past", title: "Old Lunch", eatenAt: "2026-01-01T12:00:00.000Z", totals: zeroTotals };
 const repeatedMeal = { id: "meal-repeated", title: "Old Lunch", eatenAt: todayIso, totals: zeroTotals };
+const emptyWeek = { weekStart: "2026-01-01", weekEnd: "2026-01-07", days: [], summary: { mealCount: 0, loggedDays: 0 } };
 
 describe("repeating a meal from a historical day", () => {
   it("switches the diary to Today and shows the newly repeated meal there", async () => {
@@ -26,6 +27,10 @@ describe("repeating a meal from a historical day", () => {
       const method = init?.method ?? "GET";
 
       if (url.pathname === "/me") return new Response(JSON.stringify({ user }), { status: 200 });
+
+      if (url.pathname === "/meals/week" && method === "GET") {
+        return new Response(JSON.stringify(emptyWeek), { status: 200 });
+      }
 
       if (url.pathname === "/meals/today" && method === "GET") {
         const date = url.searchParams.get("date")!;

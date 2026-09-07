@@ -21,7 +21,12 @@ export const dict = {
       previousDay: "Előző nap", nextDay: "Következő nap", selectDate: "Dátum kiválasztása", noMeals: "Ezen a napon nem volt rögzített étkezés.",
       editMeal: "Étkezés szerkesztése", deleteMeal: "Törlés", editTime: "Időpont", removeItem: "Tétel eltávolítása",
       cancel: "Mégse", confirmDelete: "Biztosan törlöd ezt az étkezést?", mealDeleted: "Az étkezés törölve, a napi összesítés frissült.", mealUpdated: "Az étkezés frissítve.",
-      repeatMeal: "Ismét", confirmRepeat: "Újra rögzíted ezt az étkezést most?", mealRepeated: "Étkezés újra rögzítve a mai naphoz."
+      repeatMeal: "Ismét", confirmRepeat: "Újra rögzíted ezt az étkezést most?", mealRepeated: "Étkezés újra rögzítve a mai naphoz.",
+      mealsLabel: "étkezés",
+      week: {
+        heading: "Heti áttekintés", previousWeek: "Előző hét", nextWeek: "Következő hét",
+        loggedDaysSuffix: "nap naplózva"
+      }
     },
     onboarding: "Kezdő beállítások",
     dashboard: "Napi áttekintés",
@@ -79,7 +84,12 @@ export const dict = {
       previousDay: "Vorheriger Tag", nextDay: "Nächster Tag", selectDate: "Datum auswählen", noMeals: "An diesem Tag wurden keine Mahlzeiten erfasst.",
       editMeal: "Mahlzeit bearbeiten", deleteMeal: "Löschen", editTime: "Uhrzeit", removeItem: "Zutat entfernen",
       cancel: "Abbrechen", confirmDelete: "Diese Mahlzeit wirklich löschen?", mealDeleted: "Mahlzeit gelöscht und Tageswerte aktualisiert.", mealUpdated: "Mahlzeit aktualisiert.",
-      repeatMeal: "Erneut", confirmRepeat: "Diese Mahlzeit jetzt erneut protokollieren?", mealRepeated: "Mahlzeit erneut für heute protokolliert."
+      repeatMeal: "Erneut", confirmRepeat: "Diese Mahlzeit jetzt erneut protokollieren?", mealRepeated: "Mahlzeit erneut für heute protokolliert.",
+      mealsLabel: "Mahlzeiten",
+      week: {
+        heading: "Wochenübersicht", previousWeek: "Vorherige Woche", nextWeek: "Nächste Woche",
+        loggedDaysSuffix: "Tage protokolliert"
+      }
     },
     onboarding: "Erste Einstellungen",
     dashboard: "Tagesübersicht",
@@ -137,7 +147,12 @@ export const dict = {
       previousDay: "Previous day", nextDay: "Next day", selectDate: "Select date", noMeals: "No meals logged for this day.",
       editMeal: "Edit meal", deleteMeal: "Delete", editTime: "Time", removeItem: "Remove item",
       cancel: "Cancel", confirmDelete: "Delete this meal?", mealDeleted: "Meal deleted and daily totals updated.", mealUpdated: "Meal updated.",
-      repeatMeal: "Repeat", confirmRepeat: "Log this meal again now?", mealRepeated: "Meal repeated for today."
+      repeatMeal: "Repeat", confirmRepeat: "Log this meal again now?", mealRepeated: "Meal repeated for today.",
+      mealsLabel: "meals",
+      week: {
+        heading: "Week overview", previousWeek: "Previous week", nextWeek: "Next week",
+        loggedDaysSuffix: "days logged"
+      }
     },
     onboarding: "Starter settings",
     dashboard: "Daily overview",
