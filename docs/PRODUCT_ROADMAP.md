@@ -10,7 +10,7 @@ This document is the authoritative product delivery order for Keto Mentor. Techn
 | Phase 2 — Human quantities and clarification | DONE |
 | Phase 3 — Real meal diary | DONE |
 | Phase 4 — Complete recipe experience | DONE |
-| Phase 5 — Packaged food and barcode | IN PROGRESS |
+| Phase 5 — Packaged food and barcode | DONE |
 | Phase 6 — Android + iOS mobile app | NOT STARTED |
 | Phase 7 — Beta and public release | NOT STARTED |
 
@@ -42,9 +42,11 @@ Complete manual recipes and add URL recipe import. Prefer schema.org JSON-LD, wi
 
 Add Open Food Facts, barcode scanning and packaged-product lookup with safe persistence, deduplication and provenance.
 
-**Increment 1 (done):** data pipeline foundation — GTIN barcode validation, local-first resolution (never calls Open Food Facts once a barcode is trusted locally), a bounded Open Food Facts adapter with strict nutrient mapping and physical-plausibility checks, and manual barcode entry in the web UI that reuses the existing confirm-by-re-fetch trust architecture so browser-supplied nutrition is never persisted directly. No camera/native scanning yet.
+**Increment 1 (done):** data pipeline foundation — GTIN barcode validation, local-first resolution (never calls Open Food Facts once a barcode is trusted locally), a bounded Open Food Facts adapter with strict nutrient mapping and physical-plausibility checks, and manual barcode entry in the web UI that reuses the existing confirm-by-re-fetch trust architecture so browser-supplied nutrition is never persisted directly.
 
-**Remaining — Increment 2:** barcode scanning UX / camera integration. A safe browser-based camera scanner (e.g. the `BarcodeDetector` API or a bundled JS decoder) could plausibly be delivered as a web-only increment without pulling Phase 6 native/React Native work forward, since it would only replace manual digit entry ahead of the same `/foods/resolve-barcode` pipeline already shipped — but this has not been scoped or implemented.
+**Increment 2 (done):** camera barcode scanning as progressive enhancement ahead of the same pipeline — native `BarcodeDetector` where actually supported, a dynamically-imported `@zxing/browser` fallback everywhere else, camera permission requested only on explicit "Scan with camera", no frame/image ever leaves the browser, and manual entry remains available in every state (denied, no camera, unsupported browser, decoder failure).
+
+Phase 5 is complete: packaged food, Open Food Facts, barcode validation, local-first lookup, safe external lookup with confirmation, safe persistence, deduplication, provenance, normal Food/meal integration, manual entry, and camera scanning with a manual fallback are all shipped.
 
 ## Phase 6 — Android + iOS mobile app
 
