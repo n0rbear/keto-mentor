@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { addRecipeToMeal, createRecipe, deleteRecipe, forkRecipe, getVisibleRecipe, listPublicRecipes, updateRecipe } from "./service.js";
+import { addRecipeToMeal, createRecipe, deleteRecipe, forkRecipe, getVisibleRecipe, listOwnRecipes, listPublicRecipes, updateRecipe } from "./service.js";
 import { itemTotals } from "../nutrition.js";
-import { recipeInputSchema } from "@keto-mentor/shared";
+import { recipeInputSchema, recipeMealSchema } from "@keto-mentor/shared";
 
 const food = { id: "f1", name: "Food", kcalPer100g: 100, fatPer100g: 10, proteinPer100g: 20, carbsPer100g: 8, fiberPer100g: 3, nutrients: [{ foodId: "f1", nutrientId: "n1", amountPer100g: 40, nutrient: { id: "n1", key: "calcium", label: "Calcium", unit: "mg", group: "mineral" } }] };
 function fullRecipe(overrides: Record<string, unknown> = {}) { return { id: "r1", userId: "owner", title: "Recipe", description: null, servings: 2, finishedWeightGrams: 200, visibility: "private", sourceType: "manual", sourceUrl: null, provenance: null, forkedFromRecipeId: null, deletedAt: null, createdAt: new Date(), updatedAt: new Date(), user: { id: "owner", username: "author" }, ingredients: [{ id: "i1", recipeId: "r1", foodId: "f1", quantityGrams: 200, originalText: null, preparation: null, sortOrder: 0, food }], ...overrides }; }
@@ -87,4 +87,75 @@ describe("recipe meal snapshots", () => {
   it("logs grams with a complete nutrition snapshot", async () => { const { prisma, meals } = fakePrisma([fullRecipe({ visibility: "public" })]); await addRecipeToMeal(prisma, "other", "r1", { quantity: 50, unit: "g" }); expect(meals[0].items[0]).toMatchObject({ quantityGrams: 50, snapshotKcal: 50, snapshotProtein: 10 }); expect(meals[0].items[0].snapshotNutrients.calcium.amount).toBe(20); });
   it("does not change after recipe or Food edits", async () => { const { prisma, recipes, meals } = fakePrisma([fullRecipe({ visibility: "public" })]); await addRecipeToMeal(prisma, "other", "r1", { quantity: 1, unit: "serving" }); const before = itemTotals(meals[0].items[0]); recipes[0].ingredients[0].quantityGrams = 1000; recipes[0].ingredients[0].food.kcalPer100g = 999; expect(itemTotals(meals[0].items[0])).toEqual(before); });
   it("soft delete preserves the historical meal snapshot", async () => { const { prisma, meals } = fakePrisma(); await addRecipeToMeal(prisma, "owner", "r1", { quantity: 1, unit: "serving" }); await deleteRecipe(prisma, "owner", "r1"); expect(meals).toHaveLength(1); expect(itemTotals(meals[0].items[0]).kcal).toBe(100); });
+  it("rejects client-supplied nutrition on the add-to-meal request at the schema boundary", () => {
+    expect(recipeMealSchema.safeParse({ quantity: 1, unit: "g", kcal: 9999 }).success).toBe(false);
+    expect(recipeMealSchema.safeParse({ quantity: 1, unit: "g" }).success).toBe(true);
+  });
+});
+
+describe("recipe library listing", () => {
+  it("excludes soft-deleted recipes from the owner's own library", async () => {
+    const { prisma } = fakePrisma([fullRecipe(), fullRecipe({ id: "r2", title: "Deleted", deletedAt: new Date() })]);
+    const result = await listOwnRecipes(prisma, "owner", { limit: 20 });
+    expect(result.recipes.map((recipe) => recipe.id)).toEqual(["r1"]);
+  });
+  it("excludes soft-deleted recipes from the public library", async () => {
+    const { prisma } = fakePrisma([fullRecipe({ visibility: "public" }), fullRecipe({ id: "r2", visibility: "public", deletedAt: new Date() })]);
+    const result = await listPublicRecipes(prisma, { limit: 20 });
+    expect(result.recipes.map((recipe) => recipe.id)).toEqual(["r1"]);
+  });
+  it("uses a lean ingredient projection for list queries, never the full micronutrient join", async () => {
+    let capturedInclude: any;
+    const prisma: any = { recipe: { findMany: async (args: any) => { capturedInclude = args.include; return []; } } };
+    await listOwnRecipes(prisma, "owner", { limit: 20 });
+    expect(capturedInclude.ingredients.select).toBeDefined();
+    expect(capturedInclude.ingredients.include).toBeUndefined();
+    expect(capturedInclude.ingredients.select.food.select.nutrients).toBeUndefined();
+  });
+  it("still returns a correct compact nutrition summary from the lean projection", async () => {
+    const { prisma } = fakePrisma([fullRecipe()]);
+    const result = await listOwnRecipes(prisma, "owner", { limit: 20 });
+    // 200g of a 100kcal/100g food => 200 kcal total, matching the full-detail calculation.
+    expect(result.recipes[0].nutrition.total.macros.kcal).toBe(200);
+    expect(result.recipes[0].nutrition.perServing?.macros.kcal).toBe(100); // servings: 2
+  });
+  it("does not reveal a soft-deleted recipe's detail, even to its owner", async () => {
+    const { prisma } = fakePrisma([fullRecipe({ deletedAt: new Date() })]);
+    await expect(getVisibleRecipe(prisma, "owner", "r1")).rejects.toMatchObject({ publicCode: "recipe_not_found" });
+  });
+  it("does not allow updating a soft-deleted recipe", async () => {
+    const { prisma } = fakePrisma([fullRecipe({ deletedAt: new Date() })]);
+    await expect(updateRecipe(prisma, "owner", "r1", input)).rejects.toMatchObject({ publicCode: "recipe_not_found" });
+  });
+  it("does not allow deleting an already soft-deleted recipe", async () => {
+    const { prisma } = fakePrisma([fullRecipe({ deletedAt: new Date() })]);
+    await expect(deleteRecipe(prisma, "owner", "r1")).rejects.toMatchObject({ publicCode: "recipe_not_found" });
+  });
+});
+
+describe("recipe editing", () => {
+  it("rejects an invalid Food id on update and leaves the existing recipe untouched", async () => {
+    const { prisma, recipes } = fakePrisma([fullRecipe()]);
+    prisma.food.count = async () => 0;
+    await expect(updateRecipe(prisma, "owner", "r1", { ...input, ingredients: [{ foodId: "missing", quantityGrams: 100 }] })).rejects.toMatchObject({ publicCode: "food_not_found" });
+    expect(recipes[0].title).toBe("Recipe"); // original title, not "Changed" — the rejected update never touched the row
+    expect(recipes[0].ingredients).toHaveLength(1);
+    expect(recipes[0].ingredients[0].foodId).toBe("f1");
+  });
+  it("removes an ingredient during edit", async () => {
+    const { prisma, recipes } = fakePrisma([fullRecipe({ ingredients: [{ id: "i1", recipeId: "r1", foodId: "f1", quantityGrams: 100, originalText: null, preparation: null, sortOrder: 0, food }, { id: "i2", recipeId: "r1", foodId: "f1", quantityGrams: 50, originalText: null, preparation: null, sortOrder: 1, food }] })]);
+    await updateRecipe(prisma, "owner", "r1", { ...input, ingredients: [{ foodId: "f1", quantityGrams: 100 }] });
+    expect(recipes[0].ingredients).toHaveLength(1);
+  });
+  it("adds an ingredient during edit", async () => {
+    const { prisma, recipes } = fakePrisma([fullRecipe()]);
+    await updateRecipe(prisma, "owner", "r1", { ...input, ingredients: [{ foodId: "f1", quantityGrams: 100 }, { foodId: "f1", quantityGrams: 50 }] });
+    expect(recipes[0].ingredients).toHaveLength(2);
+  });
+  it("persists servings and finishedWeightGrams through update", async () => {
+    const { prisma, recipes } = fakePrisma([fullRecipe()]);
+    await updateRecipe(prisma, "owner", "r1", { ...input, servings: 6, finishedWeightGrams: 900 });
+    expect(recipes[0].servings).toBe(6);
+    expect(recipes[0].finishedWeightGrams).toBe(900);
+  });
 });

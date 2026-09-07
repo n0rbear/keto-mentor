@@ -152,6 +152,11 @@ export type FoodUnderstanding = z.infer<typeof foodUnderstandingSchema>;
 export type FoodUnderstandingItem = z.infer<typeof foodUnderstandingItemSchema>;
 
 export const recipeVisibilitySchema = z.enum(["private", "public", "unlisted"]);
+// Not .strict(): recipeInputSchema.parse() is deliberately used to sanitize a
+// browser-reconstructed object (e.g. import-preview rows merged with manual
+// edits) that may still carry extra fields like a forged kcalPer100g — those
+// must be silently dropped, not turned into a hard validation failure. See
+// service.test.ts "strips browser-supplied macros...".
 export const recipeIngredientSchema = z.object({
   foodId: z.string().min(1),
   quantityGrams: z.number().positive().max(50_000),
@@ -175,11 +180,15 @@ export const recipeInputSchema = z.object({
   importProof: z.string().max(4_000).optional(),
   ingredients: z.array(recipeIngredientSchema).min(1).max(50)
 });
+// recipeMealSchema carries no legitimate extra fields (unlike recipeInputSchema
+// above) — it is parsed straight from req.body for the trusted add-to-meal
+// endpoint, so unknown fields (e.g. a forged nutrition value) are rejected
+// outright rather than silently stripped.
 export const recipeMealSchema = z.object({
   title: z.string().trim().min(2).max(100).optional(),
   quantity: z.number().positive().max(5000),
   unit: z.enum(["g", "serving"])
-});
+}).strict();
 export const recipeListQuerySchema = z.object({
   q: z.string().trim().max(120).optional(),
   limit: z.coerce.number().int().min(1).max(50).default(20),

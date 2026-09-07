@@ -31,4 +31,15 @@ describe("recipe nutrition calculator", () => {
     const snapshot = scaleRecipeSnapshot(result.total.macros, result.total.nutrients, 0.5);
     expect(snapshot.macros.kcal).toBe(200); expect(snapshot.nutrients.calcium.amount).toBe(100); expect(result.total.macros.kcal).toBe(400);
   });
+  it("computes correct macro totals from the lean list projection, which omits food.nutrients entirely", () => {
+    const lean = {
+      id: "r1", userId: "u1", title: "Lean", description: null, servings: 2, finishedWeightGrams: null,
+      visibility: "private", sourceType: "manual", sourceUrl: null, provenance: null, forkedFromRecipeId: null, deletedAt: null, createdAt: new Date(), updatedAt: new Date(),
+      ingredients: [{ quantityGrams: 200, food: { kcalPer100g: 100, fatPer100g: 10, proteinPer100g: 20, carbsPer100g: 5, fiberPer100g: 2 } }]
+    } as any;
+    const leanResult = calculateRecipeNutrition(lean);
+    expect(leanResult.total.macros.kcal).toBe(200);
+    expect(leanResult.total.nutrients).toEqual({});
+    expect(leanResult.perServing?.macros.kcal).toBe(100);
+  });
 });

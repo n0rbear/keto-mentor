@@ -12,12 +12,32 @@ const recipeInclude = {
   }
 } satisfies Prisma.RecipeInclude;
 
+// Deliberately lean: a library card only ever renders title/visibility/
+// source/servings/finished-weight/a compact macro summary — never the raw
+// ingredient list or micronutrients — so the list query skips the
+// Food->FoodNutrient->Nutrient join entirely (recipeInclude pulls that for
+// every row, which is fine for a single detail fetch but not for N cards).
+const recipeSummaryInclude = {
+  user: { select: { id: true, username: true } },
+  ingredients: {
+    select: { quantityGrams: true, food: { select: { kcalPer100g: true, fatPer100g: true, proteinPer100g: true, carbsPer100g: true, fiberPer100g: true } } }
+  }
+} satisfies Prisma.RecipeInclude;
+
 type FullRecipe = Prisma.RecipeGetPayload<{ include: typeof recipeInclude }>;
+type RecipeSummaryRow = Prisma.RecipeGetPayload<{ include: typeof recipeSummaryInclude }>;
 
 const notFound = () => Object.assign(new Error("recipe_not_found"), { status: 404, publicCode: "recipe_not_found" });
 
 export function serializeRecipe(recipe: FullRecipe) {
   return { ...recipe, nutrition: calculateRecipeNutrition(recipe as RecipeWithIngredients) };
+}
+
+// Card-shaped projection: metadata plus computed nutrition, never the raw
+// ingredients/food/micronutrient rows the query above intentionally avoids
+// loading.
+export function serializeRecipeSummary(recipe: RecipeSummaryRow) {
+  return { ...recipe, nutrition: calculateRecipeNutrition(recipe as unknown as RecipeWithIngredients) };
 }
 
 async function ensureFoodsExist(prisma: PrismaClient, input: RecipeInput) {
@@ -70,11 +90,11 @@ async function listRecipes(prisma: PrismaClient, where: Prisma.RecipeWhereInput,
     take: query.limit + 1,
     ...(query.cursor ? { cursor: { id: query.cursor }, skip: 1 } : {}),
     orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-    include: recipeInclude
+    include: recipeSummaryInclude
   });
   const hasMore = rows.length > query.limit;
   const page = rows.slice(0, query.limit);
-  return { recipes: page.map(serializeRecipe), nextCursor: hasMore ? page.at(-1)?.id ?? null : null };
+  return { recipes: page.map(serializeRecipeSummary), nextCursor: hasMore ? page.at(-1)?.id ?? null : null };
 }
 
 export async function getVisibleRecipe(prisma: PrismaClient, userId: string, recipeId: string) {
