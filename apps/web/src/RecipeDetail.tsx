@@ -106,6 +106,7 @@ export function RecipeDetail({
           {recipe.sourceUrl && (
             <p className="text-xs text-muted">
               {t.recipes.sourceLabel}: <a href={recipe.sourceUrl} target="_blank" rel="noreferrer">{sourceHost(recipe.sourceUrl)}</a>
+              {recipe.sourceType === "ai_structured" && <> · {t.recipes.aiExtractedTag}</>}
             </p>
           )}
 

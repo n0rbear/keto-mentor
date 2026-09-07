@@ -64,9 +64,10 @@ export const dict = {
       visibilityLegend: "Láthatóság", visibilityPrivateOption: "Privát recept", visibilityPublicOption: "Publikus recept",
       ingredientLabel: "Alapanyag", gramsFieldLabel: "Gramm", addIngredient: "Hozzáadás", removeIngredient: "Alapanyag törlése",
       totalNutrition: "Teljes recept", perServing: "Adagonként", per100g: "100 grammonként",
-      noDescription: "Nincs leírás.", noInstructions: "Nincs elkészítési leírás.", sourceLabel: "Forrás",
+      noDescription: "Nincs leírás.", noInstructions: "Nincs elkészítési leírás.", sourceLabel: "Forrás", aiExtractedTag: "AI-vel kinyerve",
       ingredientsRequired: "A recept neve és legalább egy alapanyag kötelező.", invalidIngredient: "Válassz alapanyagot és adj meg pozitív grammértéket.",
       loadFailed: "A receptek betöltése nem sikerült.",
+      aiExtractedNotice: "A recept adatait AI nyerte ki az oldalról. Mentés előtt ellenőrizd.",
       import: {
         heading: "Recept importálása URL-ből", url: "Nyilvános recept URL", preview: "Előnézet", loading: "Betöltés…",
         resolved: "Feloldva", review: "Ellenőrzést igényel", unresolved: "Nincs feloldva", resolve: "Alapanyag ellenőrzése",
@@ -80,7 +81,10 @@ export const dict = {
       recipe_servings_required: "Ehhez az adagonkénti hozzáadáshoz a receptnek meg kell adnia az adagok számát.",
       validation_error: "Ellenőrizd a recept adatait.", network_error: "Az API nem érhető el. Ellenőrizd a kapcsolatot.",
       unauthorized: "A munkamenet lejárt. Jelentkezz be újra.", server: "A szerver nem tudta feldolgozni a kérést. Próbáld meg később.",
-      unknown: "Váratlan hiba történt."
+      unknown: "Váratlan hiba történt.",
+      recipe_ai_unavailable: "Az automatikus felismerés jelenleg nem érhető el. Add meg a receptet kézzel.",
+      recipe_ai_timeout: "Az automatikus felismerés túl sokáig tartott. Add meg a receptet kézzel, vagy próbáld újra.",
+      recipe_ai_invalid_output: "Az automatikus felismerés nem hozott használható eredményt. Add meg a receptet kézzel."
     },
     disclaimer: "A Keto Mentor tájékoztató jellegű étkezéskövető. Nem diagnosztizál, nem kezel betegséget, és egészségügyi döntéshez kérj szakembert.",
     explain: "A nettó szénhidrát a szénhidrát mínusz rost. Kezdőként ezt érdemes figyelni, de a teljes ételminőség is számít.",
@@ -159,9 +163,10 @@ export const dict = {
       visibilityLegend: "Sichtbarkeit", visibilityPrivateOption: "Privates Rezept", visibilityPublicOption: "Öffentliches Rezept",
       ingredientLabel: "Zutat", gramsFieldLabel: "Gramm", addIngredient: "Hinzufügen", removeIngredient: "Zutat entfernen",
       totalNutrition: "Gesamtes Rezept", perServing: "Pro Portion", per100g: "Pro 100 Gramm",
-      noDescription: "Keine Beschreibung.", noInstructions: "Keine Zubereitungsschritte.", sourceLabel: "Quelle",
+      noDescription: "Keine Beschreibung.", noInstructions: "Keine Zubereitungsschritte.", sourceLabel: "Quelle", aiExtractedTag: "KI-extrahiert",
       ingredientsRequired: "Rezeptname und mindestens eine Zutat sind erforderlich.", invalidIngredient: "Wähle eine Zutat und gib eine positive Grammzahl an.",
       loadFailed: "Die Rezepte konnten nicht geladen werden.",
+      aiExtractedNotice: "Die Rezeptdaten wurden von der KI aus der Seite extrahiert. Bitte vor dem Speichern prüfen.",
       import: {
         heading: "Rezept aus URL importieren", url: "Öffentliche Rezept-URL", preview: "Vorschau", loading: "Laden…",
         resolved: "Aufgelöst", review: "Prüfung erforderlich", unresolved: "Nicht aufgelöst", resolve: "Zutat prüfen",
@@ -175,7 +180,10 @@ export const dict = {
       recipe_servings_required: "Für die portionsweise Zugabe muss das Rezept eine Portionsanzahl angeben.",
       validation_error: "Bitte die Rezeptangaben prüfen.", network_error: "Die API ist nicht erreichbar. Bitte die Verbindung prüfen.",
       unauthorized: "Die Sitzung ist abgelaufen. Bitte neu anmelden.", server: "Der Server konnte die Anfrage nicht verarbeiten. Bitte später erneut versuchen.",
-      unknown: "Ein unerwarteter Fehler ist aufgetreten."
+      unknown: "Ein unerwarteter Fehler ist aufgetreten.",
+      recipe_ai_unavailable: "Die automatische Erkennung ist derzeit nicht verfügbar. Bitte das Rezept manuell eingeben.",
+      recipe_ai_timeout: "Die automatische Erkennung hat zu lange gedauert. Bitte das Rezept manuell eingeben oder erneut versuchen.",
+      recipe_ai_invalid_output: "Die automatische Erkennung lieferte kein brauchbares Ergebnis. Bitte das Rezept manuell eingeben."
     },
     disclaimer: "Keto Mentor ist ein informativer Tracker. Er diagnostiziert oder behandelt nicht; medizinische Entscheidungen gehören zu Fachleuten.",
     explain: "Netto-Kohlenhydrate sind Kohlenhydrate minus Ballaststoffe. Für Einsteiger ist das hilfreich, aber Lebensmittelqualität zählt ebenfalls.",
@@ -254,9 +262,10 @@ export const dict = {
       visibilityLegend: "Visibility", visibilityPrivateOption: "Private recipe", visibilityPublicOption: "Public recipe",
       ingredientLabel: "Ingredient", gramsFieldLabel: "Grams", addIngredient: "Add", removeIngredient: "Remove ingredient",
       totalNutrition: "Whole recipe", perServing: "Per serving", per100g: "Per 100 g",
-      noDescription: "No description.", noInstructions: "No instructions.", sourceLabel: "Source",
+      noDescription: "No description.", noInstructions: "No instructions.", sourceLabel: "Source", aiExtractedTag: "AI-extracted",
       ingredientsRequired: "Recipe name and at least one ingredient are required.", invalidIngredient: "Choose an ingredient and enter a positive gram amount.",
       loadFailed: "The recipes could not be loaded.",
+      aiExtractedNotice: "This recipe's data was extracted by AI from the page. Review it before saving.",
       import: {
         heading: "Import recipe from URL", url: "Public recipe URL", preview: "Preview", loading: "Loading…",
         resolved: "Resolved", review: "Needs review", unresolved: "Unresolved", resolve: "Review ingredient",
@@ -270,7 +279,10 @@ export const dict = {
       recipe_servings_required: "Adding by serving requires the recipe to specify a number of servings.",
       validation_error: "Check the recipe details.", network_error: "The API is unreachable. Check your connection.",
       unauthorized: "Your session expired. Log in again.", server: "The server could not process the request. Try again later.",
-      unknown: "An unexpected error occurred."
+      unknown: "An unexpected error occurred.",
+      recipe_ai_unavailable: "Automatic extraction is currently unavailable. Enter the recipe manually.",
+      recipe_ai_timeout: "Automatic extraction took too long. Enter the recipe manually, or try again.",
+      recipe_ai_invalid_output: "Automatic extraction didn't produce a usable result. Enter the recipe manually."
     },
     disclaimer: "Keto Mentor is an informational food tracker. It does not diagnose or treat disease; ask a professional for medical decisions.",
     explain: "Net carbs are carbs minus fiber. Beginners can use this as a simple guardrail, while overall food quality still matters.",

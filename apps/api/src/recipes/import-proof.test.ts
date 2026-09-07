@@ -8,22 +8,22 @@ describe("recipe import proof", () => {
   const secret = "s".repeat(32);
   const url = "https://example.com/recipe";
   it("binds proof to user and final source URL", () => {
-    const proof = createRecipeImportProof("u1", url, secret, 1_000);
-    expect(verifyRecipeImportProof(proof, "u1", url, secret, 1_001)).toEqual({ sourceUrl: url, extractionMethod: "schema_org_json_ld" });
-    expect(() => verifyRecipeImportProof(proof, "u2", url, secret, 1_001)).toThrowError(expect.objectContaining({ publicCode: "invalid_import_proof" }));
-    expect(() => verifyRecipeImportProof(proof, "u1", "https://evil.test", secret, 1_001)).toThrowError(expect.objectContaining({ publicCode: "invalid_import_proof" }));
+    const proof = createRecipeImportProof("u1", url, "schema_org_json_ld", secret, 1_000);
+    expect(verifyRecipeImportProof(proof, "u1", url, "schema_org_json_ld", secret, 1_001)).toEqual({ sourceUrl: url, extractionMethod: "schema_org_json_ld" });
+    expect(() => verifyRecipeImportProof(proof, "u2", url, "schema_org_json_ld", secret, 1_001)).toThrowError(expect.objectContaining({ publicCode: "invalid_import_proof" }));
+    expect(() => verifyRecipeImportProof(proof, "u1", "https://evil.test", "schema_org_json_ld", secret, 1_001)).toThrowError(expect.objectContaining({ publicCode: "invalid_import_proof" }));
   });
   it("rejects tampering and expiry", () => {
-    const proof = createRecipeImportProof("u1", url, secret, 1_000);
-    expect(() => verifyRecipeImportProof(`${proof}x`, "u1", url, secret, 1_001)).toThrowError(expect.objectContaining({ publicCode: "invalid_import_proof" }));
-    expect(() => verifyRecipeImportProof(proof, "u1", url, secret, 1_000 + 15 * 60 * 1_000 + 1)).toThrowError(expect.objectContaining({ publicCode: "invalid_import_proof" }));
+    const proof = createRecipeImportProof("u1", url, "schema_org_json_ld", secret, 1_000);
+    expect(() => verifyRecipeImportProof(`${proof}x`, "u1", url, "schema_org_json_ld", secret, 1_001)).toThrowError(expect.objectContaining({ publicCode: "invalid_import_proof" }));
+    expect(() => verifyRecipeImportProof(proof, "u1", url, "schema_org_json_ld", secret, 1_000 + 15 * 60 * 1_000 + 1)).toThrowError(expect.objectContaining({ publicCode: "invalid_import_proof" }));
   });
   it("contains no imported nutrition", () => {
-    const [payload] = createRecipeImportProof("u1", url, secret, 1_000).split(".");
+    const [payload] = createRecipeImportProof("u1", url, "schema_org_json_ld", secret, 1_000).split(".");
     expect(JSON.parse(Buffer.from(payload, "base64url").toString())).not.toHaveProperty("nutrition");
   });
   it("domain-separates the proof MAC from the JWT secret", () => {
-    const proof = createRecipeImportProof("u1", url, secret, 1_000);
+    const proof = createRecipeImportProof("u1", url, "schema_org_json_ld", secret, 1_000);
     const [payload, mac] = proof.split(".");
     const directMac = createHmac("sha256", secret).update(payload).digest("base64url");
     const derivedKey = createHmac("sha256", secret).update(IMPORT_PROOF_DOMAIN).digest();
@@ -46,12 +46,30 @@ describe("recipe import proof", () => {
       null, [], { ...base, userId: "" }, { ...base, exp: "999999" }, { ...base, exp: 1.5 },
       { ...base, sourceUrl: "javascript:alert(1)" }, { ...base, sourceUrl: "https://user:pass@example.com" },
       { ...base, extra: true }, { ...base, method: "other" }, { ...base, v: "1" }
-    ]) expect(() => verifyRecipeImportProof(proofFor(payload), "u1", url, secret, 1_001)).toThrowError(expect.objectContaining({ publicCode: "invalid_import_proof" }));
-    expect(() => verifyRecipeImportProof(proofFor(base), "u1", url, secret, Number.NaN)).toThrowError(expect.objectContaining({ publicCode: "invalid_import_proof" }));
+    ]) expect(() => verifyRecipeImportProof(proofFor(payload), "u1", url, "schema_org_json_ld", secret, 1_001)).toThrowError(expect.objectContaining({ publicCode: "invalid_import_proof" }));
+    expect(() => verifyRecipeImportProof(proofFor(base), "u1", url, "schema_org_json_ld", secret, Number.NaN)).toThrowError(expect.objectContaining({ publicCode: "invalid_import_proof" }));
   });
   it("allows stateless replay by the same user and URL during the TTL", () => {
-    const proof = createRecipeImportProof("u1", url, secret, 1_000);
-    expect(verifyRecipeImportProof(proof, "u1", url, secret, 2_000)).toBeTruthy();
-    expect(verifyRecipeImportProof(proof, "u1", url, secret, 3_000)).toBeTruthy();
+    const proof = createRecipeImportProof("u1", url, "schema_org_json_ld", secret, 1_000);
+    expect(verifyRecipeImportProof(proof, "u1", url, "schema_org_json_ld", secret, 2_000)).toBeTruthy();
+    expect(verifyRecipeImportProof(proof, "u1", url, "schema_org_json_ld", secret, 3_000)).toBeTruthy();
+  });
+
+  describe("extraction-method binding", () => {
+    it("mints and verifies an ai_structured proof distinctly from schema_org_json_ld", () => {
+      const proof = createRecipeImportProof("u1", url, "ai_structured", secret, 1_000);
+      expect(verifyRecipeImportProof(proof, "u1", url, "ai_structured", secret, 1_001)).toEqual({ sourceUrl: url, extractionMethod: "ai_structured" });
+    });
+    it("rejects a schema_org proof presented as ai_structured", () => {
+      const proof = createRecipeImportProof("u1", url, "schema_org_json_ld", secret, 1_000);
+      expect(() => verifyRecipeImportProof(proof, "u1", url, "ai_structured", secret, 1_001)).toThrowError(expect.objectContaining({ publicCode: "invalid_import_proof" }));
+    });
+    it("rejects an ai_structured proof presented as schema_org_json_ld", () => {
+      const proof = createRecipeImportProof("u1", url, "ai_structured", secret, 1_000);
+      expect(() => verifyRecipeImportProof(proof, "u1", url, "schema_org_json_ld", secret, 1_001)).toThrowError(expect.objectContaining({ publicCode: "invalid_import_proof" }));
+    });
+    it("rejects an invalid method at creation time", () => {
+      expect(() => createRecipeImportProof("u1", url, "other" as any, secret, 1_000)).toThrowError(expect.objectContaining({ publicCode: "invalid_import_proof" }));
+    });
   });
 });

@@ -73,6 +73,20 @@ describe("RecipeDetail", () => {
     expect(link.getAttribute("href")).toBe("https://example.com/recipes/spinach");
   });
 
+  it("labels an AI-extracted recipe distinctly from a schema.org one, without misattributing it", async () => {
+    stubFetch({ "GET /recipes/r1": () => new Response(JSON.stringify({ recipe: ownedRecipe({ sourceType: "ai_structured", sourceUrl: "https://example.com/recipes/spinach" }) }), { status: 200 }) });
+    render(<RecipeDetail recipeId="r1" lang="en" state={state} currentUserId="owner" onBack={vi.fn()} onEdit={vi.fn()} onDeleted={vi.fn()} onMealAdded={vi.fn()}/>);
+    await waitFor(() => expect(screen.getByText("Spinach Bowl")).toBeTruthy());
+    expect(screen.getByText(/AI-extracted/)).toBeTruthy();
+  });
+
+  it("does not show the AI-extracted tag for a schema.org-imported recipe", async () => {
+    stubFetch({ "GET /recipes/r1": () => new Response(JSON.stringify({ recipe: ownedRecipe({ sourceType: "schema_org", sourceUrl: "https://example.com/recipes/spinach" }) }), { status: 200 }) });
+    render(<RecipeDetail recipeId="r1" lang="en" state={state} currentUserId="owner" onBack={vi.fn()} onEdit={vi.fn()} onDeleted={vi.fn()} onMealAdded={vi.fn()}/>);
+    await waitFor(() => expect(screen.getByText("Spinach Bowl")).toBeTruthy());
+    expect(screen.queryByText(/AI-extracted/)).toBeNull();
+  });
+
   it("shows no source line for a manual recipe", async () => {
     stubFetch({ "GET /recipes/r1": () => new Response(JSON.stringify({ recipe: ownedRecipe() }), { status: 200 }) });
     render(<RecipeDetail recipeId="r1" lang="en" state={state} currentUserId="owner" onBack={vi.fn()} onEdit={vi.fn()} onDeleted={vi.fn()} onMealAdded={vi.fn()}/>);
