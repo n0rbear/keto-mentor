@@ -48,25 +48,38 @@ describe("recipe visibility and ownership", () => {
     expect(recipes[0]).toMatchObject({ sourceType: "schema_org", sourceUrl: "https://example.com/r", provenance: { extractionMethod: "schema_org_json_ld", trust: "source_verified" } });
     expect(recipes[0].ingredients[0]).toMatchObject({ foodId: "f1", quantityGrams: 100, originalText: "100 g Food" });
   });
-  it("preserves manual and ai_structured source types but rejects unproved schema_org", async () => {
+  it("preserves manual as the only proof-free source type; rejects unproved schema_org and unproved ai_structured", async () => {
     const manual = fakePrisma([]); await createRecipe(manual.prisma, "owner", { ...input, sourceType: "manual", sourceUrl: "https://manual.example/r" });
     expect(manual.recipes[0]).toMatchObject({ sourceType: "manual", sourceUrl: "https://manual.example/r", provenance: undefined });
-    const ai = fakePrisma([]); await createRecipe(ai.prisma, "owner", { ...input, sourceType: "ai_structured", sourceUrl: "https://ai.example/r" });
-    expect(ai.recipes[0]).toMatchObject({ sourceType: "ai_structured", sourceUrl: "https://ai.example/r", provenance: undefined });
     await expect(createRecipe(fakePrisma([]).prisma, "owner", { ...input, sourceType: "schema_org", sourceUrl: "https://example.com/r" })).rejects.toMatchObject({ publicCode: "invalid_import_proof" });
+    await expect(createRecipe(fakePrisma([]).prisma, "owner", { ...input, sourceType: "ai_structured", sourceUrl: "https://ai.example/r" })).rejects.toMatchObject({ publicCode: "invalid_import_proof" });
   });
-  it("preserves trusted source metadata on edit", async () => {
+  it("creates an ai_structured recipe with server provenance when a matching trustedImport is proven", async () => {
+    const { prisma, recipes } = fakePrisma([]);
+    await createRecipe(prisma, "owner", { ...input, sourceType: "ai_structured", sourceUrl: "https://ai.example/r" }, { sourceUrl: "https://ai.example/r", extractionMethod: "ai_structured" });
+    expect(recipes[0]).toMatchObject({ sourceType: "ai_structured", sourceUrl: "https://ai.example/r", provenance: { extractionMethod: "ai_structured", trust: "source_verified" } });
+  });
+  it("preserves trusted schema_org source metadata on edit", async () => {
     const provenance = { trust: "source_verified", extractionMethod: "schema_org_json_ld", sourceUrl: "https://source.example/r" };
     const { prisma, recipes } = fakePrisma([fullRecipe({ sourceType: "schema_org", sourceUrl: "https://source.example/r", provenance })]);
     await updateRecipe(prisma, "owner", "r1", { ...input, sourceType: "manual", sourceUrl: "https://attacker.example/r" });
     expect(recipes[0]).toMatchObject({ sourceType: "schema_org", sourceUrl: "https://source.example/r", provenance });
   });
-  it("allows safe source metadata updates for ordinary recipes", async () => {
+  it("preserves trusted ai_structured source metadata on edit", async () => {
+    const provenance = { trust: "source_verified", extractionMethod: "ai_structured", sourceUrl: "https://source.example/r" };
+    const { prisma, recipes } = fakePrisma([fullRecipe({ sourceType: "ai_structured", sourceUrl: "https://source.example/r", provenance })]);
+    await updateRecipe(prisma, "owner", "r1", { ...input, sourceType: "manual", sourceUrl: "https://attacker.example/r" });
+    expect(recipes[0]).toMatchObject({ sourceType: "ai_structured", sourceUrl: "https://source.example/r", provenance });
+  });
+  it("allows safe source metadata updates for ordinary manual recipes", async () => {
     const { prisma, recipes } = fakePrisma([fullRecipe({ sourceType: "manual", sourceUrl: "https://old.example/r" })]);
-    await updateRecipe(prisma, "owner", "r1", { ...input, sourceType: "ai_structured", sourceUrl: "https://new.example/r" });
-    expect(recipes[0]).toMatchObject({ sourceType: "ai_structured", sourceUrl: "https://new.example/r" });
-    await updateRecipe(prisma, "owner", "r1", { ...input, sourceType: "manual", sourceUrl: "https://manual.example/r" });
-    expect(recipes[0]).toMatchObject({ sourceType: "manual", sourceUrl: "https://manual.example/r" });
+    await updateRecipe(prisma, "owner", "r1", { ...input, sourceType: "manual", sourceUrl: "https://new.example/r" });
+    expect(recipes[0]).toMatchObject({ sourceType: "manual", sourceUrl: "https://new.example/r" });
+  });
+  it("rejects editing an untrusted recipe's sourceType to a trusted type without a proof", async () => {
+    const { prisma } = fakePrisma([fullRecipe({ sourceType: "manual", sourceUrl: "https://old.example/r" })]);
+    await expect(updateRecipe(prisma, "owner", "r1", { ...input, sourceType: "ai_structured", sourceUrl: "https://new.example/r" })).rejects.toMatchObject({ publicCode: "invalid_import_proof" });
+    await expect(updateRecipe(prisma, "owner", "r1", { ...input, sourceType: "schema_org", sourceUrl: "https://new.example/r" })).rejects.toMatchObject({ publicCode: "invalid_import_proof" });
   });
   it("rejects unsafe source URLs at the schema boundary", () => {
     for (const sourceUrl of ["javascript:alert(1)", "file:///etc/passwd", "https://user:pass@example.com/r"])

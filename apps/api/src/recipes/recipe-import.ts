@@ -1,11 +1,25 @@
 import type { PrismaClient } from "@prisma/client";
 import { interpretMealInput } from "../meal-input/interpret.js";
+import { AiProviderError } from "../ai/chat-completions-provider.js";
 import { fetchPublicHtml, SafeFetchError, type SafeFetcherDependencies } from "./safe-url-fetcher.js";
+import { RECIPE_IMPORT_LIMITS as LIMITS } from "./recipe-import-limits.js";
+import { DisabledRecipeExtractionProvider, type RecipeExtraction, type RecipeExtractionProvider } from "./recipe-extraction-provider.js";
 
-const LIMITS = { title: 120, ingredients: 50, ingredient: 300, instructions: 100, instruction: 1_000, total: 20_000 } as const;
 export const INGREDIENT_RESOLUTION_CONCURRENCY = 4;
 const MAX_JSON_LD_DEPTH = 12;
 const MAX_JSON_LD_NODES = 500;
+// Bounds the AI call's cost/latency independent of how large the already
+// safely-fetched page is (that is separately capped at RECIPE_PAGE_MAX_BYTES,
+// 1MB, in safe-url-fetcher.ts). ~6,000 characters (~1,500 tokens) is
+// comfortably enough for a typical recipe page's title/ingredients/
+// instructions text once markup is stripped.
+export const AI_EXTRACTION_MAX_INPUT_CHARS = 6_000;
+// Fetched-but-unstructured failures only: the page was retrieved safely, but
+// no usable schema.org Recipe was found in it. Deliberately excludes
+// resource/abuse limits (too_many_ingredients, recipe_content_too_large) and
+// every SafeFetchError code — those remain hard failures the AI must never
+// be used to route around.
+const AI_FALLBACK_ELIGIBLE_CODES = new Set(["recipe_not_found", "malformed_json_ld", "recipe_ingredients_missing"]);
 
 export class RecipeImportError extends Error {
   constructor(public readonly publicCode: string, public readonly status = 400) { super(publicCode); }
@@ -18,9 +32,35 @@ function decodeEntities(value: string) {
   });
 }
 
+const CONTROL_CHARS = /[\u0000-\u001f\u007f]+/g;
+
 export function sanitizeRemoteText(value: unknown, max: number) {
-  const text = decodeEntities(String(value ?? "").replace(/<[^>]*>/g, " ")).replace(/[\u0000-\u001f\u007f]+/g, " ").replace(/\s+/g, " ").trim();
+  const text = decodeEntities(String(value ?? "").replace(/<[^>]*>/g, " ")).replace(CONTROL_CHARS, " ").replace(/\s+/g, " ").trim();
   return text.slice(0, max);
+}
+
+/**
+ * Turns a safely-fetched HTML page into bounded, script/style-free plain text
+ * for the AI extraction prompt. Deliberately not a full HTML/browser parser —
+ * strips script/style/comment/noscript blocks, turns a few block-level
+ * boundaries into newlines so headings and list items stay distinguishable
+ * after tags are removed, then caps the result. The raw HTML (and this
+ * derived text) is always untrusted data, never instructions — see
+ * RECIPE_EXTRACTION_INSTRUCTION.
+ */
+export function htmlToSafeText(html: string, maxChars = AI_EXTRACTION_MAX_INPUT_CHARS): string {
+  const withoutScripts = html.replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, " ");
+  const withoutStyles = withoutScripts.replace(/<style\b[^>]*>[\s\S]*?<\/style\s*>/gi, " ");
+  const withoutNoscript = withoutStyles.replace(/<noscript\b[^>]*>[\s\S]*?<\/noscript\s*>/gi, " ");
+  const withoutComments = withoutNoscript.replace(/<!--[\s\S]*?-->/g, " ");
+  const withBreaks = withoutComments
+    .replace(/<li\b[^>]*>/gi, "\n- ")
+    .replace(/<\/(p|div|li|h1|h2|h3|h4|h5|h6|br|tr|section|article)>/gi, "\n");
+  const text = decodeEntities(withBreaks.replace(/<[^>]*>/g, " "))
+    .replace(CONTROL_CHARS, " ")
+    .replace(/[ \t]+/g, " ")
+    .split("\n").map((line) => line.trim()).filter(Boolean).join("\n");
+  return text.slice(0, maxChars);
 }
 
 function isRecipe(value: any) {
@@ -81,7 +121,45 @@ export function extractRecipeJsonLd(html: string, sourceUrl: string) {
   const instructions = normalizeInstructions(recipe.recipeInstructions);
   if (title.length + ingredients.join("").length + instructions.join("").length > LIMITS.total) throw new RecipeImportError("recipe_content_too_large", 422);
   const image = typeof recipe.image === "string" ? recipe.image : Array.isArray(recipe.image) ? recipe.image[0] : recipe.image?.url;
-  return { title, sourceUrl, servings: parseServings(recipe.recipeYield), instructions, ingredients, imageUrl: typeof image === "string" ? image.slice(0, 2_000) : undefined, extractionMethod: "schema_org_json_ld" as const };
+  return { title, sourceUrl, servings: parseServings(recipe.recipeYield), description: undefined as string | undefined, instructions, ingredients, imageUrl: typeof image === "string" ? image.slice(0, 2_000) : undefined, extractionMethod: "schema_org_json_ld" as const };
+}
+
+function mapRecipeAiError(error: unknown): RecipeImportError {
+  if (error instanceof AiProviderError) {
+    if (error.code === "timeout") return new RecipeImportError("recipe_ai_timeout", 504);
+    if (error.code === "http_error") return new RecipeImportError("recipe_ai_unavailable", 502);
+    return new RecipeImportError("recipe_ai_invalid_output", 422);
+  }
+  return new RecipeImportError("recipe_ai_unavailable", 502);
+}
+
+/**
+ * AI fallback: runs only after extractRecipeJsonLd has already thrown an
+ * AI_FALLBACK_ELIGIBLE_CODES error on a page that was itself safely fetched.
+ * The model receives bounded, script/style-free page text (never raw HTML,
+ * never more than AI_EXTRACTION_MAX_INPUT_CHARS) and may return recipe
+ * STRUCTURE only — recipeExtractionOutputSchema makes nutrition/IDs/
+ * provenance fields structurally impossible to smuggle through. Exactly one
+ * extraction call per preview.
+ */
+async function extractRecipeWithAi(aiProvider: RecipeExtractionProvider, html: string, sourceUrl: string) {
+  const pageText = htmlToSafeText(html);
+  if (!pageText) throw new RecipeImportError("recipe_ai_invalid_output", 422);
+  let result: RecipeExtraction;
+  try {
+    result = await aiProvider.extract(pageText);
+  } catch (error) {
+    throw mapRecipeAiError(error);
+  }
+  const title = sanitizeRemoteText(result.title, LIMITS.title);
+  const description = result.description ? sanitizeRemoteText(result.description, 2_000) : undefined;
+  const ingredients = result.ingredients.map((item) => sanitizeRemoteText(item, LIMITS.ingredient)).filter(Boolean);
+  const instructions = result.instructions.map((item) => sanitizeRemoteText(item, LIMITS.instruction)).filter(Boolean);
+  if (!title) throw new RecipeImportError("recipe_ai_invalid_output", 422);
+  if (!ingredients.length) throw new RecipeImportError("recipe_ai_invalid_output", 422);
+  if (ingredients.length > LIMITS.ingredients) throw new RecipeImportError("recipe_ai_invalid_output", 422);
+  if (title.length + ingredients.join("").length + instructions.join("").length > LIMITS.total) throw new RecipeImportError("recipe_ai_invalid_output", 422);
+  return { title, sourceUrl, servings: result.servings, description, instructions, ingredients, imageUrl: undefined as string | undefined, extractionMethod: "ai_structured" as const };
 }
 
 export async function mapWithConcurrency<T, R>(items: readonly T[], limit: number, worker: (item: T, index: number) => Promise<R>) {
@@ -98,10 +176,21 @@ export async function mapWithConcurrency<T, R>(items: readonly T[], limit: numbe
   return results;
 }
 
-export async function previewRecipeImport(prisma: Pick<PrismaClient, "food" | "foodAlias"> & Partial<Pick<PrismaClient, "$queryRaw">>, url: string, fetchDependencies: SafeFetcherDependencies = {}) {
+export async function previewRecipeImport(
+  prisma: Pick<PrismaClient, "food" | "foodAlias"> & Partial<Pick<PrismaClient, "$queryRaw">>,
+  url: string,
+  fetchDependencies: SafeFetcherDependencies = {},
+  aiProvider: RecipeExtractionProvider = new DisabledRecipeExtractionProvider()
+) {
   try {
     const page = await fetchPublicHtml(url, fetchDependencies);
-    const extracted = extractRecipeJsonLd(page.html, page.finalUrl);
+    let extracted;
+    try {
+      extracted = extractRecipeJsonLd(page.html, page.finalUrl);
+    } catch (structuredError) {
+      if (!(structuredError instanceof RecipeImportError) || !AI_FALLBACK_ELIGIBLE_CODES.has(structuredError.publicCode)) throw structuredError;
+      extracted = await extractRecipeWithAi(aiProvider, page.html, page.finalUrl);
+    }
     const ingredients = await mapWithConcurrency(extracted.ingredients, INGREDIENT_RESOLUTION_CONCURRENCY, async (originalText) => {
       const resolution = await interpretMealInput(prisma, originalText);
       return {
