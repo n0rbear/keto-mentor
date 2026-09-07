@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Barcode } from "lucide-react";
+import { Barcode, Camera } from "lucide-react";
 import { api, ApiError, type ApiState } from "./api";
 import { dict, type Lang } from "./i18n";
 import type { Food } from "./main";
+import { BarcodeScanner } from "./BarcodeScanner";
 
 type BarcodeCandidate = { source: "open_food_facts"; sourceId: string; name: string; brand?: string; kcalPer100g: number; fatPer100g: number; proteinPer100g: number; carbsPer100g: number; fiberPer100g: number };
 type BarcodeResolution =
@@ -28,6 +29,7 @@ function barcodeErrorText(error: unknown, labels: Record<string, string>) {
 export function BarcodeLookup({ lang, state, onFoodConfirmed }: { lang: Lang; state: ApiState; onFoodConfirmed: (food: Food) => void }) {
   const t = dict[lang].barcode;
   const errors = dict[lang].barcodeErrors;
+  const scannerText = dict[lang].barcodeScanner;
   const [expanded, setExpanded] = useState(false);
   const [value, setValue] = useState("");
   const [looking, setLooking] = useState(false);
@@ -35,15 +37,16 @@ export function BarcodeLookup({ lang, state, onFoodConfirmed }: { lang: Lang; st
   const [error, setError] = useState("");
   const [confirming, setConfirming] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [scanning, setScanning] = useState(false);
 
-  async function lookup() {
-    if (looking || !value.trim()) return;
+  async function performLookup(barcode: string) {
+    if (looking || !barcode) return;
     setLooking(true);
     setError("");
     setResult(null);
     setSuccess(false);
     try {
-      const outcome = await api<BarcodeResolution>(`/foods/resolve-barcode?barcode=${encodeURIComponent(value.trim())}`, {}, state);
+      const outcome = await api<BarcodeResolution>(`/foods/resolve-barcode?barcode=${encodeURIComponent(barcode)}`, {}, state);
       if (outcome.status === "resolved_local") {
         onFoodConfirmed(outcome.food);
         setSuccess(true);
@@ -55,6 +58,16 @@ export function BarcodeLookup({ lang, state, onFoodConfirmed }: { lang: Lang; st
     } finally {
       setLooking(false);
     }
+  }
+
+  function lookup() {
+    return performLookup(value.trim());
+  }
+
+  function onScanned(barcode: string) {
+    setScanning(false);
+    setValue(barcode);
+    performLookup(barcode);
   }
 
   async function confirm(candidate: BarcodeCandidate) {
@@ -94,6 +107,12 @@ export function BarcodeLookup({ lang, state, onFoodConfirmed }: { lang: Lang; st
               <button type="button" className="btn secondary" disabled={looking || !value.trim()} aria-busy={looking} onClick={lookup}>{looking ? t.looking : t.lookupButton}</button>
             </div>
           </label>
+
+          <button type="button" className="btn secondary" onClick={() => { setError(""); setScanning(true); }}>
+            <Camera size={16}/>{scannerText.scanButton}
+          </button>
+
+          {scanning && <BarcodeScanner lang={lang} onDetected={onScanned} onClose={() => setScanning(false)}/>}
 
           {error && <div className="status error" role="alert">{error}</div>}
           {success && <div className="status success" role="status">{t.addedSuccess}</div>}

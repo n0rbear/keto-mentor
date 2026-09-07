@@ -104,6 +104,16 @@ export const dict = {
       unauthorized: "A munkamenet lejárt. Jelentkezz be újra.",
       unknown: "Váratlan hiba történt."
     },
+    barcodeScanner: {
+      scanButton: "Beolvasás kamerával", requestingPermission: "Kamera indítása…", scanning: "Irányítsd a vonalkódot a keretbe.",
+      cancel: "Beolvasás megszakítása", cameraDenied: "A kamera-hozzáférés megtagadva. Add meg a vonalkódot kézzel.",
+      cameraUnavailable: "Nem található kamera ezen az eszközön. Add meg a vonalkódot kézzel.",
+      scannerUnsupported: "A böngésződ nem támogatja a kamerás beolvasást. Add meg a vonalkódot kézzel.",
+      scannerFailed: "A beolvasás nem sikerült. Add meg a vonalkódot kézzel.",
+      unsupportedCode: "Ez nem egy támogatott vonalkód-formátum. Próbáld újra.",
+      privacyNotice: "A kamera képét nem töltjük fel; csak a leolvasott vonalkódot használjuk.",
+      detected: "Vonalkód beolvasva.", tryAgain: "Próbáld újra", videoLabel: "Élő kameraelőnézet a vonalkód-kereséshez"
+    },
     disclaimer: "A Keto Mentor tájékoztató jellegű étkezéskövető. Nem diagnosztizál, nem kezel betegséget, és egészségügyi döntéshez kérj szakembert.",
     explain: "A nettó szénhidrát a szénhidrát mínusz rost. Kezdőként ezt érdemes figyelni, de a teljes ételminőség is számít.",
     goals: {
@@ -221,6 +231,16 @@ export const dict = {
       unauthorized: "Die Sitzung ist abgelaufen. Bitte neu anmelden.",
       unknown: "Ein unerwarteter Fehler ist aufgetreten."
     },
+    barcodeScanner: {
+      scanButton: "Mit Kamera scannen", requestingPermission: "Kamera wird gestartet…", scanning: "Richte den Barcode auf den Rahmen aus.",
+      cancel: "Scannen abbrechen", cameraDenied: "Kamerazugriff verweigert. Bitte den Barcode manuell eingeben.",
+      cameraUnavailable: "Auf diesem Gerät wurde keine Kamera gefunden. Bitte den Barcode manuell eingeben.",
+      scannerUnsupported: "Dein Browser unterstützt das Scannen per Kamera nicht. Bitte den Barcode manuell eingeben.",
+      scannerFailed: "Das Scannen ist fehlgeschlagen. Bitte den Barcode manuell eingeben.",
+      unsupportedCode: "Das ist kein unterstütztes Barcode-Format. Bitte erneut versuchen.",
+      privacyNotice: "Das Kamerabild wird nicht hochgeladen; es wird nur der erkannte Barcode verwendet.",
+      detected: "Barcode erkannt.", tryAgain: "Erneut versuchen", videoLabel: "Live-Kameravorschau für die Barcode-Suche"
+    },
     disclaimer: "Keto Mentor ist ein informativer Tracker. Er diagnostiziert oder behandelt nicht; medizinische Entscheidungen gehören zu Fachleuten.",
     explain: "Netto-Kohlenhydrate sind Kohlenhydrate minus Ballaststoffe. Für Einsteiger ist das hilfreich, aber Lebensmittelqualität zählt ebenfalls.",
     goals: {
@@ -337,6 +357,16 @@ export const dict = {
       network_error: "The API is unreachable. Check your connection.",
       unauthorized: "Your session expired. Log in again.",
       unknown: "An unexpected error occurred."
+    },
+    barcodeScanner: {
+      scanButton: "Scan with camera", requestingPermission: "Starting camera…", scanning: "Point the barcode at the frame.",
+      cancel: "Cancel scanning", cameraDenied: "Camera access was denied. Enter the barcode manually.",
+      cameraUnavailable: "No camera was found on this device. Enter the barcode manually.",
+      scannerUnsupported: "Your browser doesn't support camera scanning. Enter the barcode manually.",
+      scannerFailed: "Scanning failed. Enter the barcode manually.",
+      unsupportedCode: "That's not a supported barcode format. Try again.",
+      privacyNotice: "The camera image is never uploaded; only the decoded barcode is used.",
+      detected: "Barcode detected.", tryAgain: "Try again", videoLabel: "Live camera preview for barcode scanning"
     },
     disclaimer: "Keto Mentor is an informational food tracker. It does not diagnose or treat disease; ask a professional for medical decisions.",
     explain: "Net carbs are carbs minus fiber. Beginners can use this as a simple guardrail, while overall food quality still matters.",

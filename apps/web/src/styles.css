@@ -218,6 +218,13 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
 .barcode-panel { display: grid; gap: .55rem; border: 1px solid rgb(var(--border) / .12); border-radius: 12px; background: rgb(var(--bg) / .4); padding: .8rem; }
 .barcode-input-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .5rem; margin-top: .3rem; }
 .barcode-preview { display: grid; gap: .5rem; border: 1px solid rgb(var(--border) / .12); border-radius: 10px; background: rgb(var(--surface) / .6); padding: .7rem .8rem; }
+.scanner-panel { max-width: 460px; }
+.scanner-viewport { position: relative; display: grid; gap: .5rem; border-radius: 12px; overflow: hidden; background: #000; }
+.scanner-video { width: 100%; max-height: 60vh; aspect-ratio: 3 / 4; object-fit: cover; display: block; }
+.scanner-guide { position: absolute; inset: 22% 12%; border: 2px dashed rgb(var(--brand-bright) / .85); border-radius: 12px; pointer-events: none; }
+.scanner-viewport .status { position: absolute; left: .6rem; right: .6rem; bottom: .6rem; }
+.scanner-error { display: grid; justify-items: center; gap: .5rem; padding: 1.4rem .8rem; text-align: center; color: rgb(var(--text-muted)); }
+.scanner-privacy { margin: 0; }
 
 .status { border: 1px solid; border-radius: 10px; padding: .65rem .75rem; font-size: .78rem; font-weight: 700; }
 .status.success { border-color: rgb(var(--success) / .26); color: rgb(var(--success)); background: rgb(var(--success) / .07); }
