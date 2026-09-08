@@ -200,6 +200,26 @@ const foods: SeedFood[] = [
     carbsPer100g: 3.6,
     fiberPer100g: 0.5,
     provenance: { ...USDA_SR_LEGACY_SOURCE, ...USDA_FOOD_IDENTITIES.rawCucumberWithPeel }
+  },
+  {
+    id: "catalog-pork-sausage",
+    name: "Pork sausage",
+    names: { hu: "Kolbász", de: "Wurst", en: "Pork sausage" },
+    synonyms: {
+      hu: ["kolbász", "kolbasz", "parasztkolbász", "parasztkolbasz", "füstölt kolbász", "fustolt kolbasz"],
+      de: ["wurst", "bratwurst", "rauchwurst"],
+      en: ["sausage", "pork sausage", "smoked sausage", "smoked pork sausage"]
+    },
+    // Deliberately no per-piece or per-cm FoodServing: a generic sausage's
+    // weight varies too much by length/thickness/brand for a single trusted
+    // conversion. Quantity stays at conversion_missing until AI estimation or
+    // a manual gram correction, same as scrambled egg above.
+    kcalPer100g: 309,
+    fatPer100g: 28.23,
+    proteinPer100g: 11.98,
+    carbsPer100g: 0.94,
+    fiberPer100g: 0,
+    provenance: { ...USDA_SR_LEGACY_SOURCE, ...USDA_FOOD_IDENTITIES.smokedPorkSausage }
   }
 ];
 

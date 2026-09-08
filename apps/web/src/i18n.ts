@@ -30,6 +30,8 @@ export const dict = {
     },
     onboarding: "Kezdő beállítások",
     dashboard: "Napi áttekintés",
+    loadingProfile: "Bejelentkezve, profil betöltése…",
+    serverWakingUp: "A Keto Mentor szervere ébred — ez az első megnyitásnál néhány másodpercig tarthat.",
     goal: "Fő cél",
     save: "Mentés",
     addMeal: "Étkezés hozzáadása",
@@ -52,6 +54,11 @@ export const dict = {
       preparationValues: {
         scrambled: "rántotta", fried: "sült", boiled: "főtt", roasted: "sült/pirított", steamed: "párolt",
         smoked: "füstölt", raw: "nyers", baked: "sütőben sült", breaded: "rántott", grilled: "grillezett"
+      },
+      unitValues: {
+        piece: "db", slice: "szelet", portion: "adag", plate: "tányér", bowl: "tál", ladle: "merőkanál",
+        tbsp: "evőkanál", tsp: "teáskanál", cup: "csésze", handful: "marék", quarter: "negyed",
+        bite: "harapás", splash: "löttyintés", half: "fél"
       }
     },
     mealErrors: { selectFood: "Válassz ételt a találati listából.", network_error: "Az API nem érhető el. Ellenőrizd a kapcsolatot; ezt CORS vagy hálózati hiba is okozhatja.", validation_error: "Ellenőrizd az étkezés nevét és a mennyiséget.", food_not_found: "A kiválasztott étel már nem található. Keress rá újra.", unauthorized: "A munkamenet lejárt. Jelentkezz be újra.", server: "A szerver nem tudta elmenteni az étkezést. Próbáld meg később.", unknown: "Az étkezést nem sikerült elmenteni.", meal_not_found: "Ez az étkezés már nem található.", meal_item_not_found: "Ez a tétel már nem található ebben az étkezésben.", meal_items_empty: "Egy étkezésben legalább egy tételnek maradnia kell — inkább töröld az egész étkezést.", future_eaten_at: "Az időpont nem lehet a jövőben.", meal_repeat_invalid_source: "Ez az étkezés sérült, nem ismételhető meg." },
@@ -183,6 +190,8 @@ export const dict = {
     },
     onboarding: "Erste Einstellungen",
     dashboard: "Tagesübersicht",
+    loadingProfile: "Angemeldet, Profil wird geladen…",
+    serverWakingUp: "Der Keto Mentor-Server wacht auf — das kann beim ersten Öffnen ein paar Sekunden dauern.",
     goal: "Hauptziel",
     save: "Speichern",
     addMeal: "Mahlzeit hinzufügen",
@@ -202,6 +211,11 @@ export const dict = {
       unresolved: "Nährwerte noch nicht mit verlässlichen Lebensmitteldaten verknüpft", needsDetail: "Präzisierung erforderlich.",
       conversionMissing: "Lebensmittel gefunden, aber kein verlässliches Grammgewicht. Bitte Gramm eingeben.",
       review: "Bitte das richtige Lebensmittel auswählen.", verified: "geprüft", estimated: "geschätzt", logAll: "Alle eintragen",
+      unitValues: {
+        piece: "Stück", slice: "Scheibe", portion: "Portion", plate: "Teller", bowl: "Schüssel", ladle: "Kelle",
+        tbsp: "Esslöffel", tsp: "Teelöffel", cup: "Tasse", handful: "Handvoll", quarter: "Viertel",
+        bite: "Bissen", splash: "Schuss", half: "halb"
+      },
       preparationValues: {
         scrambled: "Rührei", fried: "gebraten", boiled: "gekocht", roasted: "geröstet", steamed: "gedünstet",
         smoked: "geräuchert", raw: "roh", baked: "gebacken", breaded: "paniert", grilled: "gegrillt"
@@ -336,6 +350,8 @@ export const dict = {
     },
     onboarding: "Starter settings",
     dashboard: "Daily overview",
+    loadingProfile: "Signed in, loading your profile…",
+    serverWakingUp: "Keto Mentor's server is waking up — this can take a few seconds on first open.",
     goal: "Main goal",
     save: "Save",
     addMeal: "Add meal",
@@ -355,6 +371,11 @@ export const dict = {
       unresolved: "Nutrition is not yet linked to trusted food data", needsDetail: "Clarification needed.",
       conversionMissing: "Food found, but no reliable gram conversion exists. Enter grams manually.",
       review: "Review and choose the correct food.", verified: "verified", estimated: "estimated", logAll: "Log all",
+      unitValues: {
+        piece: "piece", slice: "slice", portion: "portion", plate: "plate", bowl: "bowl", ladle: "ladle",
+        tbsp: "tbsp", tsp: "tsp", cup: "cup", handful: "handful", quarter: "quarter",
+        bite: "bite", splash: "splash", half: "half"
+      },
       preparationValues: {
         scrambled: "scrambled", fried: "fried", boiled: "boiled", roasted: "roasted", steamed: "steamed",
         smoked: "smoked", raw: "raw", baked: "baked", breaded: "breaded", grilled: "grilled"

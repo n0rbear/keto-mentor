@@ -41,6 +41,7 @@ export type FoodUnderstandingLabels = {
   estimated: string;
   logAll: string;
   preparationValues: Record<string, string>;
+  unitValues: Record<string, string>;
 };
 
 function itemName(item: PreviewItem, lang: Lang) {
@@ -57,8 +58,23 @@ function preparationLabel(preparation: string | undefined, labels: FoodUnderstan
   return labels.preparationValues[preparation] ?? preparation;
 }
 
+// Same closed-set-of-internal-English-keys situation as preparation above
+// (see PREPARATION_CONCEPTS / NaturalQuantityUnit in natural-food-query.ts):
+// household units like "plate"/"piece" need a localized word, while metric
+// symbols ("g", "kg", "ml", "l", "cm") are already language-neutral and are
+// simply absent from unitValues, so they fall through unchanged.
+function unitLabel(unit: string | undefined, labels: FoodUnderstandingLabels) {
+  if (!unit) return unit;
+  return labels.unitValues[unit] ?? unit;
+}
+
+function quantityText(quantity: number | undefined, unit: string | undefined, labels: FoodUnderstandingLabels) {
+  if (quantity == null) return null;
+  return `${quantity} ${unitLabel(unit, labels) ?? ""}`.trim();
+}
+
 function PreviewRow({ item, lang, labels }: { item: PreviewItem; lang: Lang; labels: FoodUnderstandingLabels }) {
-  const quantity = item.parsed.quantity != null ? `${item.parsed.quantity} ${item.parsed.unit ?? ""}`.trim() : null;
+  const quantity = quantityText(item.parsed.quantity, item.parsed.unit, labels);
   return <li className="understanding-item">
     <div><strong>{quantity ? `${quantity} ${itemName(item, lang)}` : itemName(item, lang)}</strong></div>
     {item.preparation && <small>{labels.preparation}: {preparationLabel(item.preparation, labels)}</small>}
@@ -91,7 +107,7 @@ export function FoodUnderstandingPreview({ value, lang, labels, busy, onConfirmA
     {singleReady && <div>
       <strong>{itemName(value, lang)}</strong>
       {value.preparation && <em> · {preparationLabel(value.preparation, labels)}</em>}
-      <span> · {value.parsed.quantity != null ? `${value.parsed.quantity} ${value.parsed.unit ?? ""} · ` : ""}{value.quantity?.estimated ? "≈" : "="} {Math.round((value.quantity?.grams ?? 0) * 10) / 10} g · {value.quantity?.estimated ? labels.estimated : labels.verified}</span>
+      <span> · {value.parsed.quantity != null ? `${quantityText(value.parsed.quantity, value.parsed.unit, labels)} · ` : ""}{value.quantity?.estimated ? "≈" : "="} {Math.round((value.quantity?.grams ?? 0) * 10) / 10} g · {value.quantity?.estimated ? labels.estimated : labels.verified}</span>
     </div>}
     {!value.items?.length && !singleReady && value.interpretationSource !== "ai_assisted" && <span>
       {value.foodResolution === "unresolved" ? labels.unresolved : value.quantity && "reason" in value.quantity ? labels.conversionMissing : labels.review}
