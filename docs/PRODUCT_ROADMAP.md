@@ -60,6 +60,8 @@ Turned the existing `apps/web` into a production-quality, installable, mobile-fi
 
 The owner is expected to install and use this on his own iPhone in daily life before Phase 6B is scoped.
 
+**Owner beta hardening pass (done):** after real iPhone usage surfaced real product failures (multi-food Hungarian input silently garbled, the quantity AI fallback never actually rescuing a resolved food's missing conversion, an untranslated preparation value, a misleading recipe-import error, and a redundant DB round-trip on every login), each was root-caused and fixed at the architecture level — see git history for `fix: harden Keto Mentor from owner beta feedback`. One item could not be fixed from code: `render.yaml` declares no `FOOD_AI_PROVIDER`/`OPENROUTER_API_KEY`/`FOOD_AI_MODEL` at all, and this is the most likely shared root cause behind several of the AI-fallback symptoms — needs verification/configuration directly in the Render dashboard. Owner beta remains **active**: the owner must retest the repaired flows on the real iPhone before Phase 6A is considered fully validated.
+
 ### Phase 6B — Native Android + iOS (not started)
 
 Prefer one shared mobile-client architecture, likely React Native with Expo unless repository analysis demonstrates a materially better choice. The initial client covers authentication, onboarding, dashboard, natural meal input, meal history, recipes and barcode scanning. Begins only after real-world PWA usage has validated the product workflows — not automatically after Phase 6A.
