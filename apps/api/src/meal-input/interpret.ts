@@ -148,12 +148,17 @@ export async function resolveQuantity(
   }
 
   if (provider.id === "disabled") {
+    logQuantityAiOutcome("not_configured", provider.id);
     return { status: "unresolved", estimated: false, requiresConfirmation: true, reason: "conversion_missing", aiOutcome: "not_configured" };
   }
   try {
     const estimated = await provider.estimate({ parsed, food });
-    if (!estimated) return { status: "unresolved", estimated: false, requiresConfirmation: true, reason: "conversion_missing", aiOutcome: "declined" };
+    if (!estimated) {
+      logQuantityAiOutcome("declined", provider.id);
+      return { status: "unresolved", estimated: false, requiresConfirmation: true, reason: "conversion_missing", aiOutcome: "declined" };
+    }
     const valid = validateQuantityEstimate(estimated);
+    logQuantityAiOutcome("estimated", provider.id);
     return {
       status: "resolved", grams: parsed.quantity * valid.gramsPerUnit, gramsPerUnit: valid.gramsPerUnit,
       method: valid.method, confidence: valid.confidence, estimated: true, requiresConfirmation: true, provenance: valid.provenance,
@@ -162,8 +167,21 @@ export async function resolveQuantity(
     };
   } catch (error) {
     const aiOutcome: AiQuantityOutcome = error instanceof AiProviderError && error.code === "timeout" ? "timeout" : "invalid_output";
+    const providerCode = error instanceof AiProviderError ? error.code : undefined;
+    logQuantityAiOutcome(aiOutcome, provider.id, providerCode);
     return { status: "unresolved", estimated: false, requiresConfirmation: true, reason: "conversion_missing", aiOutcome };
   }
+}
+
+/**
+ * Category-only production observability for the quantity AI fallback: no
+ * meal text, food name, tokens, keys or provider payloads — just which typed
+ * outcome occurred, for which configured provider, so a real production
+ * failure mode (e.g. free-tier truncation vs. genuine timeout) is visible in
+ * Render logs without exposing anything private.
+ */
+function logQuantityAiOutcome(outcome: AiQuantityOutcome, providerId: string, providerErrorCode?: string) {
+  console.log(`quantity_ai outcome=${outcome} provider=${providerId}${providerErrorCode ? ` providerError=${providerErrorCode}` : ""}`);
 }
 
 function servingPriority(serving: Serving) {

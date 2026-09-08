@@ -44,7 +44,11 @@ const baseFoods: Food[] = [
   // Owner-beta reproduction fixtures below: deliberately WITHOUT a trusted
   // FoodServing, matching the real gap that forces the AI quantity fallback.
   { id: "catalog-spinach", name: "Spinach", names: { hu: "Spenót", de: "Spinat", en: "Spinach" }, synonyms: { hu: ["spenót", "spenot"], de: ["spinat"], en: ["spinach"] }, kcalPer100g: 23 },
-  { id: "catalog-peasant-sausage", name: "Peasant sausage", names: { hu: "Parasztkolbász", de: "Bauernwurst", en: "Peasant sausage" }, synonyms: { hu: ["parasztkolbász", "parasztkolbasz", "kolbász", "kolbasz"], de: ["bauernwurst"], en: ["peasant sausage"] }, kcalPer100g: 280 },
+  // Owner-beta finding (real catalog gap): no trusted FoodServing — matches
+  // the actual production catalog entry added for this, which deliberately
+  // has no per-piece or per-cm serving so length-based quantities go through
+  // AI estimation rather than an invented conversion.
+  { id: "catalog-pork-sausage", name: "Pork sausage", names: { hu: "Kolbász", de: "Wurst", en: "Pork sausage" }, synonyms: { hu: ["kolbász", "kolbasz", "parasztkolbász", "parasztkolbasz"], de: ["wurst", "bratwurst"], en: ["sausage", "pork sausage"] }, kcalPer100g: 309 },
   { id: "catalog-ham", name: "Ham", names: { hu: "Sonka", de: "Schinken", en: "Ham" }, synonyms: { hu: ["sonka"], de: ["schinken"], en: ["ham"] }, kcalPer100g: 145 },
   { id: "catalog-feta", name: "Feta cheese", names: { hu: "Feta", de: "Feta", en: "Feta cheese" }, synonyms: { hu: ["feta"], de: ["feta"], en: ["feta", "feta cheese"] }, kcalPer100g: 264 },
   { id: "catalog-lettuce", name: "Lettuce", names: { hu: "Saláta", de: "Salat", en: "Lettuce" }, synonyms: { hu: ["saláta", "salata"], de: ["salat"], en: ["lettuce", "salad"] }, kcalPer100g: 15 }
@@ -593,7 +597,7 @@ describe("OpenRouter quantity AI fallback architecture (owner-beta root cause)",
   it("end-to-end owner reproduction: '10 cm lángolt parasztkolbász' resolves the sausage cleanly and gets a bounded AI length-to-grams estimate", async () => {
     const provider = new MockQuantityProvider("mock-openrouter", aiEstimate(120));
     const result = await interpretMealInput(prisma, "10 cm lángolt parasztkolbász", provider);
-    expect(result.selectedFood?.id).toBe("catalog-peasant-sausage");
+    expect(result.selectedFood?.id).toBe("catalog-pork-sausage");
     expect(result.preparation).toBe("grilled");
     expect(result.parsed.unit).toBe("cm");
     expect(result.quantity?.status).toBe("resolved");
@@ -605,11 +609,47 @@ describe("OpenRouter quantity AI fallback architecture (owner-beta root cause)",
 
   it("end-to-end owner reproduction: '10 cm lángolt parasztkolbász' falls back to manual grams (not invented nutrition) when the AI provider is unavailable", async () => {
     const result = await interpretMealInput(prisma, "10 cm lángolt parasztkolbász");
-    expect(result.selectedFood?.id).toBe("catalog-peasant-sausage");
+    expect(result.selectedFood?.id).toBe("catalog-pork-sausage");
     expect(result.quantity?.status).toBe("unresolved");
     expect(result.quantity?.aiOutcome).toBe("not_configured");
     expect(result.quantity?.grams).toBeUndefined();
     expect(result.clarification?.type).toBe("grams_required");
+  });
+
+  // Owner-beta retest (real production divergence): the owner's exact new
+  // string used the generic "kolbász", not "parasztkolbász". Previous
+  // coverage only ever exercised the specific compound word; these prove
+  // the generic word resolves too, matching the real catalog entry's
+  // Hungarian aliases (both "kolbász" and "parasztkolbász" point at the
+  // same trustworthy generic pork sausage record).
+  it.each([
+    ["kolbász", "catalog-pork-sausage", undefined],
+    ["parasztkolbász", "catalog-pork-sausage", undefined],
+    ["lángolt kolbász", "catalog-pork-sausage", "grilled"]
+  ] as const)("'%s' resolves to the trusted generic sausage Food", async (text, expectedId, expectedPreparation) => {
+    const result = await interpretMealInput(prisma, text);
+    expect(result.selectedFood?.id).toBe(expectedId);
+    expect(result.preparation).toBe(expectedPreparation);
+  });
+
+  it("end-to-end owner reproduction: '10 cm lángolt kolbász' (generic word, not parasztkolbász) resolves cleanly and gets a bounded AI length-to-grams estimate", async () => {
+    const provider = new MockQuantityProvider("mock-openrouter", aiEstimate(90));
+    const result = await interpretMealInput(prisma, "10 cm lángolt kolbász", provider);
+    expect(result.selectedFood?.id).toBe("catalog-pork-sausage");
+    expect(result.preparation).toBe("grilled");
+    expect(result.parsed.unit).toBe("cm");
+    expect(result.quantity?.status).toBe("resolved");
+    expect(result.quantity?.estimated).toBe(true);
+    expect(result.quantity?.aiOutcome).toBe("estimated");
+    expect(result.quantity?.grams).toBe(10 * 90);
+    expect(result.canConfirm).toBe(false);
+  });
+
+  it("an uncatalogued sausage-family subtype (e.g. 'hurka') stays unresolved rather than borrowing the generic sausage's nutrition", async () => {
+    const result = await interpretMealInput(prisma, "10 cm hurka");
+    expect(result.selectedFood?.id ?? null).not.toBe("catalog-pork-sausage");
+    expect(["unresolved", "confirmation_required"]).toContain(result.foodResolution);
+    expect(result.canConfirm).toBe(false);
   });
 
   it("end-to-end owner reproduction: '200 g saláta, 2 főtt tojás, sonka és feta' segments into four distinct items, each independently resolved", async () => {

@@ -26,6 +26,10 @@ export const USDA_FOOD_IDENTITIES = {
   rawCucumberWithPeel: {
     fdcId: "168409",
     fdcDescription: "Cucumber, with peel, raw"
+  },
+  smokedPorkSausage: {
+    fdcId: "174584",
+    fdcDescription: "Sausage, smoked link sausage, pork"
   }
 } as const;
 

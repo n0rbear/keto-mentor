@@ -89,4 +89,55 @@ describe("food-understanding preview", () => {
     expect(screen.queryByText("Elkészítés: boiled")).toBeNull();
     expect(screen.getByText(`Elkészítés: ${dict.hu.foodUnderstanding.preparationValues.boiled}`)).toBeTruthy();
   });
+
+  // Owner-beta retest (P1 goal): production HU UI displayed raw internal
+  // quantity/serving unit words ("1 plate Spenót", "2 piece Tükörtojás")
+  // instead of a localized word — a broader gap than preparation alone.
+  // Covers every unit NaturalQuantityUnit can produce that isn't already a
+  // language-neutral metric symbol (g/kg/ml/l/cm stay as-is on purpose).
+  const UNITS = ["piece", "slice", "portion", "plate", "bowl", "ladle", "tbsp", "tsp", "cup", "handful", "quarter", "bite", "splash", "half"] as const;
+
+  it.each(["hu", "de", "en"] as const)("never renders the raw English unit key in the multi-item row (%s)", (lang: Lang) => {
+    for (const unit of UNITS) {
+      cleanup();
+      const value: FoodUnderstandingPreviewValue = {
+        ...compound,
+        items: [{ ...compound.items![0], parsed: { ...compound.items![0].parsed, quantity: 2, unit } }]
+      };
+      render(<FoodUnderstandingPreview value={value} lang={lang} labels={dict[lang].foodUnderstanding} busy={false} onConfirmAll={vi.fn()}/>);
+      const expectedLabel = dict[lang].foodUnderstanding.unitValues[unit];
+      expect(screen.getByText(new RegExp(`2 ${expectedLabel}`))).toBeTruthy();
+      if (lang !== "en") expect(screen.queryByText(new RegExp(`2 ${unit}\\b`))).toBeNull();
+    }
+  });
+
+  it.each(["hu", "de", "en"] as const)("never renders the raw English unit key in the single-item confirmable presentation (%s)", (lang: Lang) => {
+    for (const unit of UNITS) {
+      cleanup();
+      const value: FoodUnderstandingPreviewValue = {
+        parsed: { foodQuery: "spenót", quantity: 1, unit }, selectedFood: { name: "Spenót" },
+        quantity: { status: "resolved", grams: 80, estimated: true }, canConfirm: true,
+        foodResolution: "resolved", interpretationSource: "deterministic"
+      };
+      render(<FoodUnderstandingPreview value={value} lang={lang} labels={dict[lang].foodUnderstanding} busy={false} onConfirmAll={vi.fn()}/>);
+      const expectedLabel = dict[lang].foodUnderstanding.unitValues[unit];
+      expect(screen.getByText(new RegExp(`1 ${expectedLabel}`))).toBeTruthy();
+      if (lang !== "en") expect(screen.queryByText(new RegExp(`1 ${unit}\\b`))).toBeNull();
+    }
+  });
+
+  it("reproduces the exact owner report: HU UI must show '1 tányér' and '2 db', not '1 plate' or '2 piece'", () => {
+    const value: FoodUnderstandingPreviewValue = {
+      ...compound,
+      items: [
+        { ...compound.items![0], parsed: { foodQuery: "spenót", quantity: 1, unit: "plate" } },
+        { ...compound.items![1], parsed: { foodQuery: "tükörtojás", quantity: 2, unit: "piece" } }
+      ]
+    };
+    render(<FoodUnderstandingPreview value={value} lang="hu" labels={dict.hu.foodUnderstanding} busy={false} onConfirmAll={vi.fn()}/>);
+    expect(screen.queryByText(/1 plate/)).toBeNull();
+    expect(screen.queryByText(/2 piece/)).toBeNull();
+    expect(screen.getByText(/1 tányér/)).toBeTruthy();
+    expect(screen.getByText(/2 db/)).toBeTruthy();
+  });
 });

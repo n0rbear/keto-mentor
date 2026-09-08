@@ -95,18 +95,22 @@ export function App() {
 
   async function loadAll(dateStr: string) {
     if (!token) return;
-    // /me, the diary day and the week overview are independent; fetch them
-    // concurrently to cut initial dashboard latency.
-    const [me, day, weekResult] = await Promise.all([
-      api<{ user: User }>("/me", {}, state),
-      fetchMealsForDate(dateStr),
-      fetchWeekForAnchor(dateStr)
-    ]);
-    setUser(me.user);
-    setLang(me.user.locale);
-    applyMealsResult(day);
-    setWeek(weekResult);
-    setWeekAnchor(dateStr);
+    // /me, the diary day and the week overview are independent — fetch them
+    // concurrently AND apply each result as soon as it individually arrives,
+    // rather than gating all three behind Promise.all. Week overview tends
+    // to be the heaviest query; without this, a slow week fetch would hold
+    // up rendering the primary Today shell even after /me and today's diary
+    // had already come back.
+    const mePromise = api<{ user: User }>("/me", {}, state).then((me) => {
+      setUser(me.user);
+      setLang(me.user.locale);
+    });
+    const dayPromise = fetchMealsForDate(dateStr).then(applyMealsResult);
+    const weekPromise = fetchWeekForAnchor(dateStr).then((weekResult) => {
+      setWeek(weekResult);
+      setWeekAnchor(dateStr);
+    });
+    await Promise.all([mePromise, dayPromise, weekPromise]);
   }
 
   // A meal is always logged against "now", so jump the diary back to today
@@ -315,6 +319,18 @@ export function App() {
   const goals = profile ?? { dailyKcal: 1800, dailyFat: 130, dailyProtein: 110, dailyNetCarbs: 25, dailyFiber: 25 };
   const today = todayLocalDate();
   const isCurrentWeek = mondayOf(weekAnchor) === mondayOf(today);
+  // /auth/login's response user has no `profile` field (only /me includes
+  // it) — treating that gap as "onboarding not done" briefly flashed the
+  // onboarding form for already-onboarded returning users on every login,
+  // until /me's response replaced it. `authBootstrapping` names that gap
+  // explicitly so a neutral loading state shows instead.
+  const authBootstrapping = !!user && profile === undefined;
+  const [showSlowServerNotice, setShowSlowServerNotice] = useState(false);
+  useEffect(() => {
+    if (!authBootstrapping) { setShowSlowServerNotice(false); return; }
+    const timer = window.setTimeout(() => setShowSlowServerNotice(true), 2500);
+    return () => window.clearTimeout(timer);
+  }, [authBootstrapping]);
 
   return (
     <main className="min-h-screen">
@@ -365,6 +381,11 @@ export function App() {
 
         {!user ? (
           <AuthForm mode="register" lang={lang} state={state} onSuccess={setUser} />
+        ) : authBootstrapping ? (
+          <div className="card welcome-panel" role="status" aria-busy="true">
+            <p className="panel-kicker">{t.loadingProfile}</p>
+            {showSlowServerNotice && <p className="text-xs text-muted">{t.serverWakingUp}</p>}
+          </div>
         ) : !profile?.onboardingDone ? (
           <form onSubmit={saveOnboarding} className="card onboarding-panel">
             <div className="auth-intro"><p className="panel-kicker">01 · {lang === "hu" ? "Személyre szabás" : lang === "de" ? "Personalisierung" : "Personal setup"}</p><h2>{t.onboarding}</h2></div>
