@@ -114,6 +114,13 @@ export const dict = {
       privacyNotice: "A kamera képét nem töltjük fel; csak a leolvasott vonalkódot használjuk.",
       detected: "Vonalkód beolvasva.", tryAgain: "Próbáld újra", videoLabel: "Élő kameraelőnézet a vonalkód-kereséshez"
     },
+    nav: { today: "Ma", log: "Rögzítés", recipes: "Receptek" },
+    pwa: {
+      installTitle: "Telepítsd a Keto Mentort", installBody: "Add hozzá a kezdőképernyődhöz a gyorsabb eléréshez.",
+      installButton: "Telepítés", installDismiss: "Most nem",
+      iosInstructions: "Megosztás gomb → Kezdőképernyőhöz adás", updateAvailable: "Új verzió érhető el.",
+      updateButton: "Frissítés", offlineMessage: "Nincs internetkapcsolat. Csatlakozz újra, és próbáld meg ismét."
+    },
     disclaimer: "A Keto Mentor tájékoztató jellegű étkezéskövető. Nem diagnosztizál, nem kezel betegséget, és egészségügyi döntéshez kérj szakembert.",
     explain: "A nettó szénhidrát a szénhidrát mínusz rost. Kezdőként ezt érdemes figyelni, de a teljes ételminőség is számít.",
     goals: {
@@ -241,6 +248,13 @@ export const dict = {
       privacyNotice: "Das Kamerabild wird nicht hochgeladen; es wird nur der erkannte Barcode verwendet.",
       detected: "Barcode erkannt.", tryAgain: "Erneut versuchen", videoLabel: "Live-Kameravorschau für die Barcode-Suche"
     },
+    nav: { today: "Heute", log: "Erfassen", recipes: "Rezepte" },
+    pwa: {
+      installTitle: "Keto Mentor installieren", installBody: "Zum Startbildschirm hinzufügen für schnelleren Zugriff.",
+      installButton: "Installieren", installDismiss: "Jetzt nicht",
+      iosInstructions: "Teilen-Symbol → Zum Home-Bildschirm", updateAvailable: "Eine neue Version ist verfügbar.",
+      updateButton: "Aktualisieren", offlineMessage: "Keine Internetverbindung. Bitte erneut verbinden und versuchen."
+    },
     disclaimer: "Keto Mentor ist ein informativer Tracker. Er diagnostiziert oder behandelt nicht; medizinische Entscheidungen gehören zu Fachleuten.",
     explain: "Netto-Kohlenhydrate sind Kohlenhydrate minus Ballaststoffe. Für Einsteiger ist das hilfreich, aber Lebensmittelqualität zählt ebenfalls.",
     goals: {
@@ -367,6 +381,13 @@ export const dict = {
       unsupportedCode: "That's not a supported barcode format. Try again.",
       privacyNotice: "The camera image is never uploaded; only the decoded barcode is used.",
       detected: "Barcode detected.", tryAgain: "Try again", videoLabel: "Live camera preview for barcode scanning"
+    },
+    nav: { today: "Today", log: "Log", recipes: "Recipes" },
+    pwa: {
+      installTitle: "Install Keto Mentor", installBody: "Add it to your home screen for faster access.",
+      installButton: "Install", installDismiss: "Not now",
+      iosInstructions: "Share button → Add to Home Screen", updateAvailable: "A new version is available.",
+      updateButton: "Update", offlineMessage: "No internet connection. Reconnect and try again."
     },
     disclaimer: "Keto Mentor is an informational food tracker. It does not diagnose or treat disease; ask a professional for medical decisions.",
     explain: "Net carbs are carbs minus fiber. Beginners can use this as a simple guardrail, while overall food quality still matters.",
