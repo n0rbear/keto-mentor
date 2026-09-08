@@ -59,4 +59,16 @@ describe("daily summary: meal count and over-limit net carbs", () => {
     expect(tile?.className).not.toContain("is-over-limit");
     expect(screen.getByText("50% · 1800")).toBeTruthy(); // 900/1800
   });
+
+  // Owner-beta finding K: on mobile the macro grid scrolls horizontally, so
+  // net carbs — the keto-critical metric — must be the FIRST tile rather
+  // than requiring horizontal discovery to find.
+  it("orders net carbs as the first macro tile, ahead of kcal/protein/fat/fiber/meal count", async () => {
+    stubFetch();
+    render(<App/>);
+    await waitFor(() => expect(screen.getByText("Breakfast")).toBeTruthy());
+    const macroGrid = screen.getByLabelText("Daily macros");
+    const labels = within(macroGrid).getAllByText(/^(net carbs|kcal|protein|fat|fiber)$/, { selector: ".metric-label" }).map((el) => el.textContent);
+    expect(labels[0]).toBe("net carbs");
+  });
 });

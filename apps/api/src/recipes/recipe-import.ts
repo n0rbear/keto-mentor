@@ -19,7 +19,7 @@ export const AI_EXTRACTION_MAX_INPUT_CHARS = 6_000;
 // resource/abuse limits (too_many_ingredients, recipe_content_too_large) and
 // every SafeFetchError code — those remain hard failures the AI must never
 // be used to route around.
-const AI_FALLBACK_ELIGIBLE_CODES = new Set(["recipe_not_found", "malformed_json_ld", "recipe_ingredients_missing"]);
+const AI_FALLBACK_ELIGIBLE_CODES = new Set(["recipe_page_not_found", "malformed_json_ld", "recipe_ingredients_missing"]);
 
 export class RecipeImportError extends Error {
   constructor(public readonly publicCode: string, public readonly status = 400) { super(publicCode); }
@@ -110,10 +110,10 @@ export function extractRecipeJsonLd(html: string, sourceUrl: string) {
     try { recipe = findRecipe(JSON.parse(script[1].trim())); } catch { malformed = true; }
     if (recipe) break;
   }
-  if (!recipe) throw new RecipeImportError(scripts.length && malformed ? "malformed_json_ld" : "recipe_not_found", 422);
+  if (!recipe) throw new RecipeImportError(scripts.length && malformed ? "malformed_json_ld" : "recipe_page_not_found", 422);
   const title = sanitizeRemoteText(recipe.name ?? recipe.headline, LIMITS.title);
   const rawIngredients = Array.isArray(recipe.recipeIngredient) ? recipe.recipeIngredient.filter((item: unknown): item is string => typeof item === "string") : [];
-  if (!title) throw new RecipeImportError("recipe_not_found", 422);
+  if (!title) throw new RecipeImportError("recipe_page_not_found", 422);
   if (!rawIngredients.length) throw new RecipeImportError("recipe_ingredients_missing", 422);
   if (rawIngredients.length > LIMITS.ingredients) throw new RecipeImportError("too_many_ingredients", 422);
   const ingredients: string[] = rawIngredients.map((item: unknown) => sanitizeRemoteText(item, LIMITS.ingredient)).filter(Boolean);

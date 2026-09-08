@@ -93,7 +93,7 @@ app.post("/auth/register", authLimiter, async (req, res, next) => {
       select: { id: true, username: true, locale: true }
     });
 
-    const session = await createSession(prisma, user.id);
+    const session = await createSession(prisma, user);
     setRefreshCookie(res, session.refreshToken);
     res.status(201).json({ user, accessToken: session.accessToken });
   } catch (error: any) {
@@ -111,7 +111,7 @@ app.post("/auth/login", authLimiter, async (req, res, next) => {
     }
 
     const user = { id: userWithHash.id, username: userWithHash.username, locale: userWithHash.locale };
-    const session = await createSession(prisma, user.id);
+    const session = await createSession(prisma, user);
     setRefreshCookie(res, session.refreshToken);
     res.json({ user, accessToken: session.accessToken });
   } catch (error) {

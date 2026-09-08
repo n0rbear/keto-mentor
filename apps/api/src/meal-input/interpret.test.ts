@@ -1,8 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
-import { interpretMealInput, type InterpretResult } from "./interpret.js";
+import { interpretMealInput, resolveQuantity, type InterpretResult } from "./interpret.js";
 import { normalizeSearch } from "../catalog/normalize.js";
 import type { AiProvider } from "../ai/provider.js";
 import type { FoodUnderstanding } from "@keto-mentor/shared";
+import type { QuantityEstimate, QuantityEstimationProvider } from "./quantity-estimation.js";
+import { DisabledQuantityEstimationProvider } from "./quantity-estimation.js";
+import { AiProviderError } from "../ai/chat-completions-provider.js";
+import { parseNaturalFoodQuery } from "../catalog/natural-food-query.js";
 
 type Serving = { id: string; key: string; unit: string; labels: Record<string, string>; grams: number; isEstimated: boolean; confidence: number; provenance: unknown };
 type Food = {
@@ -16,7 +20,7 @@ type Food = {
 
 const baseFoods: Food[] = [
   { id: "catalog-egg", name: "Egg", names: { hu: "Tojás", de: "Ei", en: "Egg" }, synonyms: { hu: ["tojás", "tojas"], de: ["ei", "eier"], en: ["egg", "eggs"] }, servings: [{ id: "egg", key: "egg", unit: "egg", labels: { en: "egg", hu: "tojás", de: "Ei" }, grams: 50, isEstimated: false, confidence: 1, provenance: { method: "authoritative", fdcId: "171287", portionId: "88374" } }], kcalPer100g: 143 },
-  { id: "catalog-fried-egg", name: "Fried egg", names: { hu: "Tükörtojás", de: "Spiegelei", en: "Fried egg" }, synonyms: { hu: ["tükörtojás", "tukortojas", "sült tojás", "sult tojas"], de: ["spiegelei"], en: ["fried egg"] }, servings: [{ id: "fried-egg", key: "egg", unit: "egg", labels: { en: "egg", hu: "tojás", de: "Ei" }, grams: 46, isEstimated: false, confidence: 1, provenance: { method: "authoritative", fdcId: "173423", portionId: "92497" } }], kcalPer100g: 196 },
+  { id: "catalog-fried-egg", name: "Fried egg", names: { hu: "Tükörtojás", de: "Spiegelei", en: "Fried egg" }, synonyms: { hu: ["tükörtojás", "tukortojas", "sült tojás", "sult tojas"], de: ["spiegelei", "spiegeleier"], en: ["fried egg", "fried eggs"] }, servings: [{ id: "fried-egg", key: "egg", unit: "egg", labels: { en: "egg", hu: "tojás", de: "Ei" }, grams: 46, isEstimated: false, confidence: 1, provenance: { method: "authoritative", fdcId: "173423", portionId: "92497" } }], kcalPer100g: 196 },
   // Generic scrambled egg intentionally has no per-egg serving until a
   // preparation-specific confirmation flow exists.
   { id: "catalog-scrambled-egg", name: "Scrambled egg", names: { hu: "Rántotta", de: "Rührei", en: "Scrambled egg" }, synonyms: { hu: ["rántotta", "rantotta", "tojásrántotta", "tojasrantotta"], de: ["ruhrei"], en: ["scrambled egg", "eggs scrambled"] }, kcalPer100g: 149 },
@@ -36,7 +40,14 @@ const baseFoods: Food[] = [
   { id: "catalog-peanut", name: "Peanuts", names: { hu: "Földimogyoró", de: "Erdnüsse", en: "Peanuts" }, synonyms: { hu: ["mogyoró", "foldimogyoro"], de: ["erdnusse"], en: ["peanut", "peanuts"] }, kcalPer100g: 567 },
   { id: "catalog-broth", name: "Soup", names: { hu: "Húsleves", de: "Suppe", en: "Soup" }, synonyms: { hu: ["húsleves", "husleves"], de: ["suppe"], en: ["soup"] }, kcalPer100g: 35 },
   { id: "catalog-roast-chicken", name: "Roast chicken", names: { hu: "Grillcsirke", de: "Grillhähnchen", en: "Roast chicken" }, synonyms: { hu: ["grillcsirke"], de: ["grillhahnchen"], en: ["roast chicken"] }, kcalPer100g: 239 },
-  { id: "catalog-chicken-breast", name: "Chicken breast", names: { hu: "Csirkemell", de: "Hähnchenbrust", en: "Chicken breast" }, synonyms: { hu: ["csirkemell"], de: ["hahnchenbrust"], en: ["chicken breast"] }, kcalPer100g: 120 }
+  { id: "catalog-chicken-breast", name: "Chicken breast", names: { hu: "Csirkemell", de: "Hähnchenbrust", en: "Chicken breast" }, synonyms: { hu: ["csirkemell"], de: ["hahnchenbrust"], en: ["chicken breast"] }, kcalPer100g: 120 },
+  // Owner-beta reproduction fixtures below: deliberately WITHOUT a trusted
+  // FoodServing, matching the real gap that forces the AI quantity fallback.
+  { id: "catalog-spinach", name: "Spinach", names: { hu: "Spenót", de: "Spinat", en: "Spinach" }, synonyms: { hu: ["spenót", "spenot"], de: ["spinat"], en: ["spinach"] }, kcalPer100g: 23 },
+  { id: "catalog-peasant-sausage", name: "Peasant sausage", names: { hu: "Parasztkolbász", de: "Bauernwurst", en: "Peasant sausage" }, synonyms: { hu: ["parasztkolbász", "parasztkolbasz", "kolbász", "kolbasz"], de: ["bauernwurst"], en: ["peasant sausage"] }, kcalPer100g: 280 },
+  { id: "catalog-ham", name: "Ham", names: { hu: "Sonka", de: "Schinken", en: "Ham" }, synonyms: { hu: ["sonka"], de: ["schinken"], en: ["ham"] }, kcalPer100g: 145 },
+  { id: "catalog-feta", name: "Feta cheese", names: { hu: "Feta", de: "Feta", en: "Feta cheese" }, synonyms: { hu: ["feta"], de: ["feta"], en: ["feta", "feta cheese"] }, kcalPer100g: 264 },
+  { id: "catalog-lettuce", name: "Lettuce", names: { hu: "Saláta", de: "Salat", en: "Lettuce" }, synonyms: { hu: ["saláta", "salata"], de: ["salat"], en: ["lettuce", "salad"] }, kcalPer100g: 15 }
 ];
 
 function makePrisma() {
@@ -67,6 +78,35 @@ function makePrisma() {
 }
 
 const prisma = makePrisma();
+
+/**
+ * Deterministic stand-in for the real OpenRouter/Mistral quantity gateway.
+ * Never touches the network — the whole point is that these tests must not
+ * depend on a live provider. Mirrors the real transport's contract: returns
+ * a bounded QuantityEstimate, returns null when it declines, or throws
+ * AiProviderError for transport-level failures.
+ */
+class MockQuantityProvider implements QuantityEstimationProvider {
+  calls = 0;
+  constructor(
+    readonly id: string,
+    private readonly behavior: QuantityEstimate | null | Error
+  ) {}
+  async estimate(): Promise<QuantityEstimate | null> {
+    this.calls += 1;
+    if (this.behavior instanceof Error) throw this.behavior;
+    return this.behavior;
+  }
+}
+
+function aiEstimate(gramsPerUnit: number, overrides: Partial<QuantityEstimate> = {}): QuantityEstimate {
+  return {
+    gramsPerUnit, confidence: 0.6, method: "ai_estimated",
+    provenance: { provider: "mock-openrouter", modelOrRule: "fixture-model", estimatedAt: "2026-01-01T00:00:00.000Z" },
+    rangeGramsPerUnit: { min: gramsPerUnit * 0.7, max: gramsPerUnit * 1.3 },
+    ...overrides
+  };
+}
 
 class MockFoodNlpProvider implements AiProvider {
   id = "mock-food-nlp";
@@ -435,5 +475,243 @@ describe("meal input interpretation", () => {
     expect(item.semanticItem).toMatchObject({ modifiers: [...modifiers], excludedModifiers: [...exclusions] });
     expect(item.nutritionEligible).toBe(false);
     expect(result.canConfirm).toBe(false);
+  });
+});
+
+describe("OpenRouter quantity AI fallback architecture (owner-beta root cause)", () => {
+  const spinachFood = { id: "catalog-spinach", source: "keto_mentor", sourceId: null, name: "Spinach" };
+
+  it("resolveQuantity: trusted serving beats AI — the provider is never even called when a trustworthy serving exists", async () => {
+    const provider = new MockQuantityProvider("mock-openrouter", aiEstimate(999));
+    const parsed = parseNaturalFoodQuery("3 tükörtojás");
+    const friedEgg = { id: "catalog-fried-egg", source: "keto_mentor", sourceId: null, name: "Fried egg", servings: [
+      { id: "fried-egg", key: "egg", unit: "egg", labels: {}, grams: 46, isEstimated: false, confidence: 1, provenance: {} }
+    ] };
+    const result = await resolveQuantity(parsed, friedEgg as any, provider);
+    expect(provider.calls).toBe(0);
+    expect(result.status).toBe("resolved");
+    expect(result.grams).toBe(3 * 46);
+    expect(result.method).toBe("authoritative");
+    expect(result.estimated).toBe(false);
+  });
+
+  it("resolveQuantity: AI provides a bounded, confirmable estimate when no trusted serving exists (aiOutcome: estimated)", async () => {
+    const provider = new MockQuantityProvider("mock-openrouter", aiEstimate(280));
+    const parsed = parseNaturalFoodQuery("1 tányér spenót");
+    const result = await resolveQuantity(parsed, spinachFood, provider);
+    expect(provider.calls).toBe(1);
+    expect(result.status).toBe("resolved");
+    expect(result.estimated).toBe(true);
+    expect(result.requiresConfirmation).toBe(true); // AI estimates always require explicit confirmation
+    expect(result.method).toBe("ai_estimated");
+    expect(result.grams).toBe(280);
+    expect(result.aiOutcome).toBe("estimated");
+  });
+
+  it("resolveQuantity: manual grams is the fallback when no AI provider is configured (aiOutcome: not_configured)", async () => {
+    const parsed = parseNaturalFoodQuery("1 tányér spenót");
+    const result = await resolveQuantity(parsed, spinachFood, new DisabledQuantityEstimationProvider());
+    expect(result.status).toBe("unresolved");
+    expect(result.reason).toBe("conversion_missing");
+    expect(result.aiOutcome).toBe("not_configured");
+  });
+
+  it("resolveQuantity: manual grams is the fallback when the provider times out (aiOutcome: timeout, distinguishable from not_configured)", async () => {
+    const provider = new MockQuantityProvider("mock-openrouter", new AiProviderError("timeout"));
+    const parsed = parseNaturalFoodQuery("1 tányér spenót");
+    const result = await resolveQuantity(parsed, spinachFood, provider);
+    expect(result.status).toBe("unresolved");
+    expect(result.reason).toBe("conversion_missing");
+    expect(result.aiOutcome).toBe("timeout");
+  });
+
+  it.each([
+    ["invalid_response", "invalid_output"],
+    ["http_error", "invalid_output"],
+    ["response_too_large", "invalid_output"]
+  ] as const)("resolveQuantity: manual grams is the fallback when the provider fails with %s (aiOutcome: %s)", async (code, expectedOutcome) => {
+    const provider = new MockQuantityProvider("mock-openrouter", new AiProviderError(code));
+    const parsed = parseNaturalFoodQuery("1 tányér spenót");
+    const result = await resolveQuantity(parsed, spinachFood, provider);
+    expect(result.status).toBe("unresolved");
+    expect(result.reason).toBe("conversion_missing");
+    expect(result.aiOutcome).toBe(expectedOutcome);
+  });
+
+  it("resolveQuantity: a non-AiProviderError thrown by a misbehaving provider still degrades safely (aiOutcome: invalid_output)", async () => {
+    const provider = new MockQuantityProvider("mock-openrouter", new Error("unexpected"));
+    const parsed = parseNaturalFoodQuery("1 tányér spenót");
+    const result = await resolveQuantity(parsed, spinachFood, provider);
+    expect(result.status).toBe("unresolved");
+    expect(result.aiOutcome).toBe("invalid_output");
+  });
+
+  it("resolveQuantity: the provider declining (returns null) is distinguishable from not being configured at all (aiOutcome: declined)", async () => {
+    const provider = new MockQuantityProvider("mock-openrouter", null);
+    const parsed = parseNaturalFoodQuery("1 tányér spenót");
+    const result = await resolveQuantity(parsed, spinachFood, provider);
+    expect(provider.calls).toBe(1);
+    expect(result.status).toBe("unresolved");
+    expect(result.aiOutcome).toBe("declined");
+  });
+
+  it("resolveQuantity: an AI estimate can never smuggle nutrition fields into the resolution — only bounded gram/confidence/method/provenance survive", async () => {
+    const poisoned = { ...aiEstimate(280), kcal: 999, kcalPer100g: 999, proteinPer100g: 999 } as unknown as QuantityEstimate;
+    const provider = new MockQuantityProvider("mock-openrouter", poisoned);
+    const parsed = parseNaturalFoodQuery("1 tányér spenót");
+    const result = await resolveQuantity(parsed, spinachFood, provider);
+    expect(result.status).toBe("resolved");
+    expect(Object.keys(result).sort()).toEqual(
+      ["aiOutcome", "confidence", "estimated", "grams", "gramsPerUnit", "method", "provenance", "rangeGrams", "requiresConfirmation", "status"].sort()
+    );
+    expect((result as any).kcal).toBeUndefined();
+    expect((result as any).kcalPer100g).toBeUndefined();
+  });
+
+  it("end-to-end owner reproduction: '1 tányér spenót, 2 db tükörtojás' — plate spinach gets an AI estimate, fried egg uses its trusted serving, neither collapses straight to manual grams", async () => {
+    const provider = new MockQuantityProvider("mock-openrouter", aiEstimate(280));
+    const result = await interpretMealInput(prisma, "1 tányér spenót, 2 db tükörtojás", provider);
+    expect(result.items).toHaveLength(2);
+    const [spinachItem, eggItem] = result.items!;
+
+    expect(spinachItem.selectedFood?.id).toBe("catalog-spinach");
+    expect(spinachItem.quantity?.status).toBe("resolved");
+    expect(spinachItem.quantity?.estimated).toBe(true);
+    expect(spinachItem.quantity?.aiOutcome).toBe("estimated");
+    expect(spinachItem.quantity?.grams).toBe(280);
+    expect(spinachItem.canConfirm).toBe(false); // AI estimate still requires explicit user confirmation
+
+    expect(eggItem.selectedFood?.id).toBe("catalog-fried-egg");
+    expect(eggItem.preparation).toBe("fried");
+    expect(eggItem.quantity?.estimated).toBe(false); // trusted serving, AI never needed
+    expect(eggItem.quantity?.grams).toBe(2 * 46);
+    expect(eggItem.canConfirm).toBe(true);
+
+    expect(provider.calls).toBe(1); // only for spinach — the egg never touches the AI provider
+  });
+
+  it("end-to-end owner reproduction: '10 cm lángolt parasztkolbász' resolves the sausage cleanly and gets a bounded AI length-to-grams estimate", async () => {
+    const provider = new MockQuantityProvider("mock-openrouter", aiEstimate(120));
+    const result = await interpretMealInput(prisma, "10 cm lángolt parasztkolbász", provider);
+    expect(result.selectedFood?.id).toBe("catalog-peasant-sausage");
+    expect(result.preparation).toBe("grilled");
+    expect(result.parsed.unit).toBe("cm");
+    expect(result.quantity?.status).toBe("resolved");
+    expect(result.quantity?.estimated).toBe(true);
+    expect(result.quantity?.aiOutcome).toBe("estimated");
+    expect(result.quantity?.grams).toBe(10 * 120);
+    expect(result.canConfirm).toBe(false); // still requires explicit confirmation, never auto-applied
+  });
+
+  it("end-to-end owner reproduction: '10 cm lángolt parasztkolbász' falls back to manual grams (not invented nutrition) when the AI provider is unavailable", async () => {
+    const result = await interpretMealInput(prisma, "10 cm lángolt parasztkolbász");
+    expect(result.selectedFood?.id).toBe("catalog-peasant-sausage");
+    expect(result.quantity?.status).toBe("unresolved");
+    expect(result.quantity?.aiOutcome).toBe("not_configured");
+    expect(result.quantity?.grams).toBeUndefined();
+    expect(result.clarification?.type).toBe("grams_required");
+  });
+
+  it("end-to-end owner reproduction: '200 g saláta, 2 főtt tojás, sonka és feta' segments into four distinct items, each independently resolved", async () => {
+    const result = await interpretMealInput(prisma, "200 g saláta, 2 főtt tojás, sonka és feta");
+    expect(result.items).toHaveLength(4);
+    const [salad, egg, ham, feta] = result.items!;
+
+    expect(salad.selectedFood?.id).toBe("catalog-lettuce");
+    expect(salad.quantity?.grams).toBe(200);
+    expect(salad.canConfirm).toBe(true);
+
+    // No boiled-egg Food exists in the catalog: the preparation is honestly
+    // surfaced as unavailable rather than silently substituting raw/fried
+    // nutrition — same invariant as the existing "főtt tojás" test above.
+    expect(egg.preparation).toBe("boiled");
+    expect(egg.preparationUnavailable).toBe(true);
+    expect(egg.canConfirm).toBe(false);
+
+    expect(ham.selectedFood?.id).toBe("catalog-ham");
+    expect(ham.quantity?.reason).toBe("quantity_missing"); // no amount was stated for the ham
+    expect(ham.canConfirm).toBe(false);
+
+    expect(feta.selectedFood?.id).toBe("catalog-feta");
+    expect(feta.quantity?.reason).toBe("quantity_missing");
+    expect(feta.canConfirm).toBe(false);
+  });
+
+  it("DE equivalent: 'ein Teller Spinat und 2 Spiegeleier' segments and resolves the same way as the Hungarian original", async () => {
+    const provider = new MockQuantityProvider("mock-openrouter", aiEstimate(280));
+    const result = await interpretMealInput(prisma, "ein Teller Spinat und 2 Spiegeleier", provider);
+    expect(result.items).toHaveLength(2);
+    expect(result.items?.[0].selectedFood?.id).toBe("catalog-spinach");
+    expect(result.items?.[0].quantity?.estimated).toBe(true);
+    expect(result.items?.[1].selectedFood?.id).toBe("catalog-fried-egg");
+    expect(result.items?.[1].quantity?.estimated).toBe(false);
+  });
+
+  it("EN equivalent: '1 plate spinach and 2 fried eggs' segments and resolves the same way as the Hungarian original", async () => {
+    const provider = new MockQuantityProvider("mock-openrouter", aiEstimate(280));
+    const result = await interpretMealInput(prisma, "1 plate spinach and 2 fried eggs", provider);
+    expect(result.items).toHaveLength(2);
+    expect(result.items?.[0].selectedFood?.id).toBe("catalog-spinach");
+    expect(result.items?.[0].quantity?.estimated).toBe(true);
+    expect(result.items?.[1].selectedFood?.id).toBe("catalog-fried-egg");
+    expect(result.items?.[1].quantity?.estimated).toBe(false);
+  });
+});
+
+describe("human quantity test matrix (owner-beta finding G)", () => {
+  const food = (id: string, servings: any[] = []) => ({ id, source: "keto_mentor", sourceId: null, name: id, servings } as any);
+
+  // Foods WITH a trusted serving for the unit under test — quantity must
+  // resolve from that serving alone; the AI provider must never be called.
+  it.each([
+    ["2 db tojás", "piece", 50, 100],
+    ["3 szelet sajt", "slice", 28, 84],
+    ["1 evőkanál olívaolaj", "tbsp", 13.5, 13.5],
+    ["1 teáskanál vaj", "tsp", 4.7, 4.7]
+  ] as const)("'%s': trusted %s serving resolves without ever calling the AI provider", async (text, servingUnit, gramsPerUnit, expectedGrams) => {
+    const provider = new MockQuantityProvider("mock-openrouter", aiEstimate(999_000)); // absurd value: would be obviously wrong if it were used
+    const parsed = parseNaturalFoodQuery(text);
+    const trustedFood = food("trusted-food", [{ id: "s1", key: servingUnit, unit: servingUnit, labels: {}, grams: gramsPerUnit, isEstimated: false, confidence: 1, provenance: {} }]);
+    const result = await resolveQuantity(parsed, trustedFood, provider);
+    expect(provider.calls).toBe(0);
+    expect(result.status).toBe("resolved");
+    expect(result.estimated).toBe(false);
+    expect(result.grams).toBeCloseTo(expectedGrams, 5);
+  });
+
+  // Foods WITHOUT a trusted serving for the unit under test — must fall to
+  // a bounded AI estimate (never a hardcoded conversion, e.g. never
+  // assuming 1 ml = 1 g), and the estimate must still require confirmation.
+  it.each([
+    ["1 tányér spenót", "plate"],
+    ["1 tál saláta", "bowl"],
+    ["1 pohár tej", "cup"],
+    ["330 ml Cola Zero", "ml"],
+    ["10 cm kolbász", "cm"]
+  ] as const)("'%s': no trusted %s serving falls to a bounded AI estimate, not an invented conversion", async (text, expectedUnit) => {
+    // A deliberately non-round-number gramsPerUnit proves the value came
+    // from the mocked AI response, not from any hardcoded unit-conversion
+    // rule (e.g. NOT silently treating 1 ml as 1 g).
+    const provider = new MockQuantityProvider("mock-openrouter", aiEstimate(123.45));
+    const parsed = parseNaturalFoodQuery(text);
+    expect(parsed.unit).toBe(expectedUnit);
+    const untrustedFood = food("untrusted-food");
+    const result = await resolveQuantity(parsed, untrustedFood, provider);
+    expect(provider.calls).toBe(1);
+    expect(result.status).toBe("resolved");
+    expect(result.estimated).toBe(true);
+    expect(result.requiresConfirmation).toBe(true);
+    expect(result.aiOutcome).toBe("estimated");
+    expect(result.grams).toBeCloseTo((parsed.quantity ?? 1) * 123.45, 5);
+  });
+
+  it("'330 ml Cola Zero' still falls back to manual grams (never invented nutrition/weight) when no AI provider is configured", async () => {
+    const parsed = parseNaturalFoodQuery("330 ml Cola Zero");
+    expect(parsed.unit).toBe("ml");
+    expect(parsed.quantity).toBe(330);
+    const result = await resolveQuantity(parsed, food("cola-zero"), new DisabledQuantityEstimationProvider());
+    expect(result.status).toBe("unresolved");
+    expect(result.aiOutcome).toBe("not_configured");
+    expect(result.grams).toBeUndefined();
   });
 });
