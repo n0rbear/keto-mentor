@@ -15,6 +15,10 @@ import { AuthForm } from "./AuthForm";
 import { FoodUnderstandingPreview } from "./FoodUnderstandingPreview";
 import { QuantityClarification } from "./QuantityClarification";
 import { BarcodeLookup } from "./BarcodeLookup";
+import { MobileNav } from "./MobileNav";
+import { InstallPrompt } from "./InstallPrompt";
+import { UpdateBanner } from "./UpdateBanner";
+import { OfflineBanner } from "./OfflineBanner";
 import type { QuantityClarification as Clarification } from "@keto-mentor/shared";
 
 type User = { id: string; username: string; locale: Lang; profile?: any };
@@ -346,6 +350,10 @@ export function App() {
         </div>
       </header>
 
+      <OfflineBanner lang={lang}/>
+      <UpdateBanner lang={lang}/>
+      <InstallPrompt lang={lang}/>
+
       <section id="top" className={`hero-shell ${user ? "is-authenticated" : ""}`}>
         <div className="hero-copy">
           <div className="eyebrow"><Sparkles size={13}/> NorbApp · Keto Mentor</div>
@@ -383,7 +391,7 @@ export function App() {
       </section>
 
       {user && profile?.onboardingDone && (
-        <section className="dashboard-shell">
+        <section id="today" className="dashboard-shell">
           <div className="dashboard-main">
             <div className="macro-grid" aria-label={lang === "hu" ? "Napi makrók" : lang === "de" ? "Tägliche Makros" : "Daily macros"}>
               <Macro label="kcal" value={totals.kcal} goal={goals.dailyKcal}/>
@@ -429,7 +437,7 @@ export function App() {
               )}
             </div>
           </div>
-          <form onSubmit={addMeal} className="card meal-entry-card space-y-3">
+          <form id="log-meal" onSubmit={addMeal} className="card meal-entry-card space-y-3">
             <h2 className="section-heading"><Plus size={20}/>{t.addMeal}</h2>
             <div className="natural-input">
               <label htmlFor="natural-meal-input">{lang === "hu" ? "Mondd el, mit ettél" : lang === "de" ? "Beschreibe, was du gegessen hast" : "Describe what you ate"}</label>
@@ -455,7 +463,12 @@ export function App() {
           </form>
         </section>
       )}
-      {user && profile?.onboardingDone && <RecipeBuilder lang={lang} state={state} currentUserId={user.id} onMealAdded={handleMealLogged}/>}
+      {user && profile?.onboardingDone && (
+        <section id="recipes">
+          <RecipeBuilder lang={lang} state={state} currentUserId={user.id} onMealAdded={handleMealLogged}/>
+        </section>
+      )}
+      {user && profile?.onboardingDone && <MobileNav lang={lang}/>}
       <footer className="app-footer">
         <div className="footer-inner">
           <a className="brand-link" href="https://norbapp.com" target="_blank" rel="noreferrer" aria-label="NorbApp weboldal megnyitasa">
