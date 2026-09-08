@@ -119,7 +119,23 @@ describe("AI fallback import UI", () => {
   it.each([
     ["recipe_ai_unavailable", "Automatic extraction is currently unavailable"],
     ["recipe_ai_timeout", "Automatic extraction took too long"],
-    ["recipe_ai_invalid_output", "Automatic extraction didn't produce a usable result"]
+    ["recipe_ai_invalid_output", "Automatic extraction didn't produce a usable result"],
+    // Owner-beta finding I: every safe internal failure category maps to
+    // its own specific, non-generic, localized message — not a one-size
+    // "the recipe preview could not be created" catch-all.
+    ["recipe_page_not_found", "couldn't find a processable recipe"],
+    ["recipe_ingredients_missing", "No ingredients were found"],
+    ["malformed_json_ld", "recipe data is broken or incomplete"],
+    ["too_many_ingredients", "too many ingredients to import"],
+    ["recipe_content_too_large", "too long to import"],
+    ["invalid_url", "link you entered isn't valid"],
+    ["dns_failure", "recipe page is unreachable"],
+    ["fetch_failed", "recipe page is unreachable"],
+    ["blocked_url", "can't be imported for security reasons"],
+    ["fetch_timeout", "didn't respond in time"],
+    ["redirect_limit", "too many redirects"],
+    ["response_too_large", "too large or unsupported"],
+    ["unsupported_content_type", "too large or unsupported"]
   ])("shows a localized error for %s", async (code, expectedText) => {
     vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
@@ -131,6 +147,20 @@ describe("AI fallback import UI", () => {
     fireEvent.change(screen.getByLabelText("Public recipe URL"), { target: { value: "https://example.com/r" } });
     fireEvent.click(screen.getByRole("button", { name: "Preview" }));
     expect(await screen.findByText(new RegExp(expectedText))).toBeTruthy();
+  });
+
+  it("does not show the misleading 'this recipe no longer exists' (saved-recipe) message for an import-page failure (owner-beta regression: recipe_not_found/recipe_page_not_found collision)", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("/recipes?")) return new Response(JSON.stringify({ recipes: [] }), { status: 200 });
+      if (url.endsWith("/recipes/import-url/preview")) return new Response(JSON.stringify({ error: "recipe_page_not_found" }), { status: 422 });
+      throw new Error(`Unexpected request ${url}`);
+    }));
+    renderBuilder(); fireEvent.click(screen.getByRole("button", { name: /New recipe/i }));
+    fireEvent.change(screen.getByLabelText("Public recipe URL"), { target: { value: "https://example.com/r" } });
+    fireEvent.click(screen.getByRole("button", { name: "Preview" }));
+    expect(await screen.findByText(/couldn't find a processable recipe/)).toBeTruthy();
+    expect(screen.queryByText(/no longer exists/i)).toBeNull();
   });
 
   it.each(["hu", "de", "en"] as const)("renders the AI extraction notice localized: %s", async (lang) => {

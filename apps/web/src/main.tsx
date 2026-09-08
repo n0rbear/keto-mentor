@@ -394,10 +394,13 @@ export function App() {
         <section id="today" className="dashboard-shell">
           <div className="dashboard-main">
             <div className="macro-grid" aria-label={lang === "hu" ? "Napi makrók" : lang === "de" ? "Tägliche Makros" : "Daily macros"}>
-              <Macro label="kcal" value={totals.kcal} goal={goals.dailyKcal}/>
-              <Macro label="fat" value={totals.fat} goal={goals.dailyFat}/>
-              <Macro label="protein" value={totals.protein} goal={goals.dailyProtein}/>
+              {/* Net carbs leads — on mobile the grid scrolls horizontally,
+                  so the keto-critical metric must be the first tile in DOM
+                  order, not something requiring horizontal discovery. */}
               <Macro label="net carbs" value={totals.netCarbs} goal={goals.dailyNetCarbs} emphasis warnOverLimit/>
+              <Macro label="kcal" value={totals.kcal} goal={goals.dailyKcal}/>
+              <Macro label="protein" value={totals.protein} goal={goals.dailyProtein}/>
+              <Macro label="fat" value={totals.fat} goal={goals.dailyFat}/>
               <Macro label="fiber" value={totals.fiber} goal={goals.dailyFiber}/>
               <MealCountTile label={t.diary.mealsLabel} value={meals.length}/>
             </div>
@@ -450,7 +453,10 @@ export function App() {
             <FoodCombobox lang={lang} state={state} selected={selectedFood} onSelect={(food) => { setSelectedFood(food); setMealMeasure("g"); setGramsOverride(""); }} labels={t.foodSearch} resetVersion={foodResetVersion}/>
             <div className="grid grid-cols-[1fr_120px] gap-3">
               <label htmlFor="meal-quantity">{t.quantity}<input id="meal-quantity" className="field" name="quantity" value={mealQuantity} onChange={(event) => setMealQuantity(event.target.value)} type="number" min="0.1" max="5000" step="0.1" required/></label>
-              <label htmlFor="meal-unit">{t.unit}<select id="meal-unit" className="field" value={mealMeasure} onChange={(event) => { setMealMeasure(event.target.value); setGramsOverride(""); }}><option value="g">g</option><option value="kg">kg</option>{selectedFood?.servings?.map((serving) => <option key={serving.id} value={`serving:${serving.id}`}>{serving.labels?.[lang] ?? serving.unit}</option>)}</select></label>
+              <label htmlFor="meal-unit">{t.unit}<select id="meal-unit" className="field" value={mealMeasure} onChange={(event) => { setMealMeasure(event.target.value); setGramsOverride(""); }}>
+                <optgroup label={t.unitGroupPhysical}><option value="g">g</option><option value="kg">kg</option></optgroup>
+                {!!selectedFood?.servings?.length && <optgroup label={t.unitGroupServings}>{selectedFood.servings.map((serving) => <option key={serving.id} value={`serving:${serving.id}`}>{serving.labels?.[lang] ?? serving.unit}</option>)}</optgroup>}
+              </select></label>
             </div>
             {mealMeasure.startsWith("serving:") && (() => {
               const serving = selectedFood?.servings?.find((candidate) => candidate.id === mealMeasure.slice(8));

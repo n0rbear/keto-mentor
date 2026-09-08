@@ -16,18 +16,24 @@ function newRefreshSecret(): string {
 /** Thrown inside a rotation transaction when the old session cannot be consumed. */
 class SessionConsumeError extends Error {}
 
+/**
+ * Takes the already-authenticated user (login/register already have the
+ * full row in hand — that's the whole point of having just looked it up or
+ * created it) rather than a bare userId, so this never re-fetches a user
+ * its caller already has. That redundant read used to sit sequentially
+ * after session.create() on every login/register, adding a full DB
+ * round-trip to the critical "tap Login -> usable screen" path for no
+ * reason: nothing here needs the session to exist before looking the user
+ * up, and the caller already paid for that lookup.
+ */
 export async function createSession(
   prisma: SessionClient,
-  userId: string
+  user: { id: string; username: string; locale: string }
 ): Promise<{ session: Session; refreshToken: string; accessToken: string }> {
   const secret = newRefreshSecret();
   const refreshHash = hashRefreshSecret(secret);
   const session = await prisma.session.create({
-    data: { userId, refreshHash, expiresAt: new Date(Date.now() + SESSION_TTL_MS) }
-  });
-  const user = await prisma.user.findUniqueOrThrow({
-    where: { id: userId },
-    select: { id: true, username: true, locale: true }
+    data: { userId: user.id, refreshHash, expiresAt: new Date(Date.now() + SESSION_TTL_MS) }
   });
   return {
     session,
@@ -66,6 +72,14 @@ export async function rotateSession(
   const nextSecret = newRefreshSecret();
   const nextHash = hashRefreshSecret(nextSecret);
 
+  // session.userId is already known before the transaction even starts, so
+  // the user lookup needed for the new access token can run concurrently
+  // with the consume-and-create transaction instead of waiting for it.
+  const userPromise = prisma.user.findUniqueOrThrow({
+    where: { id: session.userId },
+    select: { id: true, username: true, locale: true }
+  });
+
   let successorId: string | null = null;
   try {
     successorId = await prisma.$transaction(async (tx) => {
@@ -85,10 +99,7 @@ export async function rotateSession(
   }
   if (!successorId) return { ok: false };
 
-  const user = await prisma.user.findUniqueOrThrow({
-    where: { id: session.userId },
-    select: { id: true, username: true, locale: true }
-  });
+  const user = await userPromise;
   return {
     ok: true,
     accessToken: signAccessToken(user),

@@ -40,17 +40,28 @@ export type FoodUnderstandingLabels = {
   verified: string;
   estimated: string;
   logAll: string;
+  preparationValues: Record<string, string>;
 };
 
 function itemName(item: PreviewItem, lang: Lang) {
   return item.selectedFood?.names?.[lang] ?? item.selectedFood?.name ?? item.semanticItem?.canonicalName ?? item.parsed.foodQuery;
 }
 
+// The interpretation pipeline's preparation value is a small closed set of
+// internal English concept keys (see PREPARATION_CONCEPTS in
+// natural-food-query.ts) — display-only, never persisted or sent back to
+// the API. Falls back to the raw key for a value the label map doesn't
+// (yet) cover, rather than silently rendering nothing.
+function preparationLabel(preparation: string | undefined, labels: FoodUnderstandingLabels) {
+  if (!preparation) return preparation;
+  return labels.preparationValues[preparation] ?? preparation;
+}
+
 function PreviewRow({ item, lang, labels }: { item: PreviewItem; lang: Lang; labels: FoodUnderstandingLabels }) {
   const quantity = item.parsed.quantity != null ? `${item.parsed.quantity} ${item.parsed.unit ?? ""}`.trim() : null;
   return <li className="understanding-item">
     <div><strong>{quantity ? `${quantity} ${itemName(item, lang)}` : itemName(item, lang)}</strong></div>
-    {item.preparation && <small>{labels.preparation}: {item.preparation}</small>}
+    {item.preparation && <small>{labels.preparation}: {preparationLabel(item.preparation, labels)}</small>}
     {!!item.semanticItem?.modifiers?.length && <small>{labels.modifiers}: {item.semanticItem.modifiers.join(", ")}</small>}
     {!!item.semanticItem?.excludedModifiers?.length && <small>{labels.excluded}: {item.semanticItem.excludedModifiers.join(", ")}</small>}
     {item.semanticItem?.evidence === "inferred_common" && <small className="inferred-label">{labels.inferred}</small>}
@@ -79,7 +90,7 @@ export function FoodUnderstandingPreview({ value, lang, labels, busy, onConfirmA
     </ul>}
     {singleReady && <div>
       <strong>{itemName(value, lang)}</strong>
-      {value.preparation && <em> · {value.preparation}</em>}
+      {value.preparation && <em> · {preparationLabel(value.preparation, labels)}</em>}
       <span> · {value.parsed.quantity != null ? `${value.parsed.quantity} ${value.parsed.unit ?? ""} · ` : ""}{value.quantity?.estimated ? "≈" : "="} {Math.round((value.quantity?.grams ?? 0) * 10) / 10} g · {value.quantity?.estimated ? labels.estimated : labels.verified}</span>
     </div>}
     {!value.items?.length && !singleReady && value.interpretationSource !== "ai_assisted" && <span>

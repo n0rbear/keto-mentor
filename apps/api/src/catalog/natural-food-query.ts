@@ -1,6 +1,6 @@
 import { normalizeSearch } from "./normalize.js";
 
-export type NaturalQuantityUnit = "g" | "kg" | "piece" | "slice" | "portion" | "plate" | "bowl" | "ladle" | "tbsp" | "tsp" | "cup" | "handful" | "quarter" | "unknown" | "cm" | "bite" | "splash" | "half";
+export type NaturalQuantityUnit = "g" | "kg" | "ml" | "l" | "piece" | "slice" | "portion" | "plate" | "bowl" | "ladle" | "tbsp" | "tsp" | "cup" | "handful" | "quarter" | "unknown" | "cm" | "bite" | "splash" | "half";
 
 export type ParsedNaturalFoodQuery = {
   quantity?: number;
@@ -15,9 +15,15 @@ const UNITS = new Map<string, NaturalQuantityUnit>([
   ["tanyer", "plate"], ["plate", "plate"], ["plates", "plate"], ["teller", "plate"],
   ["tal", "bowl"], ["bowl", "bowl"], ["bowls", "bowl"], ["schussel", "bowl"],
   ["merokanal", "ladle"], ["ladle", "ladle"], ["ladles", "ladle"], ["kelle", "ladle"], ["kellen", "ladle"],
-  ["csesze", "cup"], ["cup", "cup"], ["cups", "cup"], ["tasse", "cup"],
+  ["csesze", "cup"], ["cup", "cup"], ["cups", "cup"], ["tasse", "cup"], ["pohar", "cup"], ["glass", "cup"], ["glas", "cup"],
   ["negyed", "quarter"], ["quarter", "quarter"], ["viertel", "quarter"], ["halbes", "half"],
   ["g", "g"], ["gramm", "g"], ["gram", "g"], ["kg", "kg"], ["kilogramm", "kg"],
+  // ml/l are volume, not mass — deliberately NOT added to resolveQuantity's
+  // g/kg exact-mass fast path. They go through the same trusted-serving ->
+  // AI-estimate -> manual-grams chain as "piece"/"cup"/etc., since a
+  // universal 1 ml = 1 g assumption would be wrong for most real foods.
+  ["ml", "ml"], ["milliliter", "ml"], ["milliliterek", "ml"], ["millilitre", "ml"],
+  ["l", "l"], ["liter", "l"], ["liters", "l"], ["litre", "l"], ["litres", "l"],
   ["db", "piece"], ["darab", "piece"], ["piece", "piece"], ["pieces", "piece"], ["stuk", "piece"], ["stuck", "piece"], ["stucke", "piece"],
   ["whole", "piece"], ["egesz", "piece"], ["ganz", "piece"], ["ganze", "piece"], ["ganzen", "piece"],
   ["szelet", "slice"], ["slice", "slice"], ["slices", "slice"], ["scheibe", "slice"], ["scheiben", "slice"], ["adag", "portion"], ["portion", "portion"],
@@ -59,6 +65,7 @@ const PREPARATION_CONCEPTS: Record<string, string> = {
   rakott: "baked",
   bundas: "breaded",
   pörkölt: "roasted",
+  langolt: "grilled",
   scrambled: "scrambled",
   fried: "fried",
   boiled: "boiled",
@@ -88,7 +95,23 @@ const CASE_SUFFIXES = [
 
 const CONJUNCTIONS = new Set(["es", "and", "und", "meg"]);
 
-const FOOD_FORMS: Record<string, string> = { tojast: "tojas", goudat: "gouda", spinat: "spinat" };
+// Real comma/period-separated recipe style like "onion, chopped" describes
+// HOW the same ingredient was prepared, not a second food. A segment made
+// up entirely of these (plus/instead of a PREPARATION_CONCEPTS word) is
+// swallowed into the previous segment instead of becoming a spurious
+// standalone "food" search for the descriptor word itself.
+const DESCRIPTOR_WORDS = new Set([
+  "chopped", "diced", "sliced", "minced", "grated", "crushed", "peeled", "cubed", "shredded",
+  "melted", "softened", "drained", "rinsed", "julienned",
+  "gehackt", "gewuerfelt", "geschnitten", "gerieben", "geschaelt", "zerkleinert",
+  "apritott", "kockazott", "szeletelt", "reszelt", "hamozott"
+]);
+
+// spenot ("spenót", spinach): the root itself ends in "-ot", which collides
+// with the two-letter accusative case suffix below — without this it would
+// be wrongly stripped down to "spen". Mapped to itself, like spinat, to
+// bypass stripCaseSuffix entirely rather than special-casing the stripper.
+const FOOD_FORMS: Record<string, string> = { tojast: "tojas", goudat: "gouda", spinat: "spinat", spenot: "spenot" };
 
 const SPEECH_VERBS = new Set(["ettem", "belole", "ate", "gegessen"]);
 
@@ -187,24 +210,60 @@ function parseSegment(normalized: string): ParsedNaturalFoodQuery {
   return result;
 }
 
+// Ordinary list/sentence item boundary — a comma, period or semicolon that
+// SURVIVED the decimal-protection step above, so it can't be a decimal
+// separator (those were already rewritten to "…decimal…" before this runs).
+const LIST_SEPARATOR = /[,.;]+/;
+
+function isDescriptorOnlySegment(normalizedSegment: string): boolean {
+  const tokens = normalizedSegment.split(" ").filter(Boolean);
+  return tokens.length > 0 && tokens.every((token) => DESCRIPTOR_WORDS.has(token) || !!PREPARATION_CONCEPTS[token]);
+}
+
+// Splits one already-normalized segment on every conjunction it contains
+// ("es"/"and"/"und"/"meg"), not just the first — "sonka és feta és sajt"
+// becomes three parts, not two.
+function splitOnConjunctions(normalizedSegment: string): string[] {
+  const tokens = normalizedSegment.split(" ").filter(Boolean);
+  const conjIndex = tokens.findIndex((t) => CONJUNCTIONS.has(t));
+  if (conjIndex < 0) return [normalizedSegment];
+  const left = tokens.slice(0, conjIndex).join(" ");
+  const right = tokens.slice(conjIndex + 1).join(" ");
+  return [left, ...splitOnConjunctions(right)].filter((part) => part.trim().length > 0);
+}
+
 export function parseNaturalFoodQuery(raw: string): ParsedNaturalFoodQuery {
-  const numericSafe = raw
+  // "200g" / "2db" -> "200 g" / "2 db": a quantity glued directly to its
+  // unit must still tokenize as quantity + unit, not one unmatched word.
+  // Applied before decimal protection so a glued unit after a decimal
+  // ("1,5kg") still splits correctly without disturbing the "1,5" itself.
+  const spaced = raw.replace(/(\d)([a-zA-Z])/g, "$1 $2");
+  const numericSafe = spaced
     .replace(/½/g, " 0decimal5 ")
     .replace(/¼/g, " 0decimal25 ")
     .replace(/¾/g, " 0decimal75 ")
     .replace(/(\d)[.,](\d)/g, "$1decimal$2");
-  const normalized = normalizeSearch(numericSafe).replace(/\s+/g, " ").trim();
-  if (!normalized) return { foodQuery: "" };
 
-  const tokens = normalized.split(" ");
-  const conjIndex = tokens.findIndex((t) => CONJUNCTIONS.has(t));
-  if (conjIndex >= 0) {
-    const left = tokens.slice(0, conjIndex).join(" ");
-    const right = tokens.slice(conjIndex + 1).join(" ");
-    const items = [parseSegment(left), parseSegment(right)].filter((p) => p.foodQuery);
-    if (items.length === 0) return { foodQuery: normalized };
-    return { ...items[0], items };
+  // Split into ordinary list/sentence items on the punctuation still left
+  // after decimal protection — "200 g saláta, 2 főtt tojás" or "saláta.
+  // Tojás." are genuine item boundaries. A trailing descriptor-only segment
+  // ("chopped", "sülve") is reattached to the previous item's text instead
+  // of becoming a spurious standalone food.
+  const rawListSegments = numericSafe.split(LIST_SEPARATOR).map((segment) => segment.trim()).filter(Boolean);
+  const rawSegments: string[] = [];
+  for (const segment of rawListSegments) {
+    const preview = normalizeSearch(segment);
+    if (rawSegments.length && isDescriptorOnlySegment(preview)) rawSegments[rawSegments.length - 1] += ` ${segment}`;
+    else rawSegments.push(segment);
   }
 
-  return parseSegment(normalized);
+  const normalizedSegments = rawSegments.map((segment) => normalizeSearch(segment).replace(/\s+/g, " ").trim()).filter(Boolean);
+  if (!normalizedSegments.length) return { foodQuery: "" };
+
+  const subSegments = normalizedSegments.flatMap((segment) => splitOnConjunctions(segment));
+  const items = subSegments.map((segment) => parseSegment(segment)).filter((p) => p.foodQuery);
+
+  if (items.length === 0) return { foodQuery: normalizedSegments.join(" ") };
+  if (items.length === 1) return items[0];
+  return { ...items[0], items };
 }

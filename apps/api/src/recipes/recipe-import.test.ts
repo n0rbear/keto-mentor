@@ -26,7 +26,7 @@ describe("schema.org Recipe extraction", () => {
   });
   it("rejects malformed JSON-LD, missing Recipe, missing ingredients and excess ingredients", () => {
     expect(() => extractRecipeJsonLd(wrap("{"), "https://e.test")).toThrowError(expect.objectContaining({ publicCode: "malformed_json_ld" }));
-    expect(() => extractRecipeJsonLd(wrap({ "@type": "WebPage" }), "https://e.test")).toThrowError(expect.objectContaining({ publicCode: "recipe_not_found" }));
+    expect(() => extractRecipeJsonLd(wrap({ "@type": "WebPage" }), "https://e.test")).toThrowError(expect.objectContaining({ publicCode: "recipe_page_not_found" }));
     expect(() => extractRecipeJsonLd(wrap({ ...base, recipeIngredient: [] }), "https://e.test")).toThrowError(expect.objectContaining({ publicCode: "recipe_ingredients_missing" }));
     expect(() => extractRecipeJsonLd(wrap({ ...base, recipeIngredient: Array(51).fill("1 g egg") }), "https://e.test")).toThrowError(expect.objectContaining({ publicCode: "too_many_ingredients" }));
   });
@@ -35,7 +35,7 @@ describe("schema.org Recipe extraction", () => {
   it("bounds pathological JSON-LD nesting", () => {
     let nested: unknown = base;
     for (let index = 0; index < 100; index++) nested = [nested];
-    expect(() => extractRecipeJsonLd(wrap(nested), "https://e.test")).toThrowError(expect.objectContaining({ publicCode: "recipe_not_found" }));
+    expect(() => extractRecipeJsonLd(wrap(nested), "https://e.test")).toThrowError(expect.objectContaining({ publicCode: "recipe_page_not_found" }));
   });
 });
 
@@ -91,14 +91,14 @@ function fakeAiProvider(behavior: (pageText: string) => Promise<RecipeExtraction
 const withBody = (jsonLdHtml: string, bodyHtml: string) => jsonLdHtml.replace("</html>", `<body>${bodyHtml}</body></html>`);
 const validAiExtraction: RecipeExtraction = { title: "AI Spinach Bowl", servings: 2, ingredients: ["200 g spinach", "2 eggs"], instructions: ["Cook spinach", "Fry eggs"] };
 const sampleBody = "<h1>Spinach Bowl</h1><p>A quick spinach bowl.</p><ul><li>200 g spinach</li><li>2 eggs</li></ul><ol><li>Cook spinach</li><li>Fry eggs</li></ol>";
-const noStructurePage = withBody(wrap({ "@type": "WebPage" }), sampleBody); // triggers recipe_not_found from extractRecipeJsonLd
+const noStructurePage = withBody(wrap({ "@type": "WebPage" }), sampleBody); // triggers recipe_page_not_found from extractRecipeJsonLd
 const malformedPage = withBody(wrap("{"), sampleBody); // triggers malformed_json_ld
 const noIngredientsPage = withBody(wrap({ ...base, recipeIngredient: [] }), sampleBody); // triggers recipe_ingredients_missing
 const tooManyIngredientsPage = wrap({ ...base, recipeIngredient: Array(51).fill("1 g egg") }); // resource limit, not fallback-eligible
 
 describe("AI fallback eligibility", () => {
   it.each([
-    ["recipe_not_found", noStructurePage],
+    ["recipe_page_not_found", noStructurePage],
     ["malformed_json_ld", malformedPage],
     ["recipe_ingredients_missing", noIngredientsPage]
   ])("falls back to AI when structured extraction fails with %s", async (_code, page) => {

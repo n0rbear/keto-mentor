@@ -37,6 +37,7 @@ export const dict = {
     foodName: "Étel",
     quantity: "Mennyiség",
     unit: "Egység",
+    unitGroupPhysical: "Mértékegység", unitGroupServings: "Ehhez az ételhez",
     serving: "adag",
     savingMeal: "Mentés...",
     mealSaved: "Az étkezés elmentve, a napi összesítés frissült.",
@@ -47,7 +48,11 @@ export const dict = {
       inferred: "Szokásos összetevő – megerősítés szükséges", trusted: "Megbízható ételadathoz kapcsolva",
       unresolved: "A tápérték még nincs megbízható ételadathoz kapcsolva", needsDetail: "Pontosítás szükséges.",
       conversionMissing: "Az étel megvan, de ehhez a mértékhez nincs hiteles grammsúly. Add meg kézzel a grammot.",
-      review: "Ellenőrizd és válaszd ki a megfelelő ételt.", verified: "ellenőrzött", estimated: "becsült", logAll: "Összes naplózása"
+      review: "Ellenőrizd és válaszd ki a megfelelő ételt.", verified: "ellenőrzött", estimated: "becsült", logAll: "Összes naplózása",
+      preparationValues: {
+        scrambled: "rántotta", fried: "sült", boiled: "főtt", roasted: "sült/pirított", steamed: "párolt",
+        smoked: "füstölt", raw: "nyers", baked: "sütőben sült", breaded: "rántott", grilled: "grillezett"
+      }
     },
     mealErrors: { selectFood: "Válassz ételt a találati listából.", network_error: "Az API nem érhető el. Ellenőrizd a kapcsolatot; ezt CORS vagy hálózati hiba is okozhatja.", validation_error: "Ellenőrizd az étkezés nevét és a mennyiséget.", food_not_found: "A kiválasztott étel már nem található. Keress rá újra.", unauthorized: "A munkamenet lejárt. Jelentkezz be újra.", server: "A szerver nem tudta elmenteni az étkezést. Próbáld meg később.", unknown: "Az étkezést nem sikerült elmenteni.", meal_not_found: "Ez az étkezés már nem található.", meal_item_not_found: "Ez a tétel már nem található ebben az étkezésben.", meal_items_empty: "Egy étkezésben legalább egy tételnek maradnia kell — inkább töröld az egész étkezést.", future_eaten_at: "Az időpont nem lehet a jövőben.", meal_repeat_invalid_source: "Ez az étkezés sérült, nem ismételhető meg." },
     recipes: {
@@ -84,7 +89,21 @@ export const dict = {
       unknown: "Váratlan hiba történt.",
       recipe_ai_unavailable: "Az automatikus felismerés jelenleg nem érhető el. Add meg a receptet kézzel.",
       recipe_ai_timeout: "Az automatikus felismerés túl sokáig tartott. Add meg a receptet kézzel, vagy próbáld újra.",
-      recipe_ai_invalid_output: "Az automatikus felismerés nem hozott használható eredményt. Add meg a receptet kézzel."
+      recipe_ai_invalid_output: "Az automatikus felismerés nem hozott használható eredményt. Add meg a receptet kézzel.",
+      recipe_page_not_found: "Nem találtunk feldolgozható receptet ezen az oldalon.",
+      recipe_ingredients_missing: "Nem találtunk hozzávalókat ezen az oldalon.",
+      malformed_json_ld: "Az oldal recept-adatai hibásak vagy hiányosak.",
+      too_many_ingredients: "Ez a recept túl sok hozzávalót tartalmaz az importáláshoz.",
+      recipe_content_too_large: "A recept szövege túl hosszú az importáláshoz.",
+      invalid_url: "A megadott link érvénytelen.",
+      dns_failure: "A receptoldal nem érhető el.",
+      fetch_failed: "A receptoldal nem érhető el.",
+      blocked_url: "Ez a cím biztonsági okból nem importálható.",
+      fetch_timeout: "A receptoldal nem válaszolt időben. Próbáld meg később.",
+      redirect_limit: "Az oldal túl sok átirányítást használ.",
+      response_too_large: "Az oldal túl nagy vagy nem támogatott.",
+      unsupported_content_type: "Az oldal túl nagy vagy nem támogatott.",
+      import_failed: "A recept előnézete nem készíthető el."
     },
     barcode: {
       toggleLabel: "Vonalkód / EAN keresés", inputLabel: "Vonalkód (EAN/UPC)", placeholder: "pl. 4008400404127",
@@ -171,6 +190,7 @@ export const dict = {
     foodName: "Lebensmittel",
     quantity: "Menge",
     unit: "Einheit",
+    unitGroupPhysical: "Maßeinheit", unitGroupServings: "Für dieses Lebensmittel",
     serving: "Portion",
     savingMeal: "Speichern...",
     mealSaved: "Mahlzeit gespeichert und Tageswerte aktualisiert.",
@@ -181,7 +201,11 @@ export const dict = {
       inferred: "Übliche Zutat – Bestätigung erforderlich", trusted: "Mit verlässlichen Lebensmitteldaten verknüpft",
       unresolved: "Nährwerte noch nicht mit verlässlichen Lebensmitteldaten verknüpft", needsDetail: "Präzisierung erforderlich.",
       conversionMissing: "Lebensmittel gefunden, aber kein verlässliches Grammgewicht. Bitte Gramm eingeben.",
-      review: "Bitte das richtige Lebensmittel auswählen.", verified: "geprüft", estimated: "geschätzt", logAll: "Alle eintragen"
+      review: "Bitte das richtige Lebensmittel auswählen.", verified: "geprüft", estimated: "geschätzt", logAll: "Alle eintragen",
+      preparationValues: {
+        scrambled: "Rührei", fried: "gebraten", boiled: "gekocht", roasted: "geröstet", steamed: "gedünstet",
+        smoked: "geräuchert", raw: "roh", baked: "gebacken", breaded: "paniert", grilled: "gegrillt"
+      }
     },
     mealErrors: { selectFood: "Bitte ein Lebensmittel aus der Trefferliste wählen.", network_error: "Die API ist nicht erreichbar. Netzwerk oder CORS prüfen.", validation_error: "Name und Menge der Mahlzeit prüfen.", food_not_found: "Das gewählte Lebensmittel ist nicht mehr verfügbar.", unauthorized: "Die Sitzung ist abgelaufen. Bitte neu anmelden.", server: "Die Mahlzeit konnte serverseitig nicht gespeichert werden.", unknown: "Die Mahlzeit konnte nicht gespeichert werden.", meal_not_found: "Diese Mahlzeit gibt es nicht mehr.", meal_item_not_found: "Diese Zutat gibt es in dieser Mahlzeit nicht mehr.", meal_items_empty: "Eine Mahlzeit braucht mindestens eine Zutat — lösche stattdessen die ganze Mahlzeit.", future_eaten_at: "Die Uhrzeit darf nicht in der Zukunft liegen.", meal_repeat_invalid_source: "Diese Mahlzeit ist beschädigt und kann nicht wiederholt werden." },
     recipes: {
@@ -218,7 +242,21 @@ export const dict = {
       unknown: "Ein unerwarteter Fehler ist aufgetreten.",
       recipe_ai_unavailable: "Die automatische Erkennung ist derzeit nicht verfügbar. Bitte das Rezept manuell eingeben.",
       recipe_ai_timeout: "Die automatische Erkennung hat zu lange gedauert. Bitte das Rezept manuell eingeben oder erneut versuchen.",
-      recipe_ai_invalid_output: "Die automatische Erkennung lieferte kein brauchbares Ergebnis. Bitte das Rezept manuell eingeben."
+      recipe_ai_invalid_output: "Die automatische Erkennung lieferte kein brauchbares Ergebnis. Bitte das Rezept manuell eingeben.",
+      recipe_page_not_found: "Auf dieser Seite wurde kein verarbeitbares Rezept gefunden.",
+      recipe_ingredients_missing: "Auf dieser Seite wurden keine Zutaten gefunden.",
+      malformed_json_ld: "Die Rezeptdaten dieser Seite sind fehlerhaft oder unvollständig.",
+      too_many_ingredients: "Dieses Rezept enthält zu viele Zutaten für den Import.",
+      recipe_content_too_large: "Der Rezepttext ist für den Import zu lang.",
+      invalid_url: "Der angegebene Link ist ungültig.",
+      dns_failure: "Die Rezeptseite ist nicht erreichbar.",
+      fetch_failed: "Die Rezeptseite ist nicht erreichbar.",
+      blocked_url: "Diese Adresse kann aus Sicherheitsgründen nicht importiert werden.",
+      fetch_timeout: "Die Rezeptseite hat nicht rechtzeitig geantwortet. Bitte später erneut versuchen.",
+      redirect_limit: "Die Seite verwendet zu viele Weiterleitungen.",
+      response_too_large: "Die Seite ist zu groß oder wird nicht unterstützt.",
+      unsupported_content_type: "Die Seite ist zu groß oder wird nicht unterstützt.",
+      import_failed: "Die Rezeptvorschau konnte nicht erstellt werden."
     },
     barcode: {
       toggleLabel: "Barcode-/EAN-Suche", inputLabel: "Barcode (EAN/UPC)", placeholder: "z. B. 4008400404127",
@@ -305,6 +343,7 @@ export const dict = {
     foodName: "Food",
     quantity: "Quantity",
     unit: "Unit",
+    unitGroupPhysical: "Measurement", unitGroupServings: "For this food",
     serving: "serving",
     savingMeal: "Saving...",
     mealSaved: "Meal saved and daily totals updated.",
@@ -315,7 +354,11 @@ export const dict = {
       inferred: "Common ingredient – confirmation required", trusted: "Linked to trusted food data",
       unresolved: "Nutrition is not yet linked to trusted food data", needsDetail: "Clarification needed.",
       conversionMissing: "Food found, but no reliable gram conversion exists. Enter grams manually.",
-      review: "Review and choose the correct food.", verified: "verified", estimated: "estimated", logAll: "Log all"
+      review: "Review and choose the correct food.", verified: "verified", estimated: "estimated", logAll: "Log all",
+      preparationValues: {
+        scrambled: "scrambled", fried: "fried", boiled: "boiled", roasted: "roasted", steamed: "steamed",
+        smoked: "smoked", raw: "raw", baked: "baked", breaded: "breaded", grilled: "grilled"
+      }
     },
     mealErrors: { selectFood: "Choose a food from the results.", network_error: "The API is unreachable. Check the network or CORS configuration.", validation_error: "Check the meal name and quantity.", food_not_found: "The selected food is no longer available. Search again.", unauthorized: "Your session expired. Log in again.", server: "The server could not save the meal. Try again later.", unknown: "The meal could not be saved.", meal_not_found: "This meal no longer exists.", meal_item_not_found: "This item no longer exists in this meal.", meal_items_empty: "A meal needs at least one item — delete the whole meal instead.", future_eaten_at: "The time can't be in the future.", meal_repeat_invalid_source: "This meal is corrupted and can't be repeated." },
     recipes: {
@@ -352,7 +395,21 @@ export const dict = {
       unknown: "An unexpected error occurred.",
       recipe_ai_unavailable: "Automatic extraction is currently unavailable. Enter the recipe manually.",
       recipe_ai_timeout: "Automatic extraction took too long. Enter the recipe manually, or try again.",
-      recipe_ai_invalid_output: "Automatic extraction didn't produce a usable result. Enter the recipe manually."
+      recipe_ai_invalid_output: "Automatic extraction didn't produce a usable result. Enter the recipe manually.",
+      recipe_page_not_found: "We couldn't find a processable recipe on this page.",
+      recipe_ingredients_missing: "No ingredients were found on this page.",
+      malformed_json_ld: "This page's recipe data is broken or incomplete.",
+      too_many_ingredients: "This recipe has too many ingredients to import.",
+      recipe_content_too_large: "The recipe text is too long to import.",
+      invalid_url: "The link you entered isn't valid.",
+      dns_failure: "The recipe page is unreachable.",
+      fetch_failed: "The recipe page is unreachable.",
+      blocked_url: "That address can't be imported for security reasons.",
+      fetch_timeout: "The recipe page didn't respond in time. Try again later.",
+      redirect_limit: "The page uses too many redirects.",
+      response_too_large: "The page is too large or unsupported.",
+      unsupported_content_type: "The page is too large or unsupported.",
+      import_failed: "The recipe preview could not be created."
     },
     barcode: {
       toggleLabel: "Barcode / EAN lookup", inputLabel: "Barcode (EAN/UPC)", placeholder: "e.g. 4008400404127",

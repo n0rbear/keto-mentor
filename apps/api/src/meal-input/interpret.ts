@@ -5,10 +5,22 @@ import { searchFoods } from "../catalog/food-search.js";
 import { DisabledQuantityEstimationProvider, type EstimateMethod, type QuantityEstimationProvider, validateQuantityEstimate } from "./quantity-estimation.js";
 import { normalizeSearch } from "../catalog/normalize.js";
 import { StubAiProvider, type AiProvider, understandFood } from "../ai/provider.js";
+import { AiProviderError } from "../ai/chat-completions-provider.js";
 
 type SearchablePrisma = Pick<PrismaClient, "food" | "foodAlias"> & Partial<Pick<PrismaClient, "$queryRaw">>;
 type Serving = { id: string; key: string; unit: string; labels: unknown; grams: number; isEstimated: boolean; confidence: number; provenance: unknown };
 type ResolvedFood = { id: string; source: string; sourceId: string | null; name: string; originalName?: string; searchText?: string; names?: Record<string, string>; servings?: Serving[]; match?: { stage: string; score: number } };
+
+/**
+ * Why an AI quantity estimate did or didn't happen, kept distinct from the
+ * public-facing `reason` so tests/diagnostics can tell "no provider is
+ * configured" apart from "the provider timed out" apart from "the provider
+ * returned something invalid" apart from "the provider genuinely doesn't
+ * think this quantity is estimable" — all of which the UI still treats the
+ * same simple way (fall back to manual grams), per the product's own design,
+ * but which must never be silently indistinguishable internally.
+ */
+export type AiQuantityOutcome = "not_configured" | "declined" | "timeout" | "invalid_output" | "estimated";
 
 export type QuantityResolution = {
   status: "resolved" | "unresolved";
@@ -22,6 +34,7 @@ export type QuantityResolution = {
   provenance?: unknown;
   rangeGrams?: { min: number; max: number };
   reason?: "quantity_missing" | "conversion_missing";
+  aiOutcome?: AiQuantityOutcome;
 };
 
 export type FoodResolutionStatus = "resolved" | "preview" | "confirmation_required" | "unresolved" | "multi" | "compound";
@@ -87,7 +100,8 @@ const SERVING_UNIT_ALIASES: Record<string, readonly string[]> = {
   half: ["half", "fel", "fele", "halb", "halbe"],
   handful: ["handful", "marek", "handvoll"], cm: ["cm"], bite: ["bite", "harapas", "bissen"], splash: ["splash", "lottyintes", "schuss"],
   plate: ["plate", "tanyer", "teller"], bowl: ["bowl", "tal", "schussel"], ladle: ["ladle", "merokanal", "kelle"],
-  cup: ["cup", "csesze", "tasse"], quarter: ["quarter", "negyed", "viertel"]
+  cup: ["cup", "csesze", "tasse", "pohar", "glass", "glas"], quarter: ["quarter", "negyed", "viertel"],
+  ml: ["ml", "milliliter", "millilitre"], l: ["l", "liter", "litre", "liters", "litres"]
 };
 
 function servingMatchesUnit(serving: Serving, unit: string) {
@@ -133,17 +147,22 @@ export async function resolveQuantity(
     };
   }
 
+  if (provider.id === "disabled") {
+    return { status: "unresolved", estimated: false, requiresConfirmation: true, reason: "conversion_missing", aiOutcome: "not_configured" };
+  }
   try {
     const estimated = await provider.estimate({ parsed, food });
-    if (!estimated) return { status: "unresolved", estimated: false, requiresConfirmation: true, reason: "conversion_missing" };
+    if (!estimated) return { status: "unresolved", estimated: false, requiresConfirmation: true, reason: "conversion_missing", aiOutcome: "declined" };
     const valid = validateQuantityEstimate(estimated);
     return {
       status: "resolved", grams: parsed.quantity * valid.gramsPerUnit, gramsPerUnit: valid.gramsPerUnit,
       method: valid.method, confidence: valid.confidence, estimated: true, requiresConfirmation: true, provenance: valid.provenance,
-      rangeGrams: valid.rangeGramsPerUnit ? { min: parsed.quantity * valid.rangeGramsPerUnit.min, max: parsed.quantity * valid.rangeGramsPerUnit.max } : undefined
+      rangeGrams: valid.rangeGramsPerUnit ? { min: parsed.quantity * valid.rangeGramsPerUnit.min, max: parsed.quantity * valid.rangeGramsPerUnit.max } : undefined,
+      aiOutcome: "estimated"
     };
-  } catch {
-    return { status: "unresolved", estimated: false, requiresConfirmation: true, reason: "conversion_missing" };
+  } catch (error) {
+    const aiOutcome: AiQuantityOutcome = error instanceof AiProviderError && error.code === "timeout" ? "timeout" : "invalid_output";
+    return { status: "unresolved", estimated: false, requiresConfirmation: true, reason: "conversion_missing", aiOutcome };
   }
 }
 
@@ -177,7 +196,20 @@ async function interpretOne(
 
   const score = top.match?.score ?? 0;
   const stage = top.match?.stage;
+  // Only a preparation the architecture actually tracks as needing a
+  // DISTINCT catalog entry (currently: fried/scrambled/boiled egg, where
+  // cooking method genuinely changes weight/composition) can make
+  // resolution incomplete. Every other preparation concept (grilled,
+  // roasted, steamed, smoked, baked, ...) is descriptive metadata on an
+  // already-correctly-resolved food — e.g. "grilled sausage" is still just
+  // the trusted "sausage" Food, grilled is not a different nutrition
+  // profile requiring its own entry. Conflating "no specialized lookup
+  // exists for this preparation" with "preparation unavailable" was
+  // blocking confirmation for any food modified by a common cooking-method
+  // word outside that narrow egg-specific set (e.g. a perfectly, exactly
+  // matched sausage).
   const hasPrep = !!parsed.preparation;
+  const needsPreparedFormLookup = hasPrep && !!PREP_SEARCH_TOKEN[parsed.preparation!];
   const preparedFound = !!preparedFood;
 
   let ambiguous = false;
@@ -190,7 +222,7 @@ async function interpretOne(
     if (s1 >= 80 && s0 - s1 <= 2) ambiguous = true;
   }
 
-  const prepUnavailable = hasPrep && !preparedFound;
+  const prepUnavailable = needsPreparedFormLookup && !preparedFound;
   let foodResolution: FoodResolutionStatus;
   if (prepUnavailable) foodResolution = "confirmation_required";
   else if (ambiguous) foodResolution = "confirmation_required";
