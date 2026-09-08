@@ -11,7 +11,9 @@ This document is the authoritative product delivery order for Keto Mentor. Techn
 | Phase 3 — Real meal diary | DONE |
 | Phase 4 — Complete recipe experience | DONE |
 | Phase 5 — Packaged food and barcode | DONE |
-| Phase 6 — Android + iOS mobile app | NOT STARTED |
+| Phase 6 — Mobile product | IN PROGRESS |
+| — Phase 6A — Installable PWA + real-user validation | DONE |
+| — Phase 6B — Native Android + iOS | NOT STARTED |
 | Phase 7 — Beta and public release | NOT STARTED |
 
 ## Phase 1 — Understand what the user ate
@@ -48,9 +50,19 @@ Add Open Food Facts, barcode scanning and packaged-product lookup with safe pers
 
 Phase 5 is complete: packaged food, Open Food Facts, barcode validation, local-first lookup, safe external lookup with confirmation, safe persistence, deduplication, provenance, normal Food/meal integration, manual entry, and camera scanning with a manual fallback are all shipped.
 
-## Phase 6 — Android + iOS mobile app
+## Phase 6 — Mobile product
 
-Prefer one shared mobile-client architecture, likely React Native with Expo unless repository analysis demonstrates a materially better choice. The initial client covers authentication, onboarding, dashboard, natural meal input, meal history, recipes and barcode scanning.
+Before investing in a native client, validate the product through real daily use of an installed, mobile-first PWA. Split into two sub-phases so the strategy shift is explicit rather than implied.
+
+### Phase 6A — Installable PWA + real-user validation (done)
+
+Turned the existing `apps/web` into a production-quality, installable, mobile-first PWA — not a second frontend, not a prototype. Delivered: a fixed foundational gap (production had no `<head>`/viewport meta at all, so no prior mobile CSS ever actually activated on a phone), `vite-plugin-pwa` with a manifest and icon set generated from the existing NorbApp brand mark, iOS home-screen metadata and safe-area support, a mobile bottom nav (Today/Log/Recipes) composed over the existing single-page structure, touch-target and iOS-zoom fixes, a non-nagging install affordance, a user-triggered update banner, and an offline-state banner — all with the authenticated API kept strictly network-only (no service-worker caching of auth/meals/recipes/food/barcode).
+
+The owner is expected to install and use this on his own iPhone in daily life before Phase 6B is scoped.
+
+### Phase 6B — Native Android + iOS (not started)
+
+Prefer one shared mobile-client architecture, likely React Native with Expo unless repository analysis demonstrates a materially better choice. The initial client covers authentication, onboarding, dashboard, natural meal input, meal history, recipes and barcode scanning. Begins only after real-world PWA usage has validated the product workflows — not automatically after Phase 6A.
 
 ## Phase 7 — Beta and public release
 
