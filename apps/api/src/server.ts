@@ -233,7 +233,12 @@ app.post("/meal-input/interpret", requireAuth, async (req, res, next) => {
   try {
     const input = mealInterpretationSchema.parse(req.body);
     const requestProvider = rateLimitedFoodNlpProvider(foodNlpProvider, foodNlpLimiter, req.user!.id);
-    const requestQuantityProvider = { id: quantityProvider.id, estimate: (input: Parameters<typeof quantityProvider.estimate>[0]) => quantityProvider.estimate(input, undefined, () => foodNlpLimiter.consume(req.user!.id)) };
+    // A live read of quantityProvider.id, not a value captured once here: when
+    // quantityProvider is a failover wrapper, its id can change between this
+    // line and the eventual estimate() call below (a fallback to the
+    // secondary), so a snapshot taken now would misreport which provider
+    // actually served this request in the quantity_ai diagnostic.
+    const requestQuantityProvider = { get id() { return quantityProvider.id; }, estimate: (input: Parameters<typeof quantityProvider.estimate>[0]) => quantityProvider.estimate(input, undefined, () => foodNlpLimiter.consume(req.user!.id)) };
     // Only reachable on a genuine local catalog miss (see interpretOne) —
     // never adds a request on a local hit. No adapters configured (e.g. no
     // USDA_FDC_API_KEY) means dynamic resolution is simply not offered.
