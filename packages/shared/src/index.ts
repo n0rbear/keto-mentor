@@ -111,6 +111,11 @@ export type QuantityClarification = {
   confidence?: number;
   method?: "estimated" | "ai_estimated";
   allowCustomGrams: boolean;
+  // "volume": a container/hand portion (plate, bowl, handful, ...) reasoned
+  // through a physical volume/density model — worth a short user-facing
+  // explanation of what the estimate is based on. "geometry": a count/size
+  // unit (piece, slice, cm, ...) using the existing direct estimator.
+  basis?: "volume" | "geometry";
 };
 
 export const foodUnderstandingLanguageSchema = z.enum(["hu", "de", "en", "unknown"]);

@@ -21,6 +21,7 @@ export function QuantityClarification({ value, foodName, quantity, unit, lang, o
     <strong>{value.type === "estimate_confirmation" ? `${quantity ?? 1} ${unitNames[lang][unit ?? ""] ?? unit ?? ""} ${foodName} ≈ ${value.suggestedGrams?.toLocaleString(lang)} g` : foodName}</strong>
     {value.type === "estimate_confirmation" ? <>
       <span>{value.method === "ai_estimated" ? labels.aiEstimated : labels.estimated}</span>
+      {value.basis === "volume" && <small className="quantity-basis-note">{labels.basisVolume}</small>}
       {value.rangeGrams && <small>{labels.range}: {value.rangeGrams.min.toLocaleString(lang)}–{value.rangeGrams.max.toLocaleString(lang)} g</small>}
       {value.confidence != null && <small>{labels.confidence}: {Math.round(value.confidence * 100)}%</small>}
     </> : <span>{value.type === "quantity_missing" ? labels.missing : labels.gramsRequired}</span>}

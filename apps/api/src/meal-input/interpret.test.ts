@@ -512,6 +512,101 @@ describe("OpenRouter quantity AI fallback architecture (owner-beta root cause)",
     expect(result.aiOutcome).toBe("estimated");
   });
 
+  it("resolveQuantity: a plate estimate is tagged volume/container and carries the validated physical model", async () => {
+    const provider = new MockQuantityProvider("mock-openrouter", aiEstimate(280, {
+      estimationClass: "volume", estimationMethodClass: "container",
+      volumeModel: { referenceVolumeMl: { min: 250, max: 400 }, fillFraction: { min: 0.5, max: 0.9 }, foodVolumeMl: { min: 125, max: 360 }, bulkDensityGPerMl: { min: 0.2, max: 0.5 }, grams: { min: 196, max: 364 } }
+    }));
+    const parsed = parseNaturalFoodQuery("1 tányér spenót");
+    const result = await resolveQuantity(parsed, spinachFood, provider);
+    expect(result.estimationClass).toBe("volume");
+    expect(result.estimationMethodClass).toBe("container");
+    expect(result.volumeModel).toMatchObject({ bulkDensityGPerMl: { min: 0.2, max: 0.5 } });
+  });
+
+  it("resolveQuantity: '2 tányér spenót' scales grams by quantity while volumeModel stays per-unit", async () => {
+    const provider = new MockQuantityProvider("mock-openrouter", aiEstimate(80, { estimationClass: "volume", volumeModel: { referenceVolumeMl: { min: 250, max: 400 }, fillFraction: { min: 0.5, max: 0.9 }, foodVolumeMl: { min: 125, max: 360 }, bulkDensityGPerMl: { min: 0.2, max: 0.5 }, grams: { min: 50, max: 120 } } }));
+    const parsed = parseNaturalFoodQuery("2 tányér spenót");
+    const result = await resolveQuantity(parsed, spinachFood, provider);
+    expect(result.grams).toBe(160); // 2 x 80 gramsPerUnit
+    expect(result.rangeGrams).toEqual({ min: parsed.quantity! * (80 * 0.7), max: parsed.quantity! * (80 * 1.3) });
+    // The physical model describes ONE plate, not two — it must not be scaled by quantity.
+    expect(result.volumeModel).toMatchObject({ grams: { min: 50, max: 120 } });
+  });
+
+  it.each([
+    ["1 tál spenót", "bowl"],
+    ["1 csésze spenót", "cup"],
+    ["1 merőkanál leves", "ladle"]
+  ] as const)("resolveQuantity: '%s' uses the volume-aware AI path (%s)", async (text, expectedUnit) => {
+    const provider = new MockQuantityProvider("mock-openrouter", aiEstimate(200, { estimationClass: "volume" }));
+    const parsed = parseNaturalFoodQuery(text);
+    expect(parsed.unit).toBe(expectedUnit);
+    const food = expectedUnit === "ladle" ? { id: "catalog-broth", source: "keto_mentor", sourceId: null, name: "Soup" } : spinachFood;
+    const result = await resolveQuantity(parsed, food, provider);
+    expect(provider.calls).toBe(1);
+    expect(result.status).toBe("resolved");
+    expect(result.estimationClass).toBe("volume");
+  });
+
+  it("preparation sensitivity: the provider receives distinct physical context for two different foods/preparations sharing the same vessel — no hardcoded 'plate = X grams'", async () => {
+    const seen: unknown[] = [];
+    const estimate = vi.fn(async ({ parsed, food }: any) => {
+      seen.push({ preparation: parsed.preparation, food: food.name });
+      return aiEstimate(parsed.preparation === "boiled" ? 90 : 60, { estimationClass: "volume" });
+    });
+    const provider = { id: "fixture", estimate };
+    const raw = await resolveQuantity(parseNaturalFoodQuery("1 tányér spenót"), spinachFood, provider);
+    const cookedFood = { id: "catalog-pork-sausage", source: "keto_mentor", sourceId: null, name: "Pork sausage" };
+    const cooked = await resolveQuantity({ ...parseNaturalFoodQuery("1 tányér kolbász"), preparation: "boiled" }, cookedFood, provider);
+    expect(seen).toEqual([
+      { preparation: undefined, food: "Spinach" },
+      { preparation: "boiled", food: "Pork sausage" }
+    ]);
+    // Different foods/preparations must be free to yield different estimates —
+    // proving the architecture doesn't collapse every plate to one constant.
+    expect(raw.grams).not.toBe(cooked.grams);
+  });
+
+  it.each([
+    ["1 kis tányér spenót", "small", undefined, undefined],
+    ["1 nagy tányér spenót", "large", undefined, undefined],
+    ["1 mély tányér spenót", undefined, "deep", undefined],
+    ["1 púpozott tányér spenót", undefined, undefined, "heaped"],
+    ["1 nagy mély tányér spenót", "large", "deep", undefined]
+  ] as const)("modifier '%s' reaches the estimator as parsed size/vesselShape/fill", async (text, size, vesselShape, fill) => {
+    const estimate = vi.fn(async () => aiEstimate(100, { estimationClass: "volume" }));
+    const parsed = parseNaturalFoodQuery(text);
+    expect(parsed.size).toBe(size);
+    expect(parsed.vesselShape).toBe(vesselShape);
+    expect(parsed.fill).toBe(fill);
+    await resolveQuantity(parsed, spinachFood, { id: "fixture", estimate });
+    const receivedParsed = estimate.mock.calls[0][0].parsed;
+    expect(receivedParsed.size).toBe(size);
+    expect(receivedParsed.vesselShape).toBe(vesselShape);
+    expect(receivedParsed.fill).toBe(fill);
+  });
+
+  it("'fél tányér spenót' halves the quantity via the existing quantity multiplier rather than a fill-level hack", () => {
+    const parsed = parseNaturalFoodQuery("fél tányér spenót");
+    expect(parsed.quantity).toBe(0.5);
+    expect(parsed.unit).toBe("plate");
+    expect(parsed.fill).toBeUndefined(); // "fél" stays the existing half-quantity concept, not a fill modifier
+  });
+
+  it("interpretMealInput: a volume-class estimate's clarification carries basis='volume' for the confirmation UI", async () => {
+    const provider = new MockQuantityProvider("mock-openrouter", aiEstimate(80, { estimationClass: "volume" }));
+    const result = await interpretMealInput(prisma, "1 tányér spenót", provider);
+    expect(result.clarification?.type).toBe("estimate_confirmation");
+    expect(result.clarification?.basis).toBe("volume");
+  });
+
+  it("interpretMealInput: a geometry-class estimate's clarification has no volume basis", async () => {
+    const provider = new MockQuantityProvider("mock-openrouter", aiEstimate(30, { estimationClass: "geometry" }));
+    const result = await interpretMealInput(prisma, "10 cm lángolt kolbász", provider);
+    expect(result.clarification?.basis).toBe("geometry");
+  });
+
   it("resolveQuantity: manual grams is the fallback when no AI provider is configured (aiOutcome: not_configured)", async () => {
     const parsed = parseNaturalFoodQuery("1 tányér spenót");
     const result = await resolveQuantity(parsed, spinachFood, new DisabledQuantityEstimationProvider());
@@ -566,7 +661,7 @@ describe("OpenRouter quantity AI fallback architecture (owner-beta root cause)",
     const result = await resolveQuantity(parsed, spinachFood, provider);
     expect(result.status).toBe("resolved");
     expect(Object.keys(result).sort()).toEqual(
-      ["aiOutcome", "confidence", "estimated", "grams", "gramsPerUnit", "method", "provenance", "rangeGrams", "requiresConfirmation", "status"].sort()
+      ["aiOutcome", "confidence", "estimated", "estimationClass", "estimationMethodClass", "grams", "gramsPerUnit", "method", "provenance", "rangeGrams", "requiresConfirmation", "status", "volumeModel"].sort()
     );
     expect((result as any).kcal).toBeUndefined();
     expect((result as any).kcalPer100g).toBeUndefined();

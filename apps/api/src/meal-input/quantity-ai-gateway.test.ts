@@ -6,7 +6,9 @@ import { DisabledQuantityEstimationProvider } from "./quantity-estimation.js";
 import { resolveQuantity } from "./interpret.js";
 
 const food = { id: "peanuts", source: "USDA", sourceId: "172430", name: "Peanuts" };
-const parsed = { quantity: 1, unit: "handful" as const, foodQuery: "peanuts" };
+// "piece" (geometry-class) deliberately — these tests cover generic gateway
+// selection/error/provenance behavior, not the volume-model schema.
+const parsed = { quantity: 1, unit: "piece" as const, foodQuery: "peanuts" };
 
 describe("quantity AI gateway selection", () => {
   it("selects OpenRouter when FOOD_AI_PROVIDER=openrouter and credentials are present", () => {
