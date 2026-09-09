@@ -12,7 +12,7 @@ import { RecipeBuilder } from "./RecipeBuilder";
 import { MealEditDialog, DeleteMealDialog, RepeatMealDialog, type MealDetail } from "./MealActions";
 import { WeekOverviewCard, type WeekOverviewData } from "./WeekOverview";
 import { AuthForm } from "./AuthForm";
-import { FoodUnderstandingPreview } from "./FoodUnderstandingPreview";
+import { FoodUnderstandingPreview, type ExternalCandidate } from "./FoodUnderstandingPreview";
 import { QuantityClarification } from "./QuantityClarification";
 import { BarcodeLookup } from "./BarcodeLookup";
 import { MobileNav } from "./MobileNav";
@@ -43,6 +43,8 @@ type MealInterpretation = {
   semantic?: { language: Lang | "unknown"; kind: "single_food" | "multiple_foods" | "compound_dish"; dishName?: string; clarificationNeeded: boolean; clarificationReason?: string };
   semanticItem?: { canonicalName: string; evidence: "explicit" | "inferred_common"; modifiers?: string[]; excludedModifiers?: string[] };
   nutritionEligible?: boolean;
+  externalCandidates?: ExternalCandidate[];
+  externalCandidatesReason?: "ambiguous" | "possible_duplicate" | "weak_match";
 };
 
 export function App() {
@@ -68,6 +70,7 @@ export function App() {
   const [naturalInput, setNaturalInput] = useState("");
   const [interpretation, setInterpretation] = useState<MealInterpretation | null>(null);
   const [interpreting, setInterpreting] = useState(false);
+  const [confirmingExternalId, setConfirmingExternalId] = useState<string | null>(null);
   const t = dict[lang];
   const state = useMemo(() => ({ token, setToken }), [token]);
 
@@ -252,6 +255,30 @@ export function App() {
       setInterpretation(null);
     } finally {
       setInterpreting(false);
+    }
+  }
+
+  // The browser only ever sends {source, sourceId} — never nutrition — the
+  // exact same confirm-by-refetch endpoint PR #15 already uses for USDA/OFF
+  // barcode candidates. On success, re-run interpretation over the SAME
+  // input text: the food is now locally trusted, so this becomes a normal
+  // local hit (no further external calls) and the usual quantity flow
+  // (trusted serving / volume-aware estimate / manual grams) takes over.
+  async function confirmExternalCandidate(candidate: ExternalCandidate) {
+    if (confirmingExternalId) return;
+    const id = `${candidate.source}:${candidate.sourceId}`;
+    setConfirmingExternalId(id);
+    try {
+      const result = await api<{ status: string }>("/foods/resolve-external/confirm", { method: "POST", body: JSON.stringify({ source: candidate.source, sourceId: candidate.sourceId }) }, state);
+      if (result.status === "confirmed" || result.status === "existing") {
+        await interpretNaturalInput();
+      } else {
+        setMealStatus({ kind: "error", text: t.foodUnderstanding.externalConfirmFailed });
+      }
+    } catch {
+      setMealStatus({ kind: "error", text: t.foodUnderstanding.externalConfirmFailed });
+    } finally {
+      setConfirmingExternalId(null);
     }
   }
 
@@ -467,7 +494,7 @@ export function App() {
               <label htmlFor="natural-meal-input">{lang === "hu" ? "Mondd el, mit ettél" : lang === "de" ? "Beschreibe, was du gegessen hast" : "Describe what you ate"}</label>
               <p className="natural-input-helper">{lang === "hu" ? "Írj természetesen — az ellenőrzött tápértékeket mindig a katalógus adja." : lang === "de" ? "Natürlich formulieren — geprüfte Nährwerte kommen immer aus dem Katalog." : "Use natural language — verified nutrition always comes from the catalog."}</p>
               <div className="natural-input-row"><input id="natural-meal-input" className="field" value={naturalInput} onChange={(event) => { setNaturalInput(event.target.value); setInterpretation(null); setSelectedFood(null); setMealQuantity("1"); setMealMeasure("g"); setGramsOverride(""); }} placeholder={lang === "hu" ? "Például: 5 tojás" : lang === "de" ? "Zum Beispiel: 3 Scheiben Gouda" : "For example: 5 eggs"}/><button type="button" className="btn primary" disabled={interpreting || naturalInput.trim().length < 2} onClick={interpretNaturalInput}>{interpreting ? "…" : lang === "hu" ? "Értelmezés" : lang === "de" ? "Verstehen" : "Interpret"}</button></div>
-              {interpretation && <FoodUnderstandingPreview value={interpretation} lang={lang} labels={t.foodUnderstanding} busy={mealSaving} onConfirmAll={confirmMultiMeal}/>}
+              {interpretation && <FoodUnderstandingPreview value={interpretation} lang={lang} labels={t.foodUnderstanding} busy={mealSaving || interpreting || !!confirmingExternalId} onConfirmAll={confirmMultiMeal} onConfirmExternal={confirmExternalCandidate} confirmingExternalId={confirmingExternalId}/>}
               {interpretation?.clarification && (() => { const row = (interpretation.items ?? [interpretation])[interpretation.clarification!.itemIndex]; return <QuantityClarification key={`${interpretation.input}:${interpretation.clarification.itemIndex}`} value={interpretation.clarification} foodName={row?.selectedFood?.names?.[lang] ?? row?.selectedFood?.name ?? ""} quantity={row?.parsed.quantity} unit={row?.parsed.unit} lang={lang} onResolve={resolveClarification}/>; })()}
             </div>
             <input className="field" name="title" placeholder={t.mealName} required/>
