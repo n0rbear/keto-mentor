@@ -5,7 +5,11 @@ import { FoodNlpUserRateLimiter, rateLimitedFoodNlpProvider } from "../ai/food-n
 import type { QuantityEstimationProvider } from "./quantity-estimation.js";
 
 const food = { id: "peanuts", source: "USDA", sourceId: "172430", name: "Peanuts" };
-const parsed = { quantity: 2, unit: "handful" as const, foodQuery: "peanuts" };
+// "piece" (a geometry-class unit) is used throughout this file deliberately:
+// these tests exercise generic provider/transport behavior (caching, error
+// handling, trusted-serving precedence), not the volume-model schema, which
+// has its own dedicated coverage in chat-quantity-provider.test.ts.
+const parsed = { quantity: 2, unit: "piece" as const, foodQuery: "peanuts" };
 const output = { gramsPerUnit: 30, rangeGramsPerUnit: { min: 25, max: 35 }, confidence: 0.8 };
 function response(value: unknown) { return new Response(JSON.stringify({ choices: [{ message: { content: typeof value === "string" ? value : JSON.stringify(value) } }] })); }
 function provider(fetchImpl: typeof fetch, timeoutMs = 1000) { return new MistralQuantityEstimationProvider({ apiKey: "fixture-secret", model: "fixture-model", fetchImpl, timeoutMs }); }
@@ -19,13 +23,13 @@ describe("quantity estimation boundary", () => {
   });
   it.each(["authoritative", "curated", "estimated"])("prefers existing %s serving", async (method) => {
     const estimate = vi.fn();
-    const result = await resolveQuantity(parsed, { ...food, servings: [{ id: "s", key: "handful", unit: "handful", labels: {}, grams: 28, isEstimated: method === "estimated", confidence: 1, provenance: { method } }] }, { id: "spy", estimate });
+    const result = await resolveQuantity(parsed, { ...food, servings: [{ id: "s", key: "piece", unit: "piece", labels: {}, grams: 28, isEstimated: method === "estimated", confidence: 1, provenance: { method } }] }, { id: "spy", estimate });
     expect(result.grams).toBe(56);
     expect(result.requiresConfirmation).toBe(method === "estimated");
     expect(estimate).not.toHaveBeenCalled();
   });
   it("prioritizes authoritative over higher-confidence curated serving", async () => {
-    const servings = ["curated", "authoritative"].map((method, index) => ({ id: method, key: "handful", unit: "handful", labels: {}, grams: 20 + index, isEstimated: false, confidence: 1 - index * 0.05, provenance: { method } }));
+    const servings = ["curated", "authoritative"].map((method, index) => ({ id: method, key: "piece", unit: "piece", labels: {}, grams: 20 + index, isEstimated: false, confidence: 1 - index * 0.05, provenance: { method } }));
     expect((await resolveQuantity(parsed, { ...food, servings })).servingId).toBe("authoritative");
   });
   it("multiplies per-unit range and always requires confirmation", async () => {

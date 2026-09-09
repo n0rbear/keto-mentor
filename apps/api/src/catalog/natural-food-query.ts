@@ -6,6 +6,8 @@ export type ParsedNaturalFoodQuery = {
   quantity?: number;
   unit?: NaturalQuantityUnit;
   size?: "small" | "medium" | "large";
+  vesselShape?: "deep";
+  fill?: "heaped";
   foodQuery: string;
   preparation?: string;
   items?: ParsedNaturalFoodQuery[];
@@ -47,6 +49,21 @@ const SIZES = new Map<string, NonNullable<ParsedNaturalFoodQuery["size"]>>([
   ["kleine", "small"], ["kleines", "small"], ["grosse", "large"], ["grosses", "large"], ["mittlere", "medium"],
   ["kis", "small"], ["small", "small"], ["klein", "small"], ["kozepes", "medium"], ["medium", "medium"], ["mittel", "medium"],
   ["nagy", "large"], ["large", "large"], ["gross", "large"]
+]);
+
+// Small closed vessel-shape/fill-level modifier vocabulary for volume-aware
+// quantity estimation (a deep bowl or a heaped plate holds meaningfully more
+// than a flat/typically-filled one). Deliberately narrow: only the forms the
+// estimator can actually use are recognized. "félig tele" (half-full) is NOT
+// covered here — "fél"/"felig" already means quantity=0.5 in this parser,
+// and overloading it as a fill-level word would collide with that
+// established, tested meaning, so it's left as a known gap rather than
+// hacked in unsafely.
+const VESSEL_SHAPES = new Map<string, NonNullable<ParsedNaturalFoodQuery["vesselShape"]>>([
+  ["mely", "deep"], ["deep", "deep"], ["tief", "deep"], ["tiefe", "deep"], ["tiefer", "deep"]
+]);
+const FILL_LEVELS = new Map<string, NonNullable<ParsedNaturalFoodQuery["fill"]>>([
+  ["pupozott", "heaped"], ["pupozva", "heaped"], ["heaped", "heaped"], ["gehauft", "heaped"], ["gehauftem", "heaped"]
 ]);
 
 // Preparation is treated as a small CLOSED set of cooking-method CONCEPTS,
@@ -172,11 +189,20 @@ function parseSegment(normalized: string): ParsedNaturalFoodQuery {
 
   const rest = quantityIndex >= 0 ? tokens.filter((_, i) => i !== quantityIndex) : tokens;
 
+  // A run of leading modifier words (size/vessel-shape/fill-level, in any
+  // order, e.g. "nagy mély tányér") is consumed before the unit itself —
+  // same slot the pre-existing size-only scan used, just widened to a small
+  // closed set of additional physical modifiers instead of size alone.
   let size: ParsedNaturalFoodQuery["size"];
+  let vesselShape: ParsedNaturalFoodQuery["vesselShape"];
+  let fill: ParsedNaturalFoodQuery["fill"];
   let restAfterSize = rest;
-  if (rest.length) {
-    const firstSize = SIZES.get(rest[0]);
-    if (firstSize) { size = firstSize; restAfterSize = rest.slice(1); }
+  while (restAfterSize.length) {
+    const token = restAfterSize[0];
+    if (!size && SIZES.has(token)) { size = SIZES.get(token); restAfterSize = restAfterSize.slice(1); continue; }
+    if (!vesselShape && VESSEL_SHAPES.has(token)) { vesselShape = VESSEL_SHAPES.get(token); restAfterSize = restAfterSize.slice(1); continue; }
+    if (!fill && FILL_LEVELS.has(token)) { fill = FILL_LEVELS.get(token); restAfterSize = restAfterSize.slice(1); continue; }
+    break;
   }
 
   let unit: NaturalQuantityUnit = "piece";
@@ -206,6 +232,8 @@ function parseSegment(normalized: string): ParsedNaturalFoodQuery {
   const result: ParsedNaturalFoodQuery = { foodQuery };
   if (quantity != null) { result.quantity = quantity; result.unit = unit; }
   if (size) result.size = size;
+  if (vesselShape) result.vesselShape = vesselShape;
+  if (fill) result.fill = fill;
   if (preparation) result.preparation = preparation;
   return result;
 }

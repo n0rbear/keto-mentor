@@ -2,7 +2,7 @@ import type { PrismaClient } from "@prisma/client";
 import type { FoodUnderstanding, FoodUnderstandingItem, QuantityClarification } from "@keto-mentor/shared";
 import { parseNaturalFoodQuery, type ParsedNaturalFoodQuery } from "../catalog/natural-food-query.js";
 import { searchFoods } from "../catalog/food-search.js";
-import { DisabledQuantityEstimationProvider, type EstimateMethod, type QuantityEstimationProvider, validateQuantityEstimate } from "./quantity-estimation.js";
+import { DisabledQuantityEstimationProvider, type EstimateMethod, type QuantityEstimationClass, type QuantityEstimationMethodClass, type QuantityEstimationProvider, type VolumeQuantityModel, validateQuantityEstimate } from "./quantity-estimation.js";
 import { normalizeSearch } from "../catalog/normalize.js";
 import { StubAiProvider, type AiProvider, understandFood } from "../ai/provider.js";
 import { AiProviderError } from "../ai/chat-completions-provider.js";
@@ -35,6 +35,9 @@ export type QuantityResolution = {
   rangeGrams?: { min: number; max: number };
   reason?: "quantity_missing" | "conversion_missing";
   aiOutcome?: AiQuantityOutcome;
+  estimationClass?: QuantityEstimationClass;
+  estimationMethodClass?: QuantityEstimationMethodClass;
+  volumeModel?: VolumeQuantityModel;
 };
 
 export type FoodResolutionStatus = "resolved" | "preview" | "confirmation_required" | "unresolved" | "multi" | "compound";
@@ -158,12 +161,15 @@ export async function resolveQuantity(
       return { status: "unresolved", estimated: false, requiresConfirmation: true, reason: "conversion_missing", aiOutcome: "declined" };
     }
     const valid = validateQuantityEstimate(estimated);
-    logQuantityAiOutcome("estimated", provider.id);
+    logQuantityAiOutcome("estimated", provider.id, undefined, valid.estimationMethodClass);
     return {
       status: "resolved", grams: parsed.quantity * valid.gramsPerUnit, gramsPerUnit: valid.gramsPerUnit,
       method: valid.method, confidence: valid.confidence, estimated: true, requiresConfirmation: true, provenance: valid.provenance,
       rangeGrams: valid.rangeGramsPerUnit ? { min: parsed.quantity * valid.rangeGramsPerUnit.min, max: parsed.quantity * valid.rangeGramsPerUnit.max } : undefined,
-      aiOutcome: "estimated"
+      aiOutcome: "estimated", estimationClass: valid.estimationClass, estimationMethodClass: valid.estimationMethodClass,
+      // Describes ONE unit's physical composition (one plate's worth), so it
+      // is never scaled by the user's quantity the way grams/rangeGrams are.
+      volumeModel: valid.volumeModel
     };
   } catch (error) {
     const aiOutcome: AiQuantityOutcome = error instanceof AiProviderError && error.code === "timeout" ? "timeout" : "invalid_output";
@@ -180,8 +186,8 @@ export async function resolveQuantity(
  * failure mode (e.g. free-tier truncation vs. genuine timeout) is visible in
  * Render logs without exposing anything private.
  */
-function logQuantityAiOutcome(outcome: AiQuantityOutcome, providerId: string, providerErrorCode?: string) {
-  console.log(`quantity_ai outcome=${outcome} provider=${providerId}${providerErrorCode ? ` providerError=${providerErrorCode}` : ""}`);
+function logQuantityAiOutcome(outcome: AiQuantityOutcome, providerId: string, providerErrorCode?: string, methodClass?: string) {
+  console.log(`quantity_ai outcome=${outcome} provider=${providerId}${methodClass ? ` class=${methodClass}` : ""}${providerErrorCode ? ` providerError=${providerErrorCode}` : ""}`);
 }
 
 function servingPriority(serving: Serving) {
@@ -445,7 +451,8 @@ export function firstQuantityClarification(result: InterpretResult): QuantityCla
     if (!quantity || quantity.reason === "quantity_missing") return { type: "quantity_missing", itemIndex, allowCustomGrams: true };
     if (quantity.status === "resolved" && quantity.requiresConfirmation) return {
       type: "estimate_confirmation", itemIndex, allowCustomGrams: true, suggestedGrams: quantity.grams,
-      rangeGrams: quantity.rangeGrams, confidence: quantity.confidence, method: quantity.method === "ai_estimated" ? "ai_estimated" : "estimated"
+      rangeGrams: quantity.rangeGrams, confidence: quantity.confidence, method: quantity.method === "ai_estimated" ? "ai_estimated" : "estimated",
+      basis: quantity.estimationClass
     };
     return { type: "grams_required", itemIndex, allowCustomGrams: true };
   }
