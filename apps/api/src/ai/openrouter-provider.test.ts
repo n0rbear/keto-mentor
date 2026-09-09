@@ -52,14 +52,14 @@ describe("OpenRouter food-NLP provider", () => {
       .rejects.toMatchObject({ code: "invalid_response" });
   });
 
-  it("returns a sanitized error for a 5xx upstream failure without exposing the body", async () => {
+  it("returns a sanitized error for a 5xx upstream failure without exposing the body, but keeps the plain status code for diagnostics", async () => {
     const request = vi.fn(async () => new Response("upstream secret detail", { status: 503 }));
-    await expect(provider(request as typeof fetch).run("food_nlp", { text: "meal input" })).rejects.toEqual(new AiProviderError("http_error"));
+    await expect(provider(request as typeof fetch).run("food_nlp", { text: "meal input" })).rejects.toEqual(new AiProviderError("http_error", 503));
   });
 
-  it("returns a sanitized error for a 429 rate limit without exposing the body", async () => {
+  it("returns a sanitized error for a 429 rate limit without exposing the body, but keeps the plain status code for diagnostics", async () => {
     const request = vi.fn(async () => new Response(JSON.stringify({ error: { message: "rate limited", code: 429 } }), { status: 429 }));
-    await expect(provider(request as typeof fetch).run("food_nlp", { text: "meal input" })).rejects.toEqual(new AiProviderError("http_error"));
+    await expect(provider(request as typeof fetch).run("food_nlp", { text: "meal input" })).rejects.toEqual(new AiProviderError("http_error", 429));
   });
 
   it("rejects malformed JSON safely", async () => {

@@ -21,6 +21,15 @@ describe("natural food query parser", () => {
     // stated quantity/unit was lost), producing an implausible ~1g "geometry"
     // estimate for what should have been a ~20-30g volume-aware handful.
     ["1 marok mandula", { quantity: 1, unit: "handful", foodQuery: "mandula" }],
+    // Owner real-iPhone report (2026-09-09): "2 tányér marhahúsleves" — the
+    // parser itself already correctly extracts unit "plate" and preserves
+    // the whole compound food word; the reported failure traced to food
+    // resolution and AI-provider availability downstream, not parsing (see
+    // dynamic-food-resolution-integration.test.ts for that coverage).
+    ["2 tányér marhahúsleves", { quantity: 2, unit: "plate", foodQuery: "marhahusleves" }],
+    ["1 tál marhahúsleves", { quantity: 1, unit: "bowl", foodQuery: "marhahusleves" }],
+    ["1 pohár tej", { quantity: 1, unit: "cup", foodQuery: "tej" }],
+    ["1 csésze tej", { quantity: 1, unit: "cup", foodQuery: "tej" }],
     ["egy kis darab sajt", { quantity: 1, unit: "piece", size: "small", foodQuery: "sajt" }],
     ["egy löttyintés tejszín a kávéba", { quantity: 1, unit: "splash", foodQuery: "tejszin" }],
     ["két harapás uborka", { quantity: 2, unit: "bite", foodQuery: "uborka" }],

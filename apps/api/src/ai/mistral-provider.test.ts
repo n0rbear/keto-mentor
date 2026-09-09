@@ -85,9 +85,9 @@ describe("Mistral food-NLP provider", () => {
     expect(request).toHaveBeenCalledOnce();
   });
 
-  it("returns a clear HTTP error without retrying or exposing the body", async () => {
+  it("returns a clear HTTP error without retrying or exposing the body, but keeps the plain status code for diagnostics", async () => {
     const request = vi.fn(async () => new Response("upstream secret detail", { status: 503 }));
-    await expect(provider(request as typeof fetch).run("food_nlp", { text: "meal input" })).rejects.toEqual(new AiProviderError("http_error"));
+    await expect(provider(request as typeof fetch).run("food_nlp", { text: "meal input" })).rejects.toEqual(new AiProviderError("http_error", 503));
     expect(request).toHaveBeenCalledOnce();
   });
 

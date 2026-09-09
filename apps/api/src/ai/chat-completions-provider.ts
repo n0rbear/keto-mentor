@@ -24,7 +24,15 @@ export type ChatCompletionsOptions = {
 };
 
 export class AiProviderError extends Error {
-  constructor(readonly code: "unsupported_capability" | "timeout" | "http_error" | "response_too_large" | "invalid_response") {
+  // httpStatus is only ever a plain HTTP status number — never response body,
+  // headers, or any other upstream content — so surfacing it in diagnostics
+  // (see quantity_ai logging in interpret.ts) can never leak a secret or user
+  // data. It is what actually distinguishes "provider rate-limited/over
+  // quota" (429) from "provider outage" (5xx) from "our own request was
+  // malformed" (4xx other than 429) — three very different, previously
+  // indistinguishable causes that all collapsed into the same opaque
+  // "http_error" code.
+  constructor(readonly code: "unsupported_capability" | "timeout" | "http_error" | "response_too_large" | "invalid_response", readonly httpStatus?: number) {
     super(code);
     this.name = "AiProviderError";
   }
@@ -125,7 +133,7 @@ export class ChatCompletionsProvider implements AiProvider {
         signal: controller.signal
       });
       const body = await boundedText(response, this.maxResponseBytes);
-      if (!response.ok) throw new AiProviderError("http_error");
+      if (!response.ok) throw new AiProviderError("http_error", response.status);
       try {
         const envelope = chatCompletionEnvelopeSchema.parse(JSON.parse(body));
         const content = envelope.choices[0].message.content;

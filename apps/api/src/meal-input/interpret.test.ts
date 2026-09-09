@@ -51,7 +51,13 @@ const baseFoods: Food[] = [
   { id: "catalog-pork-sausage", name: "Pork sausage", names: { hu: "Kolbász", de: "Wurst", en: "Pork sausage" }, synonyms: { hu: ["kolbász", "kolbasz", "parasztkolbász", "parasztkolbasz"], de: ["wurst", "bratwurst"], en: ["sausage", "pork sausage"] }, kcalPer100g: 309 },
   { id: "catalog-ham", name: "Ham", names: { hu: "Sonka", de: "Schinken", en: "Ham" }, synonyms: { hu: ["sonka"], de: ["schinken"], en: ["ham"] }, kcalPer100g: 145 },
   { id: "catalog-feta", name: "Feta cheese", names: { hu: "Feta", de: "Feta", en: "Feta cheese" }, synonyms: { hu: ["feta"], de: ["feta"], en: ["feta", "feta cheese"] }, kcalPer100g: 264 },
-  { id: "catalog-lettuce", name: "Lettuce", names: { hu: "Saláta", de: "Salat", en: "Lettuce" }, synonyms: { hu: ["saláta", "salata"], de: ["salat"], en: ["lettuce", "salad"] }, kcalPer100g: 15 }
+  { id: "catalog-lettuce", name: "Lettuce", names: { hu: "Saláta", de: "Salat", en: "Lettuce" }, synonyms: { hu: ["saláta", "salata"], de: ["salat"], en: ["lettuce", "salad"] }, kcalPer100g: 15 },
+  // Owner real-iPhone report (2026-09-09): "1 marék mandula" ("1 marok
+  // mandula" — the alternate, equally-valid unaccented Hungarian spelling —
+  // is covered too, see below) fell back to manual grams instead of
+  // volume-aware estimation. Almonds, no trusted FoodServing, matching the
+  // real catalog entry that reproduced it.
+  { id: "catalog-almond", name: "Almonds", names: { hu: "Mandula", de: "Mandeln", en: "Almonds" }, synonyms: { hu: ["mandula"], de: ["mandeln", "mandel"], en: ["almond", "almonds"] }, kcalPer100g: 579 }
 ];
 
 function makePrisma() {
@@ -308,6 +314,54 @@ describe("meal input interpretation", () => {
     expect(result.quantity?.method).toBe(method);
     expect(result.quantity?.requiresConfirmation).toBe(confirmation);
     expect(estimate).toHaveBeenCalledTimes(calls);
+  });
+
+  // Owner real-iPhone report (2026-09-09): "1 marék mandula" reached the
+  // manual-grams fallback ("nincs hiteles grammsúly... add meg kézzel a
+  // grammot") instead of a volume-aware estimate. Root cause traced to a
+  // currently-unavailable AI provider (production logs: providerError=
+  // http_error), NOT a routing bug — interpretMealInput's two-pass design
+  // (see its own comment: "Resolve food semantics before allowing any
+  // external weight estimation") deliberately runs the deterministic pass
+  // with a disabled provider first, then retries quantity resolution with
+  // the REAL provider only once food identity is confirmed. These tests
+  // prove that second, real pass is reached and used correctly — with a
+  // working provider AND with a failing one — for both the accented
+  // "marék" and the unaccented "marok" spelling, so a future regression in
+  // either the routing or the parser synonym is caught immediately.
+  it.each([
+    ["1 marék mandula", "hu"],
+    ["1 marok mandula", "hu"],
+    ["eine Handvoll Mandeln", "de"],
+    ["a handful of almonds", "en"]
+  ] as const)("%s: a handful is volume-class (container/body-relative), not single-item geometry, and gets exactly one real AI call", async (input) => {
+    const estimate = vi.fn(async ({ parsed }: any) => {
+      expect(parsed.unit).toBe("handful"); // never "piece" — see quantity-estimation.ts's VOLUME_UNITS
+      return aiEstimate(28, { estimationClass: "volume", estimationMethodClass: "packing" });
+    });
+    const result = await interpretMealInput(prisma, input, { id: "mock-openrouter", estimate });
+    expect(result.selectedFood?.id).toBe("catalog-almond");
+    expect(result.quantity?.status).toBe("resolved");
+    expect(result.quantity?.grams).toBeCloseTo(28, 6);
+    expect(result.quantity?.estimationClass).toBe("volume");
+    // Distinguishable from an exact/trusted quantity (item 7): estimated
+    // grams must never be silently presented as if they were measured.
+    expect(result.quantity?.estimated).toBe(true);
+    expect(result.quantity?.method).toBe("ai_estimated");
+    expect(result.quantity?.requiresConfirmation).toBe(true);
+    expect(estimate).toHaveBeenCalledTimes(1);
+  });
+
+  it("a handful whose AI provider is unavailable (rate-limited/erroring) fails safely to the manual-grams fallback — never fabricates a gram figure or nutrition", async () => {
+    const provider = new MockQuantityProvider("mock-openrouter", new AiProviderError("http_error", 429));
+    const result = await interpretMealInput(prisma, "1 marék mandula", provider);
+    expect(result.selectedFood?.id).toBe("catalog-almond"); // food identity is unaffected by the quantity failure
+    expect(result.quantity?.status).toBe("unresolved");
+    expect(result.quantity?.reason).toBe("conversion_missing");
+    expect(result.quantity?.aiOutcome).toBe("invalid_output");
+    expect(result.quantity?.grams).toBeUndefined();
+    expect(result.canConfirm).toBe(false);
+    expect(provider.calls).toBe(1); // exactly one attempt, not zero (never silently skipped) and not retried
   });
 
   it("Phase 2 demo keeps unresolved lecsó out of quantity AI", async () => {
