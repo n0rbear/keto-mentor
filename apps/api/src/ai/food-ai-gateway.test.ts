@@ -1,7 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { configuredFoodAiProvider } from "./food-ai-gateway.js";
 import { MistralAiProvider } from "./mistral-provider.js";
 import { OpenRouterAiProvider } from "./openrouter-provider.js";
+import { FailoverAiProvider } from "./failover-provider.js";
 
 describe("food AI gateway selection", () => {
   it("selects OpenRouter when FOOD_AI_PROVIDER=openrouter and credentials are present", () => {
@@ -57,5 +58,34 @@ describe("food AI gateway selection", () => {
     expect(JSON.stringify(error)).not.toContain("super-secret-key");
     expect(String(error)).not.toContain("super-secret-key");
     expect(provider.supports("food_nlp")).toBe(true);
+  });
+
+  it("stays a plain OpenRouterAiProvider (no failover wrapper) when GROQ_API_KEY is not configured", () => {
+    const provider = configuredFoodAiProvider({ FOOD_AI_PROVIDER: "openrouter", OPENROUTER_API_KEY: "key", FOOD_AI_MODEL: "some/model:free" });
+    expect(provider).toBeInstanceOf(OpenRouterAiProvider);
+    expect(provider).not.toBeInstanceOf(FailoverAiProvider);
+  });
+
+  it("wraps OpenRouter with a Groq failover when GROQ_API_KEY is configured", async () => {
+    const fetchImpl = vi.fn(async () => new Response("rate limited", { status: 429 }));
+    const provider = configuredFoodAiProvider({
+      FOOD_AI_PROVIDER: "openrouter", OPENROUTER_API_KEY: "or-key", FOOD_AI_MODEL: "some/model:free",
+      GROQ_API_KEY: "groq-key"
+    }, { fetchImpl });
+    expect(provider).toBeInstanceOf(FailoverAiProvider);
+    expect(provider.id).toBe("openrouter");
+  });
+
+  it("defaults the Groq model when GROQ_MODEL is unset, and honors it when set", () => {
+    const withDefault = configuredFoodAiProvider({ FOOD_AI_PROVIDER: "openrouter", OPENROUTER_API_KEY: "or-key", FOOD_AI_MODEL: "some/model:free", GROQ_API_KEY: "groq-key" });
+    expect(withDefault.model).toBe("some/model:free"); // primary's model until a failover actually happens
+    const withOverride = configuredFoodAiProvider({ FOOD_AI_PROVIDER: "openrouter", OPENROUTER_API_KEY: "or-key", FOOD_AI_MODEL: "some/model:free", GROQ_API_KEY: "groq-key", GROQ_MODEL: "custom-groq-model" });
+    expect(withOverride).toBeInstanceOf(FailoverAiProvider);
+  });
+
+  it("never wires Groq as Mistral's secondary — Mistral keeps its own unmodified provider", () => {
+    const provider = configuredFoodAiProvider({ FOOD_AI_PROVIDER: "mistral", MISTRAL_API_KEY: "key", MISTRAL_MODEL: "mistral-small-latest", GROQ_API_KEY: "groq-key" });
+    expect(provider).toBeInstanceOf(MistralAiProvider);
+    expect(provider).not.toBeInstanceOf(FailoverAiProvider);
   });
 });

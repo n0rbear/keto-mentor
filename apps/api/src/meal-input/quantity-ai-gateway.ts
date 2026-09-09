@@ -1,14 +1,25 @@
 import { resolveFoodAiGatewayConfig, type FoodAiGatewayConfigInput } from "../ai/food-ai-gateway-config.js";
+import { OpenRouterAiProvider } from "../ai/openrouter-provider.js";
+import { GroqAiProvider } from "../ai/groq-provider.js";
+import { FailoverAiProvider, createFailoverObserver } from "../ai/failover-provider.js";
 import { MistralQuantityEstimationProvider } from "./mistral-quantity-provider.js";
 import { OpenRouterQuantityEstimationProvider } from "./openrouter-quantity-provider.js";
+import { ChatQuantityEstimationProvider } from "./chat-quantity-provider.js";
 import { DisabledQuantityEstimationProvider, type QuantityEstimationProvider } from "./quantity-estimation.js";
 
-/** Selects the configured quantity-estimation AI gateway (OpenRouter or direct Mistral). */
+const quantityFailoverObserver = createFailoverObserver("quantity");
+
+/** Selects the configured quantity-estimation AI gateway (OpenRouter, with an automatic Groq failover when GROQ_API_KEY is set, or direct Mistral). */
 export function configuredQuantityAiProvider(config: FoodAiGatewayConfigInput, overrides: { fetchImpl?: typeof fetch } = {}): QuantityEstimationProvider {
   const resolved = resolveFoodAiGatewayConfig(config);
   try {
     if (resolved.kind === "openrouter") {
-      return new OpenRouterQuantityEstimationProvider({ apiKey: resolved.apiKey, model: resolved.model, baseUrl: resolved.baseUrl, appReferer: resolved.appReferer, appTitle: resolved.appTitle, fetchImpl: overrides.fetchImpl });
+      if (!resolved.secondary) {
+        return new OpenRouterQuantityEstimationProvider({ apiKey: resolved.apiKey, model: resolved.model, baseUrl: resolved.baseUrl, appReferer: resolved.appReferer, appTitle: resolved.appTitle, fetchImpl: overrides.fetchImpl });
+      }
+      const primary = new OpenRouterAiProvider({ apiKey: resolved.apiKey, model: resolved.model, baseUrl: resolved.baseUrl, appReferer: resolved.appReferer, appTitle: resolved.appTitle, fetchImpl: overrides.fetchImpl });
+      const secondary = new GroqAiProvider({ apiKey: resolved.secondary.apiKey, model: resolved.secondary.model, baseUrl: resolved.secondary.baseUrl, fetchImpl: overrides.fetchImpl });
+      return new ChatQuantityEstimationProvider(new FailoverAiProvider(primary, secondary, quantityFailoverObserver));
     }
     if (resolved.kind === "mistral") {
       return new MistralQuantityEstimationProvider({ apiKey: resolved.apiKey, model: resolved.model, baseUrl: resolved.baseUrl, fetchImpl: overrides.fetchImpl });

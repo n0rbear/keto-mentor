@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { configuredQuantityAiProvider } from "./quantity-ai-gateway.js";
 import { MistralQuantityEstimationProvider } from "./mistral-quantity-provider.js";
 import { OpenRouterQuantityEstimationProvider } from "./openrouter-quantity-provider.js";
@@ -75,5 +75,60 @@ describe("quantity AI gateway selection", () => {
     const result = await resolveQuantity(parsed, food, provider);
     expect(result.reason).toBe("conversion_missing");
     expect(JSON.stringify(result)).not.toContain("super-secret-key");
+  });
+
+  it("stays a plain OpenRouterQuantityEstimationProvider (no failover) when GROQ_API_KEY is not configured", () => {
+    const provider = configuredQuantityAiProvider({ FOOD_AI_PROVIDER: "openrouter", OPENROUTER_API_KEY: "key", FOOD_AI_MODEL: "some/model:free" });
+    expect(provider).toBeInstanceOf(OpenRouterQuantityEstimationProvider);
+  });
+
+  it("11. quantity estimation fails over to Groq end-to-end through resolveQuantity when OpenRouter 429s", async () => {
+    let openRouterCalls = 0;
+    let groqCalls = 0;
+    const fetchImpl = (async (url: string) => {
+      const targetsGroq = String(url).includes("groq.com");
+      if (targetsGroq) {
+        groqCalls++;
+        return new Response(JSON.stringify({
+          choices: [{ message: { content: JSON.stringify({ gramsPerUnit: 28, rangeGramsPerUnit: { min: 20, max: 35 }, confidence: 0.6 }) } }]
+        }));
+      }
+      openRouterCalls++;
+      return new Response("rate limited", { status: 429 });
+    }) as typeof fetch;
+
+    const provider = configuredQuantityAiProvider(
+      { FOOD_AI_PROVIDER: "openrouter", OPENROUTER_API_KEY: "or-key", FOOD_AI_MODEL: "some/model:free", GROQ_API_KEY: "groq-key" },
+      { fetchImpl }
+    );
+    const result = await resolveQuantity(parsed, food, provider);
+
+    expect(openRouterCalls).toBe(1);
+    expect(groqCalls).toBe(1);
+    expect(result.status).toBe("resolved");
+    expect(result.aiOutcome).toBe("estimated");
+    // Provenance must honestly say Groq served this estimate, not the primary.
+    expect((result as { provenance?: { provider?: string } }).provenance?.provider).toBe("groq");
+  });
+
+  it("Groq cannot smuggle a nutrition/provenance field into a quantity estimate even after a successful failover", async () => {
+    const fetchImpl = (async (url: string) => {
+      if (String(url).includes("groq.com")) {
+        return new Response(JSON.stringify({
+          choices: [{ message: { content: JSON.stringify({ gramsPerUnit: 28, rangeGramsPerUnit: { min: 20, max: 35 }, confidence: 0.6, kcalPer100g: 999 }) } }]
+        }));
+      }
+      return new Response("rate limited", { status: 429 });
+    }) as typeof fetch;
+    const provider = configuredQuantityAiProvider(
+      { FOOD_AI_PROVIDER: "openrouter", OPENROUTER_API_KEY: "or-key", FOOD_AI_MODEL: "some/model:free", GROQ_API_KEY: "groq-key" },
+      { fetchImpl }
+    );
+    const result = await resolveQuantity(parsed, food, provider);
+    // The strict quantityOutputSchema rejects the extra field, so the whole
+    // estimate fails safely — never silently dropping just the bad field and
+    // accepting the rest, which would also accept whatever schema-violating
+    // trust boundary the provider tried to cross.
+    expect(result.reason).toBe("conversion_missing");
   });
 });
