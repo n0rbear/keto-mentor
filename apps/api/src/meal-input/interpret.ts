@@ -6,6 +6,10 @@ import { DisabledQuantityEstimationProvider, type EstimateMethod, type QuantityE
 import { normalizeSearch } from "../catalog/normalize.js";
 import { StubAiProvider, type AiProvider, understandFood } from "../ai/provider.js";
 import { AiProviderError } from "../ai/chat-completions-provider.js";
+import { resolveDynamicFood } from "../catalog/dynamic-food-resolution.js";
+import type { ExternalFoodCandidate, StructuredFoodLookupAdapter } from "../catalog/external-food.js";
+import { DisabledSearchIntentProvider, type SearchIntentProvider } from "../catalog/search-intent.js";
+import type { DynamicFoodResolutionRateLimiter } from "../catalog/dynamic-food-rate-limit.js";
 
 type SearchablePrisma = Pick<PrismaClient, "food" | "foodAlias"> & Partial<Pick<PrismaClient, "$queryRaw">>;
 type Serving = { id: string; key: string; unit: string; labels: unknown; grams: number; isEstimated: boolean; confidence: number; provenance: unknown };
@@ -42,6 +46,24 @@ export type QuantityResolution = {
 
 export type FoodResolutionStatus = "resolved" | "preview" | "confirmation_required" | "unresolved" | "multi" | "compound";
 
+/**
+ * Wired only when a genuine authenticated user + configured gateway/adapters
+ * exist; passing `null` (the default for every existing call site) makes
+ * dynamic external resolution a strict no-op, so no pre-existing test or
+ * caller changes behavior just by this feature existing.
+ */
+export type DynamicResolutionDeps = {
+  // Deliberately its own reference rather than reusing interpretOne's own
+  // narrow search-only `prisma` param: persistence needs nutrient/
+  // foodNutrient/$transaction, which most test fixtures for the local-search
+  // path never implement, and never need to.
+  prisma: Parameters<typeof resolveDynamicFood>[0];
+  searchIntentProvider: SearchIntentProvider;
+  adapters: readonly StructuredFoodLookupAdapter[];
+  rateLimiter: DynamicFoodResolutionRateLimiter;
+  userId: string;
+} | null;
+
 export type InterpretResult = {
   clarification?: QuantityClarification;
   input: string;
@@ -67,6 +89,12 @@ export type InterpretResult = {
   semanticItem?: FoodUnderstandingItem;
   nutritionEligible?: boolean;
   ai?: { provider: string; model?: string; confidence: number };
+  // Present only when a local catalog miss triggered dynamic external
+  // resolution and the result needs the user to pick among a bounded set of
+  // authoritative candidates. The browser may only ever send back
+  // {source, sourceId} to /foods/resolve-external/confirm — never nutrition.
+  externalCandidates?: ExternalFoodCandidate[];
+  externalCandidatesReason?: "ambiguous" | "possible_duplicate" | "weak_match";
 };
 
 const PREP_KEYWORDS: Record<string, readonly string[]> = {
@@ -199,7 +227,8 @@ async function interpretOne(
   prisma: SearchablePrisma,
   input: string,
   parsed: ParsedNaturalFoodQuery,
-  provider: QuantityEstimationProvider
+  provider: QuantityEstimationProvider,
+  dynamic: DynamicResolutionDeps = null
 ): Promise<InterpretResult> {
   const baseCandidates = (await searchFoods(prisma, parsed.foodQuery, 8)) as unknown as ResolvedFood[];
 
@@ -215,6 +244,33 @@ async function interpretOne(
 
   const top = candidates[0] ?? null;
   if (!top) {
+    // A genuine local miss (deterministic search AND the prepared-form
+    // lookup both found nothing) — the one place dynamic external
+    // resolution may run. A local hit never reaches this branch at all, so
+    // it costs zero external calls and zero extra LLM calls by construction.
+    if (dynamic && parsed.foodQuery) {
+      const outcome = await resolveDynamicFood(dynamic.prisma, { foodQuery: parsed.foodQuery, preparation: parsed.preparation }, dynamic);
+      if (outcome.status === "resolved") {
+        const resolvedFood = outcome.food as ResolvedFood;
+        const quantity = await resolveQuantity(parsed, resolvedFood, provider);
+        return {
+          input, parsed, foodResolution: "resolved", selectedFood: resolvedFood, candidates: [resolvedFood], quantity,
+          canConfirm: quantity.status === "resolved" && !quantity.requiresConfirmation,
+          confidence: 1, preparation: parsed.preparation, interpretationSource: "deterministic"
+        };
+      }
+      if (outcome.status === "confirmation_required") {
+        return {
+          input, parsed, foodResolution: "confirmation_required", selectedFood: null, candidates: [], quantity: null,
+          canConfirm: false, confidence: 0, preparation: parsed.preparation, interpretationSource: "deterministic",
+          externalCandidates: outcome.candidates, externalCandidatesReason: outcome.reason
+        };
+      }
+      // "unresolved" (not_found / invalid_external_data / external_unavailable /
+      // rate_limited / no_adapters) — fall through to the same honest
+      // unresolved result a local-only miss would have produced. Never
+      // invent a Food just because every avenue was tried.
+    }
     return { input, parsed, foodResolution: "unresolved", selectedFood: null, candidates: [], quantity: null, canConfirm: false, confidence: 0, preparation: parsed.preparation, interpretationSource: "deterministic" };
   }
 
@@ -277,12 +333,13 @@ async function interpretOne(
 async function interpretDeterministically(
   prisma: SearchablePrisma,
   text: string,
-  provider: QuantityEstimationProvider = new DisabledQuantityEstimationProvider()
+  provider: QuantityEstimationProvider = new DisabledQuantityEstimationProvider(),
+  dynamic: DynamicResolutionDeps = null
 ): Promise<InterpretResult> {
   const parsed = parseNaturalFoodQuery(text);
 
   if (parsed.items && parsed.items.length > 1) {
-    const items = await Promise.all(parsed.items.map((item) => interpretOne(prisma, text, item, provider)));
+    const items = await Promise.all(parsed.items.map((item) => interpretOne(prisma, text, item, provider, dynamic)));
     const allConfirmable = items.every((it) => it.canConfirm);
     const top = items[0];
     return {
@@ -300,12 +357,16 @@ async function interpretDeterministically(
     };
   }
 
-  return interpretOne(prisma, text, parsed, provider);
+  return interpretOne(prisma, text, parsed, provider, dynamic);
 }
 
 function shouldUseAiFallback(result: InterpretResult, aiProvider: AiProvider) {
   if (!aiProvider.supports("food_nlp")) return false;
   if (result.ambiguous) return false;
+  // A pending external-candidate confirmation is already a complete,
+  // meaningful outcome — food-understanding AI reinterpretation must never
+  // silently discard it and start over.
+  if (result.externalCandidates?.length || result.items?.some((item) => item.externalCandidates?.length)) return false;
   if (result.items?.length) {
     return !result.items.every((item) => item.selectedFood && item.confidence >= 0.8 && !item.preparationUnavailable);
   }
@@ -344,7 +405,8 @@ async function interpretAiUnderstanding(
   text: string,
   understanding: FoodUnderstanding,
   quantityProvider: QuantityEstimationProvider,
-  aiProvider: AiProvider
+  aiProvider: AiProvider,
+  dynamic: DynamicResolutionDeps = null
 ): Promise<InterpretResult> {
   const dishNormalized = normalizeSearch(understanding.dishName ?? "");
   const hasDishItem = !!dishNormalized && understanding.items.some((item) => normalizeSearch(item.canonicalName) === dishNormalized);
@@ -362,7 +424,7 @@ async function interpretAiUnderstanding(
       items.push(unresolvedSemanticItem(text, item));
       continue;
     }
-    const resolved = await interpretOne(prisma, item.originalText, semanticParsed(item), quantityProvider);
+    const resolved = await interpretOne(prisma, item.originalText, semanticParsed(item), quantityProvider, dynamic);
     items.push({
       ...resolved,
       interpretationSource: "ai_assisted",
@@ -414,16 +476,17 @@ export async function interpretMealInput(
   prisma: SearchablePrisma,
   text: string,
   quantityProvider: QuantityEstimationProvider = new DisabledQuantityEstimationProvider(),
-  aiProvider: AiProvider = new StubAiProvider()
+  aiProvider: AiProvider = new StubAiProvider(),
+  dynamic: DynamicResolutionDeps = null
 ): Promise<InterpretResult> {
   // Resolve food semantics before allowing any external weight estimation.
   const disabled = new DisabledQuantityEstimationProvider();
-  const deterministic = await interpretDeterministically(prisma, text, disabled);
+  const deterministic = await interpretDeterministically(prisma, text, disabled, dynamic);
   let result = deterministic;
   if (shouldUseAiFallback(deterministic, aiProvider)) {
     try {
       const understanding = await understandFood(aiProvider, { text });
-      result = await interpretAiUnderstanding(prisma, text, understanding, disabled, aiProvider);
+      result = await interpretAiUnderstanding(prisma, text, understanding, disabled, aiProvider, dynamic);
     } catch {
       result = deterministic;
     }

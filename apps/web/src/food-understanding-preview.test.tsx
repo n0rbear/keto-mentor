@@ -141,3 +141,73 @@ describe("food-understanding preview", () => {
     expect(screen.getByText(/2 db/)).toBeTruthy();
   });
 });
+
+describe("dynamic trusted food resolution: external candidate confirmation UI", () => {
+  const porkHockCandidate = { source: "usda_fdc" as const, sourceId: "172152", name: "Pork hock, cooked", originalName: "Pork hock, cooked", category: "Pork Products", confidence: 0.96 };
+  const curedVariant = { source: "usda_fdc" as const, sourceId: "172153", name: "Pork hock, cured", originalName: "Pork hock, cured", category: "Pork Products", confidence: 0.9 };
+
+  it.each(["hu", "de", "en"] as const)("single candidate: shows the 'I found this' heading with name, category and source, never nutrition numbers as the primary distinguisher (%s)", (lang: Lang) => {
+    const value: FoodUnderstandingPreviewValue = {
+      parsed: { foodQuery: "csülök" }, selectedFood: null, quantity: null, canConfirm: false,
+      foodResolution: "confirmation_required", interpretationSource: "deterministic",
+      externalCandidates: [porkHockCandidate]
+    };
+    render(<FoodUnderstandingPreview value={value} lang={lang} labels={dict[lang].foodUnderstanding} busy={false} onConfirmAll={vi.fn()} onConfirmExternal={vi.fn()}/>);
+    expect(screen.getByText(dict[lang].foodUnderstanding.externalSingleHeading)).toBeTruthy();
+    expect(screen.getByText("Pork hock, cooked")).toBeTruthy();
+    expect(screen.getByText(new RegExp(`${dict[lang].foodUnderstanding.externalSource}: USDA FoodData Central`))).toBeTruthy();
+    expect(screen.queryByText(/0\.96/)).toBeNull();
+  });
+
+  it.each(["hu", "de", "en"] as const)("multiple candidates: shows the 'which did you mean' heading with a bounded list (%s)", (lang: Lang) => {
+    const value: FoodUnderstandingPreviewValue = {
+      parsed: { foodQuery: "csülök" }, selectedFood: null, quantity: null, canConfirm: false,
+      foodResolution: "confirmation_required", interpretationSource: "deterministic",
+      externalCandidates: [porkHockCandidate, curedVariant]
+    };
+    render(<FoodUnderstandingPreview value={value} lang={lang} labels={dict[lang].foodUnderstanding} busy={false} onConfirmAll={vi.fn()} onConfirmExternal={vi.fn()}/>);
+    expect(screen.getByText(dict[lang].foodUnderstanding.externalMultipleHeading)).toBeTruthy();
+    expect(screen.getByText("Pork hock, cooked")).toBeTruthy();
+    expect(screen.getByText("Pork hock, cured")).toBeTruthy();
+  });
+
+  it("clicking a candidate calls onConfirmExternal with exactly that candidate's source/sourceId — no nutrition, no extra fields", () => {
+    const onConfirmExternal = vi.fn();
+    const value: FoodUnderstandingPreviewValue = {
+      parsed: { foodQuery: "csülök" }, selectedFood: null, quantity: null, canConfirm: false,
+      foodResolution: "confirmation_required", interpretationSource: "deterministic",
+      externalCandidates: [porkHockCandidate, curedVariant]
+    };
+    render(<FoodUnderstandingPreview value={value} lang="en" labels={dict.en.foodUnderstanding} busy={false} onConfirmAll={vi.fn()} onConfirmExternal={onConfirmExternal}/>);
+    const buttons = screen.getAllByText(dict.en.foodUnderstanding.externalConfirm);
+    buttons[1].click();
+    expect(onConfirmExternal).toHaveBeenCalledWith(curedVariant);
+  });
+
+  it("shows candidates per-item inside a multi-food result and passes the correct item index back on confirm", () => {
+    const onConfirmExternal = vi.fn();
+    const value: FoodUnderstandingPreviewValue = {
+      parsed: { foodQuery: "csülök, 2 db tojás" }, selectedFood: null, quantity: null, canConfirm: false,
+      foodResolution: "multi", interpretationSource: "deterministic",
+      items: [
+        { parsed: { foodQuery: "csülök", quantity: 150, unit: "g" }, selectedFood: null, quantity: null, externalCandidates: [porkHockCandidate] },
+        { parsed: { foodQuery: "tojás", quantity: 2, unit: "piece" }, selectedFood: { name: "Egg" }, quantity: { status: "resolved", grams: 100, estimated: false }, nutritionEligible: true }
+      ]
+    };
+    render(<FoodUnderstandingPreview value={value} lang="en" labels={dict.en.foodUnderstanding} busy={false} onConfirmAll={vi.fn()} onConfirmExternal={onConfirmExternal}/>);
+    expect(screen.getByText(dict.en.foodUnderstanding.externalSingleHeading)).toBeTruthy();
+    screen.getByText(dict.en.foodUnderstanding.externalConfirm).click();
+    expect(onConfirmExternal).toHaveBeenCalledWith(porkHockCandidate, 0);
+  });
+
+  it("disables candidate buttons while a confirmation is in flight", () => {
+    const value: FoodUnderstandingPreviewValue = {
+      parsed: { foodQuery: "csülök" }, selectedFood: null, quantity: null, canConfirm: false,
+      foodResolution: "confirmation_required", interpretationSource: "deterministic",
+      externalCandidates: [porkHockCandidate]
+    };
+    render(<FoodUnderstandingPreview value={value} lang="en" labels={dict.en.foodUnderstanding} busy={true} confirmingExternalId="usda_fdc:172152" onConfirmAll={vi.fn()} onConfirmExternal={vi.fn()}/>);
+    expect(screen.getByText(dict.en.foodUnderstanding.externalConfirming)).toBeTruthy();
+    expect((screen.getByText(dict.en.foodUnderstanding.externalConfirming).closest("button") as HTMLButtonElement).disabled).toBe(true);
+  });
+});

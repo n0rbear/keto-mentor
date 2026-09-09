@@ -32,6 +32,8 @@ import { interpretMealInput } from "./meal-input/interpret.js";
 import { configuredFoodAiProvider } from "./ai/food-ai-gateway.js";
 import { FoodNlpUserRateLimiter, rateLimitedFoodNlpProvider } from "./ai/food-nlp-rate-limit.js";
 import { configuredQuantityAiProvider } from "./meal-input/quantity-ai-gateway.js";
+import { configuredSearchIntentProvider } from "./catalog/search-intent-gateway.js";
+import { DynamicFoodResolutionRateLimiter } from "./catalog/dynamic-food-rate-limit.js";
 
 const logger = createLogger(env.NODE_ENV === "production" ? "info" : "debug");
 const app = express();
@@ -48,6 +50,12 @@ const externalFoodConfirmAdapters = usdaAdapter ? [usdaAdapter, openFoodFactsAda
 const foodNlpProvider = configuredFoodAiProvider(env);
 const foodNlpLimiter = new FoodNlpUserRateLimiter();
 const quantityProvider = configuredQuantityAiProvider(env);
+// Reuses the exact same configured AI gateway credentials as food
+// understanding/quantity estimation — no new secret. Dynamic external
+// resolution itself is gated separately below on usdaAdapter (env.USDA_FDC_API_KEY)
+// so a configured LLM alone can never enable it without a real source adapter.
+const searchIntentProvider = configuredSearchIntentProvider(env);
+const dynamicFoodResolutionLimiter = new DynamicFoodResolutionRateLimiter();
 
 if (env.NODE_ENV === "production") app.set("trust proxy", 1);
 
@@ -212,7 +220,13 @@ app.post("/meal-input/interpret", requireAuth, async (req, res, next) => {
     const input = mealInterpretationSchema.parse(req.body);
     const requestProvider = rateLimitedFoodNlpProvider(foodNlpProvider, foodNlpLimiter, req.user!.id);
     const requestQuantityProvider = { id: quantityProvider.id, estimate: (input: Parameters<typeof quantityProvider.estimate>[0]) => quantityProvider.estimate(input, undefined, () => foodNlpLimiter.consume(req.user!.id)) };
-    res.json(await interpretMealInput(prisma, input.text, requestQuantityProvider, requestProvider));
+    // Only reachable on a genuine local catalog miss (see interpretOne) —
+    // never adds a request on a local hit. No adapters configured (e.g. no
+    // USDA_FDC_API_KEY) means dynamic resolution is simply not offered.
+    const dynamic = externalFoodAdapters.length
+      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id }
+      : null;
+    res.json(await interpretMealInput(prisma, input.text, requestQuantityProvider, requestProvider, dynamic));
   } catch (error) {
     next(error);
   }
