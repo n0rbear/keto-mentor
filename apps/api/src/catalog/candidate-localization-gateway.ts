@@ -1,0 +1,25 @@
+import { resolveFoodAiGatewayConfig, type FoodAiGatewayConfigInput } from "../ai/food-ai-gateway-config.js";
+import { OpenRouterAiProvider } from "../ai/openrouter-provider.js";
+import { MistralAiProvider } from "../ai/mistral-provider.js";
+import { ChatCandidateLocalizationProvider, DisabledCandidateLocalizationProvider, type CandidateLocalizationProvider } from "./candidate-localization.js";
+
+/**
+ * Reuses the exact same configured AI gateway (OpenRouter or direct Mistral)
+ * already used for food understanding, quantity estimation, and search
+ * intent — same env vars, same credentials, no new secret and no new
+ * provider stack.
+ */
+export function configuredCandidateLocalizationProvider(config: FoodAiGatewayConfigInput, overrides: { fetchImpl?: typeof fetch } = {}): CandidateLocalizationProvider {
+  const resolved = resolveFoodAiGatewayConfig(config);
+  try {
+    if (resolved.kind === "openrouter") {
+      return new ChatCandidateLocalizationProvider(new OpenRouterAiProvider({ apiKey: resolved.apiKey, model: resolved.model, baseUrl: resolved.baseUrl, appReferer: resolved.appReferer, appTitle: resolved.appTitle, fetchImpl: overrides.fetchImpl }));
+    }
+    if (resolved.kind === "mistral") {
+      return new ChatCandidateLocalizationProvider(new MistralAiProvider({ apiKey: resolved.apiKey, model: resolved.model, baseUrl: resolved.baseUrl, fetchImpl: overrides.fetchImpl }));
+    }
+  } catch (error) {
+    console.error("candidate_localization_provider_misconfigured:", error instanceof Error ? error.message : error);
+  }
+  return new DisabledCandidateLocalizationProvider();
+}

@@ -14,6 +14,13 @@ export const loginSchema = z.object({
   password: z.string().min(1).max(200)
 });
 
+// A standalone endpoint for changing just the UI language after onboarding —
+// onboardingSchema's `locale` field only ever fires once (it always also
+// marks onboardingDone), so an already-onboarded user switching languages
+// needs a lightweight, dedicated way to persist that without resubmitting
+// their whole profile.
+export const localeUpdateSchema = z.object({ locale: z.enum(locales) }).strict();
+
 export const onboardingSchema = z.object({
   locale: z.enum(locales),
   goal: z.enum(["weight_loss", "maintenance", "energy", "medical_support", "learning"]),
@@ -208,4 +215,5 @@ export type RecipeMealInput = z.infer<typeof recipeMealSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type OnboardingInput = z.infer<typeof onboardingSchema>;
+export type LocaleUpdateInput = z.infer<typeof localeUpdateSchema>;
 export type CreateMealInput = z.infer<typeof createMealSchema>;

@@ -2,9 +2,15 @@ import { useState } from "react";
 import { Trash2, X } from "lucide-react";
 import { api, ApiError, type ApiState } from "./api";
 import { dict, type Lang } from "./i18n";
+import { pickDisplayName, type NamedFood } from "./food-display-name";
 import { type Totals } from "./main";
 
-export type MealItemDetail = { id: string; quantityGrams: number; displayName: string | null; totals: Totals };
+// `displayName` (server-computed: item.displayName ?? item.food?.name ?? item.recipe?.title,
+// see apps/api/src/nutrition.ts serializeMeal) is the correct, locale-neutral
+// name for a recipe- or manually-entered item, but for a Food-backed item it
+// falls back to the food's raw canonical name — not the viewer's language.
+// `food`, when present, lets the UI pick the properly localized name instead.
+export type MealItemDetail = { id: string; quantityGrams: number; displayName: string | null; food?: NamedFood | null; totals: Totals };
 export type MealDetail = { id: string; title: string; eatenAt: string; totals: Totals; items: MealItemDetail[] };
 
 function mealErrorText(error: unknown, labels: Record<string, string>) {
@@ -24,7 +30,7 @@ export function MealEditDialog({ meal, lang, state, onCancel, onSaved }: {
   const t = dict[lang];
   const [title, setTitle] = useState(meal.title);
   const [eatenAtLocal, setEatenAtLocal] = useState(() => toDatetimeLocalValue(meal.eatenAt));
-  const [items, setItems] = useState(() => meal.items.map((item) => ({ id: item.id, displayName: item.displayName ?? "", grams: String(item.quantityGrams), removed: false })));
+  const [items, setItems] = useState(() => meal.items.map((item) => ({ id: item.id, displayName: item.food ? pickDisplayName(item.food, lang) : (item.displayName ?? ""), grams: String(item.quantityGrams), removed: false })));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

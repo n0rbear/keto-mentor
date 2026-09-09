@@ -7,7 +7,7 @@ import helmet from "helmet";
 import jwt from "jsonwebtoken";
 import { pinoHttp } from "pino-http";
 import { z } from "zod";
-import { createMealSchema, editMealSchema, repeatMealSchema, loginSchema, mealInterpretationSchema, onboardingSchema, registerSchema } from "@keto-mentor/shared";
+import { createMealSchema, editMealSchema, repeatMealSchema, loginSchema, localeUpdateSchema, locales, mealInterpretationSchema, onboardingSchema, registerSchema, type Locale } from "@keto-mentor/shared";
 import { env } from "./config.js";
 import { createLogger } from "./logger.js";
 
@@ -33,6 +33,7 @@ import { configuredFoodAiProvider } from "./ai/food-ai-gateway.js";
 import { FoodNlpUserRateLimiter, rateLimitedFoodNlpProvider } from "./ai/food-nlp-rate-limit.js";
 import { configuredQuantityAiProvider } from "./meal-input/quantity-ai-gateway.js";
 import { configuredSearchIntentProvider } from "./catalog/search-intent-gateway.js";
+import { configuredCandidateLocalizationProvider } from "./catalog/candidate-localization-gateway.js";
 import { DynamicFoodResolutionRateLimiter } from "./catalog/dynamic-food-rate-limit.js";
 
 const logger = createLogger(env.NODE_ENV === "production" ? "info" : "debug");
@@ -55,7 +56,20 @@ const quantityProvider = configuredQuantityAiProvider(env);
 // resolution itself is gated separately below on usdaAdapter (env.USDA_FDC_API_KEY)
 // so a configured LLM alone can never enable it without a real source adapter.
 const searchIntentProvider = configuredSearchIntentProvider(env);
+// Same configured AI gateway again — localizes an already-identified
+// candidate's display name into the user's UI language, never decides
+// identity/nutrition. Independent of USDA_FDC_API_KEY: unused when dynamic
+// resolution itself is off, since it is only ever invoked from within that path.
+const candidateLocalizationProvider = configuredCandidateLocalizationProvider(env);
 const dynamicFoodResolutionLimiter = new DynamicFoodResolutionRateLimiter();
+
+// The authenticated user's own persisted locale (from requireAuth's DB read)
+// is the single trusted source of UI language for server-side localization —
+// never a client-supplied header/param. Falls back to "hu" only if the
+// stored value is somehow not one of the three supported locales.
+function trustedLocale(user: { locale: string }): Locale {
+  return (locales as readonly string[]).includes(user.locale) ? (user.locale as Locale) : "hu";
+}
 
 if (env.NODE_ENV === "production") app.set("trust proxy", 1);
 
@@ -189,7 +203,7 @@ app.get("/foods", requireAuth, async (req, res, next) => {
 app.post("/foods/resolve-external", requireAuth, externalFoodLimiter, async (req, res, next) => {
   try {
     const { query } = z.object({ query: z.string().trim().min(2).max(120) }).parse(req.body);
-    res.json(await resolveAuthoritativeFood(prisma, query, externalFoodAdapters));
+    res.json(await resolveAuthoritativeFood(prisma, query, externalFoodAdapters, { locale: trustedLocale(req.user!), provider: candidateLocalizationProvider }));
   } catch (error) {
     next(error);
   }
@@ -198,7 +212,7 @@ app.post("/foods/resolve-external", requireAuth, externalFoodLimiter, async (req
 app.post("/foods/resolve-external/confirm", requireAuth, externalFoodConfirmLimiter, async (req, res, next) => {
   try {
     const input = externalFoodConfirmationSchema.parse(req.body);
-    res.json(await confirmAuthoritativeFood(prisma, input.source, input.sourceId, externalFoodConfirmAdapters));
+    res.json(await confirmAuthoritativeFood(prisma, input.source, input.sourceId, externalFoodConfirmAdapters, { locale: trustedLocale(req.user!), provider: candidateLocalizationProvider }));
   } catch (error) { next(error); }
 });
 
@@ -224,7 +238,7 @@ app.post("/meal-input/interpret", requireAuth, async (req, res, next) => {
     // never adds a request on a local hit. No adapters configured (e.g. no
     // USDA_FDC_API_KEY) means dynamic resolution is simply not offered.
     const dynamic = externalFoodAdapters.length
-      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id }
+      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale: trustedLocale(req.user!), localizationProvider: candidateLocalizationProvider }
       : null;
     res.json(await interpretMealInput(prisma, input.text, requestQuantityProvider, requestProvider, dynamic));
   } catch (error) {
@@ -243,6 +257,23 @@ app.put("/me/onboarding", requireAuth, async (req, res, next) => {
       create: { userId: req.user!.id, ...profileInput, onboardingDone: true }
     });
     res.json({ profile });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Standalone language-switch endpoint for an already-onboarded user (see
+// onboardingSchema above, which always also marks onboarding done and so is
+// the wrong shape for "just change my language"). The persisted User.locale
+// is the single canonical source of the user's UI language — the frontend
+// calls this immediately on every language-selector change so the two never
+// diverge beyond one request round-trip, without duplicating locale state
+// anywhere else (no localStorage copy).
+app.patch("/me/locale", requireAuth, async (req, res, next) => {
+  try {
+    const input = localeUpdateSchema.parse(req.body);
+    await prisma.user.update({ where: { id: req.user!.id }, data: { locale: input.locale } });
+    res.json({ locale: input.locale });
   } catch (error) {
     next(error);
   }

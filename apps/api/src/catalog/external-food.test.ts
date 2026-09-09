@@ -22,6 +22,7 @@ function candidate(overrides: Partial<ExternalFoodCandidate> = {}): ExternalFood
 function fakePrisma(options: { local?: any; sourceDuplicate?: any; nameDuplicate?: any; aliasDuplicate?: any; raceDuplicate?: any } = {}) {
   let created: any = null;
   let uniqueCalls = 0;
+  const updateCalls: any[] = [];
   const prisma: any = {
     foodAlias: {
       findMany: async () => [],
@@ -35,13 +36,20 @@ function fakePrisma(options: { local?: any; sourceDuplicate?: any; nameDuplicate
         if (args.where?.OR?.some((part: any) => part.searchText?.contains)) return options.local ? [options.local] : [];
         return [];
       },
-      create: async ({ data }: any) => (created = { id: "new-food", ...data })
+      create: async ({ data }: any) => (created = { id: "new-food", ...data }),
+      // Only ever used by backfillLocaleName (an existing Food gaining a
+      // display name for a locale it was missing) — never mutates identity.
+      update: async ({ where, data }: any) => {
+        updateCalls.push({ where, data });
+        const base = [options.sourceDuplicate, options.nameDuplicate, options.raceDuplicate].find((food) => food?.id === where.id) ?? { id: where.id };
+        return { ...base, ...data };
+      }
     },
     nutrient: { upsert: async ({ create }: any) => ({ id: `nutrient-${create.key}`, ...create }) },
     foodNutrient: { create: async () => ({}) },
     $transaction: async (fn: any) => fn(prisma)
   };
-  return { prisma, getCreated: () => created };
+  return { prisma, getCreated: () => created, getUpdateCalls: () => updateCalls };
 }
 
 describe("authoritative food resolution", () => {
@@ -160,6 +168,97 @@ describe("authoritative food confirmation", () => {
     const { prisma } = fakePrisma({ raceDuplicate: raced });
     prisma.food.create = async () => { throw { code: "P2002" }; };
     await expect(confirmAuthoritativeFood(prisma, "usda_fdc", "123", [adapter(async () => candidate())])).resolves.toMatchObject({ status: "existing", food: { id: "raced" } });
+  });
+});
+
+describe("locale-aware presentation: authoritative identity is never rewritten, only annotated", () => {
+  const adapter = (lookupById: (sourceId: string) => Promise<unknown>) => ({ source: "usda_fdc" as const, sourceName: "USDA", lookup: async () => [], lookupById });
+  // Echoes back the id it was actually given, matching the real provider's
+  // "id must round-trip" contract — the caller (candidate list localization
+  // uses index-based ids "0","1",...; existing-Food backfill uses the real DB
+  // id) decides what id to send, this fixture must not assume which.
+  const fakeLocalizationProvider = (displayName: string) => ({ id: "fixture", localize: vi.fn(async (items: { id: string }[]) => new Map(items.map((item) => [item.id, displayName]))) });
+
+  it("resolveAuthoritativeFood: localizes the confirmation_required candidate list in one batched call, never touching identity/nutrition", async () => {
+    const { prisma } = fakePrisma();
+    const provider = fakeLocalizationProvider("Pácolt sertéscsülök");
+    const result = await resolveAuthoritativeFood(prisma, "csulok", [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [candidate({ confidence: 0.99, matchPolicy: "review_required" })] }], { locale: "hu", provider });
+    expect(provider.localize).toHaveBeenCalledTimes(1);
+    expect(result).toMatchObject({ status: "confirmation_required" });
+    if (result.status === "confirmation_required") {
+      expect(result.candidates[0].names).toMatchObject({ en: "Raw spinach", hu: "Pácolt sertéscsülök" });
+      expect(result.candidates[0].source).toBe("usda_fdc");
+      expect(result.candidates[0].sourceId).toBe("123");
+      expect(result.candidates[0].kcalPer100g).toBe(23);
+    }
+  });
+
+  it("resolveAuthoritativeFood: persists the auto-resolved Food with the locale's display name already filled in", async () => {
+    const { prisma, getCreated } = fakePrisma();
+    const provider = fakeLocalizationProvider("Nyers spenót");
+    const result = await resolveAuthoritativeFood(prisma, "raw spinach", [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [candidate()] }], { locale: "hu", provider });
+    expect(result.status).toBe("resolved_external");
+    expect(getCreated()?.names).toMatchObject({ en: "Raw spinach", hu: "Nyers spenót" });
+  });
+
+  it("resolveAuthoritativeFood: skips the localization call entirely for English", async () => {
+    const { prisma } = fakePrisma();
+    const provider = fakeLocalizationProvider("unused");
+    await resolveAuthoritativeFood(prisma, "raw spinach", [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [candidate()] }], { locale: "en", provider });
+    expect(provider.localize).not.toHaveBeenCalled();
+  });
+
+  it("resolveAuthoritativeFood: never localizes on a local hit — zero AI calls on the hot path", async () => {
+    const local = { id: "local", name: "Spinach", originalName: "Spinach", names: {}, searchText: "spinach", servings: [] };
+    const { prisma } = fakePrisma({ local });
+    const provider = fakeLocalizationProvider("unused");
+    const result = await resolveAuthoritativeFood(prisma, "spinach", [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [] }], { locale: "hu", provider });
+    expect(result.status).toBe("resolved_local");
+    expect(provider.localize).not.toHaveBeenCalled();
+  });
+
+  it("confirmAuthoritativeFood: persists the confirmed Food with the confirming user's locale name", async () => {
+    const { prisma, getCreated } = fakePrisma();
+    const provider = fakeLocalizationProvider("Pácolt sertéscsülök");
+    const result = await confirmAuthoritativeFood(prisma, "usda_fdc", "123", [adapter(async () => candidate())], { locale: "hu", provider });
+    expect(result.status).toBe("confirmed");
+    expect(getCreated()?.names).toMatchObject({ en: "Raw spinach", hu: "Pácolt sertéscsülök" });
+    // The refetched, server-validated nutrition is what got persisted — never
+    // anything localization-adjacent overriding it.
+    expect(getCreated()?.kcalPer100g).toBe(23);
+  });
+
+  it("confirmAuthoritativeFood: backfills a missing locale name on an already-existing Food (bounded, one call) rather than leaving it English-only forever", async () => {
+    const existing = { id: "existing", source: "usda_fdc", sourceId: "123", name: "Raw spinach", originalName: "Raw spinach", names: { en: "Raw spinach" }, servings: [] };
+    const { prisma, getUpdateCalls } = fakePrisma({ sourceDuplicate: existing });
+    const provider = fakeLocalizationProvider("Nyers spenót");
+    const result = await confirmAuthoritativeFood(prisma, "usda_fdc", "123", [adapter(vi.fn())], { locale: "hu", provider });
+    expect(result.status).toBe("existing");
+    expect(provider.localize).toHaveBeenCalledTimes(1);
+    expect(getUpdateCalls()).toHaveLength(1);
+    if (result.status === "existing") expect(result.food.names).toMatchObject({ en: "Raw spinach", hu: "Nyers spenót" });
+  });
+
+  it("confirmAuthoritativeFood: never re-localizes an existing Food that already has the locale's name — zero calls", async () => {
+    const existing = { id: "existing", source: "usda_fdc", sourceId: "123", name: "Raw spinach", names: { en: "Raw spinach", hu: "Nyers spenót" }, servings: [] };
+    const { prisma, getUpdateCalls } = fakePrisma({ sourceDuplicate: existing });
+    const provider = fakeLocalizationProvider("unused");
+    await confirmAuthoritativeFood(prisma, "usda_fdc", "123", [adapter(vi.fn())], { locale: "hu", provider });
+    expect(provider.localize).not.toHaveBeenCalled();
+    expect(getUpdateCalls()).toHaveLength(0);
+  });
+
+  it("a localization failure never blocks confirmation — the authoritative name is a safe fallback", async () => {
+    const { prisma, getCreated } = fakePrisma();
+    const failingProvider = { id: "fixture", localize: vi.fn(async () => { throw new Error("timeout"); }) };
+    // localize() on the real provider never throws (see candidate-localization.test.ts),
+    // but external-food.ts must not assume that of every possible provider.
+    const safeProvider = { id: "fixture", localize: vi.fn(async () => new Map()) };
+    for (const provider of [failingProvider, safeProvider]) {
+      const result = await confirmAuthoritativeFood(prisma, "usda_fdc", "123", [adapter(async () => candidate())], { locale: "hu", provider }).catch((error) => ({ status: "threw", error }));
+      expect(result.status).not.toBe("threw");
+    }
+    expect(getCreated()?.names).toMatchObject({ en: "Raw spinach" });
   });
 });
 

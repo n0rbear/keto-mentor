@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@prisma/client";
-import type { FoodUnderstanding, FoodUnderstandingItem, QuantityClarification } from "@keto-mentor/shared";
+import type { FoodUnderstanding, FoodUnderstandingItem, Locale, QuantityClarification } from "@keto-mentor/shared";
 import { parseNaturalFoodQuery, type ParsedNaturalFoodQuery } from "../catalog/natural-food-query.js";
 import { searchFoods } from "../catalog/food-search.js";
 import { DisabledQuantityEstimationProvider, type EstimateMethod, type QuantityEstimationClass, type QuantityEstimationMethodClass, type QuantityEstimationProvider, type VolumeQuantityModel, validateQuantityEstimate } from "./quantity-estimation.js";
@@ -9,6 +9,7 @@ import { AiProviderError } from "../ai/chat-completions-provider.js";
 import { resolveDynamicFood } from "../catalog/dynamic-food-resolution.js";
 import type { ExternalFoodCandidate, StructuredFoodLookupAdapter } from "../catalog/external-food.js";
 import { DisabledSearchIntentProvider, type SearchIntentProvider } from "../catalog/search-intent.js";
+import type { CandidateLocalizationProvider } from "../catalog/candidate-localization.js";
 import type { DynamicFoodResolutionRateLimiter } from "../catalog/dynamic-food-rate-limit.js";
 
 type SearchablePrisma = Pick<PrismaClient, "food" | "foodAlias"> & Partial<Pick<PrismaClient, "$queryRaw">>;
@@ -62,6 +63,12 @@ export type DynamicResolutionDeps = {
   adapters: readonly StructuredFoodLookupAdapter[];
   rateLimiter: DynamicFoodResolutionRateLimiter;
   userId: string;
+  // The authenticated user's own persisted locale — see server.ts's /meal-input/interpret
+  // handler. Governs only display-name localization for external candidates,
+  // never search/matching/trust. Defaulted so existing test fixtures that
+  // predate localization keep compiling unchanged.
+  locale?: Locale;
+  localizationProvider?: CandidateLocalizationProvider;
 } | null;
 
 export type InterpretResult = {

@@ -23,6 +23,14 @@ function mockFetchOnce(status: number, body: unknown) {
   } as Response);
 }
 
+describe("AuthForm never native-GETs credentials", () => {
+  it("declares method=\"post\" so a pre-hydration native submission never puts username/password in the URL", () => {
+    const { container } = renderForm();
+    const form = container.querySelector("form");
+    expect(form?.getAttribute("method")).toBe("post");
+  });
+});
+
 describe("AuthForm password validation matches backend schema", () => {
   it("register mode requires a 10+ character password (HTML minLength)", () => {
     renderForm();

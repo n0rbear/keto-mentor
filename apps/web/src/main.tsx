@@ -13,6 +13,7 @@ import { MealEditDialog, DeleteMealDialog, RepeatMealDialog, type MealDetail } f
 import { WeekOverviewCard, type WeekOverviewData } from "./WeekOverview";
 import { AuthForm } from "./AuthForm";
 import { FoodUnderstandingPreview, type ExternalCandidate } from "./FoodUnderstandingPreview";
+import { pickDisplayName } from "./food-display-name";
 import { QuantityClarification } from "./QuantityClarification";
 import { BarcodeLookup } from "./BarcodeLookup";
 import { MobileNav } from "./MobileNav";
@@ -114,6 +115,22 @@ export function App() {
       setWeekAnchor(dateStr);
     });
     await Promise.all([mePromise, dayPromise, weekPromise]);
+  }
+
+  // The persisted User.locale (from /me) is the single source of truth for
+  // an authenticated user's UI language — see PATCH /me/locale. Switching
+  // the selector updates `lang` immediately (optimistic UI, no flash back to
+  // the old language) and, once logged in, persists the change right away so
+  // it never silently reverts on the next reload/login. Before login there is
+  // nothing to persist yet (register already sends the current `lang` as the
+  // new account's locale) — `lang` is deliberately not duplicated into
+  // localStorage; the server row is the only stored copy.
+  function changeLang(next: Lang) {
+    setLang(next);
+    if (user) {
+      setUser((current) => current ? { ...current, locale: next } : current);
+      api("/me/locale", { method: "PATCH", body: JSON.stringify({ locale: next }) }, state).catch(() => {});
+    }
   }
 
   // A meal is always logged against "now", so jump the diary back to today
@@ -368,7 +385,7 @@ export function App() {
             <span className="product-lockup-copy"><small>NorbApp health</small><strong>{t.app}</strong></span>
           </a>
           <div className="header-actions">
-            <select aria-label={lang === "hu" ? "Nyelv" : lang === "de" ? "Sprache" : "Language"} className="field compact" value={lang} onChange={(e) => setLang(e.target.value as Lang)}><option value="hu">HU</option><option value="de">DE</option><option value="en">EN</option></select>
+            <select aria-label={lang === "hu" ? "Nyelv" : lang === "de" ? "Sprache" : "Language"} className="field compact" value={lang} onChange={(e) => changeLang(e.target.value as Lang)}><option value="hu">HU</option><option value="de">DE</option><option value="en">EN</option></select>
 
             {user && (
               <button
@@ -414,7 +431,7 @@ export function App() {
             {showSlowServerNotice && <p className="text-xs text-muted">{t.serverWakingUp}</p>}
           </div>
         ) : !profile?.onboardingDone ? (
-          <form onSubmit={saveOnboarding} className="card onboarding-panel">
+          <form onSubmit={saveOnboarding} method="post" className="card onboarding-panel">
             <div className="auth-intro"><p className="panel-kicker">01 · {lang === "hu" ? "Személyre szabás" : lang === "de" ? "Personalisierung" : "Personal setup"}</p><h2>{t.onboarding}</h2></div>
             <div className="onboarding-groups">
               <section className="setup-group"><span className="setup-group-title">{lang === "hu" ? "Cél" : lang === "de" ? "Ziel" : "Goal"}</span><label htmlFor="goal">{t.goal}<select id="goal" name="goal" className="field"><option value="weight_loss">{t.goals.weight_loss}</option><option value="maintenance">{t.goals.maintenance}</option><option value="energy">{t.goals.energy}</option><option value="medical_support">{t.goals.medical_support}</option><option value="learning">{t.goals.learning}</option></select></label></section>
@@ -488,14 +505,14 @@ export function App() {
               )}
             </div>
           </div>
-          <form id="log-meal" onSubmit={addMeal} className="card meal-entry-card space-y-3">
+          <form id="log-meal" onSubmit={addMeal} method="post" className="card meal-entry-card space-y-3">
             <h2 className="section-heading"><Plus size={20}/>{t.addMeal}</h2>
             <div className="natural-input">
               <label htmlFor="natural-meal-input">{lang === "hu" ? "Mondd el, mit ettél" : lang === "de" ? "Beschreibe, was du gegessen hast" : "Describe what you ate"}</label>
               <p className="natural-input-helper">{lang === "hu" ? "Írj természetesen — az ellenőrzött tápértékeket mindig a katalógus adja." : lang === "de" ? "Natürlich formulieren — geprüfte Nährwerte kommen immer aus dem Katalog." : "Use natural language — verified nutrition always comes from the catalog."}</p>
               <div className="natural-input-row"><input id="natural-meal-input" className="field" value={naturalInput} onChange={(event) => { setNaturalInput(event.target.value); setInterpretation(null); setSelectedFood(null); setMealQuantity("1"); setMealMeasure("g"); setGramsOverride(""); }} placeholder={lang === "hu" ? "Például: 5 tojás" : lang === "de" ? "Zum Beispiel: 3 Scheiben Gouda" : "For example: 5 eggs"}/><button type="button" className="btn primary" disabled={interpreting || naturalInput.trim().length < 2} onClick={interpretNaturalInput}>{interpreting ? "…" : lang === "hu" ? "Értelmezés" : lang === "de" ? "Verstehen" : "Interpret"}</button></div>
               {interpretation && <FoodUnderstandingPreview value={interpretation} lang={lang} labels={t.foodUnderstanding} busy={mealSaving || interpreting || !!confirmingExternalId} onConfirmAll={confirmMultiMeal} onConfirmExternal={confirmExternalCandidate} confirmingExternalId={confirmingExternalId}/>}
-              {interpretation?.clarification && (() => { const row = (interpretation.items ?? [interpretation])[interpretation.clarification!.itemIndex]; return <QuantityClarification key={`${interpretation.input}:${interpretation.clarification.itemIndex}`} value={interpretation.clarification} foodName={row?.selectedFood?.names?.[lang] ?? row?.selectedFood?.name ?? ""} quantity={row?.parsed.quantity} unit={row?.parsed.unit} lang={lang} onResolve={resolveClarification}/>; })()}
+              {interpretation?.clarification && (() => { const row = (interpretation.items ?? [interpretation])[interpretation.clarification!.itemIndex]; return <QuantityClarification key={`${interpretation.input}:${interpretation.clarification.itemIndex}`} value={interpretation.clarification} foodName={pickDisplayName(row?.selectedFood, lang)} quantity={row?.parsed.quantity} unit={row?.parsed.unit} lang={lang} onResolve={resolveClarification}/>; })()}
             </div>
             <input className="field" name="title" placeholder={t.mealName} required/>
             <FoodCombobox lang={lang} state={state} selected={selectedFood} onSelect={(food) => { setSelectedFood(food); setMealMeasure("g"); setGramsOverride(""); }} labels={t.foodSearch} resetVersion={foodResetVersion}/>
@@ -613,7 +630,7 @@ export function FoodCombobox({ lang, state, selected, onSelect, labels, resetVer
   const [active, setActive] = useState(-1);
   const [externalLoading, setExternalLoading] = useState(false);
   const [externalMessage, setExternalMessage] = useState("");
-  const [externalCandidates, setExternalCandidates] = useState<Array<{ name: string; source: "usda_fdc"; sourceId: string; confidence: number; kcalPer100g: number; fatPer100g: number; proteinPer100g: number; carbsPer100g: number; fiberPer100g: number }>>([]);
+  const [externalCandidates, setExternalCandidates] = useState<Array<{ name: string; originalName?: string; names?: Partial<Record<Lang, string>>; source: "usda_fdc"; sourceId: string; confidence: number; kcalPer100g: number; fatPer100g: number; proteinPer100g: number; carbsPer100g: number; fiberPer100g: number }>>([]);
   const [confirmingSourceId, setConfirmingSourceId] = useState<string | null>(null);
 
   useEffect(() => { setQuery(""); setResults([]); setOpen(false); setActive(-1); setExternalMessage(""); setExternalCandidates([]); }, [resetVersion]);
@@ -633,7 +650,7 @@ export function FoodCombobox({ lang, state, selected, onSelect, labels, resetVer
     return () => { window.clearTimeout(timer); controller.abort(); };
   }, [query, selected, state]);
 
-  const choose = (food: Food) => { onSelect(food); setQuery(food.names?.[lang] ?? food.name); setOpen(false); setExternalMessage(""); setExternalCandidates([]); };
+  const choose = (food: Food) => { onSelect(food); setQuery(pickDisplayName(food, lang)); setOpen(false); setExternalMessage(""); setExternalCandidates([]); };
   async function searchExternal() {
     if (externalLoading || query.trim().length < 2) return;
     setOpen(false); setExternalLoading(true); setExternalMessage(""); setExternalCandidates([]);
@@ -679,18 +696,18 @@ export function FoodCombobox({ lang, state, selected, onSelect, labels, resetVer
           if (event.key === "Enter" && open && active >= 0) { event.preventDefault(); choose(results[active]); }
           if (event.key === "Escape") setOpen(false);
         }}/>
-      {selected && <div className="selected-food"><strong>{labels.selected}:</strong> {selected.names?.[lang] ?? selected.name} · {Math.round(selected.kcalPer100g)} kcal/100g</div>}
+      {selected && <div className="selected-food"><strong>{labels.selected}:</strong> {pickDisplayName(selected, lang)} · {Math.round(selected.kcalPer100g)} kcal/100g</div>}
       {!selected && query.length < 2 && <small className="search-hint">{labels.hint}</small>}
       {open && query.length >= 2 && !selected && <div id={`${idPrefix}-results`} className="food-results" role="listbox">
         {loading ? <div className="food-state">{labels.loading}</div> : results.length === 0 ? <div className="food-state">{labels.noResults}</div> : results.map((food, index) =>
           <button id={`${idPrefix}-option-${index}`} type="button" role="option" aria-selected={index === active} className={`food-option ${index === active ? "active" : ""}`} key={food.id} onMouseDown={(event) => event.preventDefault()} onClick={() => choose(food)}>
-            <span>{food.names?.[lang] ?? food.name}</span><small>{Math.round(food.kcalPer100g)} kcal/100g</small>
+            <span>{pickDisplayName(food, lang)}</span><small>{Math.round(food.kcalPer100g)} kcal/100g</small>
           </button>)}
       </div>}
       {!selected && !loading && results.length === 0 && query.trim().length >= 2 && <button type="button" className="btn secondary" disabled={externalLoading} onClick={searchExternal}>{externalLoading ? "…" : "Search trusted external sources"}</button>}
       {externalMessage && <small className="search-hint" role="status">{externalMessage}</small>}
       {externalCandidates.length > 0 && <ul className="space-y-2">{externalCandidates.map((candidate) => <li className="rounded-xl border border-borderSoft p-3" key={`${candidate.source}:${candidate.sourceId}`}>
-        <strong>{candidate.name}</strong>
+        <strong>{pickDisplayName(candidate, lang)}</strong>
         <div className="text-xs text-muted">USDA · {Math.round(candidate.kcalPer100g)} kcal · fat {candidate.fatPer100g} g · protein {candidate.proteinPer100g} g · carbs {candidate.carbsPer100g} g · fiber {candidate.fiberPer100g} g / 100 g · policy {Math.round(candidate.confidence * 100)}</div>
         <button type="button" className="btn secondary mt-2" disabled={confirmingSourceId !== null} aria-busy={confirmingSourceId === candidate.sourceId} onClick={() => confirmExternal(candidate)}>
           {confirmingSourceId === candidate.sourceId ? "…" : lang === "hu" ? "Hozzáadás az adatbázishoz" : lang === "de" ? "Zur Datenbank hinzufügen" : "Add to catalog"}

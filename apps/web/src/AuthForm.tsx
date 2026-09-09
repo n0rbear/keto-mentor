@@ -37,9 +37,12 @@ export function AuthForm({ mode: initialMode, lang, state, onSuccess }: { mode: 
     }
   }
 
+  // method="post" is a defense-in-depth fallback: if this form is ever
+  // submitted before React attaches the onSubmit handler (a hydration
+  // race), the browser's native submission uses POST instead of the GET
+  // default, so credentials never end up in the URL/history.
   return (
-
-    <form onSubmit={submit} className="card auth-panel space-y-4">
+    <form onSubmit={submit} method="post" className="card auth-panel space-y-4">
       <div className="auth-intro">
         <p className="panel-kicker">NorbApp · Keto Mentor</p>
         <h2>{lang === "hu" ? "Kezdjük egyszerűen" : lang === "de" ? "Einfach starten" : "Start with clarity"}</h2>

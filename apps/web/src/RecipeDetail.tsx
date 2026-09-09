@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, Copy, Pencil, Trash2, X } from "lucide-react";
 import { api, ApiError, type ApiState } from "./api";
 import { dict, type Lang } from "./i18n";
+import { pickDisplayName } from "./food-display-name";
 import { type Food, type Totals } from "./main";
 
 export type RecipeIngredientDetail = { id: string; foodId: string; quantityGrams: number; originalText?: string | null; preparation?: string | null; sortOrder?: number; food: Food };
@@ -111,7 +112,7 @@ export function RecipeDetail({
           )}
 
           <ul className="recipe-detail-list">
-            {recipe.ingredients.map((ingredient) => <li key={ingredient.id}>{ingredient.food.names?.[lang] ?? ingredient.food.name} – {ingredient.quantityGrams} g</li>)}
+            {recipe.ingredients.map((ingredient) => <li key={ingredient.id}>{pickDisplayName(ingredient.food, lang)} – {ingredient.quantityGrams} g</li>)}
           </ul>
 
           {recipe.instructions && recipe.instructions.length > 0
