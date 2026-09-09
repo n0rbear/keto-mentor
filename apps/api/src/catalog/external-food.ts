@@ -124,7 +124,16 @@ async function backfillLocaleName(prisma: ResolutionPrisma, food: any, localizat
     const displayName = localized.get(food.id);
     if (!displayName) return food;
     const names = { ...existingNames, [localization.locale]: displayName };
-    return await prisma.food.update({ where: { id: food.id }, data: { names }, include: { servings: true } });
+    // searchText must be rebuilt alongside names — local full-text search
+    // only ever queries searchText, never names directly. Without this, a
+    // backfilled locale name is visible in the UI but permanently
+    // unreachable by local search in that language: every future query in
+    // that locale would silently miss and either re-run external resolution
+    // (wasting an AI/USDA call every time) or fail outright, breaking the
+    // "persist once, reuse forever" guarantee for exactly the recovery path
+    // that exists to make locale coverage eventually-complete.
+    const searchText = buildSearchText({ name: food.name, originalName: food.originalName, names, synonyms: food.synonyms, brand: food.brand });
+    return await prisma.food.update({ where: { id: food.id }, data: { names, searchText }, include: { servings: true } });
   } catch {
     return food;
   }
