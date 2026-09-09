@@ -1,8 +1,13 @@
 import type { FoodSource, PrismaClient } from "@prisma/client";
 import { z } from "zod";
+import type { Locale } from "@keto-mentor/shared";
 import { buildSearchText, normalizeSearch } from "./normalize.js";
 import { searchFoods } from "./food-search.js";
 import type { ImportFood, ImportNutrient } from "../importers/types.js";
+import { localizeCandidateNames, type CandidateLocalizationProvider } from "./candidate-localization.js";
+
+/** Optional locale-aware presentation — never affects identity/dedup/trust. */
+export type LocalizationOptions = { locale: Locale; provider: CandidateLocalizationProvider };
 
 export type ExternalFoodCandidate = ImportFood & {
   sourceUrl?: string;
@@ -97,6 +102,34 @@ async function findDuplicate(prisma: ResolutionPrisma, candidate: ExternalFoodCa
   return possible.find((food) => normalizeSearch(food.name) === candidate.normalizedName || normalizeSearch(food.originalName ?? "") === candidate.normalizedName || food.id === aliasMatch?.foodId) ?? null;
 }
 
+/**
+ * A Food that already exists (matched by source+sourceId, or by name/alias
+ * during a fresh external search) may still be missing a display name for
+ * the CURRENT confirming/matching user's locale — e.g. it was first
+ * persisted by a Hungarian user and a German user now hits it. Backfilling
+ * is a single bounded, best-effort call (never one per candidate, never on
+ * the hot local-search path — only reached from the already-low-frequency
+ * confirm/resolve-external actions) that permanently closes that gap for
+ * every future user, and never blocks or fails the caller's own outcome.
+ */
+async function backfillLocaleName(prisma: ResolutionPrisma, food: any, localization?: LocalizationOptions) {
+  if (!localization || localization.locale === "en") return food;
+  const existingNames = (food.names ?? {}) as Record<string, string>;
+  if (existingNames[localization.locale]) return food;
+  try {
+    const localized = await localization.provider.localize(
+      [{ id: food.id, authoritativeName: food.originalName || food.name, category: food.category ?? undefined }],
+      localization.locale
+    );
+    const displayName = localized.get(food.id);
+    if (!displayName) return food;
+    const names = { ...existingNames, [localization.locale]: displayName };
+    return await prisma.food.update({ where: { id: food.id }, data: { names }, include: { servings: true } });
+  } catch {
+    return food;
+  }
+}
+
 async function persistCandidate(prisma: ResolutionPrisma, candidate: ExternalFoodCandidate) {
   const { nutrients, confidence: _confidence, matchPolicy: _matchPolicy, language: _language, normalizedName: _normalizedName, nutrientBasis: _basis, retrievedAt: _retrievedAt, sourceUrl: _sourceUrl, ...foodData } = candidate;
   return prisma.$transaction(async (tx) => {
@@ -121,13 +154,14 @@ export async function confirmAuthoritativeFood(
   prisma: ResolutionPrisma,
   source: FoodSource,
   sourceId: string,
-  adapters: readonly ConfirmableFoodLookupAdapter[]
+  adapters: readonly ConfirmableFoodLookupAdapter[],
+  localization?: LocalizationOptions
 ): Promise<ConfirmationOutcome> {
   const existing = await prisma.food.findUnique({
     where: { source_sourceId: { source, sourceId } },
     include: { servings: true }
   });
-  if (existing) return { status: "existing", food: existing };
+  if (existing) return { status: "existing", food: await backfillLocaleName(prisma, existing, localization) };
 
   const adapter = adapters.find((candidate) => candidate.source === source);
   if (!adapter) return { status: "unresolved", reason: "external_unavailable" };
@@ -135,29 +169,31 @@ export async function confirmAuthoritativeFood(
   let raw: unknown;
   try { raw = await adapter.lookupById(sourceId); }
   catch { return { status: "unresolved", reason: "external_unavailable" }; }
-  const candidate = validateExternalCandidate(raw);
+  let candidate = validateExternalCandidate(raw);
   if (!candidate || candidate.source !== source || candidate.sourceId !== sourceId) {
     return { status: "unresolved", reason: "invalid_external_data" };
   }
 
   const duplicate = await findDuplicate(prisma, candidate);
   if (duplicate) {
-    if (duplicate.source === source && duplicate.sourceId === sourceId) return { status: "existing", food: duplicate };
+    if (duplicate.source === source && duplicate.sourceId === sourceId) return { status: "existing", food: await backfillLocaleName(prisma, duplicate, localization) };
     return { status: "confirmation_required", reason: "possible_duplicate", candidate };
   }
+
+  if (localization) [candidate] = await localizeCandidateNames(localization.provider, [candidate], localization.locale);
 
   try {
     return { status: "confirmed", food: await persistCandidate(prisma, candidate) };
   } catch (error: any) {
     if (error?.code === "P2002") {
       const raced = await prisma.food.findUnique({ where: { source_sourceId: { source, sourceId } }, include: { servings: true } });
-      if (raced) return { status: "existing", food: raced };
+      if (raced) return { status: "existing", food: await backfillLocaleName(prisma, raced, localization) };
     }
     throw error;
   }
 }
 
-export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: string, adapters: readonly StructuredFoodLookupAdapter[]): Promise<ResolutionOutcome> {
+export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: string, adapters: readonly StructuredFoodLookupAdapter[], localization?: LocalizationOptions): Promise<ResolutionOutcome> {
   const local = await searchFoods(prisma as any, query, 5);
   if (local.length) return { status: "resolved_local", food: local[0] };
   if (!adapters.length) return { status: "unresolved", candidates: [], reason: "external_unavailable" };
@@ -174,31 +210,35 @@ export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: 
     }
   }
   if (!rawCandidates.length) return { status: "unresolved", candidates: [], reason: successfulProviders > 0 ? "not_found" : "external_unavailable" };
-  const candidates = rawCandidates.map(validateExternalCandidate).filter((candidate): candidate is ExternalFoodCandidate => Boolean(candidate)).sort((a, b) => b.confidence - a.confidence);
+  let candidates = rawCandidates.map(validateExternalCandidate).filter((candidate): candidate is ExternalFoodCandidate => Boolean(candidate)).sort((a, b) => b.confidence - a.confidence);
   if (!candidates.length) return { status: "unresolved", candidates: [], reason: "invalid_external_data" };
 
   const duplicate = await findDuplicate(prisma, candidates[0]);
   if (duplicate) {
-    if (duplicate.source === candidates[0].source && duplicate.sourceId === candidates[0].sourceId) return { status: "resolved_local", food: duplicate };
-    return { status: "confirmation_required", candidates: candidates.slice(0, 5), reason: "possible_duplicate" };
+    if (duplicate.source === candidates[0].source && duplicate.sourceId === candidates[0].sourceId) return { status: "resolved_local", food: await backfillLocaleName(prisma, duplicate, localization) };
+    const localizedTop5 = localization ? await localizeCandidateNames(localization.provider, candidates.slice(0, 5), localization.locale) : candidates.slice(0, 5);
+    return { status: "confirmation_required", candidates: localizedTop5, reason: "possible_duplicate" };
   }
   const top = candidates[0];
   const second = candidates[1];
   if (top.matchPolicy !== "exact_normalized_name" || normalizeSearch(query) !== top.normalizedName) {
-    return { status: "confirmation_required", candidates: candidates.slice(0, 5), reason: "weak_match" };
+    const localizedTop5 = localization ? await localizeCandidateNames(localization.provider, candidates.slice(0, 5), localization.locale) : candidates.slice(0, 5);
+    return { status: "confirmation_required", candidates: localizedTop5, reason: "weak_match" };
   }
   if (top.confidence < 0.95 || (second && top.confidence - second.confidence < 0.1)) {
-    return { status: "confirmation_required", candidates: candidates.slice(0, 5), reason: "ambiguous" };
+    const localizedTop5 = localization ? await localizeCandidateNames(localization.provider, candidates.slice(0, 5), localization.locale) : candidates.slice(0, 5);
+    return { status: "confirmation_required", candidates: localizedTop5, reason: "ambiguous" };
   }
+  const [localizedTop] = localization ? await localizeCandidateNames(localization.provider, [top], localization.locale) : [top];
   try {
-    const food = await persistCandidate(prisma, top);
+    const food = await persistCandidate(prisma, localizedTop);
     return { status: "resolved_external", food, provenance: top.provenance };
   } catch (error: any) {
     // A concurrent resolver may have inserted the authoritative source ID after
     // our duplicate check. Resolve that race to the existing row; never update it.
     if (error?.code === "P2002") {
       const existing = await prisma.food.findUnique({ where: { source_sourceId: { source: top.source, sourceId: top.sourceId } }, include: { servings: true } });
-      if (existing) return { status: "resolved_local", food: existing };
+      if (existing) return { status: "resolved_local", food: await backfillLocaleName(prisma, existing, localization) };
     }
     throw error;
   }

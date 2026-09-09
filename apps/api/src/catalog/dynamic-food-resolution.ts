@@ -1,6 +1,8 @@
 import type { PrismaClient } from "@prisma/client";
+import type { Locale } from "@keto-mentor/shared";
 import { resolveAuthoritativeFood, type ExternalFoodCandidate, type ResolutionOutcome, type StructuredFoodLookupAdapter } from "./external-food.js";
 import type { SearchIntentProvider } from "./search-intent.js";
+import { DisabledCandidateLocalizationProvider, type CandidateLocalizationProvider } from "./candidate-localization.js";
 import type { DynamicFoodResolutionRateLimiter } from "./dynamic-food-rate-limit.js";
 import { normalizeSearch } from "./normalize.js";
 
@@ -55,6 +57,13 @@ export async function resolveDynamicFood(
     adapters: readonly StructuredFoodLookupAdapter[];
     rateLimiter: DynamicFoodResolutionRateLimiter;
     userId: string;
+    // The authenticated user's own persisted locale (never a client-supplied
+    // value) — governs display-name localization only, never search/matching.
+    // Optional + internally defaulted so a caller that hasn't wired
+    // localization yet (e.g. an older test fixture) degrades to "no
+    // localization" instead of crashing.
+    locale?: Locale;
+    localizationProvider?: CandidateLocalizationProvider;
   }
 ): Promise<DynamicResolutionOutcome> {
   if (!deps.adapters.length) return { status: "unresolved", reason: "no_adapters" };
@@ -64,7 +73,10 @@ export async function resolveDynamicFood(
   const searchTerm = intent?.searchTerms[0]?.trim() || input.foodQuery;
   const via: "search_intent" | "raw_query" = intent?.searchTerms[0]?.trim() ? "search_intent" : "raw_query";
 
-  const outcome: ResolutionOutcome = await resolveAuthoritativeFood(prisma, searchTerm, deps.adapters);
+  const outcome: ResolutionOutcome = await resolveAuthoritativeFood(prisma, searchTerm, deps.adapters, {
+    locale: deps.locale ?? "hu",
+    provider: deps.localizationProvider ?? new DisabledCandidateLocalizationProvider()
+  });
   switch (outcome.status) {
     case "resolved_local":
     case "resolved_external":

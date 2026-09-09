@@ -17,6 +17,29 @@ const meal: MealDetail = {
   ]
 };
 
+describe("MealEditDialog: a Food-backed item shows the viewer's locale name, not the server's English-biased displayName snapshot", () => {
+  const foodBackedMeal: MealDetail = {
+    id: "meal-2", title: "Ebéd", eatenAt: "2026-09-09T12:00:00.000Z",
+    totals: { kcal: 420, fat: 33, protein: 30, carbs: 0, fiber: 0, netCarbs: 0 },
+    items: [
+      // The server's own `displayName` (nutrition.ts serializeMeal) falls back
+      // to the raw English Food.name here — the dialog must prefer food.names[lang] instead.
+      { id: "item-1", quantityGrams: 150, displayName: "Pork, pickled pork hocks", food: { name: "Pork, pickled pork hocks", originalName: "Pork, pickled pork hocks", names: { en: "Pork, pickled pork hocks", hu: "Pácolt sertéscsülök" } }, totals: { kcal: 420, fat: 33, protein: 29, carbs: 0, fiber: 0, netCarbs: 0 } }
+    ]
+  };
+
+  it("shows the Hungarian name for a Hungarian viewer", () => {
+    render(<MealEditDialog meal={foodBackedMeal} lang="hu" state={{ token: "t", setToken: vi.fn() }} onCancel={vi.fn()} onSaved={vi.fn()}/>);
+    expect(screen.getByText("Pácolt sertéscsülök")).toBeTruthy();
+    expect(screen.queryByText("Pork, pickled pork hocks")).toBeNull();
+  });
+
+  it("falls back to the recipe/manual displayName snapshot when no food object is present", () => {
+    render(<MealEditDialog meal={meal} lang="hu" state={{ token: "t", setToken: vi.fn() }} onCancel={vi.fn()} onSaved={vi.fn()}/>);
+    expect(screen.getByText("Chili")).toBeTruthy();
+  });
+});
+
 describe("MealEditDialog", () => {
   it("renders the meal's existing items with their current grams", () => {
     render(<MealEditDialog meal={meal} lang="en" state={{ token: "t", setToken: vi.fn() }} onCancel={vi.fn()} onSaved={vi.fn()}/>);

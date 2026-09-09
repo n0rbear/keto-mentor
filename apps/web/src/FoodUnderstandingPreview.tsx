@@ -1,11 +1,13 @@
 import type { Lang } from "./i18n";
 import { CheckCircle2, CircleDashed, Sparkles } from "lucide-react";
+import { pickDisplayName } from "./food-display-name";
 
 export type ExternalCandidate = {
   source: "usda_fdc" | "open_food_facts";
   sourceId: string;
   name: string;
   originalName: string;
+  names?: Partial<Record<Lang, string>>;
   category?: string;
   confidence: number;
 };
@@ -65,7 +67,7 @@ export type FoodUnderstandingLabels = {
 };
 
 function itemName(item: PreviewItem, lang: Lang) {
-  return item.selectedFood?.names?.[lang] ?? item.selectedFood?.name ?? item.semanticItem?.canonicalName ?? item.parsed.foodQuery;
+  return (item.selectedFood ? pickDisplayName(item.selectedFood, lang) : "") || item.semanticItem?.canonicalName || item.parsed.foodQuery;
 }
 
 // The interpretation pipeline's preparation value is a small closed set of
@@ -105,9 +107,16 @@ function ExternalCandidateList({ candidates, lang, labels, busy, confirmingId, o
       {candidates.map((candidate) => {
         const key = `${candidate.source}:${candidate.sourceId}`;
         const isConfirming = confirmingId === key;
+        // The UI language is always the primary presentation (candidate.names[lang]
+        // when a localization call produced one); the authoritative English name is
+        // never hidden, just demoted to secondary transparency metadata when it
+        // differs, so the user never has to understand English to pick a candidate.
+        const displayName = pickDisplayName(candidate, lang);
+        const originalName = candidate.originalName || candidate.name;
         return <li className="external-candidate" key={key}>
           <div className="external-candidate-copy">
-            <span className="external-candidate-name">{candidate.originalName || candidate.name}</span>
+            <span className="external-candidate-name">{displayName}</span>
+            {displayName !== originalName && <small className="external-candidate-original">{originalName}</small>}
             {candidate.category && <small className="external-candidate-category">{candidate.category}</small>}
             <small className="external-candidate-source">{labels.externalSource}: {labels.externalSourceNames[candidate.source] ?? candidate.source}</small>
           </div>
