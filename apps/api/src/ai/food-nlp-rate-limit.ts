@@ -22,8 +22,13 @@ export class FoodNlpUserRateLimiter {
 
 export function rateLimitedFoodNlpProvider(provider: AiProvider, limiter: FoodNlpUserRateLimiter, userId: string): AiProvider {
   return {
-    id: provider.id,
-    model: provider.model,
+    // Live reads, not values captured once here: when `provider` is a
+    // failover wrapper, its id/model can change between this call and the
+    // eventual run() below (a fallback to the secondary), so a snapshot taken
+    // now would misreport which provider actually served this request in
+    // both the client-facing `ai.provider`/`ai.model` fields and diagnostics.
+    get id() { return provider.id; },
+    get model() { return provider.model; },
     supports: (capability) => provider.supports(capability),
     async run<TInput, TOutput>(capability: AiCapability, input: TInput): Promise<TOutput> {
       if (capability === "food_nlp") limiter.consume(userId);

@@ -26,4 +26,27 @@ describe("AI food-NLP rate limiting", () => {
   it("requires an authenticated user identity", () => {
     expect(() => new FoodNlpUserRateLimiter().consume("")).toThrow("Authenticated user required");
   });
+
+  it("reads id/model live rather than snapshotting them at wrap time — a failover provider's id can change during run()", async () => {
+    const limiter = { consume: vi.fn() } as unknown as FoodNlpUserRateLimiter;
+    // Mimics a FailoverAiProvider: id/model reflect whichever backend served
+    // the most recent call, changing only once run() actually executes —
+    // exactly the case a naive `{ id: provider.id }` snapshot at wrap time
+    // (taken before run() ever executes) would misreport.
+    const provider = {
+      id: "openrouter",
+      model: "openrouter-model",
+      supports: () => true,
+      run: vi.fn(async () => {
+        provider.id = "groq";
+        provider.model = "groq-model";
+        return { ok: true };
+      })
+    };
+    const wrapped = rateLimitedFoodNlpProvider(provider, limiter, "user-a");
+    expect(wrapped.id).toBe("openrouter");
+    await wrapped.run("food_nlp", {});
+    expect(wrapped.id).toBe("groq");
+    expect(wrapped.model).toBe("groq-model");
+  });
 });
