@@ -13,6 +13,14 @@ describe("natural food query parser", () => {
     ["fél grillcsirke", { quantity: 1, unit: "half", foodQuery: "grillcsirke" }],
     ["egy nagy csirkecomb", { quantity: 1, unit: "piece", size: "large", foodQuery: "csirkecomb" }],
     ["egy marék dió", { quantity: 1, unit: "handful", foodQuery: "dio" }],
+    // "marok" is a distinct, at least equally common Hungarian word for
+    // "handful" (not an accent-variant of "marék" — normalizeSearch would
+    // only unify those two if they differed by diacritics alone). A real
+    // owner-beta pass on 2026-09-09 found "1 marok mandula" silently
+    // mis-parsed as unit "piece" (food identity resolved correctly, but the
+    // stated quantity/unit was lost), producing an implausible ~1g "geometry"
+    // estimate for what should have been a ~20-30g volume-aware handful.
+    ["1 marok mandula", { quantity: 1, unit: "handful", foodQuery: "mandula" }],
     ["egy kis darab sajt", { quantity: 1, unit: "piece", size: "small", foodQuery: "sajt" }],
     ["egy löttyintés tejszín a kávéba", { quantity: 1, unit: "splash", foodQuery: "tejszin" }],
     ["két harapás uborka", { quantity: 2, unit: "bite", foodQuery: "uborka" }],

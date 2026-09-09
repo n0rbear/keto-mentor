@@ -237,6 +237,13 @@ describe("locale-aware presentation: authoritative identity is never rewritten, 
     expect(provider.localize).toHaveBeenCalledTimes(1);
     expect(getUpdateCalls()).toHaveLength(1);
     if (result.status === "existing") expect(result.food.names).toMatchObject({ en: "Raw spinach", hu: "Nyers spenót" });
+    // Regression (found live in production on 2026-09-09): local full-text
+    // search only ever queries searchText, never names directly. A backfill
+    // that updated names but not searchText left a Food permanently
+    // unfindable by local search in the newly-backfilled locale — every
+    // future query in that language would silently re-run external
+    // resolution (or fail) instead of hitting the already-persisted Food.
+    expect(getUpdateCalls()[0].data.searchText).toContain("nyers spenot");
   });
 
   it("confirmAuthoritativeFood: never re-localizes an existing Food that already has the locale's name — zero calls", async () => {

@@ -31,7 +31,7 @@ const UNITS = new Map<string, NaturalQuantityUnit>([
   ["szelet", "slice"], ["slice", "slice"], ["slices", "slice"], ["scheibe", "slice"], ["scheiben", "slice"], ["adag", "portion"], ["portion", "portion"],
   ["ek", "tbsp"], ["el", "tbsp"], ["evokanal", "tbsp"], ["essloffel", "tbsp"], ["tbsp", "tbsp"], ["tablespoon", "tbsp"], ["tablespoons", "tbsp"],
   ["tk", "tsp"], ["tl", "tsp"], ["teaskanal", "tsp"], ["teeloffel", "tsp"], ["tsp", "tsp"], ["teaspoon", "tsp"], ["teaspoons", "tsp"],
-  ["marek", "handful"], ["handful", "handful"], ["handvoll", "handful"], ["cm", "cm"],
+  ["marek", "handful"], ["marok", "handful"], ["handful", "handful"], ["handvoll", "handful"], ["cm", "cm"],
   ["harapas", "bite"], ["bite", "bite"], ["bissen", "bite"], ["lottyintes", "splash"], ["splash", "splash"], ["schuss", "splash"],
   ["fel", "half"], ["fele", "half"], ["half", "half"], ["halb", "half"], ["halbe", "half"]
 ]);
