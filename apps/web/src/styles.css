@@ -178,7 +178,12 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
 .modal-field { display: grid; gap: .3rem; font-size: .8rem; color: rgb(var(--text-muted)); }
 .modal-actions { display: flex; justify-content: flex-end; gap: .6rem; margin-top: .2rem; }
 .edit-items { display: grid; gap: .5rem; }
-.edit-item-row { display: grid; grid-template-columns: minmax(0, 1fr) 90px auto auto; align-items: center; gap: .5rem; }
+/* minmax(0, 90px), not a plain 90px: a grid item's default min-width is
+   auto (its content's intrinsic minimum), so a bare 90px track would only
+   ever grow the column past 90px for a wide-intrinsic-width <input
+   type="number">, overflowing the whole row off narrow (mobile) screens
+   instead of ever shrinking to fit. */
+.edit-item-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 90px) auto auto; align-items: center; gap: .5rem; }
 .edit-item-name { overflow: hidden; color: rgb(var(--text)); text-overflow: ellipsis; white-space: nowrap; font-size: .82rem; }
 .edit-item-grams { min-height: 38px; padding: .4rem .6rem; }
 .edit-item-unit { color: rgb(var(--text-soft)); font-size: .78rem; }
@@ -245,7 +250,9 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
 .visibility-toggle input { accent-color: rgb(var(--brand)); }
 .ingredient-adder { display: grid; grid-template-columns: minmax(0, 1fr) 130px auto; gap: .75rem; align-items: end; }
 .ingredient-list { display: grid; gap: .55rem; }
-.ingredient-row { display: grid; min-width: 0; align-items: center; gap: .55rem; grid-template-columns: minmax(0, 1fr) 105px auto auto; border: 1px solid rgb(var(--border) / .08); border-radius: 11px; background: rgb(var(--bg) / .38); padding: .65rem; }
+/* minmax(0, 105px), not a plain 105px — same fixed-track/number-input
+   overflow risk as .edit-item-row above; see that rule's comment. */
+.ingredient-row { display: grid; min-width: 0; align-items: center; gap: .55rem; grid-template-columns: minmax(0, 1fr) minmax(0, 105px) auto auto; border: 1px solid rgb(var(--border) / .08); border-radius: 11px; background: rgb(var(--bg) / .38); padding: .65rem; }
 .ingredient-row strong, .recipe-card h3 { overflow-wrap: anywhere; }
 .nutrition-summary { display: flex; flex-wrap: wrap; gap: .45rem 1rem; border: 1px solid rgb(var(--brand) / .13); border-radius: 11px; background: rgb(var(--surface-active) / .5); padding: .8rem; color: rgb(var(--text-muted)); font-size: .82rem; font-variant-numeric: tabular-nums; }
 .nutrition-summary strong { width: 100%; color: rgb(var(--brand-bright)); }
@@ -302,7 +309,7 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
   .recipe-tabs .seg { white-space: nowrap; }
   .ingredient-adder { grid-template-columns: minmax(0, 1fr) 100px; }
   .ingredient-adder .btn { grid-column: 1 / -1; }
-  .ingredient-row { grid-template-columns: minmax(0, 1fr) 82px auto auto; }
+  .ingredient-row { grid-template-columns: minmax(0, 1fr) minmax(0, 82px) auto auto; }
   .recipe-nutrition-grid, .recipe-grid { grid-template-columns: 1fr; }
   .recipe-search { flex-direction: column; }
   .recipe-card-actions .btn { flex: 1 1 auto; }
@@ -320,7 +327,7 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
   .week-strip { grid-template-columns: repeat(7, minmax(72px, 1fr)); }
   .meal { flex-direction: column; }
   .meal-macros { text-align: left; }
-  .ingredient-row { grid-template-columns: minmax(0, 1fr) 76px auto; }
+  .ingredient-row { grid-template-columns: minmax(0, 1fr) minmax(0, 76px) auto; }
   .ingredient-row .icon-button { grid-column: 3; }
 }
 @media (prefers-reduced-motion: reduce) {
