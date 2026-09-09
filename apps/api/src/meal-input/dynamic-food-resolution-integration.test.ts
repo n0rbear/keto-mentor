@@ -4,6 +4,8 @@ import { normalizeSearch } from "../catalog/normalize.js";
 import { DynamicFoodResolutionRateLimiter } from "../catalog/dynamic-food-rate-limit.js";
 import { DisabledSearchIntentProvider, type SearchIntent, type SearchIntentProvider } from "../catalog/search-intent.js";
 import type { ExternalFoodCandidate, StructuredFoodLookupAdapter } from "../catalog/external-food.js";
+import { AiProviderError } from "../ai/chat-completions-provider.js";
+import type { QuantityEstimate } from "./quantity-estimation.js";
 
 // A small local catalog with a genuine miss (no "csülök"/pork-hock entry at
 // all — mirrors the real production gap this whole feature exists for) plus
@@ -92,6 +94,28 @@ function salmonCandidate(overrides: Partial<ExternalFoodCandidate> = {}): Extern
 
 function stubIntent(intent: SearchIntent | null): SearchIntentProvider {
   return { id: "stub", generate: async () => intent };
+}
+
+// Owner real-iPhone report (2026-09-09): "2 tányér marhahúsleves" ("beef
+// soup") stopped at "A tápérték még nincs megbízható ételadathoz kapcsolva"
+// (no trustworthy nutrition data) with no plate-quantity estimation
+// occurring. A composite-dish-sounding phrase is a genuine local miss, so
+// this is a generic USDA-style ingredient (mirroring "Beef broth or
+// bouillon") the dynamic resolver could plausibly find via search-intent —
+// used here to prove the ARCHITECTURE (local miss -> dynamic resolve ->
+// plate/volume quantity estimation), never a hardcoded "marhahúsleves" fix.
+// normalizedName deliberately == normalizeSearch(name) == the search-intent
+// stub's first searchTerm below — the same exact-match-fixture discipline
+// the "csülök"/"Pork hock" fixture above documents, so this exercises the
+// real "exact_normalized_name" auto-resolve path rather than confirmation_required.
+function beefBrothCandidate(overrides: Partial<ExternalFoodCandidate> = {}): ExternalFoodCandidate {
+  return {
+    source: "usda_fdc", sourceId: "174589", originalName: "Beef broth", name: "Beef broth",
+    names: { en: "Beef broth" }, kcalPer100g: 8, fatPer100g: 0.3, proteinPer100g: 1.4, carbsPer100g: 0.2, fiberPer100g: 0, nutrients: [],
+    provenance: { source: "USDA FoodData Central", sourceId: "174589", sourceUrl: "https://fdc.nal.usda.gov/174589", retrievedAt: "2026-09-09T00:00:00.000Z", valuesPer: "100 g" },
+    sourceUrl: "https://fdc.nal.usda.gov/174589", normalizedName: "beef broth", nutrientBasis: "per_100_g",
+    retrievedAt: "2026-09-09T00:00:00.000Z", confidence: 0.97, matchPolicy: "exact_normalized_name", language: "en", ...overrides
+  };
 }
 
 function makeDynamic(prisma: any, overrides: Partial<{ searchIntentProvider: SearchIntentProvider; adapters: StructuredFoodLookupAdapter[]; userId: string }> = {}): DynamicResolutionDeps {
@@ -225,5 +249,58 @@ describe("dynamic trusted food resolution: end-to-end via interpretMealInput", (
     expect(externalCalls).toBe(1); // unchanged
     expect(generate).not.toHaveBeenCalled(); // never even reached the search-intent step
     expect(foods).toHaveLength(2); // no duplicate Food created
+  });
+
+  it("'2 tányér marhahúsleves': a composite-dish-sounding local miss that dynamically resolves gets its plate quantity volume-estimated — not discarded because food resolution took the dynamic path", async () => {
+    const { prisma } = makeFullPrisma();
+    const dynamic = makeDynamic(prisma, {
+      searchIntentProvider: stubIntent({ canonicalConcept: "beef broth", searchTerms: ["beef broth", "beef bouillon"], sourceLanguage: "hu" }),
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [beefBrothCandidate()] }]
+    });
+    const estimate = vi.fn(async ({ parsed }: any) => {
+      expect(parsed.unit).toBe("plate"); // container/volume class, not discarded
+      const gramsPerUnit = 300;
+      return { gramsPerUnit, rangeGramsPerUnit: { min: 220, max: 400 }, confidence: 0.6, method: "ai_estimated" as const, estimationClass: "volume" as const, provenance: { provider: "mock-openrouter", modelOrRule: "fixture", estimatedAt: "2026-09-09T00:00:00.000Z" } } satisfies QuantityEstimate;
+    });
+    const result = await interpretMealInput(prisma, "2 tányér marhahúsleves", { id: "mock-openrouter", estimate }, undefined, dynamic);
+    expect(result.foodResolution).toBe("resolved");
+    expect(result.selectedFood).toMatchObject({ source: "usda_fdc", sourceId: "174589" });
+    // Trusted nutrition comes from the refetched, persisted authoritative
+    // Food — never from the quantity estimator, which only ever supplies grams.
+    expect((result.selectedFood as any).kcalPer100g).toBe(8);
+    expect(estimate).toHaveBeenCalledTimes(1);
+    expect(result.quantity?.status).toBe("resolved");
+    expect(result.quantity?.grams).toBeCloseTo(600, 6); // 2 plates x 300 g/plate
+    expect(result.quantity?.estimated).toBe(true);
+    expect(result.quantity?.method).toBe("ai_estimated");
+    expect(result.quantity?.requiresConfirmation).toBe(true);
+  });
+
+  it("'2 tányér marhahúsleves' when NEITHER the food nor the quantity can be resolved (no adapters, e.g. a provider outage) fails safely — never invents a Food or fabricates a plate size", async () => {
+    const { prisma, foods } = makeFullPrisma();
+    const estimate = vi.fn();
+    const result = await interpretMealInput(prisma, "2 tányér marhahúsleves", { id: "spy", estimate }, undefined, { ...makeDynamic(prisma), adapters: [] });
+    expect(result.foodResolution).toBe("unresolved");
+    expect(result.selectedFood).toBeNull();
+    expect(result.quantity).toBeNull(); // quantity is never attempted without a resolved food identity
+    expect(estimate).not.toHaveBeenCalled();
+    expect(foods).toHaveLength(1); // only the seeded egg — nothing invented
+  });
+
+  it("a dynamically-resolved food whose AI quantity estimate then fails (provider unavailable) still keeps the trusted food identity, and fails the QUANTITY safely rather than fabricating grams or nutrition", async () => {
+    const { prisma } = makeFullPrisma();
+    const dynamic = makeDynamic(prisma, {
+      searchIntentProvider: stubIntent({ canonicalConcept: "beef broth", searchTerms: ["beef broth"], sourceLanguage: "hu" }),
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [beefBrothCandidate()] }]
+    });
+    const estimate = vi.fn(async () => { throw new AiProviderError("http_error", 429); });
+    const result = await interpretMealInput(prisma, "2 tányér marhahúsleves", { id: "mock-openrouter", estimate }, undefined, dynamic);
+    expect(result.foodResolution).toBe("resolved");
+    expect(result.selectedFood).toMatchObject({ source: "usda_fdc", sourceId: "174589" }); // identity unaffected
+    expect(result.quantity?.status).toBe("unresolved");
+    expect(result.quantity?.reason).toBe("conversion_missing");
+    expect(result.quantity?.aiOutcome).toBe("invalid_output");
+    expect(result.canConfirm).toBe(false);
+    expect(estimate).toHaveBeenCalledTimes(1);
   });
 });

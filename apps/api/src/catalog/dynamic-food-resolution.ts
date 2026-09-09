@@ -37,6 +37,20 @@ async function learnSearchAlias(prisma: DynamicPrisma, foodId: string, rawQuery:
   }
 }
 
+/**
+ * Category-only production observability for dynamic external resolution —
+ * mirrors interpret.ts's quantity_ai logging exactly: no food text, no query
+ * text, no user id. Before this, an "unresolved" outcome gave no way to
+ * tell "the LLM search-intent call failed (degraded to the raw phrase,
+ * which then couldn't match an English-language catalog)" apart from "the
+ * LLM worked fine but the authoritative source genuinely has no match" apart
+ * from "rate limited" apart from "no adapters configured" — all silently
+ * indistinguishable in production logs.
+ */
+function logDynamicResolutionOutcome(status: DynamicResolutionOutcome["status"], via?: "search_intent" | "raw_query", reason?: string) {
+  console.log(`dynamic_food_resolution status=${status}${via ? ` via=${via}` : ""}${reason ? ` reason=${reason}` : ""}`);
+}
+
 export type DynamicResolutionOutcome =
   | { status: "resolved"; food: any; via: "search_intent" | "raw_query" }
   | { status: "confirmation_required"; candidates: ExternalFoodCandidate[]; reason: "ambiguous" | "possible_duplicate" | "weak_match" }
@@ -66,8 +80,8 @@ export async function resolveDynamicFood(
     localizationProvider?: CandidateLocalizationProvider;
   }
 ): Promise<DynamicResolutionOutcome> {
-  if (!deps.adapters.length) return { status: "unresolved", reason: "no_adapters" };
-  if (!deps.rateLimiter.consume(deps.userId)) return { status: "unresolved", reason: "rate_limited" };
+  if (!deps.adapters.length) { logDynamicResolutionOutcome("unresolved", undefined, "no_adapters"); return { status: "unresolved", reason: "no_adapters" }; }
+  if (!deps.rateLimiter.consume(deps.userId)) { logDynamicResolutionOutcome("unresolved", undefined, "rate_limited"); return { status: "unresolved", reason: "rate_limited" }; }
 
   const intent = await deps.searchIntentProvider.generate({ foodQuery: input.foodQuery, preparation: input.preparation });
   const searchTerm = intent?.searchTerms[0]?.trim() || input.foodQuery;
@@ -81,10 +95,13 @@ export async function resolveDynamicFood(
     case "resolved_local":
     case "resolved_external":
       await learnSearchAlias(prisma, outcome.food.id, input.foodQuery, intent?.sourceLanguage);
+      logDynamicResolutionOutcome("resolved", via);
       return { status: "resolved", food: outcome.food, via };
     case "confirmation_required":
+      logDynamicResolutionOutcome("confirmation_required", via, outcome.reason);
       return { status: "confirmation_required", candidates: outcome.candidates, reason: outcome.reason };
     case "unresolved":
+      logDynamicResolutionOutcome("unresolved", via, outcome.reason);
       return { status: "unresolved", reason: outcome.reason };
   }
 }

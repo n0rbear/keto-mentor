@@ -209,7 +209,8 @@ export async function resolveQuantity(
   } catch (error) {
     const aiOutcome: AiQuantityOutcome = error instanceof AiProviderError && error.code === "timeout" ? "timeout" : "invalid_output";
     const providerCode = error instanceof AiProviderError ? error.code : undefined;
-    logQuantityAiOutcome(aiOutcome, provider.id, providerCode);
+    const httpStatus = error instanceof AiProviderError ? error.httpStatus : undefined;
+    logQuantityAiOutcome(aiOutcome, provider.id, providerCode, undefined, httpStatus);
     return { status: "unresolved", estimated: false, requiresConfirmation: true, reason: "conversion_missing", aiOutcome };
   }
 }
@@ -221,8 +222,8 @@ export async function resolveQuantity(
  * failure mode (e.g. free-tier truncation vs. genuine timeout) is visible in
  * Render logs without exposing anything private.
  */
-function logQuantityAiOutcome(outcome: AiQuantityOutcome, providerId: string, providerErrorCode?: string, methodClass?: string) {
-  console.log(`quantity_ai outcome=${outcome} provider=${providerId}${methodClass ? ` class=${methodClass}` : ""}${providerErrorCode ? ` providerError=${providerErrorCode}` : ""}`);
+function logQuantityAiOutcome(outcome: AiQuantityOutcome, providerId: string, providerErrorCode?: string, methodClass?: string, httpStatus?: number) {
+  console.log(`quantity_ai outcome=${outcome} provider=${providerId}${methodClass ? ` class=${methodClass}` : ""}${providerErrorCode ? ` providerError=${providerErrorCode}` : ""}${httpStatus != null ? ` status=${httpStatus}` : ""}`);
 }
 
 function servingPriority(serving: Serving) {
