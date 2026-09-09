@@ -42,10 +42,12 @@ export type SearchIntentTransport = {
 };
 
 export class ChatSearchIntentProvider implements SearchIntentProvider {
-  readonly id: string;
-  constructor(private readonly transport: SearchIntentTransport) {
-    this.id = transport.id;
-  }
+  constructor(private readonly transport: SearchIntentTransport) {}
+
+  // Live read (see ChatQuantityEstimationProvider's identical comment): must
+  // reflect whichever provider actually served the most recent call when the
+  // transport is a failover wrapper.
+  get id() { return this.transport.id; }
 
   async generate(input: { foodQuery: string; preparation?: string }, signal?: AbortSignal, beforeCall?: () => void): Promise<SearchIntent | null> {
     if (signal?.aborted || !input.foodQuery.trim()) return null;

@@ -1,6 +1,8 @@
 import type { AiProvider } from "./provider.js";
 import { MistralAiProvider } from "./mistral-provider.js";
 import { OpenRouterAiProvider } from "./openrouter-provider.js";
+import { GroqAiProvider } from "./groq-provider.js";
+import { FailoverAiProvider, createFailoverObserver } from "./failover-provider.js";
 import { resolveFoodAiGatewayConfig, type FoodAiGatewayConfigInput } from "./food-ai-gateway-config.js";
 
 const disabledProvider: AiProvider = {
@@ -9,12 +11,17 @@ const disabledProvider: AiProvider = {
   async run() { throw new Error("food_nlp_disabled"); }
 };
 
-/** Selects the configured food-understanding AI gateway (OpenRouter or direct Mistral). */
+const foodNlpFailoverObserver = createFailoverObserver("food_nlp");
+
+/** Selects the configured food-understanding AI gateway (OpenRouter, with an automatic Groq failover when GROQ_API_KEY is set, or direct Mistral). */
 export function configuredFoodAiProvider(config: FoodAiGatewayConfigInput, overrides: { fetchImpl?: typeof fetch } = {}): AiProvider {
   const resolved = resolveFoodAiGatewayConfig(config);
   try {
     if (resolved.kind === "openrouter") {
-      return new OpenRouterAiProvider({ apiKey: resolved.apiKey, model: resolved.model, baseUrl: resolved.baseUrl, appReferer: resolved.appReferer, appTitle: resolved.appTitle, fetchImpl: overrides.fetchImpl });
+      const primary = new OpenRouterAiProvider({ apiKey: resolved.apiKey, model: resolved.model, baseUrl: resolved.baseUrl, appReferer: resolved.appReferer, appTitle: resolved.appTitle, fetchImpl: overrides.fetchImpl });
+      if (!resolved.secondary) return primary;
+      const secondary = new GroqAiProvider({ apiKey: resolved.secondary.apiKey, model: resolved.secondary.model, baseUrl: resolved.secondary.baseUrl, fetchImpl: overrides.fetchImpl });
+      return new FailoverAiProvider(primary, secondary, foodNlpFailoverObserver);
     }
     if (resolved.kind === "mistral") {
       return new MistralAiProvider({ apiKey: resolved.apiKey, model: resolved.model, baseUrl: resolved.baseUrl, fetchImpl: overrides.fetchImpl });

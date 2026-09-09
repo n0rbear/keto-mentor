@@ -82,7 +82,6 @@ export type ChatCompletionsTransport = {
  * chat-completions transport backs it, so switching AI gateways never forks this logic.
  */
 export class ChatQuantityEstimationProvider implements QuantityEstimationProvider {
-  readonly id: string;
   private readonly cache = new Map<string, { expires: number; value: QuantityEstimate }>();
 
   constructor(
@@ -90,9 +89,13 @@ export class ChatQuantityEstimationProvider implements QuantityEstimationProvide
     private readonly now = Date.now,
     private readonly ttlMs = 24 * 60 * 60 * 1000,
     private readonly maxEntries = 500
-  ) {
-    this.id = transport.id;
-  }
+  ) {}
+
+  // A live read, not a value captured once at construction: when the
+  // transport is a failover wrapper, this must reflect whichever provider
+  // actually served the most recent call so provenance.provider (below)
+  // stays honest after a fallback instead of forever naming the primary.
+  get id() { return this.transport.id; }
 
   async estimate(input: Parameters<QuantityEstimationProvider["estimate"]>[0], signal?: AbortSignal, beforeCall?: () => void): Promise<QuantityEstimate | null> {
     const { parsed, food } = input;

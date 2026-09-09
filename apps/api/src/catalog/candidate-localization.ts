@@ -48,10 +48,12 @@ export type CandidateLocalizationTransport = {
 };
 
 export class ChatCandidateLocalizationProvider implements CandidateLocalizationProvider {
-  readonly id: string;
-  constructor(private readonly transport: CandidateLocalizationTransport) {
-    this.id = transport.id;
-  }
+  constructor(private readonly transport: CandidateLocalizationTransport) {}
+
+  // Live read (see ChatQuantityEstimationProvider's identical comment): must
+  // reflect whichever provider actually served the most recent call when the
+  // transport is a failover wrapper.
+  get id() { return this.transport.id; }
 
   async localize(items: LocalizationCandidateInput[], targetLocale: Locale, signal?: AbortSignal): Promise<Map<string, string>> {
     if (signal?.aborted || !items.length) return new Map();
