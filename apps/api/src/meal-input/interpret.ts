@@ -448,7 +448,20 @@ async function interpretAiUnderstanding(
     clarificationReason: understanding.clarificationReason
   };
   const ai = { provider: aiProvider.id, model: aiProvider.model, confidence: understanding.confidence };
-  if (understanding.kind === "single_food" && items.length === 1) {
+  // Trusted-match precedence: AI classifying a phrase as a compound/prepared
+  // dish is a real, useful signal (rakott krumpli, lecsó, ...) — but it must
+  // not discard an identity the deterministic item-level search already
+  // resolved with genuine strength ("resolved" tier requires an exact name
+  // match or a trusted/coverage-verified alias — see food-search.ts, never a
+  // weak partial-token match). Real production case (2026-09-10): "2 tányér
+  // marhahúsleves" already had a correct, previously-confirmed trusted Food;
+  // classifying the phrase as compound_dish buried that answer behind a
+  // clarification flow instead of letting the user confirm what the system
+  // already knew. Scoped narrowly to a single explicit item — a genuine
+  // multi-item or multi-food phrase still goes through the compound/multi
+  // path below unchanged.
+  const singleStrongMatch = items.length === 1 && items[0].foodResolution === "resolved" && !!items[0].selectedFood;
+  if ((understanding.kind === "single_food" || singleStrongMatch) && items.length === 1) {
     return {
       ...items[0],
       input: text,

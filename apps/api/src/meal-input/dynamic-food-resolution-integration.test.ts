@@ -6,6 +6,17 @@ import { DisabledSearchIntentProvider, type SearchIntent, type SearchIntentProvi
 import type { ExternalFoodCandidate, StructuredFoodLookupAdapter } from "../catalog/external-food.js";
 import { AiProviderError } from "../ai/chat-completions-provider.js";
 import type { QuantityEstimate } from "./quantity-estimation.js";
+import type { CandidateLocalizationProvider } from "../catalog/candidate-localization.js";
+
+// Mirrors real production wiring (server.ts always configures a real
+// candidateLocalizationProvider): resolveAuthoritativeFood's auto-resolve
+// path localizes the candidate into the user's locale BEFORE persisting, so
+// a legitimately-learned dynamic_search alias has real coverage evidence to
+// pass against (see hasSemanticCoverage in food-search.ts). Defaulted here
+// so every test in this file reflects that, not a disabled-localization edge case.
+function fakeLocalizationProvider(displayName: string): CandidateLocalizationProvider {
+  return { id: "fixture", localize: vi.fn(async (items: { id: string }[]) => new Map(items.map((item) => [item.id, displayName]))) };
+}
 
 // A small local catalog with a genuine miss (no "csülök"/pork-hock entry at
 // all — mirrors the real production gap this whole feature exists for) plus
@@ -118,13 +129,15 @@ function beefBrothCandidate(overrides: Partial<ExternalFoodCandidate> = {}): Ext
   };
 }
 
-function makeDynamic(prisma: any, overrides: Partial<{ searchIntentProvider: SearchIntentProvider; adapters: StructuredFoodLookupAdapter[]; userId: string }> = {}): DynamicResolutionDeps {
+function makeDynamic(prisma: any, overrides: Partial<{ searchIntentProvider: SearchIntentProvider; adapters: StructuredFoodLookupAdapter[]; userId: string; locale: "hu" | "de" | "en"; localizationProvider: CandidateLocalizationProvider }> = {}): DynamicResolutionDeps {
   return {
     prisma,
     searchIntentProvider: overrides.searchIntentProvider ?? stubIntent({ canonicalConcept: "pork hock", searchTerms: ["pork hock"], sourceLanguage: "hu" }),
     adapters: overrides.adapters ?? [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [candidate()] }],
     rateLimiter: new DynamicFoodResolutionRateLimiter(),
-    userId: overrides.userId ?? "user-1"
+    userId: overrides.userId ?? "user-1",
+    locale: overrides.locale ?? "hu",
+    localizationProvider: overrides.localizationProvider ?? fakeLocalizationProvider("Csülök")
   };
 }
 
