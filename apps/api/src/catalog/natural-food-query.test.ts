@@ -37,6 +37,29 @@ describe("natural food query parser", () => {
     ["2 csirkecomb", { quantity: 2, unit: "piece", foodQuery: "csirkecomb" }],
   ])("parses %s", (text, expected) => expect(parseNaturalFoodQuery(text)).toEqual(expected));
 
+  // Owner real-iPhone regressions found 2026-09-10.
+  it.each([
+    ["1 tányér rakott krumpli", { quantity: 1, unit: "plate", foodQuery: "rakott krumpli" }],
+    // "pörkölt" has the identical problem shape as "rakott": it names a stew
+    // dish (marha pörkölt, csirke pörkölt), not a generic "roasted" modifier.
+    ["1 tányér marha pörkölt", { quantity: 1, unit: "plate", foodQuery: "marha porkolt" }]
+  ])(
+    "keeps a composite/prepared Hungarian dish name intact instead of stripping a dish-forming word as a plain preparation modifier: %s",
+    (text, expected) => expect(parseNaturalFoodQuery(text)).toEqual(expected)
+  );
+  it("still strips a genuine simple preparation modifier from its base food (control for the rakott/pörkölt fix)", () => {
+    expect(parseNaturalFoodQuery("1 sült csirke")).toEqual({ quantity: 1, unit: "piece", foodQuery: "csirke", preparation: "fried" });
+  });
+
+  it.each([
+    ["1 bögre mandula", { quantity: 1, unit: "cup", foodQuery: "mandula" }],
+    ["1 Tasse Mandeln", { quantity: 1, unit: "cup", foodQuery: "mandeln" }],
+    ["1 cup almonds", { quantity: 1, unit: "cup", foodQuery: "almonds" }]
+  ])(
+    "recognizes a container/cup unit instead of defaulting to piece and swallowing the unit word into the food query: %s",
+    (text, expected) => expect(parseNaturalFoodQuery(text)).toEqual(expected)
+  );
+
   it("separates preparation from base food (tükörtojás -> tojás + fried)", () => expect(parseNaturalFoodQuery("3 tükörtojás")).toEqual({ quantity: 3, unit: "piece", foodQuery: "tojas", preparation: "fried" }));
   it("parses '5 tojásból rántotta' as tojás + scrambled", () => expect(parseNaturalFoodQuery("5 tojásból rántotta")).toEqual({ quantity: 5, unit: "piece", foodQuery: "tojas", preparation: "scrambled" }));
   it("parses 'tojásrántotta 5 tojásból' as tojás + scrambled", () => expect(parseNaturalFoodQuery("tojásrántotta 5 tojásból")).toEqual({ quantity: 5, unit: "piece", foodQuery: "tojas", preparation: "scrambled" }));

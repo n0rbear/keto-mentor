@@ -85,7 +85,11 @@ describe("authoritative food resolution", () => {
 
   it("requires confirmation for ambiguous candidates", async () => {
     const { prisma } = fakePrisma();
-    const result = await resolveAuthoritativeFood(prisma, "raw spinach", [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [candidate({ confidence: 0.96 }), candidate({ sourceId: "124", name: "Spinach cooked", normalizedName: "spinach cooked", confidence: 0.91 })] }]);
+    // Both candidates are genuinely relevant to the query (share every
+    // significant query token) — this test is about the confidence-gap
+    // dedup logic, not about candidate relevance filtering (see the
+    // "minimum semantic relevance" describe block below for that).
+    const result = await resolveAuthoritativeFood(prisma, "raw spinach", [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [candidate({ confidence: 0.96 }), candidate({ sourceId: "124", name: "Spinach, raw, baby", normalizedName: "spinach raw baby", confidence: 0.91 })] }]);
     expect(result).toMatchObject({ status: "confirmation_required", reason: "ambiguous" });
   });
 
@@ -124,6 +128,37 @@ describe("authoritative food resolution", () => {
     const { prisma } = fakePrisma();
     const result = await resolveAuthoritativeFood(prisma, "unknown", [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [{ name: "No macros" }] }]);
     expect(result).toMatchObject({ status: "unresolved", reason: "invalid_external_data" });
+  });
+});
+
+describe("minimum semantic relevance floor (regression: 2026-09-10, borsófőzelék dynamic resolution surfaced pizza and unrelated stewed-dish candidates)", () => {
+  it("drops a result that shares no meaningful word with the query even though it structurally validates", async () => {
+    const { prisma } = fakePrisma();
+    const result = await resolveAuthoritativeFood(prisma, "pea stew", [{
+      source: "usda_fdc", sourceName: "USDA",
+      lookup: async () => [
+        candidate({ sourceId: "1", name: "Chicken, stewing, meat and skin, cooked, stewed", normalizedName: "chicken stewing meat and skin cooked stewed", matchPolicy: "review_required" }),
+        candidate({ sourceId: "2", name: "Acorn stew (Apache)", normalizedName: "acorn stew apache", matchPolicy: "review_required" })
+      ]
+    }]);
+    // Neither result contains "pea" at all — sharing only the generic word
+    // "stew"/"stewing" is not enough to count as relevant.
+    expect(result).toMatchObject({ status: "unresolved", reason: "not_found" });
+  });
+
+  it("still surfaces a genuinely relevant result sharing every significant query word (non-regression for the working beef-broth flow)", async () => {
+    const { prisma } = fakePrisma();
+    const result = await resolveAuthoritativeFood(prisma, "beef broth", [{
+      source: "usda_fdc", sourceName: "USDA",
+      lookup: async () => [candidate({ sourceId: "3", name: "Soup, beef broth, cubed, dry", normalizedName: "soup beef broth cubed dry", matchPolicy: "review_required" })]
+    }]);
+    expect(result).toMatchObject({ status: "confirmation_required", reason: "weak_match" });
+  });
+
+  it("does not filter when the query has no specific-enough word to check (degrades to the existing confidence-based logic)", async () => {
+    const { prisma } = fakePrisma();
+    const result = await resolveAuthoritativeFood(prisma, "of a", [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [candidate()] }]);
+    expect(result.status).not.toBe("unresolved");
   });
 });
 
@@ -182,7 +217,9 @@ describe("locale-aware presentation: authoritative identity is never rewritten, 
   it("resolveAuthoritativeFood: localizes the confirmation_required candidate list in one batched call, never touching identity/nutrition", async () => {
     const { prisma } = fakePrisma();
     const provider = fakeLocalizationProvider("Pácolt sertéscsülök");
-    const result = await resolveAuthoritativeFood(prisma, "csulok", [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [candidate({ confidence: 0.99, matchPolicy: "review_required" })] }], { locale: "hu", provider });
+    // Query matches the (relevant) default candidate's identity — this test
+    // is about localization mechanics, not candidate relevance filtering.
+    const result = await resolveAuthoritativeFood(prisma, "spinach", [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [candidate({ confidence: 0.99, matchPolicy: "review_required" })] }], { locale: "hu", provider });
     expect(provider.localize).toHaveBeenCalledTimes(1);
     expect(result).toMatchObject({ status: "confirmation_required" });
     if (result.status === "confirmation_required") {
