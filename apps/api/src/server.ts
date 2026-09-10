@@ -29,12 +29,18 @@ import { getMealsForDay } from "./meals/diary-query.js";
 import { getWeekOverview } from "./meals/week-query.js";
 import { recipeRouter } from "./recipes/router.js";
 import { interpretMealInput } from "./meal-input/interpret.js";
+import { attachRecipeDiscoveryFallback } from "./meal-input/recipe-discovery-fallback.js";
 import { configuredFoodAiProvider } from "./ai/food-ai-gateway.js";
 import { FoodNlpUserRateLimiter, rateLimitedFoodNlpProvider } from "./ai/food-nlp-rate-limit.js";
 import { configuredQuantityAiProvider } from "./meal-input/quantity-ai-gateway.js";
 import { configuredSearchIntentProvider } from "./catalog/search-intent-gateway.js";
 import { configuredCandidateLocalizationProvider } from "./catalog/candidate-localization-gateway.js";
 import { DynamicFoodResolutionRateLimiter } from "./catalog/dynamic-food-rate-limit.js";
+import { configuredWebKnowledgeSearchProvider } from "./web-knowledge/web-knowledge-gateway.js";
+import { WebKnowledgeSearchRateLimiter } from "./web-knowledge/web-knowledge-rate-limit.js";
+import { NegativeSearchCache } from "./web-knowledge/negative-search-cache.js";
+import { RecipeDiscoveryService } from "./recipes/recipe-discovery.js";
+import { configuredRecipeAiProvider } from "./recipes/recipe-ai-gateway.js";
 
 const logger = createLogger(env.NODE_ENV === "production" ? "info" : "debug");
 const app = express();
@@ -62,6 +68,21 @@ const searchIntentProvider = configuredSearchIntentProvider(env);
 // resolution itself is off, since it is only ever invoked from within that path.
 const candidateLocalizationProvider = configuredCandidateLocalizationProvider(env);
 const dynamicFoodResolutionLimiter = new DynamicFoodResolutionRateLimiter();
+// Web recipe discovery: strictly a fallback layered on top of meal-input
+// interpretation (see recipe-discovery-fallback.ts), never wired into
+// interpretMealInput itself. Reuses the exact same recipe-extraction AI
+// gateway credentials as the manual URL-import flow (recipes/router.ts) — a
+// second instance is intentional and cheap (stateless besides id/model), so
+// this file never needs to import from recipes/router.ts.
+const webKnowledgeSearchProvider = configuredWebKnowledgeSearchProvider(env);
+const webKnowledgeSearchRateLimiter = new WebKnowledgeSearchRateLimiter();
+const recipeDiscoveryNegativeCache = new NegativeSearchCache();
+const recipeDiscoveryAiProvider = configuredRecipeAiProvider(env);
+const recipeDiscoveryService = new RecipeDiscoveryService({
+  provider: webKnowledgeSearchProvider,
+  rateLimiter: webKnowledgeSearchRateLimiter,
+  negativeCache: recipeDiscoveryNegativeCache
+});
 
 // The authenticated user's own persisted locale (from requireAuth's DB read)
 // is the single trusted source of UI language for server-side localization —
@@ -245,7 +266,13 @@ app.post("/meal-input/interpret", requireAuth, async (req, res, next) => {
     const dynamic = externalFoodAdapters.length
       ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale: trustedLocale(req.user!), localizationProvider: candidateLocalizationProvider }
       : null;
-    res.json(await interpretMealInput(prisma, input.text, requestQuantityProvider, requestProvider, dynamic));
+    const result = await interpretMealInput(prisma, input.text, requestQuantityProvider, requestProvider, dynamic);
+    // Fallback layered on top of interpretation, never inside it — only ever
+    // reached when interpretMealInput's own local/structured/AI-assisted
+    // resolution has already genuinely failed on a composite-dish phrase. A
+    // no-op (webKnowledgeSearchProvider.id === "disabled") when
+    // WEB_SEARCH_PROVIDER is unset, at zero extra cost.
+    res.json(await attachRecipeDiscoveryFallback(result, { discoveryService: recipeDiscoveryService, recipeAiProvider: recipeDiscoveryAiProvider, prisma, userId: req.user!.id, locale: trustedLocale(req.user!) }));
   } catch (error) {
     next(error);
   }

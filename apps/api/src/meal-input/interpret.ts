@@ -2,6 +2,7 @@ import type { PrismaClient } from "@prisma/client";
 import type { FoodUnderstanding, FoodUnderstandingItem, Locale, QuantityClarification } from "@keto-mentor/shared";
 import { parseNaturalFoodQuery, type ParsedNaturalFoodQuery } from "../catalog/natural-food-query.js";
 import { foodNameRepresentations, hasSemanticCoverage, isTrustedLocalMatch, searchFoods } from "../catalog/food-search.js";
+import type { RecipeDiscoveryPreview } from "../recipes/recipe-discovery.js";
 import { DisabledQuantityEstimationProvider, type EstimateMethod, type QuantityEstimationClass, type QuantityEstimationMethodClass, type QuantityEstimationProvider, type VolumeQuantityModel, validateQuantityEstimate } from "./quantity-estimation.js";
 import { normalizeSearch } from "../catalog/normalize.js";
 import { StubAiProvider, type AiProvider, understandFood } from "../ai/provider.js";
@@ -102,6 +103,11 @@ export type InterpretResult = {
   // {source, sourceId} to /foods/resolve-external/confirm — never nutrition.
   externalCandidates?: ExternalFoodCandidate[];
   externalCandidatesReason?: "ambiguous" | "possible_duplicate" | "weak_match";
+  // Present only when a composite-dish phrase genuinely exhausted local +
+  // structured-source resolution and web recipe discovery was attempted as a
+  // fallback (see meal-input/recipe-discovery-fallback.ts, called from the
+  // route handler — never set by interpretMealInput itself).
+  recipeDiscovery?: RecipeDiscoveryPreview;
 };
 
 const PREP_KEYWORDS: Record<string, readonly string[]> = {
