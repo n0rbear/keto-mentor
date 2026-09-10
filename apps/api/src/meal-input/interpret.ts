@@ -1,7 +1,7 @@
 import type { PrismaClient } from "@prisma/client";
 import type { FoodUnderstanding, FoodUnderstandingItem, Locale, QuantityClarification } from "@keto-mentor/shared";
 import { parseNaturalFoodQuery, type ParsedNaturalFoodQuery } from "../catalog/natural-food-query.js";
-import { searchFoods } from "../catalog/food-search.js";
+import { foodNameRepresentations, hasSemanticCoverage, isTrustedLocalMatch, searchFoods } from "../catalog/food-search.js";
 import { DisabledQuantityEstimationProvider, type EstimateMethod, type QuantityEstimationClass, type QuantityEstimationMethodClass, type QuantityEstimationProvider, type VolumeQuantityModel, validateQuantityEstimate } from "./quantity-estimation.js";
 import { normalizeSearch } from "../catalog/normalize.js";
 import { StubAiProvider, type AiProvider, understandFood } from "../ai/provider.js";
@@ -260,6 +260,19 @@ async function interpretOne(
       const outcome = await resolveDynamicFood(dynamic.prisma, { foodQuery: parsed.foodQuery, preparation: parsed.preparation }, dynamic);
       if (outcome.status === "resolved") {
         const resolvedFood = outcome.food as ResolvedFood;
+        // Convergence gate (defense-in-depth, owner-beta blocker #3,
+        // 2026-09-10): a "resolved" outcome here means an UPSTREAM function
+        // (resolveAuthoritativeFood) decided this Food was trustworthy — but
+        // that decision was made against the AI-translated search-intent
+        // term, never against what the user actually typed. Search intent is
+        // a query generator, not identity evidence: a mistranslation
+        // ("tojásleves" -> "tofu soup") can satisfy every upstream check and
+        // still be the wrong food. Re-verify against the ORIGINAL phrase
+        // before granting full trust here, at the one place every dynamic
+        // outcome (local or external) converges into "resolved"/confidence 1.
+        if (!hasSemanticCoverage(normalizeSearch(parsed.foodQuery), foodNameRepresentations(resolvedFood))) {
+          return { input, parsed, foodResolution: "unresolved", selectedFood: null, candidates: [], quantity: null, canConfirm: false, confidence: 0, preparation: parsed.preparation, interpretationSource: "deterministic" };
+        }
         const quantity = await resolveQuantity(parsed, resolvedFood, provider);
         return {
           input, parsed, foodResolution: "resolved", selectedFood: resolvedFood, candidates: [resolvedFood], quantity,
@@ -283,7 +296,6 @@ async function interpretOne(
   }
 
   const score = top.match?.score ?? 0;
-  const stage = top.match?.stage;
   // Only a preparation the architecture actually tracks as needing a
   // DISTINCT catalog entry (currently: fried/scrambled/boiled egg, where
   // cooking method genuinely changes weight/composition) can make
@@ -314,7 +326,7 @@ async function interpretOne(
   let foodResolution: FoodResolutionStatus;
   if (prepUnavailable) foodResolution = "confirmation_required";
   else if (ambiguous) foodResolution = "confirmation_required";
-  else if ((stage === "exact" || stage === "alias") && score >= 95) foodResolution = "resolved";
+  else if (top.match && isTrustedLocalMatch(top.match)) foodResolution = "resolved";
   else if (score >= 80) foodResolution = "preview";
   else foodResolution = "confirmation_required";
 

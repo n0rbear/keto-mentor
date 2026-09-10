@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { PrismaClient } from "@prisma/client";
-import { expandFoodQuery, searchFoods } from "./food-search.js";
+import { expandFoodQuery, hasSemanticCoverage, isTrustedLocalMatch, searchFoods } from "./food-search.js";
 import { normalizeSearch } from "./normalize.js";
 
 const records = [
@@ -118,5 +118,43 @@ describe("semantic coverage gate on learned (dynamic_search) aliases", () => {
     const result = await searchFoods(prismaWithBadAlias, "Champignoncremesuppe");
     expect(result[0]?.match.stage).not.toBe("alias");
     expect(result[0]?.match.score).toBeLessThan(80);
+  });
+});
+
+// Owner-beta blocker #3 (2026-09-10): candidate relevance and trusted
+// auto-resolve identity are different questions and must not share a
+// threshold. A two-token phrase where only the (semantically load-bearing)
+// modifier is missing — "stuffed cabbage" vs. a food merely named "cabbage" —
+// used to pass at 50% coverage. Full coverage is required for TRUST; nothing
+// here is a word list, it is the same token-coverage machinery at a stricter
+// bar.
+describe("hasSemanticCoverage: trust threshold (owner-beta blocker #3, 2026-09-10)", () => {
+  it.each([
+    ["stuffed cabbage", ["cabbage red raw"]],
+    ["mushroom cream soup", ["mushroom beech"]],
+    ["egg soup", ["egg"]],
+    ["tofu soup", ["tofu"]]
+  ])("a modifier + shared-base-word phrase ('%s') does not have full coverage against a food named only the base word", (query, representations) => {
+    expect(hasSemanticCoverage(normalizeSearch(query), representations)).toBe(false);
+  });
+
+  it.each([
+    ["cabbage red raw", ["cabbage red raw"]], // exact canonical name
+    ["mandel", ["mandeln"]], // singular query, inflected/plural canonical representation
+    ["csulok", ["pork hock cooked", "csulok"]] // trusted exact alias/localized name
+  ])("a genuinely matching phrase ('%s') still has full coverage", (query, representations) => {
+    expect(hasSemanticCoverage(normalizeSearch(query), representations)).toBe(true);
+  });
+});
+
+describe("isTrustedLocalMatch: the one shared strong-resolution bar (owner-beta blocker #3, 2026-09-10)", () => {
+  it.each([
+    ["exact", 100, true],
+    ["alias", 95, true],
+    ["partial", 80, false], // prefix/startsWith tier — relevant, not trusted
+    ["partial", 25, false], // the real bug's own tokenCoverage tier
+    ["fuzzy", 35, false]
+  ] as const)("stage=%s score=%i -> trusted=%s", (stage, score, expected) => {
+    expect(isTrustedLocalMatch({ stage, score })).toBe(expected);
   });
 });

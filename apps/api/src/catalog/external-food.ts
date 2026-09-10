@@ -2,7 +2,7 @@ import type { FoodSource, PrismaClient } from "@prisma/client";
 import { z } from "zod";
 import type { Locale } from "@keto-mentor/shared";
 import { buildSearchText, normalizeSearch } from "./normalize.js";
-import { searchFoods } from "./food-search.js";
+import { isTrustedLocalMatch, searchFoods } from "./food-search.js";
 import type { ImportFood, ImportNutrient } from "../importers/types.js";
 import { localizeCandidateNames, type CandidateLocalizationProvider } from "./candidate-localization.js";
 
@@ -229,7 +229,18 @@ export async function confirmAuthoritativeFood(
 
 export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: string, adapters: readonly StructuredFoodLookupAdapter[], localization?: LocalizationOptions): Promise<ResolutionOutcome> {
   const local = await searchFoods(prisma as any, query, 5);
-  if (local.length) return { status: "resolved_local", food: local[0] };
+  // "resolved_local" must mean what its name says: a genuinely trusted local
+  // identity, not merely "searchFoods returned something". Owner-beta
+  // blocker #3 (2026-09-10): this line used to short-circuit on ANY nonzero
+  // local score — a query translated from "töltött káposzta" to "stuffed
+  // cabbage" partially/coincidentally echoed the unrelated existing food
+  // "Cabbage, red, raw" (score 25, stage "partial") and was trusted outright,
+  // with zero involvement from the score/stage gate every OTHER local-search
+  // consumer (interpretOne) already enforces. Same shared bar as there now —
+  // see isTrustedLocalMatch. A weak local echo is discarded here (falling
+  // through to the external adapters below, exactly as a genuine local miss
+  // would) rather than promoted; it never becomes an invented candidate.
+  if (local.length && isTrustedLocalMatch(local[0].match)) return { status: "resolved_local", food: local[0] };
   if (!adapters.length) return { status: "unresolved", candidates: [], reason: "external_unavailable" };
 
   let rawCandidates: unknown[] = [];

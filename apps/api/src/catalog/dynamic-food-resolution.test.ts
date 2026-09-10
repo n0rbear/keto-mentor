@@ -184,7 +184,12 @@ describe("resolveDynamicFood: persist once, reuse forever", () => {
   it("first miss resolves+persists via one external call; a second miss with the same intent hits locally with zero external calls", async () => {
     const { prisma, foods } = fakePrisma();
     let externalCalls = 0;
-    const adapters = [{ source: "usda_fdc" as const, sourceName: "USDA", lookup: async () => { externalCalls += 1; return [pork()]; } }];
+    // Name matches the search-intent term exactly (post-normalization) so the
+    // second lookup's own internal re-search inside resolveAuthoritativeFood
+    // finds this Food at the exact tier — a genuinely trusted identity, not
+    // merely a coincidental partial/prefix echo, which the strong-local-
+    // resolution gate (owner-beta blocker #3) no longer trusts on its own.
+    const adapters = [{ source: "usda_fdc" as const, sourceName: "USDA", lookup: async () => { externalCalls += 1; return [pork({ name: "Pork hock", originalName: "Pork hock" })]; } }];
     const deps = {
       searchIntentProvider: stubSearchIntent({ canonicalConcept: "pork hock", searchTerms: ["pork hock"] }),
       adapters, rateLimiter: new DynamicFoodResolutionRateLimiter(), userId: "user-1"

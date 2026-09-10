@@ -42,12 +42,28 @@ const QUERY_ALIASES: Record<string, readonly string[]> = {
 export type FoodSearchMatch = { stage: "exact" | "alias" | "partial" | "fuzzy"; score: number; query: string };
 type AliasEntry = { normalizedAlias: string; kind: string };
 
-// How much of a query phrase must actually be attested somewhere in a food's
-// OWN canonical/localized name(s) before an alias match is trusted at full
-// weight. Deliberately a coverage fraction over normalized tokens, not
-// literal-substring equality — real inflection ("Mandel"/"Mandeln") and
-// legitimately-learned cross-language aliases must keep matching.
-const SEMANTIC_COVERAGE_THRESHOLD = 0.5;
+/**
+ * How much of a query phrase must actually be attested somewhere in a food's
+ * OWN canonical/localized name(s) before it counts as full identity evidence.
+ * Deliberately a coverage FRACTION over normalized tokens, not literal-
+ * substring equality — real inflection ("Mandel"/"Mandeln", a token matching
+ * as a prefix/suffix of a longer localized form) and legitimately-learned
+ * cross-language aliases must keep matching.
+ *
+ * This is the TRUST bar, not a relevance bar — "is this genuinely the same
+ * identity" is a stricter question than "is this worth showing as a
+ * candidate", and the two must not share a threshold. Owner-beta blocker #3
+ * (2026-09-10): with the threshold at 0.5, a two-token phrase needed only ONE
+ * matching token — "stuffed cabbage" was 50% covered by a food named merely
+ * "cabbage", "tofu soup" was 50% covered by "Tofu", "egg soup" would be 50%
+ * covered by "egg". None of those are the same food as what the phrase
+ * describes; the shared word is coincidental, not identity. Requiring FULL
+ * coverage closes that gap generally (no word list, no per-language rule)
+ * while an exact canonical name, an exact localized name, or a genuinely
+ * matching alias — where the query legitimately IS (or inflects from) the
+ * food's own name — still covers every token and keeps passing.
+ */
+const SEMANTIC_TRUST_THRESHOLD = 1;
 
 /** A food's own name variants — what it actually, verifiably is — independent of anything learned from a user's raw search phrase. */
 export function foodNameRepresentations(food: { name?: unknown; originalName?: unknown; names?: unknown }): string[] {
@@ -66,7 +82,24 @@ export function hasSemanticCoverage(normalizedQuery: string, representations: re
   const tokens = normalizedQuery.split(" ").filter((token) => token.length >= 2);
   if (!tokens.length) return false;
   const matched = tokens.filter((token) => representations.some((rep) => rep.includes(token)));
-  return matched.length / tokens.length >= SEMANTIC_COVERAGE_THRESHOLD;
+  return matched.length / tokens.length >= SEMANTIC_TRUST_THRESHOLD;
+}
+
+/**
+ * The one shared definition of "is this local Food match strong enough to
+ * become a trusted identity" — an exact name match, or an alias earning the
+ * same 95-score tier (which itself already required semantic coverage, see
+ * `hasSemanticCoverage` above, for anything short of a curated/localized/
+ * external alias). Anything else (partial/prefix/contains/fuzzy) is a
+ * candidate at best, never an automatic identity. Used by both interpretOne's
+ * own scoring (meal-input/interpret.ts) and resolveAuthoritativeFood's local
+ * short-circuit (catalog/external-food.ts) so the two cannot drift apart
+ * again — owner-beta blocker #3 (2026-09-10) was exactly that drift:
+ * resolveAuthoritativeFood trusted ANY nonzero local score with no threshold
+ * at all, a completely different (and unguarded) bar from interpretOne's own.
+ */
+export function isTrustedLocalMatch(match: { stage: string; score: number }): boolean {
+  return (match.stage === "exact" || match.stage === "alias") && match.score >= 95;
 }
 
 export function expandFoodQuery(rawQuery: string) {

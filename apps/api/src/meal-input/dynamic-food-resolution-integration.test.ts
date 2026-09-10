@@ -26,11 +26,18 @@ const seedFoods = [
     servings: [{ id: "egg", key: "egg", unit: "egg", labels: {}, grams: 50, isEstimated: false, confidence: 1, provenance: {} }], kcalPer100g: 143 }
 ];
 
-function makeFullPrisma() {
-  const foods: any[] = seedFoods.map((f) => ({
-    ...f, createdById: null,
-    searchText: normalizeSearch([f.name, ...Object.values(f.synonyms).flat()].join(" "))
-  }));
+// extraFoods: additional pre-existing catalog entries for a single test — each
+// supplies its own searchText/names directly rather than going through the
+// synonym-based construction seedFoods uses, and (deliberately) gets no
+// curated alias, mirroring an ordinary bulk-imported generic ingredient.
+function makeFullPrisma(extraFoods: any[] = []) {
+  const foods: any[] = [
+    ...seedFoods.map((f) => ({
+      ...f, createdById: null,
+      searchText: normalizeSearch([f.name, ...Object.values(f.synonyms).flat()].join(" "))
+    })),
+    ...extraFoods.map((f) => ({ createdById: null, names: {}, ...f }))
+  ];
   const aliases: Array<{ foodId: string; alias: string; normalizedAlias: string; locale: string; kind: string }> =
     seedFoods.flatMap((f) => Object.entries(f.synonyms).flatMap(([locale, words]) => words.map((w) => ({ foodId: f.id, alias: w, normalizedAlias: normalizeSearch(w), locale, kind: "curated_seed" }))));
 
@@ -167,7 +174,11 @@ describe("dynamic trusted food resolution: end-to-end via interpretMealInput", (
     const { prisma } = makeFullPrisma();
     const dynamic = makeDynamic(prisma, {
       searchIntentProvider: stubIntent({ canonicalConcept: "salmon", searchTerms: ["salmon"], sourceLanguage: "hu" }),
-      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [salmonCandidate()] }]
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [salmonCandidate()] }],
+      // The convergence gate compares the ORIGINAL phrase ("lazac") against
+      // the resolved food's own name representations — needs real evidence,
+      // not the file's blanket "Csülök" default (unrelated to salmon).
+      localizationProvider: fakeLocalizationProvider("Lazac")
     });
     const result = await interpretMealInput(prisma, "100 g lazac", undefined, undefined, dynamic);
     expect(result.selectedFood).toMatchObject({ source: "usda_fdc", sourceId: "175167" });
@@ -268,7 +279,10 @@ describe("dynamic trusted food resolution: end-to-end via interpretMealInput", (
     const { prisma } = makeFullPrisma();
     const dynamic = makeDynamic(prisma, {
       searchIntentProvider: stubIntent({ canonicalConcept: "beef broth", searchTerms: ["beef broth", "beef bouillon"], sourceLanguage: "hu" }),
-      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [beefBrothCandidate()] }]
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [beefBrothCandidate()] }],
+      // Real evidence for the convergence gate (see the salmon test above) —
+      // the persisted food's hu name must actually relate to "marhahúsleves".
+      localizationProvider: fakeLocalizationProvider("Marhahúsleves")
     });
     const estimate = vi.fn(async ({ parsed }: any) => {
       expect(parsed.unit).toBe("plate"); // container/volume class, not discarded
@@ -304,7 +318,8 @@ describe("dynamic trusted food resolution: end-to-end via interpretMealInput", (
     const { prisma } = makeFullPrisma();
     const dynamic = makeDynamic(prisma, {
       searchIntentProvider: stubIntent({ canonicalConcept: "beef broth", searchTerms: ["beef broth"], sourceLanguage: "hu" }),
-      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [beefBrothCandidate()] }]
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [beefBrothCandidate()] }],
+      localizationProvider: fakeLocalizationProvider("Marhahúsleves")
     });
     const estimate = vi.fn(async () => { throw new AiProviderError("http_error", 429); });
     const result = await interpretMealInput(prisma, "2 tányér marhahúsleves", { id: "mock-openrouter", estimate }, undefined, dynamic);
@@ -315,5 +330,61 @@ describe("dynamic trusted food resolution: end-to-end via interpretMealInput", (
     expect(result.quantity?.aiOutcome).toBe("invalid_output");
     expect(result.canConfirm).toBe(false);
     expect(estimate).toHaveBeenCalledTimes(1);
+  });
+});
+
+// Owner-beta blocker #3 (2026-09-10): two real physical-iPhone failures.
+// "1 tányér töltött káposzta" (stuffed cabbage) silently resolved to
+// "Cabbage, red, raw"; "1 tányér tojásleves" (egg soup) silently resolved to
+// "Tofu". Both went through resolveDynamicFood/resolveAuthoritativeFood with
+// zero AI food-understanding involvement (ai: undefined in the real trace) —
+// search-intent translated the phrase, and whatever that translation happened
+// to weakly echo in the catalog was trusted outright. These reproduce the
+// exact mechanism end-to-end via interpretMealInput, the same entry point the
+// real app calls.
+describe("end-to-end semantic safety: the two real owner-beta failures never reproduce (2026-09-10)", () => {
+  it("'töltött káposzta': a mistranslated-but-plausible search intent ('stuffed cabbage') that weakly echoes an unrelated existing local Food never resolves", async () => {
+    const cabbage = { id: "cabbage-red-raw", name: "Cabbage, red, raw", originalName: "Cabbage, red, raw", searchText: "cabbage red raw" };
+    const { prisma } = makeFullPrisma([cabbage]);
+    const dynamic = makeDynamic(prisma, {
+      searchIntentProvider: stubIntent({ canonicalConcept: "stuffed cabbage", searchTerms: ["stuffed cabbage"], sourceLanguage: "hu" }),
+      adapters: [] // isolates the primary local-resolution gate: no external path to fall back on
+    });
+    const result = await interpretMealInput(prisma, "1 tányér töltött káposzta", undefined, undefined, dynamic);
+    expect(result.foodResolution).not.toBe("resolved");
+    expect(result.selectedFood?.id).not.toBe("cabbage-red-raw");
+  });
+
+  it("'tojásleves': even when the mistranslated search intent ('tofu soup') exact-matches a FRESH external candidate (satisfying resolveAuthoritativeFood's own criteria), the convergence gate still blocks it because 'tojásleves' shares nothing with 'Tofu soup'", async () => {
+    const { prisma } = makeFullPrisma();
+    const tofuSoupCandidate: ExternalFoodCandidate = {
+      source: "usda_fdc", sourceId: "111222", originalName: "Tofu soup", name: "Tofu soup",
+      names: { en: "Tofu soup" }, kcalPer100g: 40, fatPer100g: 2, proteinPer100g: 4, carbsPer100g: 2, fiberPer100g: 0.5,
+      nutrients: [], provenance: { source: "USDA FoodData Central", sourceId: "111222", sourceUrl: "https://fdc.nal.usda.gov/111222", retrievedAt: "2026-09-10T00:00:00.000Z", valuesPer: "100 g" },
+      sourceUrl: "https://fdc.nal.usda.gov/111222", normalizedName: "tofu soup", nutrientBasis: "per_100_g",
+      retrievedAt: "2026-09-10T00:00:00.000Z", confidence: 0.97, matchPolicy: "exact_normalized_name", language: "en"
+    };
+    const dynamic = makeDynamic(prisma, {
+      searchIntentProvider: stubIntent({ canonicalConcept: "tofu soup", searchTerms: ["tofu soup"], sourceLanguage: "hu" }),
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [tofuSoupCandidate] }]
+    });
+    const result = await interpretMealInput(prisma, "1 tányér tojásleves", undefined, undefined, dynamic);
+    expect(result.foodResolution).not.toBe("resolved");
+    expect(result.selectedFood?.sourceId).not.toBe("111222");
+  });
+
+  // Proves the trust boundary independently of any specific provider/model
+  // quality: no matter how absurd the AI search intent is, an unrelated local
+  // Food it happens to weakly echo must never become trusted identity.
+  it("adversarial search intent: an absurd translation ('banana smoothie' for 'tojásleves') cannot corrupt trust even though the catalog happens to contain a weakly-matching Food ('Banana')", async () => {
+    const banana = { id: "banana", name: "Banana", originalName: "Banana", searchText: "banana" };
+    const { prisma } = makeFullPrisma([banana]);
+    const dynamic = makeDynamic(prisma, {
+      searchIntentProvider: stubIntent({ canonicalConcept: "banana smoothie", searchTerms: ["banana smoothie"], sourceLanguage: "hu" }),
+      adapters: []
+    });
+    const result = await interpretMealInput(prisma, "1 tányér tojásleves", undefined, undefined, dynamic);
+    expect(result.foodResolution).not.toBe("resolved");
+    expect(result.selectedFood?.id).not.toBe("banana");
   });
 });
