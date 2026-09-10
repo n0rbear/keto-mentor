@@ -101,13 +101,40 @@ async function resolvePublic(hostname: string, resolver: Resolver) {
 
 const defaultResolver: Resolver = (hostname) => dnsLookup(hostname, { all: true, verbatim: true });
 
+/**
+ * Node's net.connect() (the Happy-Eyeballs/dual-stack multi-address path
+ * net.js uses by default for any hostname-based connect — confirmed live on
+ * Node 20.20.2, the exact version Render resolves from this repo's
+ * `engines.node: "20.x"`, not merely a newer-Node artifact) invokes a custom
+ * `lookup` option in one of two calling conventions depending on whether it
+ * requested `all` addresses: `options.all === true` expects
+ * `callback(err, addresses[])` (an array of `{address, family}`);
+ * otherwise it expects the legacy `callback(err, address, family)` triple.
+ * A `lookup` implementing only the legacy form gets silently misread —
+ * Node treats the single address STRING as if it were the addresses array,
+ * reads `[0].address` off it, and fails with ERR_INVALID_IP_ADDRESS before
+ * ever attempting a connection. Both branches below return the SAME single
+ * already-validated, pinned address — this never widens what the
+ * connection is allowed to reach, it only speaks whichever contract Node
+ * happens to be asking for.
+ */
+function pinnedLookup(address: LookupAddress) {
+  return (_hostname: string, options: { all?: boolean } | ((error: NodeJS.ErrnoException | null, address: any, family?: number) => void), callback?: (error: NodeJS.ErrnoException | null, address: any, family?: number) => void) => {
+    // node:net can also call a 2-arg form (hostname, callback) — normalize.
+    const cb = typeof options === "function" ? options : callback!;
+    const wantsAll = typeof options === "object" && !!options?.all;
+    if (wantsAll) return cb(null, [{ address: address.address, family: address.family as 4 | 6 }]);
+    return cb(null, address.address, address.family as 4 | 6);
+  };
+}
+
 export function pinnedRequestOptions(url: URL, address: LookupAddress) {
   return {
     method: "GET",
     headers: { Accept: "text/html,application/xhtml+xml;q=0.9", "User-Agent": "KetoMentorRecipeImporter/1.0" },
     servername: url.hostname,
     rejectUnauthorized: true,
-    lookup: (_hostname: string, _options: unknown, callback: (error: NodeJS.ErrnoException | null, address: string, family: 4 | 6) => void) => callback(null, address.address, address.family as 4 | 6)
+    lookup: pinnedLookup(address) as unknown as (hostname: string, options: unknown, callback: (error: NodeJS.ErrnoException | null, address: string, family: 4 | 6) => void) => void
   };
 }
 

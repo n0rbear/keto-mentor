@@ -15,6 +15,8 @@ import { previewRecipeImport, RecipeImportError } from "../recipes/recipe-import
 import { configuredRecipeAiProvider } from "../recipes/recipe-ai-gateway.js";
 import { resolveFoodAiGatewayConfig } from "../ai/food-ai-gateway-config.js";
 import { SafeFetchError } from "../recipes/safe-url-fetcher.js";
+import { isRelevantExternalCandidate } from "../catalog/external-food.js";
+import { normalizeSearch } from "../catalog/normalize.js";
 
 /**
  * Owner-beta blocker #4 (2026-09-10) real-development validation. Opt-in by
@@ -23,6 +25,13 @@ import { SafeFetchError } from "../recipes/safe-url-fetcher.js";
  * outcome data, mirroring every other *-live-eval.ts script's discipline.
  * Exactly one Tavily search per dish, per the same credit-protection policy
  * the production code path enforces.
+ *
+ * Diagnostic-only extension (owner-beta blocker #5, 2026-09-10): after the
+ * production-shaped single-candidate path (identical to RecipeDiscoveryService),
+ * this ALSO walks the rest of the SAME already-returned bounded result set
+ * (no new search) to distinguish SEARCH RELEVANCE (isRelevantExternalCandidate)
+ * from RECIPE-IMPORT SUITABILITY (does the page actually fetch/extract
+ * cleanly) — reporting only, never changes what the production service selects.
  */
 async function main() {
   const env = process.env as Record<string, string | undefined>;
@@ -40,9 +49,6 @@ async function main() {
     negativeCache: new NegativeSearchCache()
   });
 
-  // No local catalog for this eval — every ingredient resolution below is a
-  // genuine live attempt (which may itself call USDA / the food-nlp AI, same
-  // as previewRecipeImport already does for manual imports).
   const prisma = { foodAlias: { findMany: async () => [] }, food: { findMany: async () => [] } } as any;
 
   const dishes: Array<{ key: string; phrase: string }> = [
@@ -51,44 +57,60 @@ async function main() {
     { key: "gulyasleves", phrase: "gulyásleves" }
   ];
 
+  async function tryExtract(url: string) {
+    const start = performance.now();
+    try {
+      const preview = await previewRecipeImport(prisma, url, {}, recipeAiProvider);
+      const resolvedIngredients = preview.ingredients.filter((i) => i.selectedFood && i.quantity?.status === "resolved").length;
+      return {
+        ok: true, latencyMs: Math.round(performance.now() - start),
+        extractionMethod: preview.extractionMethod,
+        ingredientCount: preview.ingredients.length, resolvedIngredientCount: resolvedIngredients,
+        nutritionCalculable: resolvedIngredients === preview.ingredients.length && preview.ingredients.length > 0
+      };
+    } catch (error) {
+      const code = error instanceof RecipeImportError ? error.publicCode : error instanceof SafeFetchError ? error.publicCode : "unknown";
+      return { ok: false, latencyMs: Math.round(performance.now() - start), failureCode: code };
+    }
+  }
+
   const report: unknown[] = [];
   for (const dish of dishes) {
+    // Production-shaped path: exactly what RecipeDiscoveryService.discover() does.
     const searchStart = performance.now();
     const discovery = await discoveryService.discover({ originalPhrase: dish.phrase, locale: "hu", userId: `live-eval-${dish.key}` });
     const searchLatencyMs = Math.round(performance.now() - searchStart);
 
     if (discovery.status !== "found") {
-      report.push({ dish: dish.key, provider: provider.id, searchRequestCount: 1, searchLatencyMs, discoveryStatus: discovery.status, resultCount: "resultCount" in discovery ? discovery.resultCount : 0, candidatesAfterRelevanceFilter: "candidatesAfterRelevanceFilter" in discovery ? discovery.candidatesAfterRelevanceFilter : 0, finalState: "unresolved" });
+      report.push({ dish: dish.key, searchRequestCount: 1, searchLatencyMs, discoveryStatus: discovery.status, finalState: "unresolved" });
       continue;
     }
 
-    const extractStart = performance.now();
-    try {
-      const preview = await previewRecipeImport(prisma, discovery.candidate.url, {}, recipeAiProvider);
-      const extractLatencyMs = Math.round(performance.now() - extractStart);
-      const resolvedIngredients = preview.ingredients.filter((i) => i.selectedFood && i.quantity?.status === "resolved").length;
-      report.push({
-        dish: dish.key,
-        provider: provider.id,
-        searchRequestCount: 1,
-        searchLatencyMs,
-        resultCount: discovery.resultCount,
-        candidatesAfterRelevanceFilter: discovery.candidatesAfterRelevanceFilter,
-        selectedCandidate: { title: discovery.candidate.title, domain: discovery.candidate.domain },
-        extractionMethod: preview.extractionMethod,
-        extractLatencyMs,
-        recipeAiGateway: recipeAiConfig.kind,
-        ingredientCount: preview.ingredients.length,
-        resolvedIngredientCount: resolvedIngredients,
-        unresolvedIngredientCount: preview.ingredients.length - resolvedIngredients,
-        nutritionCalculable: resolvedIngredients === preview.ingredients.length && preview.ingredients.length > 0,
-        finalState: "confirmation_required"
-      });
-    } catch (error) {
-      const extractLatencyMs = Math.round(performance.now() - extractStart);
-      const code = error instanceof RecipeImportError ? error.publicCode : error instanceof SafeFetchError ? error.publicCode : "unknown";
-      report.push({ dish: dish.key, provider: provider.id, searchRequestCount: 1, searchLatencyMs, resultCount: discovery.resultCount, candidatesAfterRelevanceFilter: discovery.candidatesAfterRelevanceFilter, selectedCandidate: { title: discovery.candidate.title, domain: discovery.candidate.domain }, extractLatencyMs, extractionFailureCode: code, finalState: "unresolved" });
+    const topExtraction = await tryExtract(discovery.candidate.url);
+    const entry: any = {
+      dish: dish.key, searchRequestCount: 1, searchLatencyMs,
+      resultCount: discovery.resultCount, candidatesAfterRelevanceFilter: discovery.candidatesAfterRelevanceFilter,
+      selectedCandidate: { title: discovery.candidate.title, domain: discovery.candidate.domain },
+      recipeAiGateway: recipeAiConfig.kind,
+      selectedCandidateExtraction: topExtraction,
+      finalState: topExtraction.ok ? "confirmation_required" : "unresolved"
+    };
+
+    // Diagnostic-only (no new search): walk the REST of the same bounded
+    // result set to separate "was it relevant" from "was it importable."
+    if (!topExtraction.ok) {
+      const raw = await provider.search({ query: `${dish.phrase} recept`, maxResults: 5 });
+      const relevant = raw.filter((r) => isRelevantExternalCandidate(dish.phrase, normalizeSearch(r.title)));
+      const candidateTrace = [];
+      for (const candidate of relevant) {
+        const extraction = candidate.url === discovery.candidate.url ? topExtraction : await tryExtract(candidate.url);
+        candidateTrace.push({ title: candidate.title, domain: candidate.domain, isTopSelected: candidate.url === discovery.candidate.url, extraction });
+        if (extraction.ok) break; // first importable one is enough evidence
+      }
+      entry.boundedSetSuitabilityTrace = candidateTrace;
     }
+
+    report.push(entry);
   }
 
   console.log(JSON.stringify(report, null, 2));
