@@ -157,7 +157,13 @@ describe("input-language independence: the UI locale, never the phrase's languag
 });
 
 describe("cross-language production-shaped scenario: a different food category also localizes correctly", () => {
-  const bolognaTranslations = { "Bologna, pork": { hu: "Sertés bolognai felvágott" } };
+  // The localized hu name must genuinely relate to what the user typed
+  // ("szalámi") — the convergence gate (owner-beta blocker #3) re-checks the
+  // ORIGINAL phrase against the resolved food's own name representations
+  // before granting full trust, so a translation table entry must reflect a
+  // real, recognizable target-language name, not an unrelated literal
+  // back-translation of the authoritative English name.
+  const bolognaTranslations = { "Bologna, pork": { hu: "Szalámi" } };
   function bolognaCandidate(overrides: Partial<ExternalFoodCandidate> = {}): ExternalFoodCandidate {
     return {
       source: "usda_fdc", sourceId: "168277", originalName: "Bologna, pork", name: "Bologna, pork",
@@ -179,7 +185,7 @@ describe("cross-language production-shaped scenario: a different food category a
     const result = await interpretMealInput(prisma, "100 g szalámi", undefined, undefined, dynamic);
     expect(result.foodResolution).toBe("resolved");
     expect(result.selectedFood).toMatchObject({ source: "usda_fdc", sourceId: "168277" });
-    expect((result.selectedFood as any).names).toMatchObject({ en: "Bologna, pork", hu: "Sertés bolognai felvágott" });
+    expect((result.selectedFood as any).names).toMatchObject({ en: "Bologna, pork", hu: "Szalámi" });
     expect(foods).toHaveLength(1);
   });
 });

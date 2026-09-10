@@ -131,6 +131,46 @@ describe("authoritative food resolution", () => {
   });
 });
 
+// Owner-beta blocker #3 (2026-09-10): resolveAuthoritativeFood's
+// "resolved_local" short-circuit used to trust ANY nonzero local search
+// score — real physical-iPhone production traces showed a search-intent
+// translation ("stuffed cabbage", "tofu soup") coincidentally echoing an
+// unrelated existing catalog Food ("Cabbage, red, raw", "Tofu") at
+// stage="partial"/score=25, and that weak echo was promoted straight to
+// "resolved_local" with zero threshold, then treated as full-confidence
+// identity by interpret.ts. This now uses the exact same strong-match bar
+// (isTrustedLocalMatch, shared with interpretOne) as every other local-search
+// consumer, so the two can never drift apart again.
+describe("strong-local-resolution gate on resolveAuthoritativeFood (owner-beta blocker #3, 2026-09-10)", () => {
+  it("a weak local partial match is never promoted to resolved_local (the real 'stuffed cabbage' -> 'Cabbage, red, raw' case, stage=partial score=25)", async () => {
+    const cabbage = { id: "cabbage-red-raw", name: "Cabbage, red, raw", originalName: "Cabbage, red, raw", names: {}, searchText: "cabbage red raw", servings: [] };
+    const { prisma } = fakePrisma({ local: cabbage });
+    const lookup = vi.fn(async () => []);
+    const result = await resolveAuthoritativeFood(prisma, "stuffed cabbage", [{ source: "usda_fdc", sourceName: "USDA", lookup }]);
+    expect(result.status).not.toBe("resolved_local");
+    // Falls through to the external adapter exactly as a genuine local miss would — never silently discarded either.
+    expect(lookup).toHaveBeenCalled();
+  });
+
+  it("a weak local partial match is never promoted to resolved_local (the real 'tofu soup' -> 'Tofu' case, stage=partial score=25)", async () => {
+    const tofu = { id: "tofu", name: "Tofu", originalName: "Tofu", names: {}, searchText: "tofu", servings: [] };
+    const { prisma } = fakePrisma({ local: tofu });
+    const lookup = vi.fn(async () => []);
+    const result = await resolveAuthoritativeFood(prisma, "tofu soup", [{ source: "usda_fdc", sourceName: "USDA", lookup }]);
+    expect(result.status).not.toBe("resolved_local");
+    expect(lookup).toHaveBeenCalled();
+  });
+
+  it("a genuinely strong local match (exact name) still short-circuits without calling the external adapter", async () => {
+    const stuffedCabbage = { id: "stuffed-cabbage-dish", name: "Stuffed cabbage", originalName: "Stuffed cabbage", names: {}, searchText: "stuffed cabbage", servings: [] };
+    const { prisma } = fakePrisma({ local: stuffedCabbage });
+    const lookup = vi.fn();
+    const result = await resolveAuthoritativeFood(prisma, "stuffed cabbage", [{ source: "usda_fdc", sourceName: "USDA", lookup }]);
+    expect(result).toMatchObject({ status: "resolved_local", food: { id: "stuffed-cabbage-dish" } });
+    expect(lookup).not.toHaveBeenCalled();
+  });
+});
+
 describe("minimum semantic relevance floor (regression: 2026-09-10, borsófőzelék dynamic resolution surfaced pizza and unrelated stewed-dish candidates)", () => {
   it("drops a result that shares no meaningful word with the query even though it structurally validates", async () => {
     const { prisma } = fakePrisma();
