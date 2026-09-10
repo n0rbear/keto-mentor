@@ -1,6 +1,23 @@
 import { z } from "zod";
 import { quantityEstimationClass, quantityEstimationMethodClass, type QuantityEstimationProvider, type QuantityEstimate } from "./quantity-estimation.js";
 
+// A real single edible unit of one already-identified food — one piece, one
+// container's worth, one handful — never plausibly spans more than about a
+// 20x range between its lightest and heaviest reasonable interpretation
+// (e.g. a small vs. a large piece of the same food). A far wider range (the
+// absolute per-field bounds above already technically allow up to 50,000x,
+// e.g. 1g-50,000g) is not honest uncertainty about a known food, it is the
+// model having no real basis for an estimate — that must fail closed rather
+// than reach the confirmation UI as if it were a plausible physical range.
+// Found live in production 2026-09-10: a "1 bögre mandula" misroute produced
+// exactly a schema-valid but physically meaningless 1g-50,000g/10% confidence
+// result.
+const MAX_PLAUSIBLE_RANGE_RATIO = 20;
+
+function rangeRatioTooWide(min: number, max: number) {
+  return min > 0 && max / min > MAX_PLAUSIBLE_RANGE_RATIO;
+}
+
 export const quantityOutputSchema = z.object({
   gramsPerUnit: z.number().finite().positive().max(50_000),
   rangeGramsPerUnit: z.object({
@@ -11,6 +28,7 @@ export const quantityOutputSchema = z.object({
 }).strict().superRefine((value, ctx) => {
   const { min, max } = value.rangeGramsPerUnit;
   if (max <= min || value.gramsPerUnit < min || value.gramsPerUnit > max) ctx.addIssue({ code: "custom", message: "invalid_weight_range" });
+  else if (rangeRatioTooWide(min, max)) ctx.addIssue({ code: "custom", message: "implausibly_wide_range" });
 });
 
 export const QUANTITY_INSTRUCTION = `Convert ONE human unit of the supplied resolved food into edible grams actually consumed.
@@ -52,6 +70,7 @@ export const volumeQuantityOutputSchema = z.object({
 }).strict().superRefine((value, ctx) => {
   const { min, max } = value.rangeGramsPerUnit;
   if (max <= min || value.gramsPerUnit < min || value.gramsPerUnit > max) ctx.addIssue({ code: "custom", message: "invalid_weight_range" });
+  else if (rangeRatioTooWide(min, max)) ctx.addIssue({ code: "custom", message: "implausibly_wide_range" });
   const vm = value.volumeModel;
   // The top-level answer must agree with the physical work shown — a model
   // that shows one set of numbers but answers something inconsistent with

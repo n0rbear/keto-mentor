@@ -63,6 +63,14 @@ describe("volumeQuantityOutputSchema: bounds and trust boundary", () => {
     expect(volumeQuantityOutputSchema.safeParse(bad).success).toBe(false);
   });
 
+  it("rejects an implausibly wide top-level range even when internally self-consistent", () => {
+    const absurd = {
+      ...validVolumeOutput, gramsPerUnit: 1, rangeGramsPerUnit: { min: 1, max: 50_000 },
+      volumeModel: { ...validVolumeOutput.volumeModel, grams: { min: 1, max: 50_000 } }
+    };
+    expect(volumeQuantityOutputSchema.safeParse(absurd).success).toBe(false);
+  });
+
   it("rejects a top-level answer inconsistent with the shown physical derivation (grams range)", () => {
     const bad = { ...validVolumeOutput, gramsPerUnit: 700, rangeGramsPerUnit: { min: 500, max: 900 }, volumeModel: { ...validVolumeOutput.volumeModel, grams: { min: 500, max: 900 } } };
     // Consistent with itself but wildly different from the reference/fill/density it derived from is still schema-valid

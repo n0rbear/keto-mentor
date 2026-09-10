@@ -18,6 +18,14 @@ const UNITS = new Map<string, NaturalQuantityUnit>([
   ["tal", "bowl"], ["bowl", "bowl"], ["bowls", "bowl"], ["schussel", "bowl"],
   ["merokanal", "ladle"], ["ladle", "ladle"], ["ladles", "ladle"], ["kelle", "ladle"], ["kellen", "ladle"],
   ["csesze", "cup"], ["cup", "cup"], ["cups", "cup"], ["tasse", "cup"], ["pohar", "cup"], ["glass", "cup"], ["glas", "cup"],
+  // "bögre" (mug/cup) was missing entirely — the unit-detection step only
+  // checks the token right after the quantity, so an unrecognized unit word
+  // doesn't just fall back to "piece" silently, it also gets swept into the
+  // food-query text itself (e.g. "1 bögre mandula" parsed as foodQuery
+  // "bogre mandula", unit "piece" — a real owner-beta regression found
+  // 2026-09-10: wrong identity search AND the wrong geometry/piece quantity
+  // route instead of the volume/container model this unit needs).
+  ["bogre", "cup"],
   ["negyed", "quarter"], ["quarter", "quarter"], ["viertel", "quarter"], ["halbes", "half"],
   ["g", "g"], ["gramm", "g"], ["gram", "g"], ["kg", "kg"], ["kilogramm", "kg"],
   // ml/l are volume, not mass — deliberately NOT added to resolveQuantity's
@@ -70,6 +78,21 @@ const FILL_LEVELS = new Map<string, NonNullable<ParsedNaturalFoodQuery["fill"]>>
 // not as a dictionary of food synonyms. This lets "tükörtojás"/"tojásrántotta"/
 // "főtt tojás" resolve to base food "tojás" + preparation instead of inventing
 // a separate food record for every colloquial phrasing.
+//
+// Deliberately excludes "rakott" and "pörkölt" even though both look like
+// ordinary preparation words: in real Hungarian food language they don't
+// modify an existing base food the way "sült"/"főtt" do — they NAME a
+// distinct composite/layered dish ("rakott krumpli", "rakott karfiol",
+// "marha pörkölt", "csirke pörkölt", ...). Stripping either as a plain
+// preparation modifier silently collapses that dish's identity down to its
+// base ingredient (e.g. "rakott krumpli" -> foodQuery "krumpli" + a
+// preparation nothing downstream acts on), matching a generic single-
+// ingredient Food that has nothing to do with the actual dish — a real
+// owner-beta regression found 2026-09-10. Leaving them unrecognized keeps
+// the whole phrase intact as one atomic foodQuery instead, so local search
+// correctly misses (rather than confidently matching the wrong thing) and
+// the phrase can fall through to AI understanding / safe unresolved
+// handling, which is preferable to a false generic-Food match.
 const PREPARATION_CONCEPTS: Record<string, string> = {
   rantotta: "scrambled",
   tukor: "fried",
@@ -79,9 +102,7 @@ const PREPARATION_CONCEPTS: Record<string, string> = {
   parolt: "steamed",
   fustolt: "smoked",
   nyers: "raw",
-  rakott: "baked",
   bundas: "breaded",
-  pörkölt: "roasted",
   langolt: "grilled",
   scrambled: "scrambled",
   fried: "fried",

@@ -50,6 +50,14 @@ describe("quantity estimation boundary", () => {
     { ...output, rangeGramsPerUnit: { min: 30, max: 30 } },
     { ...output, gramsPerUnit: 40 }, { ...output, confidence: 1.1 }
   ])("rejects invalid weights/ranges", (value) => expect(quantityOutputSchema.safeParse(value).success).toBe(false));
+  it("rejects an implausibly wide range even though every individual field is within its own absolute bounds — regression for a real production case (2026-09-10: a misrouted '1 bögre mandula' produced a schema-valid but physically meaningless 1g-50,000g range at 10% confidence)", () => {
+    const absurd = { gramsPerUnit: 1, rangeGramsPerUnit: { min: 1, max: 50_000 }, confidence: 0.1 };
+    expect(quantityOutputSchema.safeParse(absurd).success).toBe(false);
+    // A genuinely wide but physically reasonable range (small vs. large
+    // interpretation of the same food) must still be accepted.
+    const plausible = { gramsPerUnit: 40, rangeGramsPerUnit: { min: 10, max: 100 }, confidence: 0.4 };
+    expect(quantityOutputSchema.safeParse(plausible).success).toBe(true);
+  });
   it.each(["not json", { ...output, kcal: 500 }])("invalid model data safely asks for grams", async (value) => {
     expect((await resolveQuantity(parsed, food, provider(async () => response(value)))).reason).toBe("conversion_missing");
   });

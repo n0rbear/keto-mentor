@@ -53,6 +53,31 @@ function finiteNonNegative(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value) && value >= 0;
 }
 
+// A minimum semantic relevance floor between the search query actually sent
+// to an external source and what it returned. A full-text search engine
+// (USDA's included) routinely returns SOMETHING for a vague or imprecisely
+// translated query, ranked by its own internal relevance — a ranking this
+// system never sees or preserves (normalizeUsdaFood assigns every non-exact
+// match the same flat confidence, see structured-source-adapters.ts). Without
+// a floor here, any returned result becomes an equally "confident" candidate
+// regardless of how unrelated it actually is. Found live in production
+// 2026-09-10: "borsófőzelék" (pea stew) dynamic resolution surfaced candidates
+// like pizza and unrelated stewed dishes that share no real content with the
+// query. Deliberately simple and language-agnostic — exact-or-prefix token
+// overlap, not a hardcoded list of forbidden categories or foods — so this
+// generalizes to any future irrelevant-result case rather than papering over
+// the ones already observed.
+function tokenOverlaps(a: string, b: string): boolean {
+  return a === b || (a.length >= 3 && b.length >= 3 && (a.startsWith(b) || b.startsWith(a)));
+}
+
+export function isRelevantExternalCandidate(query: string, candidateNormalizedName: string): boolean {
+  const queryTokens = normalizeSearch(query).split(" ").filter((token) => token.length >= 3);
+  if (!queryTokens.length) return true; // nothing specific enough in the query to check against
+  const candidateTokens = candidateNormalizedName.split(" ").filter(Boolean);
+  return queryTokens.every((queryToken) => candidateTokens.some((candidateToken) => tokenOverlaps(queryToken, candidateToken)));
+}
+
 export function validateExternalCandidate(value: unknown): ExternalFoodCandidate | null {
   if (!value || typeof value !== "object") return null;
   const candidate = value as Partial<ExternalFoodCandidate>;
@@ -219,8 +244,11 @@ export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: 
     }
   }
   if (!rawCandidates.length) return { status: "unresolved", candidates: [], reason: successfulProviders > 0 ? "not_found" : "external_unavailable" };
-  let candidates = rawCandidates.map(validateExternalCandidate).filter((candidate): candidate is ExternalFoodCandidate => Boolean(candidate)).sort((a, b) => b.confidence - a.confidence);
-  if (!candidates.length) return { status: "unresolved", candidates: [], reason: "invalid_external_data" };
+  const structurallyValid = rawCandidates.map(validateExternalCandidate).filter((candidate): candidate is ExternalFoodCandidate => Boolean(candidate));
+  if (!structurallyValid.length) return { status: "unresolved", candidates: [], reason: "invalid_external_data" };
+  // Structurally valid is not the same as relevant — see isRelevantExternalCandidate.
+  let candidates = structurallyValid.filter((candidate) => isRelevantExternalCandidate(query, candidate.normalizedName)).sort((a, b) => b.confidence - a.confidence);
+  if (!candidates.length) return { status: "unresolved", candidates: [], reason: "not_found" };
 
   const duplicate = await findDuplicate(prisma, candidates[0]);
   if (duplicate) {
