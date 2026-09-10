@@ -57,7 +57,12 @@ const baseFoods: Food[] = [
   // is covered too, see below) fell back to manual grams instead of
   // volume-aware estimation. Almonds, no trusted FoodServing, matching the
   // real catalog entry that reproduced it.
-  { id: "catalog-almond", name: "Almonds", names: { hu: "Mandula", de: "Mandeln", en: "Almonds" }, synonyms: { hu: ["mandula"], de: ["mandeln", "mandel"], en: ["almond", "almonds"] }, kcalPer100g: 579 }
+  { id: "catalog-almond", name: "Almonds", names: { hu: "Mandula", de: "Mandeln", en: "Almonds" }, synonyms: { hu: ["mandula"], de: ["mandeln", "mandel"], en: ["almond", "almonds"] }, kcalPer100g: 579 },
+  // Owner-beta blocker #2 fixture (2026-09-10): mirrors the real
+  // already-trusted, already-persisted "marhahúsleves" Food from production
+  // — used to prove a genuinely strong local match survives an AI
+  // compound_dish classification instead of being buried by it.
+  { id: "catalog-beef-broth", name: "Beef broth", names: { hu: "Marhahúsleves", en: "Beef broth" }, synonyms: { hu: ["marhahúsleves", "marhahusleves"], en: ["beef broth"] }, kcalPer100g: 8 }
 ];
 
 function makePrisma() {
@@ -449,6 +454,46 @@ describe("meal input interpretation", () => {
     expect(result.items?.[3].semanticItem?.evidence).toBe("inferred_common");
     expect(result.items?.[3].selectedFood).toBeNull();
     expect(result.items?.[3].nutritionEligible).toBe(false);
+  });
+
+  // Owner-beta regression (2026-09-10): "2 tányér marhahúsleves" already had
+  // a correct, already-trusted local Food available, but AI food-understanding
+  // classified the phrase as compound_dish and the known-good identity was
+  // discarded — canConfirm forced false, quantity never attempted — even
+  // though the item-level deterministic resolution underneath it was
+  // genuinely strong (score >= 95, exact/alias stage). Trusted-match
+  // precedence: that strength must survive the compound_dish classification.
+  it("a genuinely strong local match survives an AI compound_dish classification instead of being buried by it", async () => {
+    const ai = new MockFoodNlpProvider({
+      language: "hu", kind: "compound_dish", dishName: "marhahúsleves", confidence: 0.9, clarificationNeeded: false,
+      items: [{ originalText: "marhahúsleves", canonicalName: "marhahúsleves", quantity: 2, unit: "plate", evidence: "explicit", confidence: 0.9 }]
+    });
+    const quantityProvider = new MockQuantityProvider("mock-openrouter", aiEstimate(300));
+    // A phrasing the deterministic parser alone cannot cleanly resolve, so
+    // shouldUseAiFallback genuinely triggers (mirrors a real free-form request).
+    const result = await interpretMealInput(prisma, "the usual beefy soup thing, two plates please", quantityProvider, ai);
+    expect(result.interpretationSource).toBe("ai_assisted");
+    expect(result.foodResolution).toBe("resolved"); // NOT "compound" — the trusted match takes precedence
+    expect(result.selectedFood?.id).toBe("catalog-beef-broth");
+    expect(result.quantity?.grams).toBe(600); // 2 plates, not discarded — quantity estimation actually ran
+    // An AI-estimated quantity always requires explicit confirmation
+    // regardless of how confident the identity match was — that part of the
+    // trust boundary is untouched by this fix.
+    expect(result.quantity?.requiresConfirmation).toBe(true);
+  });
+
+  // Control: a compound_dish classification for a phrase that genuinely has
+  // no strong local identity must still behave exactly as before — the
+  // precedence rule above must never protect a weak/absent match.
+  it("compound_dish still applies normally when the underlying item is not a strong local match", async () => {
+    const ai = new MockFoodNlpProvider({
+      language: "hu", kind: "compound_dish", dishName: "rakott krumpli", confidence: 0.9,
+      clarificationNeeded: true, clarificationReason: "No trustworthy generic identity for this composite dish.",
+      items: [{ originalText: "rakott krumpli", canonicalName: "rakott krumpli", quantity: 1, unit: "plate", evidence: "explicit", confidence: 0.9 }]
+    });
+    const result = await interpretMealInput(prisma, "some layered potato bake thing", undefined, ai);
+    expect(result.foodResolution).toBe("compound");
+    expect(result.canConfirm).toBe(false);
   });
 
   it("supports an AI-assisted single food and re-resolves it through the trusted catalog", async () => {

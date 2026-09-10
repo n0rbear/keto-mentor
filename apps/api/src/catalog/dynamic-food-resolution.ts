@@ -5,6 +5,7 @@ import type { SearchIntentProvider } from "./search-intent.js";
 import { DisabledCandidateLocalizationProvider, type CandidateLocalizationProvider } from "./candidate-localization.js";
 import type { DynamicFoodResolutionRateLimiter } from "./dynamic-food-rate-limit.js";
 import { normalizeSearch } from "./normalize.js";
+import { foodNameRepresentations, hasSemanticCoverage } from "./food-search.js";
 
 type DynamicPrisma = Parameters<typeof resolveAuthoritativeFood>[0];
 
@@ -18,10 +19,24 @@ type DynamicPrisma = Parameters<typeof resolveAuthoritativeFood>[0];
  * always tell a system-curated name from a user-search-derived one. This is
  * what makes "same query next time -> zero external calls" genuinely true,
  * not just true for a byte-identical search term.
+ *
+ * Gated on semantic coverage against the food's own name(s) before it is
+ * ever written: the resolution this alias is about to memorialize was
+ * whatever resoleAuthoritativeFood decided, right or wrong, and once written
+ * a "dynamic_search" alias otherwise scores as a full trusted match (see
+ * food-search.ts) for every future identical phrase. A phrase with no real
+ * relationship to the food it landed on — e.g. a mistranslated search-intent
+ * term coincidentally exact-matching an unrelated USDA entry — must never be
+ * memorized as if it were a legitimate shortcut to that food. Real
+ * production case (2026-09-10): this is exactly how "gefüllte Kohlrouladen"
+ * and "Champignoncremesuppe" got permanently, silently aliased to "bok choy"
+ * and "beech mushroom".
  */
-async function learnSearchAlias(prisma: DynamicPrisma, foodId: string, rawQuery: string, locale: string | undefined) {
+async function learnSearchAlias(prisma: DynamicPrisma, food: { id: string; name?: unknown; originalName?: unknown; names?: unknown }, rawQuery: string, locale: string | undefined) {
   const normalizedAlias = normalizeSearch(rawQuery);
   if (!normalizedAlias || normalizedAlias.length < 2) return;
+  if (!hasSemanticCoverage(normalizedAlias, foodNameRepresentations(food))) return;
+  const foodId = food.id;
   try {
     await prisma.foodAlias.upsert({
       where: { foodId_normalizedAlias_locale: { foodId, normalizedAlias, locale: locale ?? "und" } },
@@ -94,7 +109,7 @@ export async function resolveDynamicFood(
   switch (outcome.status) {
     case "resolved_local":
     case "resolved_external":
-      await learnSearchAlias(prisma, outcome.food.id, input.foodQuery, intent?.sourceLanguage);
+      await learnSearchAlias(prisma, outcome.food, input.foodQuery, intent?.sourceLanguage);
       logDynamicResolutionOutcome("resolved", via);
       return { status: "resolved", food: outcome.food, via };
     case "confirmation_required":

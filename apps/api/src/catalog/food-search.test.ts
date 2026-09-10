@@ -48,3 +48,75 @@ describe("food search resolver", () => {
   });
   it("normalizes German sharp s and accents", () => expect(normalizeSearch("Weißkohl Süßrahmbutter")).toBe("weisskohl sussrahmbutter"));
 });
+
+// Regression: owner-beta blocker #2 (2026-09-10). A "dynamic_search" alias
+// only ever remembers one prior request's raw phrase, attached to whatever
+// food that single request's (possibly wrong) resolution landed on — never
+// human-reviewed. Two real production cases learned exactly this kind of
+// alias from a bad dynamic-resolution/translation and then auto-resolved
+// with full confidence on every later identical query, with zero AI
+// involved: "gefüllte Kohlrouladen" -> "bok choy", "Champignoncremesuppe"
+// -> "beech mushroom". Every other alias kind describes a food's OWN
+// validated name (curated import data, or the food's own re-fetched
+// localized/canonical names), so it keeps full trust unconditionally.
+describe("semantic coverage gate on learned (dynamic_search) aliases", () => {
+  function foodWith(id: string, name: string, searchText: string) {
+    return { id, name, originalName: name, names: { en: name }, searchText, servings: [] };
+  }
+
+  it("a poisoned dynamic_search alias with zero relation to the food's own name does not auto-resolve (the real Kohlrouladen/bok choy case)", async () => {
+    const bokChoy = foodWith("bok-choy", "Cabbage, bok choy, raw", "cabbage bok choy raw");
+    const prismaWithBadAlias = {
+      foodAlias: { findMany: async () => [{ foodId: "bok-choy", normalizedAlias: "gefullte kohlrouladen", kind: "dynamic_search" }] },
+      food: { findMany: async ({ where }: any) => where?.id?.in ? [bokChoy].filter((f) => where.id.in.includes(f.id)) : [bokChoy] }
+    } as unknown as Pick<PrismaClient, "food" | "foodAlias">;
+
+    const result = await searchFoods(prismaWithBadAlias, "gefüllte Kohlrouladen");
+    // Still surfaced (a weak candidate is legitimate — see task's "auto-resolve
+    // vs candidate" distinction) but nowhere near auto-resolve confidence.
+    expect(result[0]?.id).toBe("bok-choy");
+    expect(result[0]?.match.stage).not.toBe("alias");
+    expect(result[0]?.match.score).toBeLessThan(80);
+  });
+
+  it("the identical alias text, learned as a curated/synonym kind instead, is trusted at full weight (kind, not the mere existence of a row, is what matters)", async () => {
+    const bokChoy = foodWith("bok-choy", "Cabbage, bok choy, raw", "cabbage bok choy raw");
+    const prismaWithCuratedAlias = {
+      foodAlias: { findMany: async () => [{ foodId: "bok-choy", normalizedAlias: "gefullte kohlrouladen", kind: "synonym" }] },
+      food: { findMany: async ({ where }: any) => where?.id?.in ? [bokChoy].filter((f) => where.id.in.includes(f.id)) : [bokChoy] }
+    } as unknown as Pick<PrismaClient, "food" | "foodAlias">;
+
+    const result = await searchFoods(prismaWithCuratedAlias, "gefüllte Kohlrouladen");
+    expect(result[0]).toMatchObject({ id: "bok-choy", match: { stage: "alias", score: 95 } });
+  });
+
+  it("a dynamic_search alias that genuinely overlaps the food's own name still resolves at full confidence (Mandel/Mandeln, csülök/pork hock style cross-language matches keep working)", async () => {
+    const porkHock = foodWith("pork-hock", "Pork hock, cooked", "pork hock cooked");
+    // A real localization pass would have attached a "csulok"-bearing hu name
+    // before this alias was ever learned — reflected directly in names here
+    // (which is why this legitimately lands on "exact", an even stronger tier
+    // than "alias": the query matches the food's own recorded name outright).
+    (porkHock as any).names = { en: "Pork hock, cooked", hu: "Csülök" };
+    const prismaWithLegitAlias = {
+      foodAlias: { findMany: async () => [{ foodId: "pork-hock", normalizedAlias: "csulok", kind: "dynamic_search" }] },
+      food: { findMany: async ({ where }: any) => where?.id?.in ? [porkHock].filter((f) => where.id.in.includes(f.id)) : [porkHock] }
+    } as unknown as Pick<PrismaClient, "food" | "foodAlias">;
+
+    const result = await searchFoods(prismaWithLegitAlias, "csülök");
+    expect(result[0]).toMatchObject({ id: "pork-hock", match: { stage: "exact", score: 100 } });
+  });
+
+  it("one shared token out of a multi-token dish name is not enough for a dynamic_search alias to auto-resolve (the real Champignoncremesuppe/beech-mushroom case)", async () => {
+    const mushroom = foodWith("beech-mushroom", "Mushroom, beech", "mushroom beech");
+    // Even a coincidental partial textual echo ("mushroom"-ish) must not be
+    // enough on its own once coverage is computed against the food's own name.
+    const prismaWithBadAlias = {
+      foodAlias: { findMany: async () => [{ foodId: "beech-mushroom", normalizedAlias: "champignoncremesuppe", kind: "dynamic_search" }] },
+      food: { findMany: async ({ where }: any) => where?.id?.in ? [mushroom].filter((f) => where.id.in.includes(f.id)) : [mushroom] }
+    } as unknown as Pick<PrismaClient, "food" | "foodAlias">;
+
+    const result = await searchFoods(prismaWithBadAlias, "Champignoncremesuppe");
+    expect(result[0]?.match.stage).not.toBe("alias");
+    expect(result[0]?.match.score).toBeLessThan(80);
+  });
+});

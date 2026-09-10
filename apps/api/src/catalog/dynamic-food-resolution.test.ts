@@ -3,6 +3,18 @@ import { resolveDynamicFood } from "./dynamic-food-resolution.js";
 import { DynamicFoodResolutionRateLimiter } from "./dynamic-food-rate-limit.js";
 import { DisabledSearchIntentProvider, type SearchIntent, type SearchIntentProvider } from "./search-intent.js";
 import type { ExternalFoodCandidate } from "./external-food.js";
+import type { CandidateLocalizationProvider } from "./candidate-localization.js";
+
+// Mirrors real production wiring (server.ts always configures a real
+// candidateLocalizationProvider): resolveAuthoritativeFood's auto-resolve
+// path localizes the candidate into the user's locale BEFORE persisting, so
+// the persisted Food's names map already carries the target-language name a
+// legitimately-learned dynamic_search alias needs semantic coverage against
+// (see hasSemanticCoverage in food-search.ts). A test that skips this isn't
+// exercising a realistic resolution.
+function fakeLocalizationProvider(displayName: string): CandidateLocalizationProvider {
+  return { id: "fixture", localize: vi.fn(async (items: { id: string }[]) => new Map(items.map((item) => [item.id, displayName]))) };
+}
 
 function pork(overrides: Partial<ExternalFoodCandidate> = {}): ExternalFoodCandidate {
   return {
@@ -200,7 +212,8 @@ describe("resolveDynamicFood: persist once, reuse forever", () => {
 
     await resolveDynamicFood(prisma, { foodQuery: "csülök" }, {
       searchIntentProvider: stubSearchIntent({ canonicalConcept: "pork hock", searchTerms: ["pork hock"], sourceLanguage: "hu" }),
-      adapters, rateLimiter: new DynamicFoodResolutionRateLimiter(), userId: "user-1"
+      adapters, rateLimiter: new DynamicFoodResolutionRateLimiter(), userId: "user-1",
+      locale: "hu", localizationProvider: fakeLocalizationProvider("Csülök")
     });
     expect(aliases).toContainEqual(expect.objectContaining({ normalizedAlias: "csulok", locale: "hu", kind: "dynamic_search" }));
 
@@ -213,5 +226,37 @@ describe("resolveDynamicFood: persist once, reuse forever", () => {
     expect(outageResult).toMatchObject({ status: "resolved", food: { id: "food-0" } });
     expect(externalCalls).toBe(1); // still just the original resolution
     expect(foods).toHaveLength(1);
+  });
+
+  // Regression: owner-beta blocker #2 (2026-09-10). Even when the upstream
+  // resolution itself auto-persists (search-intent mistranslated the raw
+  // phrase into a term that happened to exact-match an unrelated USDA
+  // entry), the raw phrase must never be memorized as a trusted alias for
+  // that wrong food — that memorization is what turned a one-time mistake
+  // into a permanent, full-confidence local mismatch for every future
+  // identical query. This is exactly how "gefüllte Kohlrouladen" and
+  // "Champignoncremesuppe" got silently, permanently aliased to "bok choy"
+  // and "beech mushroom" in production.
+  it("does not learn an alias for a resolution the raw phrase has no real relationship to", async () => {
+    const { prisma, foods, aliases } = fakePrisma();
+    const bokChoy: ExternalFoodCandidate = {
+      source: "usda_fdc", sourceId: "999", originalName: "Cabbage, bok choy, raw", name: "Cabbage, bok choy, raw",
+      names: { en: "Cabbage, bok choy, raw" }, kcalPer100g: 13, fatPer100g: 0.2, proteinPer100g: 1.5, carbsPer100g: 2.2, fiberPer100g: 1,
+      nutrients: [], provenance: { source: "USDA FoodData Central", sourceId: "999", sourceUrl: "https://fdc.nal.usda.gov/999", retrievedAt: "2026-09-09T00:00:00.000Z", valuesPer: "100 g" },
+      sourceUrl: "https://fdc.nal.usda.gov/999", normalizedName: "cabbage bok choy raw", nutrientBasis: "per_100_g",
+      retrievedAt: "2026-09-09T00:00:00.000Z", confidence: 0.97, matchPolicy: "exact_normalized_name", language: "en"
+    };
+    // A mistranslated search-intent term that happens to exact-match this
+    // candidate's own name — resolveAuthoritativeFood's existing auto-resolve
+    // logic (unchanged by this fix) legitimately persists it, since from its
+    // own point of view the search term WAS an exact, high-confidence match.
+    await resolveDynamicFood(prisma, { foodQuery: "gefüllte Kohlrouladen" }, {
+      searchIntentProvider: stubSearchIntent({ canonicalConcept: "bok choy", searchTerms: ["cabbage, bok choy, raw"], sourceLanguage: "de" }),
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [bokChoy] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(), userId: "user-1",
+      locale: "de", localizationProvider: fakeLocalizationProvider("Pak Choi")
+    });
+    expect(foods).toHaveLength(1); // the (mis-)resolution itself is unchanged by this fix
+    expect(aliases).toEqual([]); // but the raw phrase must never be memorized for it
   });
 });
