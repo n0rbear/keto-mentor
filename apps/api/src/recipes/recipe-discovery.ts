@@ -19,7 +19,10 @@ export type RecipeDiscoveryPreview = {
   searchAttempted: boolean;
   resultCount: number;
   candidatesAfterRelevanceFilter: number;
-  reason?: "disabled" | "rate_limited" | "provider_error" | "no_relevant_results" | "fetch_failed" | "extraction_failed";
+  // How many of the bounded candidates were actually fetched/attempted
+  // before either selecting one or exhausting the set.
+  candidatesAttempted: number;
+  reason?: "disabled" | "rate_limited" | "provider_error" | "no_relevant_results" | "no_fully_resolvable_candidate" | "systemic_error";
   candidate?: {
     title: string;
     sourceUrl: string;
@@ -45,11 +48,22 @@ export type RecipeDiscoveryPreview = {
 const RECIPE_LOCALE_HINT: Record<Locale, string> = { hu: "recept", de: "rezept", en: "recipe" };
 const MAX_RESULTS = 5;
 const MAX_CANDIDATES_CONSIDERED = 5;
+// How many relevant candidates discover() hands back for sequential
+// import-suitability attempts (recipe-discovery-fallback.ts) — bounded
+// independently of MAX_CANDIDATES_CONSIDERED (the relevance-filter scan
+// width) so tightening/loosening one never silently changes the other.
+// Real production evidence (owner-beta blocker #5, 2026-09-10): for all
+// three validated dishes, the top-ranked relevant result was unsuitable for
+// import (oversized page / no schema.org markup) while a lower-ranked
+// result in the SAME single search's result set was cleanly importable —
+// 3 is the smallest bound that captured a working candidate in every case
+// observed so far.
+const MAX_CANDIDATES_RETURNED = 3;
 
 export type RecipeDiscoveryCandidate = { url: string; title: string; domain: string };
 
 export type RecipeDiscoveryOutcome =
-  | { status: "found"; candidate: RecipeDiscoveryCandidate; resultCount: number; candidatesAfterRelevanceFilter: number }
+  | { status: "found"; candidates: RecipeDiscoveryCandidate[]; resultCount: number; candidatesAfterRelevanceFilter: number }
   | { status: "no_results"; resultCount: number; candidatesAfterRelevanceFilter: number }
   | { status: "rate_limited" }
   | { status: "disabled" }
@@ -71,11 +85,16 @@ function logRecipeDiscoveryOutcome(status: RecipeDiscoveryOutcome["status"], res
 }
 
 /**
- * Finds at most ONE candidate recipe URL for a composite-dish concept the
- * local catalog and structured authoritative sources have already genuinely
- * failed to resolve. Deliberately makes at most one WebKnowledgeSearchProvider
- * call per discover() invocation (owner-beta blocker #4, 2026-09-10: Tavily
- * development-credit protection) — no query fan-out, no multi-hint retries.
+ * Finds a small BOUNDED, ordered set of candidate recipe URLs (see
+ * MAX_CANDIDATES_RETURNED) for a composite-dish concept the local catalog
+ * and structured authoritative sources have already genuinely failed to
+ * resolve — never just the single top-ranked one, since relevance and
+ * import-suitability are separate questions the caller (recipe-discovery-
+ * fallback.ts) evaluates sequentially. Deliberately makes at most one
+ * WebKnowledgeSearchProvider call per discover() invocation (owner-beta
+ * blocker #4, 2026-09-10: Tavily development-credit protection) — no query
+ * fan-out, no multi-hint retries, regardless of how many candidates are
+ * returned or attempted downstream.
  *
  * The ORIGINAL user concept (not any translated/expanded hint) is always the
  * relevance anchor: isRelevantExternalCandidate requires every meaningful
@@ -125,11 +144,10 @@ export class RecipeDiscoveryService {
       return { status: "no_results", resultCount: results.length, candidatesAfterRelevanceFilter: 0 };
     }
 
-    const top = relevant[0];
     logRecipeDiscoveryOutcome("found", results.length, relevant.length);
     return {
       status: "found",
-      candidate: { url: top.url, title: top.title, domain: top.domain },
+      candidates: relevant.slice(0, MAX_CANDIDATES_RETURNED).map((result) => ({ url: result.url, title: result.title, domain: result.domain })),
       resultCount: results.length,
       candidatesAfterRelevanceFilter: relevant.length
     };

@@ -43,7 +43,19 @@ describe("RecipeDiscoveryService: relevance filtering against the ORIGINAL conce
   it("accepts a genuinely relevant result whose title shares every meaningful token of the original phrase", async () => {
     const provider = fakeProvider([{ url: "https://mindmegette.hu/toltott-kaposzta.html", title: "Töltött káposzta recept", domain: "mindmegette.hu" }]);
     const outcome = await service(provider).discover({ originalPhrase: "töltött káposzta", locale: "hu", userId: "user-1" });
-    expect(outcome).toMatchObject({ status: "found", candidate: { url: "https://mindmegette.hu/toltott-kaposzta.html", domain: "mindmegette.hu" } });
+    expect(outcome).toMatchObject({ status: "found", candidates: [{ url: "https://mindmegette.hu/toltott-kaposzta.html", domain: "mindmegette.hu" }] });
+  });
+
+  it("returns a bounded ORDERED set of relevant candidates (not just the top one) so the caller can try import suitability sequentially", async () => {
+    const results = Array.from({ length: 5 }, (_, i) => ({ url: `https://example.com/${i}`, title: "Töltött káposzta recept", domain: `site${i}.example.com` }));
+    const provider = fakeProvider(results);
+    const outcome = await service(provider).discover({ originalPhrase: "töltött káposzta", locale: "hu", userId: "user-1" });
+    expect(outcome.status).toBe("found");
+    if (outcome.status === "found") {
+      expect(outcome.candidates.length).toBeLessThanOrEqual(3); // bounded — see MAX_CANDIDATES_RETURNED
+      expect(outcome.candidates.length).toBeGreaterThan(1); // and genuinely more than just the top one
+      expect(outcome.candidates.map((c) => c.url)).toEqual(results.slice(0, outcome.candidates.length).map((r) => r.url)); // preserves order
+    }
   });
 
   it("considers only the top bounded slice of results, never the full unbounded list", async () => {

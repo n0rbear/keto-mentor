@@ -11,27 +11,26 @@ import { configuredWebKnowledgeSearchProvider } from "./web-knowledge-gateway.js
 import { RecipeDiscoveryService } from "../recipes/recipe-discovery.js";
 import { WebKnowledgeSearchRateLimiter } from "./web-knowledge-rate-limit.js";
 import { NegativeSearchCache } from "./negative-search-cache.js";
-import { previewRecipeImport, RecipeImportError } from "../recipes/recipe-import.js";
+import { attachRecipeDiscoveryFallback } from "../meal-input/recipe-discovery-fallback.js";
 import { configuredRecipeAiProvider } from "../recipes/recipe-ai-gateway.js";
 import { resolveFoodAiGatewayConfig } from "../ai/food-ai-gateway-config.js";
-import { SafeFetchError } from "../recipes/safe-url-fetcher.js";
-import { isRelevantExternalCandidate } from "../catalog/external-food.js";
-import { normalizeSearch } from "../catalog/normalize.js";
+import type { InterpretResult } from "../meal-input/interpret.js";
 
 /**
- * Owner-beta blocker #4 (2026-09-10) real-development validation. Opt-in by
- * existing configuration only (WEB_SEARCH_PROVIDER=tavily + TAVILY_API_KEY) —
- * never prints the API key or raw webpage content, only bounded/typed
- * outcome data, mirroring every other *-live-eval.ts script's discipline.
- * Exactly one Tavily search per dish, per the same credit-protection policy
- * the production code path enforces.
+ * Owner-beta blocker #4/#5 (2026-09-10) real-development validation. Opt-in
+ * by existing configuration only (WEB_SEARCH_PROVIDER=tavily +
+ * TAVILY_API_KEY) — never prints the API key or raw webpage content, only
+ * bounded/typed outcome data, mirroring every other *-live-eval.ts script's
+ * discipline. Exactly one Tavily search per dish, per the same
+ * credit-protection policy the production code path enforces.
  *
- * Diagnostic-only extension (owner-beta blocker #5, 2026-09-10): after the
- * production-shaped single-candidate path (identical to RecipeDiscoveryService),
- * this ALSO walks the rest of the SAME already-returned bounded result set
- * (no new search) to distinguish SEARCH RELEVANCE (isRelevantExternalCandidate)
- * from RECIPE-IMPORT SUITABILITY (does the page actually fetch/extract
- * cleanly) — reporting only, never changes what the production service selects.
+ * Calls attachRecipeDiscoveryFallback DIRECTLY — the exact same function
+ * server.ts wires into /meal-input/interpret — so this exercises the real
+ * bounded-candidate sequential-attempt loop, not a re-implementation of it.
+ *
+ * ingredientResolutionPrisma lets this be pointed at a real, populated
+ * (non-production) Food catalog for a true ingredient-resolution read —
+ * defaults to an always-miss stub matching prior runs when none is supplied.
  */
 async function main() {
   const env = process.env as Record<string, string | undefined>;
@@ -49,7 +48,15 @@ async function main() {
     negativeCache: new NegativeSearchCache()
   });
 
-  const prisma = { foodAlias: { findMany: async () => [] }, food: { findMany: async () => [] } } as any;
+  // Real, populated ingredient-resolution database — see prisma-live-eval-db.ts
+  // for how this is provisioned (local Docker Postgres seeded with the same
+  // curated catalog import used in dev, never production). Falls back to an
+  // always-miss stub (matching the prior checkpoint's diagnostic) if
+  // LIVE_EVAL_DATABASE_URL is not set, so this script still runs standalone.
+  const { PrismaClient } = await import("@prisma/client");
+  const prisma = env.LIVE_EVAL_DATABASE_URL
+    ? new PrismaClient({ datasources: { db: { url: env.LIVE_EVAL_DATABASE_URL } } })
+    : ({ foodAlias: { findMany: async () => [] }, food: { findMany: async () => [] } } as any);
 
   const dishes: Array<{ key: string; phrase: string }> = [
     { key: "toltott-kaposzta", phrase: "töltött káposzta" },
@@ -57,63 +64,35 @@ async function main() {
     { key: "gulyasleves", phrase: "gulyásleves" }
   ];
 
-  async function tryExtract(url: string) {
-    const start = performance.now();
-    try {
-      const preview = await previewRecipeImport(prisma, url, {}, recipeAiProvider);
-      const resolvedIngredients = preview.ingredients.filter((i) => i.selectedFood && i.quantity?.status === "resolved").length;
-      return {
-        ok: true, latencyMs: Math.round(performance.now() - start),
-        extractionMethod: preview.extractionMethod,
-        ingredientCount: preview.ingredients.length, resolvedIngredientCount: resolvedIngredients,
-        nutritionCalculable: resolvedIngredients === preview.ingredients.length && preview.ingredients.length > 0
-      };
-    } catch (error) {
-      const code = error instanceof RecipeImportError ? error.publicCode : error instanceof SafeFetchError ? error.publicCode : "unknown";
-      return { ok: false, latencyMs: Math.round(performance.now() - start), failureCode: code };
-    }
+  // Minimal InterpretResult shaped to be eligible for recipe discovery —
+  // mirrors exactly what a real compound_dish/no-explicit-ingredients/
+  // genuine-miss classification produces (see interpret.ts's
+  // isEligibleForRecipeDiscovery in recipe-discovery-fallback.ts).
+  function eligibleResult(phrase: string): InterpretResult {
+    const item: InterpretResult = {
+      input: phrase, parsed: { foodQuery: phrase }, foodResolution: "unresolved",
+      selectedFood: null, candidates: [], quantity: null, canConfirm: false, confidence: 0,
+      interpretationSource: "ai_assisted"
+    };
+    return {
+      ...item, foodResolution: "compound",
+      semantic: { language: "hu", kind: "compound_dish", dishName: phrase, clarificationNeeded: false },
+      items: [item]
+    };
   }
 
   const report: unknown[] = [];
   for (const dish of dishes) {
-    // Production-shaped path: exactly what RecipeDiscoveryService.discover() does.
-    const searchStart = performance.now();
-    const discovery = await discoveryService.discover({ originalPhrase: dish.phrase, locale: "hu", userId: `live-eval-${dish.key}` });
-    const searchLatencyMs = Math.round(performance.now() - searchStart);
-
-    if (discovery.status !== "found") {
-      report.push({ dish: dish.key, searchRequestCount: 1, searchLatencyMs, discoveryStatus: discovery.status, finalState: "unresolved" });
-      continue;
-    }
-
-    const topExtraction = await tryExtract(discovery.candidate.url);
-    const entry: any = {
-      dish: dish.key, searchRequestCount: 1, searchLatencyMs,
-      resultCount: discovery.resultCount, candidatesAfterRelevanceFilter: discovery.candidatesAfterRelevanceFilter,
-      selectedCandidate: { title: discovery.candidate.title, domain: discovery.candidate.domain },
-      recipeAiGateway: recipeAiConfig.kind,
-      selectedCandidateExtraction: topExtraction,
-      finalState: topExtraction.ok ? "confirmation_required" : "unresolved"
-    };
-
-    // Diagnostic-only (no new search): walk the REST of the same bounded
-    // result set to separate "was it relevant" from "was it importable."
-    if (!topExtraction.ok) {
-      const raw = await provider.search({ query: `${dish.phrase} recept`, maxResults: 5 });
-      const relevant = raw.filter((r) => isRelevantExternalCandidate(dish.phrase, normalizeSearch(r.title)));
-      const candidateTrace = [];
-      for (const candidate of relevant) {
-        const extraction = candidate.url === discovery.candidate.url ? topExtraction : await tryExtract(candidate.url);
-        candidateTrace.push({ title: candidate.title, domain: candidate.domain, isTopSelected: candidate.url === discovery.candidate.url, extraction });
-        if (extraction.ok) break; // first importable one is enough evidence
-      }
-      entry.boundedSetSuitabilityTrace = candidateTrace;
-    }
-
-    report.push(entry);
+    const start = performance.now();
+    const withDiscovery = await attachRecipeDiscoveryFallback(eligibleResult(dish.phrase), {
+      discoveryService, recipeAiProvider, prisma, userId: `live-eval-${dish.key}`, locale: "hu"
+    });
+    const latencyMs = Math.round(performance.now() - start);
+    report.push({ dish: dish.key, latencyMs, recipeAiGateway: recipeAiConfig.kind, recipeDiscovery: withDiscovery.recipeDiscovery });
   }
 
   console.log(JSON.stringify(report, null, 2));
+  if (env.LIVE_EVAL_DATABASE_URL) await prisma.$disconnect();
 }
 
 main().catch((error) => { console.error("recipe_discovery_live_evaluation_unavailable", error instanceof Error ? error.message : error); process.exitCode = 2; });
