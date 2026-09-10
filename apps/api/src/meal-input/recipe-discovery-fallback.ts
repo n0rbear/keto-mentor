@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
 import type { Locale } from "@keto-mentor/shared";
-import type { InterpretResult } from "./interpret.js";
+import type { DynamicResolutionDeps, InterpretResult } from "./interpret.js";
 import { previewRecipeImport, RecipeImportError } from "../recipes/recipe-import.js";
 import { createRecipeImportProof } from "../recipes/import-proof.js";
 import type { RecipeExtractionProvider } from "../recipes/recipe-extraction-provider.js";
@@ -18,6 +18,11 @@ export type RecipeDiscoveryFallbackDeps = {
   // Test-only injection point — production never sets this, so
   // previewRecipeImport always runs against the real safe-url-fetcher.
   fetchDependencies?: SafeFetcherDependencies;
+  // Not yet wired by the production route (server.ts) — passing this through
+  // is what lets the PR #49 live-eval diagnostic exercise real USDA/dynamic
+  // resolution for recipe-derived ingredients. Omitted (undefined) everywhere
+  // else, which previewRecipeImport treats identically to its own null default.
+  dynamic?: DynamicResolutionDeps;
 };
 
 type ExtractedPreview = Awaited<ReturnType<typeof previewRecipeImport>>;
@@ -59,9 +64,10 @@ function logCandidateSetOutcome(candidateCount: number) {
   console.log(`recipe_discovery candidates=${candidateCount}`);
 }
 
-function logCandidateAttempt(index: number, domain: string, outcome: "skip" | "selected" | "systemic_error", detail: { fetch: "ok" | "failed"; extraction?: "ok" | "failed"; ingredients?: number; resolved?: number; nutritionCalculable?: boolean; reason?: string }) {
+function logCandidateAttempt(index: number, domain: string, outcome: "skip" | "selected" | "systemic_error", detail: { fetch: "ok" | "failed"; extraction?: "ok" | "failed"; ingredients?: number; resolved?: number; nutritionCalculable?: boolean; reason?: string; url?: string }) {
   console.log(
     `candidate_attempt index=${index} domain=${domain} fetch=${detail.fetch}` +
+    (detail.url ? ` url=${detail.url}` : "") +
     (detail.extraction ? ` extraction=${detail.extraction}` : "") +
     (detail.ingredients != null ? ` ingredients=${detail.ingredients}` : "") +
     (detail.resolved != null ? ` resolved=${detail.resolved}` : "") +
@@ -140,14 +146,14 @@ type AttemptResult =
 async function attemptCandidate(index: number, candidate: RecipeDiscoveryCandidate, deps: RecipeDiscoveryFallbackDeps): Promise<AttemptResult> {
   let extracted: ExtractedPreview;
   try {
-    extracted = await previewRecipeImport(deps.prisma, candidate.url, deps.fetchDependencies ?? {}, deps.recipeAiProvider);
+    extracted = await previewRecipeImport(deps.prisma, candidate.url, deps.fetchDependencies ?? {}, deps.recipeAiProvider, deps.dynamic ?? null);
   } catch (error) {
     const code = error instanceof RecipeImportError ? error.publicCode : "unknown";
     if (error instanceof RecipeImportError && RECOVERABLE_CANDIDATE_CODES.has(code)) {
-      logCandidateAttempt(index, candidate.domain, "skip", { fetch: "failed", reason: code });
+      logCandidateAttempt(index, candidate.domain, "skip", { fetch: "failed", reason: code, url: candidate.url });
       return { outcome: "skip" };
     }
-    logCandidateAttempt(index, candidate.domain, "systemic_error", { fetch: "failed", reason: code });
+    logCandidateAttempt(index, candidate.domain, "systemic_error", { fetch: "failed", reason: code, url: candidate.url });
     return { outcome: "systemic_error" };
   }
 
@@ -156,12 +162,13 @@ async function attemptCandidate(index: number, candidate: RecipeDiscoveryCandida
     logCandidateAttempt(index, candidate.domain, "skip", {
       fetch: "ok", extraction: "ok", ingredients: extracted.ingredients.length,
       resolved: nutrition.resolvedCount, nutritionCalculable: false,
-      reason: !extracted.ingredients.length ? "no_usable_ingredients" : "ingredients_incomplete"
+      reason: !extracted.ingredients.length ? "no_usable_ingredients" : "ingredients_incomplete",
+      url: candidate.url
     });
     return { outcome: "skip" };
   }
 
-  logCandidateAttempt(index, candidate.domain, "selected", { fetch: "ok", extraction: "ok", ingredients: extracted.ingredients.length, resolved: nutrition.resolvedCount, nutritionCalculable: true });
+  logCandidateAttempt(index, candidate.domain, "selected", { fetch: "ok", extraction: "ok", ingredients: extracted.ingredients.length, resolved: nutrition.resolvedCount, nutritionCalculable: true, url: candidate.url });
   const importProof = createRecipeImportProof(deps.userId, extracted.sourceUrl, extracted.extractionMethod);
   return { outcome: "selected", candidate: toCandidateShape(extracted, nutrition, importProof) };
 }
