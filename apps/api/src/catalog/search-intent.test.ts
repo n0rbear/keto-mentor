@@ -87,3 +87,53 @@ describe("ChatSearchIntentProvider", () => {
     expect(complete).not.toHaveBeenCalled();
   });
 });
+
+// Owner-beta blocker #8 (2026-09-11): canonical food search normalization is
+// locale-aware, not merely language-aware — a regional tag (e.g. "de-AT")
+// changes the instruction sent to the model and is included in the request
+// context, so region-specific vocabulary (Austrian "Erdapfel" vs standard
+// German "Kartoffel") can be normalized correctly. Deterministic provider
+// stubs throughout — no live Groq call in this file.
+describe("ChatSearchIntentProvider: locale-aware canonical search normalization", () => {
+  it("threads foodLocale into both the request context and the instruction text, and omits it entirely when not supplied", async () => {
+    let capturedInstruction = "";
+    let capturedInput = "";
+    const complete = vi.fn(async (instruction: string, input: string, validate: (v: unknown) => unknown) => {
+      capturedInstruction = instruction;
+      capturedInput = input;
+      return validate(validIntent);
+    });
+    const provider = new ChatSearchIntentProvider(fakeTransport(complete));
+    await provider.generate({ foodQuery: "Erdapfel", foodLocale: "de-AT" });
+    expect(JSON.parse(capturedInput)).toMatchObject({ foodQuery: "Erdapfel", foodLocale: "de-AT" });
+    expect(capturedInstruction).toContain("de-AT");
+    expect(capturedInstruction).not.toBe(SEARCH_INTENT_INSTRUCTION); // locale-specific guidance was actually added
+
+    // No foodLocale supplied -> identical to the pre-existing default instruction (backward compatible).
+    await provider.generate({ foodQuery: "csülök" });
+    expect(capturedInstruction).toBe(SEARCH_INTENT_INSTRUCTION);
+    expect(Object.keys(JSON.parse(capturedInput))).not.toContain("foodLocale");
+  });
+
+  it.each([
+    ["hu-HU", "burgonya"], ["de-DE", "Kartoffel"], ["de-AT", "Erdapfel"], ["de-CH", "Härdöpfel"],
+    ["en-US", "ground beef"], ["en-GB", "minced beef"], ["en-IE", "minced beef"],
+    ["en-CA", "ground beef"], ["en-AU", "capsicum"], ["en-NZ", "capsicum"]
+  ] as const)("deterministic cross-locale normalization for %s %s never lets the phrase's own locale leak into the CANONICAL en-US search term", async (foodLocale, phrase) => {
+    // Deterministic stub standing in for Groq — proves the PIPELINE (not any
+    // live model) correctly carries a distinct canonical en-US term per
+    // locale without conflating regions of the same language.
+    const canonicalByLocale: Record<string, string> = {
+      "hu-HU": "potato", "de-DE": "potato", "de-AT": "potato", "de-CH": "potato",
+      "en-US": "ground beef", "en-GB": "ground beef", "en-IE": "ground beef",
+      "en-CA": "ground beef", "en-AU": "bell pepper", "en-NZ": "bell pepper"
+    };
+    const provider = new ChatSearchIntentProvider(fakeTransport(async (_i, input, validate) => {
+      const parsed = JSON.parse(input);
+      expect(parsed.foodLocale).toBe(foodLocale); // the stub receives the real locale tag, not a collapsed language
+      return validate({ canonicalConcept: canonicalByLocale[foodLocale], searchTerms: [canonicalByLocale[foodLocale]] });
+    }));
+    const result = await provider.generate({ foodQuery: phrase, foodLocale });
+    expect(result?.searchTerms[0]).toBe(canonicalByLocale[foodLocale]);
+  });
+});

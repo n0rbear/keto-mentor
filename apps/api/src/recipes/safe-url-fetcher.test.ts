@@ -27,6 +27,53 @@ describe("recipe URL SSRF policy", () => {
     expect(options).toMatchObject({ servername: "recipes.example", rejectUnauthorized: true });
     const callback = vi.fn(); options.lookup("recipes.example", {}, callback); expect(callback).toHaveBeenCalledWith(null, "93.184.216.34", 4);
   });
+
+  // Regression: owner-beta blocker #4 (2026-09-10). Node's net.connect()
+  // Happy-Eyeballs/dual-stack path (net.js's lookupAndConnectMultiple —
+  // confirmed live on Node 20.20.2, the exact version Render resolves from
+  // this repo's engines.node) invokes a hostname-based custom `lookup`
+  // option with `{all: true}` and expects `callback(err, addresses[])`, NOT
+  // the legacy `callback(err, address, family)` triple. A lookup answering
+  // only the legacy form gets its single address string misread as an
+  // addresses array by Node, which then throws ERR_INVALID_IP_ADDRESS
+  // before ever attempting a connection — every real recipe-URL fetch
+  // failed with SafeFetchError("fetch_failed") as a result, confirmed via a
+  // live reproduction against real recipe sites under Node 20.20.2. Both
+  // calling conventions must resolve to the SAME single already-validated,
+  // pinned address — this is a calling-convention bugfix, never a change to
+  // which address is trusted or connected to.
+  it("answers Node's Happy-Eyeballs {all:true} lookup calling convention with an addresses array, not the legacy single-address form", () => {
+    const options = pinnedRequestOptions(new URL("https://recipes.example/path"), { address: "93.184.216.34", family: 4 });
+    const callback = vi.fn();
+    options.lookup("recipes.example", { all: true } as any, callback as any);
+    expect(callback).toHaveBeenCalledWith(null, [{ address: "93.184.216.34", family: 4 }]);
+    expect(callback).not.toHaveBeenCalledWith(null, "93.184.216.34", expect.anything());
+  });
+
+  it("still answers the legacy calling convention when all is absent/false, unchanged", () => {
+    const options = pinnedRequestOptions(new URL("https://recipes.example/path"), { address: "2606:2800:220:1:248:1893:25c8:1946", family: 6 });
+    const legacyCallback = vi.fn();
+    options.lookup("recipes.example", { all: false } as any, legacyCallback as any);
+    expect(legacyCallback).toHaveBeenCalledWith(null, "2606:2800:220:1:248:1893:25c8:1946", 6);
+  });
+
+  it("supports Node's alternate 2-arg (hostname, callback) lookup invocation form", () => {
+    const options = pinnedRequestOptions(new URL("https://recipes.example/path"), { address: "93.184.216.34", family: 4 });
+    const callback = vi.fn();
+    (options.lookup as any)("recipes.example", callback);
+    expect(callback).toHaveBeenCalledWith(null, "93.184.216.34", 4);
+  });
+
+  it("never returns any address other than the single pre-validated pinned one, in either calling convention", () => {
+    const pinned = { address: "203.0.113.9" /* documentation range — deliberately not a real routable target */, family: 4 as const };
+    const options = pinnedRequestOptions(new URL("https://recipes.example/path"), pinned);
+    const arrayForm = vi.fn(); options.lookup("recipes.example", { all: true } as any, arrayForm as any);
+    const addresses = arrayForm.mock.calls[0][1] as Array<{ address: string }>;
+    expect(addresses).toHaveLength(1);
+    expect(addresses[0].address).toBe(pinned.address);
+    const legacyForm = vi.fn(); options.lookup("recipes.example", {} as any, legacyForm as any);
+    expect(legacyForm).toHaveBeenCalledWith(null, pinned.address, pinned.family);
+  });
   it("re-resolves redirects and rejects a private destination", async () => {
     const resolve = vi.fn(async (hostname: string) => hostname === "safe.example" ? [{ address: "93.184.216.34", family: 4 }] : [{ address: "169.254.169.254", family: 4 }]);
     const request = vi.fn(async () => htmlResponse({ status: 302, headers: { location: "http://metadata.example/latest" } }));

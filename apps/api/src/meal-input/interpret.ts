@@ -2,6 +2,7 @@ import type { PrismaClient } from "@prisma/client";
 import type { FoodUnderstanding, FoodUnderstandingItem, Locale, QuantityClarification } from "@keto-mentor/shared";
 import { parseNaturalFoodQuery, type ParsedNaturalFoodQuery } from "../catalog/natural-food-query.js";
 import { foodNameRepresentations, hasSemanticCoverage, isTrustedLocalMatch, searchFoods } from "../catalog/food-search.js";
+import type { RecipeDiscoveryPreview } from "../recipes/recipe-discovery.js";
 import { DisabledQuantityEstimationProvider, type EstimateMethod, type QuantityEstimationClass, type QuantityEstimationMethodClass, type QuantityEstimationProvider, type VolumeQuantityModel, validateQuantityEstimate } from "./quantity-estimation.js";
 import { normalizeSearch } from "../catalog/normalize.js";
 import { StubAiProvider, type AiProvider, understandFood } from "../ai/provider.js";
@@ -11,6 +12,8 @@ import type { ExternalFoodCandidate, StructuredFoodLookupAdapter } from "../cata
 import { DisabledSearchIntentProvider, type SearchIntentProvider } from "../catalog/search-intent.js";
 import type { CandidateLocalizationProvider } from "../catalog/candidate-localization.js";
 import type { DynamicFoodResolutionRateLimiter } from "../catalog/dynamic-food-rate-limit.js";
+import type { FoodLocale } from "../catalog/food-locale.js";
+import type { SemanticCandidateGateProvider } from "../catalog/semantic-candidate-gate.js";
 
 type SearchablePrisma = Pick<PrismaClient, "food" | "foodAlias"> & Partial<Pick<PrismaClient, "$queryRaw">>;
 type Serving = { id: string; key: string; unit: string; labels: unknown; grams: number; isEstimated: boolean; confidence: number; provenance: unknown };
@@ -68,7 +71,19 @@ export type DynamicResolutionDeps = {
   // never search/matching/trust. Defaulted so existing test fixtures that
   // predate localization keep compiling unchanged.
   locale?: Locale;
+  // Owner-beta blocker #8 (2026-09-11): the user's REGIONAL food-vocabulary
+  // locale (e.g. "de-AT") — see catalog/food-locale.ts. Optional and
+  // independent of `locale` so an existing caller that only wires `locale`
+  // keeps working unchanged; passed straight through to resolveDynamicFood.
+  foodLocale?: FoodLocale;
   localizationProvider?: CandidateLocalizationProvider;
+  // Owner-beta blocker #9 (2026-09-11): see catalog/semantic-candidate-gate.ts
+  // and dynamic-food-resolution.ts — validates a candidate against the
+  // ORIGINAL identity, independent of the (possibly wrong) canonical search
+  // term. Optional in the TYPE only; resolveDynamicFood defaults a missing
+  // provider to DisabledSemanticCandidateGateProvider, which FAILS CLOSED
+  // (rejects every candidate), never silently skips the check.
+  semanticCandidateGateProvider?: SemanticCandidateGateProvider;
 } | null;
 
 export type InterpretResult = {
@@ -102,6 +117,11 @@ export type InterpretResult = {
   // {source, sourceId} to /foods/resolve-external/confirm — never nutrition.
   externalCandidates?: ExternalFoodCandidate[];
   externalCandidatesReason?: "ambiguous" | "possible_duplicate" | "weak_match";
+  // Present only when a composite-dish phrase genuinely exhausted local +
+  // structured-source resolution and web recipe discovery was attempted as a
+  // fallback (see meal-input/recipe-discovery-fallback.ts, called from the
+  // route handler — never set by interpretMealInput itself).
+  recipeDiscovery?: RecipeDiscoveryPreview;
 };
 
 const PREP_KEYWORDS: Record<string, readonly string[]> = {

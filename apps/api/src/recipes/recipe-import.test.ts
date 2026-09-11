@@ -68,6 +68,18 @@ describe("recipe import preview integration", () => {
   it("does not expose upstream details in public errors", async () => {
     await expect(previewRecipeImport(prisma(), "https://example.com", { resolve: async () => { throw new Error("secret internal DNS"); } })).rejects.toEqual(expect.objectContaining({ publicCode: "dns_failure", status: 400 }));
   });
+
+  // Test 13 (required, owner-beta blocker #6): the manual URL-import route
+  // (recipes/router.ts) calls previewRecipeImport with only 4 args — the new
+  // optional `dynamic` 5th parameter must default to null and change nothing
+  // about this existing call shape or its output for every existing caller.
+  it("13 — existing manual recipe import (4-arg call, no dynamic deps) remains fully compatible; externalCandidates additive fields are present but empty for a purely local/unresolved outcome", async () => {
+    const result = await previewRecipeImport(prisma(), "https://example.com/r", fetchDependencies);
+    expect(result.ingredients[0]).toMatchObject({ resolution: "resolved" });
+    expect(result.ingredients[0].externalCandidates).toBeUndefined();
+    expect(result.ingredients[1]).toMatchObject({ resolution: "unresolved" });
+    expect(result.ingredients[1].externalCandidates).toBeUndefined();
+  });
 });
 
 function fetchDependenciesFor(html: string) {

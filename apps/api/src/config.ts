@@ -21,7 +21,10 @@ const envSchema = z.object({
   OPENROUTER_APP_TITLE: z.string().min(1).max(120).optional(),
   GROQ_API_KEY: z.string().min(1).optional(),
   GROQ_MODEL: z.string().min(1).max(160).optional(),
-  GROQ_BASE_URL: z.string().url().max(500).optional()
+  GROQ_BASE_URL: z.string().url().max(500).optional(),
+  WEB_SEARCH_PROVIDER: z.enum(["tavily"]).optional(),
+  TAVILY_API_KEY: z.string().min(1).optional(),
+  TAVILY_BASE_URL: z.string().url().max(500).optional()
 });
 
 // Dashboards like Render can leave an optional var present but blank (e.g. a key

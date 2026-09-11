@@ -159,3 +159,60 @@ describe("localizeCandidateNames", () => {
     expect(result[0].name).toBe(baseCandidate.name);
   });
 });
+
+// Owner-beta blocker #8 (2026-09-11): regional (not just language) display
+// localization — en-GB/en-AU/de-AT/... must NOT be collapsed to their bare
+// language, and en-US (the canonical search locale) skips localization
+// exactly like bare "en" always has, since USDA's own name already IS en-US.
+describe("localizeCandidateNames: regional locale awareness (18, 19)", () => {
+  it("skips the LLM for the canonical en-US locale too — not just bare 'en'", async () => {
+    const localize = vi.fn();
+    const result = await localizeCandidateNames({ id: "fixture", localize }, [baseCandidate], "en-US");
+    expect(localize).not.toHaveBeenCalled();
+    expect(result[0]).toBe(baseCandidate);
+  });
+
+  // Test 18 (required): English regional normalization through the same generic pipeline.
+  it.each([
+    ["en-GB", "Aubergine, raw"], ["en-IE", "Aubergine, raw"], ["en-CA", "Eggplant, raw"],
+    ["en-AU", "Eggplant, raw"], ["en-NZ", "Eggplant, raw"]
+  ] as const)("en-US 'Eggplant, raw' localizes through the SAME generic pipeline for %s -> %s (never short-circuited like en-US)", async (locale, expectedDisplay) => {
+    const localize = vi.fn(async (items, targetLocale) => {
+      expect(targetLocale).toBe(locale); // the real regional tag reaches the provider, never collapsed to "en"
+      return new Map([[items[0].id, expectedDisplay]]);
+    });
+    const eggplant = { ...baseCandidate, name: "Eggplant, raw", originalName: "Eggplant, raw", names: { en: "Eggplant, raw" } };
+    const [result] = await localizeCandidateNames({ id: "fixture", localize }, [eggplant], locale);
+    expect(localize).toHaveBeenCalledOnce();
+    expect(result.names?.[locale]).toBe(expectedDisplay);
+    expect(result.source).toBe("usda_fdc"); // identity untouched
+    expect(result.kcalPer100g).toBe(171); // nutrition untouched
+  });
+
+  // Test 19 (required): German regional normalization through the same generic pipeline.
+  it.each([
+    ["de-DE", "Kartoffel, roh"], ["de-AT", "Erdapfel, roh"], ["de-CH", "Härdöpfel, roh"]
+  ] as const)("USDA 'Potatoes, raw' localizes through the SAME generic pipeline for %s -> %s, never collapsing distinct German regions into one generic form", async (locale, expectedDisplay) => {
+    const localize = vi.fn(async (items, targetLocale) => {
+      expect(targetLocale).toBe(locale);
+      return new Map([[items[0].id, expectedDisplay]]);
+    });
+    const potato = { ...baseCandidate, name: "Potatoes, raw", originalName: "Potatoes, raw", names: { en: "Potatoes, raw" } };
+    const [result] = await localizeCandidateNames({ id: "fixture", localize }, [potato], locale);
+    expect(result.names?.[locale]).toBe(expectedDisplay);
+  });
+
+  // Test 17 (required): authoritative nutrition remains unchanged by localization, across every regional locale.
+  it("authoritative nutrition/source/sourceId are byte-identical before and after regional localization, for every supported locale", async () => {
+    for (const locale of ["hu-HU", "de-DE", "de-AT", "de-CH", "en-GB", "en-IE", "en-CA", "en-AU", "en-NZ"] as const) {
+      const localize = vi.fn(async (items) => new Map([[items[0].id, "some regional display name"]]));
+      const [result] = await localizeCandidateNames({ id: "fixture", localize }, [baseCandidate], locale);
+      expect(result.source).toBe(baseCandidate.source);
+      expect(result.sourceId).toBe(baseCandidate.sourceId);
+      expect(result.kcalPer100g).toBe(baseCandidate.kcalPer100g);
+      expect(result.fatPer100g).toBe(baseCandidate.fatPer100g);
+      expect(result.proteinPer100g).toBe(baseCandidate.proteinPer100g);
+      expect(result.originalName).toBe(baseCandidate.originalName); // authoritative identity name itself never overwritten
+    }
+  });
+});

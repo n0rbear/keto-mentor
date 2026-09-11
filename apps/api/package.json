@@ -24,7 +24,8 @@
     "catalog:benchmark": "tsx src/importers/search-benchmark.ts",
     "eval:food-nlp:live": "tsx src/ai/food-understanding-live-eval.ts",
     "eval:quantity:live": "tsx src/meal-input/quantity-live-eval.ts",
-    "eval:recipe-extraction:live": "tsx src/recipes/recipe-extraction-live-eval.ts"
+    "eval:recipe-extraction:live": "tsx src/recipes/recipe-extraction-live-eval.ts",
+    "eval:recipe-discovery:live": "tsx src/web-knowledge/recipe-discovery-live-eval.ts"
   },
   "dependencies": {
     "@keto-mentor/shared": "file:../../packages/shared",

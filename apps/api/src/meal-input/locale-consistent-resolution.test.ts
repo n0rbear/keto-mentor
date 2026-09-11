@@ -5,6 +5,16 @@ import { DynamicFoodResolutionRateLimiter } from "../catalog/dynamic-food-rate-l
 import { type SearchIntent, type SearchIntentProvider } from "../catalog/search-intent.js";
 import type { CandidateLocalizationProvider } from "../catalog/candidate-localization.js";
 import type { ExternalFoodCandidate, StructuredFoodLookupAdapter } from "../catalog/external-food.js";
+import type { SemanticCandidateGateProvider } from "../catalog/semantic-candidate-gate.js";
+
+// Owner-beta blocker #9 (2026-09-11): resolveAuthoritativeFood now FAILS
+// CLOSED on the semantic candidate gate by default. This file is about
+// locale/display presentation, not the new gate itself — makeDynamic() below
+// defaults every test to a permissive stand-in so their original intent
+// (display localization correctness) is preserved.
+function permissiveSemanticGate(): SemanticCandidateGateProvider {
+  return { id: "permissive-fixture", checkRelevance: async (_original, candidates) => new Map(candidates.map((c) => [c.id, true])) };
+}
 
 /**
  * Proves the mission-critical invariant: the USER'S CONFIGURED APP LANGUAGE
@@ -92,7 +102,7 @@ const porkHockTranslations = { "Pork hock": { hu: "Sertéscsülök", de: "Schwei
 
 function makeDynamic(prisma: any, overrides: Partial<{
   searchIntentProvider: SearchIntentProvider; adapters: StructuredFoodLookupAdapter[]; userId: string;
-  locale: "hu" | "de" | "en"; localizationProvider: CandidateLocalizationProvider;
+  locale: "hu" | "de" | "en"; localizationProvider: CandidateLocalizationProvider; semanticCandidateGateProvider: SemanticCandidateGateProvider;
 }> = {}): DynamicResolutionDeps {
   return {
     prisma,
@@ -101,7 +111,8 @@ function makeDynamic(prisma: any, overrides: Partial<{
     rateLimiter: new DynamicFoodResolutionRateLimiter(),
     userId: overrides.userId ?? "user-1",
     locale: overrides.locale ?? "hu",
-    localizationProvider: overrides.localizationProvider ?? fakeLocalizationProvider(porkHockTranslations)
+    localizationProvider: overrides.localizationProvider ?? fakeLocalizationProvider(porkHockTranslations),
+    semanticCandidateGateProvider: overrides.semanticCandidateGateProvider ?? permissiveSemanticGate()
   };
 }
 

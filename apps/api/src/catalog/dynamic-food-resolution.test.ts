@@ -4,6 +4,7 @@ import { DynamicFoodResolutionRateLimiter } from "./dynamic-food-rate-limit.js";
 import { DisabledSearchIntentProvider, type SearchIntent, type SearchIntentProvider } from "./search-intent.js";
 import type { ExternalFoodCandidate } from "./external-food.js";
 import type { CandidateLocalizationProvider } from "./candidate-localization.js";
+import type { SemanticCandidateGateProvider } from "./semantic-candidate-gate.js";
 
 // Mirrors real production wiring (server.ts always configures a real
 // candidateLocalizationProvider): resolveAuthoritativeFood's auto-resolve
@@ -73,6 +74,17 @@ function stubSearchIntent(intent: SearchIntent | null): SearchIntentProvider {
   return { id: "stub", generate: async () => intent };
 }
 
+// Owner-beta blocker #9 (2026-09-11): resolveAuthoritativeFood now FAILS
+// CLOSED on the semantic candidate gate by default (DisabledSemanticCandidateGateProvider
+// rejects every candidate). Every test in this file below that is NOT
+// specifically about the gate itself (see semantic-candidate-gate.test.ts and
+// dynamic-food-resolution.test.ts's own dedicated describe block further
+// down) needs a permissive stand-in so its ORIGINAL intent (unrelated to
+// this checkpoint) keeps being exercised unchanged.
+function permissiveSemanticGate(): SemanticCandidateGateProvider {
+  return { id: "permissive-fixture", checkRelevance: async (_original, candidates) => new Map(candidates.map((c) => [c.id, true])) };
+}
+
 describe("resolveDynamicFood: bounded local-miss fallback", () => {
   it("no adapters configured -> unresolved(no_adapters), never calls search-intent or rate limiter", async () => {
     const { prisma } = fakePrisma();
@@ -111,7 +123,8 @@ describe("resolveDynamicFood: bounded local-miss fallback", () => {
       searchIntentProvider: stubSearchIntent({ canonicalConcept: "pork hock", searchTerms: ["pork hock", "pork knuckle"] }),
       adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup }],
       rateLimiter: new DynamicFoodResolutionRateLimiter(),
-      userId: "user-1"
+      userId: "user-1",
+      semanticCandidateGateProvider: permissiveSemanticGate()
     });
     expect(lookup).toHaveBeenCalledOnce();
     expect(lookup).toHaveBeenCalledWith("pork hock");
@@ -125,7 +138,8 @@ describe("resolveDynamicFood: bounded local-miss fallback", () => {
       searchIntentProvider: new DisabledSearchIntentProvider(),
       adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup }],
       rateLimiter: new DynamicFoodResolutionRateLimiter(),
-      userId: "user-1"
+      userId: "user-1",
+      semanticCandidateGateProvider: permissiveSemanticGate()
     });
     expect(lookup).toHaveBeenCalledWith("csülök");
     expect(result).toMatchObject({ status: "resolved", via: "raw_query" });
@@ -138,7 +152,8 @@ describe("resolveDynamicFood: bounded local-miss fallback", () => {
       searchIntentProvider: stubSearchIntent({ canonicalConcept: "pork hock", searchTerms: ["pork hock"] }),
       adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup }],
       rateLimiter: new DynamicFoodResolutionRateLimiter(),
-      userId: "user-1"
+      userId: "user-1",
+      semanticCandidateGateProvider: permissiveSemanticGate()
     });
     expect(lookup).toHaveBeenCalledOnce();
   });
@@ -149,7 +164,8 @@ describe("resolveDynamicFood: bounded local-miss fallback", () => {
       searchIntentProvider: stubSearchIntent({ canonicalConcept: "pork hock", searchTerms: ["pork hock"] }),
       adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [pork({ confidence: 0.96 }), pork({ sourceId: "172153", name: "Pork, cured, hock", normalizedName: "pork hock cured", confidence: 0.9 })] }],
       rateLimiter: new DynamicFoodResolutionRateLimiter(),
-      userId: "user-1"
+      userId: "user-1",
+      semanticCandidateGateProvider: permissiveSemanticGate()
     });
     expect(result).toMatchObject({ status: "confirmation_required", reason: "ambiguous" });
     expect((result as any).candidates).toHaveLength(2);
@@ -192,7 +208,8 @@ describe("resolveDynamicFood: persist once, reuse forever", () => {
     const adapters = [{ source: "usda_fdc" as const, sourceName: "USDA", lookup: async () => { externalCalls += 1; return [pork({ name: "Pork hock", originalName: "Pork hock" })]; } }];
     const deps = {
       searchIntentProvider: stubSearchIntent({ canonicalConcept: "pork hock", searchTerms: ["pork hock"] }),
-      adapters, rateLimiter: new DynamicFoodResolutionRateLimiter(), userId: "user-1"
+      adapters, rateLimiter: new DynamicFoodResolutionRateLimiter(), userId: "user-1",
+      semanticCandidateGateProvider: permissiveSemanticGate()
     };
 
     const first = await resolveDynamicFood(prisma, { foodQuery: "csülök" }, deps);
@@ -218,7 +235,8 @@ describe("resolveDynamicFood: persist once, reuse forever", () => {
     await resolveDynamicFood(prisma, { foodQuery: "csülök" }, {
       searchIntentProvider: stubSearchIntent({ canonicalConcept: "pork hock", searchTerms: ["pork hock"], sourceLanguage: "hu" }),
       adapters, rateLimiter: new DynamicFoodResolutionRateLimiter(), userId: "user-1",
-      locale: "hu", localizationProvider: fakeLocalizationProvider("Csülök")
+      locale: "hu", localizationProvider: fakeLocalizationProvider("Csülök"),
+      semanticCandidateGateProvider: permissiveSemanticGate()
     });
     expect(aliases).toContainEqual(expect.objectContaining({ normalizedAlias: "csulok", locale: "hu", kind: "dynamic_search" }));
 
@@ -255,11 +273,17 @@ describe("resolveDynamicFood: persist once, reuse forever", () => {
     // candidate's own name — resolveAuthoritativeFood's existing auto-resolve
     // logic (unchanged by this fix) legitimately persists it, since from its
     // own point of view the search term WAS an exact, high-confidence match.
+    // A permissive gate here is deliberate: this test's own purpose is the
+    // SEPARATE alias-learning gate (hasSemanticCoverage) — it needs the
+    // upstream mis-resolution to still succeed so that gate is what's
+    // actually being exercised, unaffected by owner-beta blocker #9's new
+    // upstream candidate gate (which gets its own dedicated tests).
     await resolveDynamicFood(prisma, { foodQuery: "gefüllte Kohlrouladen" }, {
       searchIntentProvider: stubSearchIntent({ canonicalConcept: "bok choy", searchTerms: ["cabbage, bok choy, raw"], sourceLanguage: "de" }),
       adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [bokChoy] }],
       rateLimiter: new DynamicFoodResolutionRateLimiter(), userId: "user-1",
-      locale: "de", localizationProvider: fakeLocalizationProvider("Pak Choi")
+      locale: "de", localizationProvider: fakeLocalizationProvider("Pak Choi"),
+      semanticCandidateGateProvider: permissiveSemanticGate()
     });
     expect(foods).toHaveLength(1); // the (mis-)resolution itself is unchanged by this fix
     expect(aliases).toEqual([]); // but the raw phrase must never be memorized for it

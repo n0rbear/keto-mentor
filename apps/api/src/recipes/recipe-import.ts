@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@prisma/client";
-import { interpretMealInput } from "../meal-input/interpret.js";
+import { interpretMealInput, type DynamicResolutionDeps } from "../meal-input/interpret.js";
 import { AiProviderError } from "../ai/chat-completions-provider.js";
 import { fetchPublicHtml, SafeFetchError, type SafeFetcherDependencies } from "./safe-url-fetcher.js";
 import { RECIPE_IMPORT_LIMITS as LIMITS } from "./recipe-import-limits.js";
@@ -180,7 +180,8 @@ export async function previewRecipeImport(
   prisma: Pick<PrismaClient, "food" | "foodAlias"> & Partial<Pick<PrismaClient, "$queryRaw">>,
   url: string,
   fetchDependencies: SafeFetcherDependencies = {},
-  aiProvider: RecipeExtractionProvider = new DisabledRecipeExtractionProvider()
+  aiProvider: RecipeExtractionProvider = new DisabledRecipeExtractionProvider(),
+  dynamic: DynamicResolutionDeps = null
 ) {
   try {
     const page = await fetchPublicHtml(url, fetchDependencies);
@@ -192,7 +193,7 @@ export async function previewRecipeImport(
       extracted = await extractRecipeWithAi(aiProvider, page.html, page.finalUrl);
     }
     const ingredients = await mapWithConcurrency(extracted.ingredients, INGREDIENT_RESOLUTION_CONCURRENCY, async (originalText) => {
-      const resolution = await interpretMealInput(prisma, originalText);
+      const resolution = await interpretMealInput(prisma, originalText, undefined, undefined, dynamic);
       return {
         originalText,
         parsedQuantity: resolution.parsed.quantity,
@@ -203,7 +204,15 @@ export async function previewRecipeImport(
         selectedFood: resolution.selectedFood,
         candidates: resolution.candidates,
         quantity: resolution.quantity,
-        canConfirm: resolution.canConfirm
+        canConfirm: resolution.canConfirm,
+        // Additive (owner-beta blocker #6, 2026-09-11) — the same
+        // externalCandidates/externalCandidatesReason interpretMealInput
+        // already produces for a dynamic confirmation_required outcome,
+        // carried through so a caller can build a RecipeIngredientReview
+        // (recipe-ingredient-review.ts) without a second USDA confirmation
+        // protocol. Existing fields above are all unchanged.
+        externalCandidates: resolution.externalCandidates,
+        externalCandidatesReason: resolution.externalCandidatesReason
       };
     });
     return { ...extracted, ingredients };
