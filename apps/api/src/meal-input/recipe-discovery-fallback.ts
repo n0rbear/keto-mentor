@@ -6,8 +6,8 @@ import { createRecipeImportProof } from "../recipes/import-proof.js";
 import type { RecipeExtractionProvider } from "../recipes/recipe-extraction-provider.js";
 import { RecipeDiscoveryService, type RecipeDiscoveryCandidate, type RecipeDiscoveryPreview } from "../recipes/recipe-discovery.js";
 import { domainOf } from "../web-knowledge/web-knowledge-search-provider.js";
-import { addMacros, emptyMacros, scaleMacros, type MacroTotals } from "../nutrition-core.js";
 import type { SafeFetcherDependencies } from "../recipes/safe-url-fetcher.js";
+import { classifyRecipeReview, computeTrustedNutrition, toIngredientReview, type RecipeIngredientReview, type RecipeReviewSummary, type ReviewableIngredient } from "../recipes/recipe-ingredient-review.js";
 
 export type RecipeDiscoveryFallbackDeps = {
   discoveryService: RecipeDiscoveryService;
@@ -26,8 +26,6 @@ export type RecipeDiscoveryFallbackDeps = {
 };
 
 type ExtractedPreview = Awaited<ReturnType<typeof previewRecipeImport>>;
-type PreviewIngredient = ExtractedPreview["ingredients"][number];
-type FoodWithMacros = { kcalPer100g: number; fatPer100g: number; proteinPer100g: number; carbsPer100g: number; fiberPer100g: number };
 
 // A hard cap independent of (but currently matching) RecipeDiscoveryService's
 // own MAX_CANDIDATES_RETURNED — kept as its own named constant here so this
@@ -64,52 +62,22 @@ function logCandidateSetOutcome(candidateCount: number) {
   console.log(`recipe_discovery candidates=${candidateCount}`);
 }
 
-function logCandidateAttempt(index: number, domain: string, outcome: "skip" | "selected" | "systemic_error", detail: { fetch: "ok" | "failed"; extraction?: "ok" | "failed"; ingredients?: number; resolved?: number; nutritionCalculable?: boolean; reason?: string; url?: string }) {
+function logCandidateAttempt(index: number, domain: string, outcome: "unusable" | "fully_resolved" | "reviewable" | "systemic_error", detail: { fetch: "ok" | "failed"; extraction?: "ok" | "failed"; ingredients?: number; resolved?: number; confirmationRequired?: number; unresolved?: number; reason?: string; url?: string }) {
   console.log(
     `candidate_attempt index=${index} domain=${domain} fetch=${detail.fetch}` +
     (detail.url ? ` url=${detail.url}` : "") +
     (detail.extraction ? ` extraction=${detail.extraction}` : "") +
     (detail.ingredients != null ? ` ingredients=${detail.ingredients}` : "") +
     (detail.resolved != null ? ` resolved=${detail.resolved}` : "") +
-    (detail.nutritionCalculable != null ? ` nutrition_calculable=${detail.nutritionCalculable}` : "") +
+    (detail.confirmationRequired != null ? ` confirmation_required=${detail.confirmationRequired}` : "") +
+    (detail.unresolved != null ? ` unresolved=${detail.unresolved}` : "") +
     ` outcome=${outcome}` +
     (detail.reason ? ` reason=${detail.reason}` : "")
   );
 }
 
-/**
- * Computes recipe nutrition the same way calculateRecipeNutrition does
- * (Σ ingredient grams/100 × trusted Food macros) directly from a PREVIEW's
- * already-resolved ingredients, without ever persisting a Recipe row first.
- * Deliberately refuses to produce a number at all unless EVERY ingredient
- * resolved to a real trusted Food with a resolved gram quantity — a partial
- * result is reported as unresolved/incomplete (resolvedCount/unresolvedCount),
- * never silently scaled from a subset. Never reads webpage-claimed nutrition.
- */
-function computePreviewNutrition(ingredients: readonly PreviewIngredient[]) {
-  if (!ingredients.length) return { calculable: false, resolvedCount: 0, unresolvedCount: 0, macros: null as MacroTotals | null, weightGrams: null as number | null };
-  let resolvedCount = 0;
-  let totals = emptyMacros();
-  let weightGrams = 0;
-  for (const ingredient of ingredients) {
-    const food = ingredient.selectedFood as unknown as FoodWithMacros | null;
-    const grams = ingredient.quantity?.status === "resolved" ? ingredient.quantity.grams : undefined;
-    if (!food || typeof grams !== "number") continue;
-    resolvedCount += 1;
-    weightGrams += grams;
-    totals = addMacros(totals, scaleMacros({ kcal: food.kcalPer100g, fat: food.fatPer100g, protein: food.proteinPer100g, carbs: food.carbsPer100g, fiber: food.fiberPer100g }, grams / 100));
-  }
-  const calculable = resolvedCount === ingredients.length && weightGrams > 0;
-  return {
-    calculable,
-    resolvedCount,
-    unresolvedCount: ingredients.length - resolvedCount,
-    macros: calculable ? scaleMacros(totals, 100 / weightGrams) : null,
-    weightGrams: weightGrams || null
-  };
-}
-
-function toCandidateShape(extracted: ExtractedPreview, nutrition: ReturnType<typeof computePreviewNutrition>, importProof: string): NonNullable<RecipeDiscoveryPreview["candidate"]> {
+function toCandidateShape(extracted: ExtractedPreview, reviews: readonly RecipeIngredientReview[], summary: RecipeReviewSummary, importProof: string): NonNullable<RecipeDiscoveryPreview["candidate"]> {
+  const trusted = computeTrustedNutrition(reviews);
   return {
     title: extracted.title,
     sourceUrl: extracted.sourceUrl,
@@ -117,31 +85,43 @@ function toCandidateShape(extracted: ExtractedPreview, nutrition: ReturnType<typ
     servings: extracted.servings,
     extractionMethod: extracted.extractionMethod,
     ingredientCount: extracted.ingredients.length,
-    resolvedIngredientCount: nutrition.resolvedCount,
-    unresolvedIngredientCount: nutrition.unresolvedCount,
+    resolvedIngredientCount: summary.trustedNutritionReadyCount,
+    unresolvedIngredientCount: summary.unresolvedCount,
+    confirmationRequiredIngredientCount: summary.confirmationRequiredCount,
     ingredientSummary: extracted.ingredients.map((ingredient) => ingredient.originalText).slice(0, 50),
-    nutritionPer100g: nutrition.macros,
-    nutritionCalculable: nutrition.calculable,
-    ingredientWeightGrams: nutrition.weightGrams,
+    nutritionPer100g: trusted.macros,
+    nutritionCalculable: trusted.calculable,
+    ingredientWeightGrams: trusted.weightGrams,
+    recipeState: summary.state === "fully_resolved" ? "fully_resolved" : "reviewable",
+    ingredients: reviews,
     importProof
   };
 }
 
 type AttemptResult =
-  | { outcome: "selected"; candidate: NonNullable<RecipeDiscoveryPreview["candidate"]> }
-  | { outcome: "skip" }
+  | { outcome: "fully_resolved"; candidate: NonNullable<RecipeDiscoveryPreview["candidate"]> }
+  | { outcome: "reviewable"; candidate: NonNullable<RecipeDiscoveryPreview["candidate"]>; summary: RecipeReviewSummary }
+  | { outcome: "unusable" }
   | { outcome: "systemic_error" };
 
 /**
  * One candidate's full suitability pipeline: safe fetch -> extraction ->
  * (inside previewRecipeImport) ingredient resolution against the REAL
- * trusted Food/dynamic-resolution pipeline -> nutrition-calculability check.
- * Accepts (stops the caller's loop on) a candidate only when extraction
- * succeeded AND every ingredient resolved to a trusted Food + gram quantity
- * — the same strict, never-fabricate-nutrition bar already enforced
- * elsewhere. A candidate that extracts but resolves only partially is
- * "skip" (owner-beta blocker #5, 2026-09-10: prefer trying the next
- * independently-sourced candidate over surfacing a known-incomplete one).
+ * trusted Food/dynamic-resolution pipeline -> deterministic review
+ * classification (recipe-ingredient-review.ts, owner-beta blocker #6). A
+ * candidate is:
+ *  - "fully_resolved" when EVERY ingredient reached trusted nutrition —
+ *    the caller stops immediately, this is the best possible outcome;
+ *  - "reviewable" when extraction succeeded and at least one ingredient has
+ *    something a human can act on (resolved or confirmation_required) —
+ *    the caller remembers it but keeps trying the remaining bounded
+ *    candidates in case a fully_resolved one turns up;
+ *  - "unusable" when extraction failed for a page-level reason, or every
+ *    single ingredient is a dead end — try the next candidate exactly as
+ *    before (owner-beta blocker #5).
+ * A candidate is never discarded merely because some ingredients are
+ * confirmation_required (owner-beta blocker #6) — that was the prior
+ * checkpoint's over-eager "skip" behavior, now replaced.
  */
 async function attemptCandidate(index: number, candidate: RecipeDiscoveryCandidate, deps: RecipeDiscoveryFallbackDeps): Promise<AttemptResult> {
   let extracted: ExtractedPreview;
@@ -150,27 +130,56 @@ async function attemptCandidate(index: number, candidate: RecipeDiscoveryCandida
   } catch (error) {
     const code = error instanceof RecipeImportError ? error.publicCode : "unknown";
     if (error instanceof RecipeImportError && RECOVERABLE_CANDIDATE_CODES.has(code)) {
-      logCandidateAttempt(index, candidate.domain, "skip", { fetch: "failed", reason: code, url: candidate.url });
-      return { outcome: "skip" };
+      logCandidateAttempt(index, candidate.domain, "unusable", { fetch: "failed", reason: code, url: candidate.url });
+      return { outcome: "unusable" };
     }
     logCandidateAttempt(index, candidate.domain, "systemic_error", { fetch: "failed", reason: code, url: candidate.url });
     return { outcome: "systemic_error" };
   }
 
-  const nutrition = computePreviewNutrition(extracted.ingredients);
-  if (!extracted.ingredients.length || !nutrition.calculable) {
-    logCandidateAttempt(index, candidate.domain, "skip", {
-      fetch: "ok", extraction: "ok", ingredients: extracted.ingredients.length,
-      resolved: nutrition.resolvedCount, nutritionCalculable: false,
-      reason: !extracted.ingredients.length ? "no_usable_ingredients" : "ingredients_incomplete",
+  // selectedFood at runtime is always a real Food row (macros included) —
+  // ResolvedFood's own TS type is intentionally looser (see interpret.ts),
+  // matching the same safe-cast pattern the prior checkpoint's
+  // computePreviewNutrition already used here.
+  const reviews = extracted.ingredients.map((ingredient) => toIngredientReview(ingredient as unknown as ReviewableIngredient));
+  const summary = classifyRecipeReview(reviews);
+
+  if (summary.state === "unusable") {
+    logCandidateAttempt(index, candidate.domain, "unusable", {
+      fetch: "ok", extraction: "ok", ingredients: reviews.length,
+      resolved: summary.resolvedCount, confirmationRequired: summary.confirmationRequiredCount, unresolved: summary.unresolvedCount,
+      reason: !reviews.length ? "no_usable_ingredients" : "no_meaningful_candidates",
       url: candidate.url
     });
-    return { outcome: "skip" };
+    return { outcome: "unusable" };
   }
 
-  logCandidateAttempt(index, candidate.domain, "selected", { fetch: "ok", extraction: "ok", ingredients: extracted.ingredients.length, resolved: nutrition.resolvedCount, nutritionCalculable: true, url: candidate.url });
   const importProof = createRecipeImportProof(deps.userId, extracted.sourceUrl, extracted.extractionMethod);
-  return { outcome: "selected", candidate: toCandidateShape(extracted, nutrition, importProof) };
+  const shaped = toCandidateShape(extracted, reviews, summary, importProof);
+
+  if (summary.state === "fully_resolved") {
+    logCandidateAttempt(index, candidate.domain, "fully_resolved", { fetch: "ok", extraction: "ok", ingredients: reviews.length, resolved: summary.resolvedCount, url: candidate.url });
+    return { outcome: "fully_resolved", candidate: shaped };
+  }
+
+  logCandidateAttempt(index, candidate.domain, "reviewable", {
+    fetch: "ok", extraction: "ok", ingredients: reviews.length,
+    resolved: summary.resolvedCount, confirmationRequired: summary.confirmationRequiredCount, unresolved: summary.unresolvedCount,
+    url: candidate.url
+  });
+  return { outcome: "reviewable", candidate: shaped, summary };
+}
+
+/**
+ * Deterministic "best REVIEWABLE candidate" tiebreak (owner-beta blocker #6)
+ * — no AI call, no re-fetch. Fewest dead-end (unresolved) ingredients wins
+ * first; ties broken by the most already-trusted ingredients; a further tie
+ * keeps whichever was attempted first (stable — candidates are scanned in
+ * the bounded set's own relevance order).
+ */
+function isBetterReviewable(a: RecipeReviewSummary, b: RecipeReviewSummary): boolean {
+  if (a.unresolvedCount !== b.unresolvedCount) return a.unresolvedCount < b.unresolvedCount;
+  return a.trustedNutritionReadyCount > b.trustedNutritionReadyCount;
 }
 
 /**
@@ -228,10 +237,11 @@ export async function attachRecipeDiscoveryFallback(result: InterpretResult, dep
   const attempted = discovery.candidates.slice(0, MAX_CANDIDATE_ATTEMPTS);
   let attemptsMade = 0;
   let sawSystemicError = false;
+  let bestReviewable: { candidate: NonNullable<RecipeDiscoveryPreview["candidate"]>; summary: RecipeReviewSummary } | null = null;
   for (const candidate of attempted) {
     attemptsMade += 1;
     const attempt = await attemptCandidate(attemptsMade, candidate, deps);
-    if (attempt.outcome === "selected") {
+    if (attempt.outcome === "fully_resolved") {
       const preview: RecipeDiscoveryPreview = {
         status: "confirmation_required",
         searchAttempted: true,
@@ -242,7 +252,27 @@ export async function attachRecipeDiscoveryFallback(result: InterpretResult, dep
       };
       return { ...result, recipeDiscovery: preview };
     }
+    if (attempt.outcome === "reviewable" && (!bestReviewable || isBetterReviewable(attempt.summary, bestReviewable.summary))) {
+      bestReviewable = { candidate: attempt.candidate, summary: attempt.summary };
+    }
     if (attempt.outcome === "systemic_error") { sawSystemicError = true; break; } // stop trying — see RECOVERABLE_CANDIDATE_CODES comment above
+  }
+
+  // No candidate reached fully_resolved within the bounded attempts — surface
+  // the best REVIEWABLE one found (owner-beta blocker #6: a legitimate
+  // recipe with safe, meaningful USDA/local candidates must never be thrown
+  // away merely because human confirmation is required), rather than only
+  // ever returning a candidate when every ingredient auto-resolved.
+  if (bestReviewable) {
+    const preview: RecipeDiscoveryPreview = {
+      status: "confirmation_required",
+      searchAttempted: true,
+      resultCount: discovery.resultCount,
+      candidatesAfterRelevanceFilter: discovery.candidatesAfterRelevanceFilter,
+      candidatesAttempted: attemptsMade,
+      candidate: bestReviewable.candidate
+    };
+    return { ...result, recipeDiscovery: preview };
   }
 
   const preview: RecipeDiscoveryPreview = {

@@ -339,3 +339,82 @@ describe("attachRecipeDiscoveryFallback: bounded candidate fallback (1-16)", () 
     expect(withDiscovery.recipeDiscovery?.candidate?.importProof).toEqual(expect.any(String));
   });
 });
+
+// Owner-beta blocker #6 (2026-09-11): a candidate is no longer discarded
+// merely because some ingredients are confirmation_required — it is
+// REVIEWABLE as long as at least one ingredient has something a human can
+// act on. FULLY_RESOLVED still wins whenever one is found; otherwise the
+// best REVIEWABLE candidate (fewest dead-end ingredients) is returned.
+describe("attachRecipeDiscoveryFallback: FULLY_RESOLVED vs REVIEWABLE candidate policy (6, 7, 8)", () => {
+  const cabbageFood = { id: "cabbage", name: "Cabbage", originalName: "Cabbage", names: {}, searchText: "cabbage", source: "bls", sourceId: "1", servings: [], kcalPer100g: 25, fatPer100g: 0.1, proteinPer100g: 1.3, carbsPer100g: 5.8, fiberPer100g: 2.5 };
+  function cabbagePrisma() {
+    return { foodAlias: { findMany: async () => [] }, food: { findMany: async ({ where }: any) => where.OR.some((c: any) => "cabbage".includes(c.searchText.contains)) ? [cabbageFood] : [] } } as any;
+  }
+  const goodSchemaOrgHtml = `<html><script type="application/ld+json">${JSON.stringify({ "@type": "Recipe", name: "Töltött káposzta", recipeYield: "4 servings", recipeIngredient: ["500 g cabbage"], recipeInstructions: ["Cook."] })}</script></html>`;
+  // One trusted-resolvable ingredient (cabbage) plus N genuinely dead-end
+  // ones (no local match, no dynamic deps wired in these tests) — this
+  // mixture is REVIEWABLE (not all trusted, not all dead ends).
+  const partiallyReviewableHtml = (...deadEndIngredients: string[]) => `<html><script type="application/ld+json">${JSON.stringify({ "@type": "Recipe", name: "Töltött káposzta", recipeYield: "4 servings", recipeIngredient: ["500 g cabbage", ...deadEndIngredients], recipeInstructions: ["Cook."] })}</script></html>`;
+  const allDeadEndHtml = `<html><script type="application/ld+json">${JSON.stringify({ "@type": "Recipe", name: "Töltött káposzta", recipeIngredient: ["1 completely unknown mystery ingredient"], recipeInstructions: ["Cook."] })}</script></html>`;
+
+  const candidates3 = [
+    { url: "https://one.example.com/r", title: "Töltött káposzta recept", domain: "one.example.com" },
+    { url: "https://two.example.com/r", title: "Töltött káposzta recept", domain: "two.example.com" },
+    { url: "https://three.example.com/r", title: "Töltött káposzta recept", domain: "three.example.com" }
+  ];
+
+  function multiCandidateFetch(byHost: Record<string, { html?: string }>) {
+    const request = vi.fn(async (url: URL) => ({ status: 200, headers: { "content-type": "text/html" }, body: Buffer.from(byHost[url.hostname]?.html ?? "<html></html>") }));
+    const resolve = vi.fn(async () => [{ address: "93.184.216.34", family: 4 }]);
+    return { resolve, request };
+  }
+
+  async function runDiscovery(candidateList: typeof candidates3, extra: Partial<ReturnType<typeof discoveryDeps>> = {}) {
+    const provider = fakeSearchProvider(candidateList);
+    const result = await interpretMealInput(emptyPrisma(), "töltött káposzta", undefined, fakeAiProvider(compoundDishOnly));
+    return attachRecipeDiscoveryFallback(result, { ...discoveryDeps(provider), ...extra });
+  }
+
+  it("6 — a fully_resolved candidate beats an earlier REVIEWABLE one", async () => {
+    const fetchDependencies = multiCandidateFetch({
+      "one.example.com": { html: partiallyReviewableHtml("1 completely unknown mystery ingredient") }, // reviewable: 1 resolved + 1 dead end
+      "two.example.com": { html: goodSchemaOrgHtml } // fully resolved
+    });
+    const withDiscovery = await runDiscovery(candidates3, { prisma: cabbagePrisma(), fetchDependencies });
+    expect(withDiscovery.recipeDiscovery).toMatchObject({ status: "confirmation_required", candidatesAttempted: 2, candidate: { domain: "two.example.com", recipeState: "fully_resolved", nutritionCalculable: true } });
+  });
+
+  it("7 — when no fully_resolved candidate exists, the best REVIEWABLE one (fewest dead-end ingredients) is returned, even though it was attempted second", async () => {
+    const fetchDependencies = multiCandidateFetch({
+      "one.example.com": { html: partiallyReviewableHtml("1 unknown thing A", "1 unknown thing B") }, // reviewable: 2 dead ends
+      "two.example.com": { html: partiallyReviewableHtml("1 unknown thing C") } // reviewable: 1 dead end — strictly better
+    });
+    const withDiscovery = await runDiscovery(candidates3.slice(0, 2), { prisma: cabbagePrisma(), fetchDependencies });
+    expect(withDiscovery.recipeDiscovery).toMatchObject({
+      status: "confirmation_required", candidatesAttempted: 2,
+      candidate: { domain: "two.example.com", recipeState: "reviewable", unresolvedIngredientCount: 1, nutritionCalculable: false }
+    });
+    // Never silently reports the SECOND-best (one.example.com) instead.
+    expect(withDiscovery.recipeDiscovery?.candidate?.domain).not.toBe("one.example.com");
+  });
+
+  it("8 — a garbage/unrelated candidate (every ingredient a dead end) is never made reviewable — bounded fallback safely reports unresolved", async () => {
+    const fetchDependencies = multiCandidateFetch({ "one.example.com": { html: allDeadEndHtml }, "two.example.com": { html: allDeadEndHtml } });
+    const withDiscovery = await runDiscovery(candidates3, { fetchDependencies });
+    expect(withDiscovery.recipeDiscovery).toMatchObject({ status: "unresolved", reason: "no_fully_resolvable_candidate", candidatesAttempted: 3 });
+    expect(withDiscovery.recipeDiscovery?.candidate).toBeUndefined();
+  });
+
+  it("a REVIEWABLE candidate's ingredients array exposes the real per-ingredient review contract, with counts matching the summary", async () => {
+    const fetchDependencies = multiCandidateFetch({ "one.example.com": { html: partiallyReviewableHtml("1 completely unknown mystery ingredient") } });
+    const withDiscovery = await runDiscovery(candidates3, { prisma: cabbagePrisma(), fetchDependencies });
+    const candidate = withDiscovery.recipeDiscovery?.candidate;
+    expect(candidate?.recipeState).toBe("reviewable");
+    expect(candidate?.ingredients).toHaveLength(2);
+    expect(candidate?.ingredients.map((i) => i.status).sort()).toEqual(["resolved", "unresolved"]);
+    expect(candidate?.ingredients.find((i) => i.status === "resolved")?.trustedNutritionReady).toBe(true);
+    expect(candidate?.resolvedIngredientCount).toBe(1);
+    expect(candidate?.unresolvedIngredientCount).toBe(1);
+    expect(candidate?.confirmationRequiredIngredientCount).toBe(0);
+  });
+});

@@ -204,7 +204,15 @@ export async function previewRecipeImport(
         selectedFood: resolution.selectedFood,
         candidates: resolution.candidates,
         quantity: resolution.quantity,
-        canConfirm: resolution.canConfirm
+        canConfirm: resolution.canConfirm,
+        // Additive (owner-beta blocker #6, 2026-09-11) — the same
+        // externalCandidates/externalCandidatesReason interpretMealInput
+        // already produces for a dynamic confirmation_required outcome,
+        // carried through so a caller can build a RecipeIngredientReview
+        // (recipe-ingredient-review.ts) without a second USDA confirmation
+        // protocol. Existing fields above are all unchanged.
+        externalCandidates: resolution.externalCandidates,
+        externalCandidatesReason: resolution.externalCandidatesReason
       };
     });
     return { ...extracted, ingredients };

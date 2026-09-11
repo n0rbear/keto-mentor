@@ -5,6 +5,7 @@ import type { WebKnowledgeSearchProvider } from "../web-knowledge/web-knowledge-
 import type { NegativeSearchCache } from "../web-knowledge/negative-search-cache.js";
 import type { WebKnowledgeSearchRateLimiter } from "../web-knowledge/web-knowledge-rate-limit.js";
 import type { MacroTotals } from "../nutrition-core.js";
+import type { RecipeIngredientReview } from "./recipe-ingredient-review.js";
 
 /**
  * The bounded, safe-to-serialize shape attached to a meal-input result when
@@ -30,12 +31,31 @@ export type RecipeDiscoveryPreview = {
     servings?: number;
     extractionMethod: "schema_org_json_ld" | "ai_structured";
     ingredientCount: number;
+    // Owner-beta blocker #6 (2026-09-11): counts now use the FIXED trusted-
+    // nutrition gate — resolvedIngredientCount only counts an ingredient
+    // whose identity itself reached "resolved" (never a merely-previewed
+    // confirmation_required candidate, even one with a resolved gram
+    // quantity — see recipe-ingredient-review.ts).
     resolvedIngredientCount: number;
+    confirmationRequiredIngredientCount: number;
     unresolvedIngredientCount: number;
     ingredientSummary: string[];
+    // FINAL/TRUSTED nutrition only (computeTrustedNutrition) — null/false
+    // whenever recipeState !== "fully_resolved". Never a partial estimate.
     nutritionPer100g: MacroTotals | null;
     nutritionCalculable: boolean;
     ingredientWeightGrams: number | null;
+    // "fully_resolved": every ingredient already trusted, ready for final
+    // nutrition. "reviewable": extraction succeeded and at least one
+    // ingredient has something a human can act on (resolved or
+    // confirmation_required) — the recipe is preserved for review instead of
+    // being thrown away merely because full auto-resolution didn't happen.
+    recipeState: "fully_resolved" | "reviewable";
+    // The full per-ingredient review contract — see recipe-ingredient-
+    // review.ts. Carries only already-trusted catalog data and the existing
+    // ExternalFoodCandidate shape confirmable via POST /foods/resolve-
+    // external/confirm — never arbitrary webpage/AI-supplied nutrition.
+    ingredients: readonly RecipeIngredientReview[];
     /** Same import-proof mechanism the manual URL-import flow already uses — hand this straight to POST /recipes to persist, unchanged. */
     importProof: string;
   };
