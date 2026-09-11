@@ -10,6 +10,12 @@ export type ParsedNaturalFoodQuery = {
   fill?: "heaped";
   foodQuery: string;
   preparation?: string;
+  // The retailer/store the food was bought at (e.g. "Lidl"), stripped out of
+  // foodQuery so it never pollutes generic-identity search — see the
+  // RETAIL_CHAINS comment below. Kept separately (not discarded) since it is
+  // real user-stated information a future packaged-product lookup could use;
+  // never part of the identity search itself.
+  retailChain?: string;
   items?: ParsedNaturalFoodQuery[];
 };
 
@@ -72,6 +78,25 @@ const VESSEL_SHAPES = new Map<string, NonNullable<ParsedNaturalFoodQuery["vessel
 ]);
 const FILL_LEVELS = new Map<string, NonNullable<ParsedNaturalFoodQuery["fill"]>>([
   ["pupozott", "heaped"], ["pupozva", "heaped"], ["heaped", "heaped"], ["gehauft", "heaped"], ["gehauftem", "heaped"]
+]);
+
+// Owner-beta blocker (2026-09-12): a small, closed set of RETAILER/STORE
+// names — never a product's own manufacturer brand, never an arbitrary
+// adjective. "Lidl Bierwurst" must resolve to the same generic trusted
+// "Bierwurst" identity as plain "Bierwurst", since Lidl is where the food
+// was bought, not what it fundamentally is; searchFoods (see food-search.ts)
+// requires its ENTIRE query string to appear in a Food's searchText, so a
+// single unrelated leading token silently prevents any match at all,
+// regardless of how well the rest of the phrase matches. This is
+// deliberately NOT a general "strip any capitalized/unknown word" rule
+// (that would mangle real two-word food names) — recognized retail-chain
+// names only, consumed in the same leading-modifier run as size/vessel-
+// shape/fill-level, so it can never eat a food word that merely happens to
+// follow it mid-phrase. The stripped word is kept on `retailChain`, never
+// silently discarded, so a future packaged-product lookup can still use it.
+const RETAIL_CHAINS = new Set([
+  "lidl", "aldi", "rewe", "spar", "tesco", "penny", "edeka", "kaufland", "netto", "real", "dm", "rossmann",
+  "billa", "hofer", "interspar", "metro", "coop", "migros", "denner", "volg", "cba", "auchan", "match", "profi"
 ]);
 
 // Preparation is treated as a small CLOSED set of cooking-method CONCEPTS,
@@ -235,7 +260,22 @@ function parseSegment(normalized: string): ParsedNaturalFoodQuery {
   }
   if (quantity == null && explicitUnitWord && IMPLICIT_ONE_UNIT_WORDS.has(explicitUnitWord)) quantity = 1;
 
-  let foodText = restAfterUnit.join(" ").trim();
+  // A run of leading retail-chain tokens (right before the food name itself,
+  // e.g. "200 g Lidl Bierwurst") is consumed the same conservative way as
+  // size/vessel-shape/fill above — only recognized store names, only when
+  // leading, never eating a food word mid-phrase. See RETAIL_CHAINS.
+  let retailChain: string | undefined;
+  let restAfterRetail = restAfterUnit;
+  while (restAfterRetail.length && RETAIL_CHAINS.has(restAfterRetail[0])) {
+    retailChain = retailChain ? `${retailChain} ${restAfterRetail[0]}` : restAfterRetail[0];
+    restAfterRetail = restAfterRetail.slice(1);
+  }
+  // A retail-chain word is only ever a MODIFIER on a real food name, never
+  // the whole phrase by itself — "Lidl" alone (no food word left) is not a
+  // food, so it is left in place rather than stripped down to nothing.
+  if (!restAfterRetail.length) { retailChain = undefined; restAfterRetail = restAfterUnit; }
+
+  let foodText = restAfterRetail.join(" ").trim();
   if (unit === "splash") foodText = foodText.replace(/\b(kaveba|in den kaffee|in coffee)\b.*$/i, "").trim();
 
   const foodTokens: string[] = [];
@@ -256,6 +296,7 @@ function parseSegment(normalized: string): ParsedNaturalFoodQuery {
   if (vesselShape) result.vesselShape = vesselShape;
   if (fill) result.fill = fill;
   if (preparation) result.preparation = preparation;
+  if (retailChain) result.retailChain = retailChain;
   return result;
 }
 

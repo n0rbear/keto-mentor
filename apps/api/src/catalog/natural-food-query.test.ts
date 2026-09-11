@@ -89,4 +89,42 @@ describe("natural food query parser", () => {
     expect(result.items?.[0]).toEqual({ quantity: 2, unit: "piece", foodQuery: "csirkecomb" });
     expect(result.items?.[1]).toEqual({ quantity: 1, unit: "half", foodQuery: "csirkemell" });
   });
+
+  // Owner-beta blocker (2026-09-12): "100g gouda, 200 g Lidl Bierwurst" — the
+  // meal interpreter's local search found Gouda but nothing for Bierwurst,
+  // even though the exact same catalog Food is trivially found by manually
+  // typing its name. Root cause: parseNaturalFoodQuery kept the retailer
+  // word "Lidl" glued to the food phrase, and searchFoods (food-search.ts)
+  // requires its ENTIRE query string to appear in a Food's searchText — one
+  // unrelated leading token silently prevents any match at all. A retailer
+  // is where the food was bought, not what it fundamentally is.
+  describe("retail-chain stripping (owner-beta blocker, 2026-09-12)", () => {
+    it.each([
+      ["Lidl Bierwurst", { foodQuery: "bierwurst", retailChain: "lidl" }],
+      ["Aldi Gouda", { foodQuery: "gouda", retailChain: "aldi" }],
+      ["REWE Mandeln", { foodQuery: "mandeln", retailChain: "rewe" }],
+      ["200 g Lidl Bierwurst", { quantity: 200, unit: "g", foodQuery: "bierwurst", retailChain: "lidl" }],
+      ["Spar Topfen", { foodQuery: "topfen", retailChain: "spar" }]
+    ])("strips the retail chain from the search identity: %s", (text, expected) => expect(parseNaturalFoodQuery(text)).toEqual(expected));
+
+    it("never strips a retail-chain word down to nothing when it IS the whole phrase", () => {
+      expect(parseNaturalFoodQuery("Lidl")).toEqual({ foodQuery: "lidl" });
+    });
+
+    it("does not strip an ordinary word that merely resembles no known retail chain", () => {
+      expect(parseNaturalFoodQuery("Friss Bierwurst")).toEqual({ foodQuery: "friss bierwurst" });
+    });
+
+    // The search-parity invariant: "Bierwurst" alone, "Bierwurst/Blasenwurst"
+    // (the catalog's own full name), and "Lidl Bierwurst" (brand-qualified)
+    // must all converge on the same generic search identity once the
+    // retailer word is stripped — never three different, contradictory
+    // search strings for what the user means as the same food.
+    it("converges plain, slash-synonym, and retail-qualified phrasings on the same generic identity", () => {
+      expect(parseNaturalFoodQuery("Bierwurst").foodQuery).toBe("bierwurst");
+      expect(parseNaturalFoodQuery("Lidl Bierwurst").foodQuery).toBe("bierwurst");
+      expect(parseNaturalFoodQuery("200 g Bierwurst/Blasenwurst").foodQuery).toBe("bierwurst blasenwurst");
+      expect(parseNaturalFoodQuery("200 g Bierwurst/Blasenwurst").foodQuery).toContain("bierwurst");
+    });
+  });
 });

@@ -8,6 +8,7 @@ import { normalizeSearch } from "./normalize.js";
 import { foodNameRepresentations, hasSemanticCoverage } from "./food-search.js";
 import { foodLocaleFor, type FoodLocale } from "./food-locale.js";
 import { DisabledSemanticCandidateGateProvider, type SemanticCandidateGateProvider } from "./semantic-candidate-gate.js";
+import { timeStage } from "../request-performance.js";
 
 type DynamicPrisma = Parameters<typeof resolveAuthoritativeFood>[0];
 
@@ -132,7 +133,7 @@ export async function resolveDynamicFood(
   if (!deps.adapters.length) { logDynamicResolutionOutcome("unresolved", undefined, "no_adapters"); return { status: "unresolved", reason: "no_adapters" }; }
   if (!deps.rateLimiter.consume(deps.userId)) { logDynamicResolutionOutcome("unresolved", undefined, "rate_limited"); return { status: "unresolved", reason: "rate_limited" }; }
 
-  const intent = await deps.searchIntentProvider.generate({ foodQuery: input.foodQuery, preparation: input.preparation, foodLocale: deps.foodLocale });
+  const intent = await timeStage("search_intent_ai", () => deps.searchIntentProvider.generate({ foodQuery: input.foodQuery, preparation: input.preparation, foodLocale: deps.foodLocale }));
   const searchTerm = intent?.searchTerms[0]?.trim() || input.foodQuery;
   const via: "search_intent" | "raw_query" = intent?.searchTerms[0]?.trim() ? "search_intent" : "raw_query";
 

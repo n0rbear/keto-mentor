@@ -147,6 +147,15 @@ export const foodUnderstandingSchema = z.object({
   language: foodUnderstandingLanguageSchema,
   kind: foodUnderstandingKindSchema,
   dishName: z.string().trim().min(1).max(120).optional(),
+  // True only when the user explicitly stated that dishName's FULL
+  // composition is the following item list (cues like "consisting of" /
+  // "made from" / "a következőkből" / "bestehend aus") — in that case
+  // dishName is a group LABEL, not an additional food, and must never be
+  // counted again as a separate item alongside its own listed ingredients.
+  // Absent/false is the safe default: dishName may still need its own
+  // separate resolution (e.g. a named dish mentioned alongside extra
+  // add-ons, not defined by them).
+  dishIsComposition: z.boolean().optional(),
   items: z.array(foodUnderstandingItemSchema).min(1).max(12),
   clarificationNeeded: z.boolean(),
   clarificationReason: z.string().trim().min(1).max(240).optional(),

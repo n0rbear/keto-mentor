@@ -6,6 +6,7 @@ import { isTrustedLocalMatch, searchFoods } from "./food-search.js";
 import type { ImportFood, ImportNutrient } from "../importers/types.js";
 import { localizeCandidateNames, type CandidateLocalizationProvider, type LocalizationLocale } from "./candidate-localization.js";
 import type { SemanticCandidateGateProvider } from "./semantic-candidate-gate.js";
+import { timeStage } from "../request-performance.js";
 
 /** Optional locale-aware presentation — never affects identity/dedup/trust. Accepts either the app-wide Locale (hu/de/en) or a regional FoodLocale (e.g. "de-AT") — see catalog/food-locale.ts. */
 export type LocalizationOptions = { locale: LocalizationLocale; provider: CandidateLocalizationProvider };
@@ -242,7 +243,7 @@ export async function confirmAuthoritativeFood(
 }
 
 export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: string, adapters: readonly StructuredFoodLookupAdapter[], localization?: LocalizationOptions, semanticGate?: SemanticGateOptions): Promise<ResolutionOutcome> {
-  const local = await searchFoods(prisma as any, query, 5);
+  const local = await timeStage("local_trusted_search", () => searchFoods(prisma as any, query, 5));
   // "resolved_local" must mean what its name says: a genuinely trusted local
   // identity, not merely "searchFoods returned something". Owner-beta
   // blocker #3 (2026-09-10): this line used to short-circuit on ANY nonzero
@@ -259,15 +260,17 @@ export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: 
 
   let rawCandidates: unknown[] = [];
   let successfulProviders = 0;
-  for (const adapter of adapters) {
-    try {
-      const result = await adapter.lookup(query);
-      successfulProviders += 1;
-      rawCandidates.push(...result.slice(0, 5));
-    } catch {
-      continue;
+  await timeStage("external_lookup", async () => {
+    for (const adapter of adapters) {
+      try {
+        const result = await adapter.lookup(query);
+        successfulProviders += 1;
+        rawCandidates.push(...result.slice(0, 5));
+      } catch {
+        continue;
+      }
     }
-  }
+  });
   if (!rawCandidates.length) return { status: "unresolved", candidates: [], reason: successfulProviders > 0 ? "not_found" : "external_unavailable" };
   const structurallyValid = rawCandidates.map(validateExternalCandidate).filter((candidate): candidate is ExternalFoodCandidate => Boolean(candidate));
   if (!structurallyValid.length) return { status: "unresolved", candidates: [], reason: "invalid_external_data" };
@@ -289,7 +292,7 @@ export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: 
   // failure drops every candidate, never lets one through by default.
   if (semanticGate) {
     const gateInputs = candidates.slice(0, 5).map((candidate, index) => ({ id: String(index), authoritativeName: candidate.originalName || candidate.name }));
-    const relevance = await semanticGate.provider.checkRelevance({ identity: semanticGate.originalIdentity, locale: semanticGate.locale }, gateInputs);
+    const relevance = await timeStage("semantic_gate_ai", () => semanticGate.provider.checkRelevance({ identity: semanticGate.originalIdentity, locale: semanticGate.locale }, gateInputs));
     candidates = candidates.slice(0, 5).filter((_, index) => relevance.get(String(index)) === true);
     if (!candidates.length) return { status: "unresolved", candidates: [], reason: "not_found" };
   }
