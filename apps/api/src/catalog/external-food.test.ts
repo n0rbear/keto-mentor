@@ -289,7 +289,7 @@ describe("semantic candidate gate on resolveAuthoritativeFood (owner-beta blocke
   // Full VALID/INVALID regression matrix (required).
   describe("regression matrix: VALID identity-preserving candidates pass, prepared-product/unrelated candidates are rejected", () => {
     it.each([
-      ["burgonya", "Potatoes, raw"], ["só", "Salt, table"], ["sertészsír", "Lard"], ["tejföl", "Cream, sour, cultured"]
+      ["burgonya", "Potatoes, raw"], ["burgonya", "Potatoes, boiled"], ["só", "Salt, table"], ["sertészsír", "Lard"], ["tejföl", "Cream, sour, cultured"]
     ])("VALID: %s vs %s -> offered", async (original, name) => {
       const { prisma } = fakePrisma();
       const normalizedName = name.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
@@ -302,7 +302,18 @@ describe("semantic candidate gate on resolveAuthoritativeFood (owner-beta blocke
       ["burgonya", "Bread, potato"], ["burgonya", "Potato bread"], ["burgonya", "Potato chips"], ["burgonya", "Potato soup"],
       ["só", "Butter, salted"], ["só", "Salted crackers"], ["só", "Pork, salted"],
       ["sertészsír", "Bologna, beef and pork, low fat"], ["sertészsír", "Pork sausage"],
-      ["tejföl", "Sour cream cake"]
+      ["tejföl", "Sour cream cake"],
+      // Owner-beta blocker #9.1 (2026-09-12): a second real live failure —
+      // "burgonya" offered against USDA "Potato flour" (a milled derivative,
+      // not raw potato) and marked isSameFood:true by the FIRST iteration of
+      // this gate's prompt. A processed/derived product (flour, starch,
+      // powder, juice) must reject exactly like a prepared dish does — see
+      // semantic-candidate-gate.ts's three-way relationship classification.
+      ["burgonya", "Potato flour"], ["burgonya", "Potato starch"],
+      ["milk", "Milk, powder"], ["milk", "Cheese, cheddar"],
+      ["corn", "Corn flour"], ["corn", "Cornstarch"],
+      ["pork", "Pork sausage"], ["pork", "Bologna, beef and pork"],
+      ["apple", "Apple juice"], ["apple", "Apple pie"]
     ])("INVALID: %s vs %s -> REJECTED, never offered", async (original, name) => {
       const { prisma, getCreated } = fakePrisma();
       const normalizedName = name.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();

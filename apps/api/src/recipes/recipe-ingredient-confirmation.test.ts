@@ -538,6 +538,34 @@ describe("confirmRecipeIngredients: semantic candidate gate protection on batch 
     expect(adapter.lookupById).not.toHaveBeenCalled();
   });
 
+  // Owner-beta blocker #9.1 (2026-09-12): the exact real failure reproduced
+  // at the batch-confirmation layer — a genuinely real, fetchable derivative
+  // candidate ("Pork sausage", standing in for the real "Potato flour" case)
+  // is returned alongside the correct base ingredient. The gate accepts the
+  // base but rejects the derivative; a client who inspects the raw USDA
+  // response and submits the derivative's real, valid sourceId directly
+  // must still be refused — proving server-side re-derivation, not client
+  // trust or UI hiding, is what keeps a derivative from ever being persisted.
+  it("9.1 — a real, fetchable PROCESSED-DERIVATIVE candidate the gate rejects cannot be confirmed even when the client submits its real sourceId directly", async () => {
+    const { prisma, foods, aliases } = fakePrisma();
+    const sausage = pork({ sourceId: "999999", name: "Pork sausage", originalName: "Pork sausage", normalizedName: "pork sausage" });
+    const adapter = fakeAdapter(
+      { [PORK_SEARCH_TERM]: [pork(), sausage] },
+      { "172152": pork(), "999999": sausage }
+    );
+    // Only the base food ("Pork hock, cooked") passes the gate; the
+    // derivative-style candidate ("Pork sausage") is rejected exactly like
+    // the real "Potato flour" case.
+    const baseOnlyGate: SemanticCandidateGateProvider = { id: "base-only", checkRelevance: async (_original, candidates) => new Map(candidates.map((c) => [c.id, c.authoritativeName === "Pork hock, cooked"])) };
+    const d = deps(adapter, prisma, defaultSearchIntent(), "user-1", new DisabledCandidateLocalizationProvider(), "hu-HU", baseOnlyGate);
+    await expect(confirmRecipeIngredients(prisma, "user-1", {
+      importProof: proof(), sourceUrl: RECIPE_URL, extractionMethod: "schema_org_json_ld",
+      confirmations: [{ ingredientIndex: 0, source: "usda_fdc", sourceId: "999999" }]
+    }, d)).rejects.toMatchObject({ publicCode: expect.stringMatching(/candidate_not_offered_for_ingredient|ingredient_not_confirmable/) });
+    expect(foods).toHaveLength(0);
+    expect(aliases).toHaveLength(0);
+  });
+
   it("a candidate the gate genuinely accepts is unaffected — the gate rejects specific candidates, not the whole pipeline", async () => {
     const { prisma, foods, aliases } = fakePrisma();
     const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork()] }, { "172152": pork() });
