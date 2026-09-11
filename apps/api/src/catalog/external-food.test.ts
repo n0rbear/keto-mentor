@@ -313,7 +313,9 @@ describe("semantic candidate gate on resolveAuthoritativeFood (owner-beta blocke
       ["milk", "Milk, powder"], ["milk", "Cheese, cheddar"],
       ["corn", "Corn flour"], ["corn", "Cornstarch"],
       ["pork", "Pork sausage"], ["pork", "Bologna, beef and pork"],
-      ["apple", "Apple juice"], ["apple", "Apple pie"]
+      ["apple", "Apple juice"], ["apple", "Apple pie"],
+      // Owner-beta blocker (2026-09-12): almond ≠ almond butter/flour/milk.
+      ["almond", "Almond butter, creamy"], ["almond", "Nuts, almond flour"], ["almond", "Beverages, almond milk, unsweetened"]
     ])("INVALID: %s vs %s -> REJECTED, never offered", async (original, name) => {
       const { prisma, getCreated } = fakePrisma();
       const normalizedName = name.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();

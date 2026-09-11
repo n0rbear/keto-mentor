@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { interpretMealInput, resolveQuantity, type InterpretResult } from "./interpret.js";
+import { interpretMealInput, resolveQuantity, type DynamicResolutionDeps, type InterpretResult } from "./interpret.js";
 import { normalizeSearch } from "../catalog/normalize.js";
 import type { AiProvider } from "../ai/provider.js";
 import type { FoodUnderstanding } from "@keto-mentor/shared";
@@ -7,6 +7,9 @@ import type { QuantityEstimate, QuantityEstimationProvider } from "./quantity-es
 import { DisabledQuantityEstimationProvider } from "./quantity-estimation.js";
 import { AiProviderError } from "../ai/chat-completions-provider.js";
 import { parseNaturalFoodQuery } from "../catalog/natural-food-query.js";
+import { DynamicFoodResolutionRateLimiter } from "../catalog/dynamic-food-rate-limit.js";
+import type { SearchIntentProvider } from "../catalog/search-intent.js";
+import { DEFAULT_CONCURRENCY } from "../request-performance.js";
 
 type Serving = { id: string; key: string; unit: string; labels: Record<string, string>; grams: number; isEstimated: boolean; confidence: number; provenance: unknown };
 type Food = {
@@ -454,6 +457,47 @@ describe("meal input interpretation", () => {
     expect(result.items?.[3].semanticItem?.evidence).toBe("inferred_common");
     expect(result.items?.[3].selectedFood).toBeNull();
     expect(result.items?.[3].nutritionEligible).toBe(false);
+  });
+
+  // Owner-beta blocker (2026-09-12): a real UI finding — "1 tányér vegyes
+  // saláta a következőkből: fejessaláta, retek, káposzta, 1 kanál tejfölös
+  // szósz" listed "vegyes saláta" itself as a FIFTH item alongside the four
+  // ingredients that already define it, double-counting the dish. The
+  // control test above ("represents a compound dish") proves dishName is
+  // still independently resolved when NOT explicitly defined by its items
+  // (lecsó); this proves the opposite case — dishIsComposition:true — never
+  // synthesizes that extra item. Generalized across HU/DE/EN by construction:
+  // this is a pure interpret.ts logic test, not a hardcoded "vegyes saláta"
+  // string check.
+  it("does not double-count the parent dish as a separate item when the AI marks it explicitly composed of the items that follow (dishIsComposition)", async () => {
+    const ai = new MockFoodNlpProvider({
+      language: "hu", kind: "compound_dish", dishName: "vegyes saláta", dishIsComposition: true, confidence: 0.9, clarificationNeeded: false,
+      items: [
+        { originalText: "fejessaláta", canonicalName: "lettuce", evidence: "inferred_common", confidence: 0.8 },
+        { originalText: "1 evőkanál Cream, sour, full fat", canonicalName: "butter", quantity: 1, unit: "tbsp", evidence: "explicit", confidence: 0.9 }
+      ]
+    });
+    const result = await interpretMealInput(prisma, "1 tányér vegyes saláta a következőkből: fejessaláta, ..., 1 kanál vajas szósz", undefined, ai);
+    expect(result.semantic?.dishName).toBe("vegyes saláta");
+    // Exactly the two real components — never a third synthetic "vegyes
+    // saláta" item on top of them.
+    expect(result.items).toHaveLength(2);
+    expect(result.items?.every((item) => item.semanticItem?.canonicalName !== "vegyes saláta")).toBe(true);
+  });
+
+  // Control for the fix above: WITHOUT an explicit composition cue
+  // (dishIsComposition absent/false), a named dish mentioned alongside a few
+  // add-ons must still get its own independent resolution attempt — the
+  // existing "represents a compound dish" test already covers this for
+  // lecsó; this is the same control expressed the other way, to make the
+  // dishIsComposition branch itself directly testable in isolation.
+  it("still resolves the dish name as its own item when dishIsComposition is absent, even with an items list", async () => {
+    const ai = new MockFoodNlpProvider({
+      language: "hu", kind: "compound_dish", dishName: "lecsó", confidence: 0.9, clarificationNeeded: false,
+      items: [{ originalText: "két virsli", canonicalName: "sausage", quantity: 2, unit: "piece", evidence: "explicit", confidence: 0.97 }]
+    });
+    const result = await interpretMealInput(prisma, "lecsó két virslivel", undefined, ai);
+    expect(result.items?.some((item) => item.semanticItem?.canonicalName === "lecsó")).toBe(true);
   });
 
   // Owner-beta regression (2026-09-10): "2 tányér marhahúsleves" already had
@@ -947,5 +991,65 @@ describe("human quantity test matrix (owner-beta finding G)", () => {
     expect(result.status).toBe("unresolved");
     expect(result.aiOutcome).toBe("not_configured");
     expect(result.grams).toBeUndefined();
+  });
+});
+
+// Owner-beta blocker (2026-09-12): "minden nagyon lassú" — a multi-item meal
+// where several items each need their own dynamic-resolution AI call used to
+// resolve them one at a time (both the deterministic multi-item path's own
+// concurrency and the AI-assisted item loop). These tests prove independent
+// items now overlap, but never more than DEFAULT_CONCURRENCY at once — the
+// exact bound this checkpoint's performance principle requires, so a busy
+// meal gets the latency benefit of overlap without ever bursting more
+// simultaneous provider calls than that from a single request.
+describe("bounded concurrency for independent meal items (owner-beta blocker, 2026-09-12)", () => {
+  function concurrencyProbeIntent(): { provider: SearchIntentProvider; getMaxInFlight: () => number } {
+    let inFlight = 0;
+    let maxInFlight = 0;
+    return {
+      provider: {
+        id: "concurrency-probe",
+        generate: async () => {
+          inFlight += 1;
+          maxInFlight = Math.max(maxInFlight, inFlight);
+          await new Promise((resolve) => setTimeout(resolve, 20));
+          inFlight -= 1;
+          return null; // degrades to the raw query -> a safe, deterministic "not_found" miss
+        }
+      },
+      getMaxInFlight: () => maxInFlight
+    };
+  }
+
+  it("the deterministic multi-item path never runs more than DEFAULT_CONCURRENCY dynamic resolutions at once", async () => {
+    const { provider, getMaxInFlight } = concurrencyProbeIntent();
+    const dynamic: DynamicResolutionDeps = {
+      prisma, searchIntentProvider: provider, adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(), userId: "user-1"
+    };
+    const text = ["zzzfood1", "zzzfood2", "zzzfood3", "zzzfood4", "zzzfood5", "zzzfood6"].map((f) => `100 g ${f}`).join(", ");
+    const result = await interpretMealInput(prisma, text, undefined, undefined, dynamic);
+    expect(result.items).toHaveLength(6);
+    expect(getMaxInFlight()).toBeLessThanOrEqual(DEFAULT_CONCURRENCY);
+    expect(getMaxInFlight()).toBeGreaterThan(1); // proves it is genuinely concurrent, not accidentally serialized
+  });
+
+  it("the AI-assisted item loop never runs more than DEFAULT_CONCURRENCY dynamic resolutions at once", async () => {
+    const { provider, getMaxInFlight } = concurrencyProbeIntent();
+    const dynamic: DynamicResolutionDeps = {
+      prisma, searchIntentProvider: provider, adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(), userId: "user-1"
+    };
+    const understanding: FoodUnderstanding = {
+      language: "en", kind: "multiple_foods", confidence: 0.9, clarificationNeeded: false,
+      items: ["zzzfood1", "zzzfood2", "zzzfood3", "zzzfood4", "zzzfood5", "zzzfood6"].map((name) => ({
+        originalText: name, canonicalName: name, quantity: 100, unit: "g" as const, evidence: "explicit" as const, confidence: 0.9
+      }))
+    };
+    const ai = new MockFoodNlpProvider(understanding);
+    const result = await interpretMealInput(prisma, "six unrelated things I don't have a clean local name for", undefined, ai, dynamic);
+    expect(result.items).toHaveLength(6);
+    expect(getMaxInFlight()).toBeLessThanOrEqual(DEFAULT_CONCURRENCY);
+    expect(getMaxInFlight()).toBeGreaterThan(1);
   });
 });

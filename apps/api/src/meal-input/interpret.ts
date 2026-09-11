@@ -14,6 +14,7 @@ import type { CandidateLocalizationProvider } from "../catalog/candidate-localiz
 import type { DynamicFoodResolutionRateLimiter } from "../catalog/dynamic-food-rate-limit.js";
 import type { FoodLocale } from "../catalog/food-locale.js";
 import type { SemanticCandidateGateProvider } from "../catalog/semantic-candidate-gate.js";
+import { DEFAULT_CONCURRENCY, mapWithConcurrency, timeStage } from "../request-performance.js";
 
 type SearchablePrisma = Pick<PrismaClient, "food" | "foodAlias"> & Partial<Pick<PrismaClient, "$queryRaw">>;
 type Serving = { id: string; key: string; unit: string; labels: unknown; grams: number; isEstimated: boolean; confidence: number; provenance: unknown };
@@ -258,11 +259,12 @@ async function interpretOne(
   provider: QuantityEstimationProvider,
   dynamic: DynamicResolutionDeps = null
 ): Promise<InterpretResult> {
-  const baseCandidates = (await searchFoods(prisma, parsed.foodQuery, 8)) as unknown as ResolvedFood[];
+  const baseCandidates = await timeStage("local_search", async () => (await searchFoods(prisma, parsed.foodQuery, 8)) as unknown as ResolvedFood[]);
 
   let preparedFood: ResolvedFood | null = null;
-  if (parsed.preparation && PREP_SEARCH_TOKEN[parsed.preparation]) {
-    const prepCandidates = (await searchFoods(prisma, PREP_SEARCH_TOKEN[parsed.preparation], 8)) as unknown as ResolvedFood[];
+  const prepSearchToken = parsed.preparation ? PREP_SEARCH_TOKEN[parsed.preparation] : undefined;
+  if (prepSearchToken) {
+    const prepCandidates = await timeStage("local_search", async () => (await searchFoods(prisma, prepSearchToken, 8)) as unknown as ResolvedFood[]);
     preparedFood = prepCandidates.find((food) => foodMatchesPreparation(food, parsed.preparation!)) ?? null;
   }
 
@@ -277,7 +279,7 @@ async function interpretOne(
     // resolution may run. A local hit never reaches this branch at all, so
     // it costs zero external calls and zero extra LLM calls by construction.
     if (dynamic && parsed.foodQuery) {
-      const outcome = await resolveDynamicFood(dynamic.prisma, { foodQuery: parsed.foodQuery, preparation: parsed.preparation }, dynamic);
+      const outcome = await timeStage("dynamic_resolution", () => resolveDynamicFood(dynamic.prisma, { foodQuery: parsed.foodQuery, preparation: parsed.preparation }, dynamic));
       if (outcome.status === "resolved") {
         const resolvedFood = outcome.food as ResolvedFood;
         // Convergence gate (defense-in-depth, owner-beta blocker #3,
@@ -293,7 +295,7 @@ async function interpretOne(
         if (!hasSemanticCoverage(normalizeSearch(parsed.foodQuery), foodNameRepresentations(resolvedFood))) {
           return { input, parsed, foodResolution: "unresolved", selectedFood: null, candidates: [], quantity: null, canConfirm: false, confidence: 0, preparation: parsed.preparation, interpretationSource: "deterministic" };
         }
-        const quantity = await resolveQuantity(parsed, resolvedFood, provider);
+        const quantity = await timeStage("quantity_resolution", () => resolveQuantity(parsed, resolvedFood, provider));
         return {
           input, parsed, foodResolution: "resolved", selectedFood: resolvedFood, candidates: [resolvedFood], quantity,
           canConfirm: quantity.status === "resolved" && !quantity.requiresConfirmation,
@@ -350,7 +352,7 @@ async function interpretOne(
   else if (score >= 80) foodResolution = "preview";
   else foodResolution = "confirmation_required";
 
-  const quantity = await resolveQuantity(parsed, top, foodResolution === "resolved" ? provider : new DisabledQuantityEstimationProvider());
+  const quantity = await timeStage("quantity_resolution", () => resolveQuantity(parsed, top, foodResolution === "resolved" ? provider : new DisabledQuantityEstimationProvider()));
 
   const canConfirm = quantity.status === "resolved" && !quantity.requiresConfirmation && !ambiguous && !prepUnavailable && score >= 80;
 
@@ -379,7 +381,13 @@ async function interpretDeterministically(
   const parsed = parseNaturalFoodQuery(text);
 
   if (parsed.items && parsed.items.length > 1) {
-    const items = await Promise.all(parsed.items.map((item) => interpretOne(prisma, text, item, provider, dynamic)));
+    // Bounded concurrency (owner-beta performance principle): independent
+    // items resolve in parallel for latency, but never more than
+    // DEFAULT_CONCURRENCY at once — an unbounded Promise.all here could fire
+    // one search-intent/semantic-gate/quantity AI call per item simultaneously
+    // on a meal with several local misses, exactly the kind of provider burst
+    // that has repeatedly triggered Groq/OpenRouter 429s in this project.
+    const items = await mapWithConcurrency(parsed.items, DEFAULT_CONCURRENCY, (item) => interpretOne(prisma, text, item, provider, dynamic));
     const allConfirmable = items.every((it) => it.canConfirm);
     const top = items[0];
     return {
@@ -450,7 +458,16 @@ async function interpretAiUnderstanding(
 ): Promise<InterpretResult> {
   const dishNormalized = normalizeSearch(understanding.dishName ?? "");
   const hasDishItem = !!dishNormalized && understanding.items.some((item) => normalizeSearch(item.canonicalName) === dishNormalized);
-  const semanticItems = hasDishItem || !understanding.dishName
+  // Owner-beta blocker (2026-09-12): when the user explicitly stated the
+  // dish's FULL composition ("a következőkből" / "bestehend aus" / "made
+  // from" / ...), the AI sets dishIsComposition — the dish name is a group
+  // LABEL for the items that already follow it, not an independent food, and
+  // must never be synthesized as an extra item on top of its own listed
+  // ingredients (that would double-count the dish: once as itself, once as
+  // the sum of its parts). Without an explicit composition cue, the prior
+  // behavior is unchanged — a named dish mentioned alongside a few add-ons
+  // (not fully defined by them) still gets its own resolution attempt.
+  const semanticItems = hasDishItem || !understanding.dishName || understanding.dishIsComposition
     ? understanding.items
     : [{
         originalText: understanding.dishName,
@@ -458,20 +475,24 @@ async function interpretAiUnderstanding(
         evidence: "explicit" as const,
         confidence: understanding.confidence
       }, ...understanding.items];
-  const items: InterpretResult[] = [];
-  for (const item of semanticItems) {
-    if (item.evidence !== "explicit") {
-      items.push(unresolvedSemanticItem(text, item));
-      continue;
-    }
+  // Bounded concurrency (owner-beta performance principle): each explicit
+  // item's own resolution is independent of the others (its own local
+  // search, and on a miss its own search-intent/semantic-gate/quantity AI
+  // calls) — resolving them one at a time was a real, measured latency
+  // multiplier on any multi-ingredient compound dish (e.g. a mixed salad
+  // with several ingredients each needing their own resolution). Same
+  // DEFAULT_CONCURRENCY cap as the deterministic multi-item path, so the two
+  // paths cannot drift into different burst-risk behavior.
+  const items = await mapWithConcurrency(semanticItems, DEFAULT_CONCURRENCY, async (item) => {
+    if (item.evidence !== "explicit") return unresolvedSemanticItem(text, item);
     const resolved = await interpretOne(prisma, item.originalText, semanticParsed(item), quantityProvider, dynamic);
-    items.push({
+    return {
       ...resolved,
-      interpretationSource: "ai_assisted",
+      interpretationSource: "ai_assisted" as const,
       semanticItem: item,
       nutritionEligible: !!resolved.selectedFood && resolved.foodResolution === "resolved"
-    });
-  }
+    };
+  });
   const metadata = {
     language: understanding.language,
     kind: understanding.kind,
@@ -532,27 +553,32 @@ export async function interpretMealInput(
   aiProvider: AiProvider = new StubAiProvider(),
   dynamic: DynamicResolutionDeps = null
 ): Promise<InterpretResult> {
+  const requestStartedAt = performance.now();
   // Resolve food semantics before allowing any external weight estimation.
   const disabled = new DisabledQuantityEstimationProvider();
-  const deterministic = await interpretDeterministically(prisma, text, disabled, dynamic);
+  const deterministic = await timeStage("deterministic_pass", () => interpretDeterministically(prisma, text, disabled, dynamic));
   let result = deterministic;
   if (shouldUseAiFallback(deterministic, aiProvider)) {
     try {
-      const understanding = await understandFood(aiProvider, { text });
-      result = await interpretAiUnderstanding(prisma, text, understanding, disabled, aiProvider, dynamic);
+      const understanding = await timeStage("food_understanding_ai", () => understandFood(aiProvider, { text }));
+      result = await timeStage("ai_assisted_items", () => interpretAiUnderstanding(prisma, text, understanding, disabled, aiProvider, dynamic));
     } catch {
       result = deterministic;
     }
   }
   if (!result.semantic?.clarificationNeeded && result.foodResolution !== "compound") {
-    for (const item of result.items ?? [result]) {
-      if (item.foodResolution !== "resolved" || !item.selectedFood || item.ambiguous || item.preparationUnavailable || item.nutritionEligible === false) continue;
-      if (item.quantity?.reason === "conversion_missing") item.quantity = await resolveQuantity(item.parsed, item.selectedFood, quantityProvider);
+    const pending = (result.items ?? [result]).filter((item) => item.foodResolution === "resolved" && item.selectedFood && !item.ambiguous && !item.preparationUnavailable && item.nutritionEligible !== false);
+    // Same bounded-concurrency reasoning as the resolution passes above —
+    // several items each needing their own AI quantity estimate (e.g. a
+    // multi-ingredient salad) must not be estimated one at a time.
+    await timeStage("quantity_postprocess", () => mapWithConcurrency(pending, DEFAULT_CONCURRENCY, async (item) => {
+      if (item.quantity?.reason === "conversion_missing") item.quantity = await timeStage("quantity_resolution", () => resolveQuantity(item.parsed, item.selectedFood!, quantityProvider));
       item.canConfirm = item.quantity?.status === "resolved" && !item.quantity.requiresConfirmation;
-    }
+    }));
     if (result.items) result.canConfirm = result.items.every((item) => item.canConfirm);
   }
   result.clarification = firstQuantityClarification(result);
+  console.log(`timing_stage stage=TOTAL ms=${Math.round(performance.now() - requestStartedAt)}`);
   return result;
 }
 

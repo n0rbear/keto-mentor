@@ -32,6 +32,23 @@ describe("searchIntentOutputSchema: search-aid-only trust boundary", () => {
   });
 });
 
+// Owner-beta blocker (2026-09-12): a live trace showed "sour cream sauce"
+// canonicalized to searchTerms ["sour cream"], losing "sauce" entirely — an
+// ingredient described as containing/based-on X is not automatically X. A
+// static guard on the instruction text itself, since every other test here
+// uses a fixture transport that never reads its content.
+describe("SEARCH_INTENT_INSTRUCTION: a stated product category is preserved, never dropped as a 'preparation'", () => {
+  it("explicitly instructs preserving a stated sauce/dressing/spread category rather than simplifying it away", () => {
+    expect(SEARCH_INTENT_INSTRUCTION.toLowerCase()).toContain("sauce");
+    expect(SEARCH_INTENT_INSTRUCTION).toContain("sour cream sauce");
+    expect(SEARCH_INTENT_INSTRUCTION.toLowerCase()).toContain("never simplified down to bare");
+  });
+
+  it("clarifies that 'preparation' is for doneness/cut/state only, never a product-category signal", () => {
+    expect(SEARCH_INTENT_INSTRUCTION.toLowerCase()).toContain('never move that category word into the "preparation" field');
+  });
+});
+
 describe("DisabledSearchIntentProvider", () => {
   it("always returns null, never throws", async () => {
     expect(await new DisabledSearchIntentProvider().generate({ foodQuery: "csülök" })).toBeNull();

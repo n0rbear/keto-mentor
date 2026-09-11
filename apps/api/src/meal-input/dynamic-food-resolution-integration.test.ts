@@ -8,6 +8,8 @@ import { AiProviderError } from "../ai/chat-completions-provider.js";
 import type { QuantityEstimate } from "./quantity-estimation.js";
 import type { CandidateLocalizationProvider } from "../catalog/candidate-localization.js";
 import type { SemanticCandidateGateProvider } from "../catalog/semantic-candidate-gate.js";
+import type { AiProvider } from "../ai/provider.js";
+import type { FoodUnderstanding } from "@keto-mentor/shared";
 
 // Owner-beta blocker #9 (2026-09-11): resolveAuthoritativeFood now FAILS
 // CLOSED on the semantic candidate gate by default. Every test in this file
@@ -397,5 +399,57 @@ describe("end-to-end semantic safety: the two real owner-beta failures never rep
     const result = await interpretMealInput(prisma, "1 tányér tojásleves", undefined, undefined, dynamic);
     expect(result.foodResolution).not.toBe("resolved");
     expect(result.selectedFood?.id).not.toBe("banana");
+  });
+});
+
+class FixedFoodNlpProvider implements AiProvider {
+  id = "fixture-food-nlp";
+  model = "fixture-v1";
+  constructor(private readonly result: FoodUnderstanding) {}
+  supports(capability: string) { return capability === "food_nlp"; }
+  async run<TInput, TOutput>(): Promise<TOutput> { return this.result as TOutput; }
+}
+
+// Owner-beta blocker (2026-09-12): a real UI finding showed "tejfölös szósz"
+// (a sour-cream-BASED sauce) ending up attached to pure "Cream, sour, full
+// fat" nutrition. Traced live: food-understanding AI already correctly
+// preserves the sauce identity in canonicalName; the gap is that search-
+// intent's own canonical search term can still be imperfect (observed live:
+// "sour cream sauce" -> searchTerms ["sour cream"], losing "sauce"). This
+// test proves the ARCHITECTURE stays safe regardless: the semantic gate is
+// always fed the ORIGINAL identity (the food-understanding AI's own
+// canonicalName), never the search term — so even an imperfect search-intent
+// term can never cause "X-based sauce" to be silently trusted as pure X.
+describe("composite-sauce identity is never silently reduced to its base ingredient (owner-beta blocker, 2026-09-12)", () => {
+  it("'sour cream sauce' reaches the semantic gate as itself, never collapsed to 'sour cream' — even when search-intent's own term already lost 'sauce'", async () => {
+    const { prisma } = makeFullPrisma();
+    const sourCream = candidate({ sourceId: "171257", name: "Cream, sour, cultured", originalName: "Cream, sour, cultured", normalizedName: "cream sour cultured" });
+    const capturedIdentities: string[] = [];
+    // Mirrors the REAL semantic gate's proven behavior (see semantic-
+    // candidate-gate.test.ts / external-food.test.ts): a composite sauce is
+    // never the same identity as one of its plain ingredients. Rejecting
+    // everything here both matches that real behavior and makes the safety
+    // property directly observable: no candidate may ever be offered.
+    const spyGate: SemanticCandidateGateProvider = {
+      id: "spy",
+      checkRelevance: async (original) => { capturedIdentities.push(original.identity); return new Map(); }
+    };
+    const understanding: FoodUnderstanding = {
+      language: "en", kind: "single_food", confidence: 0.9, clarificationNeeded: false,
+      items: [{ originalText: "1 spoon sour cream sauce", canonicalName: "sour cream sauce", quantity: 1, unit: "tbsp", evidence: "explicit", confidence: 0.9 }]
+    };
+    const aiProvider = new FixedFoodNlpProvider(understanding);
+    const dynamic = makeDynamic(prisma, {
+      // Deliberately the REAL, imperfect search term observed live — proves
+      // the protection does not depend on search-intent being perfect.
+      searchIntentProvider: stubIntent({ canonicalConcept: "sour cream", searchTerms: ["sour cream"], sourceLanguage: "en" }),
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [sourCream] }],
+      semanticCandidateGateProvider: spyGate
+    });
+    const result = await interpretMealInput(prisma, "1 spoon sour cream sauce", undefined, aiProvider, dynamic);
+    expect(capturedIdentities).toContain("sour cream sauce");
+    expect(result.foodResolution).not.toBe("resolved");
+    const item = result.items?.[0] ?? result;
+    expect(item.selectedFood).toBeFalsy();
   });
 });

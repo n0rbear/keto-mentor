@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { Locale } from "@keto-mentor/shared";
 import type { ExternalFoodCandidate } from "./external-food.js";
 import { CANONICAL_SEARCH_LOCALE, type FoodLocale } from "./food-locale.js";
+import { timeStage } from "../request-performance.js";
 
 /** Accepted everywhere localization targets a locale — the coarse app-wide
  * Locale (hu/de/en) for existing callers, or a regional FoodLocale (e.g.
@@ -122,7 +123,7 @@ export async function localizeCandidateNames(
   // honest fallback.
   let localized: Map<string, string>;
   try {
-    localized = await provider.localize(items, locale);
+    localized = await timeStage("candidate_localization_ai", () => provider.localize(items, locale));
   } catch {
     return candidates;
   }
