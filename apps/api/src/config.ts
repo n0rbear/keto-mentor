@@ -13,7 +13,7 @@ const envSchema = z.object({
   MISTRAL_API_KEY: z.string().min(1).optional(),
   MISTRAL_MODEL: z.string().min(1).max(120).optional(),
   MISTRAL_BASE_URL: z.string().url().max(500).optional(),
-  FOOD_AI_PROVIDER: z.enum(["mistral", "openrouter"]).optional(),
+  FOOD_AI_PROVIDER: z.enum(["mistral", "openrouter", "groq"]).optional(),
   FOOD_AI_MODEL: z.string().min(1).max(160).optional(),
   OPENROUTER_API_KEY: z.string().min(1).optional(),
   OPENROUTER_BASE_URL: z.string().url().max(500).optional(),

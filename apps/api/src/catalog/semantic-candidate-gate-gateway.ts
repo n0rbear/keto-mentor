@@ -19,6 +19,12 @@ const semanticCandidateGateFailoverObserver = createFailoverObserver("semantic_c
 export function configuredSemanticCandidateGateProvider(config: FoodAiGatewayConfigInput, overrides: { fetchImpl?: typeof fetch } = {}): SemanticCandidateGateProvider {
   const resolved = resolveFoodAiGatewayConfig(config);
   try {
+    if (resolved.kind === "groq") {
+      const primary = new GroqAiProvider({ apiKey: resolved.apiKey, model: resolved.model, baseUrl: resolved.baseUrl, fetchImpl: overrides.fetchImpl });
+      if (!resolved.secondary) return new ChatSemanticCandidateGateProvider(primary);
+      const secondary = new OpenRouterAiProvider({ apiKey: resolved.secondary.apiKey, model: resolved.secondary.model, baseUrl: resolved.secondary.baseUrl, appReferer: resolved.secondary.appReferer, appTitle: resolved.secondary.appTitle, fetchImpl: overrides.fetchImpl });
+      return new ChatSemanticCandidateGateProvider(new FailoverAiProvider(primary, secondary, semanticCandidateGateFailoverObserver));
+    }
     if (resolved.kind === "openrouter") {
       const primary = new OpenRouterAiProvider({ apiKey: resolved.apiKey, model: resolved.model, baseUrl: resolved.baseUrl, appReferer: resolved.appReferer, appTitle: resolved.appTitle, fetchImpl: overrides.fetchImpl });
       if (!resolved.secondary) return new ChatSemanticCandidateGateProvider(primary);

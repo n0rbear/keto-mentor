@@ -16,6 +16,12 @@ const candidateLocalizationFailoverObserver = createFailoverObserver("candidate_
 export function configuredCandidateLocalizationProvider(config: FoodAiGatewayConfigInput, overrides: { fetchImpl?: typeof fetch } = {}): CandidateLocalizationProvider {
   const resolved = resolveFoodAiGatewayConfig(config);
   try {
+    if (resolved.kind === "groq") {
+      const primary = new GroqAiProvider({ apiKey: resolved.apiKey, model: resolved.model, baseUrl: resolved.baseUrl, fetchImpl: overrides.fetchImpl });
+      if (!resolved.secondary) return new ChatCandidateLocalizationProvider(primary);
+      const secondary = new OpenRouterAiProvider({ apiKey: resolved.secondary.apiKey, model: resolved.secondary.model, baseUrl: resolved.secondary.baseUrl, appReferer: resolved.secondary.appReferer, appTitle: resolved.secondary.appTitle, fetchImpl: overrides.fetchImpl });
+      return new ChatCandidateLocalizationProvider(new FailoverAiProvider(primary, secondary, candidateLocalizationFailoverObserver));
+    }
     if (resolved.kind === "openrouter") {
       const primary = new OpenRouterAiProvider({ apiKey: resolved.apiKey, model: resolved.model, baseUrl: resolved.baseUrl, appReferer: resolved.appReferer, appTitle: resolved.appTitle, fetchImpl: overrides.fetchImpl });
       if (!resolved.secondary) return new ChatCandidateLocalizationProvider(primary);
