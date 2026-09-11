@@ -12,6 +12,16 @@ import type { FoodLocale } from "../catalog/food-locale.js";
 import { learnConfirmedAlias } from "../catalog/confirmed-alias.js";
 import { resolveDynamicFood } from "../catalog/dynamic-food-resolution.js";
 import { interpretMealInput } from "../meal-input/interpret.js";
+import { DisabledSemanticCandidateGateProvider, type SemanticCandidateGateProvider } from "../catalog/semantic-candidate-gate.js";
+
+// Owner-beta blocker #9 (2026-09-11): resolveAuthoritativeFood now FAILS
+// CLOSED on the semantic candidate gate by default. Every test in this file
+// that is not specifically ABOUT the gate (see the dedicated describe block
+// near the end) defaults to this permissive stand-in via deps() below, so
+// checkpoint F/G's original confirmation-flow intent keeps being exercised.
+function permissiveSemanticGate(): SemanticCandidateGateProvider {
+  return { id: "permissive-fixture", checkRelevance: async (_original, candidates) => new Map(candidates.map((c) => [c.id, true])) };
+}
 
 const wrap = (json: unknown) => `<html><script type="application/ld+json">${JSON.stringify(json)}</script></html>`;
 const RECIPE_URL = "https://example.com/csulok-recept";
@@ -98,10 +108,10 @@ function defaultSearchIntent() {
   return dispatchSearchIntent({ [CSULOK_QUERY]: { canonicalConcept: "pork hock", searchTerms: [PORK_SEARCH_TERM] }, [UNKNOWN_QUERY]: { canonicalConcept: "unknown", searchTerms: [UNKNOWN_SEARCH_TERM] } });
 }
 
-function deps(adapter: ConfirmableFoodLookupAdapter, prisma: any, searchIntent: SearchIntentProvider = defaultSearchIntent(), userId = "user-1", localizationProvider: CandidateLocalizationProvider = new DisabledCandidateLocalizationProvider(), foodLocale: FoodLocale = "hu-HU") {
+function deps(adapter: ConfirmableFoodLookupAdapter, prisma: any, searchIntent: SearchIntentProvider = defaultSearchIntent(), userId = "user-1", localizationProvider: CandidateLocalizationProvider = new DisabledCandidateLocalizationProvider(), foodLocale: FoodLocale = "hu-HU", semanticCandidateGateProvider: SemanticCandidateGateProvider = permissiveSemanticGate()) {
   return {
     recipeAiProvider: new DisabledRecipeExtractionProvider(),
-    dynamic: { prisma, searchIntentProvider: searchIntent, adapters: [adapter], rateLimiter: new DynamicFoodResolutionRateLimiter(), userId, locale: "hu" as const, foodLocale, localizationProvider },
+    dynamic: { prisma, searchIntentProvider: searchIntent, adapters: [adapter], rateLimiter: new DynamicFoodResolutionRateLimiter(), userId, locale: "hu" as const, foodLocale, localizationProvider, semanticCandidateGateProvider },
     confirmAdapters: [adapter],
     localization: { locale: foodLocale, provider: localizationProvider },
     fetchDependencies,
@@ -470,5 +480,76 @@ describe("confirmRecipeIngredients -> later independent lookup: zero-cost local 
     expect(searchIntentGenerate).not.toHaveBeenCalled(); // zero Groq calls
     expect((adapter.lookup as any).mock.calls.length).toBe(lookupCallsBefore); // zero USDA search calls
     expect((adapter.lookupById as any).mock.calls.length).toBe(lookupByIdCallsBefore); // zero USDA refetch calls
+  });
+});
+
+// Owner-beta blocker #9 (2026-09-11), required tests #5, #6, #7: the batch
+// confirmation handler re-derives the CURRENT review (reDerivePreview) before
+// validating a client's submission — and that re-derivation runs through the
+// real resolveDynamicFood -> resolveAuthoritativeFood pipeline, so it
+// automatically inherits the semantic candidate gate with zero new logic in
+// this file's own module. These tests prove that inheritance actually holds:
+// a candidate the gate would reject is never present in the re-derived
+// offered set, so submitting its real, valid source/sourceId is rejected as
+// "not offered" — the exact same structural gate already covers this, it is
+// simply now fed a genuinely trustworthy offered-set.
+describe("confirmRecipeIngredients: semantic candidate gate protection on batch confirmation (owner-beta blocker #9, tests #5/#6/#7)", () => {
+  it("5 — a candidate the semantic gate would reject can never be legitimately offered, so submitting it is rejected as not-offered (never silently trusted)", async () => {
+    const { prisma, foods, aliases } = fakePrisma();
+    // A structurally valid, real, resolvable USDA candidate (adapter.lookupById
+    // would happily return it) — but the semantic gate rejects EVERYTHING.
+    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork()] }, { "172152": pork() });
+    const d = deps(adapter, prisma, defaultSearchIntent(), "user-1", new DisabledCandidateLocalizationProvider(), "hu-HU", new DisabledSemanticCandidateGateProvider());
+    await expect(confirmRecipeIngredients(prisma, "user-1", {
+      importProof: proof(), sourceUrl: RECIPE_URL, extractionMethod: "schema_org_json_ld",
+      confirmations: [{ ingredientIndex: 0, source: "usda_fdc", sourceId: "172152" }]
+    }, d)).rejects.toMatchObject({ publicCode: expect.stringMatching(/candidate_not_offered_for_ingredient|ingredient_not_confirmable/) });
+    expect(adapter.lookupById).not.toHaveBeenCalled();
+    expect(foods).toHaveLength(0);
+    expect(aliases).toHaveLength(0);
+  });
+
+  it("6 — client cannot bypass the semantic gate merely by supplying a real, valid source+sourceId the server can independently refetch", async () => {
+    // Same real, genuinely-fetchable USDA record as every other passing test
+    // in this file (172152, pork hock) — proving the gate is what changed
+    // the outcome here, not a fabricated/garbage sourceId.
+    const { prisma, foods } = fakePrisma();
+    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork()] }, { "172152": pork() });
+    const d = deps(adapter, prisma, defaultSearchIntent(), "user-1", new DisabledCandidateLocalizationProvider(), "hu-HU", new DisabledSemanticCandidateGateProvider());
+    const rejected = await confirmRecipeIngredients(prisma, "user-1", {
+      importProof: proof(), sourceUrl: RECIPE_URL, extractionMethod: "schema_org_json_ld",
+      confirmations: [{ ingredientIndex: 0, source: "usda_fdc", sourceId: "172152" }]
+    }, d).catch((error) => error);
+    expect(rejected).toMatchObject({ publicCode: expect.stringMatching(/candidate_not_offered_for_ingredient|ingredient_not_confirmable/) });
+    expect(foods).toHaveLength(0); // no Food row invented for the rejected identity
+  });
+
+  it("7 — a successful authoritative refetch alone is insufficient: lookupById is never even attempted for a candidate the current review does not offer", async () => {
+    const { prisma } = fakePrisma();
+    // failLookupById is irrelevant here on purpose — the point is the code
+    // path must be rejected BEFORE it would ever reach lookupById, so making
+    // lookupById itself unable to succeed changes nothing about the outcome.
+    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork()] }, {}, { failLookupById: true });
+    const d = deps(adapter, prisma, defaultSearchIntent(), "user-1", new DisabledCandidateLocalizationProvider(), "hu-HU", new DisabledSemanticCandidateGateProvider());
+    await expect(confirmRecipeIngredients(prisma, "user-1", {
+      importProof: proof(), sourceUrl: RECIPE_URL, extractionMethod: "schema_org_json_ld",
+      confirmations: [{ ingredientIndex: 0, source: "usda_fdc", sourceId: "172152" }]
+    }, d)).rejects.toMatchObject({ publicCode: expect.stringMatching(/candidate_not_offered_for_ingredient|ingredient_not_confirmable/) });
+    expect(adapter.lookupById).not.toHaveBeenCalled();
+  });
+
+  it("a candidate the gate genuinely accepts is unaffected — the gate rejects specific candidates, not the whole pipeline", async () => {
+    const { prisma, foods, aliases } = fakePrisma();
+    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork()] }, { "172152": pork() });
+    const acceptingGate: SemanticCandidateGateProvider = { id: "accept-pork", checkRelevance: async (_original, candidates) => new Map(candidates.map((c) => [c.id, c.authoritativeName === "Pork hock, cooked"])) };
+    const d = deps(adapter, prisma, defaultSearchIntent(), "user-1", new DisabledCandidateLocalizationProvider(), "hu-HU", acceptingGate);
+    const result = await confirmRecipeIngredients(prisma, "user-1", {
+      importProof: proof(), sourceUrl: RECIPE_URL, extractionMethod: "schema_org_json_ld",
+      confirmations: [{ ingredientIndex: 0, source: "usda_fdc", sourceId: "172152" }]
+    }, d);
+    expect(result.confirmations).toEqual([{ ingredientIndex: 0, source: "usda_fdc", sourceId: "172152", result: "confirmed" }]);
+    expect(adapter.lookupById).toHaveBeenCalledWith("172152");
+    expect(foods).toHaveLength(1);
+    expect(aliases.some((a) => a.kind === "confirmed_external")).toBe(true);
   });
 });

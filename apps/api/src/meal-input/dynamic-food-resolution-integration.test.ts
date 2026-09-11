@@ -7,6 +7,16 @@ import type { ExternalFoodCandidate, StructuredFoodLookupAdapter } from "../cata
 import { AiProviderError } from "../ai/chat-completions-provider.js";
 import type { QuantityEstimate } from "./quantity-estimation.js";
 import type { CandidateLocalizationProvider } from "../catalog/candidate-localization.js";
+import type { SemanticCandidateGateProvider } from "../catalog/semantic-candidate-gate.js";
+
+// Owner-beta blocker #9 (2026-09-11): resolveAuthoritativeFood now FAILS
+// CLOSED on the semantic candidate gate by default. Every test in this file
+// is about pre-existing dynamic-resolution behavior, not the new gate itself
+// (which has its own dedicated tests) — makeDynamic() below defaults every
+// test to a permissive stand-in so their original intent is preserved.
+function permissiveSemanticGate(): SemanticCandidateGateProvider {
+  return { id: "permissive-fixture", checkRelevance: async (_original, candidates) => new Map(candidates.map((c) => [c.id, true])) };
+}
 
 // Mirrors real production wiring (server.ts always configures a real
 // candidateLocalizationProvider): resolveAuthoritativeFood's auto-resolve
@@ -136,7 +146,7 @@ function beefBrothCandidate(overrides: Partial<ExternalFoodCandidate> = {}): Ext
   };
 }
 
-function makeDynamic(prisma: any, overrides: Partial<{ searchIntentProvider: SearchIntentProvider; adapters: StructuredFoodLookupAdapter[]; userId: string; locale: "hu" | "de" | "en"; localizationProvider: CandidateLocalizationProvider }> = {}): DynamicResolutionDeps {
+function makeDynamic(prisma: any, overrides: Partial<{ searchIntentProvider: SearchIntentProvider; adapters: StructuredFoodLookupAdapter[]; userId: string; locale: "hu" | "de" | "en"; localizationProvider: CandidateLocalizationProvider; semanticCandidateGateProvider: SemanticCandidateGateProvider }> = {}): DynamicResolutionDeps {
   return {
     prisma,
     searchIntentProvider: overrides.searchIntentProvider ?? stubIntent({ canonicalConcept: "pork hock", searchTerms: ["pork hock"], sourceLanguage: "hu" }),
@@ -144,7 +154,8 @@ function makeDynamic(prisma: any, overrides: Partial<{ searchIntentProvider: Sea
     rateLimiter: new DynamicFoodResolutionRateLimiter(),
     userId: overrides.userId ?? "user-1",
     locale: overrides.locale ?? "hu",
-    localizationProvider: overrides.localizationProvider ?? fakeLocalizationProvider("Csülök")
+    localizationProvider: overrides.localizationProvider ?? fakeLocalizationProvider("Csülök"),
+    semanticCandidateGateProvider: overrides.semanticCandidateGateProvider ?? permissiveSemanticGate()
   };
 }
 

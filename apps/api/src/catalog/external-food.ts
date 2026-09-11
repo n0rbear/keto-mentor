@@ -5,9 +5,23 @@ import { buildSearchText, normalizeSearch } from "./normalize.js";
 import { isTrustedLocalMatch, searchFoods } from "./food-search.js";
 import type { ImportFood, ImportNutrient } from "../importers/types.js";
 import { localizeCandidateNames, type CandidateLocalizationProvider, type LocalizationLocale } from "./candidate-localization.js";
+import type { SemanticCandidateGateProvider } from "./semantic-candidate-gate.js";
 
 /** Optional locale-aware presentation — never affects identity/dedup/trust. Accepts either the app-wide Locale (hu/de/en) or a regional FoodLocale (e.g. "de-AT") — see catalog/food-locale.ts. */
 export type LocalizationOptions = { locale: LocalizationLocale; provider: CandidateLocalizationProvider };
+
+/**
+ * Owner-beta blocker #9 (2026-09-11): the ORIGINAL user-locale identity
+ * (e.g. "burgonya"), independent of whatever search term canonical
+ * normalization actually produced — required to validate a candidate
+ * against what the user actually meant, not merely against the (possibly
+ * over-specific/wrong) query that found it. See semantic-candidate-gate.ts
+ * for the full root-cause writeup. Optional for backward compatibility with
+ * the existing manual /foods/resolve-external search endpoint, which is
+ * out of this checkpoint's scope (the user's own typed query IS already the
+ * "original identity" there, with no AI translation step in between).
+ */
+export type SemanticGateOptions = { provider: SemanticCandidateGateProvider; originalIdentity: string; locale?: string };
 
 export type ExternalFoodCandidate = ImportFood & {
   sourceUrl?: string;
@@ -227,7 +241,7 @@ export async function confirmAuthoritativeFood(
   }
 }
 
-export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: string, adapters: readonly StructuredFoodLookupAdapter[], localization?: LocalizationOptions): Promise<ResolutionOutcome> {
+export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: string, adapters: readonly StructuredFoodLookupAdapter[], localization?: LocalizationOptions, semanticGate?: SemanticGateOptions): Promise<ResolutionOutcome> {
   const local = await searchFoods(prisma as any, query, 5);
   // "resolved_local" must mean what its name says: a genuinely trusted local
   // identity, not merely "searchFoods returned something". Owner-beta
@@ -260,6 +274,25 @@ export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: 
   // Structurally valid is not the same as relevant — see isRelevantExternalCandidate.
   let candidates = structurallyValid.filter((candidate) => isRelevantExternalCandidate(query, candidate.normalizedName)).sort((a, b) => b.confidence - a.confidence);
   if (!candidates.length) return { status: "unresolved", candidates: [], reason: "not_found" };
+
+  // Owner-beta blocker #9 (2026-09-11): isRelevantExternalCandidate above
+  // only validates a candidate against the SEARCH TERM actually sent — never
+  // against the ORIGINAL user-locale identity. When canonical search
+  // normalization itself is over-specific ("bread potato" instead of
+  // "potato"), that check trivially passes (the candidate matches exactly
+  // what was searched for), and nothing downstream re-verifies against what
+  // the user actually meant before offering the candidate for confirmation.
+  // This closes that gap: every surviving candidate must ALSO be validated
+  // against the true original identity before it can ever be offered,
+  // resolved, or become eligible for confirmed_external alias learning.
+  // Fail-closed by construction (see semantic-candidate-gate.ts) — a gate
+  // failure drops every candidate, never lets one through by default.
+  if (semanticGate) {
+    const gateInputs = candidates.slice(0, 5).map((candidate, index) => ({ id: String(index), authoritativeName: candidate.originalName || candidate.name }));
+    const relevance = await semanticGate.provider.checkRelevance({ identity: semanticGate.originalIdentity, locale: semanticGate.locale }, gateInputs);
+    candidates = candidates.slice(0, 5).filter((_, index) => relevance.get(String(index)) === true);
+    if (!candidates.length) return { status: "unresolved", candidates: [], reason: "not_found" };
+  }
 
   const duplicate = await findDuplicate(prisma, candidates[0]);
   if (duplicate) {

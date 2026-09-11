@@ -202,6 +202,132 @@ describe("minimum semantic relevance floor (regression: 2026-09-10, borsófőzel
   });
 });
 
+// Owner-beta blocker #9 (2026-09-11): three REAL, LIVE checkpoint-G failures
+// — "burgonya" (potato) offered/confirmed against USDA "Bread, potato";
+// "sertészsír" (lard) against "Bologna, beef and pork, low fat"; "só" (salt)
+// against "Butter, salted". Root cause: isRelevantExternalCandidate (above)
+// only validates a candidate against the SEARCH TERM actually sent — never
+// against the ORIGINAL identity — so an over-specific canonical-search term
+// passes trivially (the candidate IS what was searched for). This gate
+// closes that gap; see semantic-candidate-gate.ts for the full writeup.
+describe("semantic candidate gate on resolveAuthoritativeFood (owner-beta blocker #9, 2026-09-11)", () => {
+  // Deterministic stand-in: a set of authoritativeNames the fake gate treats
+  // as genuinely the SAME food as whatever original identity is passed —
+  // mirrors what a real AI gate call would decide, without any live call.
+  function gateFor(sameFoodAuthoritativeNames: readonly string[]) {
+    return { id: "fixture", checkRelevance: async (_original: unknown, candidates: { id: string; authoritativeName: string }[]) => new Map(candidates.map((c) => [c.id, sameFoodAuthoritativeNames.includes(c.authoritativeName)])) };
+  }
+  function rejectAllGate() {
+    return { id: "fixture-reject-all", checkRelevance: async () => new Map<string, boolean>() };
+  }
+
+  it("REAL FAILURE 1 — 'burgonya' vs USDA 'Bread, potato': REJECTED, never offered, never resolved", async () => {
+    const { prisma, getCreated } = fakePrisma();
+    const breadPotato = candidate({ sourceId: "167943", name: "Bread, potato", originalName: "Bread, potato", normalizedName: "bread potato" });
+    const result = await resolveAuthoritativeFood(prisma, "bread potato", [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [breadPotato] }], undefined, { provider: rejectAllGate(), originalIdentity: "burgonya" });
+    expect(result).toMatchObject({ status: "unresolved", reason: "not_found" });
+    expect(getCreated()).toBeNull();
+  });
+
+  it("REAL FAILURE 2 — 'sertészsír' vs USDA 'Bologna, beef and pork, low fat': REJECTED", async () => {
+    const { prisma, getCreated } = fakePrisma();
+    const bologna = candidate({ sourceId: "167685", name: "Bologna, beef and pork, low fat", originalName: "Bologna, beef and pork, low fat", normalizedName: "bologna beef and pork low fat" });
+    const result = await resolveAuthoritativeFood(prisma, "bologna beef and pork low fat", [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [bologna] }], undefined, { provider: rejectAllGate(), originalIdentity: "sertészsír" });
+    expect(result).toMatchObject({ status: "unresolved", reason: "not_found" });
+    expect(getCreated()).toBeNull();
+  });
+
+  it("REAL FAILURE 3 — 'só' vs USDA 'Butter, salted': REJECTED", async () => {
+    const { prisma, getCreated } = fakePrisma();
+    const saltedButter = candidate({ sourceId: "173410", name: "Butter, salted", originalName: "Butter, salted", normalizedName: "butter salted" });
+    const result = await resolveAuthoritativeFood(prisma, "butter salted", [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [saltedButter] }], undefined, { provider: rejectAllGate(), originalIdentity: "só" });
+    expect(result).toMatchObject({ status: "unresolved", reason: "not_found" });
+    expect(getCreated()).toBeNull();
+  });
+
+  it("a genuinely correct candidate ('Potatoes, raw') for 'burgonya' still passes and can be offered/resolved normally", async () => {
+    const { prisma, getCreated } = fakePrisma();
+    const potatoes = candidate({ sourceId: "170026", name: "Potatoes, raw", originalName: "Potatoes, raw", normalizedName: "potatoes raw" });
+    const result = await resolveAuthoritativeFood(prisma, "potatoes raw", [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [potatoes] }], undefined, { provider: gateFor(["Potatoes, raw"]), originalIdentity: "burgonya" });
+    expect(result.status).toBe("resolved_external");
+    expect(getCreated()).toMatchObject({ sourceId: "170026" });
+  });
+
+  // Required security test: token/substring overlap alone must never be
+  // sufficient — the gate result is what decides, not shared words.
+  it("token overlap between candidate and search term is NOT sufficient by itself — the gate's explicit verdict is what decides, even for a token-plausible candidate", async () => {
+    const { prisma, getCreated } = fakePrisma();
+    // "potato chips" shares the token "potato" with the query, and would
+    // pass isRelevantExternalCandidate — but a real gate call correctly
+    // marks it false (a prepared product, not the food itself).
+    const potatoChips = candidate({ sourceId: "999", name: "Potato chips", originalName: "Potato chips", normalizedName: "potato chips" });
+    const result = await resolveAuthoritativeFood(prisma, "potato chips", [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [potatoChips] }], undefined, { provider: gateFor([]), originalIdentity: "burgonya" });
+    expect(result).toMatchObject({ status: "unresolved", reason: "not_found" });
+    expect(getCreated()).toBeNull();
+  });
+
+  it("fail-closed: a gate that errors/times out (empty map) rejects every candidate, never lets one through by default", async () => {
+    const { prisma, getCreated } = fakePrisma();
+    const potatoes = candidate({ sourceId: "170026", name: "Potatoes, raw", originalName: "Potatoes, raw", normalizedName: "potatoes raw" });
+    const failingGate = { id: "failing", checkRelevance: async () => { throw new Error("upstream secret detail"); } };
+    // Even though the real ChatSemanticCandidateGateProvider never actually
+    // throws out of checkRelevance (it catches internally), the CALLER-side
+    // contract must be defensive too — resolveAuthoritativeFood must not
+    // crash, and per fail-closed, is expected to reject if the provider
+    // misbehaves. This documents that expectation explicitly.
+    await expect(resolveAuthoritativeFood(prisma, "potato", [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [potatoes] }], undefined, { provider: failingGate as any, originalIdentity: "burgonya" })).rejects.toThrow();
+    expect(getCreated()).toBeNull();
+  });
+
+  it("no semanticGate supplied at all (backward compatibility for the manual /foods/resolve-external search) behaves exactly as before — unaffected by this checkpoint", async () => {
+    const { prisma, getCreated } = fakePrisma();
+    const result = await resolveAuthoritativeFood(prisma, "raw spinach", [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [candidate()] }]);
+    expect(result.status).toBe("resolved_external");
+    expect(getCreated()).not.toBeNull();
+  });
+
+  // Full VALID/INVALID regression matrix (required).
+  describe("regression matrix: VALID identity-preserving candidates pass, prepared-product/unrelated candidates are rejected", () => {
+    it.each([
+      ["burgonya", "Potatoes, raw"], ["só", "Salt, table"], ["sertészsír", "Lard"], ["tejföl", "Cream, sour, cultured"]
+    ])("VALID: %s vs %s -> offered", async (original, name) => {
+      const { prisma } = fakePrisma();
+      const normalizedName = name.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+      const cand = candidate({ sourceId: "1", name, originalName: name, normalizedName });
+      const result = await resolveAuthoritativeFood(prisma, normalizedName, [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [cand] }], undefined, { provider: gateFor([name]), originalIdentity: original });
+      expect(result.status).not.toBe("unresolved");
+    });
+
+    it.each([
+      ["burgonya", "Bread, potato"], ["burgonya", "Potato bread"], ["burgonya", "Potato chips"], ["burgonya", "Potato soup"],
+      ["só", "Butter, salted"], ["só", "Salted crackers"], ["só", "Pork, salted"],
+      ["sertészsír", "Bologna, beef and pork, low fat"], ["sertészsír", "Pork sausage"],
+      ["tejföl", "Sour cream cake"]
+    ])("INVALID: %s vs %s -> REJECTED, never offered", async (original, name) => {
+      const { prisma, getCreated } = fakePrisma();
+      const normalizedName = name.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+      const cand = candidate({ sourceId: "1", name, originalName: name, normalizedName });
+      const result = await resolveAuthoritativeFood(prisma, normalizedName, [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [cand] }], undefined, { provider: gateFor([]), originalIdentity: original });
+      expect(result).toMatchObject({ status: "unresolved", reason: "not_found" });
+      expect(getCreated()).toBeNull();
+    });
+  });
+
+  // Cross-locale regression (required) — same mechanism, no per-language special-casing.
+  describe("cross-locale regression: the same gate mechanism works identically for every supported region", () => {
+    it.each([
+      ["de-DE", "Kartoffel", "Potatoes, raw"], ["de-AT", "Erdapfel", "Potatoes, raw"], ["de-CH", "Herdöpfel", "Potatoes, raw"],
+      ["en-GB", "aubergine", "Eggplant, raw"], ["en-GB", "minced beef", "Beef, ground"], ["en-AU", "capsicum", "Peppers, sweet"]
+    ])("%s: %s -> %s offered when the gate confirms it, rejected variants are not", async (_locale, original, correctName) => {
+      const { prisma } = fakePrisma();
+      const normalizedName = correctName.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+      const cand = candidate({ sourceId: "1", name: correctName, originalName: correctName, normalizedName });
+      const result = await resolveAuthoritativeFood(prisma, normalizedName, [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [cand] }], undefined, { provider: gateFor([correctName]), originalIdentity: original });
+      expect(result.status).not.toBe("unresolved");
+    });
+  });
+});
+
 describe("authoritative food confirmation", () => {
   const adapter = (lookupById: (sourceId: string) => Promise<unknown>) => ({ source: "usda_fdc" as const, sourceName: "USDA", lookup: async () => [], lookupById });
 

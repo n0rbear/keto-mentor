@@ -13,6 +13,7 @@ import { confirmRecipeIngredients, recipeIngredientConfirmationRequestSchema } f
 import { UsdaFoodDataCentralLookupAdapter, OpenFoodFactsProductAdapter } from "../catalog/structured-source-adapters.js";
 import { configuredSearchIntentProvider } from "../catalog/search-intent-gateway.js";
 import { configuredCandidateLocalizationProvider } from "../catalog/candidate-localization-gateway.js";
+import { configuredSemanticCandidateGateProvider } from "../catalog/semantic-candidate-gate-gateway.js";
 import { DynamicFoodResolutionRateLimiter } from "../catalog/dynamic-food-rate-limit.js";
 import { foodLocaleFor } from "../catalog/food-locale.js";
 
@@ -41,6 +42,12 @@ const externalFoodAdapters = usdaAdapter ? [usdaAdapter] : [];
 const externalFoodConfirmAdapters = usdaAdapter ? [usdaAdapter, openFoodFactsAdapter] : [openFoodFactsAdapter];
 const searchIntentProvider = configuredSearchIntentProvider(env);
 const candidateLocalizationProvider = configuredCandidateLocalizationProvider(env);
+// Owner-beta blocker #9 (2026-09-11): see server.ts's identical wiring and
+// catalog/semantic-candidate-gate.ts — re-validates every external candidate
+// against the ORIGINAL identity before it can be offered for confirmation,
+// auto-resolved, or (via confirmRecipeIngredients's own re-derivation)
+// become eligible for a confirmed_external alias.
+const semanticCandidateGateProvider = configuredSemanticCandidateGateProvider(env);
 const dynamicFoodResolutionLimiter = new DynamicFoodResolutionRateLimiter();
 // Identical to server.ts's own trustedLocale — the authenticated user's own
 // persisted locale is the single trusted source of UI language, never a
@@ -67,7 +74,7 @@ recipeRouter.post("/import-url/preview/confirm-ingredients", confirmIngredientsL
     // why this is a safe default rather than a finer-grained region pick).
     const foodLocale = foodLocaleFor(locale);
     const dynamic = externalFoodAdapters.length
-      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale, foodLocale, localizationProvider: candidateLocalizationProvider }
+      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale, foodLocale, localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider }
       : null;
     const result = await confirmRecipeIngredients(prisma, req.user!.id, input, {
       recipeAiProvider, dynamic, confirmAdapters: externalFoodConfirmAdapters,

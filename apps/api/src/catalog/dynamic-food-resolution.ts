@@ -7,6 +7,7 @@ import type { DynamicFoodResolutionRateLimiter } from "./dynamic-food-rate-limit
 import { normalizeSearch } from "./normalize.js";
 import { foodNameRepresentations, hasSemanticCoverage } from "./food-search.js";
 import { foodLocaleFor, type FoodLocale } from "./food-locale.js";
+import { DisabledSemanticCandidateGateProvider, type SemanticCandidateGateProvider } from "./semantic-candidate-gate.js";
 
 type DynamicPrisma = Parameters<typeof resolveAuthoritativeFood>[0];
 
@@ -116,6 +117,16 @@ export async function resolveDynamicFood(
     // older caller that only wires `locale` still works exactly as before.
     foodLocale?: FoodLocale;
     localizationProvider?: CandidateLocalizationProvider;
+    // Owner-beta blocker #9 (2026-09-11): validates a candidate against the
+    // ORIGINAL identity the user actually typed, independent of whatever
+    // (possibly over-specific/wrong) term canonical search normalization
+    // produced — see semantic-candidate-gate.ts for the full root-cause
+    // writeup. Optional in the TYPE only for structural backward
+    // compatibility; defaults to DisabledSemanticCandidateGateProvider,
+    // which FAILS CLOSED (rejects every candidate) rather than silently
+    // skipping the check — a caller that doesn't wire a real gate gets safe
+    // "unresolved" outcomes, never ungated candidates.
+    semanticCandidateGateProvider?: SemanticCandidateGateProvider;
   }
 ): Promise<DynamicResolutionOutcome> {
   if (!deps.adapters.length) { logDynamicResolutionOutcome("unresolved", undefined, "no_adapters"); return { status: "unresolved", reason: "no_adapters" }; }
@@ -128,6 +139,10 @@ export async function resolveDynamicFood(
   const outcome: ResolutionOutcome = await resolveAuthoritativeFood(prisma, searchTerm, deps.adapters, {
     locale: deps.foodLocale ?? deps.locale ?? "hu",
     provider: deps.localizationProvider ?? new DisabledCandidateLocalizationProvider()
+  }, {
+    provider: deps.semanticCandidateGateProvider ?? new DisabledSemanticCandidateGateProvider(),
+    originalIdentity: input.foodQuery,
+    locale: deps.foodLocale ?? deps.locale
   });
   switch (outcome.status) {
     case "resolved_local":

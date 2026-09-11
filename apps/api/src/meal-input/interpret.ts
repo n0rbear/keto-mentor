@@ -13,6 +13,7 @@ import { DisabledSearchIntentProvider, type SearchIntentProvider } from "../cata
 import type { CandidateLocalizationProvider } from "../catalog/candidate-localization.js";
 import type { DynamicFoodResolutionRateLimiter } from "../catalog/dynamic-food-rate-limit.js";
 import type { FoodLocale } from "../catalog/food-locale.js";
+import type { SemanticCandidateGateProvider } from "../catalog/semantic-candidate-gate.js";
 
 type SearchablePrisma = Pick<PrismaClient, "food" | "foodAlias"> & Partial<Pick<PrismaClient, "$queryRaw">>;
 type Serving = { id: string; key: string; unit: string; labels: unknown; grams: number; isEstimated: boolean; confidence: number; provenance: unknown };
@@ -76,6 +77,13 @@ export type DynamicResolutionDeps = {
   // keeps working unchanged; passed straight through to resolveDynamicFood.
   foodLocale?: FoodLocale;
   localizationProvider?: CandidateLocalizationProvider;
+  // Owner-beta blocker #9 (2026-09-11): see catalog/semantic-candidate-gate.ts
+  // and dynamic-food-resolution.ts — validates a candidate against the
+  // ORIGINAL identity, independent of the (possibly wrong) canonical search
+  // term. Optional in the TYPE only; resolveDynamicFood defaults a missing
+  // provider to DisabledSemanticCandidateGateProvider, which FAILS CLOSED
+  // (rejects every candidate), never silently skips the check.
+  semanticCandidateGateProvider?: SemanticCandidateGateProvider;
 } | null;
 
 export type InterpretResult = {

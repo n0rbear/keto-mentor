@@ -35,6 +35,7 @@ import { FoodNlpUserRateLimiter, rateLimitedFoodNlpProvider } from "./ai/food-nl
 import { configuredQuantityAiProvider } from "./meal-input/quantity-ai-gateway.js";
 import { configuredSearchIntentProvider } from "./catalog/search-intent-gateway.js";
 import { configuredCandidateLocalizationProvider } from "./catalog/candidate-localization-gateway.js";
+import { configuredSemanticCandidateGateProvider } from "./catalog/semantic-candidate-gate-gateway.js";
 import { DynamicFoodResolutionRateLimiter } from "./catalog/dynamic-food-rate-limit.js";
 import { configuredWebKnowledgeSearchProvider } from "./web-knowledge/web-knowledge-gateway.js";
 import { WebKnowledgeSearchRateLimiter } from "./web-knowledge/web-knowledge-rate-limit.js";
@@ -67,6 +68,13 @@ const searchIntentProvider = configuredSearchIntentProvider(env);
 // identity/nutrition. Independent of USDA_FDC_API_KEY: unused when dynamic
 // resolution itself is off, since it is only ever invoked from within that path.
 const candidateLocalizationProvider = configuredCandidateLocalizationProvider(env);
+// Owner-beta blocker #9 (2026-09-11): independently re-validates every
+// external candidate against the ORIGINAL identity the user typed, before
+// it can ever be offered for confirmation or auto-resolved — see
+// catalog/semantic-candidate-gate.ts. Same configured AI gateway again, but
+// a SEPARATE call/schema from searchIntentProvider — never trusted merely
+// because the same model generated the search term being validated.
+const semanticCandidateGateProvider = configuredSemanticCandidateGateProvider(env);
 const dynamicFoodResolutionLimiter = new DynamicFoodResolutionRateLimiter();
 // Web recipe discovery: strictly a fallback layered on top of meal-input
 // interpretation (see recipe-discovery-fallback.ts), never wired into
@@ -264,7 +272,7 @@ app.post("/meal-input/interpret", requireAuth, async (req, res, next) => {
     // never adds a request on a local hit. No adapters configured (e.g. no
     // USDA_FDC_API_KEY) means dynamic resolution is simply not offered.
     const dynamic = externalFoodAdapters.length
-      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale: trustedLocale(req.user!), localizationProvider: candidateLocalizationProvider }
+      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale: trustedLocale(req.user!), localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider }
       : null;
     const result = await interpretMealInput(prisma, input.text, requestQuantityProvider, requestProvider, dynamic);
     // Fallback layered on top of interpretation, never inside it — only ever
