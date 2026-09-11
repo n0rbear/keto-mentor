@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { configuredQuantityAiProvider } from "./quantity-ai-gateway.js";
 import { MistralQuantityEstimationProvider } from "./mistral-quantity-provider.js";
 import { OpenRouterQuantityEstimationProvider } from "./openrouter-quantity-provider.js";
+import { GroqQuantityEstimationProvider } from "./groq-quantity-provider.js";
 import { DisabledQuantityEstimationProvider } from "./quantity-estimation.js";
 import { resolveQuantity } from "./interpret.js";
 
@@ -130,5 +131,71 @@ describe("quantity AI gateway selection", () => {
     // accepting the rest, which would also accept whatever schema-violating
     // trust boundary the provider tried to cross.
     expect(result.reason).toBe("conversion_missing");
+  });
+
+  // Owner-beta performance blocker (2026-09-12): benchmark evidence (114
+  // calls) showed Groq succeeding 100% of quantity-estimation attempts vs
+  // OpenRouter's 0% (every OpenRouter quantity call in the live benchmark
+  // errored). FOOD_AI_PROVIDER="groq" makes Groq primary with OpenRouter as
+  // the automatic failover.
+  describe("Groq as primary (FOOD_AI_PROVIDER=groq)", () => {
+    it("selects Groq when FOOD_AI_PROVIDER=groq and credentials are present", () => {
+      const provider = configuredQuantityAiProvider({ FOOD_AI_PROVIDER: "groq", GROQ_API_KEY: "key" });
+      expect(provider).toBeInstanceOf(GroqQuantityEstimationProvider);
+    });
+
+    it("is safely disabled when Groq is selected but the key is missing", () => {
+      expect(configuredQuantityAiProvider({ FOOD_AI_PROVIDER: "groq" })).toBeInstanceOf(DisabledQuantityEstimationProvider);
+    });
+
+    it("stays a plain GroqQuantityEstimationProvider (no failover) when OpenRouter is not configured", () => {
+      const provider = configuredQuantityAiProvider({ FOOD_AI_PROVIDER: "groq", GROQ_API_KEY: "key" });
+      expect(provider).toBeInstanceOf(GroqQuantityEstimationProvider);
+    });
+
+    it("Groq malformed JSON output safely asks for grams", async () => {
+      const provider = new GroqQuantityEstimationProvider({
+        apiKey: "test-secret", model: "openai/gpt-oss-20b",
+        fetchImpl: async () => new Response(JSON.stringify({ choices: [{ message: { content: "not json" } }] }))
+      });
+      const result = await resolveQuantity(parsed, food, provider);
+      expect(result.reason).toBe("conversion_missing");
+    });
+
+    it("quantity estimation fails over to OpenRouter end-to-end through resolveQuantity when Groq 429s", async () => {
+      let groqCalls = 0;
+      let openRouterCalls = 0;
+      const fetchImpl = (async (url: string) => {
+        if (String(url).includes("openrouter.ai")) {
+          openRouterCalls++;
+          return new Response(JSON.stringify({
+            choices: [{ message: { content: JSON.stringify({ gramsPerUnit: 28, rangeGramsPerUnit: { min: 20, max: 35 }, confidence: 0.6 }) } }]
+          }));
+        }
+        groqCalls++;
+        return new Response("rate limited", { status: 429 });
+      }) as typeof fetch;
+
+      const provider = configuredQuantityAiProvider(
+        { FOOD_AI_PROVIDER: "groq", GROQ_API_KEY: "groq-key", OPENROUTER_API_KEY: "or-key", FOOD_AI_MODEL: "some/model:free" },
+        { fetchImpl }
+      );
+      const result = await resolveQuantity(parsed, food, provider);
+
+      expect(groqCalls).toBe(1);
+      expect(openRouterCalls).toBe(1);
+      expect(result.status).toBe("resolved");
+      expect((result as { provenance?: { provider?: string } }).provenance?.provider).toBe("openrouter");
+    });
+
+    it("never leaks the Groq key through a failed estimate", async () => {
+      const provider = new GroqQuantityEstimationProvider({
+        apiKey: "super-secret-groq-key", model: "openai/gpt-oss-20b",
+        fetchImpl: async () => { throw new Error("super-secret-groq-key"); }
+      });
+      const result = await resolveQuantity(parsed, food, provider);
+      expect(result.reason).toBe("conversion_missing");
+      expect(JSON.stringify(result)).not.toContain("super-secret-groq-key");
+    });
   });
 });

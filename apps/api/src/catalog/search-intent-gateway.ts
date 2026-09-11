@@ -16,6 +16,12 @@ const searchIntentFailoverObserver = createFailoverObserver("search_intent");
 export function configuredSearchIntentProvider(config: FoodAiGatewayConfigInput, overrides: { fetchImpl?: typeof fetch } = {}): SearchIntentProvider {
   const resolved = resolveFoodAiGatewayConfig(config);
   try {
+    if (resolved.kind === "groq") {
+      const primary = new GroqAiProvider({ apiKey: resolved.apiKey, model: resolved.model, baseUrl: resolved.baseUrl, fetchImpl: overrides.fetchImpl });
+      if (!resolved.secondary) return new ChatSearchIntentProvider(primary);
+      const secondary = new OpenRouterAiProvider({ apiKey: resolved.secondary.apiKey, model: resolved.secondary.model, baseUrl: resolved.secondary.baseUrl, appReferer: resolved.secondary.appReferer, appTitle: resolved.secondary.appTitle, fetchImpl: overrides.fetchImpl });
+      return new ChatSearchIntentProvider(new FailoverAiProvider(primary, secondary, searchIntentFailoverObserver));
+    }
     if (resolved.kind === "openrouter") {
       const primary = new OpenRouterAiProvider({ apiKey: resolved.apiKey, model: resolved.model, baseUrl: resolved.baseUrl, appReferer: resolved.appReferer, appTitle: resolved.appTitle, fetchImpl: overrides.fetchImpl });
       if (!resolved.secondary) return new ChatSearchIntentProvider(primary);
