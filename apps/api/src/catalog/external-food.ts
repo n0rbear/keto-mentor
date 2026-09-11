@@ -4,10 +4,10 @@ import type { Locale } from "@keto-mentor/shared";
 import { buildSearchText, normalizeSearch } from "./normalize.js";
 import { isTrustedLocalMatch, searchFoods } from "./food-search.js";
 import type { ImportFood, ImportNutrient } from "../importers/types.js";
-import { localizeCandidateNames, type CandidateLocalizationProvider } from "./candidate-localization.js";
+import { localizeCandidateNames, type CandidateLocalizationProvider, type LocalizationLocale } from "./candidate-localization.js";
 
-/** Optional locale-aware presentation — never affects identity/dedup/trust. */
-export type LocalizationOptions = { locale: Locale; provider: CandidateLocalizationProvider };
+/** Optional locale-aware presentation — never affects identity/dedup/trust. Accepts either the app-wide Locale (hu/de/en) or a regional FoodLocale (e.g. "de-AT") — see catalog/food-locale.ts. */
+export type LocalizationOptions = { locale: LocalizationLocale; provider: CandidateLocalizationProvider };
 
 export type ExternalFoodCandidate = ImportFood & {
   sourceUrl?: string;

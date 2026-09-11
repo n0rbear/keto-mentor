@@ -12,6 +12,7 @@ import type { ExternalFoodCandidate, StructuredFoodLookupAdapter } from "../cata
 import { DisabledSearchIntentProvider, type SearchIntentProvider } from "../catalog/search-intent.js";
 import type { CandidateLocalizationProvider } from "../catalog/candidate-localization.js";
 import type { DynamicFoodResolutionRateLimiter } from "../catalog/dynamic-food-rate-limit.js";
+import type { FoodLocale } from "../catalog/food-locale.js";
 
 type SearchablePrisma = Pick<PrismaClient, "food" | "foodAlias"> & Partial<Pick<PrismaClient, "$queryRaw">>;
 type Serving = { id: string; key: string; unit: string; labels: unknown; grams: number; isEstimated: boolean; confidence: number; provenance: unknown };
@@ -69,6 +70,11 @@ export type DynamicResolutionDeps = {
   // never search/matching/trust. Defaulted so existing test fixtures that
   // predate localization keep compiling unchanged.
   locale?: Locale;
+  // Owner-beta blocker #8 (2026-09-11): the user's REGIONAL food-vocabulary
+  // locale (e.g. "de-AT") — see catalog/food-locale.ts. Optional and
+  // independent of `locale` so an existing caller that only wires `locale`
+  // keeps working unchanged; passed straight through to resolveDynamicFood.
+  foodLocale?: FoodLocale;
   localizationProvider?: CandidateLocalizationProvider;
 } | null;
 

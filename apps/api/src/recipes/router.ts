@@ -14,6 +14,7 @@ import { UsdaFoodDataCentralLookupAdapter, OpenFoodFactsProductAdapter } from ".
 import { configuredSearchIntentProvider } from "../catalog/search-intent-gateway.js";
 import { configuredCandidateLocalizationProvider } from "../catalog/candidate-localization-gateway.js";
 import { DynamicFoodResolutionRateLimiter } from "../catalog/dynamic-food-rate-limit.js";
+import { foodLocaleFor } from "../catalog/food-locale.js";
 
 export const recipeRouter = Router();
 recipeRouter.use(requireAuth);
@@ -60,12 +61,18 @@ recipeRouter.post("/import-url/preview/confirm-ingredients", confirmIngredientsL
   try {
     const input = recipeIngredientConfirmationRequestSchema.parse(req.body);
     const locale = trustedLocale(req.user!);
+    // Owner-beta blocker #8 (2026-09-11): the regional food-vocabulary
+    // locale, derived from the user's own trusted `locale` (the only
+    // currently-persisted per-user signal — see catalog/food-locale.ts for
+    // why this is a safe default rather than a finer-grained region pick).
+    const foodLocale = foodLocaleFor(locale);
     const dynamic = externalFoodAdapters.length
-      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale, localizationProvider: candidateLocalizationProvider }
+      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale, foodLocale, localizationProvider: candidateLocalizationProvider }
       : null;
     const result = await confirmRecipeIngredients(prisma, req.user!.id, input, {
       recipeAiProvider, dynamic, confirmAdapters: externalFoodConfirmAdapters,
-      localization: { locale, provider: candidateLocalizationProvider },
+      localization: { locale: foodLocale, provider: candidateLocalizationProvider },
+      foodLocale,
       mintProof: (sourceUrl, method) => createRecipeImportProof(req.user!.id, sourceUrl, method)
     });
     res.json(result);

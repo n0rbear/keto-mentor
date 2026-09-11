@@ -7,6 +7,8 @@ import { classifyRecipeReview, computeTrustedNutrition, toIngredientReview, type
 import type { RecipeExtractionProvider } from "./recipe-extraction-provider.js";
 import type { DynamicResolutionDeps } from "../meal-input/interpret.js";
 import type { SafeFetcherDependencies } from "./safe-url-fetcher.js";
+import { learnConfirmedAlias } from "../catalog/confirmed-alias.js";
+import type { FoodLocale } from "../catalog/food-locale.js";
 
 /**
  * Batch recipe-ingredient confirmation (owner-beta blocker #7, 2026-09-11).
@@ -76,6 +78,13 @@ export type RecipeIngredientConfirmationDeps = {
   localization?: LocalizationOptions;
   fetchDependencies?: SafeFetcherDependencies;
   mintProof: (sourceUrl: string, method: ImportProofMethod) => string;
+  // Owner-beta blocker #8 (2026-09-11): the confirming user's REGIONAL
+  // food-vocabulary locale (e.g. "de-AT") — required to correctly locale-
+  // scope the confirmed alias this handler now learns after each successful
+  // confirmation (see catalog/confirmed-alias.ts). Distinct from `dynamic`/
+  // `localization`'s own locale fields, though callers normally derive all
+  // three from the same source (the authenticated user's trusted locale).
+  foodLocale: FoodLocale;
 };
 
 function invalidRequest(publicCode: string) {
@@ -139,6 +148,21 @@ export async function confirmRecipeIngredients(
     try {
       const outcome = await confirmAuthoritativeFood(prisma, entry.source, entry.sourceId, deps.confirmAdapters, deps.localization);
       confirmations.push({ ingredientIndex: entry.ingredientIndex, source: entry.source, sourceId: entry.sourceId, result: outcome.status === "confirmed" || outcome.status === "existing" ? outcome.status : outcome.status === "confirmation_required" ? "confirmation_required" : "unresolved" });
+      // Learn the confirmed locale-specific identity ONLY on a real,
+      // server-verified success — never on confirmation_required/unresolved/
+      // error. Uses the ORIGINAL ingredient's parsedFoodQuery (identity only,
+      // no quantity/unit noise — see recipe-ingredient-review.ts) from the
+      // BEFORE snapshot, since that is what the user actually confirmed a
+      // match for.
+      if (outcome.status === "confirmed" || outcome.status === "existing") {
+        const originalReview = beforeReviews[entry.ingredientIndex];
+        await learnConfirmedAlias(prisma, {
+          foodId: outcome.food.id,
+          parsedFoodQuery: originalReview.parsedFoodQuery,
+          foodLocale: deps.foodLocale,
+          provenance: { sourceUrl: request.sourceUrl, ingredientIndex: entry.ingredientIndex, source: entry.source, sourceId: entry.sourceId }
+        });
+      }
     } catch {
       confirmations.push({ ingredientIndex: entry.ingredientIndex, source: entry.source, sourceId: entry.sourceId, result: "error" });
     }

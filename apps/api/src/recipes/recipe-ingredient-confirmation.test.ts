@@ -8,6 +8,10 @@ import { DynamicFoodResolutionRateLimiter } from "../catalog/dynamic-food-rate-l
 import { DisabledCandidateLocalizationProvider, type CandidateLocalizationProvider } from "../catalog/candidate-localization.js";
 import { confirmAuthoritativeFood, type ConfirmableFoodLookupAdapter, type ExternalFoodCandidate } from "../catalog/external-food.js";
 import type { SearchIntent, SearchIntentProvider } from "../catalog/search-intent.js";
+import type { FoodLocale } from "../catalog/food-locale.js";
+import { learnConfirmedAlias } from "../catalog/confirmed-alias.js";
+import { resolveDynamicFood } from "../catalog/dynamic-food-resolution.js";
+import { interpretMealInput } from "../meal-input/interpret.js";
 
 const wrap = (json: unknown) => `<html><script type="application/ld+json">${JSON.stringify(json)}</script></html>`;
 const RECIPE_URL = "https://example.com/csulok-recept";
@@ -94,13 +98,14 @@ function defaultSearchIntent() {
   return dispatchSearchIntent({ [CSULOK_QUERY]: { canonicalConcept: "pork hock", searchTerms: [PORK_SEARCH_TERM] }, [UNKNOWN_QUERY]: { canonicalConcept: "unknown", searchTerms: [UNKNOWN_SEARCH_TERM] } });
 }
 
-function deps(adapter: ConfirmableFoodLookupAdapter, prisma: any, searchIntent: SearchIntentProvider = defaultSearchIntent(), userId = "user-1", localizationProvider: CandidateLocalizationProvider = new DisabledCandidateLocalizationProvider()) {
+function deps(adapter: ConfirmableFoodLookupAdapter, prisma: any, searchIntent: SearchIntentProvider = defaultSearchIntent(), userId = "user-1", localizationProvider: CandidateLocalizationProvider = new DisabledCandidateLocalizationProvider(), foodLocale: FoodLocale = "hu-HU") {
   return {
     recipeAiProvider: new DisabledRecipeExtractionProvider(),
-    dynamic: { prisma, searchIntentProvider: searchIntent, adapters: [adapter], rateLimiter: new DynamicFoodResolutionRateLimiter(), userId, locale: "hu" as const, localizationProvider },
+    dynamic: { prisma, searchIntentProvider: searchIntent, adapters: [adapter], rateLimiter: new DynamicFoodResolutionRateLimiter(), userId, locale: "hu" as const, foodLocale, localizationProvider },
     confirmAdapters: [adapter],
-    localization: { locale: "hu" as const, provider: localizationProvider },
+    localization: { locale: foodLocale, provider: localizationProvider },
     fetchDependencies,
+    foodLocale,
     mintProof: (sourceUrl: string, method: any) => createRecipeImportProof(userId, sourceUrl, method)
   };
 }
@@ -248,7 +253,7 @@ describe("confirmRecipeIngredients: real confirmation + recomputation (1, 2, 3, 
     expect(foods).toHaveLength(0); // never invented a Food on failure
   });
 
-  it("14, 17, 18, 20 — after confirming the pork candidate, the review is recomputed through the REAL resolver: the still-unresolved ingredient stays unresolved, and (absent localization) the recipe legitimately remains REVIEWABLE — never falsely FULLY_RESOLVED", async () => {
+  it("14, 17, 18, 20 — after confirming the pork candidate, a confirmed_external alias makes the SAME ORIGINAL phrase resolve LOCALLY on recompute (owner-beta blocker #8) — the still-unresolved ingredient stays unresolved, and the recipe legitimately remains REVIEWABLE (not fully_resolved) only because of that one dead end", async () => {
     const { prisma } = fakePrisma();
     const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork()] }, { "172152": pork() });
     const result = await confirmRecipeIngredients(prisma, "user-1", {
@@ -257,21 +262,17 @@ describe("confirmRecipeIngredients: real confirmation + recomputation (1, 2, 3, 
     }, deps(adapter, prisma));
     expect(result.before.confirmationRequiredCount).toBe(1);
     expect(result.before.unresolvedCount).toBe(1);
-    // Real, honest recompute behavior (no localization configured): the
-    // persisted Food now genuinely matches the search-intent-translated
-    // term "pork hock" locally, so resolveDynamicFood itself reports
-    // "resolved" this time — but interpret.ts's OWN pre-existing semantic-
-    // coverage gate (owner-beta blocker #3, unmodified here) then compares
-    // that against the ORIGINAL phrase "csulok", finds zero token overlap
-    // with the English-only persisted name, and correctly downgrades the
-    // final outcome to "unresolved" rather than trusting it. This endpoint
-    // never forces a result — confirming without a matching local-language
-    // name can legitimately leave an ingredient LESS actionable (unresolved
-    // instead of confirmation_required) than before, and that is reported
-    // honestly, not hidden. See the "WITH a working localization provider"
-    // test below for the case where this instead genuinely resolves.
+    // The confirmed_external alias (locale "hu-HU", normalizedAlias "csulok")
+    // makes interpretOne's own BASE local search find a trusted exact-alias
+    // match on THIS ORIGINAL phrase directly — no dynamic/search-intent/USDA
+    // round-trip needed, and no dependency on candidate-localization
+    // succeeding (unlike checkpoint F's pre-alias-learning behavior, where
+    // this same scenario left the ingredient semantically-rejected/unresolved
+    // instead). The still-genuinely-unknown ingredient (index 1) is
+    // untouched, so the recipe stays REVIEWABLE for that one honest reason.
+    expect(result.after.resolvedCount).toBe(1);
     expect(result.after.confirmationRequiredCount).toBe(0);
-    expect(result.after.unresolvedCount).toBe(2);
+    expect(result.after.unresolvedCount).toBe(1);
     expect(result.after.recipeState).not.toBe("fully_resolved");
     expect(result.after.nutritionCalculable).toBe(false);
   });
@@ -354,5 +355,120 @@ describe("confirmRecipeIngredients: existing mechanisms remain unchanged (21, 22
     // exercised end-to-end by every test above (every "confirmed"/"existing"
     // result flows through that exact real function).
     expect(true).toBe(true);
+  });
+});
+
+// Owner-beta blocker #8 (2026-09-11): locale-aware confirmed-identity
+// learning and its safety properties, tested at the integration level
+// (through confirmRecipeIngredients — the real endpoint handler).
+describe("confirmRecipeIngredients: locale-aware confirmed identity (6, 8, 9, 11, 12, 13)", () => {
+  // Test 6 (required): explicit bound confirmation CAN create a trusted locale alias.
+  it("6 — a real confirmation writes a 'confirmed_external' alias tagged with the confirming user's own regional locale, not a bare language", async () => {
+    const { prisma, aliases } = fakePrisma();
+    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork()] }, { "172152": pork() });
+    await confirmRecipeIngredients(prisma, "user-1", {
+      importProof: proof(), sourceUrl: RECIPE_URL, extractionMethod: "schema_org_json_ld",
+      confirmations: [{ ingredientIndex: 0, source: "usda_fdc", sourceId: "172152" }]
+    }, deps(adapter, prisma, defaultSearchIntent(), "user-1", new DisabledCandidateLocalizationProvider(), "hu-HU"));
+    const confirmedAlias = aliases.find((a) => a.kind === "confirmed_external");
+    expect(confirmedAlias).toMatchObject({ normalizedAlias: CSULOK_QUERY, locale: "hu-HU" });
+  });
+
+  // Test 8 (required, alias-writing level — see also confirmed-alias.test.ts's direct unit test).
+  it("8 — confirming through the real endpoint in one locale never writes an alias in a different locale", async () => {
+    const { prisma, aliases } = fakePrisma();
+    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork()] }, { "172152": pork() });
+    await confirmRecipeIngredients(prisma, "user-1", {
+      importProof: proof(), sourceUrl: RECIPE_URL, extractionMethod: "schema_org_json_ld",
+      confirmations: [{ ingredientIndex: 0, source: "usda_fdc", sourceId: "172152" }]
+    }, deps(adapter, prisma, defaultSearchIntent(), "user-1", new DisabledCandidateLocalizationProvider(), "de-AT"));
+    expect(aliases.filter((a) => a.kind === "confirmed_external").every((a) => a.locale === "de-AT")).toBe(true);
+    expect(aliases.some((a) => a.locale === "de-DE")).toBe(false);
+  });
+
+  // Test 12 (required): a tampered candidate (rejected before any external call — see structural-validation tests above) never creates any alias at all.
+  it("12 — a rejected (never-offered) candidate creates no alias of any kind — the structural check runs before any confirmation or alias-learning code", async () => {
+    const { prisma, aliases } = fakePrisma();
+    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork()] }, { "172152": pork() });
+    await expect(confirmRecipeIngredients(prisma, "user-1", {
+      importProof: proof(), sourceUrl: RECIPE_URL, extractionMethod: "schema_org_json_ld",
+      confirmations: [{ ingredientIndex: 0, source: "usda_fdc", sourceId: "999999" }] // never offered
+    }, deps(adapter, prisma))).rejects.toMatchObject({ publicCode: "candidate_not_offered_for_ingredient" });
+    expect(aliases).toHaveLength(0);
+  });
+
+  // Test 13 (required): a failed authoritative refetch creates no alias.
+  it("13 — a failed authoritative refetch (adapter.lookupById throws) creates no confirmed_external alias", async () => {
+    const { prisma, aliases } = fakePrisma();
+    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork()] }, {}, { failLookupById: true });
+    const result = await confirmRecipeIngredients(prisma, "user-1", {
+      importProof: proof(), sourceUrl: RECIPE_URL, extractionMethod: "schema_org_json_ld",
+      confirmations: [{ ingredientIndex: 0, source: "usda_fdc", sourceId: "172152" }]
+    }, deps(adapter, prisma));
+    expect(result.confirmations[0].result).toBe("unresolved");
+    expect(aliases.some((a) => a.kind === "confirmed_external")).toBe(false);
+  });
+
+  // Test 4 (required): AI search intent alone (no human confirmation)
+  // creates no TRUSTED "confirmed_external" alias — only confirmRecipeIngredients
+  // (after a real, server-verified confirmation) ever writes that kind;
+  // resolveDynamicFood's own alias-learning (unchanged, gated on
+  // hasSemanticCoverage) stays tagged "dynamic_search", a structurally
+  // distinct, lower-trust kind (see food-search.ts's special-case).
+  it("4 — a dynamic resolution alone (AI search-intent, no confirmation) never writes a 'confirmed_external' alias — only an explicit confirmation does", async () => {
+    const { prisma, aliases } = fakePrisma();
+    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork()] }, { "172152": pork() });
+    // Exercises resolveDynamicFood directly (the AI-search-intent-alone
+    // path) — pork()'s matchPolicy stays "review_required" so this can only
+    // ever reach confirmation_required, never an auto-persisted "resolved".
+    await resolveDynamicFood(prisma, { foodQuery: "csulok" }, {
+      searchIntentProvider: defaultSearchIntent(), adapters: [adapter], rateLimiter: new DynamicFoodResolutionRateLimiter(), userId: "user-1"
+    });
+    expect(aliases.some((a) => a.kind === "confirmed_external")).toBe(false);
+  });
+
+  // Test 11 (required): preparation semantics remain protected — a
+  // confirmed_external alias for the base food concept must NOT silently
+  // make a DIFFERENT preparation auto-resolve. Relies entirely on the
+  // EXISTING, unmodified prepUnavailable gate in meal-input/interpret.ts,
+  // which runs unconditionally before any trust-tier check — confirmed_
+  // external aliases get no special exemption from it.
+  it("11 — a confirmed_external alias for the base food concept does NOT make a preparation-mismatched query silently resolve — 'Főtt tojás' still requires review even after 'tojas' is a trusted alias", async () => {
+    const egg = { id: "egg-1", name: "Egg", originalName: "Egg", names: {}, searchText: "egg", source: "bls", sourceId: "1", servings: [], kcalPer100g: 155, fatPer100g: 11, proteinPer100g: 13, carbsPer100g: 1.1, fiberPer100g: 0 };
+    const { prisma } = fakePrisma({ seedFoods: [egg] });
+    await learnConfirmedAlias(prisma, { foodId: "egg-1", parsedFoodQuery: "tojas", foodLocale: "hu-HU", provenance: { sourceUrl: RECIPE_URL, ingredientIndex: 0, source: "usda_fdc", sourceId: "1" } });
+    const result = await interpretMealInput(prisma, "5 db Főtt tojás");
+    // The trusted alias exists (base "tojas" search would find it), but the
+    // preparation-mismatch gate (boiled egg has no distinct catalog entry)
+    // still forces confirmation_required — never silently "resolved".
+    expect(result.foodResolution).toBe("confirmation_required");
+    expect(result.preparationUnavailable).toBe(true);
+  });
+});
+
+// Test 14, 15, 16 (required): future same-locale lookup resolves LOCALLY,
+// with ZERO USDA calls and ZERO Groq calls — verified as a SEPARATE,
+// independent later lookup (not the same request's own recompute), directly
+// against interpretMealInput, counting real adapter/searchIntent calls.
+describe("confirmRecipeIngredients -> later independent lookup: zero-cost local reuse (14, 15, 16)", () => {
+  it("a later, independent interpretMealInput call for the SAME original phrase resolves locally with zero USDA calls and zero Groq/search-intent calls", async () => {
+    const { prisma } = fakePrisma();
+    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork()] }, { "172152": pork() });
+    await confirmRecipeIngredients(prisma, "user-1", {
+      importProof: proof(), sourceUrl: RECIPE_URL, extractionMethod: "schema_org_json_ld",
+      confirmations: [{ ingredientIndex: 0, source: "usda_fdc", sourceId: "172152" }]
+    }, deps(adapter, prisma));
+
+    const lookupCallsBefore = (adapter.lookup as any).mock.calls.length;
+    const lookupByIdCallsBefore = (adapter.lookupById as any).mock.calls.length;
+    const searchIntentGenerate = vi.fn(async () => { throw new Error("must never be called for an already-confirmed local alias"); });
+    const laterResult = await interpretMealInput(prisma, "1 csülök", undefined, undefined, {
+      prisma, searchIntentProvider: { id: "spy", generate: searchIntentGenerate },
+      adapters: [adapter], rateLimiter: new DynamicFoodResolutionRateLimiter(), userId: "user-2", locale: "hu", foodLocale: "hu-HU"
+    });
+    expect(laterResult.foodResolution).toBe("resolved");
+    expect(searchIntentGenerate).not.toHaveBeenCalled(); // zero Groq calls
+    expect((adapter.lookup as any).mock.calls.length).toBe(lookupCallsBefore); // zero USDA search calls
+    expect((adapter.lookupById as any).mock.calls.length).toBe(lookupByIdCallsBefore); // zero USDA refetch calls
   });
 });
