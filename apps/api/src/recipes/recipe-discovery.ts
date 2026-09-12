@@ -16,14 +16,33 @@ import type { RecipeIngredientReview } from "./recipe-ingredient-review.js";
  * objects with forged nutrition.
  */
 export type RecipeDiscoveryPreview = {
-  status: "confirmation_required" | "unresolved";
+  // "local_match": a trusted local Recipe (the user's own, already-saved/
+  // imported) matched the dish exactly — see meal-input/local-recipe-
+  // lookup.ts. Wins outright over web discovery; carries `localMatch`, never
+  // `candidate`.
+  status: "confirmation_required" | "unresolved" | "local_match";
   searchAttempted: boolean;
   resultCount: number;
   candidatesAfterRelevanceFilter: number;
   // How many of the bounded candidates were actually fetched/attempted
   // before either selecting one or exhausting the set.
   candidatesAttempted: number;
-  reason?: "disabled" | "rate_limited" | "provider_error" | "no_relevant_results" | "no_fully_resolvable_candidate" | "systemic_error";
+  reason?: "disabled" | "rate_limited" | "provider_error" | "no_relevant_results" | "no_fully_resolvable_candidate" | "systemic_error" | "ambiguous_local_matches";
+  // Present only when `reason === "ambiguous_local_matches"` — two or more
+  // of the user's own saved recipes matched the dish name equally well.
+  // Never silently resolved; the client must ask the user to pick one.
+  localAlternatives?: { recipeId: string; title: string }[];
+  // Present only when status === "local_match". Already fully trusted and
+  // persisted — no import step, no importProof, just the existing recipeId
+  // a meal can reference directly (MealItem.recipeId).
+  localMatch?: {
+    recipeId: string;
+    title: string;
+    servings: number | null;
+    ingredientCount: number;
+    nutritionPer100g: MacroTotals | null;
+    nutritionCalculable: boolean;
+  };
   candidate?: {
     title: string;
     sourceUrl: string;

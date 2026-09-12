@@ -15,6 +15,7 @@ import type { DynamicFoodResolutionRateLimiter } from "../catalog/dynamic-food-r
 import type { FoodLocale } from "../catalog/food-locale.js";
 import type { SemanticCandidateGateProvider } from "../catalog/semantic-candidate-gate.js";
 import { DEFAULT_CONCURRENCY, mapWithConcurrency, timeStage } from "../request-performance.js";
+import type { ProgressStage } from "./progress-bus.js";
 
 type SearchablePrisma = Pick<PrismaClient, "food" | "foodAlias"> & Partial<Pick<PrismaClient, "$queryRaw">>;
 type Serving = { id: string; key: string; unit: string; labels: unknown; grams: number; isEstimated: boolean; confidence: number; provenance: unknown };
@@ -551,23 +552,38 @@ export async function interpretMealInput(
   text: string,
   quantityProvider: QuantityEstimationProvider = new DisabledQuantityEstimationProvider(),
   aiProvider: AiProvider = new StubAiProvider(),
-  dynamic: DynamicResolutionDeps = null
+  dynamic: DynamicResolutionDeps = null,
+  onProgress?: (stage: ProgressStage) => void
 ): Promise<InterpretResult> {
   const requestStartedAt = performance.now();
   // Resolve food semantics before allowing any external weight estimation.
   const disabled = new DisabledQuantityEstimationProvider();
+  onProgress?.("local_food_search");
   const deterministic = await timeStage("deterministic_pass", () => interpretDeterministically(prisma, text, disabled, dynamic));
   let result = deterministic;
   if (shouldUseAiFallback(deterministic, aiProvider)) {
     try {
+      onProgress?.("food_understanding");
       const understanding = await timeStage("food_understanding_ai", () => understandFood(aiProvider, { text }));
       result = await timeStage("ai_assisted_items", () => interpretAiUnderstanding(prisma, text, understanding, disabled, aiProvider, dynamic));
-    } catch {
+    } catch (error) {
+      // Owner-beta (2026-09-12): previously silent — indistinguishable from
+      // "the AI genuinely classified this as simple/already-resolved". Both
+      // ai_failover (per-provider) AND this line together make the real
+      // cause traceable: a provider error code if the underlying AiProvider
+      // threw one, or "unknown" for anything else — never the raw error
+      // message/stack, which could echo back request content.
+      const code = error instanceof AiProviderError ? error.code : "unknown";
+      console.log(`ai_understanding_fallback outcome=deterministic_only reason=${code}`);
       result = deterministic;
     }
   }
   if (!result.semantic?.clarificationNeeded && result.foodResolution !== "compound") {
     const pending = (result.items ?? [result]).filter((item) => item.foodResolution === "resolved" && item.selectedFood && !item.ambiguous && !item.preparationUnavailable && item.nutritionEligible !== false);
+    // Only a genuine AI quantity estimate (conversion_missing) is real work
+    // worth announcing — an already-resolved trusted serving needs no
+    // further stage, matching this loop's own inner condition exactly.
+    if (pending.some((item) => item.quantity?.reason === "conversion_missing")) onProgress?.("quantity_resolution");
     // Same bounded-concurrency reasoning as the resolution passes above —
     // several items each needing their own AI quantity estimate (e.g. a
     // multi-ingredient salad) must not be estimated one at a time.

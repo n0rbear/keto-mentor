@@ -418,3 +418,119 @@ describe("attachRecipeDiscoveryFallback: FULLY_RESOLVED vs REVIEWABLE candidate 
     expect(candidate?.confirmationRequiredIngredientCount).toBe(0);
   });
 });
+
+// Owner-beta (2026-09-12): "csülökpörkölt krumplival" reproduction — a
+// prepared dish named ALONGSIDE a side/add-on that resolves independently as
+// its own trusted Food. Before this fix, isEligibleForRecipeDiscovery
+// required the WHOLE result to be exactly one item, so a two-item phrase
+// like this never even reached the discovery gate for its genuinely-
+// unresolved dish component.
+describe("attachRecipeDiscoveryFallback: prepared dish named alongside an independently-resolving side (csülökpörkölt krumplival)", () => {
+  const potatoFood = { id: "potato", name: "Burgonya", originalName: "Burgonya", names: {}, searchText: "burgonya krumpli", source: "bls", sourceId: "1", servings: [], kcalPer100g: 77, fatPer100g: 0.1, proteinPer100g: 2, carbsPer100g: 17, fiberPer100g: 2.2 };
+  function potatoPrisma() {
+    return { foodAlias: { findMany: async () => [] }, food: { findMany: async ({ where }: any) => where.OR.some((c: any) => "burgonya krumpli".includes(c.searchText.contains)) ? [potatoFood] : [] } } as any;
+  }
+  function potatoPrismaWithRecipes(recipes: { id: string; title: string; servings?: number; finishedWeightGrams?: number; ingredients?: any[] }[]) {
+    return {
+      ...potatoPrisma(),
+      recipe: { findMany: async () => recipes.map((r) => ({ servings: null, finishedWeightGrams: null, ingredients: [], ...r })) }
+    } as any;
+  }
+  const dishAndSide: FoodUnderstanding = {
+    language: "hu", kind: "compound_dish", dishName: "csülökpörkölt",
+    items: [{ originalText: "krumplival", canonicalName: "burgonya", evidence: "explicit", confidence: 0.9 }],
+    clarificationNeeded: false, confidence: 0.9
+  };
+
+  it("A — the dish component IS eligible for web recipe discovery even though the potato side resolved independently", async () => {
+    const provider = fakeSearchProvider([]);
+    const result = await interpretMealInput(potatoPrisma(), "csülökpörkölt krumplival", undefined, fakeAiProvider(dishAndSide));
+    expect(result.foodResolution).toBe("compound");
+    expect(result.items).toHaveLength(2);
+    await attachRecipeDiscoveryFallback(result, { ...discoveryDeps(provider), prisma: potatoPrisma() });
+    expect(provider.search).toHaveBeenCalledOnce();
+  });
+
+  it("A2 — the recipe preview attaches ONLY to the csülökpörkölt item; the potato item and top-level result are untouched (no double counting)", async () => {
+    const provider = fakeSearchProvider([]);
+    const result = await interpretMealInput(potatoPrisma(), "csülökpörkölt krumplival", undefined, fakeAiProvider(dishAndSide));
+    const potatoItemBefore = result.items?.find((item) => item.semanticItem?.canonicalName === "burgonya");
+    const withDiscovery = await attachRecipeDiscoveryFallback(result, { ...discoveryDeps(provider), prisma: potatoPrisma() });
+    expect(withDiscovery.items).toHaveLength(2);
+    expect(withDiscovery.recipeDiscovery).toBeUndefined();
+    const dishItem = withDiscovery.items?.find((item) => item.semanticItem?.canonicalName === "csülökpörkölt");
+    const potatoItemAfter = withDiscovery.items?.find((item) => item.semanticItem?.canonicalName === "burgonya");
+    expect(dishItem?.recipeDiscovery).toBeDefined();
+    expect(potatoItemAfter?.recipeDiscovery).toBeUndefined();
+    expect(potatoItemAfter?.selectedFood).toEqual(potatoItemBefore?.selectedFood);
+    expect(potatoItemAfter?.foodResolution).toBe(potatoItemBefore?.foodResolution);
+  });
+
+  it("B — a trusted local Recipe (the user's own saved csülökpörkölt) wins outright; no web search is ever attempted", async () => {
+    const provider = fakeSearchProvider([{ url: "https://example.com/r", title: "Csülökpörkölt recept", domain: "example.com" }]);
+    const result = await interpretMealInput(potatoPrisma(), "csülökpörkölt krumplival", undefined, fakeAiProvider(dishAndSide));
+    const prisma = potatoPrismaWithRecipes([{ id: "recipe-1", title: "Csülökpörkölt", servings: 4 }]);
+    const withDiscovery = await attachRecipeDiscoveryFallback(result, { ...discoveryDeps(provider), prisma, userId: "user-1" });
+    const dishItem = withDiscovery.items?.find((item) => item.semanticItem?.canonicalName === "csülökpörkölt");
+    expect(dishItem?.recipeDiscovery).toMatchObject({ status: "local_match", localMatch: { recipeId: "recipe-1", title: "Csülökpörkölt" } });
+    expect(provider.search).not.toHaveBeenCalled();
+  });
+
+  it("C — two of the user's own recipes match the dish name equally well: confirmation required, no candidate silently chosen, no web search", async () => {
+    const provider = fakeSearchProvider([]);
+    const result = await interpretMealInput(potatoPrisma(), "csülökpörkölt krumplival", undefined, fakeAiProvider(dishAndSide));
+    const prisma = potatoPrismaWithRecipes([{ id: "recipe-1", title: "Csülökpörkölt" }, { id: "recipe-2", title: "csülökpörkölt" }]);
+    const withDiscovery = await attachRecipeDiscoveryFallback(result, { ...discoveryDeps(provider), prisma, userId: "user-1" });
+    const dishItem = withDiscovery.items?.find((item) => item.semanticItem?.canonicalName === "csülökpörkölt");
+    expect(dishItem?.recipeDiscovery).toMatchObject({ status: "confirmation_required", reason: "ambiguous_local_matches" });
+    expect(dishItem?.recipeDiscovery?.localAlternatives).toHaveLength(2);
+    expect(dishItem?.recipeDiscovery?.candidate).toBeUndefined();
+    expect(provider.search).not.toHaveBeenCalled();
+  });
+
+  it("D — recipe discovery finds nothing usable: the dish item safely stays unresolved, the potato side is unaffected", async () => {
+    const provider = fakeSearchProvider([]);
+    const result = await interpretMealInput(potatoPrisma(), "csülökpörkölt krumplival", undefined, fakeAiProvider(dishAndSide));
+    const withDiscovery = await attachRecipeDiscoveryFallback(result, { ...discoveryDeps(provider), prisma: potatoPrisma() });
+    const dishItem = withDiscovery.items?.find((item) => item.semanticItem?.canonicalName === "csülökpörkölt");
+    const potatoItem = withDiscovery.items?.find((item) => item.semanticItem?.canonicalName === "burgonya");
+    expect(dishItem?.recipeDiscovery).toMatchObject({ status: "unresolved", reason: "no_relevant_results" });
+    expect(potatoItem?.foodResolution).not.toBe("unresolved");
+  });
+
+  it("E — an ingredient in the discovered recipe cannot be trusted: nutrition is never invented, candidate is skipped", async () => {
+    const html = `<html><script type="application/ld+json">${JSON.stringify({ "@type": "Recipe", name: "Csülökpörkölt", recipeIngredient: ["1 completely unknown mystery ingredient"], recipeInstructions: ["Cook."] })}</script></html>`;
+    const provider = fakeSearchProvider([{ url: "https://example.com/csulokporkolt", title: "Csülökpörkölt recept", domain: "example.com" }]);
+    const result = await interpretMealInput(potatoPrisma(), "csülökpörkölt krumplival", undefined, fakeAiProvider(dishAndSide));
+    const withDiscovery = await attachRecipeDiscoveryFallback(result, {
+      ...discoveryDeps(provider), prisma: potatoPrisma(),
+      fetchDependencies: { resolve: async () => [{ address: "93.184.216.34", family: 4 }], request: async () => ({ status: 200, headers: { "content-type": "text/html" }, body: Buffer.from(html) }) }
+    });
+    const dishItem = withDiscovery.items?.find((item) => item.semanticItem?.canonicalName === "csülökpörkölt");
+    expect(dishItem?.recipeDiscovery).toMatchObject({ status: "unresolved", reason: "no_fully_resolvable_candidate" });
+    expect(dishItem?.recipeDiscovery?.candidate).toBeUndefined();
+  });
+
+  it("F — a simple trusted Food (100 g gouda) never invokes recipe discovery or the local-recipe lookup", async () => {
+    const goudaFood = { id: "gouda", name: "Gouda sajt", originalName: "Gouda sajt", names: {}, searchText: "gouda sajt", source: "bls", sourceId: "1", servings: [], kcalPer100g: 356, fatPer100g: 27, proteinPer100g: 25, carbsPer100g: 2.2, fiberPer100g: 0 };
+    const prisma = { foodAlias: { findMany: async () => [] }, food: { findMany: async ({ where }: any) => where.OR.some((c: any) => "gouda sajt".includes(c.searchText.contains)) ? [goudaFood] : [] }, recipe: { findMany: vi.fn(async () => []) } } as any;
+    const provider = fakeSearchProvider([]);
+    const result = await interpretMealInput(prisma, "100 g gouda");
+    const withDiscovery = await attachRecipeDiscoveryFallback(result, { ...discoveryDeps(provider), prisma });
+    expect(withDiscovery.recipeDiscovery).toBeUndefined();
+    expect(provider.search).not.toHaveBeenCalled();
+    expect(prisma.recipe.findMany).not.toHaveBeenCalled();
+  });
+
+  it("still does not trigger discovery when the OTHER (non-dish) item is also genuinely unresolved — the phrase itself stays ambiguous/under-specified (unchanged prior behavior)", async () => {
+    const bothUnresolved: FoodUnderstanding = {
+      language: "hu", kind: "compound_dish", dishName: "csülökpörkölt",
+      items: [{ originalText: "krumplival", canonicalName: "burgonya", evidence: "explicit", confidence: 0.9 }],
+      clarificationNeeded: false, confidence: 0.9
+    };
+    const provider = fakeSearchProvider([]);
+    const result = await interpretMealInput(emptyPrisma(), "csülökpörkölt krumplival", undefined, fakeAiProvider(bothUnresolved));
+    await attachRecipeDiscoveryFallback(result, { ...discoveryDeps(provider), prisma: emptyPrisma() });
+    expect(provider.search).not.toHaveBeenCalled();
+  });
+});

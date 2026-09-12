@@ -107,7 +107,11 @@ export type EditMealInput = z.infer<typeof editMealSchema>;
 export const repeatMealSchema = z.object({}).strict();
 
 export const mealInterpretationSchema = z.object({
-  text: z.string().trim().min(2).max(300)
+  text: z.string().trim().min(2).max(300),
+  // Client-generated correlator for the optional GET /meal-input/progress/:operationId
+  // stream (see meal-input/progress-bus.ts) — never persisted, never used for
+  // authorization, purely a same-request event-stream key.
+  operationId: z.string().min(1).max(64).regex(/^[A-Za-z0-9-]+$/).optional()
 }).strict();
 
 export type QuantityClarification = {
