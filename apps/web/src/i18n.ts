@@ -63,7 +63,24 @@ export const dict = {
       externalSingleHeading: "Ezt találtam:", externalMultipleHeading: "Melyikre gondoltál?",
       externalSource: "Forrás", externalConfirm: "Ez az", externalConfirming: "…",
       externalConfirmFailed: "Nem sikerült megerősíteni ezt az ételt. Próbáld újra.",
-      externalSourceNames: { usda_fdc: "USDA FoodData Central", open_food_facts: "Open Food Facts" }
+      externalSourceNames: { usda_fdc: "USDA FoodData Central", open_food_facts: "Open Food Facts" },
+      recipeDiscovery: {
+        localMatch: "Megtaláltuk a saját receptjeid között:",
+        ambiguousLocal: "Több hasonló nevű saját recepted is van — válassz egyet.",
+        webFound: "Receptet találtunk — erősítsd meg:",
+        webUnresolvedNoResults: "Nem találtunk elég megbízható receptet ehhez az ételhez.",
+        webUnresolvedNoCandidate: "Találtunk recepteket, de az összetevők egy részét még ellenőrizni kell.",
+        webDisabled: "A recept-keresés jelenleg nincs bekapcsolva.",
+        webRateLimited: "Túl sok recept-keresés volt mostanában — próbáld később."
+      }
+    },
+    progress: {
+      food_understanding: "Étel felismerése…",
+      local_food_search: "Keresés a katalógusban…",
+      local_recipe_search: "Saját receptek keresése…",
+      recipe_discovery: "Recept keresése a weben…",
+      quantity_resolution: "Mennyiség becslése…",
+      finalizing: "Majdnem kész…"
     },
     mealErrors: { selectFood: "Válassz ételt a találati listából.", network_error: "Az API nem érhető el. Ellenőrizd a kapcsolatot; ezt CORS vagy hálózati hiba is okozhatja.", validation_error: "Ellenőrizd az étkezés nevét és a mennyiséget.", food_not_found: "A kiválasztott étel már nem található. Keress rá újra.", unauthorized: "A munkamenet lejárt. Jelentkezz be újra.", server: "A szerver nem tudta elmenteni az étkezést. Próbáld meg később.", unknown: "Az étkezést nem sikerült elmenteni.", meal_not_found: "Ez az étkezés már nem található.", meal_item_not_found: "Ez a tétel már nem található ebben az étkezésben.", meal_items_empty: "Egy étkezésben legalább egy tételnek maradnia kell — inkább töröld az egész étkezést.", future_eaten_at: "Az időpont nem lehet a jövőben.", meal_repeat_invalid_source: "Ez az étkezés sérült, nem ismételhető meg." },
     recipes: {
@@ -227,7 +244,24 @@ export const dict = {
       externalSingleHeading: "Das habe ich gefunden:", externalMultipleHeading: "Was meintest du?",
       externalSource: "Quelle", externalConfirm: "Das ist es", externalConfirming: "…",
       externalConfirmFailed: "Dieses Lebensmittel konnte nicht bestätigt werden. Bitte erneut versuchen.",
-      externalSourceNames: { usda_fdc: "USDA FoodData Central", open_food_facts: "Open Food Facts" }
+      externalSourceNames: { usda_fdc: "USDA FoodData Central", open_food_facts: "Open Food Facts" },
+      recipeDiscovery: {
+        localMatch: "In deinen eigenen Rezepten gefunden:",
+        ambiguousLocal: "Mehrere eigene Rezepte mit ähnlichem Namen — bitte eines wählen.",
+        webFound: "Rezept gefunden — bitte bestätigen:",
+        webUnresolvedNoResults: "Kein ausreichend verlässliches Rezept für dieses Gericht gefunden.",
+        webUnresolvedNoCandidate: "Rezepte gefunden, aber einige Zutaten müssen noch geprüft werden.",
+        webDisabled: "Die Rezeptsuche ist derzeit nicht aktiviert.",
+        webRateLimited: "Zu viele Rezeptsuchen zuletzt — bitte später erneut versuchen."
+      }
+    },
+    progress: {
+      food_understanding: "Gericht wird erkannt…",
+      local_food_search: "Suche im Katalog…",
+      local_recipe_search: "Suche in eigenen Rezepten…",
+      recipe_discovery: "Rezeptsuche im Web…",
+      quantity_resolution: "Menge wird geschätzt…",
+      finalizing: "Fast fertig…"
     },
     mealErrors: { selectFood: "Bitte ein Lebensmittel aus der Trefferliste wählen.", network_error: "Die API ist nicht erreichbar. Netzwerk oder CORS prüfen.", validation_error: "Name und Menge der Mahlzeit prüfen.", food_not_found: "Das gewählte Lebensmittel ist nicht mehr verfügbar.", unauthorized: "Die Sitzung ist abgelaufen. Bitte neu anmelden.", server: "Die Mahlzeit konnte serverseitig nicht gespeichert werden.", unknown: "Die Mahlzeit konnte nicht gespeichert werden.", meal_not_found: "Diese Mahlzeit gibt es nicht mehr.", meal_item_not_found: "Diese Zutat gibt es in dieser Mahlzeit nicht mehr.", meal_items_empty: "Eine Mahlzeit braucht mindestens eine Zutat — lösche stattdessen die ganze Mahlzeit.", future_eaten_at: "Die Uhrzeit darf nicht in der Zukunft liegen.", meal_repeat_invalid_source: "Diese Mahlzeit ist beschädigt und kann nicht wiederholt werden." },
     recipes: {
@@ -391,7 +425,24 @@ export const dict = {
       externalSingleHeading: "I found this:", externalMultipleHeading: "Which did you mean?",
       externalSource: "Source", externalConfirm: "This one", externalConfirming: "…",
       externalConfirmFailed: "Could not confirm this food. Please try again.",
-      externalSourceNames: { usda_fdc: "USDA FoodData Central", open_food_facts: "Open Food Facts" }
+      externalSourceNames: { usda_fdc: "USDA FoodData Central", open_food_facts: "Open Food Facts" },
+      recipeDiscovery: {
+        localMatch: "Found among your own recipes:",
+        ambiguousLocal: "Several of your own recipes share this name — choose one.",
+        webFound: "Found a recipe — please confirm:",
+        webUnresolvedNoResults: "No sufficiently reliable recipe was found for this dish.",
+        webUnresolvedNoCandidate: "Recipes were found, but some ingredients still need review.",
+        webDisabled: "Recipe search is not currently enabled.",
+        webRateLimited: "Too many recipe searches recently — try again later."
+      }
+    },
+    progress: {
+      food_understanding: "Recognizing the dish…",
+      local_food_search: "Searching the catalog…",
+      local_recipe_search: "Searching your saved recipes…",
+      recipe_discovery: "Searching the web for a recipe…",
+      quantity_resolution: "Estimating quantity…",
+      finalizing: "Almost done…"
     },
     mealErrors: { selectFood: "Choose a food from the results.", network_error: "The API is unreachable. Check the network or CORS configuration.", validation_error: "Check the meal name and quantity.", food_not_found: "The selected food is no longer available. Search again.", unauthorized: "Your session expired. Log in again.", server: "The server could not save the meal. Try again later.", unknown: "The meal could not be saved.", meal_not_found: "This meal no longer exists.", meal_item_not_found: "This item no longer exists in this meal.", meal_items_empty: "A meal needs at least one item — delete the whole meal instead.", future_eaten_at: "The time can't be in the future.", meal_repeat_invalid_source: "This meal is corrupted and can't be repeated." },
     recipes: {

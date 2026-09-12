@@ -12,6 +12,19 @@ export type ExternalCandidate = {
   confidence: number;
 };
 
+// Owner-beta (2026-09-12) — a bounded, display-only projection of the API's
+// RecipeDiscoveryPreview (see recipes/recipe-discovery.ts). Never carries
+// arbitrary webpage content or AI-invented nutrition: nutritionPer100g is
+// only ever the value the server itself already computed from trusted
+// ingredient Food records × quantities.
+export type RecipeDiscoveryPreviewValue = {
+  status: "confirmation_required" | "unresolved" | "local_match";
+  reason?: "disabled" | "rate_limited" | "provider_error" | "no_relevant_results" | "no_fully_resolvable_candidate" | "systemic_error" | "ambiguous_local_matches";
+  candidate?: { title: string; domain: string };
+  localMatch?: { recipeId: string; title: string };
+  localAlternatives?: { recipeId: string; title: string }[];
+};
+
 type PreviewItem = {
   parsed: { quantity?: number; unit?: string; foodQuery: string; preparation?: string };
   selectedFood: { name: string; names?: Partial<Record<Lang, string>> } | null;
@@ -28,6 +41,12 @@ type PreviewItem = {
   // external resolution and produced a bounded set of authoritative
   // candidates needing the user's choice — never nutrition-first.
   externalCandidates?: ExternalCandidate[];
+  // Present only when this item is a prepared/composite dish whose identity
+  // needed local-recipe lookup and/or web recipe discovery — see
+  // meal-input/recipe-discovery-fallback.ts. Purely informational in this
+  // pass: it tells the user truthfully what the system found (or didn't),
+  // never silently invents a resolved identity.
+  recipeDiscovery?: RecipeDiscoveryPreviewValue;
 };
 
 export type FoodUnderstandingPreviewValue = PreviewItem & {
@@ -37,6 +56,7 @@ export type FoodUnderstandingPreviewValue = PreviewItem & {
   foodResolution: string;
   items?: PreviewItem[];
   semantic?: { dishName?: string; clarificationNeeded: boolean; clarificationReason?: string };
+  recipeDiscovery?: RecipeDiscoveryPreviewValue;
 };
 
 export type FoodUnderstandingLabels = {
@@ -64,7 +84,30 @@ export type FoodUnderstandingLabels = {
   externalConfirming: string;
   externalConfirmFailed: string;
   externalSourceNames: Record<string, string>;
+  recipeDiscovery: {
+    localMatch: string;
+    ambiguousLocal: string;
+    webFound: string;
+    webUnresolvedNoResults: string;
+    webUnresolvedNoCandidate: string;
+    webDisabled: string;
+    webRateLimited: string;
+  };
 };
+
+function recipeDiscoveryText(discovery: RecipeDiscoveryPreviewValue, labels: FoodUnderstandingLabels): string | null {
+  if (discovery.status === "local_match") return `${labels.recipeDiscovery.localMatch} ${discovery.localMatch?.title ?? ""}`.trim();
+  if (discovery.status === "confirmation_required") {
+    if (discovery.reason === "ambiguous_local_matches") return labels.recipeDiscovery.ambiguousLocal;
+    return `${labels.recipeDiscovery.webFound} ${discovery.candidate?.title ?? ""}`.trim();
+  }
+  switch (discovery.reason) {
+    case "disabled": return labels.recipeDiscovery.webDisabled;
+    case "rate_limited": return labels.recipeDiscovery.webRateLimited;
+    case "no_relevant_results": return labels.recipeDiscovery.webUnresolvedNoResults;
+    default: return labels.recipeDiscovery.webUnresolvedNoCandidate;
+  }
+}
 
 function itemName(item: PreviewItem, lang: Lang) {
   return (item.selectedFood ? pickDisplayName(item.selectedFood, lang) : "") || item.semanticItem?.canonicalName || item.parsed.foodQuery;
@@ -142,6 +185,7 @@ function PreviewRow({ item, lang, labels, busy, confirmingId, onConfirmExternal 
     {item.semanticItem?.evidence === "inferred_common" && <small className="inferred-label">{labels.inferred}</small>}
     <small className="understanding-resolution">{item.selectedFood && item.nutritionEligible !== false ? <CheckCircle2 aria-hidden="true" size={13}/> : <CircleDashed aria-hidden="true" size={13}/>} {item.selectedFood && item.nutritionEligible !== false ? labels.trusted : labels.unresolved}</small>
     {item.quantity?.status === "resolved" && <small>{item.quantity.estimated ? "≈" : "="} {Math.round((item.quantity.grams ?? 0) * 10) / 10} g</small>}
+    {item.recipeDiscovery && <small className="recipe-discovery-note">{recipeDiscoveryText(item.recipeDiscovery, labels)}</small>}
     {!!item.externalCandidates?.length && onConfirmExternal && <ExternalCandidateList candidates={item.externalCandidates} lang={lang} labels={labels} busy={busy} confirmingId={confirmingId} onConfirm={onConfirmExternal}/>}
   </li>;
 }
@@ -176,6 +220,7 @@ export function FoodUnderstandingPreview({ value, lang, labels, busy, onConfirmA
     {!value.items?.length && !singleReady && !singleExternalCandidates?.length && value.interpretationSource !== "ai_assisted" && <span>
       {value.foodResolution === "unresolved" ? labels.unresolved : value.quantity && "reason" in value.quantity ? labels.conversionMissing : labels.review}
     </span>}
+    {!value.items?.length && value.recipeDiscovery && <div className="recipe-discovery-note">{recipeDiscoveryText(value.recipeDiscovery, labels)}</div>}
     {(value.semantic?.clarificationNeeded || value.semantic?.clarificationReason) && <div className="clarification-note"><strong>{labels.needsDetail}</strong>{value.semantic.clarificationReason ? ` ${value.semantic.clarificationReason}` : ""}</div>}
     {!!value.items?.length && <button type="button" className="btn primary" disabled={!value.canConfirm || busy} onClick={onConfirmAll}>{busy ? "…" : labels.logAll}</button>}
   </div>;

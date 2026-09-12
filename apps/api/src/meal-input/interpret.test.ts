@@ -1053,3 +1053,36 @@ describe("bounded concurrency for independent meal items (owner-beta blocker, 20
     expect(getMaxInFlight()).toBeGreaterThan(1);
   });
 });
+
+// Owner-beta (2026-09-12): truthful real-stage progress events — published
+// ONLY immediately before the corresponding real awaited work begins (see
+// meal-input/progress-bus.ts), never a fake percentage, never a timer.
+describe("interpretMealInput: real-stage progress events", () => {
+  it("H — a fast, fully deterministic trusted match publishes ONLY local_food_search — never food_understanding (no AI was needed)", async () => {
+    const stages: string[] = [];
+    await interpretMealInput(prisma, "5 tojás", undefined, undefined, null, (stage) => stages.push(stage));
+    expect(stages).toEqual(["local_food_search"]);
+  });
+
+  it("H2 — an AI-assisted resolution publishes local_food_search BEFORE food_understanding, in that real order", async () => {
+    const understanding: FoodUnderstanding = {
+      language: "hu", kind: "single_food",
+      items: [{ originalText: "krémsajt", canonicalName: "cream cheese", evidence: "explicit", confidence: 0.9 }],
+      clarificationNeeded: false, confidence: 0.9
+    };
+    const stages: string[] = [];
+    // "krémsajt" is not in the seeded catalog, so the deterministic pass
+    // genuinely finds nothing and shouldUseAiFallback triggers for real.
+    await interpretMealInput(prisma, "krémsajt", undefined, new MockFoodNlpProvider(understanding), null, (stage) => stages.push(stage));
+    expect(stages[0]).toBe("local_food_search");
+    expect(stages).toContain("food_understanding");
+    expect(stages.indexOf("local_food_search")).toBeLessThan(stages.indexOf("food_understanding"));
+  });
+
+  it("I — a request with no onProgress callback behaves identically to one with a callback (progress is purely additive, never required)", async () => {
+    const withCallback = await interpretMealInput(prisma, "5 tojás", undefined, undefined, null, () => {});
+    const withoutCallback = await interpretMealInput(prisma, "5 tojás");
+    expect(withCallback.selectedFood?.id).toBe(withoutCallback.selectedFood?.id);
+    expect(withCallback.quantity?.grams).toBe(withoutCallback.quantity?.grams);
+  });
+});

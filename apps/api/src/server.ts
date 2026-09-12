@@ -42,6 +42,7 @@ import { WebKnowledgeSearchRateLimiter } from "./web-knowledge/web-knowledge-rat
 import { NegativeSearchCache } from "./web-knowledge/negative-search-cache.js";
 import { RecipeDiscoveryService } from "./recipes/recipe-discovery.js";
 import { configuredRecipeAiProvider } from "./recipes/recipe-ai-gateway.js";
+import { publishProgress, subscribeProgress, closeProgress } from "./meal-input/progress-bus.js";
 
 const logger = createLogger(env.NODE_ENV === "production" ? "info" : "debug");
 const app = express();
@@ -258,9 +259,31 @@ app.get("/foods/resolve-barcode", requireAuth, externalFoodLimiter, async (req, 
   } catch (error) { next(error); }
 });
 
+// Owner-beta (2026-09-12): a truthful, real-stage progress stream for the UI
+// during long interpretation operations — see meal-input/progress-bus.ts.
+// operationId is client-generated and validated by mealInterpretationSchema;
+// this endpoint is purely additive and never required — a client that never
+// opens it loses nothing but the progress display. Category-only stage
+// names only, never user text, prompts, or provider identity.
+app.get("/meal-input/progress/:operationId", requireAuth, (req, res) => {
+  const operationId = req.params.operationId;
+  if (!/^[A-Za-z0-9-]{1,64}$/.test(operationId)) return res.status(400).end();
+  res.writeHead(200, {
+    "content-type": "application/x-ndjson; charset=utf-8",
+    "cache-control": "no-cache, no-transform",
+    "x-accel-buffering": "no"
+  });
+  const unsubscribe = subscribeProgress(operationId, (stage) => {
+    res.write(`${JSON.stringify({ stage })}\n`);
+  });
+  req.on("close", unsubscribe);
+});
+
 app.post("/meal-input/interpret", requireAuth, async (req, res, next) => {
+  let operationId: string | undefined;
   try {
     const input = mealInterpretationSchema.parse(req.body);
+    operationId = input.operationId;
     const requestProvider = rateLimitedFoodNlpProvider(foodNlpProvider, foodNlpLimiter, req.user!.id);
     // A live read of quantityProvider.id, not a value captured once here: when
     // quantityProvider is a failover wrapper, its id can change between this
@@ -274,15 +297,20 @@ app.post("/meal-input/interpret", requireAuth, async (req, res, next) => {
     const dynamic = externalFoodAdapters.length
       ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale: trustedLocale(req.user!), localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider }
       : null;
-    const result = await interpretMealInput(prisma, input.text, requestQuantityProvider, requestProvider, dynamic);
+    const onProgress = (stage: Parameters<typeof publishProgress>[1]) => publishProgress(input.operationId, stage);
+    const result = await interpretMealInput(prisma, input.text, requestQuantityProvider, requestProvider, dynamic, onProgress);
     // Fallback layered on top of interpretation, never inside it — only ever
     // reached when interpretMealInput's own local/structured/AI-assisted
     // resolution has already genuinely failed on a composite-dish phrase. A
     // no-op (webKnowledgeSearchProvider.id === "disabled") when
     // WEB_SEARCH_PROVIDER is unset, at zero extra cost.
-    res.json(await attachRecipeDiscoveryFallback(result, { discoveryService: recipeDiscoveryService, recipeAiProvider: recipeDiscoveryAiProvider, prisma, userId: req.user!.id, locale: trustedLocale(req.user!) }));
+    const withDiscovery = await attachRecipeDiscoveryFallback(result, { discoveryService: recipeDiscoveryService, recipeAiProvider: recipeDiscoveryAiProvider, prisma, userId: req.user!.id, locale: trustedLocale(req.user!), onProgress });
+    onProgress("finalizing");
+    res.json(withDiscovery);
   } catch (error) {
     next(error);
+  } finally {
+    closeProgress(operationId);
   }
 });
 
