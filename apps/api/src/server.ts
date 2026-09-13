@@ -386,7 +386,18 @@ app.get("/meals/today", requireAuth, async (req, res, next) => {
 app.post("/meals", requireAuth, async (req, res, next) => {
   try {
     const input = createMealSchema.parse(req.body);
-    const meal = await createMeal(prisma, req.user!.id, input);
+    // Same recipe-ingredient dynamic deps as recipe-discovery-fallback's own
+    // wiring above (recipeIngredientDynamicResolutionLimiter, not the
+    // ordinary per-meal limiter) — a confirmed recipe-discovery item re-runs
+    // the same server-side ingredient resolution a fresh discovery preview
+    // would. `undefined` (not an error) when no external adapters are
+    // configured; createMeal only needs this when the request actually
+    // contains a recipe-discovery item, at which point its own explicit
+    // recipe_discovery_unavailable check fires instead of resolving anything.
+    const recipeDynamic = externalFoodAdapters.length
+      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: recipeIngredientDynamicResolutionLimiter, userId: req.user!.id, locale: trustedLocale(req.user!), localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider }
+      : null;
+    const meal = await createMeal(prisma, req.user!.id, input, { recipeAiProvider: recipeDiscoveryAiProvider, dynamic: recipeDynamic });
     res.status(201).json({ meal });
   } catch (error) {
     next(error);

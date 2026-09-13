@@ -1,7 +1,12 @@
-import { describe, expect, it } from "vitest";
+process.env.JWT_ACCESS_SECRET = "a".repeat(32);
+
+import { describe, expect, it, vi } from "vitest";
 import type { Food, PrismaClient } from "@prisma/client";
 import { createMealSchema } from "@keto-mentor/shared";
 import { createMeal } from "./create-meal.js";
+import { createRecipeImportProof } from "../recipes/import-proof.js";
+import { DisabledRecipeExtractionProvider, type RecipeExtractionProvider } from "../recipes/recipe-extraction-provider.js";
+import type { RecipeDiscoveryMealItemDeps } from "./recipe-discovery-meal-item.js";
 
 const food = { id: "egg", name: "Fried egg", servingGrams: 50, servings: [{ id: "egg-serving", key: "piece", unit: "piece", grams: 50, isEstimated: false, confidence: 1, provenance: { source: "test" } }], kcalPer100g: 200, fatPer100g: 15, proteinPer100g: 14, carbsPer100g: 1, fiberPer100g: 0 } as Food & { servings: any[] };
 
@@ -60,5 +65,106 @@ describe("meal creation", () => {
 
   it.each([0, -1, 5001])("rejects invalid quantity %s", (quantity) => {
     expect(() => createMealSchema.parse({ title: "Lunch", items: [{ foodId: "egg", quantity, unit: "g" }] })).toThrow();
+  });
+});
+
+// Owner-beta (2026-09-14) — recipe-confirm checkpoint: a discovered web
+// recipe becoming a real, persisted meal contribution alongside ordinary
+// catalog items, in the SAME createMeal request/transaction.
+describe("meal creation with a recipe-discovery item", () => {
+  const potatoFood = { id: "potato", name: "Burgonya", originalName: "Burgonya", names: {}, searchText: "burgonya krumpli potato", source: "bls", sourceId: "1", servings: [], kcalPer100g: 77, fatPer100g: 0.1, proteinPer100g: 2, carbsPer100g: 17, fiberPer100g: 2.2 };
+  const porkHockFood = { id: "pork-hock", name: "Sertéscsülök", originalName: "Sertéscsülök", names: {}, searchText: "sertescsulok pork hock", source: "bls", sourceId: "2", servings: [], kcalPer100g: 280, fatPer100g: 22, proteinPer100g: 20, carbsPer100g: 0, fiberPer100g: 0 };
+  const SOURCE_URL = "https://example.com/csulokporkolt";
+
+  function recipeHtml(ingredients: string[]) {
+    return `<html><script type="application/ld+json">${JSON.stringify({ "@type": "Recipe", name: "Csülökpörkölt", recipeYield: "4 servings", recipeIngredient: ingredients, recipeInstructions: ["Cook."] })}</script></html>`;
+  }
+
+  function fakePrisma() {
+    const meals: any[] = [];
+    const client: any = {
+      foodAlias: { findMany: async () => [] },
+      food: {
+        findMany: async ({ where }: any) => {
+          if (where.id?.in) return [potatoFood, porkHockFood].filter((f) => where.id.in.includes(f.id)).map((f) => ({ ...f, servings: f.servings ?? [] }));
+          return [potatoFood, porkHockFood].filter((f) => where.OR?.some((c: any) => f.searchText.includes(c.searchText?.contains ?? " ")));
+        }
+      },
+      recipe: {
+        findFirst: async () => null,
+        create: async ({ data }: any) => {
+          const ingredients = (data.ingredients.create as any[]).map((i: any, idx: number) => ({ ...i, id: `ri-${idx}`, food: [potatoFood, porkHockFood].find((f) => f.id === i.foodId) }));
+          return { id: "recipe-1", userId: data.userId, title: data.title, servings: data.servings ?? null, finishedWeightGrams: null, sourceUrl: data.sourceUrl, ingredients };
+        }
+      },
+      meal: {
+        create: async ({ data }: any) => {
+          const meal = { id: "meal-1", userId: data.userId, title: data.title, eatenAt: data.eatenAt ?? new Date(), createdAt: new Date(), items: data.items.create.map((item: any, idx: number) => ({ id: `item-${idx}`, mealId: "meal-1", foodId: item.food?.connect?.id ?? null, recipeId: item.recipe?.connect?.id ?? null, quantityGrams: item.quantityGrams, displayName: item.displayName ?? null, snapshotKcal: item.snapshotKcal ?? null, snapshotFat: item.snapshotFat ?? null, snapshotProtein: item.snapshotProtein ?? null, snapshotCarbs: item.snapshotCarbs ?? null, snapshotFiber: item.snapshotFiber ?? null, food: item.food?.connect ? [potatoFood, porkHockFood].find((f) => f.id === item.food.connect.id) : null, recipe: null })) };
+          meals.push(meal);
+          return meal;
+        }
+      }
+    };
+    return { client, meals };
+  }
+
+  function deps(): RecipeDiscoveryMealItemDeps {
+    return {
+      recipeAiProvider: new DisabledRecipeExtractionProvider() as RecipeExtractionProvider,
+      dynamic: null,
+      fetchDependencies: { resolve: async () => [{ address: "93.184.216.34", family: 4 }], request: async () => ({ status: 200, headers: { "content-type": "text/html" }, body: Buffer.from(recipeHtml(["800 g sertéscsülök"])) }) }
+    };
+  }
+
+  function recipeItem(overrides: Partial<{ quantity: number; unit: "g" | "serving" }> = {}) {
+    return {
+      sourceUrl: SOURCE_URL,
+      importProof: createRecipeImportProof("user-1", SOURCE_URL, "schema_org_json_ld"),
+      extractionMethod: "schema_org_json_ld" as const,
+      quantity: 800,
+      unit: "g" as const,
+      ...overrides
+    };
+  }
+
+  it("without recipeDeps configured, a recipe-discovery item is refused rather than silently ignored", async () => {
+    const fake = fakePrisma();
+    const input = createMealSchema.parse({ title: "Ebéd", items: [recipeItem()] });
+    await expect(createMeal(fake.client, "user-1", input)).rejects.toMatchObject({ publicCode: "recipe_discovery_unavailable", status: 503 });
+    expect(fake.meals).toHaveLength(0);
+  });
+
+  it("a recipe item alone persists a Meal with a recipeId-backed MealItem, no food row", async () => {
+    const fake = fakePrisma();
+    const input = createMealSchema.parse({ title: "Ebéd", items: [recipeItem()] });
+    const meal = await createMeal(fake.client, "user-1", input, deps());
+    expect(fake.meals).toHaveLength(1);
+    expect(meal.items).toHaveLength(1);
+    expect(meal.items[0].recipeId).toBe("recipe-1");
+    expect(meal.items[0].food).toBeNull();
+  });
+
+  it("Case A (no overlap): the recipe (sertéscsülök only) plus an independent potato sibling both persist, both contribute nutrition", async () => {
+    const fake = fakePrisma();
+    const input = createMealSchema.parse({ title: "Ebéd", items: [recipeItem(), { foodId: "potato", quantity: 150, unit: "g" }] });
+    const meal = await createMeal(fake.client, "user-1", input, deps());
+    expect(meal.items).toHaveLength(2);
+    const recipeMealItem = meal.items.find((i: any) => i.recipeId);
+    const potatoMealItem = meal.items.find((i: any) => i.food);
+    expect(recipeMealItem).toBeDefined();
+    expect(potatoMealItem).toBeDefined();
+    expect(potatoMealItem.quantityGrams).toBe(150);
+  });
+
+  it("Case B (confirmed overlap): a sibling item referencing a Food the SAME recipe already resolved is rejected outright, never silently persisted twice", async () => {
+    const fake = fakePrisma();
+    const overlapDeps: RecipeDiscoveryMealItemDeps = {
+      ...deps(),
+      // The recipe's own ingredients this time include potato too.
+      fetchDependencies: { resolve: async () => [{ address: "93.184.216.34", family: 4 }], request: async () => ({ status: 200, headers: { "content-type": "text/html" }, body: Buffer.from(recipeHtml(["800 g sertéscsülök", "500 g burgonya"])) }) }
+    };
+    const input = createMealSchema.parse({ title: "Ebéd", items: [recipeItem(), { foodId: "potato", quantity: 150, unit: "g" }] });
+    await expect(createMeal(fake.client, "user-1", input, overlapDeps)).rejects.toMatchObject({ publicCode: "recipe_sibling_overlap", status: 409 });
+    expect(fake.meals).toHaveLength(0);
   });
 });

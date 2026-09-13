@@ -34,6 +34,11 @@ export const onboardingSchema = z.object({
   allergies: z.array(z.string().min(1).max(80)).max(40)
 });
 
+const safeRecipeSourceUrlSchema = z.string().trim().url().max(2_000).superRefine((value, context) => {
+  const url = new URL(value);
+  if (!["http:", "https:"].includes(url.protocol) || url.username || url.password) context.addIssue({ code: "custom", message: "sourceUrl must be an HTTP(S) URL without credentials" });
+});
+
 export const manualMealItemSchema = z.object({
   foodName: z.string().trim().min(2).max(120),
   quantityGrams: z.number().positive().max(5000),
@@ -62,10 +67,29 @@ export const catalogMealItemSchema = z.object({
   if (item.unit !== "serving" && (item.servingId || item.gramsOverride)) context.addIssue({ code: "custom", path: ["unit"], message: "serving fields require serving unit" });
 });
 
+// Owner-beta (2026-09-14) — recipe-confirm checkpoint: confirms a
+// server-previewed web recipe candidate (see meal-input/recipe-discovery-
+// fallback.ts) as part of a real meal. Deliberately carries NO ingredient
+// list, Food IDs, or nutrition — the server re-derives the trusted
+// ingredient set from `sourceUrl` itself (never trusts what the client
+// echoes back), the same source-of-truth `previewRecipeImport` already
+// uses. `importProof`/`extractionMethod` mirror recipeInputSchema's own
+// existing trusted-import contract (see recipes/import-proof.ts) — proves
+// the authenticated user legitimately went through discovery/preview for
+// this exact URL, nothing more. `quantity`/`unit` mirror recipeMealSchema's
+// existing portion contract exactly (addRecipeToMeal).
+export const recipeDiscoveryMealItemSchema = z.object({
+  sourceUrl: safeRecipeSourceUrlSchema,
+  importProof: z.string().max(4_000),
+  extractionMethod: z.enum(["schema_org_json_ld", "ai_structured"]),
+  quantity: z.number().positive().max(5000),
+  unit: z.enum(["g", "serving"])
+}).strict();
+
 export const createMealSchema = z.object({
   title: z.string().trim().min(2).max(100),
   eatenAt: z.string().datetime().optional(),
-  items: z.array(z.union([catalogMealItemSchema, manualMealItemSchema])).min(1).max(20)
+  items: z.array(z.union([catalogMealItemSchema, manualMealItemSchema, recipeDiscoveryMealItemSchema])).min(1).max(20)
 });
 
 // Editing an existing meal never re-specifies food/recipe identity or nutrition —
@@ -221,10 +245,6 @@ export const recipeIngredientSchema = z.object({
   preparation: z.string().trim().max(200).optional(),
   sortOrder: z.number().int().min(0).max(100).optional()
 });
-const safeRecipeSourceUrlSchema = z.string().trim().url().max(2_000).superRefine((value, context) => {
-  const url = new URL(value);
-  if (!["http:", "https:"].includes(url.protocol) || url.username || url.password) context.addIssue({ code: "custom", message: "sourceUrl must be an HTTP(S) URL without credentials" });
-});
 export const recipeInputSchema = z.object({
   title: z.string().trim().min(2).max(120),
   description: z.string().trim().max(2_000).optional(),
@@ -262,3 +282,4 @@ export type LoginInput = z.infer<typeof loginSchema>;
 export type OnboardingInput = z.infer<typeof onboardingSchema>;
 export type LocaleUpdateInput = z.infer<typeof localeUpdateSchema>;
 export type CreateMealInput = z.infer<typeof createMealSchema>;
+export type RecipeDiscoveryMealItemInput = z.infer<typeof recipeDiscoveryMealItemSchema>;
