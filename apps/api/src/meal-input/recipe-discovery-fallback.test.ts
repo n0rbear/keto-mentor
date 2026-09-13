@@ -195,6 +195,40 @@ describe("attachRecipeDiscoveryFallback: extraction and nutrition (7, 8, 9, 10, 
     expect(withDiscovery.recipeDiscovery?.candidate?.nutritionPer100g).toMatchObject({ kcal: 25, fiber: 2.5 });
     expect(withDiscovery.recipeDiscovery?.candidate?.importProof).toEqual(expect.any(String));
   });
+
+  // Owner-beta (2026-09-14) — Blocker 5 (portion/serving provenance):
+  // `servings` is structured metadata (schema.org recipeYield here), never a
+  // fabricated number — nutritionPerServing needs no raw-ingredient-weight
+  // assumption at all, unlike nutritionPer100g, so it is the stronger of the
+  // two figures whenever a real serving count is known. 1000 g cabbage @
+  // 25 kcal/100g = 250 kcal total, split across the stated 2 servings.
+  it("13 — a known serving count produces a real per-serving nutrition figure, independent of any raw-ingredient-weight assumption", async () => {
+    const html = `<html><script type="application/ld+json">${JSON.stringify({ "@type": "Recipe", name: "Cabbage soup", recipeYield: "2 servings", recipeIngredient: ["1000 g cabbage"], recipeInstructions: ["Simmer."] })}</script></html>`;
+    const prisma = { foodAlias: { findMany: async () => [] }, food: { findMany: async ({ where }: any) => where.OR.some((c: any) => "cabbage".includes(c.searchText.contains)) ? [{ id: "cabbage", name: "Cabbage", originalName: "Cabbage", names: {}, searchText: "cabbage", source: "bls", sourceId: "1", servings: [], kcalPer100g: 25, fatPer100g: 0.1, proteinPer100g: 1.3, carbsPer100g: 5.8, fiberPer100g: 2.5 }] : [] } } as any;
+    const provider = fakeSearchProvider([relevantResult]);
+    const result = await interpretMealInput(prisma, "töltött káposzta", undefined, fakeAiProvider(compoundDishOnly));
+    const withDiscovery = await attachRecipeDiscoveryFallback(result, {
+      ...discoveryDeps(provider), prisma,
+      fetchDependencies: { resolve: async () => [{ address: "93.184.216.34", family: 4 }], request: async () => ({ status: 200, headers: { "content-type": "text/html" }, body: Buffer.from(html) }) }
+    });
+    expect(withDiscovery.recipeDiscovery?.candidate?.servings).toBe(2);
+    expect(withDiscovery.recipeDiscovery?.candidate?.nutritionPerServing).toMatchObject({ kcal: 125 });
+  });
+
+  it("14 — no serving count in the source: nutritionPerServing stays null rather than guessing a serving size", async () => {
+    const html = `<html><script type="application/ld+json">${JSON.stringify({ "@type": "Recipe", name: "Cabbage soup", recipeIngredient: ["1000 g cabbage"], recipeInstructions: ["Simmer."] })}</script></html>`;
+    const prisma = { foodAlias: { findMany: async () => [] }, food: { findMany: async ({ where }: any) => where.OR.some((c: any) => "cabbage".includes(c.searchText.contains)) ? [{ id: "cabbage", name: "Cabbage", originalName: "Cabbage", names: {}, searchText: "cabbage", source: "bls", sourceId: "1", servings: [], kcalPer100g: 25, fatPer100g: 0.1, proteinPer100g: 1.3, carbsPer100g: 5.8, fiberPer100g: 2.5 }] : [] } } as any;
+    const provider = fakeSearchProvider([relevantResult]);
+    const result = await interpretMealInput(prisma, "töltött káposzta", undefined, fakeAiProvider(compoundDishOnly));
+    const withDiscovery = await attachRecipeDiscoveryFallback(result, {
+      ...discoveryDeps(provider), prisma,
+      fetchDependencies: { resolve: async () => [{ address: "93.184.216.34", family: 4 }], request: async () => ({ status: 200, headers: { "content-type": "text/html" }, body: Buffer.from(html) }) }
+    });
+    expect(withDiscovery.recipeDiscovery?.candidate?.servings).toBeUndefined();
+    expect(withDiscovery.recipeDiscovery?.candidate?.nutritionPerServing).toBeNull();
+    // The weaker, raw-ingredient-weight-basis figure is still available.
+    expect(withDiscovery.recipeDiscovery?.candidate?.nutritionPer100g).toMatchObject({ kcal: 25 });
+  });
 });
 
 // Owner-beta blocker #5 (2026-09-10): real live validation showed the
@@ -466,6 +500,94 @@ describe("attachRecipeDiscoveryFallback: prepared dish named alongside an indepe
     expect(potatoItemAfter?.recipeDiscovery).toBeUndefined();
     expect(potatoItemAfter?.selectedFood).toEqual(potatoItemBefore?.selectedFood);
     expect(potatoItemAfter?.foodResolution).toBe(potatoItemBefore?.foodResolution);
+  });
+
+  // Owner-beta (2026-09-14) — Blocker 4 (double counting): before a
+  // fully_resolved recipe is accepted for the dish item, its own resolved
+  // ingredients are compared against every other (sibling) item already
+  // resolved in the same phrase — see detectSiblingOverlap.
+  const porkHockFood = { id: "pork-hock", name: "Sertéscsülök", originalName: "Sertéscsülök", names: {}, searchText: "sertescsulok", source: "bls", sourceId: "2", servings: [], kcalPer100g: 280, fatPer100g: 22, proteinPer100g: 20, carbsPer100g: 0, fiberPer100g: 0 };
+  function potatoAndPorkPrisma() {
+    return { foodAlias: { findMany: async () => [] }, food: { findMany: async ({ where }: any) => where.OR.filter((c: any) => "burgonya krumpli".includes(c.searchText.contains)).length ? [potatoFood] : where.OR.filter((c: any) => "sertescsulok".includes(c.searchText.contains)).length ? [porkHockFood] : [] } } as any;
+  }
+  // A genuine local-catalog duplicate scenario: a SECOND Food row with the
+  // exact same display name ("Burgonya") but a DIFFERENT id/source — e.g. a
+  // separately-imported duplicate entry. Used to exercise the "possible"
+  // (name-matches, identity doesn't) overlap tier without relying on any
+  // ingredient staying unresolved (which would prevent the candidate from
+  // ever reaching fully_resolved at all, since every ingredient must resolve).
+  const duplicatePotatoFood = { ...potatoFood, id: "potato-duplicate-row", source: "usda_fdc", sourceId: "999" };
+  function duplicatePotatoAndPorkPrisma() {
+    return { foodAlias: { findMany: async () => [] }, food: { findMany: async ({ where }: any) => where.OR.filter((c: any) => "burgonya krumpli".includes(c.searchText.contains)).length ? [duplicatePotatoFood] : where.OR.filter((c: any) => "sertescsulok".includes(c.searchText.contains)).length ? [porkHockFood] : [] } } as any;
+  }
+
+  describe("sibling-overlap detection (Blocker 4: no double counting)", () => {
+    it("Case A — the selected recipe does NOT include the potato side: the sibling stays fully independent, no overlap fields set", async () => {
+      const html = `<html><script type="application/ld+json">${JSON.stringify({
+        "@type": "Recipe", name: "Csülökpörkölt", recipeYield: "4 servings",
+        recipeIngredient: ["800 g sertéscsülök"], recipeInstructions: ["Cook."]
+      })}</script></html>`;
+      const provider = fakeSearchProvider([{ url: "https://example.com/csulokporkolt", title: "Csülökpörkölt recept", domain: "example.com" }]);
+      const result = await interpretMealInput(potatoPrisma(), "csülökpörkölt krumplival", undefined, fakeAiProvider(dishAndSide));
+      const withDiscovery = await attachRecipeDiscoveryFallback(result, {
+        ...discoveryDeps(provider), prisma: potatoAndPorkPrisma(),
+        fetchDependencies: { resolve: async () => [{ address: "93.184.216.34", family: 4 }], request: async () => ({ status: 200, headers: { "content-type": "text/html" }, body: Buffer.from(html) }) }
+      });
+      const dishItem = withDiscovery.items?.find((item) => item.semanticItem?.canonicalName === "csülökpörkölt");
+      const potatoItem = withDiscovery.items?.find((item) => item.semanticItem?.canonicalName === "burgonya");
+      expect(dishItem?.recipeDiscovery?.candidate?.recipeState).toBe("fully_resolved");
+      expect(dishItem?.recipeDiscovery?.candidate?.overlapsWithSiblingItems).toBeUndefined();
+      expect(dishItem?.recipeDiscovery?.candidate?.possibleOverlapWithSiblingItems).toBeUndefined();
+      expect(potatoItem?.excludedBySiblingRecipe).toBeUndefined();
+      expect(potatoItem?.nutritionEligible).not.toBe(false);
+      expect(potatoItem?.ambiguous).not.toBe(true);
+    });
+
+    it("Case B — the selected recipe DOES include the potato side (same trusted Food identity): the sibling is excluded from independent nutrition, never silently deleted", async () => {
+      const html = `<html><script type="application/ld+json">${JSON.stringify({
+        "@type": "Recipe", name: "Csülökpörkölt", recipeYield: "4 servings",
+        recipeIngredient: ["800 g sertéscsülök", "500 g burgonya"], recipeInstructions: ["Cook."]
+      })}</script></html>`;
+      const provider = fakeSearchProvider([{ url: "https://example.com/csulokporkolt", title: "Csülökpörkölt recept", domain: "example.com" }]);
+      const result = await interpretMealInput(potatoPrisma(), "csülökpörkölt krumplival", undefined, fakeAiProvider(dishAndSide));
+      const withDiscovery = await attachRecipeDiscoveryFallback(result, {
+        ...discoveryDeps(provider), prisma: potatoAndPorkPrisma(),
+        fetchDependencies: { resolve: async () => [{ address: "93.184.216.34", family: 4 }], request: async () => ({ status: 200, headers: { "content-type": "text/html" }, body: Buffer.from(html) }) }
+      });
+      const dishItem = withDiscovery.items?.find((item) => item.semanticItem?.canonicalName === "csülökpörkölt");
+      const potatoItem = withDiscovery.items?.find((item) => item.semanticItem?.canonicalName === "burgonya");
+      expect(dishItem?.recipeDiscovery?.candidate?.overlapsWithSiblingItems).toMatchObject([{ itemIndex: expect.any(Number), canonicalName: "burgonya" }]);
+      // Never silently deleted — still present, still visible, just excluded from nutrition.
+      expect(potatoItem).toBeDefined();
+      expect(potatoItem?.excludedBySiblingRecipe).toMatchObject({ dishName: "csülökpörkölt" });
+      expect(potatoItem?.nutritionEligible).toBe(false);
+      // Excluded (not ambiguous) — does not block the rest of the meal from being confirmable.
+      expect(potatoItem?.canConfirm).toBe(true);
+    });
+
+    it("uncertain overlap — a DIFFERENT trusted Food row with the same display name (a real catalog-duplicate scenario): surfaced for confirmation, never auto-decided either way", async () => {
+      const html = `<html><script type="application/ld+json">${JSON.stringify({
+        "@type": "Recipe", name: "Csülökpörkölt", recipeYield: "4 servings",
+        recipeIngredient: ["800 g sertéscsülök", "500 g burgonya"], recipeInstructions: ["Cook."]
+      })}</script></html>`;
+      const provider = fakeSearchProvider([{ url: "https://example.com/csulokporkolt", title: "Csülökpörkölt recept", domain: "example.com" }]);
+      const result = await interpretMealInput(potatoPrisma(), "csülökpörkölt krumplival", undefined, fakeAiProvider(dishAndSide));
+      const withDiscovery = await attachRecipeDiscoveryFallback(result, {
+        ...discoveryDeps(provider), prisma: duplicatePotatoAndPorkPrisma(),
+        fetchDependencies: { resolve: async () => [{ address: "93.184.216.34", family: 4 }], request: async () => ({ status: 200, headers: { "content-type": "text/html" }, body: Buffer.from(html) }) }
+      });
+      const dishItem = withDiscovery.items?.find((item) => item.semanticItem?.canonicalName === "csülökpörkölt");
+      const potatoItem = withDiscovery.items?.find((item) => item.semanticItem?.canonicalName === "burgonya");
+      expect(dishItem?.recipeDiscovery?.candidate?.recipeState).toBe("fully_resolved");
+      expect(dishItem?.recipeDiscovery?.candidate?.possibleOverlapWithSiblingItems).toMatchObject([{ itemIndex: expect.any(Number), canonicalName: "burgonya" }]);
+      expect(dishItem?.recipeDiscovery?.candidate?.overlapsWithSiblingItems).toBeUndefined();
+      // Never auto-excluded on uncertain evidence — still present, still independently valid, unchanged.
+      expect(potatoItem?.excludedBySiblingRecipe).toBeUndefined();
+      expect(potatoItem?.nutritionEligible).not.toBe(false);
+      // ...but flagged as needing the user's own confirmation before the meal can be saved as-is.
+      expect(potatoItem?.ambiguous).toBe(true);
+      expect(potatoItem?.canConfirm).toBe(false);
+    });
   });
 
   it("B — a trusted local Recipe (the user's own saved csülökpörkölt) wins outright; no web search is ever attempted", async () => {

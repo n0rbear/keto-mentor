@@ -126,6 +126,22 @@ function stubIntent(intent: SearchIntent | null): SearchIntentProvider {
   return { id: "stub", generate: async () => intent };
 }
 
+// A minimal food_nlp-capable AiProvider double (mirrors interpret.test.ts's
+// own MockFoodNlpProvider) — `calls` lets a test assert whether
+// shouldUseAiFallback actually invoked AI-assisted classification, not just
+// what the final result looked like.
+class MockFoodNlpProvider implements AiProvider {
+  id = "mock-food-nlp";
+  model = "fixture-v1";
+  calls = 0;
+  constructor(private readonly result: FoodUnderstanding) {}
+  supports(capability: string) { return capability === "food_nlp"; }
+  async run<TOutput>(): Promise<TOutput> {
+    this.calls += 1;
+    return this.result as unknown as TOutput;
+  }
+}
+
 // Owner real-iPhone report (2026-09-09): "2 tányér marhahúsleves" ("beef
 // soup") stopped at "A tápérték még nincs megbízható ételadathoz kapcsolva"
 // (no trustworthy nutrition data) with no plate-quantity estimation
@@ -203,13 +219,53 @@ describe("dynamic trusted food resolution: end-to-end via interpretMealInput", (
     const dynamic = makeDynamic(prisma, {
       adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [candidate({ confidence: 0.96 }), candidate({ sourceId: "172153", name: "Pork hock, cured", normalizedName: "pork hock cured", confidence: 0.9 })] }]
     });
-    const result = await interpretMealInput(prisma, "150 g csülök", undefined, undefined, dynamic);
+    // A real food_nlp-capable provider (not the default StubAiProvider, which
+    // trivially never gets called) — proves shouldUseAiFallback's own guard
+    // is what blocks AI reclassification here, not merely the absence of a
+    // configured provider.
+    const ai = new MockFoodNlpProvider({ language: "hu", kind: "single_food", confidence: 0.9, clarificationNeeded: false, items: [{ originalText: "csülök", canonicalName: "pork hock", evidence: "explicit", confidence: 0.9 }] });
+    const result = await interpretMealInput(prisma, "150 g csülök", undefined, ai, dynamic);
     expect(result.foodResolution).toBe("confirmation_required");
     expect(result.externalCandidates).toHaveLength(2);
     expect(result.externalCandidatesReason).toBe("ambiguous");
     expect(result.selectedFood).toBeNull();
     // Never forged/invented nutrition on the unresolved-pending-choice result.
     expect(result.quantity).toBeNull();
+    expect(ai.calls).toBe(0);
+  });
+
+  // Owner-beta (2026-09-14): live pre-merge validation of PR #52 proved
+  // "halászlé" (fish soup — a genuine prepared dish) got a weak_match
+  // dynamic candidate on its bare dish name and NEVER reached AI-assisted
+  // compound-dish classification at all, because shouldUseAiFallback treated
+  // ANY externalCandidates as "already a complete, meaningful outcome" —
+  // the same protection genuinely correct for "ambiguous" (see the test
+  // above) and "possible_duplicate", but wrong for "weak_match", which by
+  // definition never matched an exact identity. This proves the fix: a
+  // weak_match alone no longer blocks AI fallback, so genuine semantic
+  // understanding gets a chance to recognize a prepared dish.
+  it("a WEAK dynamic match alone does not block AI-assisted compound-dish classification — unlike ambiguous/possible_duplicate", async () => {
+    const { prisma } = makeFullPrisma();
+    const dynamic = makeDynamic(prisma, {
+      searchIntentProvider: stubIntent({ canonicalConcept: "fish soup", searchTerms: ["fish soup"], sourceLanguage: "hu" }),
+      // review_required (not exact_normalized_name) is exactly what makes
+      // external-food.ts classify this as reason: "weak_match" — a
+      // token-similar candidate, never a confirmed identity.
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [candidate({ sourceId: "999", name: "Fish soup, canned", normalizedName: "fish soup canned", matchPolicy: "review_required", confidence: 0.55 })] }]
+    });
+    const ai = new MockFoodNlpProvider({
+      language: "hu", kind: "compound_dish", dishName: "halászlé", confidence: 0.95,
+      clarificationNeeded: false, items: []
+    });
+    const result = await interpretMealInput(prisma, "halászlé", undefined, ai, dynamic);
+    expect(ai.calls).toBe(1);
+    expect(result.foodResolution).toBe("compound");
+    expect(result.semantic).toMatchObject({ kind: "compound_dish", dishName: "halászlé" });
+    // The dishName-synthesis path (interpretAiUnderstanding, unchanged) turns
+    // the empty items list into exactly one item named after the dish —
+    // eligible for local-recipe lookup / web recipe discovery afterward.
+    expect(result.items).toHaveLength(1);
+    expect(result.items?.[0].semanticItem).toMatchObject({ originalText: "halászlé", canonicalName: "halászlé" });
   });
 
   it("no adapters configured -> stays honestly unresolved, offers the existing manual fallback, never invents a Food", async () => {

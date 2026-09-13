@@ -124,6 +124,15 @@ export type InterpretResult = {
   // fallback (see meal-input/recipe-discovery-fallback.ts, called from the
   // route handler — never set by interpretMealInput itself).
   recipeDiscovery?: RecipeDiscoveryPreview;
+  // Owner-beta (2026-09-14): set only on a SIBLING item (never on the dish
+  // item itself) when recipe-discovery-fallback's own sibling-overlap check
+  // (see detectSiblingOverlap) found this item's selectedFood is the SAME
+  // Food as one of the discovered recipe's own resolved ingredients — e.g.
+  // "csülökpörkölt krumplival" where the selected csülökpörkölt recipe
+  // itself includes potato. Paired with nutritionEligible:false so this
+  // item is never independently counted; a future recipe-confirmation save
+  // flow must skip it, not merely display it.
+  excludedBySiblingRecipe?: { dishItemIndex: number; dishName: string };
 };
 
 const PREP_KEYWORDS: Record<string, readonly string[]> = {
@@ -409,13 +418,35 @@ async function interpretDeterministically(
   return interpretOne(prisma, text, parsed, provider, dynamic);
 }
 
+// Owner-beta (2026-09-14): "weak_match" is the one externalCandidatesReason
+// that does NOT represent an exact-identity match — see external-food.ts:
+// it fires specifically when the top dynamic candidate's matchPolicy isn't
+// exact_normalized_name (a token-similar result, never a confirmed
+// identity), the weakest signal dynamic resolution can produce. Treating it
+// as "already a complete, meaningful outcome" — the same bar "ambiguous"
+// (an exact-name match, just low-confidence or tied) and "possible_duplicate"
+// (a genuine near-identical existing Food) correctly clear — blocked
+// AI-assisted compound-dish classification entirely for any phrase whose
+// bare name happens to token-overlap an unrelated USDA/BLS row (proven live:
+// "halászlé" got a weak fish-product match and never reached the AI at all).
+// ambiguous/possible_duplicate keep skipping AI fallback exactly as before —
+// both required an exact-name match, which IS meaningful evidence AI
+// reclassification must not silently discard (see the "2 tányér
+// marhahúsleves" precedent below, a similar but stronger case).
+function hasStrongExternalCandidateSignal(result: InterpretResult): boolean {
+  const isStrong = (reason?: "ambiguous" | "possible_duplicate" | "weak_match") => !!reason && reason !== "weak_match";
+  if (result.externalCandidates?.length && isStrong(result.externalCandidatesReason)) return true;
+  return !!result.items?.some((item) => item.externalCandidates?.length && isStrong(item.externalCandidatesReason));
+}
+
 function shouldUseAiFallback(result: InterpretResult, aiProvider: AiProvider) {
   if (!aiProvider.supports("food_nlp")) return false;
   if (result.ambiguous) return false;
   // A pending external-candidate confirmation is already a complete,
   // meaningful outcome — food-understanding AI reinterpretation must never
-  // silently discard it and start over.
-  if (result.externalCandidates?.length || result.items?.some((item) => item.externalCandidates?.length)) return false;
+  // silently discard it and start over. See hasStrongExternalCandidateSignal
+  // for why a mere weak_match does NOT count as that outcome.
+  if (hasStrongExternalCandidateSignal(result)) return false;
   if (result.items?.length) {
     return !result.items.every((item) => item.selectedFood && item.confidence >= 0.8 && !item.preparationUnavailable);
   }

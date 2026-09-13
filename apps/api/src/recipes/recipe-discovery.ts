@@ -61,7 +61,19 @@ export type RecipeDiscoveryPreview = {
     ingredientSummary: string[];
     // FINAL/TRUSTED nutrition only (computeTrustedNutrition) — null/false
     // whenever recipeState !== "fully_resolved". Never a partial estimate.
+    // Owner-beta (2026-09-14) — Blocker 5: this is per 100g of the COMBINED
+    // RAW INGREDIENT WEIGHT, never a finished/cooked dish weight (a
+    // discovered recipe has no finishedWeightGrams — see
+    // recipes/nutrition.ts's calculateRecipeNutrition, the local-saved-
+    // recipe equivalent, which correctly refuses per100g without one). A
+    // known, honestly-labeled approximation — never presented as measured.
     nutritionPer100g: MacroTotals | null;
+    // Owner-beta (2026-09-14) — Blocker 5: per ONE serving, using `servings`
+    // (schema.org recipeYield / the AI extraction's own structured field —
+    // never a fabricated number) — needs no weight-basis assumption at all,
+    // so prefer this over nutritionPer100g whenever `servings` is present.
+    // null whenever servings is unknown or recipeState !== "fully_resolved".
+    nutritionPerServing: MacroTotals | null;
     nutritionCalculable: boolean;
     ingredientWeightGrams: number | null;
     // "fully_resolved": every ingredient already trusted, ready for final
@@ -77,6 +89,23 @@ export type RecipeDiscoveryPreview = {
     ingredients: readonly RecipeIngredientReview[];
     /** Same import-proof mechanism the manual URL-import flow already uses — hand this straight to POST /recipes to persist, unchanged. */
     importProof: string;
+    // Owner-beta (2026-09-14): Blocker 4 (double counting) — populated only
+    // for a multi-item phrase (e.g. "csülökpörkölt krumplival") where this
+    // candidate's OWN resolved ingredients were found to be the SAME Food as
+    // a separately-resolved sibling item in `items`. `overlapsWithSiblingItems`
+    // is an identity-confirmed match (same underlying Food.id — the recipe
+    // genuinely includes this exact food, already independently resolved
+    // elsewhere in the phrase); the corresponding sibling item in the
+    // returned InterpretResult is marked nutritionEligible:false +
+    // excludedBySiblingRecipe so it is never also counted. A future
+    // recipe-confirmation save flow must NOT submit an excluded sibling's own
+    // contribution alongside this recipe's. `possibleOverlapWithSiblingItems`
+    // is a WEAKER, name-based signal (the recipe's own ingredient text names
+    // the same food, but it didn't itself reach a trusted identity) — never
+    // auto-decided; the corresponding sibling is marked ambiguous/
+    // canConfirm:false so a save flow must ask the user rather than guess.
+    overlapsWithSiblingItems?: { itemIndex: number; canonicalName: string }[];
+    possibleOverlapWithSiblingItems?: { itemIndex: number; canonicalName: string }[];
   };
 };
 

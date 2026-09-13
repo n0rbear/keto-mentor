@@ -84,7 +84,7 @@ function logCandidateAttempt(index: number, domain: string, outcome: "unusable" 
 }
 
 function toCandidateShape(extracted: ExtractedPreview, reviews: readonly RecipeIngredientReview[], summary: RecipeReviewSummary, importProof: string): NonNullable<RecipeDiscoveryPreview["candidate"]> {
-  const trusted = computeTrustedNutrition(reviews);
+  const trusted = computeTrustedNutrition(reviews, extracted.servings);
   return {
     title: extracted.title,
     sourceUrl: extracted.sourceUrl,
@@ -97,6 +97,7 @@ function toCandidateShape(extracted: ExtractedPreview, reviews: readonly RecipeI
     confirmationRequiredIngredientCount: summary.confirmationRequiredCount,
     ingredientSummary: extracted.ingredients.map((ingredient) => ingredient.originalText).slice(0, 50),
     nutritionPer100g: trusted.macros,
+    nutritionPerServing: trusted.perServing,
     nutritionCalculable: trusted.calculable,
     ingredientWeightGrams: trusted.weightGrams,
     recipeState: summary.state === "fully_resolved" ? "fully_resolved" : "reviewable",
@@ -233,6 +234,55 @@ function findEligibleDiscoveryTarget(result: InterpretResult): DiscoveryTarget |
   return result.items.length === 1 ? { location: "result" } : { location: "item", index };
 }
 
+type SiblingOverlapMatch = { itemIndex: number; canonicalName: string };
+
+/**
+ * Owner-beta (2026-09-14) — Blocker 4 (double counting): for a multi-item
+ * phrase (e.g. "csülökpörkölt krumplival" -> [csülökpörkölt, krumpli]),
+ * checks whether a fully_resolved recipe candidate's OWN resolved
+ * ingredients are the SAME Food as another, separately-resolved item in the
+ * phrase — if so, that sibling must not ALSO independently contribute
+ * nutrition once the recipe is accepted (see cases A-E in the owner-beta
+ * spec: a discovered recipe may or may not already include a named side).
+ *
+ * Two tiers, by design — "prefer confirmation over guessing":
+ *  - `confirmed`: an ingredient's own trusted resolvedFood.id equals the
+ *    sibling's own selectedFood.id — the only fully general (never
+ *    hardcoded) identity signal available, since both independently
+ *    converge on the SAME underlying Food row for the same real identity
+ *    (see findDuplicate's dedup behavior in external-food.ts).
+ *  - `possible`: no identity match, but the ingredient's own name (its
+ *    resolvedFood.name if trusted, otherwise its own parsed search query)
+ *    normalizes to substantially the same text as the sibling's name —
+ *    e.g. the recipe's own "krumpli" ingredient failed to reach a trusted
+ *    Food (today's sparse catalog reality) but its raw text still clearly
+ *    names the same food the sibling independently resolved. Never
+ *    auto-decided either way.
+ */
+function detectSiblingOverlap(ingredients: readonly RecipeIngredientReview[], items: readonly InterpretResult[], targetIndex: number): { confirmed: SiblingOverlapMatch[]; possible: SiblingOverlapMatch[] } {
+  const confirmed: SiblingOverlapMatch[] = [];
+  const possible: SiblingOverlapMatch[] = [];
+  items.forEach((sibling, index) => {
+    if (index === targetIndex) return;
+    const siblingFood = sibling.selectedFood;
+    const siblingName = siblingFood?.name ?? sibling.semanticItem?.canonicalName ?? sibling.parsed?.foodQuery;
+    const siblingNormalized = siblingName ? normalizeSearch(siblingName) : "";
+    if (!siblingNormalized) return;
+
+    let confirmedMatch = false;
+    let possibleMatch = false;
+    for (const ingredient of ingredients) {
+      if (siblingFood && ingredient.resolvedFood && ingredient.resolvedFood.id === siblingFood.id) { confirmedMatch = true; break; }
+      const ingredientNormalized = normalizeSearch(ingredient.resolvedFood?.name ?? ingredient.parsedFoodQuery);
+      if (ingredientNormalized && (ingredientNormalized === siblingNormalized || ingredientNormalized.includes(siblingNormalized) || siblingNormalized.includes(ingredientNormalized))) possibleMatch = true;
+    }
+    const canonicalName = sibling.semanticItem?.canonicalName ?? siblingName!;
+    if (confirmedMatch) confirmed.push({ itemIndex: index, canonicalName });
+    else if (possibleMatch) possible.push({ itemIndex: index, canonicalName });
+  });
+  return { confirmed, possible };
+}
+
 /**
  * Attaches a bounded, confirmable web-discovered recipe preview to an
  * already-computed InterpretResult — called from the route handler AFTER
@@ -355,6 +405,35 @@ export async function attachRecipeDiscoveryFallback(result: InterpretResult, dep
   }
 
   deps.onProgress?.("recipe_discovery");
-  const preview = await runRecipeDiscovery(dishName, deps);
-  return applyPreview(result, target, preview);
+  let preview = await runRecipeDiscovery(dishName, deps);
+  let siblingsScoped = result;
+  // Blocker 4 (double counting): only meaningful for the multi-item case
+  // (a single-item phrase has no siblings), and only once a candidate's own
+  // ingredients are actually known (fully_resolved — see attemptCandidate).
+  if (target.location === "item" && preview.candidate && result.items) {
+    const overlap = detectSiblingOverlap(preview.candidate.ingredients, result.items, target.index);
+    if (overlap.confirmed.length || overlap.possible.length) {
+      preview = {
+        ...preview,
+        candidate: {
+          ...preview.candidate,
+          overlapsWithSiblingItems: overlap.confirmed.length ? overlap.confirmed : undefined,
+          possibleOverlapWithSiblingItems: overlap.possible.length ? overlap.possible : undefined
+        }
+      };
+      siblingsScoped = {
+        ...result,
+        items: result.items.map((item, index) => {
+          if (overlap.confirmed.some((m) => m.itemIndex === index)) {
+            return { ...item, nutritionEligible: false, canConfirm: true, excludedBySiblingRecipe: { dishItemIndex: target.index, dishName } };
+          }
+          if (overlap.possible.some((m) => m.itemIndex === index)) {
+            return { ...item, ambiguous: true, canConfirm: false };
+          }
+          return item;
+        })
+      };
+    }
+  }
+  return applyPreview(siblingsScoped, target, preview);
 }

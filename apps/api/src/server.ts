@@ -17,7 +17,7 @@ import { createSession, rotateSession, revokeActiveSession } from "./session.js"
 import { prisma } from "./db.js";
 import { searchFoods } from "./catalog/food-search.js";
 import { confirmAuthoritativeFood, externalFoodConfirmationSchema, resolveAuthoritativeFood, resolveBarcodeFood } from "./catalog/external-food.js";
-import { EXTERNAL_FOOD_CONFIRM_RATE_LIMIT, EXTERNAL_FOOD_RATE_LIMIT, externalFoodRateLimitKey } from "./catalog/external-food-rate-limit.js";
+import { EXTERNAL_FOOD_CONFIRM_RATE_LIMIT, EXTERNAL_FOOD_RATE_LIMIT, RECIPE_INGREDIENT_DYNAMIC_RATE_LIMIT, externalFoodRateLimitKey } from "./catalog/external-food-rate-limit.js";
 import { UsdaFoodDataCentralLookupAdapter, OpenFoodFactsProductAdapter } from "./catalog/structured-source-adapters.js";
 import { validateBarcode } from "./catalog/barcode.js";
 import { parseNaturalFoodQuery } from "./catalog/natural-food-query.js";
@@ -77,6 +77,15 @@ const candidateLocalizationProvider = configuredCandidateLocalizationProvider(en
 // because the same model generated the search term being validated.
 const semanticCandidateGateProvider = configuredSemanticCandidateGateProvider(env);
 const dynamicFoodResolutionLimiter = new DynamicFoodResolutionRateLimiter();
+// Owner-beta (2026-09-14): a SEPARATE, more generously-sized limiter
+// dedicated to recipe-discovery ingredient resolution — see
+// RECIPE_INGREDIENT_DYNAMIC_RATE_LIMIT. Live reproduction proved a single
+// real recipe candidate (8-12 ingredients) exhausts the ordinary per-meal
+// budget (dynamicFoodResolutionLimiter, 10/15min) partway through, so later
+// ingredients failed with reason="rate_limited" regardless of whether they
+// were actually resolvable. Keeps the original limiter's abuse protection
+// for ordinary meal-input items completely untouched.
+const recipeIngredientDynamicResolutionLimiter = new DynamicFoodResolutionRateLimiter(Date.now, RECIPE_INGREDIENT_DYNAMIC_RATE_LIMIT);
 // Web recipe discovery: strictly a fallback layered on top of meal-input
 // interpretation (see recipe-discovery-fallback.ts), never wired into
 // interpretMealInput itself. Reuses the exact same recipe-extraction AI
@@ -297,6 +306,9 @@ app.post("/meal-input/interpret", requireAuth, async (req, res, next) => {
     const dynamic = externalFoodAdapters.length
       ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale: trustedLocale(req.user!), localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider }
       : null;
+    // Same deps, but with recipeIngredientDynamicResolutionLimiter in place
+    // of dynamicFoodResolutionLimiter — see that limiter's own comment.
+    const recipeIngredientDynamic = dynamic ? { ...dynamic, rateLimiter: recipeIngredientDynamicResolutionLimiter } : null;
     const onProgress = (stage: Parameters<typeof publishProgress>[1]) => publishProgress(input.operationId, stage);
     const result = await interpretMealInput(prisma, input.text, requestQuantityProvider, requestProvider, dynamic, onProgress);
     // Fallback layered on top of interpretation, never inside it — only ever
@@ -312,7 +324,7 @@ app.post("/meal-input/interpret", requireAuth, async (req, res, next) => {
     // per-ingredient resolution otherwise has only the sparse local catalog
     // to match against. Still `null` whenever no external adapters are
     // configured, matching ordinary meal-input's own behavior exactly.
-    const withDiscovery = await attachRecipeDiscoveryFallback(result, { discoveryService: recipeDiscoveryService, recipeAiProvider: recipeDiscoveryAiProvider, prisma, userId: req.user!.id, locale: trustedLocale(req.user!), onProgress, dynamic });
+    const withDiscovery = await attachRecipeDiscoveryFallback(result, { discoveryService: recipeDiscoveryService, recipeAiProvider: recipeDiscoveryAiProvider, prisma, userId: req.user!.id, locale: trustedLocale(req.user!), onProgress, dynamic: recipeIngredientDynamic });
     onProgress("finalizing");
     res.json(withDiscovery);
   } catch (error) {

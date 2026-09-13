@@ -173,10 +173,25 @@ export function classifyRecipeReview(ingredients: readonly RecipeIngredientRevie
  * subset) — this is the fixed replacement for the prior checkpoint's
  * computePreviewNutrition, which incorrectly counted a merely-previewed
  * confirmation_required candidate. Never reads webpage-claimed nutrition.
+ *
+ * Owner-beta (2026-09-14) — Blocker 5 (portion/serving provenance): `macros`
+ * (and the derived `weightGrams`) are per 100g of the COMBINED RAW
+ * INGREDIENT WEIGHT, never the finished/cooked dish weight — a discovered
+ * recipe has no finishedWeightGrams (see recipes/nutrition.ts's
+ * calculateRecipeNutrition, which correctly refuses per100g without one, for
+ * the local-saved-recipe equivalent). Raw ingredient weight typically
+ * OVERSTATES a cooked dish's true weight (water evaporates; a soup/stew's
+ * finished weight is usually LESS than its raw ingredients' sum), which
+ * would UNDERSTATE the dish's real per-100g calorie density — this is a
+ * known, honestly-labeled approximation, never presented as the dish's own
+ * measured per-100g figure. `servings` (schema.org recipeYield or the AI
+ * extraction's own structured field — never a fabricated number) lets a
+ * PER-SERVING figure be computed instead, which needs no weight-basis
+ * assumption at all and is the stronger of the two when available.
  */
-export function computeTrustedNutrition(ingredients: readonly RecipeIngredientReview[]): { calculable: boolean; macros: MacroTotals | null; weightGrams: number | null } {
+export function computeTrustedNutrition(ingredients: readonly RecipeIngredientReview[], servings?: number): { calculable: boolean; macros: MacroTotals | null; weightGrams: number | null; perServing: MacroTotals | null } {
   if (!ingredients.length || !ingredients.every((i) => i.trustedNutritionReady)) {
-    return { calculable: false, macros: null, weightGrams: null };
+    return { calculable: false, macros: null, weightGrams: null, perServing: null };
   }
   let totals = emptyMacros();
   let weightGrams = 0;
@@ -186,5 +201,11 @@ export function computeTrustedNutrition(ingredients: readonly RecipeIngredientRe
     weightGrams += grams;
     totals = addMacros(totals, scaleMacros({ kcal: food.kcalPer100g, fat: food.fatPer100g, protein: food.proteinPer100g, carbs: food.carbsPer100g, fiber: food.fiberPer100g }, grams / 100));
   }
-  return { calculable: weightGrams > 0, macros: weightGrams > 0 ? scaleMacros(totals, 100 / weightGrams) : null, weightGrams: weightGrams || null };
+  const calculable = weightGrams > 0;
+  return {
+    calculable,
+    macros: calculable ? scaleMacros(totals, 100 / weightGrams) : null,
+    weightGrams: weightGrams || null,
+    perServing: calculable && servings && servings > 0 ? scaleMacros(totals, 1 / servings) : null
+  };
 }

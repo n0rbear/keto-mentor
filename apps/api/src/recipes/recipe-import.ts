@@ -5,7 +5,19 @@ import { fetchPublicHtml, SafeFetchError, type SafeFetcherDependencies } from ".
 import { RECIPE_IMPORT_LIMITS as LIMITS } from "./recipe-import-limits.js";
 import { DisabledRecipeExtractionProvider, type RecipeExtraction, type RecipeExtractionProvider } from "./recipe-extraction-provider.js";
 
-export const INGREDIENT_RESOLUTION_CONCURRENCY = 4;
+// Owner-beta (2026-09-14): lowered from 4. Each concurrently-resolving
+// ingredient can independently trigger its OWN dynamic-resolution AI calls
+// (search-intent, semantic-gate, localization) — at 4-wide this meant up to
+// ~12 simultaneous Groq requests for one recipe. Live pre-merge validation
+// proved this reliably trips Groq's concurrent-request capacity: a real
+// 12-ingredient recipe saw 8-9 of 12 search-intent calls fail with
+// http_error at concurrency 4, while an isolated serial call to the same
+// endpoint succeeded cleanly every time (see search_intent_fallback
+// logging). This is a mitigation, not a full fix — Groq capacity is an
+// external constraint no client-side concurrency choice alone eliminates —
+// but a real recipe's ingredient count/latency tradeoff favors fewer,
+// more-likely-to-succeed concurrent calls over more, frequently-failing ones.
+export const INGREDIENT_RESOLUTION_CONCURRENCY = 2;
 const MAX_JSON_LD_DEPTH = 12;
 const MAX_JSON_LD_NODES = 500;
 // Bounds the AI call's cost/latency independent of how large the already
