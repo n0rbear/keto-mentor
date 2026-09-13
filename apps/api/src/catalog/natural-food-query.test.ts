@@ -22,6 +22,32 @@ describe("natural food query parser", () => {
   ] as const)("parses dekagram (dkg) as a scaled gram quantity, never glued onto the food name: %s", (input, expected) => {
     expect(parseNaturalFoodQuery(input)).toEqual(expected);
   });
+  // Owner-beta checkpoint (2026-09-13): the ingredient-resolution forensic
+  // trace proved these five ordinary Hungarian recipe counting-unit words
+  // (fej/gerezd/csokor/szál/csipet) were entirely unrecognized, exactly the
+  // same failure class as "dkg"/"bögre" above — real live evidence: "2
+  // gerezd fokhagyma" (2 cloves of garlic) parsed to foodQuery "gerezd
+  // fokhagyma" instead of "fokhagyma", breaking identity search for garlic,
+  // onion, parsley, carrot and cumin ingredients across multiple real
+  // recipes (halászlé, gulyásleves).
+  it.each([
+    ["2 gerezd fokhagyma", { quantity: 2, unit: "clove", foodQuery: "fokhagyma" }],
+    ["2 fej vöröshagyma", { quantity: 2, unit: "head", foodQuery: "voroshagyma" }],
+    ["1 csokor petrezselyem", { quantity: 1, unit: "bunch", foodQuery: "petrezselyem" }],
+    ["1 szál sárgarépa", { quantity: 1, unit: "stalk", foodQuery: "sargarepa" }],
+    ["1 csipet só", { quantity: 1, unit: "pinch", foodQuery: "so" }]
+  ] as const)("parses Hungarian counting-unit words, never glued onto the food name: %s", (input, expected) => {
+    expect(parseNaturalFoodQuery(input)).toEqual(expected);
+  });
+  // Owner-beta checkpoint (2026-09-13): a quantity RANGE ("1 - 2 tk mustár")
+  // — real live evidence: the unhandled second number occupied the
+  // unit-detection step's expected token position, so the real unit word one
+  // token later ("tk") was never recognized and instead got swept into the
+  // food-query text alongside the food name ("tk mustar" instead of
+  // "mustar"). The lower bound is kept as the deterministic quantity.
+  it("parses a quantity range, keeping the lower bound and never letting the upper bound swallow the real unit", () => {
+    expect(parseNaturalFoodQuery("1 - 2 tk mustár")).toEqual({ quantity: 1, unit: "tsp", foodQuery: "mustar" });
+  });
   it.each([
     ["5 tojás", { quantity: 5, unit: "piece", foodQuery: "tojas" }],
     ["5 db tojás", { quantity: 5, unit: "piece", foodQuery: "tojas" }],

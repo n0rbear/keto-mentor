@@ -9,6 +9,7 @@ export type MistralProviderOptions = {
   baseUrl?: string;
   timeoutMs?: number;
   maxResponseBytes?: number;
+  maxTokens?: number;
   fetchImpl?: typeof fetch;
 };
 
@@ -21,6 +22,7 @@ export class MistralAiProvider extends ChatCompletionsProvider {
       baseUrl: options.baseUrl ?? "https://api.mistral.ai/",
       timeoutMs: options.timeoutMs,
       maxResponseBytes: options.maxResponseBytes,
+      maxTokens: options.maxTokens,
       fetchImpl: options.fetchImpl,
       extraBodyFields: { safe_prompt: true }
     });

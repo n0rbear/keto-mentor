@@ -1076,6 +1076,58 @@ describe("bounded concurrency for independent meal items (owner-beta blocker, 20
   });
 });
 
+// Owner-beta checkpoint (2026-09-13): the ingredient-resolution forensic
+// trace proved a WEAK local partial match (nonzero score, not trusted)
+// previously prevented dynamic external resolution from ever running at
+// all, regardless of how much better an authoritative match might be —
+// dynamic resolution was only ever attempted on a genuine LOCAL MISS
+// (`!top`). "pork" only ever weakly matches the local "Pork sausage" fixture
+// (a startsWith match, score 80, the "preview" tier — never locally
+// trusted), so this proves dynamic resolution now gets a real chance to
+// find something better instead of silently losing to that weak match.
+describe("a weak (non-trusted) local match no longer blocks dynamic resolution (owner-beta checkpoint, 2026-09-13)", () => {
+  it("a weak local partial match ('pork' -> 'Pork sausage', score 80) is superseded by a genuine dynamic resolution", async () => {
+    const searchIntentProvider: SearchIntentProvider = { id: "fixture", generate: async () => ({ canonicalConcept: "ground pork", searchTerms: ["ground pork"] }) };
+    const groundPork = {
+      source: "usda_fdc" as const, sourceId: "1", originalName: "Pork, ground", name: "Pork, ground",
+      names: { en: "Pork, ground" }, kcalPer100g: 263, fatPer100g: 21, proteinPer100g: 17, carbsPer100g: 0, fiberPer100g: 0, nutrients: [],
+      provenance: { source: "USDA FoodData Central", sourceId: "1", sourceUrl: "https://fdc.nal.usda.gov/1", retrievedAt: "2026-09-13T00:00:00.000Z", valuesPer: "100 g" },
+      sourceUrl: "https://fdc.nal.usda.gov/1", normalizedName: "pork ground", nutrientBasis: "per_100_g" as const,
+      retrievedAt: "2026-09-13T00:00:00.000Z", confidence: 0.6, matchPolicy: "review_required" as const, language: "en"
+    };
+    const permissiveGate = { id: "permissive", checkRelevance: async (_o: unknown, candidates: { id: string }[]) => new Map(candidates.map((c) => [c.id, true])) };
+    // A richer prisma double is needed here (unlike the shared read-only
+    // `prisma` fixture above) — a genuine dynamic resolution persists a new
+    // Food row (findDuplicate/persistCandidate in external-food.ts), which
+    // the shared fixture's minimal food.findMany-only mock doesn't support.
+    const persistedFoods: any[] = [];
+    const dynamicPrisma: any = {
+      food: {
+        findUnique: async () => null,
+        findMany: async () => [],
+        create: async ({ data }: any) => { const food = { id: `dyn-food-${persistedFoods.length}`, ...data }; persistedFoods.push(food); return food; }
+      },
+      foodAlias: { findFirst: async () => null, findMany: async () => [], createMany: async () => ({ count: 1 }), upsert: async ({ create }: any) => create },
+      nutrient: { upsert: async ({ create }: any) => ({ id: `nutrient-${create.key}`, ...create }) },
+      foodNutrient: { create: async () => ({}) },
+      $transaction: async (fn: any) => fn(dynamicPrisma)
+    };
+    const dynamic: DynamicResolutionDeps = {
+      prisma: dynamicPrisma, searchIntentProvider, adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [groundPork] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(), userId: "user-1", semanticCandidateGateProvider: permissiveGate
+    };
+    const result = await interpretMealInput(prisma, "100 g pork", undefined, undefined, dynamic);
+    expect(result.foodResolution).toBe("resolved");
+    expect(result.selectedFood?.name).toBe("Pork, ground");
+  });
+
+  it("without dynamic resolution configured, the weak local match's existing behavior is completely unchanged (no regression)", async () => {
+    const result = await interpretMealInput(prisma, "100 g pork", undefined, undefined, null);
+    expect(result.foodResolution).toBe("preview");
+    expect(result.selectedFood?.name).toBe("Pork sausage");
+  });
+});
+
 // Owner-beta (2026-09-12): truthful real-stage progress events — published
 // ONLY immediately before the corresponding real awaited work begins (see
 // meal-input/progress-bus.ts), never a fake percentage, never a timer.

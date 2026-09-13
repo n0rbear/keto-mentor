@@ -16,6 +16,7 @@ import { configuredCandidateLocalizationProvider } from "../catalog/candidate-lo
 import { configuredSemanticCandidateGateProvider } from "../catalog/semantic-candidate-gate-gateway.js";
 import { DynamicFoodResolutionRateLimiter } from "../catalog/dynamic-food-rate-limit.js";
 import { foodLocaleFor } from "../catalog/food-locale.js";
+import { configuredRecipeIngredientNormalizationProvider } from "./recipe-ingredient-normalization-gateway.js";
 
 export const recipeRouter = Router();
 recipeRouter.use(requireAuth);
@@ -48,6 +49,12 @@ const candidateLocalizationProvider = configuredCandidateLocalizationProvider(en
 // auto-resolved, or (via confirmRecipeIngredients's own re-derivation)
 // become eligible for a confirmed_external alias.
 const semanticCandidateGateProvider = configuredSemanticCandidateGateProvider(env);
+// Owner-beta checkpoint (2026-09-13): the whole-recipe-context batch
+// ingredient-normalization path — same mirrored self-contained wiring
+// pattern as every other AI gateway in this router. Degrades to Disabled
+// (falls back to the existing per-ingredient path) exactly like every other
+// provider here on misconfiguration.
+const recipeIngredientNormalizationProvider = configuredRecipeIngredientNormalizationProvider(env);
 const dynamicFoodResolutionLimiter = new DynamicFoodResolutionRateLimiter();
 // Identical to server.ts's own trustedLocale — the authenticated user's own
 // persisted locale is the single trusted source of UI language, never a
@@ -79,7 +86,7 @@ recipeRouter.post("/import-url/preview/confirm-ingredients", confirmIngredientsL
     const result = await confirmRecipeIngredients(prisma, req.user!.id, input, {
       recipeAiProvider, dynamic, confirmAdapters: externalFoodConfirmAdapters,
       localization: { locale: foodLocale, provider: candidateLocalizationProvider },
-      foodLocale,
+      foodLocale, recipeIngredientNormalizationProvider,
       mintProof: (sourceUrl, method) => createRecipeImportProof(req.user!.id, sourceUrl, method)
     });
     res.json(result);

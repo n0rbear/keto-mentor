@@ -305,6 +305,43 @@ export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: 
   }
   const top = candidates[0];
   const second = candidates[1];
+
+  // Owner-beta checkpoint (2026-09-13): the ingredient-resolution forensic
+  // trace PROVED, directly against this exact function, that a clean,
+  // correct, canonical query ("onion") can never auto-resolve below purely
+  // because normalizeSearch("onion") !== normalizeSearch("Onions, raw") —
+  // the semantic gate above had ALREADY confirmed same_identity, yet the
+  // candidate still fell through to confirmation_required every time. This
+  // is the narrow trusted path the semantic gate exists to enable: when a
+  // real (non-disabled) gate is configured, `candidates` at this point is
+  // ALREADY the deterministic-relevance-filtered, semantic-gate-approved
+  // "same_identity" survivor set (never "processed_derivative" or
+  // "different_prepared_food" — the gate excludes both by construction) —
+  // exactly the false-match class ("Bread, potato" for "potato") the gate
+  // was built to reject. Auto-resolve ONLY when EXACTLY ONE such candidate
+  // survives (no competing same_identity match to arbitrate between); two or
+  // more is genuine ambiguity and must still go to confirmation_required,
+  // never auto-picked. A disabled/unconfigured gate leaves this branch
+  // unreached (semanticGate is falsy) and behavior is byte-for-byte
+  // unchanged — the strict exact-normalized-name path below still applies.
+  if (semanticGate && candidates.length === 1) {
+    const [localizedTop] = localization ? await localizeCandidateNames(localization.provider, [top], localization.locale) : [top];
+    try {
+      const food = await persistCandidate(prisma, localizedTop);
+      return { status: "resolved_external", food, provenance: top.provenance };
+    } catch (error: any) {
+      if (error?.code === "P2002") {
+        const existing = await prisma.food.findUnique({ where: { source_sourceId: { source: top.source, sourceId: top.sourceId } }, include: { servings: true } });
+        if (existing) return { status: "resolved_local", food: await backfillLocaleName(prisma, existing, localization) };
+      }
+      throw error;
+    }
+  }
+  if (semanticGate && candidates.length > 1) {
+    const localizedTop5 = localization ? await localizeCandidateNames(localization.provider, candidates.slice(0, 5), localization.locale) : candidates.slice(0, 5);
+    return { status: "confirmation_required", candidates: localizedTop5, reason: "ambiguous" };
+  }
+
   if (top.matchPolicy !== "exact_normalized_name" || normalizeSearch(query) !== top.normalizedName) {
     const localizedTop5 = localization ? await localizeCandidateNames(localization.provider, candidates.slice(0, 5), localization.locale) : candidates.slice(0, 5);
     return { status: "confirmation_required", candidates: localizedTop5, reason: "weak_match" };

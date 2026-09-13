@@ -178,7 +178,16 @@ const SERVING_UNIT_ALIASES: Record<string, readonly string[]> = {
   handful: ["handful", "marek", "handvoll"], cm: ["cm"], bite: ["bite", "harapas", "bissen"], splash: ["splash", "lottyintes", "schuss"],
   plate: ["plate", "tanyer", "teller"], bowl: ["bowl", "tal", "schussel"], ladle: ["ladle", "merokanal", "kelle"],
   cup: ["cup", "csesze", "tasse", "pohar", "glass", "glas"], quarter: ["quarter", "negyed", "viertel"],
-  ml: ["ml", "milliliter", "millilitre"], l: ["l", "liter", "litre", "liters", "litres"]
+  ml: ["ml", "milliliter", "millilitre"], l: ["l", "liter", "litre", "liters", "litres"],
+  // Owner-beta checkpoint (2026-09-13): matches the new counting-unit words
+  // natural-food-query.ts now recognizes (fej/gerezd/csokor/szál/csipet) —
+  // lets a Food's own curated serving data (if any) satisfy these units the
+  // same way "piece"/"cup"/etc. already do; a Food with no matching serving
+  // still falls through to AI-estimate/confirmation exactly as before, never
+  // silently invents a weight.
+  head: ["head", "heads", "fej", "kopf", "kopfe"], clove: ["clove", "cloves", "gerezd", "zehe", "zehen"],
+  bunch: ["bunch", "bunches", "csokor", "bund", "bunde"], stalk: ["stalk", "stalks", "szal", "stange", "stangen"],
+  pinch: ["pinch", "pinches", "csipet", "prise", "prisen"]
 };
 
 function servingMatchesUnit(serving: Serving, unit: string) {
@@ -363,10 +372,56 @@ async function interpretOne(
   }
 
   const prepUnavailable = needsPreparedFormLookup && !preparedFound;
+  const locallyTrusted = !!top.match && isTrustedLocalMatch(top.match);
+
+  // Owner-beta checkpoint (2026-09-13): the ingredient-resolution forensic
+  // trace proved a WEAK local partial match (e.g. "zsír" scoring low enough
+  // to need confirmation) previously short-circuited resolution entirely —
+  // dynamic external resolution is only ever attempted from the `!top`
+  // branch above, so any nonzero-score local candidate, however weak,
+  // permanently prevented the (potentially much better) search-intent/
+  // authoritative-search/semantic-gate chain from ever running. This
+  // doesn't automatically prefer either source: the WEAK local candidate is
+  // kept as a fallback candidate, and dynamic resolution is additionally
+  // attempted; a genuine dynamic "resolved" (stronger evidence — an actual
+  // verified authoritative match) wins, a dynamic "confirmation_required"
+  // offers the external candidates instead of the weak local one (more
+  // actionable evidence for the user), and a dynamic "unresolved" leaves
+  // the existing weak-local-match behavior completely unchanged (never
+  // regresses to worse than before this checkpoint). Scoped narrowly to the
+  // plain weak-match case — prepUnavailable/ambiguous keep their own
+  // pre-existing, unrelated handling below, untouched.
+  if (!locallyTrusted && !prepUnavailable && !ambiguous && dynamic && parsed.foodQuery) {
+    const outcome = await timeStage("dynamic_resolution", () => resolveDynamicFood(dynamic.prisma, { foodQuery: parsed.foodQuery, preparation: parsed.preparation }, dynamic));
+    if (outcome.status === "resolved") {
+      const resolvedFood = outcome.food as ResolvedFood;
+      // Same convergence-gate re-verification as the `!top` branch above —
+      // a dynamic "resolved" outcome must still be checked against what the
+      // user actually typed before it is trusted here.
+      if (hasSemanticCoverage(normalizeSearch(parsed.foodQuery), foodNameRepresentations(resolvedFood))) {
+        const quantity = await timeStage("quantity_resolution", () => resolveQuantity(parsed, resolvedFood, provider));
+        return {
+          input, parsed, foodResolution: "resolved", selectedFood: resolvedFood, candidates: [resolvedFood], quantity,
+          canConfirm: quantity.status === "resolved" && !quantity.requiresConfirmation,
+          confidence: 1, preparation: parsed.preparation, interpretationSource: "deterministic"
+        };
+      }
+    } else if (outcome.status === "confirmation_required") {
+      return {
+        input, parsed, foodResolution: "confirmation_required", selectedFood: null, candidates, quantity: null,
+        canConfirm: false, confidence: score / 100, preparation: parsed.preparation, interpretationSource: "deterministic",
+        externalCandidates: outcome.candidates, externalCandidatesReason: outcome.reason
+      };
+    }
+    // "unresolved" (or a resolved candidate that failed the convergence
+    // gate) falls through to the existing weak-local-match handling below —
+    // the local candidate remains the best available evidence.
+  }
+
   let foodResolution: FoodResolutionStatus;
   if (prepUnavailable) foodResolution = "confirmation_required";
   else if (ambiguous) foodResolution = "confirmation_required";
-  else if (top.match && isTrustedLocalMatch(top.match)) foodResolution = "resolved";
+  else if (locallyTrusted) foodResolution = "resolved";
   else if (score >= 80) foodResolution = "preview";
   else foodResolution = "confirmation_required";
 

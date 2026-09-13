@@ -253,6 +253,51 @@ describe("semantic candidate gate on resolveAuthoritativeFood (owner-beta blocke
     expect(getCreated()).toMatchObject({ sourceId: "170026" });
   });
 
+  // Owner-beta checkpoint (2026-09-13): the ingredient-resolution forensic
+  // trace PROVED, live against this exact function, that a clean, correct,
+  // canonical query ("onion") can never auto-resolve via the OLD
+  // exact-normalized-name path alone — normalizeSearch("onion") never equals
+  // normalizeSearch("Onions, raw"). This is the narrow trusted path the gate
+  // now enables: when exactly ONE candidate survives BOTH deterministic
+  // relevance filtering AND the semantic gate's same_identity verdict, no
+  // byte-exact match is required to auto-resolve.
+  it("CRITICAL EXAMPLE — ONION: a non-exact-match candidate ('Onions, raw') the gate approves as the ONLY same_identity survivor auto-resolves without a confirmation round-trip", async () => {
+    const { prisma, getCreated } = fakePrisma();
+    const onions = candidate({ sourceId: "170000", name: "Onions, raw", originalName: "Onions, raw", normalizedName: "onions raw", matchPolicy: "review_required", confidence: 0.6 });
+    const result = await resolveAuthoritativeFood(prisma, "onion", [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [onions] }], undefined, { provider: gateFor(["Onions, raw"]), originalIdentity: "vöröshagyma" });
+    expect(result.status).toBe("resolved_external");
+    expect(getCreated()).toMatchObject({ sourceId: "170000" });
+  });
+
+  // Owner-beta checkpoint (2026-09-13): the same trusted path must NEVER
+  // auto-pick among multiple same_identity survivors — two candidates the
+  // gate both approve (e.g. raw vs cooked) is genuine ambiguity, and stays
+  // confirmation_required exactly like before this checkpoint.
+  it("two same_identity-approved candidates remain ambiguous — never auto-picked", async () => {
+    const { prisma, getCreated } = fakePrisma();
+    const onionsRaw = candidate({ sourceId: "170000", name: "Onions, raw", originalName: "Onions, raw", normalizedName: "onions raw", matchPolicy: "review_required", confidence: 0.6 });
+    const onionsCooked = candidate({ sourceId: "170001", name: "Onions, cooked", originalName: "Onions, cooked", normalizedName: "onions cooked", matchPolicy: "review_required", confidence: 0.6 });
+    const result = await resolveAuthoritativeFood(prisma, "onion", [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [onionsRaw, onionsCooked] }], undefined, { provider: gateFor(["Onions, raw", "Onions, cooked"]), originalIdentity: "vöröshagyma" });
+    expect(result).toMatchObject({ status: "confirmation_required", reason: "ambiguous" });
+    expect(getCreated()).toBeNull();
+  });
+
+  // Owner-beta checkpoint (2026-09-13): CRITICAL EXAMPLE — POTATO. Both the
+  // real match AND the historically-false "Bread, potato" match are returned
+  // by the (fake) external search together — the gate rejects the bread
+  // product and approves only the real potato, leaving exactly one
+  // same_identity survivor, which the new trusted path then safely
+  // auto-resolves. "Bread, potato" must never become trusted "potato" even
+  // though it was structurally/token-relevant enough to be returned at all.
+  it("CRITICAL EXAMPLE — POTATO: 'Bread, potato' returned alongside the real 'Potatoes, raw' is rejected by the gate; only the real potato auto-resolves", async () => {
+    const { prisma, getCreated } = fakePrisma();
+    const breadPotato = candidate({ sourceId: "167943", name: "Bread, potato", originalName: "Bread, potato", normalizedName: "bread potato", matchPolicy: "review_required", confidence: 0.6 });
+    const potatoesRaw = candidate({ sourceId: "170026", name: "Potatoes, raw", originalName: "Potatoes, raw", normalizedName: "potatoes raw", matchPolicy: "review_required", confidence: 0.6 });
+    const result = await resolveAuthoritativeFood(prisma, "potato", [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [breadPotato, potatoesRaw] }], undefined, { provider: gateFor(["Potatoes, raw"]), originalIdentity: "burgonya" });
+    expect(result.status).toBe("resolved_external");
+    expect(getCreated()).toMatchObject({ sourceId: "170026" });
+  });
+
   // Required security test: token/substring overlap alone must never be
   // sufficient — the gate result is what decides, not shared words.
   it("token overlap between candidate and search term is NOT sufficient by itself — the gate's explicit verdict is what decides, even for a token-plausible candidate", async () => {

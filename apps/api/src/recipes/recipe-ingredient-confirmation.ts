@@ -9,6 +9,7 @@ import type { DynamicResolutionDeps } from "../meal-input/interpret.js";
 import type { SafeFetcherDependencies } from "./safe-url-fetcher.js";
 import { learnConfirmedAlias } from "../catalog/confirmed-alias.js";
 import type { FoodLocale } from "../catalog/food-locale.js";
+import type { RecipeIngredientNormalizationProvider } from "./recipe-ingredient-normalization.js";
 
 /**
  * Batch recipe-ingredient confirmation (owner-beta blocker #7, 2026-09-11).
@@ -85,6 +86,11 @@ export type RecipeIngredientConfirmationDeps = {
   // `localization`'s own locale fields, though callers normally derive all
   // three from the same source (the authenticated user's trusted locale).
   foodLocale: FoodLocale;
+  // Owner-beta checkpoint (2026-09-13): the whole-recipe-context batch
+  // ingredient-normalization path (see recipe-ingredient-normalization.ts).
+  // Optional — reDerivePreview's own previewRecipeImport call defaults to
+  // Disabled (the existing per-ingredient path) when omitted.
+  recipeIngredientNormalizationProvider?: RecipeIngredientNormalizationProvider;
 };
 
 function invalidRequest(publicCode: string) {
@@ -100,7 +106,7 @@ function invalidRequest(publicCode: string) {
  * externalCandidates array, regardless of what the client claims.
  */
 async function reDerivePreview(prisma: PrismaClient, sourceUrl: string, deps: RecipeIngredientConfirmationDeps) {
-  const extracted = await previewRecipeImport(prisma, sourceUrl, deps.fetchDependencies ?? {}, deps.recipeAiProvider, deps.dynamic);
+  const extracted = await previewRecipeImport(prisma, sourceUrl, deps.fetchDependencies ?? {}, deps.recipeAiProvider, deps.dynamic, deps.recipeIngredientNormalizationProvider);
   const reviews = extracted.ingredients.map((ingredient) => toIngredientReview(ingredient as unknown as ReviewableIngredient));
   return { extracted, reviews };
 }

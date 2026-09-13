@@ -37,6 +37,7 @@ import { configuredQuantityAiProvider } from "./meal-input/quantity-ai-gateway.j
 import { configuredSearchIntentProvider } from "./catalog/search-intent-gateway.js";
 import { configuredCandidateLocalizationProvider } from "./catalog/candidate-localization-gateway.js";
 import { configuredSemanticCandidateGateProvider } from "./catalog/semantic-candidate-gate-gateway.js";
+import { configuredRecipeIngredientNormalizationProvider } from "./recipes/recipe-ingredient-normalization-gateway.js";
 import { DynamicFoodResolutionRateLimiter } from "./catalog/dynamic-food-rate-limit.js";
 import { configuredWebKnowledgeSearchProvider } from "./web-knowledge/web-knowledge-gateway.js";
 import { WebKnowledgeSearchRateLimiter } from "./web-knowledge/web-knowledge-rate-limit.js";
@@ -77,6 +78,13 @@ const candidateLocalizationProvider = configuredCandidateLocalizationProvider(en
 // a SEPARATE call/schema from searchIntentProvider — never trusted merely
 // because the same model generated the search term being validated.
 const semanticCandidateGateProvider = configuredSemanticCandidateGateProvider(env);
+// Owner-beta checkpoint (2026-09-13): the whole-recipe-context batch
+// ingredient-normalization path (see recipe-ingredient-normalization.ts and
+// the ingredient-resolution forensic checkpoint). Same configured AI gateway
+// again — a search-key generator, never a source of nutrition or trusted
+// identity; only used by recipe-discovery-fallback's own recipe-ingredient
+// resolution below, never wired into ordinary (non-recipe) meal-input items.
+const recipeIngredientNormalizationProvider = configuredRecipeIngredientNormalizationProvider(env);
 const dynamicFoodResolutionLimiter = new DynamicFoodResolutionRateLimiter();
 // Owner-beta (2026-09-14): a SEPARATE, more generously-sized limiter
 // dedicated to recipe-discovery ingredient resolution — see
@@ -349,7 +357,7 @@ app.post("/meal-input/interpret", requireAuth, async (req, res, next) => {
     // per-ingredient resolution otherwise has only the sparse local catalog
     // to match against. Still `null` whenever no external adapters are
     // configured, matching ordinary meal-input's own behavior exactly.
-    const withDiscovery = await attachRecipeDiscoveryFallback(result, { discoveryService: recipeDiscoveryService, recipeAiProvider: recipeDiscoveryAiProvider, prisma, userId: req.user!.id, locale: trustedLocale(req.user!), onProgress, dynamic: recipeIngredientDynamic });
+    const withDiscovery = await attachRecipeDiscoveryFallback(result, { discoveryService: recipeDiscoveryService, recipeAiProvider: recipeDiscoveryAiProvider, prisma, userId: req.user!.id, locale: trustedLocale(req.user!), onProgress, dynamic: recipeIngredientDynamic, recipeIngredientNormalizationProvider });
     onProgress("finalizing");
     // Owner-beta diagnostics checkpoint (2026-09-13): derived entirely from
     // the already-computed, already-response-bound result above — see

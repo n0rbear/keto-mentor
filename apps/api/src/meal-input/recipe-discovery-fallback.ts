@@ -11,6 +11,7 @@ import type { SafeFetcherDependencies } from "../recipes/safe-url-fetcher.js";
 import { classifyRecipeReview, computeTrustedNutrition, toIngredientReview, type RecipeIngredientReview, type RecipeReviewSummary, type ReviewableIngredient } from "../recipes/recipe-ingredient-review.js";
 import { findTrustedLocalRecipe } from "./local-recipe-lookup.js";
 import type { ProgressStage } from "./progress-bus.js";
+import type { RecipeIngredientNormalizationProvider } from "../recipes/recipe-ingredient-normalization.js";
 
 export type RecipeDiscoveryFallbackDeps = {
   discoveryService: RecipeDiscoveryService;
@@ -30,6 +31,11 @@ export type RecipeDiscoveryFallbackDeps = {
   // doubles) can omit it; previewRecipeImport treats that identically to an
   // explicit null.
   dynamic?: DynamicResolutionDeps;
+  // Owner-beta checkpoint (2026-09-13): the whole-recipe-context batch
+  // ingredient-normalization path (see recipe-ingredient-normalization.ts).
+  // Optional — previewRecipeImport itself defaults to Disabled (falls back
+  // to the existing per-ingredient path) when omitted.
+  recipeIngredientNormalizationProvider?: RecipeIngredientNormalizationProvider;
 };
 
 type ExtractedPreview = Awaited<ReturnType<typeof previewRecipeImport>>;
@@ -134,7 +140,7 @@ type AttemptResult =
 async function attemptCandidate(index: number, candidate: RecipeDiscoveryCandidate, deps: RecipeDiscoveryFallbackDeps): Promise<AttemptResult> {
   let extracted: ExtractedPreview;
   try {
-    extracted = await previewRecipeImport(deps.prisma, candidate.url, deps.fetchDependencies ?? {}, deps.recipeAiProvider, deps.dynamic ?? null);
+    extracted = await previewRecipeImport(deps.prisma, candidate.url, deps.fetchDependencies ?? {}, deps.recipeAiProvider, deps.dynamic ?? null, deps.recipeIngredientNormalizationProvider);
   } catch (error) {
     const code = error instanceof RecipeImportError ? error.publicCode : "unknown";
     if (error instanceof RecipeImportError && RECOVERABLE_CANDIDATE_CODES.has(code)) {

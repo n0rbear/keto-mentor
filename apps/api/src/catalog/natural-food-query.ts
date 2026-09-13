@@ -1,6 +1,6 @@
 import { normalizeSearch } from "./normalize.js";
 
-export type NaturalQuantityUnit = "g" | "kg" | "ml" | "l" | "piece" | "slice" | "portion" | "plate" | "bowl" | "ladle" | "tbsp" | "tsp" | "cup" | "handful" | "quarter" | "unknown" | "cm" | "bite" | "splash" | "half";
+export type NaturalQuantityUnit = "g" | "kg" | "ml" | "l" | "piece" | "slice" | "portion" | "plate" | "bowl" | "ladle" | "tbsp" | "tsp" | "cup" | "handful" | "quarter" | "unknown" | "cm" | "bite" | "splash" | "half" | "head" | "clove" | "bunch" | "stalk" | "pinch";
 
 export type ParsedNaturalFoodQuery = {
   quantity?: number;
@@ -60,7 +60,24 @@ const UNITS = new Map<string, NaturalQuantityUnit>([
   ["tk", "tsp"], ["tl", "tsp"], ["teaskanal", "tsp"], ["teeloffel", "tsp"], ["tsp", "tsp"], ["teaspoon", "tsp"], ["teaspoons", "tsp"],
   ["marek", "handful"], ["marok", "handful"], ["handful", "handful"], ["handvoll", "handful"], ["cm", "cm"],
   ["harapas", "bite"], ["bite", "bite"], ["bissen", "bite"], ["lottyintes", "splash"], ["splash", "splash"], ["schuss", "splash"],
-  ["fel", "half"], ["fele", "half"], ["half", "half"], ["halb", "half"], ["halbe", "half"]
+  ["fel", "half"], ["fele", "half"], ["half", "half"], ["halb", "half"], ["halbe", "half"],
+  // Owner-beta checkpoint (2026-09-13): generic Hungarian recipe counting-
+  // unit words — real production evidence from the ingredient-resolution
+  // forensic trace on a live streetkitchen.hu gulyásleves import: "fej"
+  // (head, as in "2 fej vöröshagyma" = 2 heads/bulbs of onion), "gerezd"
+  // (clove, "2 gerezd fokhagyma"), "csokor" (bunch, "1 csokor petrezselyem"),
+  // "szál" (stalk/stick, "1 szál sárgarépa"), and "csipet" (pinch, "1 csipet
+  // őrölt kömény") were entirely unrecognized as units — exactly the same
+  // failure class already fixed for "dkg"/"bögre" above: the unmatched token
+  // stayed glued onto the food-query text itself ("gerezd fokhagyma" instead
+  // of "fokhagyma"), breaking food-identity search/normalization for every
+  // ingredient phrased with one of these ordinary counting words. Generic
+  // unit vocabulary, never a food-specific mapping.
+  ["fej", "head"], ["head", "head"], ["heads", "head"], ["kopf", "head"], ["kopfe", "head"], ["köpfe", "head"],
+  ["gerezd", "clove"], ["clove", "clove"], ["cloves", "clove"], ["zehe", "clove"], ["zehen", "clove"],
+  ["csokor", "bunch"], ["bunch", "bunch"], ["bunches", "bunch"], ["bund", "bunch"], ["bunde", "bunch"], ["bündel", "bunch"],
+  ["szal", "stalk"], ["stalk", "stalk"], ["stalks", "stalk"], ["stange", "stalk"], ["stangen", "stalk"],
+  ["csipet", "pinch"], ["pinch", "pinch"], ["pinches", "pinch"], ["prise", "pinch"], ["prisen", "pinch"]
 ]);
 
 const NUMBERS = new Map([
@@ -253,7 +270,28 @@ function parseSegment(normalized: string): ParsedNaturalFoodQuery {
     if (NUMBERS.has(tokens[i])) { quantity = NUMBERS.get(tokens[i]); quantityIndex = i; break; }
   }
 
-  const rest = quantityIndex >= 0 ? tokens.filter((_, i) => i !== quantityIndex) : tokens;
+  // Owner-beta checkpoint (2026-09-13): a quantity RANGE ("1 - 2 tk mustár")
+  // — real production evidence from the ingredient-resolution forensic trace.
+  // normalizeSearch collapses the hyphen into a plain space, so a range
+  // survives as two ADJACENT numeric tokens ("1", "2", ...). Previously only
+  // the first number was ever removed from `rest`; the leftover second
+  // number then occupied the unit-detection step's expected first-token
+  // position, so the REAL unit word one token later ("tk") was never
+  // recognized as a unit and instead got swept into the food-query text
+  // alongside the food name ("tk mustar" instead of "mustar"). The lower
+  // bound is kept as the deterministic quantity (a conservative, explicitly
+  // stated value — never an invented average) and the upper-bound token is
+  // simply consumed/discarded here so unit detection sees its real next
+  // token again.
+  let quantityRangeUpperIndex = -1;
+  if (quantityIndex >= 0) {
+    const next = Number((tokens[quantityIndex + 1] ?? "").replace("decimal", ".").replace(",", "."));
+    if (Number.isFinite(next) && (tokens[quantityIndex + 1] ?? "").trim() !== "") quantityRangeUpperIndex = quantityIndex + 1;
+  }
+
+  const rest = quantityIndex >= 0
+    ? tokens.filter((_, i) => i !== quantityIndex && i !== quantityRangeUpperIndex)
+    : tokens;
 
   // A run of leading modifier words (size/vessel-shape/fill-level, in any
   // order, e.g. "nagy mély tányér") is consumed before the unit itself —

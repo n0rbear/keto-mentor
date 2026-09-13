@@ -1,9 +1,12 @@
 import type { PrismaClient } from "@prisma/client";
 import { interpretMealInput, type DynamicResolutionDeps } from "../meal-input/interpret.js";
+import { parseNaturalFoodQuery } from "../catalog/natural-food-query.js";
 import { AiProviderError } from "../ai/chat-completions-provider.js";
 import { fetchPublicHtml, SafeFetchError, type SafeFetcherDependencies } from "./safe-url-fetcher.js";
 import { RECIPE_IMPORT_LIMITS as LIMITS } from "./recipe-import-limits.js";
 import { DisabledRecipeExtractionProvider, type RecipeExtraction, type RecipeExtractionProvider } from "./recipe-extraction-provider.js";
+import { DisabledRecipeIngredientNormalizationProvider, type RecipeIngredientNormalizationProvider } from "./recipe-ingredient-normalization.js";
+import { resolveRecipeIngredientsBatch } from "./recipe-ingredient-batch-resolution.js";
 
 // Owner-beta (2026-09-14): lowered from 4. Each concurrently-resolving
 // ingredient can independently trigger its OWN dynamic-resolution AI calls
@@ -188,12 +191,52 @@ export async function mapWithConcurrency<T, R>(items: readonly T[], limit: numbe
   return results;
 }
 
+async function resolveIngredientsPerLine(
+  prisma: Pick<PrismaClient, "food" | "foodAlias"> & Partial<Pick<PrismaClient, "$queryRaw">>,
+  rawIngredients: readonly string[],
+  dynamic: DynamicResolutionDeps
+) {
+  return mapWithConcurrency(rawIngredients, INGREDIENT_RESOLUTION_CONCURRENCY, async (originalText) => {
+    const resolution = await interpretMealInput(prisma, originalText, undefined, undefined, dynamic);
+    return {
+      originalText,
+      parsedQuantity: resolution.parsed.quantity,
+      parsedUnit: resolution.parsed.unit,
+      parsedFoodQuery: resolution.parsed.foodQuery,
+      preparation: resolution.preparation,
+      resolution: resolution.foodResolution,
+      selectedFood: resolution.selectedFood,
+      candidates: resolution.candidates,
+      quantity: resolution.quantity,
+      canConfirm: resolution.canConfirm,
+      // Additive (owner-beta blocker #6, 2026-09-11) — the same
+      // externalCandidates/externalCandidatesReason interpretMealInput
+      // already produces for a dynamic confirmation_required outcome,
+      // carried through so a caller can build a RecipeIngredientReview
+      // (recipe-ingredient-review.ts) without a second USDA confirmation
+      // protocol. Existing fields above are all unchanged.
+      externalCandidates: resolution.externalCandidates,
+      externalCandidatesReason: resolution.externalCandidatesReason
+    };
+  });
+}
+
 export async function previewRecipeImport(
   prisma: Pick<PrismaClient, "food" | "foodAlias"> & Partial<Pick<PrismaClient, "$queryRaw">>,
   url: string,
   fetchDependencies: SafeFetcherDependencies = {},
   aiProvider: RecipeExtractionProvider = new DisabledRecipeExtractionProvider(),
-  dynamic: DynamicResolutionDeps = null
+  dynamic: DynamicResolutionDeps = null,
+  // Owner-beta checkpoint (2026-09-13): the whole-recipe-context batch
+  // normalization path (see recipe-ingredient-normalization.ts and the
+  // ingredient-resolution forensic checkpoint). Optional, defaults to
+  // Disabled (fails open to null) — every existing caller that doesn't pass
+  // this keeps using the unchanged per-ingredient path below. When
+  // configured AND it succeeds, this REPLACES the per-ingredient path for
+  // ingredient resolution only; extraction, limits, and every downstream
+  // trust/authority mechanism (external-food.ts, semantic-candidate-gate.ts)
+  // are completely unchanged either way.
+  normalizationProvider: RecipeIngredientNormalizationProvider = new DisabledRecipeIngredientNormalizationProvider()
 ) {
   try {
     const page = await fetchPublicHtml(url, fetchDependencies);
@@ -204,29 +247,12 @@ export async function previewRecipeImport(
       if (!(structuredError instanceof RecipeImportError) || !AI_FALLBACK_ELIGIBLE_CODES.has(structuredError.publicCode)) throw structuredError;
       extracted = await extractRecipeWithAi(aiProvider, page.html, page.finalUrl);
     }
-    const ingredients = await mapWithConcurrency(extracted.ingredients, INGREDIENT_RESOLUTION_CONCURRENCY, async (originalText) => {
-      const resolution = await interpretMealInput(prisma, originalText, undefined, undefined, dynamic);
-      return {
-        originalText,
-        parsedQuantity: resolution.parsed.quantity,
-        parsedUnit: resolution.parsed.unit,
-        parsedFoodQuery: resolution.parsed.foodQuery,
-        preparation: resolution.preparation,
-        resolution: resolution.foodResolution,
-        selectedFood: resolution.selectedFood,
-        candidates: resolution.candidates,
-        quantity: resolution.quantity,
-        canConfirm: resolution.canConfirm,
-        // Additive (owner-beta blocker #6, 2026-09-11) — the same
-        // externalCandidates/externalCandidatesReason interpretMealInput
-        // already produces for a dynamic confirmation_required outcome,
-        // carried through so a caller can build a RecipeIngredientReview
-        // (recipe-ingredient-review.ts) without a second USDA confirmation
-        // protocol. Existing fields above are all unchanged.
-        externalCandidates: resolution.externalCandidates,
-        externalCandidatesReason: resolution.externalCandidatesReason
-      };
-    });
+
+    const lines = extracted.ingredients.map((raw, index) => ({ index, raw, parsed: parseNaturalFoodQuery(raw) }));
+    const batchResult = dynamic
+      ? await resolveRecipeIngredientsBatch(prisma, normalizationProvider, { title: extracted.title, locale: dynamic.foodLocale ?? dynamic.locale, lines }, dynamic)
+      : null;
+    const ingredients = batchResult ?? await resolveIngredientsPerLine(prisma, extracted.ingredients, dynamic);
     return { ...extracted, ingredients };
   } catch (error) {
     if (error instanceof RecipeImportError) throw error;

@@ -4,6 +4,9 @@ import { normalizeSearch } from "../catalog/normalize.js";
 import { AiProviderError } from "../ai/chat-completions-provider.js";
 import { SafeFetchError } from "./safe-url-fetcher.js";
 import type { RecipeExtraction, RecipeExtractionProvider } from "./recipe-extraction-provider.js";
+import type { DynamicResolutionDeps } from "../meal-input/interpret.js";
+import type { RecipeIngredientNormalizationProvider } from "./recipe-ingredient-normalization.js";
+import { DynamicFoodResolutionRateLimiter } from "../catalog/dynamic-food-rate-limit.js";
 
 const wrap = (json: unknown) => `<html><script type="application/ld+json">${typeof json === "string" ? json : JSON.stringify(json)}</script></html>`;
 const base = { "@context": "https://schema.org", "@type": "Recipe", name: "Spinach eggs", recipeYield: "2 servings", recipeIngredient: ["2 eggs", "200 g spinach"], recipeInstructions: [{ "@type": "HowToStep", text: "<b>Mix</b> well." }] };
@@ -243,5 +246,57 @@ describe("AI fallback: prompt-injection page content is treated as data", () => 
     expect(result).not.toHaveProperty("kcal");
     expect(result).not.toHaveProperty("systemPrompt");
     expect(result.extractionMethod).toBe("ai_structured");
+  });
+});
+
+// Owner-beta checkpoint (2026-09-13): end-to-end wiring proof for the
+// whole-recipe-context batch normalization path (see
+// recipe-ingredient-normalization.ts and recipe-ingredient-batch-
+// resolution.ts) — previewRecipeImport itself must actually USE it when
+// configured, and must fall back to the existing per-ingredient path
+// completely unchanged when it isn't (or when it fails).
+describe("previewRecipeImport: batch ingredient normalization wiring", () => {
+  const page = wrap({ ...base, recipeIngredient: ["200 g spinach", "1 mysteryfruit"] });
+  const fetchDependencies = { resolve: async () => [{ address: "93.184.216.34", family: 4 }], request: async () => ({ status: 200, headers: { "content-type": "text/html" }, body: Buffer.from(page) }) };
+
+  function dynamicDeps(p: any): DynamicResolutionDeps {
+    return {
+      prisma: p, searchIntentProvider: { id: "unused", generate: async () => null },
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(), userId: "user-1"
+    };
+  }
+
+  it("uses the batch path when a normalization provider is configured and it succeeds — never falls back", async () => {
+    const p = prisma();
+    const normalization: RecipeIngredientNormalizationProvider = {
+      id: "fixture",
+      normalize: async () => ({
+        ingredients: [
+          { index: 0, foods: [{ canonicalIdentity: "spinach", localName: "spinach", quantity: 200, unit: "g" }] },
+          { index: 1, foods: [{ canonicalIdentity: "mysteryfruit", localName: "mysteryfruit" }] }
+        ]
+      })
+    };
+    const result = await previewRecipeImport(p, "https://example.com/r", fetchDependencies, undefined, dynamicDeps(p), normalization);
+    expect(result.ingredients).toHaveLength(2);
+    expect(result.ingredients[0]).toMatchObject({ resolution: "resolved", parsedFoodQuery: "spinach", quantity: { grams: 200 } });
+    expect(result.ingredients[1]).toMatchObject({ resolution: "unresolved" });
+  });
+
+  it("falls back to the existing per-ingredient path when the normalization provider returns null", async () => {
+    const p = prisma();
+    const normalization: RecipeIngredientNormalizationProvider = { id: "fixture-disabled", normalize: async () => null };
+    const result = await previewRecipeImport(p, "https://example.com/r", fetchDependencies, undefined, dynamicDeps(p), normalization);
+    // Identical to the pre-existing per-ingredient behavior (see the "uses
+    // local resolution..." test above) — proves the fallback is real, not
+    // merely non-throwing.
+    expect(result.ingredients[0]).toMatchObject({ parsedQuantity: 200, parsedUnit: "g", parsedFoodQuery: "spinach", resolution: "resolved", canConfirm: true, quantity: { grams: 200 } });
+  });
+
+  it("falls back to the per-ingredient path when no normalization provider is passed at all (existing callers unaffected)", async () => {
+    const p = prisma();
+    const result = await previewRecipeImport(p, "https://example.com/r", fetchDependencies, undefined, dynamicDeps(p));
+    expect(result.ingredients[0]).toMatchObject({ parsedFoodQuery: "spinach", resolution: "resolved" });
   });
 });
