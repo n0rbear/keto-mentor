@@ -2,12 +2,14 @@ process.env.JWT_ACCESS_SECRET = "a".repeat(32);
 
 import { describe, expect, it, vi } from "vitest";
 import { attachRecipeDiscoveryFallback } from "./recipe-discovery-fallback.js";
-import { interpretMealInput } from "./interpret.js";
+import { interpretMealInput, type DynamicResolutionDeps } from "./interpret.js";
 import { RecipeDiscoveryService } from "../recipes/recipe-discovery.js";
 import { WebKnowledgeSearchRateLimiter } from "../web-knowledge/web-knowledge-rate-limit.js";
 import { NegativeSearchCache } from "../web-knowledge/negative-search-cache.js";
 import { DisabledWebKnowledgeSearchProvider, type WebSearchResult } from "../web-knowledge/web-knowledge-search-provider.js";
 import { DisabledRecipeExtractionProvider, type RecipeExtraction, type RecipeExtractionProvider } from "../recipes/recipe-extraction-provider.js";
+import { DynamicFoodResolutionRateLimiter } from "../catalog/dynamic-food-rate-limit.js";
+import type { ExternalFoodCandidate } from "../catalog/external-food.js";
 import type { AiProvider, AiCapability } from "../ai/provider.js";
 import type { FoodUnderstanding } from "@keto-mentor/shared";
 
@@ -532,5 +534,104 @@ describe("attachRecipeDiscoveryFallback: prepared dish named alongside an indepe
     const result = await interpretMealInput(emptyPrisma(), "csülökpörkölt krumplival", undefined, fakeAiProvider(bothUnresolved));
     await attachRecipeDiscoveryFallback(result, { ...discoveryDeps(provider), prisma: emptyPrisma() });
     expect(provider.search).not.toHaveBeenCalled();
+  });
+});
+
+// Owner-beta (2026-09-13): live pre-merge review of PR #52 proved a real
+// recipe-discovery correctness gap — server.ts constructed a `dynamic`
+// (authoritative USDA/BLS resolution) deps object for ORDINARY meal-input
+// items, but never passed it into attachRecipeDiscoveryFallback, so a
+// discovered recipe's OWN ingredients had only the sparse local catalog to
+// resolve against. A real 7-ingredient recipe (halászlé) reproduced this
+// live: 0/7 ingredients trusted with `dynamic` withheld. These tests prove
+// the fix (server.ts now passes `dynamic` through) end-to-end with a
+// deterministic fixture: the exact same extracted ingredient goes from
+// unresolved to trusted, and only because `dynamic` was supplied.
+describe("attachRecipeDiscoveryFallback: dynamic resolution wiring (owner-beta 2026-09-13)", () => {
+  // Local catalog always misses, food.create/foodAlias.upsert etc. support
+  // resolveDynamicFood's own auto-resolve persistence — mirrors the minimal
+  // shape dynamic-food-resolution-integration.test.ts uses for the same purpose.
+  function dynamicCapablePrisma() {
+    const foods: any[] = [];
+    const prisma: any = {
+      food: {
+        findUnique: async () => null,
+        findMany: async () => [],
+        create: async ({ data }: any) => { const food = { id: `dynamic-food-${foods.length}`, createdById: null, ...data }; foods.push(food); return food; }
+      },
+      foodAlias: {
+        findFirst: async () => null,
+        findMany: async () => [],
+        upsert: async ({ create }: any) => create,
+        createMany: async ({ data }: any) => ({ count: data.length })
+      },
+      nutrient: { upsert: async ({ create }: any) => ({ id: `nutrient-${create.key}`, ...create }) },
+      foodNutrient: { create: async () => ({}) },
+      $transaction: async (fn: any) => fn(prisma)
+    };
+    return prisma;
+  }
+
+  // exact_normalized_name + high confidence + a permissive semantic gate
+  // auto-resolves (no confirmation_required detour) — mirrors the proven
+  // "salmon" fixture in dynamic-food-resolution-integration.test.ts.
+  const salmonCandidate: ExternalFoodCandidate = {
+    source: "usda_fdc", sourceId: "175167", originalName: "Salmon", name: "Salmon",
+    names: { en: "Salmon" }, kcalPer100g: 142, fatPer100g: 6.3, proteinPer100g: 19.8, carbsPer100g: 0, fiberPer100g: 0, nutrients: [],
+    provenance: { source: "USDA FoodData Central", sourceId: "175167", sourceUrl: "https://fdc.nal.usda.gov/175167", retrievedAt: "2026-09-09T00:00:00.000Z", valuesPer: "100 g" },
+    sourceUrl: "https://fdc.nal.usda.gov/175167", normalizedName: "salmon", nutrientBasis: "per_100_g",
+    retrievedAt: "2026-09-09T00:00:00.000Z", confidence: 0.97, matchPolicy: "exact_normalized_name", language: "en"
+  };
+
+  function makeDiscoveryDynamic(prisma: any): DynamicResolutionDeps {
+    return {
+      prisma,
+      searchIntentProvider: { id: "stub", generate: async () => ({ canonicalConcept: "salmon", searchTerms: ["salmon"], sourceLanguage: "en" }) },
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [salmonCandidate] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      locale: "hu",
+      localizationProvider: { id: "fixture", localize: async (items: { id: string }[]) => new Map(items.map((i) => [i.id, "Salmon"])) },
+      semanticCandidateGateProvider: { id: "permissive", checkRelevance: async (_original: string, candidates: { id: string }[]) => new Map(candidates.map((c) => [c.id, true])) }
+    } as DynamicResolutionDeps;
+  }
+
+  const salmonDish: FoodUnderstanding = {
+    language: "en", kind: "compound_dish", dishName: "salmon bowl",
+    items: [{ originalText: "salmon bowl", canonicalName: "salmon bowl", evidence: "explicit", confidence: 0.9 }],
+    clarificationNeeded: false, confidence: 0.9
+  };
+  const salmonHtml = `<html><script type="application/ld+json">${JSON.stringify({
+    "@type": "Recipe", name: "Salmon bowl", recipeYield: "2 servings",
+    recipeIngredient: ["100 g salmon"], recipeInstructions: ["Cook it."]
+  })}</script></html>`;
+
+  it("without `dynamic` wired (pre-fix server.ts), a recipe ingredient absent from the local catalog cannot be resolved at all", async () => {
+    const prisma = dynamicCapablePrisma();
+    const provider = fakeSearchProvider([{ url: "https://example.com/salmon-bowl", title: "Salmon bowl recipe", domain: "example.com" }]);
+    const result = await interpretMealInput(prisma, "salmon bowl", undefined, fakeAiProvider(salmonDish));
+    const withDiscovery = await attachRecipeDiscoveryFallback(result, {
+      ...discoveryDeps(provider), prisma,
+      fetchDependencies: { resolve: async () => [{ address: "93.184.216.34", family: 4 }], request: async () => ({ status: 200, headers: { "content-type": "text/html" }, body: Buffer.from(salmonHtml) }) }
+    });
+    expect(withDiscovery.recipeDiscovery).toMatchObject({ status: "unresolved", reason: "no_fully_resolvable_candidate" });
+    expect(withDiscovery.recipeDiscovery?.candidate).toBeUndefined();
+  });
+
+  it("with `dynamic` wired (the fix), the SAME extracted ingredient reaches authoritative USDA resolution and the recipe becomes usable", async () => {
+    const prisma = dynamicCapablePrisma();
+    const provider = fakeSearchProvider([{ url: "https://example.com/salmon-bowl", title: "Salmon bowl recipe", domain: "example.com" }]);
+    const result = await interpretMealInput(prisma, "salmon bowl", undefined, fakeAiProvider(salmonDish));
+    const withDiscovery = await attachRecipeDiscoveryFallback(result, {
+      ...discoveryDeps(provider), prisma,
+      dynamic: makeDiscoveryDynamic(prisma),
+      fetchDependencies: { resolve: async () => [{ address: "93.184.216.34", family: 4 }], request: async () => ({ status: 200, headers: { "content-type": "text/html" }, body: Buffer.from(salmonHtml) }) }
+    });
+    expect(withDiscovery.recipeDiscovery).toMatchObject({
+      status: "confirmation_required",
+      candidate: { resolvedIngredientCount: 1, unresolvedIngredientCount: 0, nutritionCalculable: true }
+    });
+    // Real ingredient-derived kcal/100g (142, the trusted USDA figure), never invented.
+    expect(withDiscovery.recipeDiscovery?.candidate?.nutritionPer100g?.kcal).toBeCloseTo(142, 5);
   });
 });

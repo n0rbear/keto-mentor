@@ -540,6 +540,28 @@ describe("meal input interpretation", () => {
     expect(result.canConfirm).toBe(false);
   });
 
+  // Owner-beta (2026-09-13): live pre-merge review of PR #52 proved Groq
+  // returns kind=compound_dish with a real dishName but items: [] for dish
+  // names that don't naturally decompose ("rakott krumpli" — a single
+  // casserole, not "rakott" + "krumpli"). The shared schema now accepts this
+  // shape (see foodUnderstandingSchema's superRefine); this test proves
+  // interpretAiUnderstanding's PRE-EXISTING dishName-synthesis logic (line
+  // ~471, unchanged) correctly turns the empty item list into exactly one
+  // item named after the dish, reaching the same "unresolved compound dish"
+  // state a hand-written single explicit item would — this is what makes it
+  // eligible for local-recipe lookup / web recipe discovery afterward.
+  it("a compound_dish classification with an empty items array synthesizes a single item from dishName, rather than losing the classification", async () => {
+    const ai = new MockFoodNlpProvider({
+      language: "hu", kind: "compound_dish", dishName: "rakott krumpli", confidence: 0.95,
+      clarificationNeeded: false, items: []
+    });
+    const result = await interpretMealInput(prisma, "rakott krumpli", undefined, ai);
+    expect(result.foodResolution).toBe("compound");
+    expect(result.semantic).toMatchObject({ kind: "compound_dish", dishName: "rakott krumpli", clarificationNeeded: false });
+    expect(result.items).toHaveLength(1);
+    expect(result.items?.[0]).toMatchObject({ semanticItem: { originalText: "rakott krumpli", canonicalName: "rakott krumpli", evidence: "explicit" }, foodResolution: "unresolved" });
+  });
+
   it("supports an AI-assisted single food and re-resolves it through the trusted catalog", async () => {
     const ai = new MockFoodNlpProvider({
       language: "en", kind: "single_food", confidence: 0.95, clarificationNeeded: false,

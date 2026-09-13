@@ -41,12 +41,31 @@ describe("Mistral food-NLP provider", () => {
     ["top-level nutrition", { ...validUnderstanding, kcal: 500 }],
     ["item nutrition", { ...validUnderstanding, items: [{ ...validUnderstanding.items[0], protein: 20 }] }],
     ["database identity", { ...validUnderstanding, items: [{ ...validUnderstanding.items[0], foodId: "invented" }] }],
-    ["empty items", { ...validUnderstanding, items: [] }],
+    // Owner-beta (2026-09-13): empty items is now the PROVEN, legitimate
+    // shape Groq returns for some real compound-dish names ("rakott
+    // krumpli" — a casserole that doesn't decompose into named items) — see
+    // the dedicated "compound_dish with empty items" test below. Empty items
+    // still fails closed for every OTHER kind, where it is never meaningful.
+    ["empty items on a non-compound-dish kind", { ...validUnderstanding, kind: "single_food", items: [] }],
     ["confidence above one", { ...validUnderstanding, confidence: 1.2 }],
     ["gigantic string", { ...validUnderstanding, dishName: "x".repeat(121) }]
   ])("fails closed for %s", async (_name, output) => {
     await expect(provider((async () => completion(output)) as typeof fetch).run("food_nlp", { text: "meal input" }))
       .rejects.toMatchObject({ code: "invalid_response" });
+  });
+
+  // Owner-beta (2026-09-13): live pre-merge review of PR #52 proved Groq
+  // returns exactly this shape for "rakott krumpli" — a real, well-formed
+  // compound_dish classification whose dish name has no natural component
+  // items — and the PRIOR `items.min(1)` rejected it outright, silently
+  // discarding the whole classification (see interpret.ts's
+  // `ai_understanding_fallback outcome=deterministic_only reason=invalid_response`
+  // diagnostic). interpretAiUnderstanding's existing dishName-synthesis logic
+  // already turns this into a single dish-name item — this is the schema
+  // half of that fix.
+  it("compound_dish with a dishName but empty items is accepted, not rejected", async () => {
+    const output = { ...validUnderstanding, items: [] };
+    await expect(provider((async () => completion(output)) as typeof fetch).run("food_nlp", { text: "rakott krumpli" })).resolves.toEqual(output);
   });
 
   it("accepts the bounded unknown-language state", async () => {

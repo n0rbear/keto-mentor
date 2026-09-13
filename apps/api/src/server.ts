@@ -304,7 +304,15 @@ app.post("/meal-input/interpret", requireAuth, async (req, res, next) => {
     // resolution has already genuinely failed on a composite-dish phrase. A
     // no-op (webKnowledgeSearchProvider.id === "disabled") when
     // WEB_SEARCH_PROVIDER is unset, at zero extra cost.
-    const withDiscovery = await attachRecipeDiscoveryFallback(result, { discoveryService: recipeDiscoveryService, recipeAiProvider: recipeDiscoveryAiProvider, prisma, userId: req.user!.id, locale: trustedLocale(req.user!), onProgress });
+    // Owner-beta (2026-09-13): `dynamic` (the same authoritative USDA/BLS
+    // resolution deps used for ordinary meal-input items) is passed through
+    // here too — proven by live reproduction to be required for discovered
+    // recipes' own ingredients to reach trusted Food identities at all: a
+    // real 7-ingredient recipe (halászlé) resolved 0/7 without it, since
+    // per-ingredient resolution otherwise has only the sparse local catalog
+    // to match against. Still `null` whenever no external adapters are
+    // configured, matching ordinary meal-input's own behavior exactly.
+    const withDiscovery = await attachRecipeDiscoveryFallback(result, { discoveryService: recipeDiscoveryService, recipeAiProvider: recipeDiscoveryAiProvider, prisma, userId: req.user!.id, locale: trustedLocale(req.user!), onProgress, dynamic });
     onProgress("finalizing");
     res.json(withDiscovery);
   } catch (error) {

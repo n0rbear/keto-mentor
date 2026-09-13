@@ -138,7 +138,21 @@ export const foodUnderstandingUnitSchema = z.enum([
 export const foodUnderstandingItemSchema = z.object({
   originalText: z.string().trim().min(1).max(160),
   canonicalName: z.string().trim().min(1).max(120),
-  quantity: z.number().finite().positive().max(10_000).optional(),
+  // Owner-beta (2026-09-13): proven root cause of a compound-dish phrase
+  // with no PER-ITEM quantity ("egy tányér csülökpörkölt krumplival" — only
+  // the whole plate has a quantity, not each named item) silently failing
+  // food-understanding entirely. The AI's answer was semantically correct
+  // (compound_dish, dishName="csülökpörkölt", both items present) but Groq
+  // represents "no value for this optional field" as an explicit JSON
+  // `null`, which `.optional()` alone (undefined-only) rejects — the whole
+  // response then fails schema validation, is discarded as invalid_response,
+  // and the phrase falls back to a flat unresolved result with no semantic
+  // structure at all, silently skipping local-recipe lookup and web recipe
+  // discovery. `.nullable()` widens the accepted INPUT; the `.transform`
+  // keeps the INFERRED type exactly `number | undefined` as before, so every
+  // existing consumer (which already treats missing quantity via `!= null`
+  // checks) needs no change at all.
+  quantity: z.number().finite().positive().max(10_000).nullable().optional().transform((value) => value ?? undefined),
   unit: foodUnderstandingUnitSchema.optional(),
   size: z.enum(["small", "medium", "large"]).optional(),
   preparation: z.string().trim().min(1).max(60).optional(),
@@ -160,13 +174,31 @@ export const foodUnderstandingSchema = z.object({
   // separate resolution (e.g. a named dish mentioned alongside extra
   // add-ons, not defined by them).
   dishIsComposition: z.boolean().optional(),
-  items: z.array(foodUnderstandingItemSchema).min(1).max(12),
+  // Owner-beta (2026-09-13): proven root cause of a second silent
+  // total-classification-loss mode, for phrases whose dish name doesn't
+  // naturally decompose into named items ("rakott krumpli" — a single
+  // casserole, not "rakott" + "krumpli"). Groq correctly classifies these as
+  // compound_dish with a real dishName, but returns items: [] rather than
+  // inventing a component list — which `.min(1)` rejected outright, losing
+  // the whole (otherwise valid) classification to invalid_response, exactly
+  // like the sibling `quantity: null` case above. `.min(0)` here, paired with
+  // the superRefine rule below that still requires >=1 item for every OTHER
+  // kind, accepts this one well-formed shape without loosening validation
+  // for single_food/multi_item, where an empty items array is never
+  // meaningful. interpretAiUnderstanding's existing synthesis (dishNormalized/
+  // hasDishItem, unchanged) already turns a dishName with zero matching items
+  // into exactly one item named after the dish — this schema change is the
+  // only thing needed for that path to ever be reached.
+  items: z.array(foodUnderstandingItemSchema).min(0).max(12),
   clarificationNeeded: z.boolean(),
   clarificationReason: z.string().trim().min(1).max(240).optional(),
   confidence: z.number().finite().min(0).max(1)
 }).strict().superRefine((value, context) => {
   if (value.kind === "compound_dish" && !value.dishName) {
     context.addIssue({ code: "custom", path: ["dishName"], message: "dishName is required for compound dishes" });
+  }
+  if (value.kind !== "compound_dish" && value.items.length === 0) {
+    context.addIssue({ code: "too_small", minimum: 1, type: "array", inclusive: true, path: ["items"], message: "items must contain at least 1 element for a non-compound-dish classification" });
   }
   if (value.clarificationNeeded && !value.clarificationReason) {
     context.addIssue({ code: "custom", path: ["clarificationReason"], message: "clarificationReason is required" });

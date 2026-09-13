@@ -22,10 +22,13 @@ export type RecipeDiscoveryFallbackDeps = {
   // Test-only injection point — production never sets this, so
   // previewRecipeImport always runs against the real safe-url-fetcher.
   fetchDependencies?: SafeFetcherDependencies;
-  // Not yet wired by the production route (server.ts) — passing this through
-  // is what lets the PR #49 live-eval diagnostic exercise real USDA/dynamic
-  // resolution for recipe-derived ingredients. Omitted (undefined) everywhere
-  // else, which previewRecipeImport treats identically to its own null default.
+  // Owner-beta (2026-09-13): wired by the production route (server.ts) using
+  // the exact same deps as ordinary meal-input's dynamic resolution — proven
+  // necessary for recipe-derived ingredients to reach trusted USDA/BLS Food
+  // identities rather than only the sparse local catalog. Optional (rather
+  // than required) so callers without external adapters configured (or test
+  // doubles) can omit it; previewRecipeImport treats that identically to an
+  // explicit null.
   dynamic?: DynamicResolutionDeps;
 };
 
