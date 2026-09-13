@@ -147,9 +147,18 @@ app.get("/health", (_req, res) => res.json(healthPayload));
 // this process's own start time (module load), a reasonable proxy for
 // "deployed at" absent a dedicated Render env var for it.
 const bootedAt = new Date().toISOString();
+const renderServiceName = process.env.RENDER_SERVICE_NAME ?? null;
+// Staging deliberately runs with NODE_ENV=production (see database-url.ts's
+// assertProductionDatabaseSchema and server.ts's secure-cookie/log-level
+// branches, none of which have a bespoke "staging" mode) — so NODE_ENV alone
+// cannot tell a human apart staging from production. RENDER_SERVICE_NAME
+// can: Render sets it to this exact service's own configured name
+// ("keto-mentor-api-staging" vs "keto-mentor-api"), which is what the owner
+// actually needs to see to know which deployment he's looking at.
+const deploymentEnvironment = renderServiceName?.includes("staging") ? "staging" : env.NODE_ENV === "production" ? "production" : env.NODE_ENV;
 app.get("/build-info", (_req, res) => res.json({
-  environment: env.NODE_ENV,
-  serviceName: process.env.RENDER_SERVICE_NAME ?? null,
+  environment: deploymentEnvironment,
+  serviceName: renderServiceName,
   branch: process.env.RENDER_GIT_BRANCH ?? null,
   commit: process.env.RENDER_GIT_COMMIT ? process.env.RENDER_GIT_COMMIT.slice(0, 7) : null,
   bootedAt
