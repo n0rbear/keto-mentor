@@ -39,6 +39,19 @@ const safeRecipeSourceUrlSchema = z.string().trim().url().max(2_000).superRefine
   if (!["http:", "https:"].includes(url.protocol) || url.username || url.password) context.addIssue({ code: "custom", message: "sourceUrl must be an HTTP(S) URL without credentials" });
 });
 
+// Owner-beta (2026-09-15) — final PR review: createMealSchema's items union
+// (catalog / manual / recipe-discovery) is tried in DECLARATION ORDER by
+// Zod, and a NON-strict object silently STRIPS unrecognized keys rather
+// than rejecting them. A payload that happened to satisfy catalog's own
+// required fields (foodId + quantity + unit) matched here FIRST even when
+// it ALSO carried sourceUrl/importProof/extractionMethod — those got
+// silently dropped and the request was reinterpreted as an ordinary catalog
+// item instead of failing loudly. Not a nutrition-forgery vector (a catalog
+// item's own macros always come from the real Food row regardless), but a
+// real fail-OPEN schema-discrimination gap: strict() here (matching
+// recipeMealSchema's existing documented reasoning below) makes such a
+// mixed-shape payload fail ALL THREE union members and get rejected
+// outright, rather than being silently, unpredictably reinterpreted.
 export const manualMealItemSchema = z.object({
   foodName: z.string().trim().min(2).max(120),
   quantityGrams: z.number().positive().max(5000),
@@ -48,7 +61,7 @@ export const manualMealItemSchema = z.object({
   carbsPer100g: z.number().nonnegative().max(200),
   fiberPer100g: z.number().nonnegative().max(100).default(0),
   source: z.enum(["open_database", "open_food_facts", "manufacturer", "barcode", "user_input", "ai_ocr"]).default("user_input")
-});
+}).strict();
 
 export const catalogMealItemSchema = z.object({
   foodId: z.string().min(1),
@@ -61,7 +74,7 @@ export const catalogMealItemSchema = z.object({
     accepted: z.literal(true),
     grams: z.number().finite().positive().max(5000)
   }).strict().optional()
-}).superRefine((item, context) => {
+}).strict().superRefine((item, context) => {
   if (item.quantityConfirmation && (item.unit !== "g" || item.quantity !== item.quantityConfirmation.grams)) context.addIssue({ code: "custom", message: "confirmed_grams_mismatch" });
   if (item.unit === "serving" && !item.servingId) context.addIssue({ code: "custom", path: ["servingId"], message: "servingId is required" });
   if (item.unit !== "serving" && (item.servingId || item.gramsOverride)) context.addIssue({ code: "custom", path: ["unit"], message: "serving fields require serving unit" });

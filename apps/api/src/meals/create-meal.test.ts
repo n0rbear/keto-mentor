@@ -82,6 +82,7 @@ describe("meal creation with a recipe-discovery item", () => {
 
   function fakePrisma() {
     const meals: any[] = [];
+    let recipeCreateCalls = 0;
     const client: any = {
       foodAlias: { findMany: async () => [] },
       food: {
@@ -93,8 +94,9 @@ describe("meal creation with a recipe-discovery item", () => {
       recipe: {
         findFirst: async () => null,
         create: async ({ data }: any) => {
+          recipeCreateCalls += 1;
           const ingredients = (data.ingredients.create as any[]).map((i: any, idx: number) => ({ ...i, id: `ri-${idx}`, food: [potatoFood, porkHockFood].find((f) => f.id === i.foodId) }));
-          return { id: "recipe-1", userId: data.userId, title: data.title, servings: data.servings ?? null, finishedWeightGrams: null, sourceUrl: data.sourceUrl, ingredients };
+          return { id: `recipe-${recipeCreateCalls}`, userId: data.userId, title: data.title, servings: data.servings ?? null, finishedWeightGrams: null, sourceUrl: data.sourceUrl, ingredients };
         }
       },
       meal: {
@@ -105,21 +107,34 @@ describe("meal creation with a recipe-discovery item", () => {
         }
       }
     };
-    return { client, meals };
+    return { client, meals, recipeCreateCalls: () => recipeCreateCalls };
   }
 
-  function deps(): RecipeDiscoveryMealItemDeps {
+  function deps(overrides: Partial<RecipeDiscoveryMealItemDeps> = {}): RecipeDiscoveryMealItemDeps {
     return {
       recipeAiProvider: new DisabledRecipeExtractionProvider() as RecipeExtractionProvider,
       dynamic: null,
-      fetchDependencies: { resolve: async () => [{ address: "93.184.216.34", family: 4 }], request: async () => ({ status: 200, headers: { "content-type": "text/html" }, body: Buffer.from(recipeHtml(["800 g sertéscsülök"])) }) }
+      fetchDependencies: { resolve: async () => [{ address: "93.184.216.34", family: 4 }], request: async () => ({ status: 200, headers: { "content-type": "text/html" }, body: Buffer.from(recipeHtml(["800 g sertéscsülök"])) }) },
+      ...overrides
     };
   }
 
-  function recipeItem(overrides: Partial<{ quantity: number; unit: "g" | "serving" }> = {}) {
+  // Serves DIFFERENT HTML depending on which sourceUrl was fetched — needed
+  // for the two-distinct-recipes-in-one-request tests below.
+  function depsForUrls(byUrl: Record<string, string[]>): RecipeDiscoveryMealItemDeps {
+    return deps({
+      fetchDependencies: {
+        resolve: async () => [{ address: "93.184.216.34", family: 4 }],
+        request: async (url: URL) => ({ status: 200, headers: { "content-type": "text/html" }, body: Buffer.from(recipeHtml(byUrl[url.href] ?? ["800 g sertéscsülök"])) })
+      }
+    });
+  }
+
+  function recipeItem(overrides: Partial<{ sourceUrl: string; quantity: number; unit: "g" | "serving" }> = {}) {
+    const sourceUrl = overrides.sourceUrl ?? SOURCE_URL;
     return {
-      sourceUrl: SOURCE_URL,
-      importProof: createRecipeImportProof("user-1", SOURCE_URL, "schema_org_json_ld"),
+      sourceUrl,
+      importProof: createRecipeImportProof("user-1", sourceUrl, "schema_org_json_ld"),
       extractionMethod: "schema_org_json_ld" as const,
       quantity: 800,
       unit: "g" as const,
@@ -166,5 +181,73 @@ describe("meal creation with a recipe-discovery item", () => {
     const input = createMealSchema.parse({ title: "Ebéd", items: [recipeItem(), { foodId: "potato", quantity: 150, unit: "g" }] });
     await expect(createMeal(fake.client, "user-1", input, overlapDeps)).rejects.toMatchObject({ publicCode: "recipe_sibling_overlap", status: 409 });
     expect(fake.meals).toHaveLength(0);
+  });
+
+  // Owner-beta (2026-09-15) — final PR review found this: the sibling-
+  // overlap check only ever compared a recipe against ordinary catalog
+  // items — two DISTINCT recipe-discovery items in the SAME request were
+  // never cross-checked against each other at all.
+  it("two DIFFERENT recipes in the same request that each genuinely include the same ingredient are rejected, never silently double-counted", async () => {
+    const fake = fakePrisma();
+    const OTHER_URL = "https://example.com/lecso";
+    const twoRecipesOverlapDeps = depsForUrls({
+      [SOURCE_URL]: ["800 g sertéscsülök", "500 g burgonya"],
+      [OTHER_URL]: ["300 g burgonya"]
+    });
+    const input = createMealSchema.parse({ title: "Ebéd", items: [recipeItem(), recipeItem({ sourceUrl: OTHER_URL })] });
+    await expect(createMeal(fake.client, "user-1", input, twoRecipesOverlapDeps)).rejects.toMatchObject({ publicCode: "recipe_sibling_overlap", status: 409 });
+    expect(fake.meals).toHaveLength(0);
+  });
+
+  it("two DIFFERENT recipes with genuinely disjoint ingredients both persist as independent MealItems", async () => {
+    const fake = fakePrisma();
+    const OTHER_URL = "https://example.com/lecso";
+    const disjointDeps = depsForUrls({
+      [SOURCE_URL]: ["800 g sertéscsülök"],
+      [OTHER_URL]: ["300 g burgonya"]
+    });
+    const input = createMealSchema.parse({ title: "Ebéd", items: [recipeItem(), recipeItem({ sourceUrl: OTHER_URL })] });
+    const meal = await createMeal(fake.client, "user-1", input, disjointDeps);
+    expect(meal.items).toHaveLength(2);
+    expect(meal.items.every((i: any) => i.recipeId)).toBe(true);
+    expect(new Set(meal.items.map((i: any) => i.recipeId)).size).toBe(2);
+  });
+
+  // Owner-beta (2026-09-15) — final PR review found this: two items in the
+  // same request referencing the IDENTICAL sourceUrl each independently ran
+  // resolveRecipeDiscoveryMealItem's own-recipe lookup concurrently — since
+  // neither had committed when the other's lookup ran, both could miss each
+  // other and each create its own duplicate Recipe row for the same URL.
+  it("two items in the same request referencing the SAME sourceUrl resolve to the SAME Recipe — no duplicate Recipe row from the in-request race", async () => {
+    const fake = fakePrisma();
+    const input = createMealSchema.parse({ title: "Ebéd", items: [recipeItem({ quantity: 400, unit: "g" }), recipeItem({ quantity: 400, unit: "g" })] });
+    const meal = await createMeal(fake.client, "user-1", input, deps());
+    expect(fake.recipeCreateCalls()).toBe(1);
+    expect(meal.items).toHaveLength(2);
+    expect(meal.items[0].recipeId).toBe(meal.items[1].recipeId);
+  });
+
+  // Owner-beta (2026-09-15) — final PR review found this: createMealSchema's
+  // items union is tried in declaration order, and (before this fix) a
+  // non-strict catalog/manual schema silently STRIPPED unrecognized keys
+  // instead of rejecting them. A payload carrying BOTH a real recipe-
+  // discovery shape (sourceUrl/importProof/extractionMethod) AND fields
+  // that happen to satisfy catalogMealItemSchema's own requirements
+  // (foodId+quantity+unit) matched catalog FIRST, silently discarding the
+  // recipe fields and being reinterpreted as an ordinary catalog item. Not a
+  // nutrition-forgery vector (a catalog item's macros always come from the
+  // real Food row regardless of which foodId is chosen), but a genuine
+  // fail-open schema-discrimination gap — strict() on every union member
+  // now makes this fail closed instead of guessing.
+  it("a payload shaped to satisfy multiple union members at once is rejected outright, never silently reinterpreted as a different item type", () => {
+    const mixed = {
+      sourceUrl: SOURCE_URL,
+      importProof: createRecipeImportProof("user-1", SOURCE_URL, "schema_org_json_ld"),
+      extractionMethod: "schema_org_json_ld" as const,
+      foodId: "potato",
+      quantity: 100,
+      unit: "g" as const
+    };
+    expect(createMealSchema.safeParse({ title: "Ebéd", items: [mixed] }).success).toBe(false);
   });
 });
