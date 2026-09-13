@@ -130,7 +130,7 @@ export class DisabledSemanticCandidateGateProvider implements SemanticCandidateG
 export type SemanticCandidateGateTransport = {
   readonly id: string;
   readonly model: string;
-  complete<T>(instruction: string, input: string, validate: (value: unknown) => T): Promise<T>;
+  complete<T>(instruction: string, input: string, validate: (value: unknown) => T, capability?: string): Promise<T>;
 };
 
 export class ChatSemanticCandidateGateProvider implements SemanticCandidateGateProvider {
@@ -144,7 +144,7 @@ export class ChatSemanticCandidateGateProvider implements SemanticCandidateGateP
     // leave the system — no user id, username, meal history, or profile data.
     const context = { originalIdentity: original.identity, originalLocale: original.locale, candidates: candidates.map((c) => ({ id: c.id, authoritativeName: c.authoritativeName })) };
     try {
-      const result = await this.transport.complete(SEMANTIC_CANDIDATE_GATE_INSTRUCTION, JSON.stringify(context), (value) => semanticCandidateGateOutputSchema.parse(value));
+      const result = await this.transport.complete(SEMANTIC_CANDIDATE_GATE_INSTRUCTION, JSON.stringify(context), (value) => semanticCandidateGateOutputSchema.parse(value), "semantic_candidate_gate");
       const knownIds = new Set(candidates.map((c) => c.id));
       const map = new Map<string, boolean>();
       for (const row of result.results) {

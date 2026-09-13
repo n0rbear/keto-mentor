@@ -2,6 +2,7 @@ import { resolveFoodAiGatewayConfig, type FoodAiGatewayConfigInput } from "../ai
 import { OpenRouterAiProvider } from "../ai/openrouter-provider.js";
 import { MistralAiProvider } from "../ai/mistral-provider.js";
 import { GroqAiProvider } from "../ai/groq-provider.js";
+import { OpenAiProvider } from "../ai/openai-provider.js";
 import { FailoverAiProvider, createFailoverObserver } from "../ai/failover-provider.js";
 import { ChatCandidateLocalizationProvider, DisabledCandidateLocalizationProvider, type CandidateLocalizationProvider } from "./candidate-localization.js";
 
@@ -27,6 +28,9 @@ export function configuredCandidateLocalizationProvider(config: FoodAiGatewayCon
       if (!resolved.secondary) return new ChatCandidateLocalizationProvider(primary);
       const secondary = new GroqAiProvider({ apiKey: resolved.secondary.apiKey, model: resolved.secondary.model, baseUrl: resolved.secondary.baseUrl, fetchImpl: overrides.fetchImpl });
       return new ChatCandidateLocalizationProvider(new FailoverAiProvider(primary, secondary, candidateLocalizationFailoverObserver));
+    }
+    if (resolved.kind === "openai") {
+      return new ChatCandidateLocalizationProvider(new OpenAiProvider({ apiKey: resolved.apiKey, model: resolved.model, baseUrl: resolved.baseUrl, fetchImpl: overrides.fetchImpl }));
     }
     if (resolved.kind === "mistral") {
       return new ChatCandidateLocalizationProvider(new MistralAiProvider({ apiKey: resolved.apiKey, model: resolved.model, baseUrl: resolved.baseUrl, fetchImpl: overrides.fetchImpl }));

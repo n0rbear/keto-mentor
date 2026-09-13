@@ -2,6 +2,7 @@ import { resolveFoodAiGatewayConfig, type FoodAiGatewayConfigInput } from "../ai
 import { MistralRecipeExtractionProvider } from "./mistral-recipe-extraction-provider.js";
 import { OpenRouterRecipeExtractionProvider } from "./openrouter-recipe-extraction-provider.js";
 import { GroqRecipeExtractionProvider } from "./groq-recipe-extraction-provider.js";
+import { OpenAiRecipeExtractionProvider } from "./openai-recipe-extraction-provider.js";
 import { DisabledRecipeExtractionProvider, type RecipeExtractionProvider } from "./recipe-extraction-provider.js";
 
 /**
@@ -26,6 +27,9 @@ export function configuredRecipeAiProvider(config: FoodAiGatewayConfigInput, ove
     }
     if (resolved.kind === "openrouter") {
       return new OpenRouterRecipeExtractionProvider({ apiKey: resolved.apiKey, model: resolved.model, baseUrl: resolved.baseUrl, appReferer: resolved.appReferer, appTitle: resolved.appTitle, fetchImpl: overrides.fetchImpl });
+    }
+    if (resolved.kind === "openai") {
+      return new OpenAiRecipeExtractionProvider({ apiKey: resolved.apiKey, model: resolved.model, baseUrl: resolved.baseUrl, fetchImpl: overrides.fetchImpl });
     }
     if (resolved.kind === "mistral") {
       return new MistralRecipeExtractionProvider({ apiKey: resolved.apiKey, model: resolved.model, baseUrl: resolved.baseUrl, fetchImpl: overrides.fetchImpl });

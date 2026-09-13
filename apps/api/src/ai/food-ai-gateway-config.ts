@@ -11,6 +11,8 @@ export type FoodAiGatewayConfigInput = {
   GROQ_API_KEY?: string;
   GROQ_MODEL?: string;
   GROQ_BASE_URL?: string;
+  OPENAI_API_KEY?: string;
+  OPENAI_BASE_URL?: string;
 };
 
 export type GroqSecondaryConfig = { apiKey: string; model: string; baseUrl?: string };
@@ -39,6 +41,16 @@ export type FoodAiGatewayConfig =
   // "openrouter" explicitly.
   | { kind: "groq"; apiKey: string; model: string; baseUrl?: string; secondary?: OpenRouterSecondaryConfig }
   | { kind: "mistral"; apiKey: string; model: string; baseUrl?: string }
+  // Owner-beta OpenAI baseline checkpoint (2026-09-13): a standalone peer
+  // kind, deliberately WITHOUT failover wiring to/from Groq or OpenRouter —
+  // this is a benchmark/comparison configuration ("what does the SAME
+  // workload cost/behave like on a real paid provider"), not a production
+  // reliability strategy; adding failover semantics here would be scope
+  // creep this checkpoint explicitly didn't ask for. Reuses FOOD_AI_MODEL
+  // (the same variable "openrouter" already reuses) rather than inventing a
+  // dedicated OPENAI_MODEL var, so switching FOOD_AI_PROVIDER between
+  // "openai" and "openrouter" never requires touching more than one variable.
+  | { kind: "openai"; apiKey: string; model: string; baseUrl?: string }
   | { kind: "disabled" };
 
 function resolveGroqSecondary(config: FoodAiGatewayConfigInput): GroqSecondaryConfig | undefined {
@@ -92,6 +104,10 @@ export function resolveFoodAiGatewayConfig(config: FoodAiGatewayConfigInput): Fo
       appTitle: config.OPENROUTER_APP_TITLE,
       secondary: resolveGroqSecondary(config)
     };
+  }
+  if (config.FOOD_AI_PROVIDER === "openai") {
+    if (!config.OPENAI_API_KEY || !config.FOOD_AI_MODEL) return { kind: "disabled" };
+    return { kind: "openai", apiKey: config.OPENAI_API_KEY, model: config.FOOD_AI_MODEL, baseUrl: config.OPENAI_BASE_URL };
   }
   if (!config.MISTRAL_API_KEY || !config.MISTRAL_MODEL) return { kind: "disabled" };
   return { kind: "mistral", apiKey: config.MISTRAL_API_KEY, model: config.MISTRAL_MODEL, baseUrl: config.MISTRAL_BASE_URL };

@@ -68,7 +68,7 @@ export class DisabledSearchIntentProvider implements SearchIntentProvider {
 export type SearchIntentTransport = {
   readonly id: string;
   readonly model: string;
-  complete<T>(instruction: string, input: string, validate: (value: unknown) => T): Promise<T>;
+  complete<T>(instruction: string, input: string, validate: (value: unknown) => T, capability?: string): Promise<T>;
 };
 
 export class ChatSearchIntentProvider implements SearchIntentProvider {
@@ -86,7 +86,7 @@ export class ChatSearchIntentProvider implements SearchIntentProvider {
     // user-identifying data) leaves the system.
     const context = { foodQuery: input.foodQuery, preparation: input.preparation, foodLocale: input.foodLocale };
     try {
-      return await this.transport.complete(searchIntentInstruction(input.foodLocale), JSON.stringify(context), (value) => searchIntentOutputSchema.parse(value));
+      return await this.transport.complete(searchIntentInstruction(input.foodLocale), JSON.stringify(context), (value) => searchIntentOutputSchema.parse(value), "search_intent");
     } catch (error) {
       // Owner-beta (2026-09-14): previously silent — indistinguishable from
       // "the AI genuinely had nothing useful to add". A failure here degrades

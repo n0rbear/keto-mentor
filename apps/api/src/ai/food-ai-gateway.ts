@@ -2,6 +2,7 @@ import type { AiProvider } from "./provider.js";
 import { MistralAiProvider } from "./mistral-provider.js";
 import { OpenRouterAiProvider } from "./openrouter-provider.js";
 import { GroqAiProvider } from "./groq-provider.js";
+import { OpenAiProvider } from "./openai-provider.js";
 import { FailoverAiProvider, createFailoverObserver } from "./failover-provider.js";
 import { resolveFoodAiGatewayConfig, type FoodAiGatewayConfigInput } from "./food-ai-gateway-config.js";
 
@@ -28,6 +29,9 @@ export function configuredFoodAiProvider(config: FoodAiGatewayConfigInput, overr
       if (!resolved.secondary) return primary;
       const secondary = new GroqAiProvider({ apiKey: resolved.secondary.apiKey, model: resolved.secondary.model, baseUrl: resolved.secondary.baseUrl, fetchImpl: overrides.fetchImpl });
       return new FailoverAiProvider(primary, secondary, foodNlpFailoverObserver);
+    }
+    if (resolved.kind === "openai") {
+      return new OpenAiProvider({ apiKey: resolved.apiKey, model: resolved.model, baseUrl: resolved.baseUrl, fetchImpl: overrides.fetchImpl });
     }
     if (resolved.kind === "mistral") {
       return new MistralAiProvider({ apiKey: resolved.apiKey, model: resolved.model, baseUrl: resolved.baseUrl, fetchImpl: overrides.fetchImpl });
