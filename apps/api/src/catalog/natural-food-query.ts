@@ -34,6 +34,19 @@ const UNITS = new Map<string, NaturalQuantityUnit>([
   ["bogre", "cup"],
   ["negyed", "quarter"], ["quarter", "quarter"], ["viertel", "quarter"], ["halbes", "half"],
   ["g", "g"], ["gramm", "g"], ["gram", "g"], ["kg", "kg"], ["kilogramm", "kg"],
+  // "dkg" (dekagram = 10 g) is extremely common in traditional Hungarian
+  // recipes ("60 dkg Marhalábszár", "30 dkg Vöröshagyma", ...) but was
+  // entirely unrecognized here — real production evidence (owner-beta
+  // checkpoint 2026-09-13, live gulyásleves/halászlé recipe-discovery
+  // traces): an unrecognized unit token doesn't just fall back to "piece"
+  // silently, it stays glued onto the food-query text itself ("dkg
+  // marhalabszar" instead of "marhalabszar"), breaking food-identity search
+  // for every dkg-measured ingredient in a recipe. Mapped to "g" here (the
+  // ×10 scale-up happens right after unit detection below, at the one place
+  // that already knows which raw token matched) rather than inventing a
+  // whole new NaturalQuantityUnit variant — resolveQuantity's g/kg fast path
+  // in interpret.ts never needs to know "dkg" existed.
+  ["dkg", "g"], ["deka", "g"], ["dekagramm", "g"], ["dekagram", "g"],
   // ml/l are volume, not mass — deliberately NOT added to resolveQuantity's
   // g/kg exact-mass fast path. They go through the same trusted-serving ->
   // AI-estimate -> manual-grams chain as "piece"/"cup"/etc., since a
@@ -55,6 +68,13 @@ const NUMBERS = new Map([
   ["ein", 1], ["eine", 1], ["zwei", 2], ["drei", 3], ["vier", 4], ["funf", 5],
   ["one", 1], ["two", 2], ["three", 3], ["four", 4], ["five", 5], ["quarter", 0.25], ["threequarters", 0.75]
 ]);
+
+// A unit token can carry its own scale relative to its NaturalQuantityUnit
+// bucket — "dkg" maps to unit "g" above, but 1 dkg is 10 g, not 1 g, so the
+// raw quantity must be scaled up by the token actually matched (looked up by
+// explicitUnitWord, never by the resolved `unit` itself, which is deliberately
+// coarser than the real vocabulary of tokens that resolve to it).
+const UNIT_TOKEN_SCALE = new Map<string, number>([["dkg", 10], ["deka", 10], ["dekagramm", 10], ["dekagram", 10]]);
 
 const HALF_WORDS = new Set(["fel", "fele", "half", "halb", "halbe"]);
 const IMPLICIT_ONE_UNIT_WORDS = new Set(["fel", "fele", "half", "halb", "halbe", "halbes", "negyed", "quarter", "viertel", "whole", "egesz", "ganz", "ganze", "ganzen"]);
@@ -259,6 +279,7 @@ function parseSegment(normalized: string): ParsedNaturalFoodQuery {
     if (u) { unit = u; explicitUnitWord = restAfterSize[0]; restAfterUnit = restAfterSize.slice(1); }
   }
   if (quantity == null && explicitUnitWord && IMPLICIT_ONE_UNIT_WORDS.has(explicitUnitWord)) quantity = 1;
+  if (quantity != null && explicitUnitWord && UNIT_TOKEN_SCALE.has(explicitUnitWord)) quantity *= UNIT_TOKEN_SCALE.get(explicitUnitWord)!;
 
   // A run of leading retail-chain tokens (right before the food name itself,
   // e.g. "200 g Lidl Bierwurst") is consumed the same conservative way as

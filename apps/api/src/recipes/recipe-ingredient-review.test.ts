@@ -70,10 +70,13 @@ describe("toIngredientReview: the trusted-nutrition fix (owner-beta blocker #6)"
   });
 
   // Test 15 (required) — the exact real "25 dkg Kolbász" case observed live:
-  // the "dkg" unit-parsing bug pollutes parsedFoodQuery to "dkg kolbasz",
-  // which causes hasSemanticCoverage to reject an otherwise-successful
-  // dynamic resolution — surfacing here as a plain "unresolved" outcome.
-  // Never fixed in this checkpoint; only asserting it cannot leak into trust.
+  // the "dkg" unit-parsing bug (root-caused and fixed in natural-food-
+  // query.ts's UNITS map — owner-beta checkpoint 2026-09-13) used to
+  // pollute parsedFoodQuery to "dkg kolbasz", which made hasSemanticCoverage
+  // reject an otherwise-successful dynamic resolution. That specific cause is
+  // gone, but this defense-in-depth guarantee is worth keeping regardless —
+  // a hand-built, still-corrupted-looking query (however it might arise)
+  // must never count as trusted just because it carries a stale preview.
   it("15 — a dkg-corrupted ingredient query cannot count as trusted, even if it happened to carry a stale preview", () => {
     const review = toIngredientReview(ingredient({
       originalText: "25 dkg Kolbász", parsedFoodQuery: "dkg kolbasz", parsedUnit: "piece" as any,

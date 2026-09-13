@@ -6,6 +6,22 @@ describe("natural food query parser", () => {
   it("parses exact mass", () => expect(parseNaturalFoodQuery("250 g csirkemell")).toEqual({ quantity: 250, unit: "g", foodQuery: "csirkemell" }));
   it("parses length without pretending it is a weight", () => expect(parseNaturalFoodQuery("15 cm kígyóuborka")).toEqual({ quantity: 15, unit: "cm", foodQuery: "kigyouborka" }));
   it("parses with ékezet nélkül input", () => expect(parseNaturalFoodQuery("12 cm kigyóuborka")).toEqual({ quantity: 12, unit: "cm", foodQuery: "kigyouborka" }));
+  // Owner-beta checkpoint (2026-09-13): "dkg" (dekagram = 10 g) is extremely
+  // common in traditional Hungarian recipes ("60 dkg Marhalábszár", "30 dkg
+  // Vöröshagyma", "25 dkg Kolbász") but was entirely unrecognized as a unit
+  // — real production evidence via live gulyásleves/halászlé recipe-
+  // discovery traces: the unmatched "dkg" token stayed glued onto the food
+  // query itself ("dkg marhalabszar" instead of "marhalabszar"), breaking
+  // food-identity search for every dkg-measured ingredient. Resolves to unit
+  // "g" with the quantity scaled ×10, so downstream code (resolveQuantity's
+  // g/kg exact-mass fast path) needs no awareness that "dkg" exists at all.
+  it.each([
+    ["25 dkg Kolbász", { quantity: 250, unit: "g", foodQuery: "kolbasz" }],
+    ["60 dkg Marhalábszár", { quantity: 600, unit: "g", foodQuery: "marhalabszar" }],
+    ["1 deka só", { quantity: 10, unit: "g", foodQuery: "so" }]
+  ] as const)("parses dekagram (dkg) as a scaled gram quantity, never glued onto the food name: %s", (input, expected) => {
+    expect(parseNaturalFoodQuery(input)).toEqual(expected);
+  });
   it.each([
     ["5 tojás", { quantity: 5, unit: "piece", foodQuery: "tojas" }],
     ["5 db tojás", { quantity: 5, unit: "piece", foodQuery: "tojas" }],
