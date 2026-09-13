@@ -71,7 +71,9 @@ export const dict = {
         webUnresolvedNoResults: "Nem találtunk elég megbízható receptet ehhez az ételhez.",
         webUnresolvedNoCandidate: "Találtunk recepteket, de az összetevők egy részét még ellenőrizni kell.",
         webDisabled: "A recept-keresés jelenleg nincs bekapcsolva.",
-        webRateLimited: "Túl sok recept-keresés volt mostanában — próbáld később."
+        webRateLimited: "Túl sok recept-keresés volt mostanában — próbáld később.",
+        confirmAdd: "Hozzáadás étkezéshez", confirmAdding: "…",
+        confirmQuantity: "Mennyiség", confirmUnit: "Egység", confirmServingUnit: "adag"
       }
     },
     progress: {
@@ -112,6 +114,11 @@ export const dict = {
       recipe_not_found: "Ez a recept már nem található.", food_not_found: "Az egyik kiválasztott alapanyag már nem található a katalógusban.",
       invalid_import_proof: "Az importált recept ellenőrzése sikertelen. Próbáld újra importálni.",
       recipe_servings_required: "Ehhez az adagonkénti hozzáadáshoz a receptnek meg kell adnia az adagok számát.",
+      recipe_nutrition_not_calculable: "Ennek a receptnek a tápértéke még nem számolható ki megbízhatóan.",
+      recipe_sibling_overlap: "Ez az alapanyag már szerepel egy másik, ugyanebben az étkezésben hozzáadott recept összetevői között.",
+      recipe_not_fully_resolved: "A recept összetevői között van még nem ellenőrzött — így nem adható hozzá.",
+      recipe_source_changed: "A recept forrása megváltozott azóta. Nézd át újra, mielőtt hozzáadod.",
+      recipe_discovery_unavailable: "A recept-felismerés jelenleg nem érhető el.",
       validation_error: "Ellenőrizd a recept adatait.", network_error: "Az API nem érhető el. Ellenőrizd a kapcsolatot.",
       unauthorized: "A munkamenet lejárt. Jelentkezz be újra.", server: "A szerver nem tudta feldolgozni a kérést. Próbáld meg később.",
       unknown: "Váratlan hiba történt.",
@@ -252,7 +259,9 @@ export const dict = {
         webUnresolvedNoResults: "Kein ausreichend verlässliches Rezept für dieses Gericht gefunden.",
         webUnresolvedNoCandidate: "Rezepte gefunden, aber einige Zutaten müssen noch geprüft werden.",
         webDisabled: "Die Rezeptsuche ist derzeit nicht aktiviert.",
-        webRateLimited: "Zu viele Rezeptsuchen zuletzt — bitte später erneut versuchen."
+        webRateLimited: "Zu viele Rezeptsuchen zuletzt — bitte später erneut versuchen.",
+        confirmAdd: "Zur Mahlzeit hinzufügen", confirmAdding: "…",
+        confirmQuantity: "Menge", confirmUnit: "Einheit", confirmServingUnit: "Portion"
       }
     },
     progress: {
@@ -293,6 +302,11 @@ export const dict = {
       recipe_not_found: "Dieses Rezept gibt es nicht mehr.", food_not_found: "Eine der gewählten Zutaten ist nicht mehr im Katalog.",
       invalid_import_proof: "Die Überprüfung des importierten Rezepts ist fehlgeschlagen. Bitte erneut importieren.",
       recipe_servings_required: "Für die portionsweise Zugabe muss das Rezept eine Portionsanzahl angeben.",
+      recipe_nutrition_not_calculable: "Die Nährwerte dieses Rezepts können noch nicht verlässlich berechnet werden.",
+      recipe_sibling_overlap: "Diese Zutat gehört bereits zu einem anderen, in dieser Mahlzeit hinzugefügten Rezept.",
+      recipe_not_fully_resolved: "Eine Zutat dieses Rezepts ist noch nicht geprüft — es kann so nicht hinzugefügt werden.",
+      recipe_source_changed: "Die Rezeptquelle hat sich seitdem geändert. Bitte vor dem Hinzufügen erneut prüfen.",
+      recipe_discovery_unavailable: "Die Rezepterkennung ist derzeit nicht verfügbar.",
       validation_error: "Bitte die Rezeptangaben prüfen.", network_error: "Die API ist nicht erreichbar. Bitte die Verbindung prüfen.",
       unauthorized: "Die Sitzung ist abgelaufen. Bitte neu anmelden.", server: "Der Server konnte die Anfrage nicht verarbeiten. Bitte später erneut versuchen.",
       unknown: "Ein unerwarteter Fehler ist aufgetreten.",
@@ -433,7 +447,9 @@ export const dict = {
         webUnresolvedNoResults: "No sufficiently reliable recipe was found for this dish.",
         webUnresolvedNoCandidate: "Recipes were found, but some ingredients still need review.",
         webDisabled: "Recipe search is not currently enabled.",
-        webRateLimited: "Too many recipe searches recently — try again later."
+        webRateLimited: "Too many recipe searches recently — try again later.",
+        confirmAdd: "Add to meal", confirmAdding: "…",
+        confirmQuantity: "Quantity", confirmUnit: "Unit", confirmServingUnit: "serving"
       }
     },
     progress: {
@@ -474,6 +490,11 @@ export const dict = {
       recipe_not_found: "This recipe no longer exists.", food_not_found: "One of the selected ingredients is no longer in the catalog.",
       invalid_import_proof: "The imported recipe could not be verified. Try importing it again.",
       recipe_servings_required: "Adding by serving requires the recipe to specify a number of servings.",
+      recipe_nutrition_not_calculable: "This recipe's nutrition can't be reliably calculated yet.",
+      recipe_sibling_overlap: "This ingredient is already part of another recipe added to this meal.",
+      recipe_not_fully_resolved: "One of this recipe's ingredients isn't verified yet — it can't be added like this.",
+      recipe_source_changed: "The recipe's source has changed since. Please review it again before adding.",
+      recipe_discovery_unavailable: "Recipe discovery is currently unavailable.",
       validation_error: "Check the recipe details.", network_error: "The API is unreachable. Check your connection.",
       unauthorized: "Your session expired. Log in again.", server: "The server could not process the request. Try again later.",
       unknown: "An unexpected error occurred.",

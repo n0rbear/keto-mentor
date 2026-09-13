@@ -12,7 +12,7 @@ import { RecipeBuilder } from "./RecipeBuilder";
 import { MealEditDialog, DeleteMealDialog, RepeatMealDialog, type MealDetail } from "./MealActions";
 import { WeekOverviewCard, type WeekOverviewData } from "./WeekOverview";
 import { AuthForm } from "./AuthForm";
-import { FoodUnderstandingPreview, type ExternalCandidate, type RecipeDiscoveryPreviewValue } from "./FoodUnderstandingPreview";
+import { FoodUnderstandingPreview, type ExternalCandidate, type RecipeDiscoveryPreviewValue, type RecipeDiscoveryCandidateValue } from "./FoodUnderstandingPreview";
 import { pickDisplayName } from "./food-display-name";
 import { QuantityClarification } from "./QuantityClarification";
 import { BarcodeLookup } from "./BarcodeLookup";
@@ -83,6 +83,7 @@ export function App() {
   const [interpreting, setInterpreting] = useState(false);
   const [progressStage, setProgressStage] = useState<ProgressStage | null>(null);
   const [confirmingExternalId, setConfirmingExternalId] = useState<string | null>(null);
+  const [confirmingRecipe, setConfirmingRecipe] = useState(false);
   const t = dict[lang];
   const state = useMemo(() => ({ token, setToken }), [token]);
 
@@ -322,6 +323,42 @@ export function App() {
     }
   }
 
+  // Owner-beta PR #52 final review (2026-09-13) — Gate 2/3: confirms a
+  // JUST-DISCOVERED web recipe (never one the user already owns — that's
+  // RecipeDetail's own addToMeal) straight into a real meal, at whatever
+  // portion the user explicitly states. The server re-derives the entire
+  // trusted ingredient set from sourceUrl itself (never trusts anything
+  // echoed back from this preview) and independently enforces every
+  // invariant this checkpoint's Gate 2 requires: unit "serving" without a
+  // known servings count is refused (recipe_servings_required), an
+  // ingredient that never reached trusted nutrition refuses the whole
+  // recipe (recipe_not_fully_resolved / recipe_nutrition_not_calculable),
+  // and a sibling item already covering the same ingredient is refused
+  // (recipe_sibling_overlap) — this function only ever surfaces whatever the
+  // server actually decided, never overrides it client-side.
+  async function confirmRecipe(candidate: RecipeDiscoveryCandidateValue, quantity: number, unit: "g" | "serving") {
+    if (confirmingRecipe || mealSaving) return;
+    setConfirmingRecipe(true);
+    setMealStatus(null);
+    try {
+      await api("/meals", {
+        method: "POST",
+        body: JSON.stringify({
+          title: interpretation?.semantic?.dishName || candidate.title,
+          items: [{ sourceUrl: candidate.sourceUrl, importProof: candidate.importProof, extractionMethod: candidate.extractionMethod, quantity, unit }]
+        })
+      }, state);
+      setInterpretation(null);
+      setNaturalInput("");
+      await handleMealLogged();
+      setMealStatus({ kind: "success", text: t.mealSaved });
+    } catch (error) {
+      setMealStatus({ kind: "error", text: mealErrorText(error, t.recipeErrors) });
+    } finally {
+      setConfirmingRecipe(false);
+    }
+  }
+
   async function confirmMultiMeal() {
     if (!interpretation?.items || mealSaving) return;
     const items: Array<{ foodId: string; quantity: number; unit: "g" | "kg" | "serving"; servingId?: string; quantityConfirmation?: MealInterpretation["quantityConfirmation"] }> = [];
@@ -535,7 +572,7 @@ export function App() {
               <p className="natural-input-helper">{lang === "hu" ? "Írj természetesen — az ellenőrzött tápértékeket mindig a katalógus adja." : lang === "de" ? "Natürlich formulieren — geprüfte Nährwerte kommen immer aus dem Katalog." : "Use natural language — verified nutrition always comes from the catalog."}</p>
               <div className="natural-input-row"><input id="natural-meal-input" className="field" value={naturalInput} onChange={(event) => { setNaturalInput(event.target.value); setInterpretation(null); setSelectedFood(null); setMealQuantity("1"); setMealMeasure("g"); setGramsOverride(""); }} placeholder={lang === "hu" ? "Például: 5 tojás" : lang === "de" ? "Zum Beispiel: 3 Scheiben Gouda" : "For example: 5 eggs"}/><button type="button" className="btn primary" disabled={interpreting || naturalInput.trim().length < 2} onClick={interpretNaturalInput}>{interpreting ? "…" : lang === "hu" ? "Értelmezés" : lang === "de" ? "Verstehen" : "Interpret"}</button></div>
               {interpreting && progressStage && <p className="natural-input-progress" role="status" aria-live="polite">{t.progress[progressStage] ?? t.progress.finalizing}</p>}
-              {interpretation && <FoodUnderstandingPreview value={interpretation} lang={lang} labels={t.foodUnderstanding} busy={mealSaving || interpreting || !!confirmingExternalId} onConfirmAll={confirmMultiMeal} onConfirmExternal={confirmExternalCandidate} confirmingExternalId={confirmingExternalId}/>}
+              {interpretation && <FoodUnderstandingPreview value={interpretation} lang={lang} labels={t.foodUnderstanding} busy={mealSaving || interpreting || !!confirmingExternalId || confirmingRecipe} onConfirmAll={confirmMultiMeal} onConfirmExternal={confirmExternalCandidate} confirmingExternalId={confirmingExternalId} onConfirmRecipe={confirmRecipe}/>}
               {interpretation?.diagnostics && <DiagnosticsPanel events={interpretation.diagnostics} lang={lang}/>}
               {interpretation?.clarification && (() => { const row = (interpretation.items ?? [interpretation])[interpretation.clarification!.itemIndex]; return <QuantityClarification key={`${interpretation.input}:${interpretation.clarification.itemIndex}`} value={interpretation.clarification} foodName={pickDisplayName(row?.selectedFood, lang)} quantity={row?.parsed.quantity} unit={row?.parsed.unit} lang={lang} onResolve={resolveClarification}/>; })()}
             </div>

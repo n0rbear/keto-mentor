@@ -757,3 +757,104 @@ describe("attachRecipeDiscoveryFallback: dynamic resolution wiring (owner-beta 2
     expect(withDiscovery.recipeDiscovery?.candidate?.nutritionPer100g?.kcal).toBeCloseTo(142, 5);
   });
 });
+
+// PR #52 final correctness review (2026-09-13): detectSiblingOverlap
+// (recipe-discovery-fallback.ts) is a GENERAL identity/name-matching
+// algorithm — it never references a specific food or dish name. The
+// csülökpörkölt/krumpli suite above already proves both overlap tiers once;
+// these two blocks prove the SAME mechanism, unmodified, handles two other
+// dish+side combinations from the checkpoint's own required acceptance
+// list — "paprikás csirke nokedlivel" (nokedli/dumplings) and "lecsó 2
+// virslivel" (virsli/sausage) — with no dish-name-specific code anywhere.
+describe("attachRecipeDiscoveryFallback: sibling-overlap generality — paprikás csirke nokedlivel", () => {
+  const nokedliFood = { id: "nokedli", name: "Nokedli", originalName: "Nokedli", names: {}, searchText: "nokedli galuska", source: "bls", sourceId: "10", servings: [], kcalPer100g: 122, fatPer100g: 1.5, proteinPer100g: 4.5, carbsPer100g: 23, fiberPer100g: 1 };
+  const chickenFood = { id: "chicken", name: "Csirkemell", originalName: "Csirkemell", names: {}, searchText: "csirkemell csirke", source: "bls", sourceId: "11", servings: [], kcalPer100g: 165, fatPer100g: 3.6, proteinPer100g: 31, carbsPer100g: 0, fiberPer100g: 0 };
+  function nokedliAndChickenPrisma() {
+    return { foodAlias: { findMany: async () => [] }, food: { findMany: async ({ where }: any) => where.OR.filter((c: any) => "nokedli galuska".includes(c.searchText.contains)).length ? [nokedliFood] : where.OR.filter((c: any) => "csirkemell csirke".includes(c.searchText.contains)).length ? [chickenFood] : [] } } as any;
+  }
+  const dishAndSide: FoodUnderstanding = {
+    language: "hu", kind: "compound_dish", dishName: "paprikás csirke",
+    items: [{ originalText: "nokedlivel", canonicalName: "nokedli", evidence: "explicit", confidence: 0.9 }],
+    clarificationNeeded: false, confidence: 0.9
+  };
+
+  it("Case A — the selected recipe does NOT include nokedli: the side stays fully independent", async () => {
+    const html = `<html><script type="application/ld+json">${JSON.stringify({
+      "@type": "Recipe", name: "Paprikás csirke", recipeYield: "4 servings",
+      recipeIngredient: ["800 g csirkemell", "200 g tejföl"], recipeInstructions: ["Cook."]
+    })}</script></html>`;
+    const provider = fakeSearchProvider([{ url: "https://example.com/paprikas-csirke", title: "Paprikás csirke recept", domain: "example.com" }]);
+    const result = await interpretMealInput(nokedliAndChickenPrisma(), "paprikás csirke nokedlivel", undefined, fakeAiProvider(dishAndSide));
+    const withDiscovery = await attachRecipeDiscoveryFallback(result, {
+      ...discoveryDeps(provider), prisma: nokedliAndChickenPrisma(),
+      fetchDependencies: { resolve: async () => [{ address: "93.184.216.34", family: 4 }], request: async () => ({ status: 200, headers: { "content-type": "text/html" }, body: Buffer.from(html) }) }
+    });
+    const dishItem = withDiscovery.items?.find((item) => item.semanticItem?.canonicalName === "nokedli");
+    expect(dishItem?.excludedBySiblingRecipe).toBeUndefined();
+    expect(dishItem?.nutritionEligible).not.toBe(false);
+  });
+
+  it("Case B — the selected recipe DOES include nokedli (same trusted Food identity): the side is excluded from independent nutrition, never silently deleted", async () => {
+    const html = `<html><script type="application/ld+json">${JSON.stringify({
+      "@type": "Recipe", name: "Paprikás csirke nokedlivel", recipeYield: "4 servings",
+      recipeIngredient: ["800 g csirkemell", "200 g tejföl", "400 g nokedli"], recipeInstructions: ["Cook."]
+    })}</script></html>`;
+    const provider = fakeSearchProvider([{ url: "https://example.com/paprikas-csirke", title: "Paprikás csirke nokedlivel recept", domain: "example.com" }]);
+    const result = await interpretMealInput(nokedliAndChickenPrisma(), "paprikás csirke nokedlivel", undefined, fakeAiProvider(dishAndSide));
+    const withDiscovery = await attachRecipeDiscoveryFallback(result, {
+      ...discoveryDeps(provider), prisma: nokedliAndChickenPrisma(),
+      fetchDependencies: { resolve: async () => [{ address: "93.184.216.34", family: 4 }], request: async () => ({ status: 200, headers: { "content-type": "text/html" }, body: Buffer.from(html) }) }
+    });
+    const dishItem = withDiscovery.items?.find((item) => item.semanticItem?.canonicalName === "paprikás csirke") ?? withDiscovery.items?.find((item) => item.semanticItem?.canonicalName !== "nokedli");
+    const nokedliItem = withDiscovery.items?.find((item) => item.semanticItem?.canonicalName === "nokedli");
+    const recipeItem = withDiscovery.items?.find((item) => item.recipeDiscovery);
+    expect(recipeItem?.recipeDiscovery?.candidate?.overlapsWithSiblingItems).toMatchObject([{ itemIndex: expect.any(Number), canonicalName: "nokedli" }]);
+    expect(nokedliItem).toBeDefined();
+    expect(nokedliItem?.excludedBySiblingRecipe).toMatchObject({ dishName: "paprikás csirke" });
+    expect(nokedliItem?.nutritionEligible).toBe(false);
+    expect(nokedliItem?.canConfirm).toBe(true);
+  });
+});
+
+describe("attachRecipeDiscoveryFallback: sibling-overlap generality — lecsó 2 virslivel", () => {
+  const virsliFood = { id: "virsli", name: "Virsli", originalName: "Virsli", names: {}, searchText: "virsli kolbasz sausage", source: "bls", sourceId: "12", servings: [], kcalPer100g: 280, fatPer100g: 25, proteinPer100g: 12, carbsPer100g: 2, fiberPer100g: 0 };
+  function virsliOnlyPrisma() {
+    return { foodAlias: { findMany: async () => [] }, food: { findMany: async ({ where }: any) => where.OR.filter((c: any) => "virsli kolbasz sausage".includes(c.searchText.contains)).length ? [virsliFood] : [] } } as any;
+  }
+  const dishAndSide: FoodUnderstanding = {
+    language: "hu", kind: "compound_dish", dishName: "lecsó",
+    items: [{ originalText: "2 virslivel", canonicalName: "virsli", unit: "piece", quantity: 2, evidence: "explicit", confidence: 0.9 }],
+    clarificationNeeded: false, confidence: 0.9
+  };
+
+  it("the virsli side, resolving independently via the local catalog, unblocks recipe discovery for the otherwise-unresolved lecsó dish item", async () => {
+    const provider = fakeSearchProvider([{ url: "https://example.com/lecso", title: "Lecsó recept", domain: "example.com" }]);
+    const result = await interpretMealInput(virsliOnlyPrisma(), "lecsó 2 virslivel", undefined, fakeAiProvider(dishAndSide));
+    // Unlike the emptyPrisma() version of this phrase (see "still does not
+    // trigger discovery..." above), the side resolving locally here means
+    // only ONE item is genuinely unresolved — discovery IS eligible.
+    expect(result.items?.find((i) => i.semanticItem?.canonicalName === "virsli")?.foodResolution).not.toBe("unresolved");
+    await attachRecipeDiscoveryFallback(result, { ...discoveryDeps(provider), prisma: virsliOnlyPrisma() });
+    expect(provider.search).toHaveBeenCalledOnce();
+  });
+
+  it("Case B — the selected lecsó recipe DOES include virsli/sausage (same trusted Food identity): the side is excluded from independent nutrition, never silently deleted", async () => {
+    const html = `<html><script type="application/ld+json">${JSON.stringify({
+      "@type": "Recipe", name: "Lecsó virslivel", recipeYield: "4 servings",
+      recipeIngredient: ["600 g paprika", "400 g paradicsom", "200 g virsli"], recipeInstructions: ["Cook."]
+    })}</script></html>`;
+    const provider = fakeSearchProvider([{ url: "https://example.com/lecso", title: "Lecsó virslivel recept", domain: "example.com" }]);
+    const result = await interpretMealInput(virsliOnlyPrisma(), "lecsó 2 virslivel", undefined, fakeAiProvider(dishAndSide));
+    const withDiscovery = await attachRecipeDiscoveryFallback(result, {
+      ...discoveryDeps(provider), prisma: virsliOnlyPrisma(),
+      fetchDependencies: { resolve: async () => [{ address: "93.184.216.34", family: 4 }], request: async () => ({ status: 200, headers: { "content-type": "text/html" }, body: Buffer.from(html) }) }
+    });
+    const virsliItem = withDiscovery.items?.find((item) => item.semanticItem?.canonicalName === "virsli");
+    const recipeItem = withDiscovery.items?.find((item) => item.recipeDiscovery);
+    expect(recipeItem?.recipeDiscovery?.candidate?.overlapsWithSiblingItems).toMatchObject([{ itemIndex: expect.any(Number), canonicalName: "virsli" }]);
+    expect(virsliItem).toBeDefined();
+    expect(virsliItem?.excludedBySiblingRecipe).toMatchObject({ dishName: "lecsó" });
+    expect(virsliItem?.nutritionEligible).toBe(false);
+    expect(virsliItem?.canConfirm).toBe(true);
+  });
+});

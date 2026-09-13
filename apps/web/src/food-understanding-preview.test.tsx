@@ -2,7 +2,7 @@
 import React from "react";
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { FoodUnderstandingPreview, type FoodUnderstandingPreviewValue } from "./FoodUnderstandingPreview";
+import { FoodUnderstandingPreview, type FoodUnderstandingPreviewValue, type RecipeDiscoveryCandidateValue } from "./FoodUnderstandingPreview";
 import { dict, type Lang } from "./i18n";
 
 afterEach(cleanup);
@@ -209,5 +209,75 @@ describe("dynamic trusted food resolution: external candidate confirmation UI", 
     render(<FoodUnderstandingPreview value={value} lang="en" labels={dict.en.foodUnderstanding} busy={true} confirmingExternalId="usda_fdc:172152" onConfirmAll={vi.fn()} onConfirmExternal={vi.fn()}/>);
     expect(screen.getByText(dict.en.foodUnderstanding.externalConfirming)).toBeTruthy();
     expect((screen.getByText(dict.en.foodUnderstanding.externalConfirming).closest("button") as HTMLButtonElement).disabled).toBe(true);
+  });
+});
+
+// PR #52 final correctness review (2026-09-13) — Gate 2 (whole-recipe →
+// consumed-portion provenance): confirming a JUST-DISCOVERED web recipe
+// straight into a meal, previously impossible from this natural-language
+// flow at all (see main.tsx's confirmRecipe).
+describe("recipe-discovery candidate confirmation UI (Gate 2)", () => {
+  const fullyResolvedCandidate: RecipeDiscoveryCandidateValue = {
+    title: "Halászlé", domain: "nosalty.hu", sourceUrl: "https://nosalty.hu/halaszle",
+    servings: 4, extractionMethod: "schema_org_json_ld", importProof: "proof-token", nutritionCalculable: true
+  };
+  const reviewableCandidate: RecipeDiscoveryCandidateValue = {
+    ...fullyResolvedCandidate, nutritionCalculable: false
+  };
+
+  function singleValue(candidate: RecipeDiscoveryCandidateValue): FoodUnderstandingPreviewValue {
+    return {
+      parsed: { foodQuery: "halászlé" }, selectedFood: null, quantity: null, canConfirm: false,
+      foodResolution: "compound", interpretationSource: "ai_assisted",
+      semantic: { dishName: "halászlé", clarificationNeeded: false },
+      recipeDiscovery: { status: "confirmation_required", candidate }
+    };
+  }
+
+  it("a fully-resolved candidate (nutritionCalculable) shows quantity/unit controls defaulting to servings when the recipe states a servings count", () => {
+    render(<FoodUnderstandingPreview value={singleValue(fullyResolvedCandidate)} lang="en" labels={dict.en.foodUnderstanding} busy={false} onConfirmAll={vi.fn()} onConfirmRecipe={vi.fn()}/>);
+    expect(screen.getByText(dict.en.foodUnderstanding.recipeDiscovery.confirmAdd)).toBeTruthy();
+    expect((screen.getByLabelText(dict.en.foodUnderstanding.recipeDiscovery.confirmUnit) as HTMLSelectElement).value).toBe("serving");
+  });
+
+  it("a reviewable (NOT fully-resolved) candidate shows NO confirm controls — partial nutrition can never masquerade as complete", () => {
+    render(<FoodUnderstandingPreview value={singleValue(reviewableCandidate)} lang="en" labels={dict.en.foodUnderstanding} busy={false} onConfirmAll={vi.fn()} onConfirmRecipe={vi.fn()}/>);
+    expect(screen.queryByText(dict.en.foodUnderstanding.recipeDiscovery.confirmAdd)).toBeNull();
+  });
+
+  it("no confirm controls render at all when the caller doesn't pass onConfirmRecipe (display-only preview, e.g. an older client)", () => {
+    render(<FoodUnderstandingPreview value={singleValue(fullyResolvedCandidate)} lang="en" labels={dict.en.foodUnderstanding} busy={false} onConfirmAll={vi.fn()}/>);
+    expect(screen.queryByText(dict.en.foodUnderstanding.recipeDiscovery.confirmAdd)).toBeNull();
+  });
+
+  it("without a known servings count, only 'g' is offered — never a fabricated serving option", () => {
+    const noServings: RecipeDiscoveryCandidateValue = { ...fullyResolvedCandidate, servings: undefined };
+    render(<FoodUnderstandingPreview value={singleValue(noServings)} lang="en" labels={dict.en.foodUnderstanding} busy={false} onConfirmAll={vi.fn()} onConfirmRecipe={vi.fn()}/>);
+    const unitSelect = screen.getByLabelText(dict.en.foodUnderstanding.recipeDiscovery.confirmUnit) as HTMLSelectElement;
+    expect(unitSelect.value).toBe("g");
+    expect(Array.from(unitSelect.options).map((o) => o.value)).toEqual(["g"]);
+  });
+
+  it("clicking confirm calls onConfirmRecipe with exactly the candidate and the user's own stated quantity/unit — never silently substitutes a value", () => {
+    const onConfirmRecipe = vi.fn();
+    render(<FoodUnderstandingPreview value={singleValue(fullyResolvedCandidate)} lang="en" labels={dict.en.foodUnderstanding} busy={false} onConfirmAll={vi.fn()} onConfirmRecipe={onConfirmRecipe}/>);
+    screen.getByText(dict.en.foodUnderstanding.recipeDiscovery.confirmAdd).click();
+    expect(onConfirmRecipe).toHaveBeenCalledWith(fullyResolvedCandidate, 1, "serving");
+  });
+
+  it("works identically inside a multi-item (dish + independently-resolving side) result", () => {
+    const onConfirmRecipe = vi.fn();
+    const value: FoodUnderstandingPreviewValue = {
+      ...compound,
+      items: [{ ...compound.items![0], recipeDiscovery: { status: "confirmation_required", candidate: fullyResolvedCandidate } }]
+    };
+    render(<FoodUnderstandingPreview value={value} lang="en" labels={dict.en.foodUnderstanding} busy={false} onConfirmAll={vi.fn()} onConfirmRecipe={onConfirmRecipe}/>);
+    screen.getByText(dict.en.foodUnderstanding.recipeDiscovery.confirmAdd).click();
+    expect(onConfirmRecipe).toHaveBeenCalledWith(fullyResolvedCandidate, 1, "serving");
+  });
+
+  it("disables the confirm button while busy (a save is already in flight)", () => {
+    render(<FoodUnderstandingPreview value={singleValue(fullyResolvedCandidate)} lang="en" labels={dict.en.foodUnderstanding} busy={true} onConfirmAll={vi.fn()} onConfirmRecipe={vi.fn()}/>);
+    expect((screen.getByText(dict.en.foodUnderstanding.recipeDiscovery.confirmAdding).closest("button") as HTMLButtonElement).disabled).toBe(true);
   });
 });

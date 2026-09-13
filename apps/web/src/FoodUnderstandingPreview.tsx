@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { Lang } from "./i18n";
 import { CheckCircle2, CircleDashed, Sparkles } from "lucide-react";
 import { pickDisplayName } from "./food-display-name";
@@ -17,10 +18,29 @@ export type ExternalCandidate = {
 // arbitrary webpage content or AI-invented nutrition: nutritionPer100g is
 // only ever the value the server itself already computed from trusted
 // ingredient Food records × quantities.
+export type RecipeDiscoveryCandidateValue = {
+  title: string;
+  domain: string;
+  sourceUrl: string;
+  servings?: number;
+  extractionMethod: "schema_org_json_ld" | "ai_structured";
+  // Owner-beta PR #52 final review (2026-09-13): confirming a JUST-DISCOVERED
+  // web recipe into a real meal — as opposed to one the user already owns
+  // in their library, see RecipeDetail.tsx's addToMeal — was previously
+  // impossible from this natural-language flow at all: the preview only
+  // ever showed title+domain, with no importProof/servings/trust-state to
+  // act on. Never confirmable unless nutritionCalculable is true (every
+  // ingredient reached trusted Food data) — a "reviewable" (partially
+  // resolved) candidate must stay display-only, exactly like a fully
+  // unresolved one; partial nutrition must never masquerade as complete.
+  importProof: string;
+  nutritionCalculable: boolean;
+};
+
 export type RecipeDiscoveryPreviewValue = {
   status: "confirmation_required" | "unresolved" | "local_match";
   reason?: "disabled" | "rate_limited" | "provider_error" | "no_relevant_results" | "no_fully_resolvable_candidate" | "systemic_error" | "ambiguous_local_matches";
-  candidate?: { title: string; domain: string };
+  candidate?: RecipeDiscoveryCandidateValue;
   localMatch?: { recipeId: string; title: string };
   localAlternatives?: { recipeId: string; title: string }[];
 };
@@ -92,6 +112,11 @@ export type FoodUnderstandingLabels = {
     webUnresolvedNoCandidate: string;
     webDisabled: string;
     webRateLimited: string;
+    confirmAdd: string;
+    confirmAdding: string;
+    confirmQuantity: string;
+    confirmUnit: string;
+    confirmServingUnit: string;
   };
 };
 
@@ -172,9 +197,40 @@ function ExternalCandidateList({ candidates, lang, labels, busy, confirmingId, o
   </div>;
 }
 
-function PreviewRow({ item, lang, labels, busy, confirmingId, onConfirmExternal }: {
+// Owner-beta PR #52 final review (2026-09-13) — Gate 2 (whole-recipe →
+// consumed-portion provenance): mirrors RecipeDetail.tsx's own
+// RecipeMealControls exactly (same default-unit rule, same "no unit option
+// the recipe can't actually support" gating) so an ALREADY-OWNED recipe and
+// a JUST-DISCOVERED one offer the identical, already-proven portion UX.
+// Grams has a starting value (100) the user must explicitly submit or
+// change — never auto-submitted, never treated as a measured fact — exactly
+// like the existing owned-recipe flow. "serving" is offered ONLY when the
+// recipe actually states a servings count; picking it without one is
+// rejected server-side (recipe_servings_required) as a defense-in-depth
+// backstop, but the option is never even shown here in that case.
+function RecipeConfirmControls({ candidate, lang, labels, busy, onConfirm }: {
+  candidate: RecipeDiscoveryCandidateValue; lang: Lang; labels: FoodUnderstandingLabels; busy: boolean;
+  onConfirm: (candidate: RecipeDiscoveryCandidateValue, quantity: number, unit: "g" | "serving") => void;
+}) {
+  const [unit, setUnit] = useState<"g" | "serving">(candidate.servings ? "serving" : "g");
+  const [quantity, setQuantity] = useState(candidate.servings ? 1 : 100);
+  if (!candidate.nutritionCalculable) return null;
+  return <div className="recipe-meal-controls">
+    <input aria-label={labels.recipeDiscovery.confirmQuantity} className="field" type="number" min="0.1" step="0.1" value={quantity} onChange={(event) => setQuantity(Number(event.target.value))}/>
+    <select aria-label={labels.recipeDiscovery.confirmUnit} className="field" value={unit} onChange={(event) => setUnit(event.target.value as "g" | "serving")}>
+      <option value="g">g</option>
+      {candidate.servings && <option value="serving">{labels.recipeDiscovery.confirmServingUnit}</option>}
+    </select>
+    <button type="button" className="btn primary" disabled={busy} aria-busy={busy} onClick={() => onConfirm(candidate, quantity, unit)}>
+      {busy ? labels.recipeDiscovery.confirmAdding : labels.recipeDiscovery.confirmAdd}
+    </button>
+  </div>;
+}
+
+function PreviewRow({ item, lang, labels, busy, confirmingId, onConfirmExternal, onConfirmRecipe }: {
   item: PreviewItem; lang: Lang; labels: FoodUnderstandingLabels; busy: boolean; confirmingId: string | null;
   onConfirmExternal?: (candidate: ExternalCandidate) => void;
+  onConfirmRecipe?: (candidate: RecipeDiscoveryCandidateValue, quantity: number, unit: "g" | "serving") => void;
 }) {
   const quantity = quantityText(item.parsed.quantity, item.parsed.unit, labels);
   return <li className="understanding-item">
@@ -186,11 +242,12 @@ function PreviewRow({ item, lang, labels, busy, confirmingId, onConfirmExternal 
     <small className="understanding-resolution">{item.selectedFood && item.nutritionEligible !== false ? <CheckCircle2 aria-hidden="true" size={13}/> : <CircleDashed aria-hidden="true" size={13}/>} {item.selectedFood && item.nutritionEligible !== false ? labels.trusted : labels.unresolved}</small>
     {item.quantity?.status === "resolved" && <small>{item.quantity.estimated ? "≈" : "="} {Math.round((item.quantity.grams ?? 0) * 10) / 10} g</small>}
     {item.recipeDiscovery && <small className="recipe-discovery-note">{recipeDiscoveryText(item.recipeDiscovery, labels)}</small>}
+    {item.recipeDiscovery?.candidate && onConfirmRecipe && <RecipeConfirmControls candidate={item.recipeDiscovery.candidate} lang={lang} labels={labels} busy={busy} onConfirm={onConfirmRecipe}/>}
     {!!item.externalCandidates?.length && onConfirmExternal && <ExternalCandidateList candidates={item.externalCandidates} lang={lang} labels={labels} busy={busy} confirmingId={confirmingId} onConfirm={onConfirmExternal}/>}
   </li>;
 }
 
-export function FoodUnderstandingPreview({ value, lang, labels, busy, onConfirmAll, onConfirmExternal, confirmingExternalId }: {
+export function FoodUnderstandingPreview({ value, lang, labels, busy, onConfirmAll, onConfirmExternal, confirmingExternalId, onConfirmRecipe }: {
   value: FoodUnderstandingPreviewValue;
   lang: Lang;
   labels: FoodUnderstandingLabels;
@@ -198,6 +255,7 @@ export function FoodUnderstandingPreview({ value, lang, labels, busy, onConfirmA
   onConfirmAll: () => void;
   onConfirmExternal?: (candidate: ExternalCandidate, itemIndex?: number) => void;
   confirmingExternalId?: string | null;
+  onConfirmRecipe?: (candidate: RecipeDiscoveryCandidateValue, quantity: number, unit: "g" | "serving") => void;
 }) {
   const rows = value.items?.length ? value.items : [value];
   const singleReady = !value.items?.length && value.canConfirm && value.selectedFood && value.quantity;
@@ -209,7 +267,7 @@ export function FoodUnderstandingPreview({ value, lang, labels, busy, onConfirmA
     </div>
     {value.semantic?.dishName && <div><strong>{labels.dish}:</strong> {value.semantic.dishName}</div>}
     {(value.items?.length || value.interpretationSource === "ai_assisted") && <ul className="multi-preview-list">
-      {rows.map((item, index) => <PreviewRow key={index} item={item} lang={lang} labels={labels} busy={busy} confirmingId={confirmingExternalId ?? null} onConfirmExternal={onConfirmExternal ? (candidate) => onConfirmExternal(candidate, index) : undefined}/>) }
+      {rows.map((item, index) => <PreviewRow key={index} item={item} lang={lang} labels={labels} busy={busy} confirmingId={confirmingExternalId ?? null} onConfirmExternal={onConfirmExternal ? (candidate) => onConfirmExternal(candidate, index) : undefined} onConfirmRecipe={onConfirmRecipe}/>) }
     </ul>}
     {singleReady && <div>
       <strong>{itemName(value, lang)}</strong>
@@ -220,7 +278,14 @@ export function FoodUnderstandingPreview({ value, lang, labels, busy, onConfirmA
     {!value.items?.length && !singleReady && !singleExternalCandidates?.length && value.interpretationSource !== "ai_assisted" && <span>
       {value.foodResolution === "unresolved" ? labels.unresolved : value.quantity && "reason" in value.quantity ? labels.conversionMissing : labels.review}
     </span>}
-    {!value.items?.length && value.recipeDiscovery && <div className="recipe-discovery-note">{recipeDiscoveryText(value.recipeDiscovery, labels)}</div>}
+    {/* recipeDiscovery can only ever be set on an ai_assisted result (see
+        recipe-discovery-fallback.ts's findEligibleDiscoveryTarget — it
+        requires semantic.kind, which only interpretAiUnderstanding ever
+        sets), and the list above already renders every ai_assisted result
+        (single-item or multi) via PreviewRow — including its own
+        recipeDiscovery note and RecipeConfirmControls. Rendering it again
+        here would duplicate the note AND, worse, offer two independent
+        confirm forms for the exact same recipe. */}
     {(value.semantic?.clarificationNeeded || value.semantic?.clarificationReason) && <div className="clarification-note"><strong>{labels.needsDetail}</strong>{value.semantic.clarificationReason ? ` ${value.semantic.clarificationReason}` : ""}</div>}
     {!!value.items?.length && <button type="button" className="btn primary" disabled={!value.canConfirm || busy} onClick={onConfirmAll}>{busy ? "…" : labels.logAll}</button>}
   </div>;
