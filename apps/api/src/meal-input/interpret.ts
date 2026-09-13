@@ -133,6 +133,14 @@ export type InterpretResult = {
   // item is never independently counted; a future recipe-confirmation save
   // flow must skip it, not merely display it.
   excludedBySiblingRecipe?: { dishItemIndex: number; dishName: string };
+  // Owner-beta diagnostics checkpoint (2026-09-13): set only when AI-assisted
+  // understanding was ATTEMPTED and failed, so the result fell back to the
+  // deterministic-only interpretation — see the catch block below. Distinct
+  // from simply never attempting AI (shouldUseAiFallback returning false),
+  // which leaves this field unset. Never the raw error message/stack (see
+  // AiProviderError's own code enum) — a closed, safe vocabulary only, for
+  // diagnostics.ts to translate into a human-readable beta message.
+  aiUnderstandingFailure?: { code: string };
 };
 
 const PREP_KEYWORDS: Record<string, readonly string[]> = {
@@ -607,6 +615,7 @@ export async function interpretMealInput(
       const code = error instanceof AiProviderError ? error.code : "unknown";
       console.log(`ai_understanding_fallback outcome=deterministic_only reason=${code}`);
       result = deterministic;
+      result.aiUnderstandingFailure = { code };
     }
   }
   if (!result.semantic?.clarificationNeeded && result.foodResolution !== "compound") {

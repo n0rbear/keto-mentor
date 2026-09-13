@@ -20,6 +20,8 @@ import { MobileNav } from "./MobileNav";
 import { InstallPrompt } from "./InstallPrompt";
 import { UpdateBanner } from "./UpdateBanner";
 import { OfflineBanner } from "./OfflineBanner";
+import { DiagnosticsPanel, type DiagnosticEvent } from "./DiagnosticsPanel";
+import { BuildInfo } from "./BuildInfo";
 import type { QuantityClarification as Clarification } from "@keto-mentor/shared";
 
 type User = { id: string; username: string; locale: Lang; profile?: any };
@@ -47,6 +49,7 @@ type MealInterpretation = {
   externalCandidates?: ExternalCandidate[];
   externalCandidatesReason?: "ambiguous" | "possible_duplicate" | "weak_match";
   recipeDiscovery?: RecipeDiscoveryPreviewValue;
+  diagnostics?: DiagnosticEvent[];
 };
 
 // Real backend stage names published by the server during interpretation —
@@ -533,6 +536,7 @@ export function App() {
               <div className="natural-input-row"><input id="natural-meal-input" className="field" value={naturalInput} onChange={(event) => { setNaturalInput(event.target.value); setInterpretation(null); setSelectedFood(null); setMealQuantity("1"); setMealMeasure("g"); setGramsOverride(""); }} placeholder={lang === "hu" ? "Például: 5 tojás" : lang === "de" ? "Zum Beispiel: 3 Scheiben Gouda" : "For example: 5 eggs"}/><button type="button" className="btn primary" disabled={interpreting || naturalInput.trim().length < 2} onClick={interpretNaturalInput}>{interpreting ? "…" : lang === "hu" ? "Értelmezés" : lang === "de" ? "Verstehen" : "Interpret"}</button></div>
               {interpreting && progressStage && <p className="natural-input-progress" role="status" aria-live="polite">{t.progress[progressStage] ?? t.progress.finalizing}</p>}
               {interpretation && <FoodUnderstandingPreview value={interpretation} lang={lang} labels={t.foodUnderstanding} busy={mealSaving || interpreting || !!confirmingExternalId} onConfirmAll={confirmMultiMeal} onConfirmExternal={confirmExternalCandidate} confirmingExternalId={confirmingExternalId}/>}
+              {interpretation?.diagnostics && <DiagnosticsPanel events={interpretation.diagnostics} lang={lang}/>}
               {interpretation?.clarification && (() => { const row = (interpretation.items ?? [interpretation])[interpretation.clarification!.itemIndex]; return <QuantityClarification key={`${interpretation.input}:${interpretation.clarification.itemIndex}`} value={interpretation.clarification} foodName={pickDisplayName(row?.selectedFood, lang)} quantity={row?.parsed.quantity} unit={row?.parsed.unit} lang={lang} onResolve={resolveClarification}/>; })()}
             </div>
             <input className="field" name="title" placeholder={t.mealName} required/>
@@ -571,6 +575,7 @@ export function App() {
             <a className="contact-link" href="mailto:norbert@norbapp.com"><Mail size={15}/>norbert@norbapp.com</a>
           </div>
         </div>
+        <BuildInfo lang={lang}/>
       </footer>
       {editingMeal && <MealEditDialog meal={editingMeal} lang={lang} state={state} onCancel={() => setEditingMeal(null)} onSaved={handleMealEdited}/>}
       {deletingMealId && <DeleteMealDialog lang={lang} onCancel={() => setDeletingMealId(null)} onConfirm={confirmDeleteMeal}/>}

@@ -50,11 +50,20 @@ describe("switching the language selector persists it for an authenticated user"
 
   it("before login, changing the language never calls the backend — nothing to persist yet", async () => {
     localStorage.clear();
-    const fetchSpy = vi.fn(async (input: RequestInfo | URL) => { throw new Error(`Unexpected request before login: ${String(input)}`); });
+    // GET /build-info (see BuildInfo.tsx) is a safe, unauthenticated,
+    // non-secret call the footer always makes, pre- or post-login — it
+    // carries no locale/user data and must NOT be conflated with the one
+    // thing this test actually guards: that switching the language selector
+    // before login never triggers a PATCH /me/locale persist call.
+    const fetchSpy = vi.fn(async (input: RequestInfo | URL) => {
+      const url = new URL(String(input));
+      if (url.pathname === "/build-info") return new Response(JSON.stringify({ environment: "test", serviceName: null, branch: null, commit: null, bootedAt: new Date().toISOString() }), { status: 200 });
+      throw new Error(`Unexpected request before login: ${String(input)}`);
+    });
     vi.stubGlobal("fetch", fetchSpy);
     render(<App/>);
     const langSelect = screen.getByLabelText("Nyelv") as HTMLSelectElement;
     fireEvent.change(langSelect, { target: { value: "en" } });
-    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(fetchSpy).not.toHaveBeenCalledWith(expect.stringContaining("/me/locale"), expect.anything());
   });
 });

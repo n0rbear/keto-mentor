@@ -30,6 +30,7 @@ import { getWeekOverview } from "./meals/week-query.js";
 import { recipeRouter } from "./recipes/router.js";
 import { interpretMealInput } from "./meal-input/interpret.js";
 import { attachRecipeDiscoveryFallback } from "./meal-input/recipe-discovery-fallback.js";
+import { buildDiagnostics } from "./meal-input/diagnostics.js";
 import { configuredFoodAiProvider } from "./ai/food-ai-gateway.js";
 import { FoodNlpUserRateLimiter, rateLimitedFoodNlpProvider } from "./ai/food-nlp-rate-limit.js";
 import { configuredQuantityAiProvider } from "./meal-input/quantity-ai-gateway.js";
@@ -138,6 +139,21 @@ const externalFoodConfirmLimiter = rateLimit({ ...EXTERNAL_FOOD_CONFIRM_RATE_LIM
 const healthPayload = { ok: true, service: "keto-mentor-api" };
 app.get("/", (_req, res) => res.json(healthPayload));
 app.get("/health", (_req, res) => res.json(healthPayload));
+
+// Owner-beta staging checkpoint (2026-09-13): safe, non-secret build
+// identification so the owner can confirm which branch/commit a deployment
+// (staging or production) is actually running — Render sets RENDER_GIT_*
+// automatically for every service, never user/secret-derived. `bootedAt` is
+// this process's own start time (module load), a reasonable proxy for
+// "deployed at" absent a dedicated Render env var for it.
+const bootedAt = new Date().toISOString();
+app.get("/build-info", (_req, res) => res.json({
+  environment: env.NODE_ENV,
+  serviceName: process.env.RENDER_SERVICE_NAME ?? null,
+  branch: process.env.RENDER_GIT_BRANCH ?? null,
+  commit: process.env.RENDER_GIT_COMMIT ? process.env.RENDER_GIT_COMMIT.slice(0, 7) : null,
+  bootedAt
+}));
 
 app.post("/auth/register", authLimiter, async (req, res, next) => {
   try {
@@ -326,7 +342,11 @@ app.post("/meal-input/interpret", requireAuth, async (req, res, next) => {
     // configured, matching ordinary meal-input's own behavior exactly.
     const withDiscovery = await attachRecipeDiscoveryFallback(result, { discoveryService: recipeDiscoveryService, recipeAiProvider: recipeDiscoveryAiProvider, prisma, userId: req.user!.id, locale: trustedLocale(req.user!), onProgress, dynamic: recipeIngredientDynamic });
     onProgress("finalizing");
-    res.json(withDiscovery);
+    // Owner-beta diagnostics checkpoint (2026-09-13): derived entirely from
+    // the already-computed, already-response-bound result above — see
+    // diagnostics.ts. Never a second AI/network call, never data the client
+    // couldn't already see elsewhere in this same JSON body.
+    res.json({ ...withDiscovery, diagnostics: buildDiagnostics(withDiscovery) });
   } catch (error) {
     next(error);
   } finally {
