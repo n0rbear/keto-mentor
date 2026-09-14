@@ -89,6 +89,15 @@ describe("resolveRecipeIngredientsBatch", () => {
     const prepared = await resolveRecipeIngredientsBatch(fake, provider, { lines: [{ index: 0, raw: "1 cooked tomato", parsed: parseNaturalFoodQuery("1 cooked tomato") }] }, null);
     expect(prepared?.[0].selectedFood?.id).toBe("cooked");
   });
+  it("retries only quantity indexes omitted by the first batch and stays fail-closed after one retry", async () => {
+    const { prisma } = fakePrisma();
+    let calls = 0;
+    const result = await resolveRecipeIngredientsBatch(prisma, normalizationProvider({ ingredients: [{ index: 0, foods: [{ canonicalIdentity: "onion" }] }] }),
+      { lines: [{ index: 0, raw: "1 piece onion", parsed: parseNaturalFoodQuery("1 piece onion") }] }, null,
+      { id: "fixture", estimate: async ({ items }) => { calls += 1; return { estimates: calls === 1 ? [] : [{ index: items[0].index, grams: 100, confidence: .8 }] }; } });
+    expect(calls).toBe(2);
+    expect(result?.[0]).toMatchObject({ quantityGrams: 100, quantitySource: "estimated" });
+  });
   it("returns null when the normalization provider itself returns null — the caller falls back to the per-ingredient path", async () => {
     const { prisma } = fakePrisma();
     const result = await resolveRecipeIngredientsBatch(
