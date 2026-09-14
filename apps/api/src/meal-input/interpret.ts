@@ -553,14 +553,24 @@ async function interpretAiUnderstanding(
   aiProvider: AiProvider,
   dynamic: DynamicResolutionDeps = null
 ): Promise<InterpretResult> {
-  const dishNormalized = normalizeSearch(understanding.dishName ?? "");
+  // Some providers occasionally label "a plate/bowl of X + Y" as a flat
+  // multi-food list even though the primary plated/bowled item is clearly a
+  // prepared-dish portion. Promote that STRUCTURE (not any food name) so the
+  // dish remains eligible for recipe resolution while Y stays an explicit
+  // sibling meal item.
+  const platedDishItem = !understanding.dishName && understanding.items.length > 1
+    ? understanding.items.find((item) => item.unit === "plate" || item.unit === "bowl")
+    : undefined;
+  const effectiveDishName = understanding.dishName ?? platedDishItem?.canonicalName;
+  const effectiveKind = platedDishItem ? "compound_dish" : understanding.kind;
+  const dishNormalized = normalizeSearch(effectiveDishName ?? "");
   const HOUSEHOLD_CONTAINER_NAMES = new Set(["plate", "tanyer", "tányér", "teller", "bowl", "tal", "tál", "schussel", "schüssel", "cup", "csesze", "csésze", "tasse", "glass", "pohar", "pohár", "glas", "mug", "bogre", "bögre"]);
-  const containerItem = understanding.kind === "compound_dish"
+  const containerItem = effectiveKind === "compound_dish"
     ? understanding.items.find((item) => HOUSEHOLD_CONTAINER_NAMES.has(normalizeSearch(item.canonicalName)))
     : undefined;
   const cleanedItems = containerItem ? understanding.items.filter((item) => item !== containerItem) : understanding.items;
-  const inferredDishQuantity = understanding.dishQuantity ?? containerItem?.quantity;
-  const inferredDishUnit = understanding.dishUnit ?? (containerItem ? ((HOUSEHOLD_CONTAINER_NAMES.has(normalizeSearch(containerItem.canonicalName)) ? normalizeSearch(containerItem.canonicalName) : containerItem.unit) as FoodUnderstanding["dishUnit"]) : undefined);
+  const inferredDishQuantity = understanding.dishQuantity ?? platedDishItem?.quantity ?? containerItem?.quantity;
+  const inferredDishUnit = understanding.dishUnit ?? platedDishItem?.unit ?? (containerItem ? ((HOUSEHOLD_CONTAINER_NAMES.has(normalizeSearch(containerItem.canonicalName)) ? normalizeSearch(containerItem.canonicalName) : containerItem.unit) as FoodUnderstanding["dishUnit"]) : undefined);
   const normalizedDishUnit = ({ tanyer: "plate", tányér: "plate", teller: "plate", tal: "bowl", tál: "bowl", schussel: "bowl", schüssel: "bowl", csesze: "cup", csésze: "cup", tasse: "cup", pohar: "cup", pohár: "cup", glas: "cup", bogre: "cup", bögre: "cup" } as Record<string, FoodUnderstanding["dishUnit"]>)[String(inferredDishUnit)] ?? inferredDishUnit;
   const hasDishItem = !!dishNormalized && cleanedItems.some((item) => normalizeSearch(item.canonicalName) === dishNormalized);
   // Owner-beta blocker (2026-09-12): when the user explicitly stated the
@@ -572,11 +582,11 @@ async function interpretAiUnderstanding(
   // the sum of its parts). Without an explicit composition cue, the prior
   // behavior is unchanged — a named dish mentioned alongside a few add-ons
   // (not fully defined by them) still gets its own resolution attempt.
-  const semanticItems = hasDishItem || !understanding.dishName || understanding.dishIsComposition
+  const semanticItems = hasDishItem || !effectiveDishName || understanding.dishIsComposition
     ? cleanedItems
     : [{
-        originalText: understanding.dishName,
-        canonicalName: understanding.dishName,
+        originalText: effectiveDishName,
+        canonicalName: effectiveDishName,
         quantity: inferredDishQuantity,
         unit: normalizedDishUnit,
         evidence: "explicit" as const,
@@ -602,8 +612,8 @@ async function interpretAiUnderstanding(
   });
   const metadata = {
     language: understanding.language,
-    kind: understanding.kind,
-    dishName: understanding.dishName,
+    kind: effectiveKind,
+    dishName: effectiveDishName,
     dishQuantity: inferredDishQuantity,
     dishUnit: normalizedDishUnit,
     clarificationNeeded: understanding.clarificationNeeded,
@@ -623,7 +633,7 @@ async function interpretAiUnderstanding(
   // multi-item or multi-food phrase still goes through the compound/multi
   // path below unchanged.
   const singleStrongMatch = items.length === 1 && items[0].foodResolution === "resolved" && !!items[0].selectedFood;
-  if ((understanding.kind === "single_food" || singleStrongMatch) && items.length === 1) {
+  if ((effectiveKind === "single_food" || singleStrongMatch) && items.length === 1) {
     return {
       ...items[0],
       input: text,
@@ -640,7 +650,7 @@ async function interpretAiUnderstanding(
   return {
     input: text,
     parsed: top.parsed,
-    foodResolution: understanding.kind === "compound_dish" ? "compound" : "multi",
+    foodResolution: effectiveKind === "compound_dish" ? "compound" : "multi",
     selectedFood: top.selectedFood,
     candidates: top.candidates,
     quantity: top.quantity,

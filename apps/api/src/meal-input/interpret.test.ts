@@ -584,6 +584,15 @@ describe("meal input interpretation", () => {
     expect(result.items).toHaveLength(2);
     expect(result.items?.some((item) => item.semanticItem?.canonicalName === "bread")).toBe(true);
   });
+  it("repairs a flat multi-food classification when one explicit sibling is a plated dish", async () => {
+    const ai = new MockFoodNlpProvider({ language: "hu", kind: "multiple_foods", confidence: .9, clarificationNeeded: false, items: [
+      { originalText: "egy tányér gulyásleves", canonicalName: "goulash soup", quantity: 1, unit: "plate", evidence: "explicit", confidence: .9 },
+      { originalText: "két szelet kenyér", canonicalName: "bread", quantity: 2, unit: "slice", evidence: "explicit", confidence: .9 }
+    ] });
+    const result = await interpretMealInput(prisma, "egy tányér gulyásleves két szelet kenyérrel", undefined, ai);
+    expect(result).toMatchObject({ foodResolution: "compound", semantic: { kind: "compound_dish", dishName: "goulash soup" } });
+    expect(result.items).toHaveLength(2);
+  });
 
   it("supports an AI-assisted single food and re-resolves it through the trusted catalog", async () => {
     const ai = new MockFoodNlpProvider({
