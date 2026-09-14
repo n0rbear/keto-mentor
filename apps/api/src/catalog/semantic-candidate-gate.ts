@@ -89,7 +89,8 @@ const semanticCandidateGateOutputSchema = z.object({
   results: z.array(z.object({
     id: z.string().trim().min(1).max(64),
     relationship: z.enum(CANDIDATE_RELATIONSHIPS),
-    formCompatibility: z.enum(["compatible", "incompatible", "uncertain"])
+    formCompatibility: z.enum(["compatible", "incompatible", "uncertain"]),
+    contextualFit: z.enum(["best_match", "acceptable_alternative"])
   }).strict()).min(1).max(20)
 }).strict();
 
@@ -103,7 +104,8 @@ export const SEMANTIC_CANDIDATE_GATE_INSTRUCTION = `For each CANDIDATE, classify
 - "different_prepared_food": the candidate is a DISH, sausage/luncheon meat, cheese, butter, bread, pastry, soup, snack product, or any other manufactured/composite food that merely contains, uses, is made with, or is flavored by the original as one ingredient among others.
 Also classify formCompatibility as "compatible", "incompatible", or "uncertain". A candidate is compatible only when its culinary state/form fits how the ingredient quantity is supplied. Use explicit preparation first, then the raw line, structured source quantity/unit, recipe title, and recipe context. Count units such as piece/stalk/head are evidence for a whole fresh item rather than canned/pureed/processed food. An unprepared ingredient measured before cooking often supports a raw candidate, but this is evidence, NEVER a universal rule: explicit cooked/boiled/fried/dried/canned/frozen wording controls. If the evidence cannot distinguish two materially different forms, use uncertain rather than guessing.
 When the original identity is generic and the real candidate set contains both a generic record and named cultivars/subtypes, mark the generic compatible and the unsupported specific cultivars/subtypes uncertain. Never invent russet/red/gold/baby/Roma or another subtype merely because it is authoritative. Conversely, preserve a subtype explicitly named by the source.
-Return only JSON: { "results": [{ "id": string, "relationship": "same_identity" | "processed_derivative" | "different_prepared_food", "formCompatibility": "compatible" | "incompatible" | "uncertain" }, ...] }, exactly one entry per candidate, reusing the same "id" values given to you.
+For contextualFit, choose "best_match" only when the source context positively distinguishes that candidate, or when it is the generic record for a generic source while competitors add unsupported specificity. Multiple true duplicates/equivalent records may all be best_match; downstream equivalence checks handle them. Use "acceptable_alternative" for a compatible candidate that is possible but not uniquely supported. If two materially different candidates are equally plausible, mark both acceptable_alternative—never manufacture a winner.
+Return only JSON: { "results": [{ "id": string, "relationship": "same_identity" | "processed_derivative" | "different_prepared_food", "formCompatibility": "compatible" | "incompatible" | "uncertain", "contextualFit": "best_match" | "acceptable_alternative" }, ...] }, exactly one entry per candidate, reusing the same "id" values given to you.
 Examples of "same_identity": original "potato" vs candidate "Potatoes, raw, flesh and skin" or "Potatoes, boiled"; original "salt" vs candidate "Salt, table"; original "lard" vs candidate "Lard" or "Fat, pork"; original "sour cream" vs candidate "Cream, sour, cultured".
 Examples of "processed_derivative": original "potato" vs candidate "Potato flour" or "Potato starch" (milled/extracted from potato, not potato itself); original "milk" vs candidate "Milk, powder" or "Milk, dry"; original "corn" vs candidate "Corn flour" or "Cornstarch"; original "apple" vs candidate "Apple juice".
 Examples of "different_prepared_food": original "potato" vs candidate "Bread, potato" or "Potato chips" or "Potato soup"; original "salt" vs candidate "Butter, salted"; original "lard" vs candidate "Bologna, beef and pork, low fat"; original "pork" vs candidate "Pork sausage" or "Bologna, beef and pork"; original "milk" vs candidate "Cheese, cheddar"; original "apple" vs candidate "Apple pie".
@@ -134,7 +136,7 @@ export interface SemanticCandidateGateProvider {
    * the returned Map must be treated as NOT validated (reject), matching the
    * fail-closed contract — callers must never default a missing id to true.
    */
-  checkRelevance(original: SemanticCandidateIdentityContext, candidates: SemanticCandidateGateInput[], signal?: AbortSignal): Promise<Map<string, boolean>>;
+  checkRelevance(original: SemanticCandidateIdentityContext, candidates: SemanticCandidateGateInput[], signal?: AbortSignal): Promise<Map<string, boolean | "best_match" | "acceptable_alternative">>;
 }
 
 /** Fail-closed by construction: every candidate is unvalidated (absent from the map) when no real gate is configured — never a silent pass-through. */
@@ -155,7 +157,7 @@ export class ChatSemanticCandidateGateProvider implements SemanticCandidateGateP
 
   get id() { return this.transport.id; }
 
-  async checkRelevance(original: SemanticCandidateIdentityContext, candidates: SemanticCandidateGateInput[], signal?: AbortSignal): Promise<Map<string, boolean>> {
+  async checkRelevance(original: SemanticCandidateIdentityContext, candidates: SemanticCandidateGateInput[], signal?: AbortSignal): Promise<Map<string, boolean | "best_match" | "acceptable_alternative">> {
     if (signal?.aborted || !original.identity.trim() || !candidates.length) return new Map();
     // Only the ingredient identity/context and candidate authoritative names
     // leave the system — no user id, username, meal history, or profile data.
@@ -174,7 +176,7 @@ export class ChatSemanticCandidateGateProvider implements SemanticCandidateGateP
     try {
       const result = await this.transport.complete(SEMANTIC_CANDIDATE_GATE_INSTRUCTION, JSON.stringify(context), (value) => semanticCandidateGateOutputSchema.parse(value), "semantic_candidate_gate");
       const knownIds = new Set(candidates.map((c) => c.id));
-      const map = new Map<string, boolean>();
+      const map = new Map<string, boolean | "best_match" | "acceptable_alternative">();
       for (const row of result.results) {
         // A response id that doesn't match one of the ids we sent is never
         // trusted onto some other candidate — silently dropped, not applied.
@@ -182,7 +184,7 @@ export class ChatSemanticCandidateGateProvider implements SemanticCandidateGateP
         // "processed_derivative" and "different_prepared_food" are rejected,
         // deterministically, in code (never re-asked of the model as a
         // separate yes/no that it could answer inconsistently).
-        if (knownIds.has(row.id)) map.set(row.id, row.relationship === "same_identity" && row.formCompatibility === "compatible");
+        if (knownIds.has(row.id)) map.set(row.id, row.relationship === "same_identity" && row.formCompatibility === "compatible" ? row.contextualFit : false);
       }
       return map;
     } catch {

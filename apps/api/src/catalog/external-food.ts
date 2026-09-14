@@ -349,7 +349,12 @@ export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: 
       sourceUnit: semanticGate.sourceUnit,
       locale: semanticGate.locale
     }, gateInputs));
-    candidates = reviewCandidates.filter((_, index) => relevance.get(String(index)) === true);
+    const approved = reviewCandidates.filter((_, index) => {
+      const decision = relevance.get(String(index));
+      return decision === true || decision === "best_match" || decision === "acceptable_alternative";
+    });
+    const best = reviewCandidates.filter((_, index) => relevance.get(String(index)) === "best_match");
+    candidates = best.length ? best : approved;
     if (!candidates.length) return { status: "unresolved", candidates: [], reason: "not_found" };
     candidates = collapseEquivalentCandidates(candidates);
   }

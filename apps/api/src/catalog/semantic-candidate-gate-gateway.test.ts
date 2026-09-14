@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { configuredSemanticCandidateGateProvider } from "./semantic-candidate-gate-gateway.js";
 import { ChatSemanticCandidateGateProvider, DisabledSemanticCandidateGateProvider } from "./semantic-candidate-gate.js";
 
-const validGateOutput = { results: [{ id: "0", relationship: "same_identity", formCompatibility: "compatible" }] };
+const validGateOutput = { results: [{ id: "0", relationship: "same_identity", formCompatibility: "compatible", contextualFit: "best_match" }] };
 
 describe("semantic candidate gate AI gateway selection", () => {
   it("selects OpenRouter when FOOD_AI_PROVIDER=openrouter and credentials are present", () => {
@@ -38,7 +38,7 @@ describe("semantic candidate gate AI gateway selection", () => {
 
     expect(openRouterCalls).toBe(1);
     expect(groqCalls).toBe(1);
-    expect(result.get("0")).toBe(true);
+    expect(result.get("0")).toBe("best_match");
     expect(provider.id).toBe("groq");
   });
 
@@ -96,7 +96,7 @@ describe("semantic candidate gate AI gateway selection", () => {
 
       expect(groqCalls).toBe(1);
       expect(openRouterCalls).toBe(1);
-      expect(result.get("0")).toBe(true);
+      expect(result.get("0")).toBe("best_match");
       expect(provider.id).toBe("openrouter");
     });
 

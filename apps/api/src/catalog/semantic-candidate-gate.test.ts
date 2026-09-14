@@ -5,13 +5,13 @@ import {
 } from "./semantic-candidate-gate.js";
 import { z } from "zod";
 
-const validOutput = { results: [{ id: "0", relationship: "same_identity", formCompatibility: "compatible" }, { id: "1", relationship: "different_prepared_food", formCompatibility: "incompatible" }] };
+const validOutput = { results: [{ id: "0", relationship: "same_identity", formCompatibility: "compatible", contextualFit: "best_match" }, { id: "1", relationship: "different_prepared_food", formCompatibility: "incompatible", contextualFit: "acceptable_alternative" }] };
 
 // The exact same schema the module uses internally, re-derived here only for
 // the "forbidden field" test table (the module doesn't export the schema
 // itself, matching search-intent.ts's/candidate-localization.ts's own
 // convention of exporting the INSTRUCTION but not necessarily the schema).
-const resultItemSchema = z.object({ id: z.string().trim().min(1).max(64), relationship: z.enum(["same_identity", "processed_derivative", "different_prepared_food"]), formCompatibility: z.enum(["compatible", "incompatible", "uncertain"]) }).strict();
+const resultItemSchema = z.object({ id: z.string().trim().min(1).max(64), relationship: z.enum(["same_identity", "processed_derivative", "different_prepared_food"]), formCompatibility: z.enum(["compatible", "incompatible", "uncertain"]), contextualFit: z.enum(["best_match", "acceptable_alternative"]) }).strict();
 const outputSchema = z.object({ results: z.array(resultItemSchema).min(1).max(20) }).strict();
 
 describe("semantic candidate gate output schema: identity/relevance-only trust boundary", () => {
@@ -21,7 +21,7 @@ describe("semantic candidate gate output schema: identity/relevance-only trust b
 
   it("requires at least one result, caps at twenty", () => {
     expect(outputSchema.safeParse({ results: [] }).success).toBe(false);
-    const twentyOne = Array.from({ length: 21 }, (_, i) => ({ id: String(i), relationship: "same_identity", formCompatibility: "compatible" }));
+    const twentyOne = Array.from({ length: 21 }, (_, i) => ({ id: String(i), relationship: "same_identity", formCompatibility: "compatible", contextualFit: "best_match" }));
     expect(outputSchema.safeParse({ results: twentyOne }).success).toBe(false);
   });
 
@@ -121,12 +121,12 @@ describe("ChatSemanticCandidateGateProvider", () => {
     const complete = vi.fn(async (_i: string, _input: string, validate: (v: unknown) => unknown) => validate(validOutput));
     const provider = new ChatSemanticCandidateGateProvider(fakeTransport(complete));
     const result = await provider.checkRelevance({ identity: "burgonya" }, [{ id: "0", authoritativeName: "Potatoes, raw" }, { id: "1", authoritativeName: "Bread, potato" }]);
-    expect(result.get("0")).toBe(true);
+    expect(result.get("0")).toBe("best_match");
     expect(result.get("1")).toBe(false);
   });
 
   it.each(["incompatible", "uncertain"] as const)("never trusts a same-identity candidate whose form is %s", async (formCompatibility) => {
-    const complete = vi.fn(async (_i: string, _input: string, validate: (v: unknown) => unknown) => validate({ results: [{ id: "0", relationship: "same_identity", formCompatibility }] }));
+    const complete = vi.fn(async (_i: string, _input: string, validate: (v: unknown) => unknown) => validate({ results: [{ id: "0", relationship: "same_identity", formCompatibility, contextualFit: "best_match" }] }));
     const provider = new ChatSemanticCandidateGateProvider(fakeTransport(complete));
     const result = await provider.checkRelevance({ identity: "főtt burgonya", canonicalIdentity: "potato", preparation: "boiled" }, [{ id: "0", authoritativeName: "Potatoes, raw" }]);
     expect(result.get("0")).toBe(false);
@@ -138,17 +138,17 @@ describe("ChatSemanticCandidateGateProvider", () => {
   // strict allowlist (only "same_identity" is true), not an inverted
   // denylist that could accidentally admit an unrecognized category.
   it("maps 'processed_derivative' to false — a milled/extracted product is never the same identity as its source ingredient", async () => {
-    const complete = vi.fn(async (_i: string, _input: string, validate: (v: unknown) => unknown) => validate({ results: [{ id: "0", relationship: "processed_derivative", formCompatibility: "incompatible" }] }));
+    const complete = vi.fn(async (_i: string, _input: string, validate: (v: unknown) => unknown) => validate({ results: [{ id: "0", relationship: "processed_derivative", formCompatibility: "incompatible", contextualFit: "acceptable_alternative" }] }));
     const provider = new ChatSemanticCandidateGateProvider(fakeTransport(complete));
     const result = await provider.checkRelevance({ identity: "burgonya" }, [{ id: "0", authoritativeName: "Potato flour" }]);
     expect(result.get("0")).toBe(false);
   });
 
   it("drops a response id that was never sent — never applies a validation result to a candidate that didn't ask for one", async () => {
-    const complete = vi.fn(async (_i: string, _input: string, validate: (v: unknown) => unknown) => validate({ results: [{ id: "0", relationship: "same_identity", formCompatibility: "compatible" }, { id: "99", relationship: "same_identity", formCompatibility: "compatible" }] }));
+    const complete = vi.fn(async (_i: string, _input: string, validate: (v: unknown) => unknown) => validate({ results: [{ id: "0", relationship: "same_identity", formCompatibility: "compatible", contextualFit: "best_match" }, { id: "99", relationship: "same_identity", formCompatibility: "compatible", contextualFit: "best_match" }] }));
     const provider = new ChatSemanticCandidateGateProvider(fakeTransport(complete));
     const result = await provider.checkRelevance({ identity: "burgonya" }, [{ id: "0", authoritativeName: "Potatoes, raw" }]);
-    expect(result.get("0")).toBe(true);
+    expect(result.get("0")).toBe("best_match");
     expect(result.has("99")).toBe(false);
     expect(result.size).toBe(1);
   });
@@ -161,7 +161,7 @@ describe("ChatSemanticCandidateGateProvider", () => {
   });
 
   it("returns an EMPTY map when the transport returns a schema-invalid/poisoned payload", async () => {
-    const complete = vi.fn(async (_i: string, _input: string, validate: (v: unknown) => unknown) => validate({ results: [{ id: "0", relationship: "same_identity", formCompatibility: "compatible", kcalPer100g: 77 }] }));
+    const complete = vi.fn(async (_i: string, _input: string, validate: (v: unknown) => unknown) => validate({ results: [{ id: "0", relationship: "same_identity", formCompatibility: "compatible", contextualFit: "best_match", kcalPer100g: 77 }] }));
     const provider = new ChatSemanticCandidateGateProvider(fakeTransport(complete));
     const result = await provider.checkRelevance({ identity: "burgonya" }, [{ id: "0", authoritativeName: "Potatoes, raw" }]);
     expect(result.size).toBe(0);
