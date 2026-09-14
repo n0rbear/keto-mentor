@@ -22,4 +22,11 @@ describe("recipe ingredient roles", () => {
     expect(roles[0]).toMatchObject({ role: "garnish", includedInBaseNutrition: true, evidence: "ingredient_wording" });
     expect(roles[1]).toMatchObject({ role: "serving_accompaniment", includedInBaseNutrition: false });
   });
+  it("keeps source-line roles stable when a previous line expands into multiple foods", () => {
+    const html = `<p>salt, pepper</p><p>1 tsp mustard</p><h5>For serving</h5><p>fresh bread</p>`;
+    const source = ["salt, pepper", "1 tsp mustard", "fresh bread"];
+    const evidence = recoverIngredientRolesFromHtml(html, source);
+    const byLine = new Map(source.map((raw, index) => [raw, evidence[index]]));
+    expect(["salt, pepper", "salt, pepper", "1 tsp mustard", "fresh bread"].map((raw) => byLine.get(raw)?.role)).toEqual(["core", "core", "core", "serving_accompaniment"]);
+  });
 });

@@ -257,7 +257,11 @@ export async function previewRecipeImport(
       : null;
     const resolvedIngredients = batchResult ?? await resolveIngredientsPerLine(prisma, extracted.ingredients, dynamic);
     const roleEvidence = recoverIngredientRolesFromHtml(page.html, extracted.ingredients, extracted.instructions);
-    const ingredients = resolvedIngredients.map((ingredient, index) => ({ ...ingredient, ...roleEvidence[index] }));
+    // Normalization may split one source line into multiple foods (notably
+    // "salt, pepper"). Roles belong to the SOURCE line, not the expanded
+    // output index; positional zipping would shift every later ingredient.
+    const rolesBySourceLine = new Map(extracted.ingredients.map((raw, index) => [raw, roleEvidence[index]]));
+    const ingredients = resolvedIngredients.map((ingredient) => ({ ...ingredient, ...(rolesBySourceLine.get(ingredient.originalText) ?? recoverIngredientRolesFromHtml(page.html, [ingredient.originalText], extracted.instructions)[0]) }));
     return { ...extracted, ingredients };
   } catch (error) {
     if (error instanceof RecipeImportError) throw error;

@@ -69,7 +69,7 @@ export async function resolveRecipeIngredientsBatch(
       const top = localCandidates.find((candidate) => isTrustedLocalMatch(candidate.match));
       if (top) { selectedFood = top; resolution = "resolved"; candidates = [top]; }
       if (!selectedFood && dynamic) {
-        const outcome = await resolveDynamicFoodFromIdentity(dynamic.prisma, { canonicalIdentity: identityQuery, originalIdentity: identityQuery, rawIngredient: line.raw, recipeTitle: input.title, recipeContext: input.context, preparation: food.preparation ?? line.parsed.preparation, sourceQuantity: line.parsed.quantity, sourceUnit: line.parsed.unit }, dynamic);
+        const outcome = await resolveDynamicFoodFromIdentity(dynamic.prisma, { canonicalIdentity: identityQuery, originalIdentity: identityQuery, rawIngredient: line.raw, recipeTitle: input.title, recipeContext: input.context, preparation: food.preparation ?? line.parsed.preparation ?? "as supplied; no pre-cooked state stated", sourceQuantity: line.parsed.quantity, sourceUnit: line.parsed.unit }, dynamic);
         if (outcome.status === "resolved") { selectedFood = outcome.food; resolution = "resolved"; candidates = [outcome.food]; }
         else if (outcome.status === "confirmation_required") { resolution = "confirmation_required"; externalCandidates = outcome.candidates; externalCandidatesReason = outcome.reason; }
       }
