@@ -63,6 +63,11 @@ describe("SEMANTIC_CANDIDATE_GATE_INSTRUCTION content: the derived-product disti
   it("explicitly states that being related/made-from/derived-from is never sufficient for same_identity", () => {
     expect(SEMANTIC_CANDIDATE_GATE_INSTRUCTION.toLowerCase()).toContain("never enough");
   });
+
+  it.each(["Mustard greens, raw", "Mustard seed", "Mustard oil", "Mustard, prepared, yellow", "Spices, paprika"])(
+    "covers culinary-form disambiguation for %s",
+    (example) => expect(SEMANTIC_CANDIDATE_GATE_INSTRUCTION).toContain(example)
+  );
 });
 
 describe("DisabledSemanticCandidateGateProvider: fails CLOSED, not open", () => {
@@ -78,7 +83,7 @@ function fakeTransport(complete: SemanticCandidateGateTransport["complete"]): Se
 }
 
 describe("ChatSemanticCandidateGateProvider", () => {
-  it("sends only the original identity and candidate authoritative names — no user id, username, meal history, or profile data", async () => {
+  it("sends bounded culinary context and candidate authoritative names — no user id, meal history, profile, or nutrition data", async () => {
     let capturedInput = "";
     const complete = vi.fn(async (instruction: string, input: string, validate: (v: unknown) => unknown) => {
       expect(instruction).toBe(SEMANTIC_CANDIDATE_GATE_INSTRUCTION);
@@ -86,11 +91,15 @@ describe("ChatSemanticCandidateGateProvider", () => {
       return validate(validOutput);
     });
     const provider = new ChatSemanticCandidateGateProvider(fakeTransport(complete));
-    await provider.checkRelevance({ identity: "burgonya", locale: "hu-HU" }, [{ id: "0", authoritativeName: "Potatoes, raw" }, { id: "1", authoritativeName: "Bread, potato" }]);
+    await provider.checkRelevance({ identity: "burgonya", canonicalIdentity: "potato", rawIngredient: "40 dkg burgonya", recipeTitle: "Gulyásleves", locale: "hu-HU" }, [{ id: "0", authoritativeName: "Potatoes, raw" }, { id: "1", authoritativeName: "Bread, potato" }]);
     const parsed = JSON.parse(capturedInput);
-    expect(Object.keys(parsed).sort()).toEqual(["candidates", "originalIdentity", "originalLocale"]);
+    expect(Object.keys(parsed).sort()).toEqual(["candidates", "canonicalIdentity", "originalIdentity", "originalLocale", "rawIngredient", "recipeTitle"]);
     expect(parsed.originalIdentity).toBe("burgonya");
+    expect(parsed.canonicalIdentity).toBe("potato");
+    expect(parsed.rawIngredient).toBe("40 dkg burgonya");
+    expect(parsed.recipeTitle).toBe("Gulyásleves");
     expect(parsed.candidates).toEqual([{ id: "0", authoritativeName: "Potatoes, raw" }, { id: "1", authoritativeName: "Bread, potato" }]);
+    expect(capturedInput).not.toMatch(/kcal|protein|carbs|fiber|userId|email/i);
   });
 
   it("batches the WHOLE candidate set into exactly one transport call", async () => {

@@ -138,7 +138,8 @@ async function resolveFromSearchTerm(
   originalIdentity: string,
   via: "search_intent" | "raw_query" | "normalized_identity",
   deps: ResolveFromSearchTermDeps,
-  aliasLocale: string | undefined
+  aliasLocale: string | undefined,
+  semanticContext?: { rawIngredient?: string; recipeTitle?: string }
 ): Promise<DynamicResolutionOutcome> {
   const outcome: ResolutionOutcome = await resolveAuthoritativeFood(prisma, searchTerm, deps.adapters, {
     locale: deps.foodLocale ?? deps.locale ?? "hu",
@@ -146,6 +147,9 @@ async function resolveFromSearchTerm(
   }, {
     provider: deps.semanticCandidateGateProvider ?? new DisabledSemanticCandidateGateProvider(),
     originalIdentity,
+    canonicalIdentity: searchTerm,
+    rawIngredient: semanticContext?.rawIngredient,
+    recipeTitle: semanticContext?.recipeTitle,
     locale: deps.foodLocale ?? deps.locale
   });
   switch (outcome.status) {
@@ -199,10 +203,13 @@ export async function resolveDynamicFood(
  */
 export async function resolveDynamicFoodFromIdentity(
   prisma: DynamicPrisma,
-  input: { canonicalIdentity: string; originalIdentity: string; sourceLanguage?: string },
+  input: { canonicalIdentity: string; originalIdentity: string; rawIngredient?: string; recipeTitle?: string; sourceLanguage?: string },
   deps: ResolveFromSearchTermDeps
 ): Promise<DynamicResolutionOutcome> {
   if (!deps.adapters.length) { logDynamicResolutionOutcome("unresolved", undefined, "no_adapters"); return { status: "unresolved", reason: "no_adapters" }; }
   if (!deps.rateLimiter.consume(deps.userId)) { logDynamicResolutionOutcome("unresolved", undefined, "rate_limited"); return { status: "unresolved", reason: "rate_limited" }; }
-  return resolveFromSearchTerm(prisma, input.canonicalIdentity, input.originalIdentity, "normalized_identity", deps, aliasLocaleFor(deps, input.sourceLanguage));
+  return resolveFromSearchTerm(prisma, input.canonicalIdentity, input.originalIdentity, "normalized_identity", deps, aliasLocaleFor(deps, input.sourceLanguage), {
+    rawIngredient: input.rawIngredient,
+    recipeTitle: input.recipeTitle
+  });
 }

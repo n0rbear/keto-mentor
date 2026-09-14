@@ -102,6 +102,26 @@ describe("resolveRecipeIngredientsBatch", () => {
     expect(result![0].selectedFood?.name).toBe("Garlic, raw");
   });
 
+  it("passes canonical identity, raw ingredient, and recipe title to the semantic safety gate", async () => {
+    const { prisma } = fakePrisma();
+    let captured: any;
+    const deps = dynamicDeps(prisma, async () => [externalCandidate({ originalName: "Mustard, prepared, yellow", name: "Mustard, prepared, yellow", normalizedName: "mustard prepared yellow" })]);
+    deps.semanticCandidateGateProvider = {
+      id: "capturing-fixture",
+      checkRelevance: async (original, candidates) => {
+        captured = original;
+        return new Map(candidates.map((entry) => [entry.id, true]));
+      }
+    };
+    await resolveRecipeIngredientsBatch(
+      prisma,
+      normalizationProvider({ ingredients: [{ index: 0, foods: [{ canonicalIdentity: "prepared mustard", localName: "mustár" }] }] }),
+      { title: "Klasszikus gulyásleves", locale: "hu", lines: [{ index: 0, raw: "1-2 tk mustár", parsed: parseNaturalFoodQuery("1-2 tk mustár") }] },
+      deps
+    );
+    expect(captured).toMatchObject({ identity: "mustár", canonicalIdentity: "prepared mustard", rawIngredient: "1-2 tk mustár", recipeTitle: "Klasszikus gulyásleves" });
+  });
+
   // Owner-beta checkpoint (2026-09-13): the "só, bors" case from the
   // ingredient-resolution forensic trace — a real recipe line naming TWO
   // foods must never collapse down to one. `foods` is an array by

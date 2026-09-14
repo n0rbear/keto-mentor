@@ -62,6 +62,13 @@ describe("RECIPE_INGREDIENT_NORMALIZATION_INSTRUCTION: multi-food lines are neve
     expect(RECIPE_INGREDIENT_NORMALIZATION_INSTRUCTION).toContain("Never include nutrition");
     expect(RECIPE_INGREDIENT_NORMALIZATION_INSTRUCTION).toContain("database IDs");
   });
+
+  it("preserves culinary form for polysemous ingredient words instead of emitting a dangerously generic base word", () => {
+    expect(RECIPE_INGREDIENT_NORMALIZATION_INSTRUCTION).toContain('"prepared mustard"');
+    expect(RECIPE_INGREDIENT_NORMALIZATION_INSTRUCTION).toContain('"paprika spice"');
+    expect(RECIPE_INGREDIENT_NORMALIZATION_INSTRUCTION).toContain('"potato"');
+    expect(RECIPE_INGREDIENT_NORMALIZATION_INSTRUCTION).toContain("CULINARY FORM");
+  });
 });
 
 describe("DisabledRecipeIngredientNormalizationProvider", () => {

@@ -131,6 +131,61 @@ describe("authoritative food resolution", () => {
   });
 });
 
+describe("culinary identity regression matrix", () => {
+  const semanticGate = (approvedNames: string[]) => ({
+    provider: {
+      id: "deterministic-fixture",
+      checkRelevance: async (_original: unknown, candidates: Array<{ id: string; authoritativeName: string }>) =>
+        new Map(candidates.map((entry) => [entry.id, approvedNames.includes(entry.authoritativeName)]))
+    },
+    originalIdentity: "fixture"
+  });
+  const named = (name: string, sourceId: string) => candidate({
+    sourceId,
+    name,
+    originalName: name,
+    normalizedName: name.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim(),
+    matchPolicy: "review_required",
+    confidence: 0.6
+  });
+
+  it.each([
+    ["onion", "Onions, raw"],
+    ["garlic", "Garlic, raw"],
+    ["potato", "Potatoes, raw"],
+    ["paprika spice", "Spices, paprika"],
+    ["prepared mustard", "Mustard, prepared, yellow"]
+  ])("trusted semantic identity resolves: %s -> %s", async (query, authoritativeName) => {
+    const { prisma } = fakePrisma();
+    const result = await resolveAuthoritativeFood(prisma, query, [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [named(authoritativeName, "801")] }], undefined, semanticGate([authoritativeName]));
+    expect(result).toMatchObject({ status: "resolved_external", food: { originalName: authoritativeName } });
+  });
+
+  it.each([
+    ["potato", "Bread, potato"],
+    ["mustard", "Mustard greens, raw"],
+    ["mustard", "Mustard seed"],
+    ["mustard", "Mustard oil"],
+    ["paprika spice", "Bell pepper, red, raw"],
+    ["paprika spice", "Snack, paprika flavored"],
+    ["garlic", "Bread, garlic"],
+    ["onion", "Onion rings"]
+  ])("semantic rejection never becomes trusted: %s x %s", async (query, authoritativeName) => {
+    const { prisma, getCreated } = fakePrisma();
+    const result = await resolveAuthoritativeFood(prisma, query, [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [named(authoritativeName, "802")] }], undefined, semanticGate([]));
+    expect(result).toMatchObject({ status: "unresolved", reason: "not_found" });
+    expect(getCreated()).toBeNull();
+  });
+
+  it("multiple same-identity survivors remain confirmation_required", async () => {
+    const names = ["Potatoes, raw", "Potatoes, boiled"];
+    const { prisma, getCreated } = fakePrisma();
+    const result = await resolveAuthoritativeFood(prisma, "potato", [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => names.map((name, index) => named(name, String(810 + index))) }], undefined, semanticGate(names));
+    expect(result).toMatchObject({ status: "confirmation_required", reason: "ambiguous" });
+    expect(getCreated()).toBeNull();
+  });
+});
+
 // Owner-beta blocker #3 (2026-09-10): resolveAuthoritativeFood's
 // "resolved_local" short-circuit used to trust ANY nonzero local search
 // score — real physical-iPhone production traces showed a search-intent

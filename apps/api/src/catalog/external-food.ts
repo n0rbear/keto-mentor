@@ -22,7 +22,14 @@ export type LocalizationOptions = { locale: LocalizationLocale; provider: Candid
  * out of this checkpoint's scope (the user's own typed query IS already the
  * "original identity" there, with no AI translation step in between).
  */
-export type SemanticGateOptions = { provider: SemanticCandidateGateProvider; originalIdentity: string; locale?: string };
+export type SemanticGateOptions = {
+  provider: SemanticCandidateGateProvider;
+  originalIdentity: string;
+  canonicalIdentity?: string;
+  rawIngredient?: string;
+  recipeTitle?: string;
+  locale?: string;
+};
 
 export type ExternalFoodCandidate = ImportFood & {
   sourceUrl?: string;
@@ -292,7 +299,13 @@ export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: 
   // failure drops every candidate, never lets one through by default.
   if (semanticGate) {
     const gateInputs = candidates.slice(0, 5).map((candidate, index) => ({ id: String(index), authoritativeName: candidate.originalName || candidate.name }));
-    const relevance = await timeStage("semantic_gate_ai", () => semanticGate.provider.checkRelevance({ identity: semanticGate.originalIdentity, locale: semanticGate.locale }, gateInputs));
+    const relevance = await timeStage("semantic_gate_ai", () => semanticGate.provider.checkRelevance({
+      identity: semanticGate.originalIdentity,
+      canonicalIdentity: semanticGate.canonicalIdentity ?? query,
+      rawIngredient: semanticGate.rawIngredient,
+      recipeTitle: semanticGate.recipeTitle,
+      locale: semanticGate.locale
+    }, gateInputs));
     candidates = candidates.slice(0, 5).filter((_, index) => relevance.get(String(index)) === true);
     if (!candidates.length) return { status: "unresolved", candidates: [], reason: "not_found" };
   }
