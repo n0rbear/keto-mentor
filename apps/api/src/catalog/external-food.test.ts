@@ -654,7 +654,7 @@ describe("USDA structured lookup adapter", () => {
     expect(food).toMatchObject({ source: "usda_fdc", sourceId: "123", normalizedName: "raw spinach", nutrientBasis: "per_100_g", kcalPer100g: 23, confidence: 0.97 });
     expect(food.provenance).toMatchObject({ source: "USDA FoodData Central", valuesPer: "100 g" });
     expect(food.nutrients).toEqual(expect.arrayContaining([expect.objectContaining({ key: "calcium", amountPer100g: 99 })]));
-    expect(JSON.parse(fetcher.mock.calls[0][1].body)).toMatchObject({ pageSize: 30, dataType: ["Foundation", "SR Legacy"] });
+    expect(JSON.parse(fetcher.mock.calls[0][1].body)).toMatchObject({ pageSize: 20, dataType: ["Foundation", "SR Legacy"] });
   });
 
   it.each([

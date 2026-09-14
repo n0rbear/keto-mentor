@@ -12,17 +12,17 @@ const validOutput = { results: [{ id: "0", relationship: "same_identity", formCo
 // itself, matching search-intent.ts's/candidate-localization.ts's own
 // convention of exporting the INSTRUCTION but not necessarily the schema).
 const resultItemSchema = z.object({ id: z.string().trim().min(1).max(64), relationship: z.enum(["same_identity", "processed_derivative", "different_prepared_food"]), formCompatibility: z.enum(["compatible", "incompatible", "uncertain"]) }).strict();
-const outputSchema = z.object({ results: z.array(resultItemSchema).min(1).max(30) }).strict();
+const outputSchema = z.object({ results: z.array(resultItemSchema).min(1).max(20) }).strict();
 
 describe("semantic candidate gate output schema: identity/relevance-only trust boundary", () => {
   it("accepts a well-formed batch", () => {
     expect(outputSchema.safeParse(validOutput).success).toBe(true);
   });
 
-  it("requires at least one result, caps at thirty", () => {
+  it("requires at least one result, caps at twenty", () => {
     expect(outputSchema.safeParse({ results: [] }).success).toBe(false);
-    const thirtyOne = Array.from({ length: 31 }, (_, i) => ({ id: String(i), relationship: "same_identity", formCompatibility: "compatible" }));
-    expect(outputSchema.safeParse({ results: thirtyOne }).success).toBe(false);
+    const twentyOne = Array.from({ length: 21 }, (_, i) => ({ id: String(i), relationship: "same_identity", formCompatibility: "compatible" }));
+    expect(outputSchema.safeParse({ results: twentyOne }).success).toBe(false);
   });
 
   it.each(["kcalPer100g", "fatPer100g", "proteinPer100g", "carbsPer100g", "fiberPer100g", "sourceId", "source", "foodId", "provenance", "nutrients", "confidence", "name", "displayName", "isSameFood"])(
@@ -62,6 +62,10 @@ describe("SEMANTIC_CANDIDATE_GATE_INSTRUCTION content: the derived-product disti
 
   it("explicitly states that being related/made-from/derived-from is never sufficient for same_identity", () => {
     expect(SEMANTIC_CANDIDATE_GATE_INSTRUCTION.toLowerCase()).toContain("never enough");
+  });
+
+  it("does not invent a cultivar for a generic ingredient when a generic record exists", () => {
+    expect(SEMANTIC_CANDIDATE_GATE_INSTRUCTION).toContain("unsupported specific cultivars/subtypes uncertain");
   });
 
   it.each(["Mustard greens, raw", "Mustard seed", "Mustard oil", "Mustard, prepared, yellow", "Spices, paprika"])(

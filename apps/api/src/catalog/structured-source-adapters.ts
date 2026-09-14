@@ -74,11 +74,11 @@ export class UsdaFoodDataCentralLookupAdapter implements ConfirmableFoodLookupAd
     const response = await this.fetcher(`https://api.nal.usda.gov/fdc/v1/foods/search?api_key=${encodeURIComponent(this.apiKey)}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query, pageSize: 30, dataType: ["Foundation", "SR Legacy"] }),
+      body: JSON.stringify({ query, pageSize: 20, dataType: ["Foundation", "SR Legacy"] }),
       signal: AbortSignal.timeout(8_000)
     });
     const payload = await readBoundedJson(response);
-    return (Array.isArray(payload?.foods) ? payload.foods.slice(0, 30) : []).map((food: any) => normalizeUsdaFood(food, query)).filter((food: ExternalFoodCandidate | null): food is ExternalFoodCandidate => Boolean(food));
+    return (Array.isArray(payload?.foods) ? payload.foods.slice(0, 20) : []).map((food: any) => normalizeUsdaFood(food, query)).filter((food: ExternalFoodCandidate | null): food is ExternalFoodCandidate => Boolean(food));
   }
 
   async lookupById(sourceId: string): Promise<ExternalFoodCandidate | null> {

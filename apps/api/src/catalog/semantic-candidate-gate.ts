@@ -90,7 +90,7 @@ const semanticCandidateGateOutputSchema = z.object({
     id: z.string().trim().min(1).max(64),
     relationship: z.enum(CANDIDATE_RELATIONSHIPS),
     formCompatibility: z.enum(["compatible", "incompatible", "uncertain"])
-  }).strict()).min(1).max(30)
+  }).strict()).min(1).max(20)
 }).strict();
 
 export type SemanticCandidateGateOutput = z.infer<typeof semanticCandidateGateOutputSchema>;
@@ -102,6 +102,7 @@ export const SEMANTIC_CANDIDATE_GATE_INSTRUCTION = `For each CANDIDATE, classify
 - "processed_derivative": the candidate is INDUSTRIALLY MADE FROM the original — milled into flour/meal, extracted into starch, pressed/extracted into juice or oil, dried into powder, or otherwise transformed into a product with its own distinct name, texture, use, and nutrition profile that is no longer the original whole food.
 - "different_prepared_food": the candidate is a DISH, sausage/luncheon meat, cheese, butter, bread, pastry, soup, snack product, or any other manufactured/composite food that merely contains, uses, is made with, or is flavored by the original as one ingredient among others.
 Also classify formCompatibility as "compatible", "incompatible", or "uncertain". A candidate is compatible only when its culinary state/form fits how the ingredient quantity is supplied. Use explicit preparation first, then the raw line, structured source quantity/unit, recipe title, and recipe context. Count units such as piece/stalk/head are evidence for a whole fresh item rather than canned/pureed/processed food. An unprepared ingredient measured before cooking often supports a raw candidate, but this is evidence, NEVER a universal rule: explicit cooked/boiled/fried/dried/canned/frozen wording controls. If the evidence cannot distinguish two materially different forms, use uncertain rather than guessing.
+When the original identity is generic and the real candidate set contains both a generic record and named cultivars/subtypes, mark the generic compatible and the unsupported specific cultivars/subtypes uncertain. Never invent russet/red/gold/baby/Roma or another subtype merely because it is authoritative. Conversely, preserve a subtype explicitly named by the source.
 Return only JSON: { "results": [{ "id": string, "relationship": "same_identity" | "processed_derivative" | "different_prepared_food", "formCompatibility": "compatible" | "incompatible" | "uncertain" }, ...] }, exactly one entry per candidate, reusing the same "id" values given to you.
 Examples of "same_identity": original "potato" vs candidate "Potatoes, raw, flesh and skin" or "Potatoes, boiled"; original "salt" vs candidate "Salt, table"; original "lard" vs candidate "Lard" or "Fat, pork"; original "sour cream" vs candidate "Cream, sour, cultured".
 Examples of "processed_derivative": original "potato" vs candidate "Potato flour" or "Potato starch" (milled/extracted from potato, not potato itself); original "milk" vs candidate "Milk, powder" or "Milk, dry"; original "corn" vs candidate "Corn flour" or "Cornstarch"; original "apple" vs candidate "Apple juice".

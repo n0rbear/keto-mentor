@@ -306,7 +306,7 @@ export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: 
       try {
         const result = await adapter.lookup(query);
         successfulProviders += 1;
-        rawCandidates.push(...result.slice(0, 30));
+        rawCandidates.push(...result.slice(0, 20));
       } catch {
         continue;
       }
@@ -336,7 +336,7 @@ export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: 
     // derivatives (the live `potato` query returned bread/flour/pancakes/
     // baby food). Preserve source ranking but review a wider bounded window;
     // the semantic gate remains the only authority that can admit a result.
-    const reviewCandidates = candidates.slice(0, 30);
+    const reviewCandidates = candidates.slice(0, 20);
     const gateInputs = reviewCandidates.map((candidate, index) => ({ id: String(index), authoritativeName: candidate.originalName || candidate.name }));
     const relevance = await timeStage("semantic_gate_ai", () => semanticGate.provider.checkRelevance({
       identity: semanticGate.originalIdentity,
