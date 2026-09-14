@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { configuredSemanticCandidateGateProvider } from "./semantic-candidate-gate-gateway.js";
 import { ChatSemanticCandidateGateProvider, DisabledSemanticCandidateGateProvider } from "./semantic-candidate-gate.js";
 
-const validGateOutput = { results: [{ id: "0", relationship: "same_identity" }] };
+const validGateOutput = { results: [{ id: "0", relationship: "same_identity", formCompatibility: "compatible" }] };
 
 describe("semantic candidate gate AI gateway selection", () => {
   it("selects OpenRouter when FOOD_AI_PROVIDER=openrouter and credentials are present", () => {

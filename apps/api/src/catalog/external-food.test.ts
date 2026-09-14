@@ -4,7 +4,7 @@ process.env.JWT_ACCESS_SECRET = "a".repeat(32);
 process.env.JWT_REFRESH_SECRET = "b".repeat(32);
 
 import { describe, expect, it, vi } from "vitest";
-import { confirmAuthoritativeFood, externalFoodConfirmationSchema, resolveAuthoritativeFood, resolveBarcodeFood, validateExternalCandidate, type ExternalFoodCandidate } from "./external-food.js";
+import { collapseEquivalentCandidates, confirmAuthoritativeFood, externalFoodConfirmationSchema, resolveAuthoritativeFood, resolveBarcodeFood, validateExternalCandidate, type ExternalFoodCandidate } from "./external-food.js";
 import { EXTERNAL_FOOD_CONFIRM_RATE_LIMIT, EXTERNAL_FOOD_RATE_LIMIT, externalFoodRateLimitKey } from "./external-food-rate-limit.js";
 import { normalizeOffProduct, normalizeUsdaNutrients, OpenFoodFactsProductAdapter, UsdaFoodDataCentralLookupAdapter } from "./structured-source-adapters.js";
 
@@ -183,6 +183,64 @@ describe("culinary identity regression matrix", () => {
     const result = await resolveAuthoritativeFood(prisma, "potato", [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => names.map((name, index) => named(name, String(810 + index))) }], undefined, semanticGate(names));
     expect(result).toMatchObject({ status: "confirmation_required", reason: "ambiguous" });
     expect(getCreated()).toBeNull();
+  });
+
+  it.each(["Potato chips", "French fries, potato", "Potato starch", "Potato flour"])("potato derivative/composite stays rejected: %s", async (name) => {
+    const { prisma, getCreated } = fakePrisma();
+    const result = await resolveAuthoritativeFood(prisma, "potato", [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [named(name, "899")] }], undefined, semanticGate([]));
+    expect(result).toMatchObject({ status: "unresolved", reason: "not_found" });
+    expect(getCreated()).toBeNull();
+  });
+
+  it("reviews beyond USDA's misleading first five and reaches a later plain potato", async () => {
+    const bad = ["Bread, potato", "Flour, potato", "Potato flour", "Potato pancakes", "Babyfood, potatoes, toddler"];
+    const plain = "Potatoes, flesh and skin, raw";
+    const { prisma } = fakePrisma();
+    const result = await resolveAuthoritativeFood(prisma, "potato", [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [...bad.map((name, i) => named(name, String(900 + i))), named(plain, "999")] }], undefined, semanticGate([plain]));
+    expect(result).toMatchObject({ status: "resolved_external", food: { originalName: plain } });
+  });
+
+  it.each([
+    ["tomato", "Tomato, roma", "Tomatoes, red, ripe, canned"],
+    ["carrot", "Carrots, raw", "Carrots, cooked, boiled, drained"],
+    ["beef shank", "Beef, shank crosscuts, raw", "Beef, shank crosscuts, cooked, simmered"],
+    ["celeriac", "Celeriac, raw", "Celeriac, cooked, boiled"],
+    ["prepared mustard", "Mustard, prepared, yellow", "Mustard greens, raw"],
+    ["paprika spice", "Spices, paprika", "Paprika paste"]
+  ])("context-compatible form wins without admitting incompatible form: %s", async (query, accepted, rejected) => {
+    const { prisma } = fakePrisma();
+    const result = await resolveAuthoritativeFood(prisma, query, [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [named(rejected, "920"), named(accepted, "921")] }], undefined, semanticGate([accepted]));
+    expect(result).toMatchObject({ status: "resolved_external", food: { originalName: accepted } });
+  });
+
+  it("explicit cooked beef context cannot silently select raw beef shank", async () => {
+    const raw = "Beef, shank crosscuts, raw";
+    const { prisma, getCreated } = fakePrisma();
+    const result = await resolveAuthoritativeFood(prisma, "beef shank", [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [named(raw, "930")] }], undefined, semanticGate([]));
+    expect(result.status).toBe("unresolved");
+    expect(getCreated()).toBeNull();
+  });
+
+  it("paprika paste never falls back to paprika spice", async () => {
+    const { prisma, getCreated } = fakePrisma();
+    const result = await resolveAuthoritativeFood(prisma, "paprika paste", [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [named("Spices, paprika", "940")] }], undefined, semanticGate([]));
+    expect(result.status).toBe("unresolved");
+    expect(getCreated()).toBeNull();
+  });
+});
+
+describe("authoritative equivalence collapse", () => {
+  it("collapses same-source, same-description, same-category, near-identical nutrition and prefers Foundation", () => {
+    const legacy = candidate({ sourceId: "1", originalName: "Garlic, raw", name: "Garlic, raw", normalizedName: "garlic raw", category: "Vegetables", kcalPer100g: 149, provenance: { ...candidate().provenance, dataType: "SR Legacy" } });
+    const foundation = candidate({ sourceId: "2", originalName: "Garlic, raw", name: "Garlic, raw", normalizedName: "garlic raw", category: "Vegetables", kcalPer100g: 147, provenance: { ...candidate().provenance, dataType: "Foundation" } });
+    expect(collapseEquivalentCandidates([legacy, foundation]).map((item) => item.sourceId)).toEqual(["2"]);
+  });
+
+  it("keeps same-name records distinct when nutrition or category is materially different", () => {
+    const a = candidate({ sourceId: "1", originalName: "Mustard, prepared, yellow", name: "Mustard, prepared, yellow", normalizedName: "mustard prepared yellow", category: "Spices", kcalPer100g: 60 });
+    const b = candidate({ ...a, sourceId: "2", kcalPer100g: 120 });
+    const c = candidate({ ...a, sourceId: "3", category: "Vegetables" });
+    expect(collapseEquivalentCandidates([a, b, c])).toHaveLength(3);
   });
 });
 
@@ -596,6 +654,7 @@ describe("USDA structured lookup adapter", () => {
     expect(food).toMatchObject({ source: "usda_fdc", sourceId: "123", normalizedName: "raw spinach", nutrientBasis: "per_100_g", kcalPer100g: 23, confidence: 0.97 });
     expect(food.provenance).toMatchObject({ source: "USDA FoodData Central", valuesPer: "100 g" });
     expect(food.nutrients).toEqual(expect.arrayContaining([expect.objectContaining({ key: "calcium", amountPer100g: 99 })]));
+    expect(JSON.parse(fetcher.mock.calls[0][1].body)).toMatchObject({ pageSize: 30, dataType: ["Foundation", "SR Legacy"] });
   });
 
   it.each([

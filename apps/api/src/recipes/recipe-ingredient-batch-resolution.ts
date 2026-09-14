@@ -29,7 +29,7 @@ function maxEstimatedGrams(item: Parameters<RecipeQuantityEstimationProvider["es
 export async function resolveRecipeIngredientsBatch(
   prisma: SearchablePrisma,
   normalizationProvider: RecipeIngredientNormalizationProvider,
-  input: { title?: string; locale?: string; lines: readonly { index: number; raw: string; parsed: ParsedNaturalFoodQuery }[] },
+  input: { title?: string; context?: string; locale?: string; lines: readonly { index: number; raw: string; parsed: ParsedNaturalFoodQuery }[] },
   dynamic: DynamicResolutionDeps,
   quantityProvider: RecipeQuantityEstimationProvider = new DisabledRecipeQuantityEstimationProvider()
 ): Promise<BatchResolvedIngredient[] | null> {
@@ -61,7 +61,7 @@ export async function resolveRecipeIngredientsBatch(
       const top = localCandidates[0];
       if (top && isTrustedLocalMatch(top.match)) { selectedFood = top; resolution = "resolved"; candidates = [top]; }
       if (!selectedFood && dynamic) {
-        const outcome = await resolveDynamicFoodFromIdentity(dynamic.prisma, { canonicalIdentity: identityQuery, originalIdentity: identityQuery, rawIngredient: line.raw, recipeTitle: input.title }, dynamic);
+        const outcome = await resolveDynamicFoodFromIdentity(dynamic.prisma, { canonicalIdentity: identityQuery, originalIdentity: identityQuery, rawIngredient: line.raw, recipeTitle: input.title, recipeContext: input.context, preparation: food.preparation ?? line.parsed.preparation, sourceQuantity: line.parsed.quantity, sourceUnit: line.parsed.unit }, dynamic);
         if (outcome.status === "resolved") { selectedFood = outcome.food; resolution = "resolved"; candidates = [outcome.food]; }
         else if (outcome.status === "confirmation_required") { resolution = "confirmation_required"; externalCandidates = outcome.candidates; externalCandidatesReason = outcome.reason; }
       }

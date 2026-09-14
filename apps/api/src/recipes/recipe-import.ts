@@ -252,7 +252,7 @@ export async function previewRecipeImport(
 
     const lines = extracted.ingredients.map((raw, index) => ({ index, raw, parsed: parseNaturalFoodQuery(raw) }));
     const batchResult = dynamic
-      ? await resolveRecipeIngredientsBatch(prisma, normalizationProvider, { title: extracted.title, locale: dynamic.foodLocale ?? dynamic.locale, lines }, dynamic, quantityProvider)
+      ? await resolveRecipeIngredientsBatch(prisma, normalizationProvider, { title: extracted.title, context: extracted.instructions.join(" ").slice(0, 4_000), locale: dynamic.foodLocale ?? dynamic.locale, lines }, dynamic, quantityProvider)
       : null;
     const ingredients = batchResult ?? await resolveIngredientsPerLine(prisma, extracted.ingredients, dynamic);
     return { ...extracted, ingredients };

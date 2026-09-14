@@ -5,24 +5,24 @@ import {
 } from "./semantic-candidate-gate.js";
 import { z } from "zod";
 
-const validOutput = { results: [{ id: "0", relationship: "same_identity" }, { id: "1", relationship: "different_prepared_food" }] };
+const validOutput = { results: [{ id: "0", relationship: "same_identity", formCompatibility: "compatible" }, { id: "1", relationship: "different_prepared_food", formCompatibility: "incompatible" }] };
 
 // The exact same schema the module uses internally, re-derived here only for
 // the "forbidden field" test table (the module doesn't export the schema
 // itself, matching search-intent.ts's/candidate-localization.ts's own
 // convention of exporting the INSTRUCTION but not necessarily the schema).
-const resultItemSchema = z.object({ id: z.string().trim().min(1).max(64), relationship: z.enum(["same_identity", "processed_derivative", "different_prepared_food"]) }).strict();
-const outputSchema = z.object({ results: z.array(resultItemSchema).min(1).max(10) }).strict();
+const resultItemSchema = z.object({ id: z.string().trim().min(1).max(64), relationship: z.enum(["same_identity", "processed_derivative", "different_prepared_food"]), formCompatibility: z.enum(["compatible", "incompatible", "uncertain"]) }).strict();
+const outputSchema = z.object({ results: z.array(resultItemSchema).min(1).max(30) }).strict();
 
 describe("semantic candidate gate output schema: identity/relevance-only trust boundary", () => {
   it("accepts a well-formed batch", () => {
     expect(outputSchema.safeParse(validOutput).success).toBe(true);
   });
 
-  it("requires at least one result, caps at ten", () => {
+  it("requires at least one result, caps at thirty", () => {
     expect(outputSchema.safeParse({ results: [] }).success).toBe(false);
-    const eleven = Array.from({ length: 11 }, (_, i) => ({ id: String(i), relationship: "same_identity" }));
-    expect(outputSchema.safeParse({ results: eleven }).success).toBe(false);
+    const thirtyOne = Array.from({ length: 31 }, (_, i) => ({ id: String(i), relationship: "same_identity", formCompatibility: "compatible" }));
+    expect(outputSchema.safeParse({ results: thirtyOne }).success).toBe(false);
   });
 
   it.each(["kcalPer100g", "fatPer100g", "proteinPer100g", "carbsPer100g", "fiberPer100g", "sourceId", "source", "foodId", "provenance", "nutrients", "confidence", "name", "displayName", "isSameFood"])(
@@ -34,8 +34,8 @@ describe("semantic candidate gate output schema: identity/relevance-only trust b
   );
 
   it("rejects a relationship value outside the three-way enum (owner-beta blocker #9.1 — no loose boolean, no free text)", () => {
-    expect(outputSchema.safeParse({ results: [{ id: "0", relationship: "kinda_related" }] }).success).toBe(false);
-    expect(outputSchema.safeParse({ results: [{ id: "0", relationship: true }] }).success).toBe(false);
+    expect(outputSchema.safeParse({ results: [{ id: "0", relationship: "kinda_related", formCompatibility: "compatible" }] }).success).toBe(false);
+    expect(outputSchema.safeParse({ results: [{ id: "0", relationship: true, formCompatibility: "compatible" }] }).success).toBe(false);
   });
 });
 
@@ -91,13 +91,17 @@ describe("ChatSemanticCandidateGateProvider", () => {
       return validate(validOutput);
     });
     const provider = new ChatSemanticCandidateGateProvider(fakeTransport(complete));
-    await provider.checkRelevance({ identity: "burgonya", canonicalIdentity: "potato", rawIngredient: "40 dkg burgonya", recipeTitle: "Gulyásleves", locale: "hu-HU" }, [{ id: "0", authoritativeName: "Potatoes, raw" }, { id: "1", authoritativeName: "Bread, potato" }]);
+    await provider.checkRelevance({ identity: "burgonya", canonicalIdentity: "potato", rawIngredient: "40 dkg burgonya", recipeTitle: "Gulyásleves", recipeContext: "Add the raw vegetables, then simmer.", preparation: "peeled", sourceQuantity: 40, sourceUnit: "dkg", locale: "hu-HU" }, [{ id: "0", authoritativeName: "Potatoes, raw" }, { id: "1", authoritativeName: "Bread, potato" }]);
     const parsed = JSON.parse(capturedInput);
-    expect(Object.keys(parsed).sort()).toEqual(["candidates", "canonicalIdentity", "originalIdentity", "originalLocale", "rawIngredient", "recipeTitle"]);
+    expect(Object.keys(parsed).sort()).toEqual(["candidates", "canonicalIdentity", "originalIdentity", "originalLocale", "preparation", "rawIngredient", "recipeContext", "recipeTitle", "sourceQuantity", "sourceUnit"]);
     expect(parsed.originalIdentity).toBe("burgonya");
     expect(parsed.canonicalIdentity).toBe("potato");
     expect(parsed.rawIngredient).toBe("40 dkg burgonya");
     expect(parsed.recipeTitle).toBe("Gulyásleves");
+    expect(parsed.recipeContext).toContain("raw vegetables");
+    expect(parsed.preparation).toBe("peeled");
+    expect(parsed.sourceQuantity).toBe(40);
+    expect(parsed.sourceUnit).toBe("dkg");
     expect(parsed.candidates).toEqual([{ id: "0", authoritativeName: "Potatoes, raw" }, { id: "1", authoritativeName: "Bread, potato" }]);
     expect(capturedInput).not.toMatch(/kcal|protein|carbs|fiber|userId|email/i);
   });
@@ -117,20 +121,27 @@ describe("ChatSemanticCandidateGateProvider", () => {
     expect(result.get("1")).toBe(false);
   });
 
+  it.each(["incompatible", "uncertain"] as const)("never trusts a same-identity candidate whose form is %s", async (formCompatibility) => {
+    const complete = vi.fn(async (_i: string, _input: string, validate: (v: unknown) => unknown) => validate({ results: [{ id: "0", relationship: "same_identity", formCompatibility }] }));
+    const provider = new ChatSemanticCandidateGateProvider(fakeTransport(complete));
+    const result = await provider.checkRelevance({ identity: "főtt burgonya", canonicalIdentity: "potato", preparation: "boiled" }, [{ id: "0", authoritativeName: "Potatoes, raw" }]);
+    expect(result.get("0")).toBe(false);
+  });
+
   // Owner-beta blocker #9.1 (2026-09-12): the exact real failure — a
   // processed derivative must resolve to false, not merely "not explicitly
   // same" — proving the three-way classification is actually wired to a
   // strict allowlist (only "same_identity" is true), not an inverted
   // denylist that could accidentally admit an unrecognized category.
   it("maps 'processed_derivative' to false — a milled/extracted product is never the same identity as its source ingredient", async () => {
-    const complete = vi.fn(async (_i: string, _input: string, validate: (v: unknown) => unknown) => validate({ results: [{ id: "0", relationship: "processed_derivative" }] }));
+    const complete = vi.fn(async (_i: string, _input: string, validate: (v: unknown) => unknown) => validate({ results: [{ id: "0", relationship: "processed_derivative", formCompatibility: "incompatible" }] }));
     const provider = new ChatSemanticCandidateGateProvider(fakeTransport(complete));
     const result = await provider.checkRelevance({ identity: "burgonya" }, [{ id: "0", authoritativeName: "Potato flour" }]);
     expect(result.get("0")).toBe(false);
   });
 
   it("drops a response id that was never sent — never applies a validation result to a candidate that didn't ask for one", async () => {
-    const complete = vi.fn(async (_i: string, _input: string, validate: (v: unknown) => unknown) => validate({ results: [{ id: "0", relationship: "same_identity" }, { id: "99", relationship: "same_identity" }] }));
+    const complete = vi.fn(async (_i: string, _input: string, validate: (v: unknown) => unknown) => validate({ results: [{ id: "0", relationship: "same_identity", formCompatibility: "compatible" }, { id: "99", relationship: "same_identity", formCompatibility: "compatible" }] }));
     const provider = new ChatSemanticCandidateGateProvider(fakeTransport(complete));
     const result = await provider.checkRelevance({ identity: "burgonya" }, [{ id: "0", authoritativeName: "Potatoes, raw" }]);
     expect(result.get("0")).toBe(true);
@@ -146,14 +157,14 @@ describe("ChatSemanticCandidateGateProvider", () => {
   });
 
   it("returns an EMPTY map when the transport returns a schema-invalid/poisoned payload", async () => {
-    const complete = vi.fn(async (_i: string, _input: string, validate: (v: unknown) => unknown) => validate({ results: [{ id: "0", relationship: "same_identity", kcalPer100g: 77 }] }));
+    const complete = vi.fn(async (_i: string, _input: string, validate: (v: unknown) => unknown) => validate({ results: [{ id: "0", relationship: "same_identity", formCompatibility: "compatible", kcalPer100g: 77 }] }));
     const provider = new ChatSemanticCandidateGateProvider(fakeTransport(complete));
     const result = await provider.checkRelevance({ identity: "burgonya" }, [{ id: "0", authoritativeName: "Potatoes, raw" }]);
     expect(result.size).toBe(0);
   });
 
   it("returns an EMPTY map when the transport returns a relationship value outside the enum (e.g. a stray boolean or free text)", async () => {
-    const complete = vi.fn(async (_i: string, _input: string, validate: (v: unknown) => unknown) => validate({ results: [{ id: "0", relationship: "sort_of_the_same" }] }));
+    const complete = vi.fn(async (_i: string, _input: string, validate: (v: unknown) => unknown) => validate({ results: [{ id: "0", relationship: "sort_of_the_same", formCompatibility: "compatible" }] }));
     const provider = new ChatSemanticCandidateGateProvider(fakeTransport(complete));
     const result = await provider.checkRelevance({ identity: "burgonya" }, [{ id: "0", authoritativeName: "Potatoes, raw" }]);
     expect(result.size).toBe(0);

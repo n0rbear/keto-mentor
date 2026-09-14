@@ -139,7 +139,7 @@ async function resolveFromSearchTerm(
   via: "search_intent" | "raw_query" | "normalized_identity",
   deps: ResolveFromSearchTermDeps,
   aliasLocale: string | undefined,
-  semanticContext?: { rawIngredient?: string; recipeTitle?: string }
+  semanticContext?: { rawIngredient?: string; recipeTitle?: string; recipeContext?: string; preparation?: string; sourceQuantity?: number; sourceUnit?: string }
 ): Promise<DynamicResolutionOutcome> {
   const outcome: ResolutionOutcome = await resolveAuthoritativeFood(prisma, searchTerm, deps.adapters, {
     locale: deps.foodLocale ?? deps.locale ?? "hu",
@@ -150,6 +150,10 @@ async function resolveFromSearchTerm(
     canonicalIdentity: searchTerm,
     rawIngredient: semanticContext?.rawIngredient,
     recipeTitle: semanticContext?.recipeTitle,
+    recipeContext: semanticContext?.recipeContext,
+    preparation: semanticContext?.preparation,
+    sourceQuantity: semanticContext?.sourceQuantity,
+    sourceUnit: semanticContext?.sourceUnit,
     locale: deps.foodLocale ?? deps.locale
   });
   switch (outcome.status) {
@@ -203,13 +207,17 @@ export async function resolveDynamicFood(
  */
 export async function resolveDynamicFoodFromIdentity(
   prisma: DynamicPrisma,
-  input: { canonicalIdentity: string; originalIdentity: string; rawIngredient?: string; recipeTitle?: string; sourceLanguage?: string },
+  input: { canonicalIdentity: string; originalIdentity: string; rawIngredient?: string; recipeTitle?: string; recipeContext?: string; preparation?: string; sourceQuantity?: number; sourceUnit?: string; sourceLanguage?: string },
   deps: ResolveFromSearchTermDeps
 ): Promise<DynamicResolutionOutcome> {
   if (!deps.adapters.length) { logDynamicResolutionOutcome("unresolved", undefined, "no_adapters"); return { status: "unresolved", reason: "no_adapters" }; }
   if (!deps.rateLimiter.consume(deps.userId)) { logDynamicResolutionOutcome("unresolved", undefined, "rate_limited"); return { status: "unresolved", reason: "rate_limited" }; }
   return resolveFromSearchTerm(prisma, input.canonicalIdentity, input.originalIdentity, "normalized_identity", deps, aliasLocaleFor(deps, input.sourceLanguage), {
     rawIngredient: input.rawIngredient,
-    recipeTitle: input.recipeTitle
+    recipeTitle: input.recipeTitle,
+    recipeContext: input.recipeContext,
+    preparation: input.preparation,
+    sourceQuantity: input.sourceQuantity,
+    sourceUnit: input.sourceUnit
   });
 }

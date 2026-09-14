@@ -28,6 +28,10 @@ export type SemanticGateOptions = {
   canonicalIdentity?: string;
   rawIngredient?: string;
   recipeTitle?: string;
+  recipeContext?: string;
+  preparation?: string;
+  sourceQuantity?: number;
+  sourceUnit?: string;
   locale?: string;
 };
 
@@ -98,6 +102,36 @@ export function isRelevantExternalCandidate(query: string, candidateNormalizedNa
   if (!queryTokens.length) return true; // nothing specific enough in the query to check against
   const candidateTokens = candidateNormalizedName.split(" ").filter(Boolean);
   return queryTokens.every((queryToken) => candidateTokens.some((candidateToken) => tokenOverlaps(queryToken, candidateToken)));
+}
+
+function nearlyEqual(a: number, b: number, absolute: number, relative: number) {
+  return Math.abs(a - b) <= Math.max(absolute, Math.max(a, b) * relative);
+}
+
+/**
+ * Collapse only genuinely equivalent authoritative representations. Equal
+ * display text alone is insufficient: source, normalized description,
+ * category, and the complete macro/fiber signature must agree within tight
+ * analytical tolerances. Materially different same-name records remain
+ * separate and therefore confirmation-required.
+ */
+export function collapseEquivalentCandidates(candidates: readonly ExternalFoodCandidate[]): ExternalFoodCandidate[] {
+  const groups: ExternalFoodCandidate[][] = [];
+  for (const candidate of candidates) {
+    const group = groups.find(([first]) => first.source === candidate.source
+      && first.normalizedName === candidate.normalizedName
+      && normalizeSearch(first.category ?? "") === normalizeSearch(candidate.category ?? "")
+      && nearlyEqual(first.kcalPer100g, candidate.kcalPer100g, 5, 0.05)
+      && nearlyEqual(first.fatPer100g, candidate.fatPer100g, 0.5, 0.1)
+      && nearlyEqual(first.proteinPer100g, candidate.proteinPer100g, 0.5, 0.1)
+      && nearlyEqual(first.carbsPer100g, candidate.carbsPer100g, 0.5, 0.1)
+      && nearlyEqual(first.fiberPer100g, candidate.fiberPer100g, 0.5, 0.1));
+    if (group) group.push(candidate); else groups.push([candidate]);
+  }
+  return groups.map((group) => [...group].sort((a, b) => {
+    const quality = (item: ExternalFoodCandidate) => item.provenance && typeof item.provenance === "object" && !Array.isArray(item.provenance) && (item.provenance as Record<string, unknown>).dataType === "Foundation" ? 0 : 1;
+    return quality(a) - quality(b) || a.sourceId.localeCompare(b.sourceId);
+  })[0]);
 }
 
 export function validateExternalCandidate(value: unknown): ExternalFoodCandidate | null {
@@ -272,7 +306,7 @@ export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: 
       try {
         const result = await adapter.lookup(query);
         successfulProviders += 1;
-        rawCandidates.push(...result.slice(0, 5));
+        rawCandidates.push(...result.slice(0, 30));
       } catch {
         continue;
       }
@@ -298,16 +332,26 @@ export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: 
   // Fail-closed by construction (see semantic-candidate-gate.ts) — a gate
   // failure drops every candidate, never lets one through by default.
   if (semanticGate) {
-    const gateInputs = candidates.slice(0, 5).map((candidate, index) => ({ id: String(index), authoritativeName: candidate.originalName || candidate.name }));
+    // USDA's first five hits for an ordinary identity can be entirely
+    // derivatives (the live `potato` query returned bread/flour/pancakes/
+    // baby food). Preserve source ranking but review a wider bounded window;
+    // the semantic gate remains the only authority that can admit a result.
+    const reviewCandidates = candidates.slice(0, 30);
+    const gateInputs = reviewCandidates.map((candidate, index) => ({ id: String(index), authoritativeName: candidate.originalName || candidate.name }));
     const relevance = await timeStage("semantic_gate_ai", () => semanticGate.provider.checkRelevance({
       identity: semanticGate.originalIdentity,
       canonicalIdentity: semanticGate.canonicalIdentity ?? query,
       rawIngredient: semanticGate.rawIngredient,
       recipeTitle: semanticGate.recipeTitle,
+      recipeContext: semanticGate.recipeContext,
+      preparation: semanticGate.preparation,
+      sourceQuantity: semanticGate.sourceQuantity,
+      sourceUnit: semanticGate.sourceUnit,
       locale: semanticGate.locale
     }, gateInputs));
-    candidates = candidates.slice(0, 5).filter((_, index) => relevance.get(String(index)) === true);
+    candidates = reviewCandidates.filter((_, index) => relevance.get(String(index)) === true);
     if (!candidates.length) return { status: "unresolved", candidates: [], reason: "not_found" };
+    candidates = collapseEquivalentCandidates(candidates);
   }
 
   const duplicate = await findDuplicate(prisma, candidates[0]);

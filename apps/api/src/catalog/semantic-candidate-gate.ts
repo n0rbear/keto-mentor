@@ -88,8 +88,9 @@ export type CandidateRelationship = (typeof CANDIDATE_RELATIONSHIPS)[number];
 const semanticCandidateGateOutputSchema = z.object({
   results: z.array(z.object({
     id: z.string().trim().min(1).max(64),
-    relationship: z.enum(CANDIDATE_RELATIONSHIPS)
-  }).strict()).min(1).max(10)
+    relationship: z.enum(CANDIDATE_RELATIONSHIPS),
+    formCompatibility: z.enum(["compatible", "incompatible", "uncertain"])
+  }).strict()).min(1).max(30)
 }).strict();
 
 export type SemanticCandidateGateOutput = z.infer<typeof semanticCandidateGateOutputSchema>;
@@ -100,7 +101,8 @@ export const SEMANTIC_CANDIDATE_GATE_INSTRUCTION = `For each CANDIDATE, classify
 - "same_identity": the candidate IS the original food itself, differing at most by STATE — raw vs cooked/boiled/steamed/roasted/frozen/dried WHOLE, peeled vs unpeeled, or a cut/part of the same item (e.g. flesh and skin). Nothing was milled, ground, pressed, extracted, juiced, powdered, fermented into a new product, or combined with anything else.
 - "processed_derivative": the candidate is INDUSTRIALLY MADE FROM the original — milled into flour/meal, extracted into starch, pressed/extracted into juice or oil, dried into powder, or otherwise transformed into a product with its own distinct name, texture, use, and nutrition profile that is no longer the original whole food.
 - "different_prepared_food": the candidate is a DISH, sausage/luncheon meat, cheese, butter, bread, pastry, soup, snack product, or any other manufactured/composite food that merely contains, uses, is made with, or is flavored by the original as one ingredient among others.
-Return only JSON: { "results": [{ "id": string, "relationship": "same_identity" | "processed_derivative" | "different_prepared_food" }, ...] }, exactly one entry per candidate, reusing the same "id" values given to you.
+Also classify formCompatibility as "compatible", "incompatible", or "uncertain". A candidate is compatible only when its culinary state/form fits how the ingredient quantity is supplied. Use explicit preparation first, then the raw line, structured source quantity/unit, recipe title, and recipe context. Count units such as piece/stalk/head are evidence for a whole fresh item rather than canned/pureed/processed food. An unprepared ingredient measured before cooking often supports a raw candidate, but this is evidence, NEVER a universal rule: explicit cooked/boiled/fried/dried/canned/frozen wording controls. If the evidence cannot distinguish two materially different forms, use uncertain rather than guessing.
+Return only JSON: { "results": [{ "id": string, "relationship": "same_identity" | "processed_derivative" | "different_prepared_food", "formCompatibility": "compatible" | "incompatible" | "uncertain" }, ...] }, exactly one entry per candidate, reusing the same "id" values given to you.
 Examples of "same_identity": original "potato" vs candidate "Potatoes, raw, flesh and skin" or "Potatoes, boiled"; original "salt" vs candidate "Salt, table"; original "lard" vs candidate "Lard" or "Fat, pork"; original "sour cream" vs candidate "Cream, sour, cultured".
 Examples of "processed_derivative": original "potato" vs candidate "Potato flour" or "Potato starch" (milled/extracted from potato, not potato itself); original "milk" vs candidate "Milk, powder" or "Milk, dry"; original "corn" vs candidate "Corn flour" or "Cornstarch"; original "apple" vs candidate "Apple juice".
 Examples of "different_prepared_food": original "potato" vs candidate "Bread, potato" or "Potato chips" or "Potato soup"; original "salt" vs candidate "Butter, salted"; original "lard" vs candidate "Bologna, beef and pork, low fat"; original "pork" vs candidate "Pork sausage" or "Bologna, beef and pork"; original "milk" vs candidate "Cheese, cheddar"; original "apple" vs candidate "Apple pie".
@@ -115,6 +117,10 @@ export type SemanticCandidateIdentityContext = {
   canonicalIdentity?: string;
   rawIngredient?: string;
   recipeTitle?: string;
+  recipeContext?: string;
+  preparation?: string;
+  sourceQuantity?: number;
+  sourceUnit?: string;
   locale?: string;
 };
 
@@ -157,6 +163,10 @@ export class ChatSemanticCandidateGateProvider implements SemanticCandidateGateP
       canonicalIdentity: original.canonicalIdentity,
       rawIngredient: original.rawIngredient,
       recipeTitle: original.recipeTitle,
+      recipeContext: original.recipeContext,
+      preparation: original.preparation,
+      sourceQuantity: original.sourceQuantity,
+      sourceUnit: original.sourceUnit,
       originalLocale: original.locale,
       candidates: candidates.map((c) => ({ id: c.id, authoritativeName: c.authoritativeName }))
     };
@@ -171,7 +181,7 @@ export class ChatSemanticCandidateGateProvider implements SemanticCandidateGateP
         // "processed_derivative" and "different_prepared_food" are rejected,
         // deterministically, in code (never re-asked of the model as a
         // separate yes/no that it could answer inconsistently).
-        if (knownIds.has(row.id)) map.set(row.id, row.relationship === "same_identity");
+        if (knownIds.has(row.id)) map.set(row.id, row.relationship === "same_identity" && row.formCompatibility === "compatible");
       }
       return map;
     } catch {
