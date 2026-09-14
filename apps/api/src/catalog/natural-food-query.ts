@@ -4,6 +4,7 @@ export type NaturalQuantityUnit = "g" | "kg" | "ml" | "l" | "piece" | "slice" | 
 
 export type ParsedNaturalFoodQuery = {
   quantity?: number;
+  quantityUpper?: number;
   unit?: NaturalQuantityUnit;
   size?: "small" | "medium" | "large";
   vesselShape?: "deep";
@@ -279,14 +280,16 @@ function parseSegment(normalized: string): ParsedNaturalFoodQuery {
   // position, so the REAL unit word one token later ("tk") was never
   // recognized as a unit and instead got swept into the food-query text
   // alongside the food name ("tk mustar" instead of "mustar"). The lower
-  // bound is kept as the deterministic quantity (a conservative, explicitly
-  // stated value — never an invented average) and the upper-bound token is
-  // simply consumed/discarded here so unit detection sees its real next
-  // token again.
+  // lower bound remains `quantity`, while `quantityUpper` preserves the
+  // source range independently for contextual recipe estimation/review.
   let quantityRangeUpperIndex = -1;
+  let quantityUpper: number | undefined;
   if (quantityIndex >= 0) {
     const next = Number((tokens[quantityIndex + 1] ?? "").replace("decimal", ".").replace(",", "."));
-    if (Number.isFinite(next) && (tokens[quantityIndex + 1] ?? "").trim() !== "") quantityRangeUpperIndex = quantityIndex + 1;
+    if (Number.isFinite(next) && next > quantity! && (tokens[quantityIndex + 1] ?? "").trim() !== "") {
+      quantityRangeUpperIndex = quantityIndex + 1;
+      quantityUpper = next;
+    }
   }
 
   const rest = quantityIndex >= 0
@@ -351,6 +354,7 @@ function parseSegment(normalized: string): ParsedNaturalFoodQuery {
 
   const result: ParsedNaturalFoodQuery = { foodQuery };
   if (quantity != null) { result.quantity = quantity; result.unit = unit; }
+  if (quantityUpper != null) result.quantityUpper = quantityUpper;
   if (size) result.size = size;
   if (vesselShape) result.vesselShape = vesselShape;
   if (fill) result.fill = fill;

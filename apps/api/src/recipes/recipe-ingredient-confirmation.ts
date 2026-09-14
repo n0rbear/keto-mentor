@@ -10,6 +10,7 @@ import type { SafeFetcherDependencies } from "./safe-url-fetcher.js";
 import { learnConfirmedAlias } from "../catalog/confirmed-alias.js";
 import type { FoodLocale } from "../catalog/food-locale.js";
 import type { RecipeIngredientNormalizationProvider } from "./recipe-ingredient-normalization.js";
+import type { RecipeQuantityEstimationProvider } from "./recipe-quantity-estimation.js";
 
 /**
  * Batch recipe-ingredient confirmation (owner-beta blocker #7, 2026-09-11).
@@ -91,6 +92,7 @@ export type RecipeIngredientConfirmationDeps = {
   // Optional — reDerivePreview's own previewRecipeImport call defaults to
   // Disabled (the existing per-ingredient path) when omitted.
   recipeIngredientNormalizationProvider?: RecipeIngredientNormalizationProvider;
+  recipeQuantityEstimationProvider?: RecipeQuantityEstimationProvider;
 };
 
 function invalidRequest(publicCode: string) {
@@ -106,7 +108,7 @@ function invalidRequest(publicCode: string) {
  * externalCandidates array, regardless of what the client claims.
  */
 async function reDerivePreview(prisma: PrismaClient, sourceUrl: string, deps: RecipeIngredientConfirmationDeps) {
-  const extracted = await previewRecipeImport(prisma, sourceUrl, deps.fetchDependencies ?? {}, deps.recipeAiProvider, deps.dynamic, deps.recipeIngredientNormalizationProvider);
+  const extracted = await previewRecipeImport(prisma, sourceUrl, deps.fetchDependencies ?? {}, deps.recipeAiProvider, deps.dynamic, deps.recipeIngredientNormalizationProvider, deps.recipeQuantityEstimationProvider);
   const reviews = extracted.ingredients.map((ingredient) => toIngredientReview(ingredient as unknown as ReviewableIngredient));
   return { extracted, reviews };
 }

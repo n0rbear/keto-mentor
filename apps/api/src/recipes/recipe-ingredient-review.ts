@@ -12,6 +12,7 @@ import { addMacros, emptyMacros, scaleMacros, type MacroTotals } from "../nutrit
  * only ever carry already-trusted catalog Food rows.
  */
 export type RecipeIngredientReviewStatus = "resolved" | "confirmation_required" | "unresolved";
+export type RecipeQuantitySource = "explicit" | "authoritative_conversion" | "estimated" | "unquantified_seasoning" | "unknown";
 
 export type TrustedFoodSummary = {
   id: string;
@@ -54,6 +55,10 @@ export type RecipeIngredientReview = {
   localCandidates?: LocalCandidateSummary[];
   quantityStatus: "resolved" | "unresolved";
   quantityGrams?: number;
+  quantitySource: RecipeQuantitySource;
+  quantityConfidence?: number;
+  quantityRange?: { min: number; max: number; unit?: string };
+  excludeFromNutrition: boolean;
   // THE FIX (owner-beta blocker #6): true only when status === "resolved"
   // AND quantityStatus === "resolved". A confirmation_required ingredient
   // NEVER counts, even though interpretOne intentionally keeps a preview
@@ -76,6 +81,11 @@ export type ReviewableIngredient = {
   selectedFood: { id: string; name: string; source: string; kcalPer100g: number; fatPer100g: number; proteinPer100g: number; carbsPer100g: number; fiberPer100g: number } | null;
   candidates: readonly { id: string; name: string; source: string }[];
   quantity: { status: string; grams?: number } | null;
+  quantitySource?: RecipeQuantitySource;
+  quantityGrams?: number;
+  quantityConfidence?: number;
+  quantityRange?: { min: number; max: number; unit?: string };
+  excludeFromNutrition?: boolean;
   externalCandidates?: ExternalFoodCandidate[];
   externalCandidatesReason?: "ambiguous" | "possible_duplicate" | "weak_match";
 };
@@ -100,10 +110,12 @@ export function toIngredientReview(ingredient: ReviewableIngredient): RecipeIngr
     : ingredient.resolution === "confirmation_required" || ingredient.resolution === "preview" ? "confirmation_required"
     : "unresolved";
 
-  const quantityStatus: "resolved" | "unresolved" = ingredient.quantity?.status === "resolved" ? "resolved" : "unresolved";
-  const quantityGrams = ingredient.quantity?.status === "resolved" ? ingredient.quantity.grams : undefined;
+  const quantityGrams = ingredient.quantity?.status === "resolved" ? ingredient.quantity.grams : ingredient.quantityGrams;
+  const quantityStatus: "resolved" | "unresolved" = quantityGrams != null ? "resolved" : "unresolved";
+  const quantitySource: RecipeQuantitySource = ingredient.quantitySource ?? (quantityStatus === "resolved" ? "authoritative_conversion" : "unknown");
+  const excludeFromNutrition = ingredient.excludeFromNutrition === true && quantitySource === "unquantified_seasoning";
 
-  const trustedNutritionReady = status === "resolved" && quantityStatus === "resolved" && !!ingredient.selectedFood;
+  const trustedNutritionReady = excludeFromNutrition || (status === "resolved" && quantityStatus === "resolved" && !!ingredient.selectedFood);
   const resolvedFood = status === "resolved" && ingredient.selectedFood ? toTrustedFoodSummary(ingredient.selectedFood) : null;
 
   const hasExternalCandidates = status === "confirmation_required" && !!ingredient.externalCandidates?.length;
@@ -125,6 +137,10 @@ export function toIngredientReview(ingredient: ReviewableIngredient): RecipeIngr
     localCandidates,
     quantityStatus,
     quantityGrams,
+    quantitySource,
+    quantityConfidence: ingredient.quantityConfidence,
+    quantityRange: ingredient.quantityRange,
+    excludeFromNutrition,
     trustedNutritionReady
   };
 }
@@ -196,6 +212,7 @@ export function computeTrustedNutrition(ingredients: readonly RecipeIngredientRe
   let totals = emptyMacros();
   let weightGrams = 0;
   for (const ingredient of ingredients) {
+    if (ingredient.excludeFromNutrition) continue;
     const food = ingredient.resolvedFood!;
     const grams = ingredient.quantityGrams!;
     weightGrams += grams;

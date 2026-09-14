@@ -17,6 +17,7 @@ import { configuredSemanticCandidateGateProvider } from "../catalog/semantic-can
 import { DynamicFoodResolutionRateLimiter } from "../catalog/dynamic-food-rate-limit.js";
 import { foodLocaleFor } from "../catalog/food-locale.js";
 import { configuredRecipeIngredientNormalizationProvider } from "./recipe-ingredient-normalization-gateway.js";
+import { configuredRecipeQuantityEstimationProvider } from "./recipe-quantity-estimation-gateway.js";
 
 export const recipeRouter = Router();
 recipeRouter.use(requireAuth);
@@ -55,6 +56,7 @@ const semanticCandidateGateProvider = configuredSemanticCandidateGateProvider(en
 // (falls back to the existing per-ingredient path) exactly like every other
 // provider here on misconfiguration.
 const recipeIngredientNormalizationProvider = configuredRecipeIngredientNormalizationProvider(env);
+const recipeQuantityEstimationProvider = configuredRecipeQuantityEstimationProvider(env);
 const dynamicFoodResolutionLimiter = new DynamicFoodResolutionRateLimiter();
 // Identical to server.ts's own trustedLocale — the authenticated user's own
 // persisted locale is the single trusted source of UI language, never a
@@ -86,7 +88,7 @@ recipeRouter.post("/import-url/preview/confirm-ingredients", confirmIngredientsL
     const result = await confirmRecipeIngredients(prisma, req.user!.id, input, {
       recipeAiProvider, dynamic, confirmAdapters: externalFoodConfirmAdapters,
       localization: { locale: foodLocale, provider: candidateLocalizationProvider },
-      foodLocale, recipeIngredientNormalizationProvider,
+      foodLocale, recipeIngredientNormalizationProvider, recipeQuantityEstimationProvider,
       mintProof: (sourceUrl, method) => createRecipeImportProof(req.user!.id, sourceUrl, method)
     });
     res.json(result);

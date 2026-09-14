@@ -38,6 +38,7 @@ import { configuredSearchIntentProvider } from "./catalog/search-intent-gateway.
 import { configuredCandidateLocalizationProvider } from "./catalog/candidate-localization-gateway.js";
 import { configuredSemanticCandidateGateProvider } from "./catalog/semantic-candidate-gate-gateway.js";
 import { configuredRecipeIngredientNormalizationProvider } from "./recipes/recipe-ingredient-normalization-gateway.js";
+import { configuredRecipeQuantityEstimationProvider } from "./recipes/recipe-quantity-estimation-gateway.js";
 import { DynamicFoodResolutionRateLimiter } from "./catalog/dynamic-food-rate-limit.js";
 import { configuredWebKnowledgeSearchProvider } from "./web-knowledge/web-knowledge-gateway.js";
 import { WebKnowledgeSearchRateLimiter } from "./web-knowledge/web-knowledge-rate-limit.js";
@@ -85,6 +86,7 @@ const semanticCandidateGateProvider = configuredSemanticCandidateGateProvider(en
 // identity; only used by recipe-discovery-fallback's own recipe-ingredient
 // resolution below, never wired into ordinary (non-recipe) meal-input items.
 const recipeIngredientNormalizationProvider = configuredRecipeIngredientNormalizationProvider(env);
+const recipeQuantityEstimationProvider = configuredRecipeQuantityEstimationProvider(env);
 const dynamicFoodResolutionLimiter = new DynamicFoodResolutionRateLimiter();
 // Owner-beta (2026-09-14): a SEPARATE, more generously-sized limiter
 // dedicated to recipe-discovery ingredient resolution — see
@@ -357,7 +359,7 @@ app.post("/meal-input/interpret", requireAuth, async (req, res, next) => {
     // per-ingredient resolution otherwise has only the sparse local catalog
     // to match against. Still `null` whenever no external adapters are
     // configured, matching ordinary meal-input's own behavior exactly.
-    const withDiscovery = await attachRecipeDiscoveryFallback(result, { discoveryService: recipeDiscoveryService, recipeAiProvider: recipeDiscoveryAiProvider, prisma, userId: req.user!.id, locale: trustedLocale(req.user!), onProgress, dynamic: recipeIngredientDynamic, recipeIngredientNormalizationProvider });
+    const withDiscovery = await attachRecipeDiscoveryFallback(result, { discoveryService: recipeDiscoveryService, recipeAiProvider: recipeDiscoveryAiProvider, prisma, userId: req.user!.id, locale: trustedLocale(req.user!), onProgress, dynamic: recipeIngredientDynamic, recipeIngredientNormalizationProvider, recipeQuantityEstimationProvider });
     onProgress("finalizing");
     // Owner-beta diagnostics checkpoint (2026-09-13): derived entirely from
     // the already-computed, already-response-bound result above — see

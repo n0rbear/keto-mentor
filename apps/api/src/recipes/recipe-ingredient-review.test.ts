@@ -142,6 +142,12 @@ describe("classifyRecipeReview: recipe-level state (FULLY_RESOLVED / REVIEWABLE 
 });
 
 describe("computeTrustedNutrition: final nutrition only from trusted ingredients", () => {
+  it("excludes a visible unquantified seasoning without blocking calculation", () => {
+    const trustedCabbage = toIngredientReview(ingredient({ resolution: "resolved", selectedFood: cabbage, quantity: { status: "resolved", grams: 500 }, quantitySource: "explicit" }));
+    const salt = toIngredientReview(ingredient({ originalText: "só ízlés szerint", parsedFoodQuery: "salt", resolution: "unresolved", selectedFood: null, quantity: null, quantitySource: "unquantified_seasoning", excludeFromNutrition: true }));
+    expect(salt).toMatchObject({ excludeFromNutrition: true, quantitySource: "unquantified_seasoning", trustedNutritionReady: true });
+    expect(computeTrustedNutrition([trustedCabbage, salt]).calculable).toBe(true);
+  });
   it("refuses to compute anything when even one ingredient is merely confirmation_required", () => {
     const trustedCabbage = toIngredientReview(ingredient({ resolution: "resolved", selectedFood: cabbage, quantity: { status: "resolved", grams: 500 } }));
     const previewEgg = toIngredientReview(ingredient({ resolution: "confirmation_required", selectedFood: egg, quantity: { status: "resolved", grams: 250 } }));

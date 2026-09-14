@@ -119,7 +119,7 @@ describe("resolveRecipeIngredientsBatch", () => {
       { title: "Klasszikus gulyásleves", locale: "hu", lines: [{ index: 0, raw: "1-2 tk mustár", parsed: parseNaturalFoodQuery("1-2 tk mustár") }] },
       deps
     );
-    expect(captured).toMatchObject({ identity: "mustár", canonicalIdentity: "prepared mustard", rawIngredient: "1-2 tk mustár", recipeTitle: "Klasszikus gulyásleves" });
+    expect(captured).toMatchObject({ identity: "prepared mustard", canonicalIdentity: "prepared mustard", rawIngredient: "1-2 tk mustár", recipeTitle: "Klasszikus gulyásleves" });
   });
 
   // Owner-beta checkpoint (2026-09-13): the "só, bors" case from the
@@ -136,11 +136,12 @@ describe("resolveRecipeIngredientsBatch", () => {
       dynamicDeps(prisma, async () => [])
     );
     expect(result).toHaveLength(2);
-    expect(result!.map((r) => r.parsedFoodQuery)).toEqual(["só", "bors"]);
+    expect(result!.map((r) => r.parsedFoodQuery)).toEqual(["salt", "pepper"]);
     // Neither food gets a deterministic quantity — the original line stated
     // no split, so quantity stays unresolved/unconfirmable for both.
     expect(result!.every((r) => r.quantity === null)).toBe(true);
     expect(result!.every((r) => r.canConfirm === false)).toBe(true);
+    expect(result!.every((r) => r.quantitySource === "unquantified_seasoning" && r.excludeFromNutrition === true)).toBe(true);
   });
 
   it("an ingredient line the model returned no foods for (defensive) is treated as unresolved, never thrown", async () => {
@@ -153,6 +154,43 @@ describe("resolveRecipeIngredientsBatch", () => {
     expect(result).toHaveLength(1);
     expect(result![0].resolution).toBe("unresolved");
     expect(result![0].selectedFood).toBeNull();
+  });
+
+  it("preserves explicit grams even when potato identity remains unresolved", async () => {
+    const { prisma } = fakePrisma();
+    const result = await resolveRecipeIngredientsBatch(prisma, normalizationProvider({ ingredients: [{ index: 0, foods: [{ canonicalIdentity: "potato", localName: "krumpli" }] }] }), { lines: [{ index: 0, raw: "500 g krumpli", parsed: parseNaturalFoodQuery("500 g krumpli") }] }, null);
+    expect(result![0]).toMatchObject({ parsedFoodQuery: "potato", resolution: "unresolved", quantityGrams: 500, quantitySource: "explicit", canConfirm: false });
+  });
+
+  it("estimates household quantities once in batch, independently of identity resolution", async () => {
+    const { prisma } = fakePrisma();
+    let calls = 0;
+    const quantityProvider: any = { id: "fixture", estimate: async (input: any) => { calls++; expect(input.items.map((i: any) => i.identity)).toEqual(["garlic", "parsley"]); return { estimates: [{ index: 0, grams: 6, confidence: .8 }, { index: 1, grams: 20, confidence: .7 }] }; } };
+    const result = await resolveRecipeIngredientsBatch(prisma, normalizationProvider({ ingredients: [
+      { index: 0, foods: [{ canonicalIdentity: "garlic", localName: "fokhagyma" }] },
+      { index: 1, foods: [{ canonicalIdentity: "parsley", localName: "petrezselyem" }] }
+    ] }), { title: "Soup", lines: [
+      { index: 0, raw: "2 gerezd fokhagyma", parsed: parseNaturalFoodQuery("2 gerezd fokhagyma") },
+      { index: 1, raw: "1 csokor petrezselyem", parsed: parseNaturalFoodQuery("1 csokor petrezselyem") }
+    ] }, null, quantityProvider);
+    expect(calls).toBe(1);
+    expect(result!.map((i) => [i.parsedFoodQuery, i.quantityGrams, i.quantitySource])).toEqual([["garlic", 6, "estimated"], ["parsley", 20, "estimated"]]);
+    expect(result!.every((i) => i.resolution === "unresolved" && i.canConfirm === false)).toBe(true);
+  });
+
+  it("rejects a contextually absurd estimate without losing the identity result", async () => {
+    const { prisma } = fakePrisma();
+    const result = await resolveRecipeIngredientsBatch(prisma, normalizationProvider({ ingredients: [{ index: 0, foods: [{ canonicalIdentity: "garlic" }] }] }), { lines: [{ index: 0, raw: "2 gerezd fokhagyma", parsed: parseNaturalFoodQuery("2 gerezd fokhagyma") }] }, null, { id: "fixture", estimate: async () => ({ estimates: [{ index: 0, grams: 40_000, confidence: .9 }] }) });
+    expect(result![0]).toMatchObject({ parsedFoodQuery: "garlic", quantitySource: "unknown", canConfirm: false });
+    expect(result![0].quantityGrams).toBeUndefined();
+  });
+
+  it("sends identity only to local catalog search and keeps material unknown bread blocking", async () => {
+    const queries: string[] = [];
+    const prisma: any = { food: { findMany: async ({ where }: any) => { queries.push(...(where?.OR ?? []).map((x: any) => x.searchText?.contains).filter(Boolean)); return []; } }, foodAlias: { findMany: async () => [] } };
+    const result = await resolveRecipeIngredientsBatch(prisma, normalizationProvider({ ingredients: [{ index: 0, foods: [{ canonicalIdentity: "parsley", localName: "petrezselyem" }] }, { index: 1, foods: [{ canonicalIdentity: "bread", localName: "kenyér" }] }] }), { lines: [{ index: 0, raw: "1 csokor petrezselyem", parsed: parseNaturalFoodQuery("1 csokor petrezselyem") }, { index: 1, raw: "friss kenyér", parsed: parseNaturalFoodQuery("friss kenyér") }] }, null, { id: "fixture", estimate: async () => ({ estimates: [{ index: 0, grams: 20, confidence: .7 }] }) });
+    expect(queries.every((q) => !q.includes("20") && !q.includes("csokor") && !q.includes("petrezselyem"))).toBe(true);
+    expect(result![1]).toMatchObject({ parsedFoodQuery: "bread", quantitySource: "unknown", excludeFromNutrition: false, canConfirm: false });
   });
 
   it("a dynamic confirmation_required outcome carries externalCandidates through, never auto-resolved", async () => {

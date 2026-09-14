@@ -46,7 +46,7 @@ describe("natural food query parser", () => {
   // food-query text alongside the food name ("tk mustar" instead of
   // "mustar"). The lower bound is kept as the deterministic quantity.
   it("parses a quantity range, keeping the lower bound and never letting the upper bound swallow the real unit", () => {
-    expect(parseNaturalFoodQuery("1 - 2 tk mustár")).toEqual({ quantity: 1, unit: "tsp", foodQuery: "mustar" });
+    expect(parseNaturalFoodQuery("1 - 2 tk mustár")).toEqual({ quantity: 1, quantityUpper: 2, unit: "tsp", foodQuery: "mustar" });
   });
   it.each([
     ["5 tojás", { quantity: 5, unit: "piece", foodQuery: "tojas" }],

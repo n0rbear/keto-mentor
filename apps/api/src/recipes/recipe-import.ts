@@ -7,6 +7,7 @@ import { RECIPE_IMPORT_LIMITS as LIMITS } from "./recipe-import-limits.js";
 import { DisabledRecipeExtractionProvider, type RecipeExtraction, type RecipeExtractionProvider } from "./recipe-extraction-provider.js";
 import { DisabledRecipeIngredientNormalizationProvider, type RecipeIngredientNormalizationProvider } from "./recipe-ingredient-normalization.js";
 import { resolveRecipeIngredientsBatch } from "./recipe-ingredient-batch-resolution.js";
+import { DisabledRecipeQuantityEstimationProvider, type RecipeQuantityEstimationProvider } from "./recipe-quantity-estimation.js";
 
 // Owner-beta (2026-09-14): lowered from 4. Each concurrently-resolving
 // ingredient can independently trigger its OWN dynamic-resolution AI calls
@@ -236,7 +237,8 @@ export async function previewRecipeImport(
   // ingredient resolution only; extraction, limits, and every downstream
   // trust/authority mechanism (external-food.ts, semantic-candidate-gate.ts)
   // are completely unchanged either way.
-  normalizationProvider: RecipeIngredientNormalizationProvider = new DisabledRecipeIngredientNormalizationProvider()
+  normalizationProvider: RecipeIngredientNormalizationProvider = new DisabledRecipeIngredientNormalizationProvider(),
+  quantityProvider: RecipeQuantityEstimationProvider = new DisabledRecipeQuantityEstimationProvider()
 ) {
   try {
     const page = await fetchPublicHtml(url, fetchDependencies);
@@ -250,7 +252,7 @@ export async function previewRecipeImport(
 
     const lines = extracted.ingredients.map((raw, index) => ({ index, raw, parsed: parseNaturalFoodQuery(raw) }));
     const batchResult = dynamic
-      ? await resolveRecipeIngredientsBatch(prisma, normalizationProvider, { title: extracted.title, locale: dynamic.foodLocale ?? dynamic.locale, lines }, dynamic)
+      ? await resolveRecipeIngredientsBatch(prisma, normalizationProvider, { title: extracted.title, locale: dynamic.foodLocale ?? dynamic.locale, lines }, dynamic, quantityProvider)
       : null;
     const ingredients = batchResult ?? await resolveIngredientsPerLine(prisma, extracted.ingredients, dynamic);
     return { ...extracted, ingredients };

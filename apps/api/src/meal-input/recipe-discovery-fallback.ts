@@ -12,6 +12,7 @@ import { classifyRecipeReview, computeTrustedNutrition, toIngredientReview, type
 import { findTrustedLocalRecipe } from "./local-recipe-lookup.js";
 import type { ProgressStage } from "./progress-bus.js";
 import type { RecipeIngredientNormalizationProvider } from "../recipes/recipe-ingredient-normalization.js";
+import type { RecipeQuantityEstimationProvider } from "../recipes/recipe-quantity-estimation.js";
 
 export type RecipeDiscoveryFallbackDeps = {
   discoveryService: RecipeDiscoveryService;
@@ -36,6 +37,7 @@ export type RecipeDiscoveryFallbackDeps = {
   // Optional — previewRecipeImport itself defaults to Disabled (falls back
   // to the existing per-ingredient path) when omitted.
   recipeIngredientNormalizationProvider?: RecipeIngredientNormalizationProvider;
+  recipeQuantityEstimationProvider?: RecipeQuantityEstimationProvider;
 };
 
 type ExtractedPreview = Awaited<ReturnType<typeof previewRecipeImport>>;
@@ -140,7 +142,7 @@ type AttemptResult =
 async function attemptCandidate(index: number, candidate: RecipeDiscoveryCandidate, deps: RecipeDiscoveryFallbackDeps): Promise<AttemptResult> {
   let extracted: ExtractedPreview;
   try {
-    extracted = await previewRecipeImport(deps.prisma, candidate.url, deps.fetchDependencies ?? {}, deps.recipeAiProvider, deps.dynamic ?? null, deps.recipeIngredientNormalizationProvider);
+    extracted = await previewRecipeImport(deps.prisma, candidate.url, deps.fetchDependencies ?? {}, deps.recipeAiProvider, deps.dynamic ?? null, deps.recipeIngredientNormalizationProvider, deps.recipeQuantityEstimationProvider);
   } catch (error) {
     const code = error instanceof RecipeImportError ? error.publicCode : "unknown";
     if (error instanceof RecipeImportError && RECOVERABLE_CANDIDATE_CODES.has(code)) {
