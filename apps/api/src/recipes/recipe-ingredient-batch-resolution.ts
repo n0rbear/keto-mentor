@@ -1,4 +1,4 @@
-import { searchFoods, isTrustedLocalMatch } from "../catalog/food-search.js";
+import { searchFoods, isTrustedLocalMatch, foodNameRepresentations, hasSemanticCoverage } from "../catalog/food-search.js";
 import { resolveDynamicFoodFromIdentity } from "../catalog/dynamic-food-resolution.js";
 import { resolveQuantity, type DynamicResolutionDeps } from "../meal-input/interpret.js";
 import { DisabledQuantityEstimationProvider } from "../meal-input/quantity-estimation.js";
@@ -65,8 +65,12 @@ export async function resolveRecipeIngredientsBatch(
       const sourceIdentity = line.parsed.foodQuery.trim();
       const sourceCandidates = sourceIdentity && sourceIdentity !== identityQuery ? (await searchFoods(prisma, sourceIdentity, 8)) as any[] : [];
       const canonicalCandidates = (await searchFoods(prisma, identityQuery, 8)) as any[];
-      const localCandidates = [...sourceCandidates, ...canonicalCandidates.filter((candidate) => !sourceCandidates.some((source) => source.id === candidate.id))];
-      const top = localCandidates.find((candidate) => isTrustedLocalMatch(candidate.match));
+      const localCandidates = [...canonicalCandidates, ...sourceCandidates.filter((candidate) => !canonicalCandidates.some((canonical) => canonical.id === candidate.id))];
+      // Canonical normalization is the stronger identity evidence. A broad
+      // source phrase ("mustár", or a split "só, bors" line) must not let
+      // an exact lexical hit for a DIFFERENT canonical food outrank it.
+      const top = canonicalCandidates.find((candidate) => isTrustedLocalMatch(candidate.match))
+        ?? sourceCandidates.find((candidate) => isTrustedLocalMatch(candidate.match) && hasSemanticCoverage(identityQuery, foodNameRepresentations(candidate)));
       if (top) { selectedFood = top; resolution = "resolved"; candidates = [top]; }
       if (!selectedFood && dynamic) {
         const outcome = await resolveDynamicFoodFromIdentity(dynamic.prisma, { canonicalIdentity: identityQuery, originalIdentity: identityQuery, rawIngredient: line.raw, recipeTitle: input.title, recipeContext: input.context, preparation: food.preparation ?? line.parsed.preparation ?? "as supplied; no pre-cooked state stated", sourceQuantity: line.parsed.quantity, sourceUnit: line.parsed.unit }, dynamic);

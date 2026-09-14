@@ -64,6 +64,15 @@ function normalizationProvider(output: unknown): RecipeIngredientNormalizationPr
 }
 
 describe("resolveRecipeIngredientsBatch", () => {
+  it("prefers canonical identity over a misleading exact source-phrase match", async () => {
+    const foods = [
+      { id: "greens", name: "Mustard greens, raw", names: { hu: "mustár" }, searchText: "mustár mustard greens raw", createdById: null, servings: [] },
+      { id: "prepared", name: "Mustard, prepared, yellow", names: { en: "prepared mustard" }, searchText: "prepared mustard yellow", createdById: null, servings: [] }
+    ];
+    const fake = { food: { findMany: async () => foods }, foodAlias: { findMany: async () => [] } } as any;
+    const result = await resolveRecipeIngredientsBatch(fake, normalizationProvider({ ingredients: [{ index: 0, foods: [{ canonicalIdentity: "prepared mustard" }] }] }), { lines: [{ index: 0, raw: "1 tsp mustár", parsed: parseNaturalFoodQuery("1 tsp mustár") }] }, null);
+    expect(result?.[0].selectedFood?.id).toBe("prepared");
+  });
   it("returns null when the normalization provider itself returns null — the caller falls back to the per-ingredient path", async () => {
     const { prisma } = fakePrisma();
     const result = await resolveRecipeIngredientsBatch(
