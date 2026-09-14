@@ -273,7 +273,7 @@ type SiblingOverlapMatch = { itemIndex: number; canonicalName: string };
  *    names the same food the sibling independently resolved. Never
  *    auto-decided either way.
  */
-function detectSiblingOverlap(ingredients: readonly RecipeIngredientReview[], items: readonly InterpretResult[], targetIndex: number): { confirmed: SiblingOverlapMatch[]; possible: SiblingOverlapMatch[] } {
+export function detectSiblingOverlap(ingredients: readonly RecipeIngredientReview[], items: readonly InterpretResult[], targetIndex: number): { confirmed: SiblingOverlapMatch[]; possible: SiblingOverlapMatch[] } {
   const confirmed: SiblingOverlapMatch[] = [];
   const possible: SiblingOverlapMatch[] = [];
   items.forEach((sibling, index) => {
@@ -286,6 +286,10 @@ function detectSiblingOverlap(ingredients: readonly RecipeIngredientReview[], it
     let confirmedMatch = false;
     let possibleMatch = false;
     for (const ingredient of ingredients) {
+      // A source-recipe serving accompaniment is visible context, not part
+      // of the base dish. If the user explicitly consumes the same food as
+      // a sibling item, it must remain independently countable.
+      if (ingredient.excludeFromNutrition || !ingredient.includedInBaseNutrition) continue;
       if (siblingFood && ingredient.resolvedFood && ingredient.resolvedFood.id === siblingFood.id) { confirmedMatch = true; break; }
       const ingredientNormalized = normalizeSearch(ingredient.resolvedFood?.name ?? ingredient.parsedFoodQuery);
       if (ingredientNormalized && (ingredientNormalized === siblingNormalized || ingredientNormalized.includes(siblingNormalized) || siblingNormalized.includes(ingredientNormalized))) possibleMatch = true;

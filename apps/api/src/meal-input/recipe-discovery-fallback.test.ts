@@ -1,7 +1,7 @@
 process.env.JWT_ACCESS_SECRET = "a".repeat(32);
 
 import { describe, expect, it, vi } from "vitest";
-import { attachRecipeDiscoveryFallback } from "./recipe-discovery-fallback.js";
+import { attachRecipeDiscoveryFallback, detectSiblingOverlap } from "./recipe-discovery-fallback.js";
 import { interpretMealInput, type DynamicResolutionDeps } from "./interpret.js";
 import { RecipeDiscoveryService } from "../recipes/recipe-discovery.js";
 import { WebKnowledgeSearchRateLimiter } from "../web-knowledge/web-knowledge-rate-limit.js";
@@ -21,6 +21,21 @@ function emptyPrisma() {
     food: { findMany: async () => [] }
   } as any;
 }
+
+it("does not suppress an explicitly consumed sibling that appears only as an excluded recipe accompaniment", () => {
+  const bread = { id: "bread", name: "Bread", source: "usda_fdc", kcalPer100g: 250, fatPer100g: 3, proteinPer100g: 9, carbsPer100g: 48, fiberPer100g: 2 };
+  const ingredients = [{
+    originalText: "fresh bread", parsedFoodQuery: "bread", status: "resolved", resolvedFood: bread,
+    quantityStatus: "unresolved", quantitySource: "unknown", excludeFromNutrition: true,
+    role: "serving_accompaniment", optional: false, includedInBaseNutrition: false,
+    roleEvidence: "source_group", trustedNutritionReady: true
+  }] as any;
+  const items = [
+    { parsed: { foodQuery: "goulash" } },
+    { parsed: { foodQuery: "bread" }, semanticItem: { canonicalName: "bread" }, selectedFood: bread }
+  ] as any;
+  expect(detectSiblingOverlap(ingredients, items, 0)).toEqual({ confirmed: [], possible: [] });
+});
 
 function fakeAiProvider(understanding: FoodUnderstanding): AiProvider {
   return {
