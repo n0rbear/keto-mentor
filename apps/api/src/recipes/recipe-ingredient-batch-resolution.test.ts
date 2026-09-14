@@ -185,11 +185,12 @@ describe("resolveRecipeIngredientsBatch", () => {
     expect(result![0].quantityGrams).toBeUndefined();
   });
 
-  it("sends identity only to local catalog search and keeps material unknown bread blocking", async () => {
+  it("sends only quantity-free source/canonical identities to local search and keeps material unknown bread blocking", async () => {
     const queries: string[] = [];
     const prisma: any = { food: { findMany: async ({ where }: any) => { queries.push(...(where?.OR ?? []).map((x: any) => x.searchText?.contains).filter(Boolean)); return []; } }, foodAlias: { findMany: async () => [] } };
     const result = await resolveRecipeIngredientsBatch(prisma, normalizationProvider({ ingredients: [{ index: 0, foods: [{ canonicalIdentity: "parsley", localName: "petrezselyem" }] }, { index: 1, foods: [{ canonicalIdentity: "bread", localName: "kenyér" }] }] }), { lines: [{ index: 0, raw: "1 csokor petrezselyem", parsed: parseNaturalFoodQuery("1 csokor petrezselyem") }, { index: 1, raw: "friss kenyér", parsed: parseNaturalFoodQuery("friss kenyér") }] }, null, { id: "fixture", estimate: async () => ({ estimates: [{ index: 0, grams: 20, confidence: .7 }] }) });
-    expect(queries.every((q) => !q.includes("20") && !q.includes("csokor") && !q.includes("petrezselyem"))).toBe(true);
+    expect(queries.every((q) => !q.includes("20") && !q.includes("csokor") && !q.includes("1 "))).toBe(true);
+    expect(queries).toEqual(expect.arrayContaining(["petrezselyem", "parsley", "friss kenyer", "bread"]));
     expect(result![1]).toMatchObject({ parsedFoodQuery: "bread", quantitySource: "unknown", excludeFromNutrition: false, canConfirm: false });
   });
 

@@ -34,6 +34,16 @@ DuckDuckGo is intentionally not hard-coded: its public help documents search syn
 
 An LLM may help with semantic food understanding, formulate future discovery queries, rank candidates, map nutrient labels, or estimate a quantity-to-weight conversion in a separately reviewed phase. Weight estimates must be labelled, confidence-scored, traceable and user-correctable. An LLM may never generate nutrition numbers or resolve conflicting nutrition sources without evidence.
 
+## Missing authoritative Food resolution
+
+After local and configured structured providers are exhausted with `not_found`, the recipe pipeline may invoke `MissingAuthoritativeFoodResolver`. Catalog ambiguity never enters this path: confirmation-required USDA/BLS candidates remain confirmation-required. The first shipped profile covers two exact Univer paprika products, using Tavily only to discover URLs on the allowlisted official `univer.hu`/`univer.ro` domains. Every returned URL is then opened by the existing DNS-pinned SSRF-safe fetcher; snippets are ignored.
+
+Only an identity-specific official product page containing an explicit 100 g basis and every required application macro is eligible. Extraction is deterministic from labelled page text. Missing nutrients, serving-only values without a serving mass, implausible values, off-domain redirects and semantic product mismatches are rejected. No LLM participates in nutrient extraction or can provide a nutrient value.
+
+Accepted records use `source=manufacturer`, a stable URL-derived source ID, and the normal `Food`/`FoodAlias` persistence path. Provenance records source class/name/URL/product, retrieval time, original and normalized basis, extraction method, identity confidence and validation status. The database uniqueness constraint on `(source, sourceId)` plus P2002 recovery makes simultaneous inserts converge on one Food. Specific regional aliases are stored; the broader `paprika paste` identity is deliberately not attached to either hot or sweet product.
+
+Successful records are found locally on the next quantity-free source-identity search, before USDA or web discovery. Failed discoveries enter the existing process-local negative cache for six hours, allowing later retries after source coverage changes without repeatedly charging every request.
+
 ## Operational controls
 
 Food NLP requires both `MISTRAL_API_KEY` and `MISTRAL_MODEL`; an optional `MISTRAL_BASE_URL` supports an approved compatible endpoint. Missing configuration leaves the provider disabled without affecting deterministic resolution. Calls have an eight-second timeout, a 64 KiB response bound, no automatic retry and a per-user limit of 25 AI calls per 15 minutes. Only actual AI fallback calls consume quota.

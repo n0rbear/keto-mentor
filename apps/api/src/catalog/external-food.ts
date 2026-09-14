@@ -73,7 +73,10 @@ const REQUIRED_MACROS = ["kcalPer100g", "fatPer100g", "proteinPer100g", "carbsPe
 // Every trusted external source must resolve to exactly this hostname in its
 // own sourceUrl — a candidate claiming source: "open_food_facts" but linking
 // to some other host (or vice versa) is rejected outright.
-const TRUSTED_SOURCE_HOSTS: Partial<Record<string, string>> = { usda_fdc: "fdc.nal.usda.gov", open_food_facts: "world.openfoodfacts.org" };
+const TRUSTED_SOURCE_HOSTS: Partial<Record<string, readonly string[]>> = {
+  usda_fdc: ["fdc.nal.usda.gov"], open_food_facts: ["world.openfoodfacts.org"],
+  manufacturer: ["univer.hu", "univer.ro"]
+};
 
 function finiteNonNegative(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value) && value >= 0;
@@ -137,16 +140,22 @@ export function collapseEquivalentCandidates(candidates: readonly ExternalFoodCa
 export function validateExternalCandidate(value: unknown): ExternalFoodCandidate | null {
   if (!value || typeof value !== "object") return null;
   const candidate = value as Partial<ExternalFoodCandidate>;
-  const expectedHost = TRUSTED_SOURCE_HOSTS[candidate.source ?? ""];
-  if (!expectedHost || !/^\d+$/.test(candidate.sourceId ?? "") || !candidate.name || !candidate.originalName) return null;
+  const expectedHosts = TRUSTED_SOURCE_HOSTS[candidate.source ?? ""];
+  const validSourceId = candidate.source === "manufacturer" ? /^[a-f0-9]{32}$/.test(candidate.sourceId ?? "") : /^\d+$/.test(candidate.sourceId ?? "");
+  if (!expectedHosts || !validSourceId || !candidate.name || !candidate.originalName) return null;
   if (!candidate.sourceUrl || !candidate.retrievedAt || candidate.nutrientBasis !== "per_100_g") return null;
   try {
-    if (new URL(candidate.sourceUrl).hostname !== expectedHost) return null;
+    if (!expectedHosts.includes(new URL(candidate.sourceUrl).hostname.replace(/^www\./, ""))) return null;
   } catch { return null; }
   if (!finiteNonNegative(candidate.confidence) || candidate.confidence > 1) return null;
   if (candidate.matchPolicy !== "exact_normalized_name" && candidate.matchPolicy !== "review_required") return null;
   if (REQUIRED_MACROS.some((key) => !finiteNonNegative(candidate[key]))) return null;
   if (!finiteNonNegative(candidate.fiberPer100g)) return null;
+  // Physical/plausibility bounds for every dynamically persisted source.
+  // They reject malformed units (for example kJ parsed as kcal, or values
+  // reported per kg) without supplying or correcting any missing value.
+  if (candidate.kcalPer100g! > 1_000 || candidate.fatPer100g! > 100 || candidate.proteinPer100g! > 100
+    || candidate.carbsPer100g! > 100 || candidate.fiberPer100g > 100) return null;
   const normalizedName = normalizeSearch(candidate.normalizedName || candidate.name);
   if (!normalizedName) return null;
   const nutrients = Array.isArray(candidate.nutrients)
@@ -220,7 +229,7 @@ async function backfillLocaleName(prisma: ResolutionPrisma, food: any, localizat
   }
 }
 
-async function persistCandidate(prisma: ResolutionPrisma, candidate: ExternalFoodCandidate) {
+export async function persistCandidate(prisma: ResolutionPrisma, candidate: ExternalFoodCandidate) {
   const { nutrients, confidence: _confidence, matchPolicy: _matchPolicy, language: _language, normalizedName: _normalizedName, nutrientBasis: _basis, retrievedAt: _retrievedAt, sourceUrl: _sourceUrl, ...foodData } = candidate;
   return prisma.$transaction(async (tx) => {
     const saved = await tx.food.create({ data: { ...foodData, searchText: buildSearchText(foodData), createdById: null } });

@@ -57,9 +57,17 @@ export async function resolveRecipeIngredientsBatch(
       let externalCandidates: ReviewableIngredient["externalCandidates"];
       let externalCandidatesReason: ReviewableIngredient["externalCandidatesReason"];
 
-      const localCandidates = (await searchFoods(prisma, identityQuery, 8)) as any[];
-      const top = localCandidates[0];
-      if (top && isTrustedLocalMatch(top.match)) { selectedFood = top; resolution = "resolved"; candidates = [top]; }
+      // A validated dynamically-created regional/branded Food is persisted
+      // under its specific source phrase (for example pritaminpaprika-krém),
+      // while canonicalIdentity may intentionally be broader (paprika paste).
+      // Search the parser's quantity-free source identity first; quantity is
+      // still never part of catalog search. Fall back to canonical identity.
+      const sourceIdentity = line.parsed.foodQuery.trim();
+      const sourceCandidates = sourceIdentity && sourceIdentity !== identityQuery ? (await searchFoods(prisma, sourceIdentity, 8)) as any[] : [];
+      const canonicalCandidates = (await searchFoods(prisma, identityQuery, 8)) as any[];
+      const localCandidates = [...sourceCandidates, ...canonicalCandidates.filter((candidate) => !sourceCandidates.some((source) => source.id === candidate.id))];
+      const top = localCandidates.find((candidate) => isTrustedLocalMatch(candidate.match));
+      if (top) { selectedFood = top; resolution = "resolved"; candidates = [top]; }
       if (!selectedFood && dynamic) {
         const outcome = await resolveDynamicFoodFromIdentity(dynamic.prisma, { canonicalIdentity: identityQuery, originalIdentity: identityQuery, rawIngredient: line.raw, recipeTitle: input.title, recipeContext: input.context, preparation: food.preparation ?? line.parsed.preparation, sourceQuantity: line.parsed.quantity, sourceUnit: line.parsed.unit }, dynamic);
         if (outcome.status === "resolved") { selectedFood = outcome.food; resolution = "resolved"; candidates = [outcome.food]; }

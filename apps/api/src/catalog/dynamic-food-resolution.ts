@@ -9,6 +9,7 @@ import { foodNameRepresentations, hasSemanticCoverage } from "./food-search.js";
 import { foodLocaleFor, type FoodLocale } from "./food-locale.js";
 import { DisabledSemanticCandidateGateProvider, type SemanticCandidateGateProvider } from "./semantic-candidate-gate.js";
 import { timeStage } from "../request-performance.js";
+import type { MissingAuthoritativeFoodResolver } from "./missing-authoritative-food.js";
 
 type DynamicPrisma = Parameters<typeof resolveAuthoritativeFood>[0];
 
@@ -87,7 +88,7 @@ function logDynamicResolutionOutcome(status: DynamicResolutionOutcome["status"],
 export type DynamicResolutionOutcome =
   | { status: "resolved"; food: any; via: "search_intent" | "raw_query" | "normalized_identity" }
   | { status: "confirmation_required"; candidates: ExternalFoodCandidate[]; reason: "ambiguous" | "possible_duplicate" | "weak_match" }
-  | { status: "unresolved"; reason: "not_found" | "invalid_external_data" | "external_unavailable" | "rate_limited" | "no_adapters" };
+  | { status: "unresolved"; reason: "not_found" | "invalid_external_data" | "external_unavailable" | "rate_limited" | "no_adapters" | "authoritative_source_not_found" | "invalid_source_evidence" | "negative_cache" };
 
 type ResolveFromSearchTermDeps = {
   adapters: readonly StructuredFoodLookupAdapter[];
@@ -114,6 +115,7 @@ type ResolveFromSearchTermDeps = {
   // skipping the check — a caller that doesn't wire a real gate gets safe
   // "unresolved" outcomes, never ungated candidates.
   semanticCandidateGateProvider?: SemanticCandidateGateProvider;
+  missingFoodResolver?: MissingAuthoritativeFoodResolver;
 };
 
 /**
@@ -166,6 +168,21 @@ async function resolveFromSearchTerm(
       logDynamicResolutionOutcome("confirmation_required", via, outcome.reason);
       return { status: "confirmation_required", candidates: outcome.candidates, reason: outcome.reason };
     case "unresolved":
+      if (outcome.reason === "not_found" && deps.missingFoodResolver) {
+        const missing = await deps.missingFoodResolver.resolve(prisma, {
+          canonicalIdentity: searchTerm, originalIdentity, rawIngredient: semanticContext?.rawIngredient,
+          recipeTitle: semanticContext?.recipeTitle, preparation: semanticContext?.preparation,
+          locale: deps.foodLocale ?? deps.locale
+        });
+        console.log(`missing_food_resolution status=${missing.status} reason=${missing.status === "unresolved" ? missing.reason : "trusted_persisted"} externalCalls=${missing.externalCalls}`);
+        if (missing.status === "resolved") {
+          await learnSearchAlias(prisma, missing.food, originalIdentity, aliasLocale);
+          logDynamicResolutionOutcome("resolved", via);
+          return { status: "resolved", food: missing.food, via };
+        }
+        logDynamicResolutionOutcome("unresolved", via, missing.reason);
+        return { status: "unresolved", reason: missing.reason };
+      }
       logDynamicResolutionOutcome("unresolved", via, outcome.reason);
       return { status: "unresolved", reason: outcome.reason };
   }
