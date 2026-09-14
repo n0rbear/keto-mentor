@@ -198,6 +198,11 @@ function isBetterReviewable(a: RecipeReviewSummary, b: RecipeReviewSummary): boo
   return a.trustedNutritionReadyCount > b.trustedNutritionReadyCount;
 }
 
+function isSufficientReviewable(summary: RecipeReviewSummary): boolean {
+  const total = summary.resolvedCount + summary.confirmationRequiredCount + summary.unresolvedCount;
+  return total > 0 && summary.trustedNutritionReadyCount / total >= 0.7 && summary.unresolvedCount <= 2;
+}
+
 type DiscoveryTarget = { location: "result" } | { location: "item"; index: number };
 
 /**
@@ -348,6 +353,10 @@ async function runRecipeDiscovery(dishName: string, deps: RecipeDiscoveryFallbac
     if (attempt.outcome === "reviewable" && (!bestReviewable || isBetterReviewable(attempt.summary, bestReviewable.summary))) {
       bestReviewable = { candidate: attempt.candidate, summary: attempt.summary };
     }
+    // The discovery provider already orders relevant pages. Once the current
+    // page is strongly reviewable, trying lower-ranked pages repeats the full
+    // ingredient AI pipeline without a proportionate correctness benefit.
+    if (attempt.outcome === "reviewable" && isSufficientReviewable(attempt.summary)) break;
     if (attempt.outcome === "systemic_error") { sawSystemicError = true; break; } // stop trying — see RECOVERABLE_CANDIDATE_CODES comment above
   }
 

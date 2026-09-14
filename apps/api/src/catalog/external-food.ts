@@ -75,7 +75,7 @@ const REQUIRED_MACROS = ["kcalPer100g", "fatPer100g", "proteinPer100g", "carbsPe
 // to some other host (or vice versa) is rejected outright.
 const TRUSTED_SOURCE_HOSTS: Partial<Record<string, readonly string[]>> = {
   usda_fdc: ["fdc.nal.usda.gov"], open_food_facts: ["world.openfoodfacts.org"],
-  manufacturer: ["univer.hu", "univer.ro"]
+  manufacturer: ["univer.hu", "univer.ro"], open_database: ["myfcd.moh.gov.my"]
 };
 
 function finiteNonNegative(value: unknown): value is number {
@@ -119,20 +119,24 @@ function nearlyEqual(a: number, b: number, absolute: number, relative: number) {
  * separate and therefore confirmation-required.
  */
 export function collapseEquivalentCandidates(candidates: readonly ExternalFoodCandidate[]): ExternalFoodCandidate[] {
+  const dataType = (item: ExternalFoodCandidate) => item.provenance && typeof item.provenance === "object" && !Array.isArray(item.provenance)
+    ? String((item.provenance as Record<string, unknown>).dataType ?? "") : "";
+  const canonicalTypes = new Set(["Foundation", "SR Legacy"]);
   const groups: ExternalFoodCandidate[][] = [];
   for (const candidate of candidates) {
     const group = groups.find(([first]) => first.source === candidate.source
       && first.normalizedName === candidate.normalizedName
       && normalizeSearch(first.category ?? "") === normalizeSearch(candidate.category ?? "")
-      && nearlyEqual(first.kcalPer100g, candidate.kcalPer100g, 5, 0.05)
-      && nearlyEqual(first.fatPer100g, candidate.fatPer100g, 0.5, 0.1)
-      && nearlyEqual(first.proteinPer100g, candidate.proteinPer100g, 0.5, 0.1)
-      && nearlyEqual(first.carbsPer100g, candidate.carbsPer100g, 0.5, 0.1)
-      && nearlyEqual(first.fiberPer100g, candidate.fiberPer100g, 0.5, 0.1));
+      && ((canonicalTypes.has(dataType(first)) && canonicalTypes.has(dataType(candidate)))
+        || (nearlyEqual(first.kcalPer100g, candidate.kcalPer100g, 5, 0.05)
+          && nearlyEqual(first.fatPer100g, candidate.fatPer100g, 0.5, 0.1)
+          && nearlyEqual(first.proteinPer100g, candidate.proteinPer100g, 0.5, 0.1)
+          && nearlyEqual(first.carbsPer100g, candidate.carbsPer100g, 0.5, 0.1)
+          && nearlyEqual(first.fiberPer100g, candidate.fiberPer100g, 0.5, 0.1))));
     if (group) group.push(candidate); else groups.push([candidate]);
   }
   return groups.map((group) => [...group].sort((a, b) => {
-    const quality = (item: ExternalFoodCandidate) => item.provenance && typeof item.provenance === "object" && !Array.isArray(item.provenance) && (item.provenance as Record<string, unknown>).dataType === "Foundation" ? 0 : 1;
+    const quality = (item: ExternalFoodCandidate) => dataType(item) === "Foundation" ? 0 : dataType(item) === "SR Legacy" ? 1 : 2;
     return quality(a) - quality(b) || a.sourceId.localeCompare(b.sourceId);
   })[0]);
 }

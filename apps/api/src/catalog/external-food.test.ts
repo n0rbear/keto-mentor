@@ -236,6 +236,12 @@ describe("authoritative equivalence collapse", () => {
     expect(collapseEquivalentCandidates([legacy, foundation]).map((item) => item.sourceId)).toEqual(["2"]);
   });
 
+  it("prefers Foundation over the exact same canonical SR identity despite analytical revision", () => {
+    const legacy = candidate({ sourceId: "1", originalName: "Garlic, raw", name: "Garlic, raw", normalizedName: "garlic raw", category: "Vegetables", kcalPer100g: 149, carbsPer100g: 33.1, provenance: { ...candidate().provenance, dataType: "SR Legacy" } });
+    const foundation = candidate({ sourceId: "2", originalName: "Garlic, raw", name: "Garlic, raw", normalizedName: "garlic raw", category: "Vegetables", kcalPer100g: 143, carbsPer100g: 28.2, provenance: { ...candidate().provenance, dataType: "Foundation" } });
+    expect(collapseEquivalentCandidates([legacy, foundation]).map((item) => item.sourceId)).toEqual(["2"]);
+  });
+
   it("keeps same-name records distinct when nutrition or category is materially different", () => {
     const a = candidate({ sourceId: "1", originalName: "Mustard, prepared, yellow", name: "Mustard, prepared, yellow", normalizedName: "mustard prepared yellow", category: "Spices", kcalPer100g: 60 });
     const b = candidate({ ...a, sourceId: "2", kcalPer100g: 120 });
