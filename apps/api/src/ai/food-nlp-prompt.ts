@@ -23,6 +23,8 @@ Schema:
   "language": "hu" | "de" | "en" | "unknown",
   "kind": "single_food" | "multiple_foods" | "compound_dish",
   "dishName"?: string,
+  "dishQuantity"?: positive number,
+  "dishUnit"?: "g" | "kg" | "piece" | "slice" | "portion" | "plate" | "bowl" | "ladle" | "tbsp" | "tsp" | "cup" | "handful" | "half" | "quarter" | "unknown",
   "dishIsComposition"?: boolean,
   "items": [{
     "originalText": string,
@@ -43,6 +45,7 @@ Schema:
 
 Examples:
 - "egy tányér lecsó két virslivel és három tojással": compound_dish, dishName "lecsó"; lecsó, sausage (2 piece) and egg (3 piece) are explicit. Tomato, onion and pepper must not become confirmed items; if mentioned at all they are inferred_common and clarification is required.
+- A container/household measure modifies its food; it is NEVER a separate food item. "egy tányér gulyásleves" means dishName "gulyásleves", dishQuantity 1, dishUnit "plate", and no "plate" item. Likewise "ein Teller Gulaschsuppe" and "a bowl of goulash soup" each describe one soup portion. Keep a real second food: "egy tányér gulyásleves két szelet kenyérrel" is the dish plus an explicit bread item.
 - "egy döner extra hússal, szósz nélkül": compound_dish "döner" with modifier "extra meat" and excluded modifier "sauce". Do not invent grams.
 - "egy tál gyümölcssaláta a következőkből: alma, banán, szőlő": compound_dish, dishName "gyümölcssaláta", dishIsComposition true; items are exactly alma, banán, szőlő (all explicit) — "gyümölcssaláta" itself is NOT also listed as a fourth item, since the phrase explicitly defines it as those three fruits.
 - "1 kanál tejfölös szósz": canonicalName "tejfölös szósz" (a sauce made with sour cream), never simplified to "tejföl".`;

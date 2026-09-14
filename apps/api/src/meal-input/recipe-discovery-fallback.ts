@@ -106,6 +106,7 @@ function toCandidateShape(extracted: ExtractedPreview, reviews: readonly RecipeI
     ingredientSummary: extracted.ingredients.map((ingredient) => ingredient.originalText).slice(0, 50),
     nutritionPer100g: trusted.macros,
     nutritionPerServing: trusted.perServing,
+    nutritionTotal: trusted.total,
     nutritionCalculable: trusted.calculable,
     ingredientWeightGrams: trusted.weightGrams,
     recipeState: summary.state === "fully_resolved" ? "fully_resolved" : "reviewable",
@@ -423,6 +424,14 @@ export async function attachRecipeDiscoveryFallback(result: InterpretResult, dep
 
   deps.onProgress?.("recipe_discovery");
   let preview = await runRecipeDiscovery(dishName, deps);
+  const portionUnit = result.semantic?.dishUnit;
+  const portionCount = result.semantic?.dishQuantity;
+  if (preview.candidate && portionCount && (portionUnit === "plate" || portionUnit === "bowl" || portionUnit === "portion")) {
+    preview = { ...preview, candidate: { ...preview.candidate, requestedPortion: {
+      count: portionCount, unit: portionUnit, provenance: "explicit_household_unit",
+      nutrition: preview.candidate.nutritionPerServing ? Object.fromEntries(Object.entries(preview.candidate.nutritionPerServing).map(([key, value]) => [key, value * portionCount])) as typeof preview.candidate.nutritionPerServing : null
+    } } };
+  }
   let siblingsScoped = result;
   // Blocker 4 (double counting): only meaningful for the multi-item case
   // (a single-item phrase has no siblings), and only once a candidate's own

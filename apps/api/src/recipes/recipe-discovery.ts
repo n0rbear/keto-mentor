@@ -74,6 +74,8 @@ export type RecipeDiscoveryPreview = {
     // so prefer this over nutritionPer100g whenever `servings` is present.
     // null whenever servings is unknown or recipeState !== "fully_resolved".
     nutritionPerServing: MacroTotals | null;
+    nutritionTotal: MacroTotals | null;
+    requestedPortion?: { count: number; unit: "plate" | "bowl" | "portion"; provenance: "explicit_household_unit"; nutrition: MacroTotals | null };
     nutritionCalculable: boolean;
     ingredientWeightGrams: number | null;
     // "fully_resolved": every ingredient already trusted, ready for final

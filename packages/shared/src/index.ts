@@ -202,6 +202,8 @@ export const foodUnderstandingSchema = z.object({
   language: foodUnderstandingLanguageSchema,
   kind: foodUnderstandingKindSchema,
   dishName: z.string().trim().min(1).max(120).optional(),
+  dishQuantity: z.number().finite().positive().max(10_000).optional(),
+  dishUnit: foodUnderstandingUnitSchema.optional(),
   // True only when the user explicitly stated that dishName's FULL
   // composition is the following item list (cues like "consisting of" /
   // "made from" / "a következőkből" / "bestehend aus") — in that case
@@ -246,6 +248,7 @@ export type FoodUnderstanding = z.infer<typeof foodUnderstandingSchema>;
 export type FoodUnderstandingItem = z.infer<typeof foodUnderstandingItemSchema>;
 
 export const recipeVisibilitySchema = z.enum(["private", "public", "unlisted"]);
+export const recipeIngredientRoleSchema = z.enum(["core", "seasoning", "garnish", "serving_accompaniment"]);
 // Not .strict(): recipeInputSchema.parse() is deliberately used to sanitize a
 // browser-reconstructed object (e.g. import-preview rows merged with manual
 // edits) that may still carry extra fields like a forged kcalPer100g — those
@@ -256,6 +259,11 @@ export const recipeIngredientSchema = z.object({
   quantityGrams: z.number().positive().max(50_000),
   originalText: z.string().trim().max(300).optional(),
   preparation: z.string().trim().max(200).optional(),
+  sourceGroup: z.string().trim().max(160).optional(),
+  role: recipeIngredientRoleSchema.default("core"),
+  optional: z.boolean().default(false),
+  includedInBaseNutrition: z.boolean().default(true),
+  roleProvenance: z.record(z.unknown()).optional(),
   sortOrder: z.number().int().min(0).max(100).optional()
 });
 export const recipeInputSchema = z.object({

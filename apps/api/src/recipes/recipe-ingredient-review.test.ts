@@ -13,6 +13,15 @@ function ingredient(overrides: Partial<ReviewableIngredient>): ReviewableIngredi
 }
 
 describe("toIngredientReview: the trusted-nutrition fix (owner-beta blocker #6)", () => {
+  it("an unresolved serving accompaniment stays visible but does not block base nutrition", () => {
+    const review = toIngredientReview(ingredient({ resolution: "unresolved", selectedFood: null, quantity: null, sourceGroup: "For serving", role: "serving_accompaniment", includedInBaseNutrition: false, evidence: "source_group" }));
+    expect(review).toMatchObject({ status: "unresolved", role: "serving_accompaniment", includedInBaseNutrition: false, excludeFromNutrition: true, trustedNutritionReady: true });
+  });
+
+  it("a material core ingredient with unknown quantity still blocks", () => {
+    const review = toIngredientReview(ingredient({ resolution: "resolved", selectedFood: cabbage, quantity: null, role: "core", includedInBaseNutrition: true }));
+    expect(review.trustedNutritionReady).toBe(false);
+  });
   // Test 2 (required) — the exact observed "Főtt tojás" case: a genuine
   // local EXACT match exists as a PREVIEW (interpretOne intentionally keeps
   // `top` around even for confirmation_required — see interpret.ts's

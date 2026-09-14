@@ -7,6 +7,7 @@ import { RECIPE_IMPORT_LIMITS as LIMITS } from "./recipe-import-limits.js";
 import { DisabledRecipeExtractionProvider, type RecipeExtraction, type RecipeExtractionProvider } from "./recipe-extraction-provider.js";
 import { DisabledRecipeIngredientNormalizationProvider, type RecipeIngredientNormalizationProvider } from "./recipe-ingredient-normalization.js";
 import { resolveRecipeIngredientsBatch } from "./recipe-ingredient-batch-resolution.js";
+import { recoverIngredientRolesFromHtml } from "./recipe-ingredient-role.js";
 import { DisabledRecipeQuantityEstimationProvider, type RecipeQuantityEstimationProvider } from "./recipe-quantity-estimation.js";
 
 // Owner-beta (2026-09-14): lowered from 4. Each concurrently-resolving
@@ -254,7 +255,9 @@ export async function previewRecipeImport(
     const batchResult = dynamic
       ? await resolveRecipeIngredientsBatch(prisma, normalizationProvider, { title: extracted.title, context: extracted.instructions.join(" ").slice(0, 4_000), locale: dynamic.foodLocale ?? dynamic.locale, lines }, dynamic, quantityProvider)
       : null;
-    const ingredients = batchResult ?? await resolveIngredientsPerLine(prisma, extracted.ingredients, dynamic);
+    const resolvedIngredients = batchResult ?? await resolveIngredientsPerLine(prisma, extracted.ingredients, dynamic);
+    const roleEvidence = recoverIngredientRolesFromHtml(page.html, extracted.ingredients, extracted.instructions);
+    const ingredients = resolvedIngredients.map((ingredient, index) => ({ ...ingredient, ...roleEvidence[index] }));
     return { ...extracted, ingredients };
   } catch (error) {
     if (error instanceof RecipeImportError) throw error;

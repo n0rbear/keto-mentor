@@ -107,6 +107,8 @@ export type InterpretResult = {
     language: FoodUnderstanding["language"];
     kind: FoodUnderstanding["kind"];
     dishName?: string;
+    dishQuantity?: number;
+    dishUnit?: FoodUnderstanding["dishUnit"];
     clarificationNeeded: boolean;
     clarificationReason?: string;
   };
@@ -552,7 +554,15 @@ async function interpretAiUnderstanding(
   dynamic: DynamicResolutionDeps = null
 ): Promise<InterpretResult> {
   const dishNormalized = normalizeSearch(understanding.dishName ?? "");
-  const hasDishItem = !!dishNormalized && understanding.items.some((item) => normalizeSearch(item.canonicalName) === dishNormalized);
+  const HOUSEHOLD_CONTAINER_NAMES = new Set(["plate", "tanyer", "tányér", "teller", "bowl", "tal", "tál", "schussel", "schüssel", "cup", "csesze", "csésze", "tasse", "glass", "pohar", "pohár", "glas", "mug", "bogre", "bögre"]);
+  const containerItem = understanding.kind === "compound_dish"
+    ? understanding.items.find((item) => HOUSEHOLD_CONTAINER_NAMES.has(normalizeSearch(item.canonicalName)))
+    : undefined;
+  const cleanedItems = containerItem ? understanding.items.filter((item) => item !== containerItem) : understanding.items;
+  const inferredDishQuantity = understanding.dishQuantity ?? containerItem?.quantity;
+  const inferredDishUnit = understanding.dishUnit ?? (containerItem ? ((HOUSEHOLD_CONTAINER_NAMES.has(normalizeSearch(containerItem.canonicalName)) ? normalizeSearch(containerItem.canonicalName) : containerItem.unit) as FoodUnderstanding["dishUnit"]) : undefined);
+  const normalizedDishUnit = ({ tanyer: "plate", tányér: "plate", teller: "plate", tal: "bowl", tál: "bowl", schussel: "bowl", schüssel: "bowl", csesze: "cup", csésze: "cup", tasse: "cup", pohar: "cup", pohár: "cup", glas: "cup", bogre: "cup", bögre: "cup" } as Record<string, FoodUnderstanding["dishUnit"]>)[String(inferredDishUnit)] ?? inferredDishUnit;
+  const hasDishItem = !!dishNormalized && cleanedItems.some((item) => normalizeSearch(item.canonicalName) === dishNormalized);
   // Owner-beta blocker (2026-09-12): when the user explicitly stated the
   // dish's FULL composition ("a következőkből" / "bestehend aus" / "made
   // from" / ...), the AI sets dishIsComposition — the dish name is a group
@@ -563,13 +573,15 @@ async function interpretAiUnderstanding(
   // behavior is unchanged — a named dish mentioned alongside a few add-ons
   // (not fully defined by them) still gets its own resolution attempt.
   const semanticItems = hasDishItem || !understanding.dishName || understanding.dishIsComposition
-    ? understanding.items
+    ? cleanedItems
     : [{
         originalText: understanding.dishName,
         canonicalName: understanding.dishName,
+        quantity: inferredDishQuantity,
+        unit: normalizedDishUnit,
         evidence: "explicit" as const,
         confidence: understanding.confidence
-      }, ...understanding.items];
+      }, ...cleanedItems];
   // Bounded concurrency (owner-beta performance principle): each explicit
   // item's own resolution is independent of the others (its own local
   // search, and on a miss its own search-intent/semantic-gate/quantity AI
@@ -592,6 +604,8 @@ async function interpretAiUnderstanding(
     language: understanding.language,
     kind: understanding.kind,
     dishName: understanding.dishName,
+    dishQuantity: inferredDishQuantity,
+    dishUnit: normalizedDishUnit,
     clarificationNeeded: understanding.clarificationNeeded,
     clarificationReason: understanding.clarificationReason
   };

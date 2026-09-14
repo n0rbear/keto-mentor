@@ -25,7 +25,7 @@ const recipeInclude = {
   ingredients: { include: { food: { include: { nutrients: { include: { nutrient: true } } } } } }
 } as const;
 
-type VirtualIngredient = { foodId: string; quantityGrams: number; originalText: string; preparation?: string; food: TrustedFoodSummary & { nutrients?: never } };
+type VirtualIngredient = { foodId: string | null; quantityGrams: number | null; originalText: string; preparation?: string; sourceGroup?: string; role: "core" | "seasoning" | "garnish" | "serving_accompaniment"; optional: boolean; includedInBaseNutrition: boolean; roleProvenance: Record<string, unknown>; food: (TrustedFoodSummary & { nutrients?: never }) | null };
 type VirtualRecipe = { servings: number | null; finishedWeightGrams: null; title: string; ingredients: VirtualIngredient[] };
 
 /**
@@ -44,7 +44,7 @@ export type PreparedRecipeDiscoveryItem =
 
 export function resolvedFoodIdsOf(prepared: PreparedRecipeDiscoveryItem): ReadonlySet<string> {
   const recipe = prepared.kind === "existing" ? prepared.recipe : prepared.virtualRecipe;
-  return new Set(recipe.ingredients.map((ingredient) => ingredient.foodId));
+  return new Set(recipe.ingredients.map((ingredient) => ingredient.foodId).filter((id): id is string => !!id));
 }
 
 /**
@@ -82,11 +82,16 @@ export async function prepareRecipeDiscoveryItem(
   if (!trusted.calculable) throw recipeDiscoveryMealItemError("recipe_nutrition_not_calculable");
 
   const virtualIngredients: VirtualIngredient[] = reviews.map((review) => ({
-    foodId: review.resolvedFood!.id,
-    quantityGrams: review.quantityGrams!,
+    foodId: review.resolvedFood?.id ?? null,
+    quantityGrams: review.quantityGrams ?? null,
     originalText: review.originalText,
     preparation: review.preparation,
-    food: review.resolvedFood!
+    sourceGroup: review.sourceGroup,
+    role: review.role,
+    optional: review.optional,
+    includedInBaseNutrition: review.includedInBaseNutrition,
+    roleProvenance: { evidence: review.roleEvidence, sourceGroup: review.sourceGroup ?? null },
+    food: review.resolvedFood
   }));
 
   return {
@@ -104,7 +109,9 @@ export async function prepareRecipeDiscoveryItem(
       provenance: { importedAt: new Date().toISOString(), extractionMethod: extracted.extractionMethod, sourceUrl: extracted.sourceUrl, trust: "source_verified" },
       ingredients: {
         create: virtualIngredients.map((ingredient, index) => ({
-          foodId: ingredient.foodId, quantityGrams: ingredient.quantityGrams, originalText: ingredient.originalText, preparation: ingredient.preparation, sortOrder: index
+          foodId: ingredient.foodId, quantityGrams: ingredient.quantityGrams, originalText: ingredient.originalText, preparation: ingredient.preparation,
+          sourceGroup: ingredient.sourceGroup, role: ingredient.role, optional: ingredient.optional,
+          includedInBaseNutrition: ingredient.includedInBaseNutrition, roleProvenance: ingredient.roleProvenance, sortOrder: index
         }))
       }
     }

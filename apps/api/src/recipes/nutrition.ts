@@ -7,7 +7,7 @@ import { addMacros, emptyMacros, scaleMacros, type MacroTotals } from "../nutrit
 // micronutrient tree — so this must degrade to an empty nutrient dict rather
 // than throw when it's absent.
 export type RecipeIngredientWithFood = RecipeIngredient & {
-  food: Pick<Food, "kcalPer100g" | "fatPer100g" | "proteinPer100g" | "carbsPer100g" | "fiberPer100g"> & { nutrients?: Array<FoodNutrient & { nutrient: Nutrient }> };
+  food: (Pick<Food, "kcalPer100g" | "fatPer100g" | "proteinPer100g" | "carbsPer100g" | "fiberPer100g"> & { nutrients?: Array<FoodNutrient & { nutrient: Nutrient }> }) | null;
 };
 export type RecipeWithIngredients = Recipe & { ingredients: RecipeIngredientWithFood[] };
 export type NutrientTotal = { key: string; label: string; unit: string; group: string; amount: number };
@@ -22,6 +22,8 @@ export function calculateRecipeNutrition(recipe: RecipeWithIngredients) {
   let ingredientWeightGrams = 0;
 
   for (const ingredient of recipe.ingredients) {
+    if (ingredient.includedInBaseNutrition === false) continue;
+    if (!ingredient.food || ingredient.quantityGrams == null) throw new Error("recipe_nutrition_not_calculable");
     const factor = ingredient.quantityGrams / 100;
     ingredientWeightGrams += ingredient.quantityGrams;
     totals = addMacros(totals, scaleMacros({

@@ -562,6 +562,29 @@ describe("meal input interpretation", () => {
     expect(result.items?.[0]).toMatchObject({ semanticItem: { originalText: "rakott krumpli", canonicalName: "rakott krumpli", evidence: "explicit" }, foodResolution: "unresolved" });
   });
 
+  it.each([
+    ["egy tányér gulyásleves", "hu", "tányér", "plate"],
+    ["ein Teller Gulaschsuppe", "de", "Teller", "plate"],
+    ["a bowl of goulash soup", "en", "bowl", "bowl"]
+  ] as const)("treats household container as the dish portion, never a Food: %s", async (text, language, container, expectedUnit) => {
+    const ai = new MockFoodNlpProvider({ language, kind: "compound_dish", dishName: "goulash soup", confidence: .95, clarificationNeeded: false, items: [
+      { originalText: container, canonicalName: container, quantity: 1, unit: "piece", evidence: "explicit", confidence: .9 }
+    ] });
+    const result = await interpretMealInput(prisma, text, undefined, ai);
+    expect(result.semantic).toMatchObject({ dishQuantity: 1, dishUnit: expectedUnit });
+    expect(result.items).toHaveLength(1);
+    expect(result.items?.[0].semanticItem?.canonicalName).toBe("goulash soup");
+  });
+
+  it("keeps explicitly consumed bread beside a plate of soup", async () => {
+    const ai = new MockFoodNlpProvider({ language: "hu", kind: "compound_dish", dishName: "goulash soup", dishQuantity: 1, dishUnit: "plate", confidence: .95, clarificationNeeded: false, items: [
+      { originalText: "két szelet kenyér", canonicalName: "bread", quantity: 2, unit: "slice", evidence: "explicit", confidence: .95 }
+    ] });
+    const result = await interpretMealInput(prisma, "egy tányér gulyásleves két szelet kenyérrel", undefined, ai);
+    expect(result.items).toHaveLength(2);
+    expect(result.items?.some((item) => item.semanticItem?.canonicalName === "bread")).toBe(true);
+  });
+
   it("supports an AI-assisted single food and re-resolves it through the trusted catalog", async () => {
     const ai = new MockFoodNlpProvider({
       language: "en", kind: "single_food", confidence: 0.95, clarificationNeeded: false,
