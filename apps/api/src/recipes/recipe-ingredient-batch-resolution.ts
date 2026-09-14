@@ -69,7 +69,12 @@ export async function resolveRecipeIngredientsBatch(
       // Canonical normalization is the stronger identity evidence. A broad
       // source phrase ("mustár", or a split "só, bors" line) must not let
       // an exact lexical hit for a DIFFERENT canonical food outrank it.
-      const top = canonicalCandidates.find((candidate) => isTrustedLocalMatch(candidate.match))
+      const trustedCanonical = canonicalCandidates.filter((candidate) => isTrustedLocalMatch(candidate.match));
+      const explicitPreparedState = !!(food.preparation ?? line.parsed.preparation) || /\b(cooked|boiled|roasted|fried|grilled|főtt|sült|párolt|gekocht|gebraten)\b/i.test(line.raw);
+      const canonicalTop = !explicitPreparedState
+        ? trustedCanonical.find((candidate) => /\braw\b/i.test(candidate.originalName ?? candidate.name) && !/\b(cooked|boiled|roasted|fried)\b/i.test(candidate.originalName ?? candidate.name)) ?? trustedCanonical[0]
+        : trustedCanonical[0];
+      const top = canonicalTop
         ?? sourceCandidates.find((candidate) => isTrustedLocalMatch(candidate.match) && (
           hasSemanticCoverage(identityQuery, foodNameRepresentations(candidate))
           // A persisted manufacturer/national-database Food reached this

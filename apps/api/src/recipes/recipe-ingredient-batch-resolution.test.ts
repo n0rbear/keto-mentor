@@ -79,6 +79,16 @@ describe("resolveRecipeIngredientsBatch", () => {
     const result = await resolveRecipeIngredientsBatch(fake, normalizationProvider({ ingredients: [{ index: 0, foods: [{ canonicalIdentity: "hot pepper paste" }] }] }), { lines: [{ index: 0, raw: "1 tbsp csípős daráltpaprika-krém", parsed: parseNaturalFoodQuery("1 tbsp csípős daráltpaprika-krém") }] }, null);
     expect(result?.[0].selectedFood?.id).toBe("eros");
   });
+  it("prefers the raw canonical record for an as-supplied recipe ingredient but preserves explicit cooked state", async () => {
+    const cooked = { id: "cooked", name: "Tomatoes, red, ripe, cooked", originalName: "Tomatoes, red, ripe, cooked", names: { en: "tomato" }, searchText: "tomato tomatoes red ripe cooked", source: "usda_fdc", createdById: null, servings: [] };
+    const raw = { ...cooked, id: "raw", name: "Tomatoes, red, ripe, raw", originalName: "Tomatoes, red, ripe, raw", searchText: "tomato tomatoes red ripe raw" };
+    const fake = { food: { findMany: async () => [cooked, raw] }, foodAlias: { findMany: async () => [] } } as any;
+    const provider = normalizationProvider({ ingredients: [{ index: 0, foods: [{ canonicalIdentity: "tomato" }] }] });
+    const asSupplied = await resolveRecipeIngredientsBatch(fake, provider, { lines: [{ index: 0, raw: "1 tomato", parsed: parseNaturalFoodQuery("1 tomato") }] }, null);
+    expect(asSupplied?.[0].selectedFood?.id).toBe("raw");
+    const prepared = await resolveRecipeIngredientsBatch(fake, provider, { lines: [{ index: 0, raw: "1 cooked tomato", parsed: parseNaturalFoodQuery("1 cooked tomato") }] }, null);
+    expect(prepared?.[0].selectedFood?.id).toBe("cooked");
+  });
   it("returns null when the normalization provider itself returns null — the caller falls back to the per-ingredient path", async () => {
     const { prisma } = fakePrisma();
     const result = await resolveRecipeIngredientsBatch(
