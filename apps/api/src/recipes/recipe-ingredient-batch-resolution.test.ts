@@ -73,6 +73,12 @@ describe("resolveRecipeIngredientsBatch", () => {
     const result = await resolveRecipeIngredientsBatch(fake, normalizationProvider({ ingredients: [{ index: 0, foods: [{ canonicalIdentity: "prepared mustard" }] }] }), { lines: [{ index: 0, raw: "1 tsp mustár", parsed: parseNaturalFoodQuery("1 tsp mustár") }] }, null);
     expect(result?.[0].selectedFood?.id).toBe("prepared");
   });
+  it("reuses a strongly matched persisted authoritative product alias even when its brand name is not the canonical phrase", async () => {
+    const product = { id: "eros", name: "Univer Erős Pista", names: { hu: "csípős daráltpaprika-krém" }, searchText: normalizeSearch("csípős daráltpaprika-krém Erős Pista"), source: "manufacturer", createdById: null, servings: [] };
+    const fake = { food: { findMany: async () => [product] }, foodAlias: { findMany: async () => [] } } as any;
+    const result = await resolveRecipeIngredientsBatch(fake, normalizationProvider({ ingredients: [{ index: 0, foods: [{ canonicalIdentity: "hot pepper paste" }] }] }), { lines: [{ index: 0, raw: "1 tbsp csípős daráltpaprika-krém", parsed: parseNaturalFoodQuery("1 tbsp csípős daráltpaprika-krém") }] }, null);
+    expect(result?.[0].selectedFood?.id).toBe("eros");
+  });
   it("returns null when the normalization provider itself returns null — the caller falls back to the per-ingredient path", async () => {
     const { prisma } = fakePrisma();
     const result = await resolveRecipeIngredientsBatch(

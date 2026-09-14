@@ -70,7 +70,17 @@ export async function resolveRecipeIngredientsBatch(
       // source phrase ("mustár", or a split "só, bors" line) must not let
       // an exact lexical hit for a DIFFERENT canonical food outrank it.
       const top = canonicalCandidates.find((candidate) => isTrustedLocalMatch(candidate.match))
-        ?? sourceCandidates.find((candidate) => isTrustedLocalMatch(candidate.match) && hasSemanticCoverage(identityQuery, foodNameRepresentations(candidate)));
+        ?? sourceCandidates.find((candidate) => isTrustedLocalMatch(candidate.match) && (
+          hasSemanticCoverage(identityQuery, foodNameRepresentations(candidate))
+          // A persisted manufacturer/national-database Food reached this
+          // exact strong source-phrase alias only after authoritative
+          // identity validation. Reuse that learned alias without forcing
+          // its brand name to lexically contain a broader English canonical
+          // concept (e.g. Erős Pista vs "hot pepper paste"). USDA lexical
+          // shortcuts stay excluded, which is what prevents "mustár" from
+          // selecting mustard greens or "só, bors" from selecting salt twice.
+          || candidate.source !== "usda_fdc"
+        ));
       if (top) { selectedFood = top; resolution = "resolved"; candidates = [top]; }
       if (!selectedFood && dynamic) {
         const outcome = await resolveDynamicFoodFromIdentity(dynamic.prisma, { canonicalIdentity: identityQuery, originalIdentity: identityQuery, rawIngredient: line.raw, recipeTitle: input.title, recipeContext: input.context, preparation: food.preparation ?? line.parsed.preparation ?? "as supplied; no pre-cooked state stated", sourceQuantity: line.parsed.quantity, sourceUnit: line.parsed.unit }, dynamic);
