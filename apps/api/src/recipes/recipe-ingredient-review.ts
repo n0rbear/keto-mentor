@@ -1,5 +1,5 @@
 import type { ExternalFoodCandidate } from "../catalog/external-food.js";
-import { addMacros, emptyMacros, scaleMacros, type MacroTotals } from "../nutrition-core.js";
+import { addMacros, emptyMacros, scaleMacros, scaleMacroTotals, type MacroTotals } from "../nutrition-core.js";
 import type { RecipeIngredientRole } from "./recipe-ingredient-role.js";
 
 /**
@@ -237,11 +237,14 @@ export function computeTrustedNutrition(ingredients: readonly RecipeIngredientRe
     totals = addMacros(totals, scaleMacros({ kcal: food.kcalPer100g, fat: food.fatPer100g, protein: food.proteinPer100g, carbs: food.carbsPer100g, fiber: food.fiberPer100g }, grams / 100));
   }
   const calculable = weightGrams > 0;
+  // scaleMacroTotals (never scaleMacros) below: `totals` is already an
+  // accumulated MacroTotals whose own netCarbs was correctly clamped once
+  // per ingredient — see nutrition-core.ts's scaleMacroTotals comment.
   return {
     calculable,
-    macros: calculable ? scaleMacros(totals, 100 / weightGrams) : null,
+    macros: calculable ? scaleMacroTotals(totals, 100 / weightGrams) : null,
     total: calculable ? totals : null,
     weightGrams: weightGrams || null,
-    perServing: calculable && servings && servings > 0 ? scaleMacros(totals, 1 / servings) : null
+    perServing: calculable && servings && servings > 0 ? scaleMacroTotals(totals, 1 / servings) : null
   };
 }
