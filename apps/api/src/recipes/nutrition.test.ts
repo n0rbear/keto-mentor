@@ -64,6 +64,39 @@ describe("recipe nutrition calculator", () => {
     expect(() => calculateRecipeNutrition(broken)).toThrow("recipe_nutrition_not_calculable");
   });
 
+  // Owner-beta checkpoint (2026-09-16) — final recipe nutrition review: a
+  // real, reproduced bug. scaleMacros recomputes netCarbs from carbs/fiber
+  // every time it's called — correct the FIRST time (a single ingredient's
+  // raw per-100g values), but calculateRecipeNutrition's own perServing/
+  // per100g used to re-invoke it on the ALREADY-ACCUMULATED total (whose
+  // netCarbs is the SUM of each ingredient's own already-clamped netCarbs),
+  // silently re-clamping a second time from the aggregate's raw carbs/fiber.
+  // Whenever any ingredient's own fiber exceeds its own carbs, those two
+  // numbers disagree: total.netCarbs / servings != perServing.netCarbs.
+  it("PHASE 27 — total.netCarbs and perServing/per100g.netCarbs never disagree, even when one ingredient's fiber exceeds its own carbs", () => {
+    const highFiberRecipe = {
+      id: "r2", userId: "u1", title: "High fiber", description: null, servings: 2, finishedWeightGrams: 200,
+      visibility: "private", sourceType: "manual", sourceUrl: null, provenance: null, forkedFromRecipeId: null, deletedAt: null, createdAt: new Date(), updatedAt: new Date(),
+      ingredients: [
+        // fiber (5) > carbs (2) -> this ingredient's OWN netCarbs clamps to 0.
+        { id: "i1", recipeId: "r2", foodId: "fx", quantityGrams: 100, originalText: null, preparation: null, sortOrder: 0, food: { id: "fx", name: "Husk", names: null, synonyms: null, brand: null, barcode: null, source: "usda_fdc", sourceId: "x", originalName: "Husk", category: null, searchText: "husk", provenance: null, servingUnit: null, servingGrams: null, kcalPer100g: 50, fatPer100g: 1, proteinPer100g: 1, carbsPer100g: 2, fiberPer100g: 5, createdById: null, createdAt: new Date(), nutrients: [] } },
+        // ordinary: carbs (10) > fiber (1) -> netCarbs = 9.
+        { id: "i2", recipeId: "r2", foodId: "fy", quantityGrams: 100, originalText: null, preparation: null, sortOrder: 1, food: { id: "fy", name: "Grain", names: null, synonyms: null, brand: null, barcode: null, source: "usda_fdc", sourceId: "y", originalName: "Grain", category: null, searchText: "grain", provenance: null, servingUnit: null, servingGrams: null, kcalPer100g: 80, fatPer100g: 2, proteinPer100g: 2, carbsPer100g: 10, fiberPer100g: 1, createdById: null, createdAt: new Date(), nutrients: [] } }
+      ]
+    } as any;
+    const highFiberResult = calculateRecipeNutrition(highFiberRecipe);
+    // total.netCarbs = max(0, 2-5) + max(0, 10-1) = 0 + 9 = 9 (sum of each ingredient's own clamp).
+    expect(highFiberResult.total.macros.netCarbs).toBe(9);
+    // perServing (S=2) must be EXACTLY total/2 = 4.5 — never a fresh, differently-clamped 3
+    // (which max(0, (2+10)*0.5 - (5+1)*0.5) = max(0,6-3) = 3 would silently produce).
+    expect(highFiberResult.perServing?.macros.netCarbs).toBe(4.5);
+    // per100g (finishedWeightGrams=200, ingredientWeightGrams=200, factor=0.5) must agree with perServing.
+    expect(highFiberResult.per100g?.macros.netCarbs).toBe(4.5);
+    // And scaleRecipeSnapshot (the consumed-portion persistence path) must agree too.
+    const snapshot = scaleRecipeSnapshot(highFiberResult.total.macros, highFiberResult.total.nutrients, 0.5);
+    expect(snapshot.macros.netCarbs).toBe(4.5);
+  });
+
   it("computes correct macro totals from the lean list projection, which omits food.nutrients entirely", () => {
     const lean = {
       id: "r1", userId: "u1", title: "Lean", description: null, servings: 2, finishedWeightGrams: null,

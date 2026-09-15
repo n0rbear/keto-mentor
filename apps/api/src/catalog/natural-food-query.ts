@@ -185,6 +185,18 @@ const PREPARATION_CONCEPTS: Record<string, string> = {
 // keep their existing (tested) foodQuery.
 const STRIPPABLE_PREP = new Set(Object.keys(PREPARATION_CONCEPTS).filter((key) => key !== "grill"));
 
+// Owner-reported checkpoint (2026-09-16): true only when the ENTIRE (already-
+// normalized) foodQuery is itself one of these bare preparation trigger
+// words — i.e. no distinct food noun was stated at all beyond the
+// preparation itself ("sült" alone). Lets callers distinguish that genuinely
+// ambiguous-but-food-less phrase from a phrase that DOES name a real, distinct
+// food ("sült oldalas") which merely isn't covered by the local catalog under
+// its own name — see interpret.ts's PREP_SEARCH_TOKEN fallback, which must
+// never treat the latter as if it were the former.
+export function isBarePreparationToken(normalizedFoodQuery: string): boolean {
+  return normalizedFoodQuery in PREPARATION_CONCEPTS;
+}
+
 // Hungarian case suffixes that may follow a food word, e.g. "tojásból" -> "tojás".
 // Single "t" is intentionally excluded: many nominative food words already end in
 // "t" (sajt, kenyér), and the accusative is covered by the two-letter "ot/at/et".

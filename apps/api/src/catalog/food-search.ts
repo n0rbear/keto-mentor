@@ -40,7 +40,18 @@ const QUERY_ALIASES: Record<string, readonly string[]> = {
 };
 
 export type FoodSearchMatch = { stage: "exact" | "alias" | "partial" | "fuzzy"; score: number; query: string; aliasKind?: string };
-type AliasEntry = { normalizedAlias: string; kind: string };
+type AliasEntry = { normalizedAlias: string; kind: string; confidence: number };
+
+// P0 semantic identity safety checkpoint (2026-09-16): a `dynamic_search`
+// alias only reaches full ("exact") trust once a REAL semantic-gate check
+// has actually validated it against the original identity it was learned
+// for — see learnSearchAlias's own write-time logic. Every alias written
+// BEFORE this checkpoint (including any already-poisoned one, e.g. "mustár"
+// -> "Mustard greens, raw") carries the old default confidence (0.7), below
+// this threshold, so it is automatically demoted to the weak/fuzzy tier on
+// its very next read — no migration, no manual deletion, no destructive
+// cleanup of existing staging/production data required.
+export const DYNAMIC_SEARCH_ALIAS_TRUST_THRESHOLD = 0.9;
 
 /**
  * How much of a query phrase must actually be attested somewhere in a food's
@@ -84,6 +95,27 @@ export function hasSemanticCoverage(normalizedQuery: string, representations: re
   const matched = tokens.filter((token) => representations.some((rep) => rep.includes(token)));
   return matched.length / tokens.length >= SEMANTIC_TRUST_THRESHOLD;
 }
+
+// P0 semantic identity safety checkpoint (2026-09-16) — real, reproduced bug:
+// "mustár" (mustard, the condiment) was learned as a `dynamic_search` alias
+// for "Mustard greens, raw" (localized "nyers mustárlevél" — a leafy
+// vegetable, a genuinely different food) purely because hasSemanticCoverage's
+// substring check treats "mustár" as "covered" merely for being a lexical
+// PREFIX of the longer, unrelated compound word "mustárlevél". A stricter
+// whole-word-only variant was tried first and rejected: it also rejects
+// "csülök" against its own legitimate localized translation "Sertéscsülök"
+// (pork hock — "csülök" genuinely IS the base food; "sertés" is just the
+// species modifier). Both pairs are lexically identical in shape (a shorter
+// word as a prefix of a longer compound) — no purely lexical/substring rule
+// can tell them apart; the difference is in what the attached part MEANS,
+// which needs real semantic judgment. hasSemanticCoverage is therefore kept
+// exactly as-is (still the necessary cheap pre-filter for every OTHER alias
+// kind and call site) — the actual fix is DYNAMIC_SEARCH_ALIAS_TRUST_THRESHOLD
+// below plus learnSearchAlias's write-time semantic-gate check: a
+// dynamic_search alias only reaches full trust once a REAL AI semantic-gate
+// verdict (reusing the existing same_identity/processed_derivative/
+// different_prepared_food classification, not a new classifier) has actually
+// validated it against the original identity — never lexical overlap alone.
 
 /**
  * The one shared definition of "is this local Food match strong enough to
@@ -197,8 +229,19 @@ function scoreFood(food: any, variants: readonly string[], aliasesByFood: Readon
     // resolution, as a dynamic_search alias for "bok choy" / "beech
     // mushroom" respectively — zero relationship to either query, yet both
     // scored a full alias match and auto-resolved with no confirmation.
-    const exactAlias = !!matchingAlias && (matchingAlias.kind !== "dynamic_search" || hasSemanticCoverage(variant, names));
-    const weakDynamicAlias = !!matchingAlias && matchingAlias.kind === "dynamic_search" && !hasSemanticCoverage(variant, names);
+    // P0 semantic identity safety checkpoint (2026-09-16): a dynamic_search
+    // alias now ALSO needs confidence >= DYNAMIC_SEARCH_ALIAS_TRUST_THRESHOLD
+    // to earn full ("exact") trust — hasSemanticCoverage alone (lexical
+    // token overlap) cannot tell "csülök is genuinely a form of sertéscsülök"
+    // from "mustár merely happens to be a lexical prefix of mustárlevél,  a
+    // different food"; only a REAL semantic-gate verdict, recorded as this
+    // alias's confidence at write time (see learnSearchAlias), can. An alias
+    // below the threshold (every alias written before this checkpoint,
+    // confidence 0.7) falls to the weak/fuzzy tier here instead — never
+    // silently promoted to full trust merely for existing.
+    const dynamicSearchTrusted = matchingAlias?.kind === "dynamic_search" && matchingAlias.confidence >= DYNAMIC_SEARCH_ALIAS_TRUST_THRESHOLD && hasSemanticCoverage(variant, names);
+    const exactAlias = !!matchingAlias && (matchingAlias.kind !== "dynamic_search" || dynamicSearchTrusted);
+    const weakDynamicAlias = !!matchingAlias && matchingAlias.kind === "dynamic_search" && !dynamicSearchTrusted;
     const aliasPrefix = aliasStrings.some((alias) => alias.startsWith(`${variant} `));
     const aliasContains = aliasStrings.some((alias) => alias.includes(variant));
     const tokenCoverage = variant.split(" ").filter((token) => searchable.includes(token)).length / variant.split(" ").length;
@@ -217,7 +260,7 @@ export async function searchFoods(prisma: CatalogPrisma, rawQuery: string, limit
   const [aliases, candidates] = await Promise.all([
     prisma.foodAlias.findMany({
       where: { OR: variants.map((normalizedAlias) => ({ normalizedAlias: { contains: normalizedAlias } })) },
-      select: { foodId: true, normalizedAlias: true, kind: true },
+      select: { foodId: true, normalizedAlias: true, kind: true, confidence: true },
       take: 60
     }),
     prisma.food.findMany({
@@ -229,7 +272,7 @@ export async function searchFoods(prisma: CatalogPrisma, rawQuery: string, limit
   const aliasesByFood = new Map<string, AliasEntry[]>();
   for (const alias of aliases) {
     const values = aliasesByFood.get(alias.foodId) ?? [];
-    values.push({ normalizedAlias: normalizeSearch(alias.normalizedAlias), kind: alias.kind });
+    values.push({ normalizedAlias: normalizeSearch(alias.normalizedAlias), kind: alias.kind, confidence: alias.confidence });
     aliasesByFood.set(alias.foodId, values);
   }
   const fuzzyIds = new Set<string>();
