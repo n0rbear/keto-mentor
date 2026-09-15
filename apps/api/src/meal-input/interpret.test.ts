@@ -68,14 +68,24 @@ const baseFoods: Food[] = [
   { id: "catalog-beef-broth", name: "Beef broth", names: { hu: "Marhahúsleves", en: "Beef broth" }, synonyms: { hu: ["marhahúsleves", "marhahusleves"], en: ["beef broth"] }, kcalPer100g: 8 }
 ];
 
-function makePrisma() {
-  const foods = baseFoods.map((f) => ({
+// Owner-reported checkpoint (2026-09-16) — a real "Pork ribs" Food, added
+// ONLY to prove that once the local catalog genuinely covers a food, the
+// prepared-egg shortcut fix does not prevent it from being found — never a
+// hardcoded "oldalas equals X" mapping, just an ordinary catalog entry like
+// every other fixture Food above.
+const foodsWithPorkRibs: Food[] = [
+  ...baseFoods,
+  { id: "catalog-pork-ribs", name: "Pork ribs", names: { hu: "Oldalas", de: "Schweinerippchen", en: "Pork ribs" }, synonyms: { hu: ["oldalas", "sertésoldalas", "sertesoldalas"], de: ["schweinerippchen"], en: ["pork ribs", "ribs"] }, kcalPer100g: 277 }
+];
+
+function makePrisma(foodList: Food[] = baseFoods) {
+  const foods = foodList.map((f) => ({
     ...f,
     createdById: null,
     searchText: normalizeSearch([f.name, ...Object.values(f.synonyms).flat()].join(" ")),
     servings: f.servings ?? []
   }));
-  const aliasRows = baseFoods.flatMap((f) => Object.values(f.synonyms).flat().map((a) => ({ foodId: f.id, normalizedAlias: normalizeSearch(a) })));
+  const aliasRows = foodList.flatMap((f) => Object.values(f.synonyms).flat().map((a) => ({ foodId: f.id, normalizedAlias: normalizeSearch(a) })));
 
   return {
     foodAlias: {
@@ -180,6 +190,53 @@ describe("meal input interpretation", () => {
     // The displayed candidate may fall back to the base egg for review, but it
     // must NOT be auto-confirmed: the user must explicitly choose/confirm.
     expect(r.quantity?.status === "resolved" ? r.quantity.requiresConfirmation || r.ambiguous || r.preparationUnavailable : true).toBe(true);
+  });
+
+  // Owner-reported checkpoint (2026-09-16) — real, reproduced production bug:
+  // "sült oldalas" (fried pork ribs) resolved as "Fried egg". Root cause:
+  // PREP_SEARCH_TOKEN's egg-specific lookup (meant only to catch bare
+  // Hungarian preparation-word shorthand for an egg dish, e.g. "sült" alone)
+  // was trusted unconditionally whenever the BASE foodQuery search came up
+  // empty, regardless of what food the user actually named. A confident
+  // wrong identity is worse than an honest unresolved result.
+  describe("PREP_SEARCH_TOKEN's egg shortcut must never claim an unrelated food is egg", () => {
+    it("a distinct, unrelated food word (oldalas/pork ribs) sharing a preparation word with egg is NEVER silently resolved as egg", async () => {
+      for (const input of ["sült oldalas", "sertésoldalas", "sült sertésoldalas", "sült hal", "sült csirke"]) {
+        const r = await interpretMealInput(prisma, input);
+        expect(r.selectedFood?.id, `input: ${input}`).not.toBe("catalog-fried-egg");
+        expect(r.selectedFood?.id, `input: ${input}`).not.toBe("catalog-scrambled-egg");
+        // The critical assertion is above (never a wrong identity). The safe
+        // outcome may be "unresolved" (no ribs/fish entry exists at all) or
+        // "confirmation_required" (a real, topically-related weak local
+        // match exists, e.g. "csirke" partially matching "csirkemell") — both
+        // are acceptable; a confident wrong answer is the only unacceptable one.
+        expect(["unresolved", "confirmation_required"], `input: ${input}`).toContain(r.foodResolution);
+      }
+    });
+
+    it("once the local catalog genuinely covers the named food, the fix does not prevent finding it (no hardcoded oldalas mapping — an ordinary catalog entry)", async () => {
+      const prismaWithRibs = makePrisma(foodsWithPorkRibs);
+      for (const input of ["oldalas", "sertésoldalas", "100 g oldalas"]) {
+        const r = await interpretMealInput(prismaWithRibs, input);
+        expect(r.selectedFood?.id, `input: ${input}`).toBe("catalog-pork-ribs");
+      }
+    });
+
+    it("bare preparation-word shorthand with no distinct food noun still resolves as egg (the genuinely-intended case is preserved)", async () => {
+      const r = await interpretMealInput(prisma, "sült");
+      expect(r.selectedFood?.id).toBe("catalog-fried-egg");
+    });
+
+    it("a stated food noun that genuinely IS egg (via a synonym absent from the prepared form's own display name) still resolves correctly — no regression", async () => {
+      // "tojásból rántotta": foodQuery becomes "tojas", which never appears in
+      // Scrambled Egg's own display names ("Rántotta"/"Rührei") — only in its
+      // synonym list ("tojásrántotta") — proving the fix checks the
+      // candidate's full identity vocabulary (searchText), not just its name.
+      const r = await interpretMealInput(prisma, "5 tojásból rántotta");
+      expect(r.selectedFood?.id).toBe("catalog-scrambled-egg");
+      const r2 = await interpretMealInput(prisma, "tükörtojás");
+      expect(r2.selectedFood?.id).toBe("catalog-fried-egg");
+    });
   });
 
   it("generic sajt -> ambiguous/candidate confirmation, never arbitrary Cheddar/Gouda auto-resolution", async () => {
