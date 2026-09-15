@@ -159,6 +159,67 @@ describe("semantic coverage gate on learned (dynamic_search) aliases", () => {
     const result = await searchFoods(prismaWithValidatedAlias, "mustár");
     expect(result[0]).toMatchObject({ id: "prepared-mustard", match: { stage: "alias", score: 95 } });
   });
+
+  // P0 checkpoint regression matrix: the mustár/mustárlevél case is one
+  // instance of a general shape (a short word that is a full lexical
+  // prefix/subset of a longer, DIFFERENT food's compound name). The fix is
+  // generic (confidence-gated, not food-specific), so it must hold for any
+  // food pair with this shape, not just the one reported case.
+  it.each([
+    ["potato", "potato-bread", "Potato bread", "potato bread"],
+    ["garlic", "garlic-bread", "Garlic bread", "garlic bread"],
+    ["chicken", "chicken-soup", "Chicken soup", "chicken soup"],
+    ["apple", "apple-pie", "Apple pie", "apple pie"],
+    ["tomato", "tomato-sauce", "Tomato sauce", "tomato sauce"],
+    ["carrot", "carrot-cake", "Carrot cake", "carrot cake"],
+    ["senf", "senfblatter", "Senfblatter, mustard greens", "senfblatter mustard greens"]
+  ])("a low-confidence (unvalidated) dynamic_search alias '%s' learned for a different, more specific food ('%s') does not auto-resolve", async (alias, id, name, searchText) => {
+    const food = foodWith(id, name, searchText);
+    const prismaWithLowConfAlias = {
+      foodAlias: { findMany: async () => [{ foodId: id, normalizedAlias: alias, kind: "dynamic_search", confidence: 0.7 }] },
+      food: { findMany: async ({ where }: any) => where?.id?.in ? [food].filter((f) => where.id.in.includes(f.id)) : [food] }
+    } as unknown as Pick<PrismaClient, "food" | "foodAlias">;
+
+    const result = await searchFoods(prismaWithLowConfAlias, alias);
+    expect(result[0]?.match.stage).not.toBe("alias");
+    expect(result[0]?.match.score).toBeLessThan(80);
+  });
+
+  it.each([
+    ["potato", "potato-bread", "Potato bread", "potato bread"],
+    ["garlic", "garlic-bread", "Garlic bread", "garlic bread"],
+    ["senf", "senfblatter", "Senfblatter, mustard greens", "senfblatter mustard greens"]
+  ])("the same alias '%s', once semantically validated (confidence >= threshold), is trusted at full weight", async (alias, id, name, searchText) => {
+    const food = foodWith(id, name, searchText);
+    const prismaWithValidatedAlias = {
+      foodAlias: { findMany: async () => [{ foodId: id, normalizedAlias: alias, kind: "dynamic_search", confidence: 0.95 }] },
+      food: { findMany: async ({ where }: any) => where?.id?.in ? [food].filter((f) => where.id.in.includes(f.id)) : [food] }
+    } as unknown as Pick<PrismaClient, "food" | "foodAlias">;
+
+    const result = await searchFoods(prismaWithValidatedAlias, alias);
+    expect(result[0]).toMatchObject({ id, match: { stage: "alias", score: 95 } });
+  });
+
+  // Positive control: legitimate compound-word matches (own recorded name,
+  // not a learned alias) are untouched by the dynamic_search confidence gate.
+  it.each([
+    ["csirkemell", "Csirkemell"],
+    ["csirkecomb", "Csirkecomb"],
+    ["vöröshagyma", "Voroshagyma"],
+    ["fokhagyma", "Fokhagyma"],
+    ["Schweinerippchen", "Schweinerippchen"],
+    ["Schweinehaxe", "Schweinehaxe"],
+    ["Senf", "Senf"]
+  ])("a food's own compound name ('%s') still resolves at full ('exact') trust with no alias involved", async (query, name) => {
+    const food = foodWith("compound-food", name, normalizeSearch(name));
+    const prismaNoAlias = {
+      foodAlias: { findMany: async () => [] },
+      food: { findMany: async ({ where }: any) => where?.id?.in ? [food].filter((f) => where.id.in.includes(f.id)) : [food] }
+    } as unknown as Pick<PrismaClient, "food" | "foodAlias">;
+
+    const result = await searchFoods(prismaNoAlias, query);
+    expect(result[0]).toMatchObject({ id: "compound-food", match: { stage: "exact" } });
+  });
 });
 
 // Owner-beta blocker #3 (2026-09-10): candidate relevance and trusted
