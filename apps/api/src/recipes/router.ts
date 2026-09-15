@@ -67,10 +67,26 @@ function trustedLocale(user: { locale: string }): Locale {
   return (locales as readonly string[]).includes(user.locale) ? (user.locale as Locale) : "hu";
 }
 
+// Owner-beta checkpoint (2026-09-15) — final recipe nutrition review: this
+// previously extracted the recipe ONLY (identity resolution was a no-op —
+// dynamic/normalizationProvider/quantityProvider were never passed, so every
+// ingredient defaulted to the per-line local-search-only path with no
+// authoritative/external resolution). That made a nutrition-trustworthy
+// preview reachable ONLY via web discovery, whose search ranking is
+// non-deterministic — no deterministic, direct-URL way to reach a fully
+// trusted recipe preview for verification/testing existed. Now wires the
+// exact same full resolution stack /import-url/preview/confirm-ingredients
+// already uses, so a direct URL import can reach the SAME trusted
+// nutritionCalculable=true result web discovery would, deterministically.
 recipeRouter.post("/import-url/preview", importPreviewLimiter, async (req, res, next) => {
   try {
     const { url } = recipeImportPreviewSchema.parse(req.body);
-    const preview = await previewRecipeImport(prisma, url, {}, recipeAiProvider);
+    const locale = trustedLocale(req.user!);
+    const foodLocale = foodLocaleFor(locale);
+    const dynamic = externalFoodAdapters.length
+      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale, foodLocale, localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider }
+      : null;
+    const preview = await previewRecipeImport(prisma, url, {}, recipeAiProvider, dynamic, recipeIngredientNormalizationProvider, recipeQuantityEstimationProvider);
     res.json({ preview: { ...preview, importProof: createRecipeImportProof(req.user!.id, preview.sourceUrl, preview.extractionMethod) } });
   } catch (error) { next(error); }
 });

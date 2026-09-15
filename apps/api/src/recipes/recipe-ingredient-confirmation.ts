@@ -67,6 +67,10 @@ export type RecipeIngredientConfirmationResult = {
     unresolvedCount: number;
     nutritionCalculable: boolean;
     nutritionPer100g: ReturnType<typeof computeTrustedNutrition>["macros"];
+    // Same raw-ingredient-weight basis as recipe-discovery-fallback.ts's
+    // candidate shape — a manually-imported recipe never has a known cooked
+    // yield weight either. See computeTrustedNutrition's own doc comment.
+    nutritionPer100gBasis: "raw_ingredient_weight" | null;
     ingredients: ReturnType<typeof toIngredientReview>[];
   };
   /** A fresh proof for the RECOMPUTED preview, minted the same way /import-url/preview already does — the old proof is single-purpose (this request) and not reused for a follow-up confirmation round. */
@@ -196,6 +200,7 @@ export async function confirmRecipeIngredients(
       unresolvedCount: afterSummary.unresolvedCount,
       nutritionCalculable: afterNutrition.calculable,
       nutritionPer100g: afterNutrition.macros,
+      nutritionPer100gBasis: afterNutrition.macros != null ? "raw_ingredient_weight" : null,
       ingredients: afterReviews
     },
     importProof: deps.mintProof(request.sourceUrl, request.extractionMethod)

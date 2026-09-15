@@ -105,6 +105,10 @@ function toCandidateShape(extracted: ExtractedPreview, reviews: readonly RecipeI
     confirmationRequiredIngredientCount: summary.confirmationRequiredCount,
     ingredientSummary: extracted.ingredients.map((ingredient) => ingredient.originalText).slice(0, 50),
     nutritionPer100g: trusted.macros,
+    // A discovered recipe never has a known cooked-yield weight — see
+    // recipe-ingredient-review.ts's computeTrustedNutrition — so this is
+    // always the raw-ingredient-weight basis, explicitly, whenever non-null.
+    nutritionPer100gBasis: trusted.macros != null ? "raw_ingredient_weight" : null,
     nutritionPerServing: trusted.perServing,
     nutritionTotal: trusted.total,
     nutritionCalculable: trusted.calculable,

@@ -8,6 +8,22 @@ import type { MacroTotals } from "../nutrition-core.js";
 import type { RecipeIngredientReview } from "./recipe-ingredient-review.js";
 
 /**
+ * Owner-beta checkpoint (2026-09-15) — final recipe nutrition review:
+ * nutritionPer100g's weight BASIS was previously only documented in a source
+ * comment (see below), never surfaced in the API contract itself — a
+ * consuming client had no way to tell "this per-100g figure is a real,
+ * known cooked-dish yield weight" (a saved Recipe with finishedWeightGrams,
+ * see recipes/nutrition.ts's calculateRecipeNutrition) apart from "this is
+ * an approximation based on the sum of raw ingredient grams, which
+ * typically OVERSTATES a cooked dish's true weight" (every discovered
+ * recipe — extraction never captures a cooked yield). Both are honestly
+ * computed from real authoritative data; only the WEIGHT they're divided by
+ * differs. Exposed explicitly rather than changed, silently omitted, or
+ * newly estimated — the smallest safe fix consistent with existing behavior.
+ */
+export type NutritionPer100gBasis = "finished_weight" | "raw_ingredient_weight";
+
+/**
  * The bounded, safe-to-serialize shape attached to a meal-input result when
  * web recipe discovery ran. Deliberately carries only what a client needs to
  * render "we found a recipe that may represent this dish" and to confirm it
@@ -41,6 +57,10 @@ export type RecipeDiscoveryPreview = {
     servings: number | null;
     ingredientCount: number;
     nutritionPer100g: MacroTotals | null;
+    // A saved Recipe's per100g (calculateRecipeNutrition) is only ever
+    // computed when finishedWeightGrams is known — see nutrition.ts — so
+    // this is always "finished_weight" whenever nutritionPer100g is non-null.
+    nutritionPer100gBasis: NutritionPer100gBasis | null;
     nutritionCalculable: boolean;
   };
   candidate?: {
@@ -68,6 +88,12 @@ export type RecipeDiscoveryPreview = {
     // recipe equivalent, which correctly refuses per100g without one). A
     // known, honestly-labeled approximation — never presented as measured.
     nutritionPer100g: MacroTotals | null;
+    // Owner-beta checkpoint (2026-09-15): explicit, API-visible weight basis
+    // for nutritionPer100g — always "raw_ingredient_weight" for a discovered
+    // recipe (extraction never captures a cooked yield weight), null when
+    // nutritionPer100g itself is null. A client MUST treat this differently
+    // from a true measured cooked-dish per-100g figure.
+    nutritionPer100gBasis: NutritionPer100gBasis | null;
     // Owner-beta (2026-09-14) — Blocker 5: per ONE serving, using `servings`
     // (schema.org recipeYield / the AI extraction's own structured field —
     // never a fabricated number) — needs no weight-basis assumption at all,

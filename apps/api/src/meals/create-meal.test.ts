@@ -213,6 +213,56 @@ describe("meal creation with a recipe-discovery item", () => {
     expect(new Set(meal.items.map((i: any) => i.recipeId)).size).toBe(2);
   });
 
+  // Owner-beta checkpoint (2026-09-15) — final recipe nutrition review,
+  // Phase 15 (persistence consistency): the persisted MealItem snapshot
+  // MUST be exactly the accepted ingredient's own grams x the resolved
+  // Food's own nutrition — never any other number. Independently
+  // hand-computed here (800g sertéscsülök @ 280kcal/22F/20P/0C per 100g).
+  it("PHASE 15 — the persisted MealItem snapshot is EXACTLY quantityGrams x resolvedFood nutrition/100 — independently recomputed, not merely equal to itself", async () => {
+    const fake = fakePrisma();
+    const input = createMealSchema.parse({ title: "Ebéd", items: [recipeItem({ quantity: 800, unit: "g" })] });
+    const meal = await createMeal(fake.client, "user-1", input, deps());
+    const item = meal.items[0];
+    expect(item.quantityGrams).toBe(800);
+    // 800g / 100 x porkHockFood's own per-100g values.
+    expect(item.totals.kcal).toBeCloseTo(800 / 100 * 280, 9);
+    expect(item.totals.fat).toBeCloseTo(800 / 100 * 22, 9);
+    expect(item.totals.protein).toBeCloseTo(800 / 100 * 20, 9);
+    expect(item.totals.carbs).toBeCloseTo(0, 9);
+  });
+
+  // Owner-beta checkpoint (2026-09-15) — Phase 16 (historical snapshot
+  // stability): a recipe MealItem's displayed nutrition must NEVER change
+  // just because the underlying Food's catalog nutrition changes later —
+  // it reads its own persisted snapshot, never a live Food join (see
+  // nutrition.ts's itemTotals). Proven by mutating the Food AFTER the meal
+  // was created and re-serializing the SAME meal object.
+  it("PHASE 16 — historical MealItem nutrition is stable: mutating the Food's catalog nutrition AFTER meal creation does not change the already-created meal's totals", async () => {
+    const fake = fakePrisma();
+    const input = createMealSchema.parse({ title: "Ebéd", items: [recipeItem({ quantity: 800, unit: "g" })] });
+    const meal = await createMeal(fake.client, "user-1", input, deps());
+    const originalKcal = meal.items[0].totals.kcal;
+    expect(originalKcal).toBeCloseTo(800 / 100 * 280, 9);
+
+    // Simulate catalog drift: the Food's own nutrition changes after the fact.
+    const originalKcalPer100g = porkHockFood.kcalPer100g;
+    porkHockFood.kcalPer100g = 999;
+    try {
+      // Re-serialize the SAME raw, already-persisted meal row (captured by
+      // the fixture's meal.create — serializeMeal's own client-facing output
+      // intentionally drops the raw snapshot* columns, keeping only the
+      // derived `totals`, so re-deriving from that stripped shape would
+      // trivially pass; the real proof reads the raw persisted row again).
+      const { itemTotals } = await import("../nutrition.js");
+      const rawPersistedItem = fake.meals[0].items[0];
+      const stillOriginal = itemTotals(rawPersistedItem as any);
+      expect(stillOriginal.kcal).toBeCloseTo(originalKcal, 9);
+      expect(stillOriginal.kcal).not.toBeCloseTo(800 / 100 * 999, 9);
+    } finally {
+      porkHockFood.kcalPer100g = originalKcalPer100g;
+    }
+  });
+
   // Owner-beta (2026-09-15) — final PR review found this: two items in the
   // same request referencing the IDENTICAL sourceUrl each independently ran
   // resolveRecipeDiscoveryMealItem's own-recipe lookup concurrently — since

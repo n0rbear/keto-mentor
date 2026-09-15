@@ -6,7 +6,7 @@ import type { MacroTotals } from "../nutrition-core.js";
 export type LocalRecipeCandidate = { recipeId: string; title: string };
 
 export type LocalRecipeLookupResult =
-  | { status: "found"; recipeId: string; title: string; servings: number | null; ingredientCount: number; nutritionPer100g: MacroTotals | null; nutritionCalculable: boolean }
+  | { status: "found"; recipeId: string; title: string; servings: number | null; ingredientCount: number; nutritionPer100g: MacroTotals | null; nutritionPer100gBasis: "finished_weight" | null; nutritionCalculable: boolean }
   | { status: "ambiguous"; candidates: LocalRecipeCandidate[] }
   | { status: "not_found" };
 
@@ -60,6 +60,7 @@ export async function findTrustedLocalRecipe(prisma: Pick<PrismaClient, "recipe"
     servings: recipe.servings ?? null,
     ingredientCount: recipe.ingredients.length,
     nutritionPer100g: nutrition.per100g?.macros ?? null,
+    nutritionPer100gBasis: nutrition.per100g != null ? "finished_weight" : null,
     nutritionCalculable: nutrition.per100g != null
   };
 }
