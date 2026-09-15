@@ -119,6 +119,46 @@ describe("semantic coverage gate on learned (dynamic_search) aliases", () => {
     expect(result[0]?.match.stage).not.toBe("alias");
     expect(result[0]?.match.score).toBeLessThan(80);
   });
+
+  // P0 semantic identity safety checkpoint (2026-09-16): the real,
+  // reproduced bug this section closes. "mustár" (mustard, the condiment)
+  // was learned as a dynamic_search alias for "Mustard greens, raw" purely
+  // because hasSemanticCoverage's substring check treats "mustár" as
+  // "covered" merely for being a lexical PREFIX of the longer, unrelated
+  // compound word "mustárlevél" ("nyers mustárlevél", its own Hungarian
+  // name) — passing every check the OTHER tests above rely on (real,
+  // non-trivial lexical coverage, not a coincidental one-token echo). No
+  // change to hasSemanticCoverage itself could fix this without also
+  // breaking the legitimate csülök/pork-hock case two tests up. The actual
+  // fix: a dynamic_search alias also needs confidence >=
+  // DYNAMIC_SEARCH_ALIAS_TRUST_THRESHOLD to reach full ("exact") trust —
+  // every alias written before this checkpoint (confidence 0.7, the
+  // pre-existing default) is automatically demoted, no migration or manual
+  // deletion of the existing poisoned row required.
+  it("a dynamic_search alias with full lexical coverage but low (pre-checkpoint) confidence does NOT auto-resolve — the mustár/mustárlevél case", async () => {
+    const mustardGreens = foodWith("mustard-greens", "Mustard greens, raw", "mustard greens raw");
+    (mustardGreens as any).names = { en: "Mustard greens, raw", hu: "nyers mustárlevél" };
+    const prismaWithPoisonedAlias = {
+      foodAlias: { findMany: async () => [{ foodId: "mustard-greens", normalizedAlias: "mustar", kind: "dynamic_search", confidence: 0.7 }] },
+      food: { findMany: async ({ where }: any) => where?.id?.in ? [mustardGreens].filter((f) => where.id.in.includes(f.id)) : [mustardGreens] }
+    } as unknown as Pick<PrismaClient, "food" | "foodAlias">;
+
+    const result = await searchFoods(prismaWithPoisonedAlias, "mustár");
+    expect(result[0]?.match.stage).not.toBe("alias");
+    expect(result[0]?.match.score).toBeLessThan(80);
+  });
+
+  it("a dynamic_search alias that HAS been semantically validated (confidence >= threshold) still resolves at full trust", async () => {
+    const preparedMustard = foodWith("prepared-mustard", "Mustard, prepared, yellow", "mustard prepared yellow");
+    (preparedMustard as any).names = { en: "Mustard, prepared, yellow", hu: "kész mustár, sárga" };
+    const prismaWithValidatedAlias = {
+      foodAlias: { findMany: async () => [{ foodId: "prepared-mustard", normalizedAlias: "mustar", kind: "dynamic_search", confidence: 0.95 }] },
+      food: { findMany: async ({ where }: any) => where?.id?.in ? [preparedMustard].filter((f) => where.id.in.includes(f.id)) : [preparedMustard] }
+    } as unknown as Pick<PrismaClient, "food" | "foodAlias">;
+
+    const result = await searchFoods(prismaWithValidatedAlias, "mustár");
+    expect(result[0]).toMatchObject({ id: "prepared-mustard", match: { stage: "alias", score: 95 } });
+  });
 });
 
 // Owner-beta blocker #3 (2026-09-10): candidate relevance and trusted
