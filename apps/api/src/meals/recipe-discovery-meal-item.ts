@@ -7,6 +7,8 @@ import { verifyRecipeImportProof } from "../recipes/import-proof.js";
 import { toIngredientReview, classifyRecipeReview, computeTrustedNutrition, type ReviewableIngredient, type TrustedFoodSummary } from "../recipes/recipe-ingredient-review.js";
 import { calculateRecipeNutrition, scaleRecipeSnapshot, type RecipeWithIngredients } from "../recipes/nutrition.js";
 import type { SafeFetcherDependencies } from "../recipes/safe-url-fetcher.js";
+import { DisabledRecipeIngredientNormalizationProvider, type RecipeIngredientNormalizationProvider } from "../recipes/recipe-ingredient-normalization.js";
+import { DisabledRecipeQuantityEstimationProvider, type RecipeQuantityEstimationProvider } from "../recipes/recipe-quantity-estimation.js";
 
 export type RecipeDiscoveryMealItemDeps = {
   recipeAiProvider: RecipeExtractionProvider;
@@ -15,6 +17,23 @@ export type RecipeDiscoveryMealItemDeps = {
   // always runs against the real safe-url-fetcher (mirrors
   // RecipeDiscoveryFallbackDeps.fetchDependencies exactly).
   fetchDependencies?: SafeFetcherDependencies;
+  // Owner-beta checkpoint (2026-09-15) — final recipe nutrition review: this
+  // was previously missing entirely, so meal-creation's own re-derivation
+  // (required — never trusts the client's earlier preview) silently fell
+  // back to the OLDER, weaker per-ingredient-line resolution path with no
+  // whole-recipe-context normalization and no AI household-quantity
+  // estimation, even though BOTH /recipes/import-url/preview and the
+  // natural-language recipe-discovery path already use the full pipeline.
+  // A real, reproduced consequence: a recipe preview correctly showing
+  // 19/19 resolved could still fail meal creation with
+  // "recipe_not_fully_resolved", since re-derivation used a materially
+  // different (weaker) resolution path than what produced that preview.
+  // Optional + defaulted so any existing caller/test that doesn't wire this
+  // keeps compiling and behaving unchanged (still degrades to the
+  // per-ingredient path, just now consistently with what such a caller
+  // already had, not silently WORSE than what the user actually previewed).
+  recipeIngredientNormalizationProvider?: RecipeIngredientNormalizationProvider;
+  recipeQuantityEstimationProvider?: RecipeQuantityEstimationProvider;
 };
 
 function recipeDiscoveryMealItemError(publicCode: string, status = 400) {
@@ -68,7 +87,11 @@ export async function prepareRecipeDiscoveryItem(
   const existing = await prisma.recipe.findFirst({ where: { userId, sourceUrl: item.sourceUrl, deletedAt: null }, include: recipeInclude });
   if (existing) return { kind: "existing", recipeId: existing.id, sourceUrl: item.sourceUrl, recipe: existing as unknown as RecipeWithIngredients };
 
-  const extracted = await previewRecipeImport(prisma, item.sourceUrl, deps.fetchDependencies ?? {}, deps.recipeAiProvider, deps.dynamic);
+  const extracted = await previewRecipeImport(
+    prisma, item.sourceUrl, deps.fetchDependencies ?? {}, deps.recipeAiProvider, deps.dynamic,
+    deps.recipeIngredientNormalizationProvider ?? new DisabledRecipeIngredientNormalizationProvider(),
+    deps.recipeQuantityEstimationProvider ?? new DisabledRecipeQuantityEstimationProvider()
+  );
   // The page may have changed since the user's original preview (or a
   // differently-shaped page was served this time) — the proof was minted
   // for a SPECIFIC extraction method, never a blank check to accept

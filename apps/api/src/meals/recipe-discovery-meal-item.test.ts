@@ -2,6 +2,7 @@ process.env.JWT_ACCESS_SECRET = "a".repeat(32);
 
 import { describe, expect, it, vi } from "vitest";
 import { prepareRecipeDiscoveryItem, persistPreparedRecipe, computeRecipeMealItemData, resolvedFoodIdsOf, type RecipeDiscoveryMealItemDeps } from "./recipe-discovery-meal-item.js";
+import { DynamicFoodResolutionRateLimiter } from "../catalog/dynamic-food-rate-limit.js";
 import { createRecipeImportProof } from "../recipes/import-proof.js";
 import { DisabledRecipeExtractionProvider, type RecipeExtractionProvider } from "../recipes/recipe-extraction-provider.js";
 import type { RecipeDiscoveryMealItemInput } from "@keto-mentor/shared";
@@ -63,6 +64,43 @@ async function prepareComputeAndPersist(prisma: any, userId: string, item: Recip
   mealItemData.recipeId = recipeId;
   return { prepared, mealItemData };
 }
+
+// Owner-beta checkpoint (2026-09-15) — final recipe nutrition review: a real,
+// reproduced live bug. prepareRecipeDiscoveryItem previously NEVER received
+// recipeIngredientNormalizationProvider/recipeQuantityEstimationProvider —
+// meal creation's own re-derivation (required at persistence time; it never
+// trusts an earlier client-side preview) silently fell back to the OLDER,
+// weaker per-ingredient-line resolution path, even when
+// /recipes/import-url/preview and the natural-language recipe-discovery path
+// both already use the full whole-recipe-context batch pipeline. Live
+// consequence: a recipe preview correctly showing every ingredient resolved
+// could still fail meal creation with "recipe_not_fully_resolved", because
+// persistence-time re-derivation used a materially different, weaker
+// pipeline than what produced that preview.
+describe("prepareRecipeDiscoveryItem uses the SAME full resolution pipeline preview endpoints use (owner-beta checkpoint, 2026-09-15)", () => {
+  it("passes recipeIngredientNormalizationProvider and recipeQuantityEstimationProvider through to ingredient resolution when supplied (batch normalization requires dynamic resolution deps too — same precondition previewRecipeImport already enforces)", async () => {
+    const fake = fakePrisma();
+    const normalizeSpy = vi.fn(async (input: any) => ({ ingredients: input.ingredients.map((i: any) => ({ index: i.index, foods: [{ canonicalIdentity: "cabbage" }] })) }));
+    const estimateSpy = vi.fn(async () => ({ estimates: [] }));
+    const d = deps({
+      dynamic: {
+        prisma: fake.client, searchIntentProvider: { id: "unused", generate: async () => null },
+        adapters: [], rateLimiter: new DynamicFoodResolutionRateLimiter(), userId: "user-1"
+      },
+      recipeIngredientNormalizationProvider: { id: "spy", normalize: normalizeSpy },
+      recipeQuantityEstimationProvider: { id: "spy", estimate: estimateSpy }
+    });
+    await prepareRecipeDiscoveryItem(fake.client, "user-1", validItem({ quantity: 500, unit: "g" }), d);
+    expect(normalizeSpy).toHaveBeenCalled();
+  });
+
+  it("still works (graceful fallback to the per-ingredient path) when these providers are omitted — never throws merely because they're absent", async () => {
+    const fake = fakePrisma();
+    const d = deps(); // no recipeIngredientNormalizationProvider/recipeQuantityEstimationProvider at all
+    const prepared = await prepareRecipeDiscoveryItem(fake.client, "user-1", validItem({ quantity: 500, unit: "g" }), d);
+    expect(prepared.kind).toBe("pending");
+  });
+});
 
 describe("prepareRecipeDiscoveryItem / persistPreparedRecipe / computeRecipeMealItemData", () => {
   it("a valid proof + a fresh, fully-resolvable recipe: prepare derives real ingredients WITHOUT persisting, persist then creates exactly one Recipe", async () => {
