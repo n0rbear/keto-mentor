@@ -85,6 +85,25 @@ export function hasSemanticCoverage(normalizedQuery: string, representations: re
   return matched.length / tokens.length >= SEMANTIC_TRUST_THRESHOLD;
 }
 
+// Owner-reported checkpoint (2026-09-16) — investigated a real, reproduced
+// bug: "mustár" (mustard, the condiment) was learned as a `dynamic_search`
+// alias for "Mustard greens, raw" (localized "nyers mustárlevél" — a leafy
+// vegetable, a genuinely different food) purely because hasSemanticCoverage's
+// substring check treats "mustár" as "covered" merely for being a lexical
+// PREFIX of the longer, unrelated compound word "mustárlevél". A stricter
+// whole-word-only variant was prototyped here and REJECTED: it also rejects
+// "csülök" against its own legitimate localized translation "Sertéscsülök"
+// (pork hock — "csülök" genuinely IS the base food; "sertés" is just the
+// species modifier), a real, already-tested, load-bearing case (see
+// locale-consistent-resolution.test.ts). Both "mustár"/"mustárlevél" and
+// "csülök"/"sertéscsülök" are structurally identical (a shorter word as a
+// lexical prefix of a longer compound) — no purely lexical/substring rule
+// can tell them apart; the difference is in what the attached part MEANS,
+// which needs real semantic judgment, not string matching. Left unfixed —
+// see the final report for why a rushed lexical fix here would trade one
+// wrong-identity class for another (breaking a real compound-word case to
+// fix a different one), and what a genuine fix would require instead.
+
 /**
  * The one shared definition of "is this local Food match strong enough to
  * become a trusted identity" — an exact name match, or an alias earning the
