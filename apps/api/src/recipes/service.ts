@@ -20,7 +20,7 @@ const recipeInclude = {
 const recipeSummaryInclude = {
   user: { select: { id: true, username: true } },
   ingredients: {
-    select: { quantityGrams: true, food: { select: { kcalPer100g: true, fatPer100g: true, proteinPer100g: true, carbsPer100g: true, fiberPer100g: true } } }
+    select: { quantityGrams: true, includedInBaseNutrition: true, food: { select: { kcalPer100g: true, fatPer100g: true, proteinPer100g: true, carbsPer100g: true, fiberPer100g: true } } }
   }
 } satisfies Prisma.RecipeInclude;
 
@@ -46,7 +46,7 @@ async function ensureFoodsExist(prisma: PrismaClient, input: RecipeInput) {
   if (count !== ids.length) throw Object.assign(new Error("food_not_found"), { status: 404, publicCode: "food_not_found" });
 }
 
-const ingredientCreates = (input: RecipeInput) => input.ingredients.map((ingredient, index) => ({ ...ingredient, sortOrder: ingredient.sortOrder ?? index }));
+const ingredientCreates = (input: RecipeInput) => input.ingredients.map((ingredient, index) => ({ ...ingredient, roleProvenance: ingredient.roleProvenance as Prisma.InputJsonValue | undefined, sortOrder: ingredient.sortOrder ?? index }));
 const invalidImportProof = () => Object.assign(new Error("invalid_import_proof"), { status: 400, publicCode: "invalid_import_proof" });
 const TRUSTED_SOURCE_TYPES = new Set(["schema_org", "ai_structured"]);
 function hasTrustedSourceProvenance(recipe: FullRecipe) {
@@ -163,7 +163,7 @@ export async function forkRecipe(prisma: PrismaClient, userId: string, recipeId:
       sourceUrl: source.sourceUrl,
       provenance: { forkedFromRecipeId: source.id, originalAuthor: source.user.username, sourceProvenance: source.provenance ?? null },
       forkedFromRecipeId: source.id,
-      ingredients: { create: source.ingredients.map(({ foodId, quantityGrams, originalText, preparation, sortOrder }) => ({ foodId, quantityGrams, originalText, preparation, sortOrder })) }
+      ingredients: { create: source.ingredients.map(({ foodId, quantityGrams, originalText, preparation, sourceGroup, role, optional, includedInBaseNutrition, roleProvenance, sortOrder }) => ({ foodId, quantityGrams, originalText, preparation, sourceGroup, role, optional, includedInBaseNutrition, roleProvenance: roleProvenance ?? undefined, sortOrder })) }
     },
     include: recipeInclude
   });

@@ -1,9 +1,10 @@
 import { normalizeSearch } from "./normalize.js";
 
-export type NaturalQuantityUnit = "g" | "kg" | "ml" | "l" | "piece" | "slice" | "portion" | "plate" | "bowl" | "ladle" | "tbsp" | "tsp" | "cup" | "handful" | "quarter" | "unknown" | "cm" | "bite" | "splash" | "half";
+export type NaturalQuantityUnit = "g" | "kg" | "ml" | "l" | "piece" | "slice" | "portion" | "plate" | "bowl" | "ladle" | "tbsp" | "tsp" | "cup" | "handful" | "quarter" | "unknown" | "cm" | "bite" | "splash" | "half" | "head" | "clove" | "bunch" | "stalk" | "pinch";
 
 export type ParsedNaturalFoodQuery = {
   quantity?: number;
+  quantityUpper?: number;
   unit?: NaturalQuantityUnit;
   size?: "small" | "medium" | "large";
   vesselShape?: "deep";
@@ -34,6 +35,19 @@ const UNITS = new Map<string, NaturalQuantityUnit>([
   ["bogre", "cup"],
   ["negyed", "quarter"], ["quarter", "quarter"], ["viertel", "quarter"], ["halbes", "half"],
   ["g", "g"], ["gramm", "g"], ["gram", "g"], ["kg", "kg"], ["kilogramm", "kg"],
+  // "dkg" (dekagram = 10 g) is extremely common in traditional Hungarian
+  // recipes ("60 dkg Marhalábszár", "30 dkg Vöröshagyma", ...) but was
+  // entirely unrecognized here — real production evidence (owner-beta
+  // checkpoint 2026-09-13, live gulyásleves/halászlé recipe-discovery
+  // traces): an unrecognized unit token doesn't just fall back to "piece"
+  // silently, it stays glued onto the food-query text itself ("dkg
+  // marhalabszar" instead of "marhalabszar"), breaking food-identity search
+  // for every dkg-measured ingredient in a recipe. Mapped to "g" here (the
+  // ×10 scale-up happens right after unit detection below, at the one place
+  // that already knows which raw token matched) rather than inventing a
+  // whole new NaturalQuantityUnit variant — resolveQuantity's g/kg fast path
+  // in interpret.ts never needs to know "dkg" existed.
+  ["dkg", "g"], ["deka", "g"], ["dekagramm", "g"], ["dekagram", "g"],
   // ml/l are volume, not mass — deliberately NOT added to resolveQuantity's
   // g/kg exact-mass fast path. They go through the same trusted-serving ->
   // AI-estimate -> manual-grams chain as "piece"/"cup"/etc., since a
@@ -47,7 +61,24 @@ const UNITS = new Map<string, NaturalQuantityUnit>([
   ["tk", "tsp"], ["tl", "tsp"], ["teaskanal", "tsp"], ["teeloffel", "tsp"], ["tsp", "tsp"], ["teaspoon", "tsp"], ["teaspoons", "tsp"],
   ["marek", "handful"], ["marok", "handful"], ["handful", "handful"], ["handvoll", "handful"], ["cm", "cm"],
   ["harapas", "bite"], ["bite", "bite"], ["bissen", "bite"], ["lottyintes", "splash"], ["splash", "splash"], ["schuss", "splash"],
-  ["fel", "half"], ["fele", "half"], ["half", "half"], ["halb", "half"], ["halbe", "half"]
+  ["fel", "half"], ["fele", "half"], ["half", "half"], ["halb", "half"], ["halbe", "half"],
+  // Owner-beta checkpoint (2026-09-13): generic Hungarian recipe counting-
+  // unit words — real production evidence from the ingredient-resolution
+  // forensic trace on a live streetkitchen.hu gulyásleves import: "fej"
+  // (head, as in "2 fej vöröshagyma" = 2 heads/bulbs of onion), "gerezd"
+  // (clove, "2 gerezd fokhagyma"), "csokor" (bunch, "1 csokor petrezselyem"),
+  // "szál" (stalk/stick, "1 szál sárgarépa"), and "csipet" (pinch, "1 csipet
+  // őrölt kömény") were entirely unrecognized as units — exactly the same
+  // failure class already fixed for "dkg"/"bögre" above: the unmatched token
+  // stayed glued onto the food-query text itself ("gerezd fokhagyma" instead
+  // of "fokhagyma"), breaking food-identity search/normalization for every
+  // ingredient phrased with one of these ordinary counting words. Generic
+  // unit vocabulary, never a food-specific mapping.
+  ["fej", "head"], ["head", "head"], ["heads", "head"], ["kopf", "head"], ["kopfe", "head"], ["köpfe", "head"],
+  ["gerezd", "clove"], ["clove", "clove"], ["cloves", "clove"], ["zehe", "clove"], ["zehen", "clove"],
+  ["csokor", "bunch"], ["bunch", "bunch"], ["bunches", "bunch"], ["bund", "bunch"], ["bunde", "bunch"], ["bündel", "bunch"],
+  ["szal", "stalk"], ["stalk", "stalk"], ["stalks", "stalk"], ["stange", "stalk"], ["stangen", "stalk"],
+  ["csipet", "pinch"], ["pinch", "pinch"], ["pinches", "pinch"], ["prise", "pinch"], ["prisen", "pinch"]
 ]);
 
 const NUMBERS = new Map([
@@ -55,6 +86,13 @@ const NUMBERS = new Map([
   ["ein", 1], ["eine", 1], ["zwei", 2], ["drei", 3], ["vier", 4], ["funf", 5],
   ["one", 1], ["two", 2], ["three", 3], ["four", 4], ["five", 5], ["quarter", 0.25], ["threequarters", 0.75]
 ]);
+
+// A unit token can carry its own scale relative to its NaturalQuantityUnit
+// bucket — "dkg" maps to unit "g" above, but 1 dkg is 10 g, not 1 g, so the
+// raw quantity must be scaled up by the token actually matched (looked up by
+// explicitUnitWord, never by the resolved `unit` itself, which is deliberately
+// coarser than the real vocabulary of tokens that resolve to it).
+const UNIT_TOKEN_SCALE = new Map<string, number>([["dkg", 10], ["deka", 10], ["dekagramm", 10], ["dekagram", 10]]);
 
 const HALF_WORDS = new Set(["fel", "fele", "half", "halb", "halbe"]);
 const IMPLICIT_ONE_UNIT_WORDS = new Set(["fel", "fele", "half", "halb", "halbe", "halbes", "negyed", "quarter", "viertel", "whole", "egesz", "ganz", "ganze", "ganzen"]);
@@ -233,7 +271,30 @@ function parseSegment(normalized: string): ParsedNaturalFoodQuery {
     if (NUMBERS.has(tokens[i])) { quantity = NUMBERS.get(tokens[i]); quantityIndex = i; break; }
   }
 
-  const rest = quantityIndex >= 0 ? tokens.filter((_, i) => i !== quantityIndex) : tokens;
+  // Owner-beta checkpoint (2026-09-13): a quantity RANGE ("1 - 2 tk mustár")
+  // — real production evidence from the ingredient-resolution forensic trace.
+  // normalizeSearch collapses the hyphen into a plain space, so a range
+  // survives as two ADJACENT numeric tokens ("1", "2", ...). Previously only
+  // the first number was ever removed from `rest`; the leftover second
+  // number then occupied the unit-detection step's expected first-token
+  // position, so the REAL unit word one token later ("tk") was never
+  // recognized as a unit and instead got swept into the food-query text
+  // alongside the food name ("tk mustar" instead of "mustar"). The lower
+  // lower bound remains `quantity`, while `quantityUpper` preserves the
+  // source range independently for contextual recipe estimation/review.
+  let quantityRangeUpperIndex = -1;
+  let quantityUpper: number | undefined;
+  if (quantityIndex >= 0) {
+    const next = Number((tokens[quantityIndex + 1] ?? "").replace("decimal", ".").replace(",", "."));
+    if (Number.isFinite(next) && next > quantity! && (tokens[quantityIndex + 1] ?? "").trim() !== "") {
+      quantityRangeUpperIndex = quantityIndex + 1;
+      quantityUpper = next;
+    }
+  }
+
+  const rest = quantityIndex >= 0
+    ? tokens.filter((_, i) => i !== quantityIndex && i !== quantityRangeUpperIndex)
+    : tokens;
 
   // A run of leading modifier words (size/vessel-shape/fill-level, in any
   // order, e.g. "nagy mély tányér") is consumed before the unit itself —
@@ -259,6 +320,7 @@ function parseSegment(normalized: string): ParsedNaturalFoodQuery {
     if (u) { unit = u; explicitUnitWord = restAfterSize[0]; restAfterUnit = restAfterSize.slice(1); }
   }
   if (quantity == null && explicitUnitWord && IMPLICIT_ONE_UNIT_WORDS.has(explicitUnitWord)) quantity = 1;
+  if (quantity != null && explicitUnitWord && UNIT_TOKEN_SCALE.has(explicitUnitWord)) quantity *= UNIT_TOKEN_SCALE.get(explicitUnitWord)!;
 
   // A run of leading retail-chain tokens (right before the food name itself,
   // e.g. "200 g Lidl Bierwurst") is consumed the same conservative way as
@@ -292,6 +354,7 @@ function parseSegment(normalized: string): ParsedNaturalFoodQuery {
 
   const result: ParsedNaturalFoodQuery = { foodQuery };
   if (quantity != null) { result.quantity = quantity; result.unit = unit; }
+  if (quantityUpper != null) result.quantityUpper = quantityUpper;
   if (size) result.size = size;
   if (vesselShape) result.vesselShape = vesselShape;
   if (fill) result.fill = fill;

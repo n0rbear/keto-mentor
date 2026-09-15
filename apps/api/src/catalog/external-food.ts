@@ -2,7 +2,7 @@ import type { FoodSource, PrismaClient } from "@prisma/client";
 import { z } from "zod";
 import type { Locale } from "@keto-mentor/shared";
 import { buildSearchText, normalizeSearch } from "./normalize.js";
-import { isTrustedLocalMatch, searchFoods } from "./food-search.js";
+import { isTrustedLocalMatch, localFormMismatch, searchFoods } from "./food-search.js";
 import type { ImportFood, ImportNutrient } from "../importers/types.js";
 import { localizeCandidateNames, type CandidateLocalizationProvider, type LocalizationLocale } from "./candidate-localization.js";
 import type { SemanticCandidateGateProvider } from "./semantic-candidate-gate.js";
@@ -22,7 +22,18 @@ export type LocalizationOptions = { locale: LocalizationLocale; provider: Candid
  * out of this checkpoint's scope (the user's own typed query IS already the
  * "original identity" there, with no AI translation step in between).
  */
-export type SemanticGateOptions = { provider: SemanticCandidateGateProvider; originalIdentity: string; locale?: string };
+export type SemanticGateOptions = {
+  provider: SemanticCandidateGateProvider;
+  originalIdentity: string;
+  canonicalIdentity?: string;
+  rawIngredient?: string;
+  recipeTitle?: string;
+  recipeContext?: string;
+  preparation?: string;
+  sourceQuantity?: number;
+  sourceUnit?: string;
+  locale?: string;
+};
 
 export type ExternalFoodCandidate = ImportFood & {
   sourceUrl?: string;
@@ -62,7 +73,9 @@ const REQUIRED_MACROS = ["kcalPer100g", "fatPer100g", "proteinPer100g", "carbsPe
 // Every trusted external source must resolve to exactly this hostname in its
 // own sourceUrl — a candidate claiming source: "open_food_facts" but linking
 // to some other host (or vice versa) is rejected outright.
-const TRUSTED_SOURCE_HOSTS: Partial<Record<string, string>> = { usda_fdc: "fdc.nal.usda.gov", open_food_facts: "world.openfoodfacts.org" };
+const TRUSTED_SOURCE_HOSTS: Partial<Record<string, readonly string[]>> = {
+  usda_fdc: ["fdc.nal.usda.gov"], open_food_facts: ["world.openfoodfacts.org"]
+};
 
 function finiteNonNegative(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value) && value >= 0;
@@ -93,19 +106,59 @@ export function isRelevantExternalCandidate(query: string, candidateNormalizedNa
   return queryTokens.every((queryToken) => candidateTokens.some((candidateToken) => tokenOverlaps(queryToken, candidateToken)));
 }
 
+function nearlyEqual(a: number, b: number, absolute: number, relative: number) {
+  return Math.abs(a - b) <= Math.max(absolute, Math.max(a, b) * relative);
+}
+
+/**
+ * Collapse only genuinely equivalent authoritative representations. Equal
+ * display text alone is insufficient: source, normalized description,
+ * category, and the complete macro/fiber signature must agree within tight
+ * analytical tolerances. Materially different same-name records remain
+ * separate and therefore confirmation-required.
+ */
+export function collapseEquivalentCandidates(candidates: readonly ExternalFoodCandidate[]): ExternalFoodCandidate[] {
+  const dataType = (item: ExternalFoodCandidate) => item.provenance && typeof item.provenance === "object" && !Array.isArray(item.provenance)
+    ? String((item.provenance as Record<string, unknown>).dataType ?? "") : "";
+  const canonicalTypes = new Set(["Foundation", "SR Legacy"]);
+  const groups: ExternalFoodCandidate[][] = [];
+  for (const candidate of candidates) {
+    const group = groups.find(([first]) => first.source === candidate.source
+      && first.normalizedName === candidate.normalizedName
+      && normalizeSearch(first.category ?? "") === normalizeSearch(candidate.category ?? "")
+      && ((canonicalTypes.has(dataType(first)) && canonicalTypes.has(dataType(candidate)))
+        || (nearlyEqual(first.kcalPer100g, candidate.kcalPer100g, 5, 0.05)
+          && nearlyEqual(first.fatPer100g, candidate.fatPer100g, 0.5, 0.1)
+          && nearlyEqual(first.proteinPer100g, candidate.proteinPer100g, 0.5, 0.1)
+          && nearlyEqual(first.carbsPer100g, candidate.carbsPer100g, 0.5, 0.1)
+          && nearlyEqual(first.fiberPer100g, candidate.fiberPer100g, 0.5, 0.1))));
+    if (group) group.push(candidate); else groups.push([candidate]);
+  }
+  return groups.map((group) => [...group].sort((a, b) => {
+    const quality = (item: ExternalFoodCandidate) => dataType(item) === "Foundation" ? 0 : dataType(item) === "SR Legacy" ? 1 : 2;
+    return quality(a) - quality(b) || a.sourceId.localeCompare(b.sourceId);
+  })[0]);
+}
+
 export function validateExternalCandidate(value: unknown): ExternalFoodCandidate | null {
   if (!value || typeof value !== "object") return null;
   const candidate = value as Partial<ExternalFoodCandidate>;
-  const expectedHost = TRUSTED_SOURCE_HOSTS[candidate.source ?? ""];
-  if (!expectedHost || !/^\d+$/.test(candidate.sourceId ?? "") || !candidate.name || !candidate.originalName) return null;
+  const expectedHosts = TRUSTED_SOURCE_HOSTS[candidate.source ?? ""];
+  const validSourceId = candidate.source === "manufacturer" ? /^[a-f0-9]{32}$/.test(candidate.sourceId ?? "") : /^\d+$/.test(candidate.sourceId ?? "");
+  if (!expectedHosts || !validSourceId || !candidate.name || !candidate.originalName) return null;
   if (!candidate.sourceUrl || !candidate.retrievedAt || candidate.nutrientBasis !== "per_100_g") return null;
   try {
-    if (new URL(candidate.sourceUrl).hostname !== expectedHost) return null;
+    if (!expectedHosts.includes(new URL(candidate.sourceUrl).hostname.replace(/^www\./, ""))) return null;
   } catch { return null; }
   if (!finiteNonNegative(candidate.confidence) || candidate.confidence > 1) return null;
   if (candidate.matchPolicy !== "exact_normalized_name" && candidate.matchPolicy !== "review_required") return null;
   if (REQUIRED_MACROS.some((key) => !finiteNonNegative(candidate[key]))) return null;
   if (!finiteNonNegative(candidate.fiberPer100g)) return null;
+  // Physical/plausibility bounds for every dynamically persisted source.
+  // They reject malformed units (for example kJ parsed as kcal, or values
+  // reported per kg) without supplying or correcting any missing value.
+  if (candidate.kcalPer100g! > 1_000 || candidate.fatPer100g! > 100 || candidate.proteinPer100g! > 100
+    || candidate.carbsPer100g! > 100 || candidate.fiberPer100g > 100) return null;
   const normalizedName = normalizeSearch(candidate.normalizedName || candidate.name);
   if (!normalizedName) return null;
   const nutrients = Array.isArray(candidate.nutrients)
@@ -114,9 +167,9 @@ export function validateExternalCandidate(value: unknown): ExternalFoodCandidate
   return { ...candidate, normalizedName, nutrients } as ExternalFoodCandidate;
 }
 
-type ResolutionPrisma = Pick<PrismaClient, "food" | "foodAlias" | "nutrient" | "foodNutrient" | "$transaction"> & Partial<Pick<PrismaClient, "$queryRaw">>;
+export type ResolutionPrisma = Pick<PrismaClient, "food" | "foodAlias" | "nutrient" | "foodNutrient" | "$transaction"> & Partial<Pick<PrismaClient, "$queryRaw">>;
 
-async function findDuplicate(prisma: ResolutionPrisma, candidate: ExternalFoodCandidate) {
+export async function findDuplicate(prisma: ResolutionPrisma, candidate: ExternalFoodCandidate) {
   const sourceMatch = await prisma.food.findUnique({
     where: { source_sourceId: { source: candidate.source, sourceId: candidate.sourceId } },
     include: { servings: true }
@@ -179,7 +232,7 @@ async function backfillLocaleName(prisma: ResolutionPrisma, food: any, localizat
   }
 }
 
-async function persistCandidate(prisma: ResolutionPrisma, candidate: ExternalFoodCandidate) {
+export async function persistCandidate(prisma: ResolutionPrisma, candidate: ExternalFoodCandidate) {
   const { nutrients, confidence: _confidence, matchPolicy: _matchPolicy, language: _language, normalizedName: _normalizedName, nutrientBasis: _basis, retrievedAt: _retrievedAt, sourceUrl: _sourceUrl, ...foodData } = candidate;
   return prisma.$transaction(async (tx) => {
     const saved = await tx.food.create({ data: { ...foodData, searchText: buildSearchText(foodData), createdById: null } });
@@ -255,7 +308,30 @@ export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: 
   // see isTrustedLocalMatch. A weak local echo is discarded here (falling
   // through to the external adapters below, exactly as a genuine local miss
   // would) rather than promoted; it never becomes an invented candidate.
-  if (local.length && isTrustedLocalMatch(local[0].match)) return { status: "resolved_local", food: local[0] };
+  const trustedLocal = local.filter((food) => isTrustedLocalMatch(food.match));
+  // Owner-beta checkpoint (2026-09-15): a trusted local match must not win
+  // merely because it is the only (or the alphabetically-first) thing
+  // already cached — see localFormMismatch. Live, reproduced case: this
+  // catalog's only cached "tomato" Food was "Tomatoes, red, ripe, cooked",
+  // learned as a dynamic_search alias from an earlier, unrelated session; an
+  // ordinary "1 db paradicsom" (no cooked wording at all) kept silently
+  // reusing it forever. Prefer the first trusted candidate whose own name
+  // does NOT textually conflict with the source's stated preparation; only
+  // when no adapters are configured (nowhere better to look) does a
+  // form-mismatched trusted candidate still win, as the best available
+  // answer. Only evaluated when a REAL (non-disabled) semantic gate is
+  // configured — resolveFromSearchTerm always passes a truthy semanticGate
+  // options object even when no real gate exists (it defaults the provider
+  // to DisabledSemanticCandidateGateProvider), so checking truthiness alone
+  // would skip a perfectly good, zero-cost local/alias match (including an
+  // explicitly user-CONFIRMED one — see confirmAuthoritativeFood) with
+  // nowhere safe to fall through to, since a disabled gate approves nothing.
+  const hasRealSemanticGate = !!semanticGate && semanticGate.provider.id !== "disabled";
+  const formEvidence = hasRealSemanticGate ? { rawIngredient: semanticGate!.rawIngredient ?? semanticGate!.originalIdentity } : undefined;
+  const localMatch = formEvidence
+    ? trustedLocal.find((food) => !localFormMismatch(food.originalName ?? food.name, formEvidence, food.match)) ?? (adapters.length === 0 ? trustedLocal[0] : undefined)
+    : trustedLocal[0];
+  if (localMatch) return { status: "resolved_local", food: localMatch };
   if (!adapters.length) return { status: "unresolved", candidates: [], reason: "external_unavailable" };
 
   let rawCandidates: unknown[] = [];
@@ -265,7 +341,7 @@ export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: 
       try {
         const result = await adapter.lookup(query);
         successfulProviders += 1;
-        rawCandidates.push(...result.slice(0, 5));
+        rawCandidates.push(...result.slice(0, 20));
       } catch {
         continue;
       }
@@ -291,10 +367,31 @@ export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: 
   // Fail-closed by construction (see semantic-candidate-gate.ts) — a gate
   // failure drops every candidate, never lets one through by default.
   if (semanticGate) {
-    const gateInputs = candidates.slice(0, 5).map((candidate, index) => ({ id: String(index), authoritativeName: candidate.originalName || candidate.name }));
-    const relevance = await timeStage("semantic_gate_ai", () => semanticGate.provider.checkRelevance({ identity: semanticGate.originalIdentity, locale: semanticGate.locale }, gateInputs));
-    candidates = candidates.slice(0, 5).filter((_, index) => relevance.get(String(index)) === true);
+    // USDA's first five hits for an ordinary identity can be entirely
+    // derivatives (the live `potato` query returned bread/flour/pancakes/
+    // baby food). Preserve source ranking but review a wider bounded window;
+    // the semantic gate remains the only authority that can admit a result.
+    const reviewCandidates = candidates.slice(0, 20);
+    const gateInputs = reviewCandidates.map((candidate, index) => ({ id: String(index), authoritativeName: candidate.originalName || candidate.name }));
+    const relevance = await timeStage("semantic_gate_ai", () => semanticGate.provider.checkRelevance({
+      identity: semanticGate.originalIdentity,
+      canonicalIdentity: semanticGate.canonicalIdentity ?? query,
+      rawIngredient: semanticGate.rawIngredient,
+      recipeTitle: semanticGate.recipeTitle,
+      recipeContext: semanticGate.recipeContext,
+      preparation: semanticGate.preparation,
+      sourceQuantity: semanticGate.sourceQuantity,
+      sourceUnit: semanticGate.sourceUnit,
+      locale: semanticGate.locale
+    }, gateInputs));
+    const approved = reviewCandidates.filter((_, index) => {
+      const decision = relevance.get(String(index));
+      return decision === true || decision === "best_match" || decision === "acceptable_alternative";
+    });
+    const best = reviewCandidates.filter((_, index) => relevance.get(String(index)) === "best_match");
+    candidates = best.length ? best : approved;
     if (!candidates.length) return { status: "unresolved", candidates: [], reason: "not_found" };
+    candidates = collapseEquivalentCandidates(candidates);
   }
 
   const duplicate = await findDuplicate(prisma, candidates[0]);
@@ -305,6 +402,43 @@ export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: 
   }
   const top = candidates[0];
   const second = candidates[1];
+
+  // Owner-beta checkpoint (2026-09-13): the ingredient-resolution forensic
+  // trace PROVED, directly against this exact function, that a clean,
+  // correct, canonical query ("onion") can never auto-resolve below purely
+  // because normalizeSearch("onion") !== normalizeSearch("Onions, raw") —
+  // the semantic gate above had ALREADY confirmed same_identity, yet the
+  // candidate still fell through to confirmation_required every time. This
+  // is the narrow trusted path the semantic gate exists to enable: when a
+  // real (non-disabled) gate is configured, `candidates` at this point is
+  // ALREADY the deterministic-relevance-filtered, semantic-gate-approved
+  // "same_identity" survivor set (never "processed_derivative" or
+  // "different_prepared_food" — the gate excludes both by construction) —
+  // exactly the false-match class ("Bread, potato" for "potato") the gate
+  // was built to reject. Auto-resolve ONLY when EXACTLY ONE such candidate
+  // survives (no competing same_identity match to arbitrate between); two or
+  // more is genuine ambiguity and must still go to confirmation_required,
+  // never auto-picked. A disabled/unconfigured gate leaves this branch
+  // unreached (semanticGate is falsy) and behavior is byte-for-byte
+  // unchanged — the strict exact-normalized-name path below still applies.
+  if (semanticGate && candidates.length === 1) {
+    const [localizedTop] = localization ? await localizeCandidateNames(localization.provider, [top], localization.locale) : [top];
+    try {
+      const food = await persistCandidate(prisma, localizedTop);
+      return { status: "resolved_external", food, provenance: top.provenance };
+    } catch (error: any) {
+      if (error?.code === "P2002") {
+        const existing = await prisma.food.findUnique({ where: { source_sourceId: { source: top.source, sourceId: top.sourceId } }, include: { servings: true } });
+        if (existing) return { status: "resolved_local", food: await backfillLocaleName(prisma, existing, localization) };
+      }
+      throw error;
+    }
+  }
+  if (semanticGate && candidates.length > 1) {
+    const localizedTop5 = localization ? await localizeCandidateNames(localization.provider, candidates.slice(0, 5), localization.locale) : candidates.slice(0, 5);
+    return { status: "confirmation_required", candidates: localizedTop5, reason: "ambiguous" };
+  }
+
   if (top.matchPolicy !== "exact_normalized_name" || normalizeSearch(query) !== top.normalizedName) {
     const localizedTop5 = localization ? await localizeCandidateNames(localization.provider, candidates.slice(0, 5), localization.locale) : candidates.slice(0, 5);
     return { status: "confirmation_required", candidates: localizedTop5, reason: "weak_match" };

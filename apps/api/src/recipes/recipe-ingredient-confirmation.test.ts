@@ -47,6 +47,28 @@ function pork(overrides: Partial<ExternalFoodCandidate> = {}): ExternalFoodCandi
   };
 }
 
+// Owner-beta checkpoint (2026-09-13): a second, genuinely plausible "pork
+// hock" candidate (differing only by doneness, exactly the "same_identity"
+// relationship the semantic gate itself recognizes) alongside pork() above —
+// this whole describe block is specifically about the MANUAL /confirm
+// round-trip, which external-food.ts's new narrow same-identity auto-resolve
+// path (see external-food.test.ts) would otherwise short-circuit for a
+// SINGLE gate-approved candidate. Two plausible same-identity candidates is
+// a realistic, honest way to keep genuine ambiguity (not a single obvious
+// match) — matching how a real USDA search for "pork hock" can legitimately
+// return both a raw and a cooked entry — so these tests keep exercising the
+// confirmation flow they were written for, rather than fighting the new
+// (more correct) single-candidate auto-resolve behavior.
+function porkRaw(overrides: Partial<ExternalFoodCandidate> = {}): ExternalFoodCandidate {
+  return {
+    source: "usda_fdc", sourceId: "172160", originalName: "Pork hock, raw", name: "Pork hock, raw",
+    names: { en: "Pork hock, raw" }, kcalPer100g: 240, fatPer100g: 18, proteinPer100g: 19, carbsPer100g: 0, fiberPer100g: 0, nutrients: [],
+    provenance: { source: "USDA FoodData Central", sourceId: "172160", sourceUrl: "https://fdc.nal.usda.gov/172160", retrievedAt: "2026-09-11T00:00:00.000Z", valuesPer: "100 g" },
+    sourceUrl: "https://fdc.nal.usda.gov/172160", normalizedName: "pork hock raw", nutrientBasis: "per_100_g",
+    retrievedAt: "2026-09-11T00:00:00.000Z", confidence: 0.6, matchPolicy: "review_required", language: "en", ...overrides
+  };
+}
+
 // Real enough for searchFoods' exact query shape (mirrors catalog/dynamic-food-resolution.test.ts's fixture).
 function fakePrisma(options: { seedFoods?: any[] } = {}) {
   const foods: any[] = options.seedFoods ?? [];
@@ -127,7 +149,7 @@ function proof(userId = "user-1") {
 describe("confirmRecipeIngredients: structural validation (fails closed, zero external calls)", () => {
   it("4 — source/sourceId not offered for the ingredient is rejected", async () => {
     const { prisma } = fakePrisma();
-    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork()] }, { "172152": pork() });
+    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork(), porkRaw()] }, { "172152": pork() });
     await expect(confirmRecipeIngredients(prisma, "user-1", {
       importProof: proof(), sourceUrl: RECIPE_URL, extractionMethod: "schema_org_json_ld",
       confirmations: [{ ingredientIndex: 0, source: "usda_fdc", sourceId: "999999" }]
@@ -137,7 +159,7 @@ describe("confirmRecipeIngredients: structural validation (fails closed, zero ex
 
   it("5 — a candidate legitimately offered for ingredient A cannot be submitted for ingredient B", async () => {
     const { prisma } = fakePrisma();
-    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork()] }, { "172152": pork() });
+    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork(), porkRaw()] }, { "172152": pork() });
     // Ingredient 1 ("teljesen ismeretlen étel") never had this candidate offered.
     await expect(confirmRecipeIngredients(prisma, "user-1", {
       importProof: proof(), sourceUrl: RECIPE_URL, extractionMethod: "schema_org_json_ld",
@@ -148,7 +170,7 @@ describe("confirmRecipeIngredients: structural validation (fails closed, zero ex
 
   it("7 — duplicate ingredient index is rejected", async () => {
     const { prisma } = fakePrisma();
-    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork()] }, { "172152": pork() });
+    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork(), porkRaw()] }, { "172152": pork() });
     await expect(confirmRecipeIngredients(prisma, "user-1", {
       importProof: proof(), sourceUrl: RECIPE_URL, extractionMethod: "schema_org_json_ld",
       confirmations: [{ ingredientIndex: 0, source: "usda_fdc", sourceId: "172152" }, { ingredientIndex: 0, source: "usda_fdc", sourceId: "172152" }]
@@ -158,7 +180,7 @@ describe("confirmRecipeIngredients: structural validation (fails closed, zero ex
 
   it("8 — conflicting selections for the same ingredient (two different candidates) are rejected end-to-end", async () => {
     const { prisma } = fakePrisma();
-    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork()] }, { "172152": pork(), "172153": pork({ sourceId: "172153" }) });
+    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork(), porkRaw()] }, { "172152": pork(), "172153": pork({ sourceId: "172153" }) });
     const parsed = recipeIngredientConfirmationRequestSchema.safeParse({
       importProof: proof(), sourceUrl: RECIPE_URL, extractionMethod: "schema_org_json_ld",
       confirmations: [{ ingredientIndex: 0, source: "usda_fdc", sourceId: "172152" }, { ingredientIndex: 0, source: "usda_fdc", sourceId: "172153" }]
@@ -169,7 +191,7 @@ describe("confirmRecipeIngredients: structural validation (fails closed, zero ex
 
   it("9 — an out-of-range ingredient index is rejected", async () => {
     const { prisma } = fakePrisma();
-    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork()] }, { "172152": pork() });
+    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork(), porkRaw()] }, { "172152": pork() });
     await expect(confirmRecipeIngredients(prisma, "user-1", {
       importProof: proof(), sourceUrl: RECIPE_URL, extractionMethod: "schema_org_json_ld",
       confirmations: [{ ingredientIndex: 5, source: "usda_fdc", sourceId: "172152" }]
@@ -192,7 +214,7 @@ describe("confirmRecipeIngredients: structural validation (fails closed, zero ex
 
   it("an ingredient that is not confirmation_required (e.g. genuinely unresolved) cannot be confirmed", async () => {
     const { prisma } = fakePrisma();
-    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork()] }, { "172152": pork() }); // UNKNOWN_SEARCH_TERM intentionally has no entry -> not_found
+    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork(), porkRaw()] }, { "172152": pork() }); // UNKNOWN_SEARCH_TERM intentionally has no entry -> not_found
     await expect(confirmRecipeIngredients(prisma, "user-1", {
       importProof: proof(), sourceUrl: RECIPE_URL, extractionMethod: "schema_org_json_ld",
       confirmations: [{ ingredientIndex: 1, source: "usda_fdc", sourceId: "172152" }]
@@ -201,7 +223,7 @@ describe("confirmRecipeIngredients: structural validation (fails closed, zero ex
 
   it("23 — a malformed/tampered importProof is rejected before any external call", async () => {
     const { prisma } = fakePrisma();
-    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork()] }, { "172152": pork() });
+    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork(), porkRaw()] }, { "172152": pork() });
     await expect(confirmRecipeIngredients(prisma, "user-1", {
       importProof: "tampered.proof", sourceUrl: RECIPE_URL, extractionMethod: "schema_org_json_ld",
       confirmations: [{ ingredientIndex: 0, source: "usda_fdc", sourceId: "172152" }]
@@ -211,7 +233,7 @@ describe("confirmRecipeIngredients: structural validation (fails closed, zero ex
 
   it("24 — an expired proof is rejected (the existing TTL mechanism, unchanged)", async () => {
     const { prisma } = fakePrisma();
-    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork()] }, { "172152": pork() });
+    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork(), porkRaw()] }, { "172152": pork() });
     const oldNow = Date.now() - 20 * 60 * 1000; // outside the existing 15-minute TTL
     const expiredProof = createRecipeImportProof("user-1", RECIPE_URL, "schema_org_json_ld", "a".repeat(32), oldNow);
     await expect(confirmRecipeIngredients(prisma, "user-1", {
@@ -224,7 +246,7 @@ describe("confirmRecipeIngredients: structural validation (fails closed, zero ex
 describe("confirmRecipeIngredients: real confirmation + recomputation (1, 2, 3, 11, 13, 14, 15, 16, 17, 18, 19, 20)", () => {
   it("1, 3, 11 — a valid single confirmation: the offered candidate is accepted, and the server refetches it (lookupById), never trusting the client's own copy", async () => {
     const { prisma, foods } = fakePrisma();
-    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork()] }, { "172152": pork() });
+    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork(), porkRaw()] }, { "172152": pork() });
     const result = await confirmRecipeIngredients(prisma, "user-1", {
       importProof: proof(), sourceUrl: RECIPE_URL, extractionMethod: "schema_org_json_ld",
       confirmations: [{ ingredientIndex: 0, source: "usda_fdc", sourceId: "172152" }]
@@ -239,8 +261,12 @@ describe("confirmRecipeIngredients: real confirmation + recomputation (1, 2, 3, 
     const { prisma, foods } = fakePrisma();
     // normalizedName echoes UNKNOWN_SEARCH_TERM's own tokens so isRelevantExternalCandidate's token-overlap check passes — this fixture only needs to prove TWO independent confirmations succeed together, not model a second real dish.
     const beef = pork({ sourceId: "200000", name: "Unknown food xyz", originalName: "Unknown food xyz", normalizedName: "unknown food xyz" });
+    // A second same-identity-shaped candidate keeps this a genuine ambiguity
+    // (permissiveSemanticGate approves both), preserving confirmation_required
+    // instead of the new single-candidate auto-resolve path (see porkRaw()).
+    const beefAlt = pork({ sourceId: "200001", name: "Unknown food xyz variant", originalName: "Unknown food xyz variant", normalizedName: "unknown food xyz variant" });
     const adapter = fakeAdapter(
-      { [PORK_SEARCH_TERM]: [pork()], [UNKNOWN_SEARCH_TERM]: [beef] },
+      { [PORK_SEARCH_TERM]: [pork(), porkRaw()], [UNKNOWN_SEARCH_TERM]: [beef, beefAlt] },
       { "172152": pork(), "200000": beef }
     );
     const result = await confirmRecipeIngredients(prisma, "user-1", {
@@ -254,7 +280,7 @@ describe("confirmRecipeIngredients: real confirmation + recomputation (1, 2, 3, 
 
   it("12 — an authoritative provider failure during refetch is a safe, non-throwing failure result", async () => {
     const { prisma, foods } = fakePrisma();
-    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork()] }, {}, { failLookupById: true });
+    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork(), porkRaw()] }, {}, { failLookupById: true });
     const result = await confirmRecipeIngredients(prisma, "user-1", {
       importProof: proof(), sourceUrl: RECIPE_URL, extractionMethod: "schema_org_json_ld",
       confirmations: [{ ingredientIndex: 0, source: "usda_fdc", sourceId: "172152" }]
@@ -265,7 +291,7 @@ describe("confirmRecipeIngredients: real confirmation + recomputation (1, 2, 3, 
 
   it("14, 17, 18, 20 — after confirming the pork candidate, a confirmed_external alias makes the SAME ORIGINAL phrase resolve LOCALLY on recompute (owner-beta blocker #8) — the still-unresolved ingredient stays unresolved, and the recipe legitimately remains REVIEWABLE (not fully_resolved) only because of that one dead end", async () => {
     const { prisma } = fakePrisma();
-    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork()] }, { "172152": pork() });
+    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork(), porkRaw()] }, { "172152": pork() });
     const result = await confirmRecipeIngredients(prisma, "user-1", {
       importProof: proof(), sourceUrl: RECIPE_URL, extractionMethod: "schema_org_json_ld",
       confirmations: [{ ingredientIndex: 0, source: "usda_fdc", sourceId: "172152" }]
@@ -289,7 +315,7 @@ describe("confirmRecipeIngredients: real confirmation + recomputation (1, 2, 3, 
 
   it("14, 19 — WITH a working localization provider, the confirmed identity gains a matching local name and genuinely resolves on recompute", async () => {
     const { prisma } = fakePrisma();
-    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork()] }, { "172152": pork() });
+    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork(), porkRaw()] }, { "172152": pork() });
     const localizationProvider: CandidateLocalizationProvider = { id: "fixture", localize: vi.fn(async (items: { id: string }[]) => new Map(items.map((item) => [item.id, "Csülök"]))) };
     // Single-ingredient recipe this time so a fully resolved state is reachable.
     // A gram quantity (not a piece count) so resolveQuantity can compute
@@ -321,7 +347,7 @@ describe("confirmRecipeIngredients: real confirmation + recomputation (1, 2, 3, 
     // the pre-existing, unmodified external-food.test.ts), which this test
     // exercises directly: the exact real function this endpoint calls.
     const { prisma, foods } = fakePrisma();
-    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork()] }, { "172152": pork() });
+    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork(), porkRaw()] }, { "172152": pork() });
     const result = await confirmRecipeIngredients(prisma, "user-1", {
       importProof: proof(), sourceUrl: RECIPE_URL, extractionMethod: "schema_org_json_ld",
       confirmations: [{ ingredientIndex: 0, source: "usda_fdc", sourceId: "172152" }]
@@ -337,7 +363,7 @@ describe("confirmRecipeIngredients: real confirmation + recomputation (1, 2, 3, 
   it("16 — no Recipe row is ever persisted merely by confirming ingredients", async () => {
     const { prisma } = fakePrisma();
     const prismaNoRecipe = { ...prisma }; // deliberately never gets a `recipe` property — a stray write would throw
-    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork()] }, { "172152": pork() });
+    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork(), porkRaw()] }, { "172152": pork() });
     const result = await confirmRecipeIngredients(prismaNoRecipe, "user-1", {
       importProof: proof(), sourceUrl: RECIPE_URL, extractionMethod: "schema_org_json_ld",
       confirmations: [{ ingredientIndex: 0, source: "usda_fdc", sourceId: "172152" }]
@@ -347,7 +373,7 @@ describe("confirmRecipeIngredients: real confirmation + recomputation (1, 2, 3, 
 
   it("13 — one failed confirmation among several never produces a false fully_resolved state", async () => {
     const { prisma } = fakePrisma();
-    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork()] }, {}, { failLookupById: true }); // refetch always fails
+    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork(), porkRaw()] }, {}, { failLookupById: true }); // refetch always fails
     const result = await confirmRecipeIngredients(prisma, "user-1", {
       importProof: proof(), sourceUrl: RECIPE_URL, extractionMethod: "schema_org_json_ld",
       confirmations: [{ ingredientIndex: 0, source: "usda_fdc", sourceId: "172152" }]
@@ -375,7 +401,7 @@ describe("confirmRecipeIngredients: locale-aware confirmed identity (6, 8, 9, 11
   // Test 6 (required): explicit bound confirmation CAN create a trusted locale alias.
   it("6 — a real confirmation writes a 'confirmed_external' alias tagged with the confirming user's own regional locale, not a bare language", async () => {
     const { prisma, aliases } = fakePrisma();
-    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork()] }, { "172152": pork() });
+    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork(), porkRaw()] }, { "172152": pork() });
     await confirmRecipeIngredients(prisma, "user-1", {
       importProof: proof(), sourceUrl: RECIPE_URL, extractionMethod: "schema_org_json_ld",
       confirmations: [{ ingredientIndex: 0, source: "usda_fdc", sourceId: "172152" }]
@@ -387,7 +413,7 @@ describe("confirmRecipeIngredients: locale-aware confirmed identity (6, 8, 9, 11
   // Test 8 (required, alias-writing level — see also confirmed-alias.test.ts's direct unit test).
   it("8 — confirming through the real endpoint in one locale never writes an alias in a different locale", async () => {
     const { prisma, aliases } = fakePrisma();
-    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork()] }, { "172152": pork() });
+    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork(), porkRaw()] }, { "172152": pork() });
     await confirmRecipeIngredients(prisma, "user-1", {
       importProof: proof(), sourceUrl: RECIPE_URL, extractionMethod: "schema_org_json_ld",
       confirmations: [{ ingredientIndex: 0, source: "usda_fdc", sourceId: "172152" }]
@@ -399,7 +425,7 @@ describe("confirmRecipeIngredients: locale-aware confirmed identity (6, 8, 9, 11
   // Test 12 (required): a tampered candidate (rejected before any external call — see structural-validation tests above) never creates any alias at all.
   it("12 — a rejected (never-offered) candidate creates no alias of any kind — the structural check runs before any confirmation or alias-learning code", async () => {
     const { prisma, aliases } = fakePrisma();
-    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork()] }, { "172152": pork() });
+    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork(), porkRaw()] }, { "172152": pork() });
     await expect(confirmRecipeIngredients(prisma, "user-1", {
       importProof: proof(), sourceUrl: RECIPE_URL, extractionMethod: "schema_org_json_ld",
       confirmations: [{ ingredientIndex: 0, source: "usda_fdc", sourceId: "999999" }] // never offered
@@ -410,7 +436,7 @@ describe("confirmRecipeIngredients: locale-aware confirmed identity (6, 8, 9, 11
   // Test 13 (required): a failed authoritative refetch creates no alias.
   it("13 — a failed authoritative refetch (adapter.lookupById throws) creates no confirmed_external alias", async () => {
     const { prisma, aliases } = fakePrisma();
-    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork()] }, {}, { failLookupById: true });
+    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork(), porkRaw()] }, {}, { failLookupById: true });
     const result = await confirmRecipeIngredients(prisma, "user-1", {
       importProof: proof(), sourceUrl: RECIPE_URL, extractionMethod: "schema_org_json_ld",
       confirmations: [{ ingredientIndex: 0, source: "usda_fdc", sourceId: "172152" }]
@@ -427,7 +453,7 @@ describe("confirmRecipeIngredients: locale-aware confirmed identity (6, 8, 9, 11
   // distinct, lower-trust kind (see food-search.ts's special-case).
   it("4 — a dynamic resolution alone (AI search-intent, no confirmation) never writes a 'confirmed_external' alias — only an explicit confirmation does", async () => {
     const { prisma, aliases } = fakePrisma();
-    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork()] }, { "172152": pork() });
+    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork(), porkRaw()] }, { "172152": pork() });
     // Exercises resolveDynamicFood directly (the AI-search-intent-alone
     // path) — pork()'s matchPolicy stays "review_required" so this can only
     // ever reach confirmation_required, never an auto-persisted "resolved".
@@ -463,7 +489,7 @@ describe("confirmRecipeIngredients: locale-aware confirmed identity (6, 8, 9, 11
 describe("confirmRecipeIngredients -> later independent lookup: zero-cost local reuse (14, 15, 16)", () => {
   it("a later, independent interpretMealInput call for the SAME original phrase resolves locally with zero USDA calls and zero Groq/search-intent calls", async () => {
     const { prisma } = fakePrisma();
-    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork()] }, { "172152": pork() });
+    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork(), porkRaw()] }, { "172152": pork() });
     await confirmRecipeIngredients(prisma, "user-1", {
       importProof: proof(), sourceUrl: RECIPE_URL, extractionMethod: "schema_org_json_ld",
       confirmations: [{ ingredientIndex: 0, source: "usda_fdc", sourceId: "172152" }]
@@ -498,7 +524,7 @@ describe("confirmRecipeIngredients: semantic candidate gate protection on batch 
     const { prisma, foods, aliases } = fakePrisma();
     // A structurally valid, real, resolvable USDA candidate (adapter.lookupById
     // would happily return it) — but the semantic gate rejects EVERYTHING.
-    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork()] }, { "172152": pork() });
+    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork(), porkRaw()] }, { "172152": pork() });
     const d = deps(adapter, prisma, defaultSearchIntent(), "user-1", new DisabledCandidateLocalizationProvider(), "hu-HU", new DisabledSemanticCandidateGateProvider());
     await expect(confirmRecipeIngredients(prisma, "user-1", {
       importProof: proof(), sourceUrl: RECIPE_URL, extractionMethod: "schema_org_json_ld",
@@ -514,7 +540,7 @@ describe("confirmRecipeIngredients: semantic candidate gate protection on batch 
     // in this file (172152, pork hock) — proving the gate is what changed
     // the outcome here, not a fabricated/garbage sourceId.
     const { prisma, foods } = fakePrisma();
-    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork()] }, { "172152": pork() });
+    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork(), porkRaw()] }, { "172152": pork() });
     const d = deps(adapter, prisma, defaultSearchIntent(), "user-1", new DisabledCandidateLocalizationProvider(), "hu-HU", new DisabledSemanticCandidateGateProvider());
     const rejected = await confirmRecipeIngredients(prisma, "user-1", {
       importProof: proof(), sourceUrl: RECIPE_URL, extractionMethod: "schema_org_json_ld",
@@ -529,7 +555,7 @@ describe("confirmRecipeIngredients: semantic candidate gate protection on batch 
     // failLookupById is irrelevant here on purpose — the point is the code
     // path must be rejected BEFORE it would ever reach lookupById, so making
     // lookupById itself unable to succeed changes nothing about the outcome.
-    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork()] }, {}, { failLookupById: true });
+    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork(), porkRaw()] }, {}, { failLookupById: true });
     const d = deps(adapter, prisma, defaultSearchIntent(), "user-1", new DisabledCandidateLocalizationProvider(), "hu-HU", new DisabledSemanticCandidateGateProvider());
     await expect(confirmRecipeIngredients(prisma, "user-1", {
       importProof: proof(), sourceUrl: RECIPE_URL, extractionMethod: "schema_org_json_ld",
@@ -546,17 +572,27 @@ describe("confirmRecipeIngredients: semantic candidate gate protection on batch 
   // response and submits the derivative's real, valid sourceId directly
   // must still be refused — proving server-side re-derivation, not client
   // trust or UI hiding, is what keeps a derivative from ever being persisted.
+  // Owner-beta checkpoint (2026-09-13): external-food.ts now auto-resolves a
+  // SINGLE gate-approved same-identity candidate without an explicit confirm
+  // round-trip (see external-food.test.ts and the ingredient-resolution
+  // forensic checkpoint) — so this scenario now uses TWO real, distinct,
+  // gate-APPROVED same-identity candidates (raw vs cooked pork hock, a
+  // genuine real-world disambiguation) alongside the rejected derivative,
+  // keeping genuine ambiguity (2 survivors) so the explicit confirm step is
+  // still meaningfully exercised, while still proving the derivative is
+  // never offered/confirmable even via its real, valid sourceId.
   it("9.1 — a real, fetchable PROCESSED-DERIVATIVE candidate the gate rejects cannot be confirmed even when the client submits its real sourceId directly", async () => {
     const { prisma, foods, aliases } = fakePrisma();
     const sausage = pork({ sourceId: "999999", name: "Pork sausage", originalName: "Pork sausage", normalizedName: "pork sausage" });
     const adapter = fakeAdapter(
-      { [PORK_SEARCH_TERM]: [pork(), sausage] },
-      { "172152": pork(), "999999": sausage }
+      { [PORK_SEARCH_TERM]: [pork(), porkRaw(), sausage] },
+      { "172152": pork(), "172160": porkRaw(), "999999": sausage }
     );
-    // Only the base food ("Pork hock, cooked") passes the gate; the
-    // derivative-style candidate ("Pork sausage") is rejected exactly like
-    // the real "Potato flour" case.
-    const baseOnlyGate: SemanticCandidateGateProvider = { id: "base-only", checkRelevance: async (_original, candidates) => new Map(candidates.map((c) => [c.id, c.authoritativeName === "Pork hock, cooked"])) };
+    // Both real pork-hock candidates ("cooked" and "raw" — a genuine
+    // same_identity relationship, differing only by doneness) pass the gate;
+    // the derivative-style candidate ("Pork sausage") is rejected exactly
+    // like the real "Potato flour" case.
+    const baseOnlyGate: SemanticCandidateGateProvider = { id: "base-only", checkRelevance: async (_original, candidates) => new Map(candidates.map((c) => [c.id, c.authoritativeName === "Pork hock, cooked" || c.authoritativeName === "Pork hock, raw"])) };
     const d = deps(adapter, prisma, defaultSearchIntent(), "user-1", new DisabledCandidateLocalizationProvider(), "hu-HU", baseOnlyGate);
     await expect(confirmRecipeIngredients(prisma, "user-1", {
       importProof: proof(), sourceUrl: RECIPE_URL, extractionMethod: "schema_org_json_ld",
@@ -568,8 +604,11 @@ describe("confirmRecipeIngredients: semantic candidate gate protection on batch 
 
   it("a candidate the gate genuinely accepts is unaffected — the gate rejects specific candidates, not the whole pipeline", async () => {
     const { prisma, foods, aliases } = fakePrisma();
-    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork()] }, { "172152": pork() });
-    const acceptingGate: SemanticCandidateGateProvider = { id: "accept-pork", checkRelevance: async (_original, candidates) => new Map(candidates.map((c) => [c.id, c.authoritativeName === "Pork hock, cooked"])) };
+    const adapter = fakeAdapter({ [PORK_SEARCH_TERM]: [pork(), porkRaw()] }, { "172152": pork(), "172160": porkRaw() });
+    // Both survive the gate (genuine same_identity, raw vs cooked) — real
+    // ambiguity, so an explicit confirm of the specific one the user wants
+    // (172152, cooked) is still meaningfully exercised.
+    const acceptingGate: SemanticCandidateGateProvider = { id: "accept-pork", checkRelevance: async (_original, candidates) => new Map(candidates.map((c) => [c.id, c.authoritativeName === "Pork hock, cooked" || c.authoritativeName === "Pork hock, raw"])) };
     const d = deps(adapter, prisma, defaultSearchIntent(), "user-1", new DisabledCandidateLocalizationProvider(), "hu-HU", acceptingGate);
     const result = await confirmRecipeIngredients(prisma, "user-1", {
       importProof: proof(), sourceUrl: RECIPE_URL, extractionMethod: "schema_org_json_ld",

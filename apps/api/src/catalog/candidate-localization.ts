@@ -57,7 +57,7 @@ export class DisabledCandidateLocalizationProvider implements CandidateLocalizat
 export type CandidateLocalizationTransport = {
   readonly id: string;
   readonly model: string;
-  complete<T>(instruction: string, input: string, validate: (value: unknown) => T): Promise<T>;
+  complete<T>(instruction: string, input: string, validate: (value: unknown) => T, capability?: string): Promise<T>;
 };
 
 export class ChatCandidateLocalizationProvider implements CandidateLocalizationProvider {
@@ -74,7 +74,7 @@ export class ChatCandidateLocalizationProvider implements CandidateLocalizationP
     // username, meal history, or profile data ever reaches this call.
     const context = { targetLocale, items: items.map((item) => ({ id: item.id, authoritativeName: item.authoritativeName, category: item.category })) };
     try {
-      const result = await this.transport.complete(CANDIDATE_LOCALIZATION_INSTRUCTION, JSON.stringify(context), (value) => localizationBatchOutputSchema.parse(value));
+      const result = await this.transport.complete(CANDIDATE_LOCALIZATION_INSTRUCTION, JSON.stringify(context), (value) => localizationBatchOutputSchema.parse(value), "candidate_localization");
       const knownIds = new Set(items.map((item) => item.id));
       const map = new Map<string, string>();
       for (const row of result.items) {

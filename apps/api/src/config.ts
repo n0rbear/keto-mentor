@@ -13,7 +13,7 @@ const envSchema = z.object({
   MISTRAL_API_KEY: z.string().min(1).optional(),
   MISTRAL_MODEL: z.string().min(1).max(120).optional(),
   MISTRAL_BASE_URL: z.string().url().max(500).optional(),
-  FOOD_AI_PROVIDER: z.enum(["mistral", "openrouter", "groq"]).optional(),
+  FOOD_AI_PROVIDER: z.enum(["mistral", "openrouter", "groq", "openai"]).optional(),
   FOOD_AI_MODEL: z.string().min(1).max(160).optional(),
   OPENROUTER_API_KEY: z.string().min(1).optional(),
   OPENROUTER_BASE_URL: z.string().url().max(500).optional(),
@@ -22,6 +22,12 @@ const envSchema = z.object({
   GROQ_API_KEY: z.string().min(1).optional(),
   GROQ_MODEL: z.string().min(1).max(160).optional(),
   GROQ_BASE_URL: z.string().url().max(500).optional(),
+  // OpenAI baseline checkpoint (2026-09-13): a standalone peer provider kind
+  // (see food-ai-gateway-config.ts) — never wired as anyone's failover
+  // partner, never removes Groq/OpenRouter/Mistral. OPENAI_API_KEY is
+  // deliberately configured ONLY on the staging service for this benchmark.
+  OPENAI_API_KEY: z.string().min(1).optional(),
+  OPENAI_BASE_URL: z.string().url().max(500).optional(),
   WEB_SEARCH_PROVIDER: z.enum(["tavily"]).optional(),
   TAVILY_API_KEY: z.string().min(1).optional(),
   TAVILY_BASE_URL: z.string().url().max(500).optional()

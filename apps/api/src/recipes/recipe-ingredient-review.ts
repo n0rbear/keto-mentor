@@ -1,5 +1,6 @@
 import type { ExternalFoodCandidate } from "../catalog/external-food.js";
 import { addMacros, emptyMacros, scaleMacros, type MacroTotals } from "../nutrition-core.js";
+import type { RecipeIngredientRole } from "./recipe-ingredient-role.js";
 
 /**
  * The recipe ingredient review contract (owner-beta blocker #6, 2026-09-11).
@@ -12,6 +13,7 @@ import { addMacros, emptyMacros, scaleMacros, type MacroTotals } from "../nutrit
  * only ever carry already-trusted catalog Food rows.
  */
 export type RecipeIngredientReviewStatus = "resolved" | "confirmation_required" | "unresolved";
+export type RecipeQuantitySource = "explicit" | "authoritative_conversion" | "estimated" | "unquantified_seasoning" | "unknown";
 
 export type TrustedFoodSummary = {
   id: string;
@@ -54,6 +56,15 @@ export type RecipeIngredientReview = {
   localCandidates?: LocalCandidateSummary[];
   quantityStatus: "resolved" | "unresolved";
   quantityGrams?: number;
+  quantitySource: RecipeQuantitySource;
+  quantityConfidence?: number;
+  quantityRange?: { min: number; max: number; unit?: string };
+  excludeFromNutrition: boolean;
+  sourceGroup?: string;
+  role: RecipeIngredientRole;
+  optional: boolean;
+  includedInBaseNutrition: boolean;
+  roleEvidence: "source_group" | "ingredient_wording" | "default_core";
   // THE FIX (owner-beta blocker #6): true only when status === "resolved"
   // AND quantityStatus === "resolved". A confirmation_required ingredient
   // NEVER counts, even though interpretOne intentionally keeps a preview
@@ -76,6 +87,16 @@ export type ReviewableIngredient = {
   selectedFood: { id: string; name: string; source: string; kcalPer100g: number; fatPer100g: number; proteinPer100g: number; carbsPer100g: number; fiberPer100g: number } | null;
   candidates: readonly { id: string; name: string; source: string }[];
   quantity: { status: string; grams?: number } | null;
+  quantitySource?: RecipeQuantitySource;
+  quantityGrams?: number;
+  quantityConfidence?: number;
+  quantityRange?: { min: number; max: number; unit?: string };
+  excludeFromNutrition?: boolean;
+  sourceGroup?: string;
+  role?: RecipeIngredientRole;
+  optional?: boolean;
+  includedInBaseNutrition?: boolean;
+  evidence?: "source_group" | "ingredient_wording" | "default_core";
   externalCandidates?: ExternalFoodCandidate[];
   externalCandidatesReason?: "ambiguous" | "possible_duplicate" | "weak_match";
 };
@@ -100,10 +121,14 @@ export function toIngredientReview(ingredient: ReviewableIngredient): RecipeIngr
     : ingredient.resolution === "confirmation_required" || ingredient.resolution === "preview" ? "confirmation_required"
     : "unresolved";
 
-  const quantityStatus: "resolved" | "unresolved" = ingredient.quantity?.status === "resolved" ? "resolved" : "unresolved";
-  const quantityGrams = ingredient.quantity?.status === "resolved" ? ingredient.quantity.grams : undefined;
+  const quantityGrams = ingredient.quantity?.status === "resolved" ? ingredient.quantity.grams : ingredient.quantityGrams;
+  const quantityStatus: "resolved" | "unresolved" = quantityGrams != null ? "resolved" : "unresolved";
+  const quantitySource: RecipeQuantitySource = ingredient.quantitySource ?? (quantityStatus === "resolved" ? "authoritative_conversion" : "unknown");
+  const role = ingredient.excludeFromNutrition && quantitySource === "unquantified_seasoning" ? "seasoning" : (ingredient.role ?? "core");
+  const includedInBaseNutrition = ingredient.includedInBaseNutrition ?? true;
+  const excludeFromNutrition = !includedInBaseNutrition || (ingredient.excludeFromNutrition === true && quantitySource === "unquantified_seasoning");
 
-  const trustedNutritionReady = status === "resolved" && quantityStatus === "resolved" && !!ingredient.selectedFood;
+  const trustedNutritionReady = excludeFromNutrition || (status === "resolved" && quantityStatus === "resolved" && !!ingredient.selectedFood);
   const resolvedFood = status === "resolved" && ingredient.selectedFood ? toTrustedFoodSummary(ingredient.selectedFood) : null;
 
   const hasExternalCandidates = status === "confirmation_required" && !!ingredient.externalCandidates?.length;
@@ -125,6 +150,15 @@ export function toIngredientReview(ingredient: ReviewableIngredient): RecipeIngr
     localCandidates,
     quantityStatus,
     quantityGrams,
+    quantitySource,
+    quantityConfidence: ingredient.quantityConfidence,
+    quantityRange: ingredient.quantityRange,
+    excludeFromNutrition,
+    sourceGroup: ingredient.sourceGroup,
+    role,
+    optional: ingredient.optional ?? false,
+    includedInBaseNutrition,
+    roleEvidence: ingredient.evidence ?? "default_core",
     trustedNutritionReady
   };
 }
@@ -173,18 +207,41 @@ export function classifyRecipeReview(ingredients: readonly RecipeIngredientRevie
  * subset) — this is the fixed replacement for the prior checkpoint's
  * computePreviewNutrition, which incorrectly counted a merely-previewed
  * confirmation_required candidate. Never reads webpage-claimed nutrition.
+ *
+ * Owner-beta (2026-09-14) — Blocker 5 (portion/serving provenance): `macros`
+ * (and the derived `weightGrams`) are per 100g of the COMBINED RAW
+ * INGREDIENT WEIGHT, never the finished/cooked dish weight — a discovered
+ * recipe has no finishedWeightGrams (see recipes/nutrition.ts's
+ * calculateRecipeNutrition, which correctly refuses per100g without one, for
+ * the local-saved-recipe equivalent). Raw ingredient weight typically
+ * OVERSTATES a cooked dish's true weight (water evaporates; a soup/stew's
+ * finished weight is usually LESS than its raw ingredients' sum), which
+ * would UNDERSTATE the dish's real per-100g calorie density — this is a
+ * known, honestly-labeled approximation, never presented as the dish's own
+ * measured per-100g figure. `servings` (schema.org recipeYield or the AI
+ * extraction's own structured field — never a fabricated number) lets a
+ * PER-SERVING figure be computed instead, which needs no weight-basis
+ * assumption at all and is the stronger of the two when available.
  */
-export function computeTrustedNutrition(ingredients: readonly RecipeIngredientReview[]): { calculable: boolean; macros: MacroTotals | null; weightGrams: number | null } {
+export function computeTrustedNutrition(ingredients: readonly RecipeIngredientReview[], servings?: number): { calculable: boolean; macros: MacroTotals | null; total: MacroTotals | null; weightGrams: number | null; perServing: MacroTotals | null } {
   if (!ingredients.length || !ingredients.every((i) => i.trustedNutritionReady)) {
-    return { calculable: false, macros: null, weightGrams: null };
+    return { calculable: false, macros: null, total: null, weightGrams: null, perServing: null };
   }
   let totals = emptyMacros();
   let weightGrams = 0;
   for (const ingredient of ingredients) {
+    if (ingredient.excludeFromNutrition || !ingredient.includedInBaseNutrition) continue;
     const food = ingredient.resolvedFood!;
     const grams = ingredient.quantityGrams!;
     weightGrams += grams;
     totals = addMacros(totals, scaleMacros({ kcal: food.kcalPer100g, fat: food.fatPer100g, protein: food.proteinPer100g, carbs: food.carbsPer100g, fiber: food.fiberPer100g }, grams / 100));
   }
-  return { calculable: weightGrams > 0, macros: weightGrams > 0 ? scaleMacros(totals, 100 / weightGrams) : null, weightGrams: weightGrams || null };
+  const calculable = weightGrams > 0;
+  return {
+    calculable,
+    macros: calculable ? scaleMacros(totals, 100 / weightGrams) : null,
+    total: calculable ? totals : null,
+    weightGrams: weightGrams || null,
+    perServing: calculable && servings && servings > 0 ? scaleMacros(totals, 1 / servings) : null
+  };
 }

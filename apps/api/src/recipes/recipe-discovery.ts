@@ -8,6 +8,22 @@ import type { MacroTotals } from "../nutrition-core.js";
 import type { RecipeIngredientReview } from "./recipe-ingredient-review.js";
 
 /**
+ * Owner-beta checkpoint (2026-09-15) — final recipe nutrition review:
+ * nutritionPer100g's weight BASIS was previously only documented in a source
+ * comment (see below), never surfaced in the API contract itself — a
+ * consuming client had no way to tell "this per-100g figure is a real,
+ * known cooked-dish yield weight" (a saved Recipe with finishedWeightGrams,
+ * see recipes/nutrition.ts's calculateRecipeNutrition) apart from "this is
+ * an approximation based on the sum of raw ingredient grams, which
+ * typically OVERSTATES a cooked dish's true weight" (every discovered
+ * recipe — extraction never captures a cooked yield). Both are honestly
+ * computed from real authoritative data; only the WEIGHT they're divided by
+ * differs. Exposed explicitly rather than changed, silently omitted, or
+ * newly estimated — the smallest safe fix consistent with existing behavior.
+ */
+export type NutritionPer100gBasis = "finished_weight" | "raw_ingredient_weight";
+
+/**
  * The bounded, safe-to-serialize shape attached to a meal-input result when
  * web recipe discovery ran. Deliberately carries only what a client needs to
  * render "we found a recipe that may represent this dish" and to confirm it
@@ -16,14 +32,37 @@ import type { RecipeIngredientReview } from "./recipe-ingredient-review.js";
  * objects with forged nutrition.
  */
 export type RecipeDiscoveryPreview = {
-  status: "confirmation_required" | "unresolved";
+  // "local_match": a trusted local Recipe (the user's own, already-saved/
+  // imported) matched the dish exactly — see meal-input/local-recipe-
+  // lookup.ts. Wins outright over web discovery; carries `localMatch`, never
+  // `candidate`.
+  status: "confirmation_required" | "unresolved" | "local_match";
   searchAttempted: boolean;
   resultCount: number;
   candidatesAfterRelevanceFilter: number;
   // How many of the bounded candidates were actually fetched/attempted
   // before either selecting one or exhausting the set.
   candidatesAttempted: number;
-  reason?: "disabled" | "rate_limited" | "provider_error" | "no_relevant_results" | "no_fully_resolvable_candidate" | "systemic_error";
+  reason?: "disabled" | "rate_limited" | "provider_error" | "no_relevant_results" | "no_fully_resolvable_candidate" | "systemic_error" | "ambiguous_local_matches";
+  // Present only when `reason === "ambiguous_local_matches"` — two or more
+  // of the user's own saved recipes matched the dish name equally well.
+  // Never silently resolved; the client must ask the user to pick one.
+  localAlternatives?: { recipeId: string; title: string }[];
+  // Present only when status === "local_match". Already fully trusted and
+  // persisted — no import step, no importProof, just the existing recipeId
+  // a meal can reference directly (MealItem.recipeId).
+  localMatch?: {
+    recipeId: string;
+    title: string;
+    servings: number | null;
+    ingredientCount: number;
+    nutritionPer100g: MacroTotals | null;
+    // A saved Recipe's per100g (calculateRecipeNutrition) is only ever
+    // computed when finishedWeightGrams is known — see nutrition.ts — so
+    // this is always "finished_weight" whenever nutritionPer100g is non-null.
+    nutritionPer100gBasis: NutritionPer100gBasis | null;
+    nutritionCalculable: boolean;
+  };
   candidate?: {
     title: string;
     sourceUrl: string;
@@ -42,7 +81,27 @@ export type RecipeDiscoveryPreview = {
     ingredientSummary: string[];
     // FINAL/TRUSTED nutrition only (computeTrustedNutrition) — null/false
     // whenever recipeState !== "fully_resolved". Never a partial estimate.
+    // Owner-beta (2026-09-14) — Blocker 5: this is per 100g of the COMBINED
+    // RAW INGREDIENT WEIGHT, never a finished/cooked dish weight (a
+    // discovered recipe has no finishedWeightGrams — see
+    // recipes/nutrition.ts's calculateRecipeNutrition, the local-saved-
+    // recipe equivalent, which correctly refuses per100g without one). A
+    // known, honestly-labeled approximation — never presented as measured.
     nutritionPer100g: MacroTotals | null;
+    // Owner-beta checkpoint (2026-09-15): explicit, API-visible weight basis
+    // for nutritionPer100g — always "raw_ingredient_weight" for a discovered
+    // recipe (extraction never captures a cooked yield weight), null when
+    // nutritionPer100g itself is null. A client MUST treat this differently
+    // from a true measured cooked-dish per-100g figure.
+    nutritionPer100gBasis: NutritionPer100gBasis | null;
+    // Owner-beta (2026-09-14) — Blocker 5: per ONE serving, using `servings`
+    // (schema.org recipeYield / the AI extraction's own structured field —
+    // never a fabricated number) — needs no weight-basis assumption at all,
+    // so prefer this over nutritionPer100g whenever `servings` is present.
+    // null whenever servings is unknown or recipeState !== "fully_resolved".
+    nutritionPerServing: MacroTotals | null;
+    nutritionTotal: MacroTotals | null;
+    requestedPortion?: { count: number; unit: "plate" | "bowl" | "portion"; provenance: "explicit_household_unit"; nutrition: MacroTotals | null };
     nutritionCalculable: boolean;
     ingredientWeightGrams: number | null;
     // "fully_resolved": every ingredient already trusted, ready for final
@@ -58,6 +117,23 @@ export type RecipeDiscoveryPreview = {
     ingredients: readonly RecipeIngredientReview[];
     /** Same import-proof mechanism the manual URL-import flow already uses — hand this straight to POST /recipes to persist, unchanged. */
     importProof: string;
+    // Owner-beta (2026-09-14): Blocker 4 (double counting) — populated only
+    // for a multi-item phrase (e.g. "csülökpörkölt krumplival") where this
+    // candidate's OWN resolved ingredients were found to be the SAME Food as
+    // a separately-resolved sibling item in `items`. `overlapsWithSiblingItems`
+    // is an identity-confirmed match (same underlying Food.id — the recipe
+    // genuinely includes this exact food, already independently resolved
+    // elsewhere in the phrase); the corresponding sibling item in the
+    // returned InterpretResult is marked nutritionEligible:false +
+    // excludedBySiblingRecipe so it is never also counted. A future
+    // recipe-confirmation save flow must NOT submit an excluded sibling's own
+    // contribution alongside this recipe's. `possibleOverlapWithSiblingItems`
+    // is a WEAKER, name-based signal (the recipe's own ingredient text names
+    // the same food, but it didn't itself reach a trusted identity) — never
+    // auto-decided; the corresponding sibling is marked ambiguous/
+    // canConfirm:false so a save flow must ask the user rather than guess.
+    overlapsWithSiblingItems?: { itemIndex: number; canonicalName: string }[];
+    possibleOverlapWithSiblingItems?: { itemIndex: number; canonicalName: string }[];
   };
 };
 

@@ -62,7 +62,7 @@ export class DisabledRecipeExtractionProvider implements RecipeExtractionProvide
 export type ChatCompletionsTransport = {
   readonly id: string;
   readonly model: string;
-  complete<T>(instruction: string, input: string, validate: (value: unknown) => T): Promise<T>;
+  complete<T>(instruction: string, input: string, validate: (value: unknown) => T, capability?: string): Promise<T>;
 };
 
 /**
@@ -78,6 +78,6 @@ export class ChatRecipeExtractionProvider implements RecipeExtractionProvider {
   }
 
   async extract(pageText: string): Promise<RecipeExtraction> {
-    return this.transport.complete(RECIPE_EXTRACTION_INSTRUCTION, pageText, (value) => recipeExtractionOutputSchema.parse(value));
+    return this.transport.complete(RECIPE_EXTRACTION_INSTRUCTION, pageText, (value) => recipeExtractionOutputSchema.parse(value), "recipe_extraction");
   }
 }

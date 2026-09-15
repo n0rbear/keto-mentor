@@ -5,6 +5,7 @@ import { FailoverAiProvider, createFailoverObserver } from "../ai/failover-provi
 import { MistralQuantityEstimationProvider } from "./mistral-quantity-provider.js";
 import { OpenRouterQuantityEstimationProvider } from "./openrouter-quantity-provider.js";
 import { GroqQuantityEstimationProvider } from "./groq-quantity-provider.js";
+import { OpenAiQuantityEstimationProvider } from "./openai-quantity-provider.js";
 import { ChatQuantityEstimationProvider } from "./chat-quantity-provider.js";
 import { DisabledQuantityEstimationProvider, type QuantityEstimationProvider } from "./quantity-estimation.js";
 
@@ -29,6 +30,9 @@ export function configuredQuantityAiProvider(config: FoodAiGatewayConfigInput, o
       const primary = new OpenRouterAiProvider({ apiKey: resolved.apiKey, model: resolved.model, baseUrl: resolved.baseUrl, appReferer: resolved.appReferer, appTitle: resolved.appTitle, fetchImpl: overrides.fetchImpl });
       const secondary = new GroqAiProvider({ apiKey: resolved.secondary.apiKey, model: resolved.secondary.model, baseUrl: resolved.secondary.baseUrl, fetchImpl: overrides.fetchImpl });
       return new ChatQuantityEstimationProvider(new FailoverAiProvider(primary, secondary, quantityFailoverObserver));
+    }
+    if (resolved.kind === "openai") {
+      return new OpenAiQuantityEstimationProvider({ apiKey: resolved.apiKey, model: resolved.model, baseUrl: resolved.baseUrl, fetchImpl: overrides.fetchImpl });
     }
     if (resolved.kind === "mistral") {
       return new MistralQuantityEstimationProvider({ apiKey: resolved.apiKey, model: resolved.model, baseUrl: resolved.baseUrl, fetchImpl: overrides.fetchImpl });

@@ -1,7 +1,7 @@
 import type { PrismaClient } from "@prisma/client";
 import type { FoodUnderstanding, FoodUnderstandingItem, Locale, QuantityClarification } from "@keto-mentor/shared";
 import { parseNaturalFoodQuery, type ParsedNaturalFoodQuery } from "../catalog/natural-food-query.js";
-import { foodNameRepresentations, hasSemanticCoverage, isTrustedLocalMatch, searchFoods } from "../catalog/food-search.js";
+import { foodNameRepresentations, hasSemanticCoverage, isTrustedLocalMatch, localFormMismatch, searchFoods } from "../catalog/food-search.js";
 import type { RecipeDiscoveryPreview } from "../recipes/recipe-discovery.js";
 import { DisabledQuantityEstimationProvider, type EstimateMethod, type QuantityEstimationClass, type QuantityEstimationMethodClass, type QuantityEstimationProvider, type VolumeQuantityModel, validateQuantityEstimate } from "./quantity-estimation.js";
 import { normalizeSearch } from "../catalog/normalize.js";
@@ -14,7 +14,9 @@ import type { CandidateLocalizationProvider } from "../catalog/candidate-localiz
 import type { DynamicFoodResolutionRateLimiter } from "../catalog/dynamic-food-rate-limit.js";
 import type { FoodLocale } from "../catalog/food-locale.js";
 import type { SemanticCandidateGateProvider } from "../catalog/semantic-candidate-gate.js";
+import type { RecipeSemanticGateProvider } from "../catalog/semantic-candidate-gate-batch.js";
 import { DEFAULT_CONCURRENCY, mapWithConcurrency, timeStage } from "../request-performance.js";
+import type { ProgressStage } from "./progress-bus.js";
 
 type SearchablePrisma = Pick<PrismaClient, "food" | "foodAlias"> & Partial<Pick<PrismaClient, "$queryRaw">>;
 type Serving = { id: string; key: string; unit: string; labels: unknown; grams: number; isEstimated: boolean; confidence: number; provenance: unknown };
@@ -85,6 +87,15 @@ export type DynamicResolutionDeps = {
   // provider to DisabledSemanticCandidateGateProvider, which FAILS CLOSED
   // (rejects every candidate), never silently skips the check.
   semanticCandidateGateProvider?: SemanticCandidateGateProvider;
+  // Owner-beta checkpoint (2026-09-15): cold-path performance. Only consumed
+  // by resolveRecipeIngredientsBatch's batched dynamic resolution
+  // (catalog/dynamic-food-resolution-batch.ts) — interpretOne's own
+  // per-item path never reads this field, since it only ever resolves one
+  // food at a time and has nothing to batch. Optional so every existing
+  // caller/fixture that predates this keeps compiling unchanged; a missing
+  // provider degrades to DisabledRecipeSemanticGateProvider inside the
+  // recipe-batch resolver, which also fails CLOSED.
+  recipeSemanticGateProvider?: RecipeSemanticGateProvider;
 } | null;
 
 export type InterpretResult = {
@@ -106,6 +117,8 @@ export type InterpretResult = {
     language: FoodUnderstanding["language"];
     kind: FoodUnderstanding["kind"];
     dishName?: string;
+    dishQuantity?: number;
+    dishUnit?: FoodUnderstanding["dishUnit"];
     clarificationNeeded: boolean;
     clarificationReason?: string;
   };
@@ -123,6 +136,23 @@ export type InterpretResult = {
   // fallback (see meal-input/recipe-discovery-fallback.ts, called from the
   // route handler — never set by interpretMealInput itself).
   recipeDiscovery?: RecipeDiscoveryPreview;
+  // Owner-beta (2026-09-14): set only on a SIBLING item (never on the dish
+  // item itself) when recipe-discovery-fallback's own sibling-overlap check
+  // (see detectSiblingOverlap) found this item's selectedFood is the SAME
+  // Food as one of the discovered recipe's own resolved ingredients — e.g.
+  // "csülökpörkölt krumplival" where the selected csülökpörkölt recipe
+  // itself includes potato. Paired with nutritionEligible:false so this
+  // item is never independently counted; a future recipe-confirmation save
+  // flow must skip it, not merely display it.
+  excludedBySiblingRecipe?: { dishItemIndex: number; dishName: string };
+  // Owner-beta diagnostics checkpoint (2026-09-13): set only when AI-assisted
+  // understanding was ATTEMPTED and failed, so the result fell back to the
+  // deterministic-only interpretation — see the catch block below. Distinct
+  // from simply never attempting AI (shouldUseAiFallback returning false),
+  // which leaves this field unset. Never the raw error message/stack (see
+  // AiProviderError's own code enum) — a closed, safe vocabulary only, for
+  // diagnostics.ts to translate into a human-readable beta message.
+  aiUnderstandingFailure?: { code: string };
 };
 
 const PREP_KEYWORDS: Record<string, readonly string[]> = {
@@ -160,7 +190,16 @@ const SERVING_UNIT_ALIASES: Record<string, readonly string[]> = {
   handful: ["handful", "marek", "handvoll"], cm: ["cm"], bite: ["bite", "harapas", "bissen"], splash: ["splash", "lottyintes", "schuss"],
   plate: ["plate", "tanyer", "teller"], bowl: ["bowl", "tal", "schussel"], ladle: ["ladle", "merokanal", "kelle"],
   cup: ["cup", "csesze", "tasse", "pohar", "glass", "glas"], quarter: ["quarter", "negyed", "viertel"],
-  ml: ["ml", "milliliter", "millilitre"], l: ["l", "liter", "litre", "liters", "litres"]
+  ml: ["ml", "milliliter", "millilitre"], l: ["l", "liter", "litre", "liters", "litres"],
+  // Owner-beta checkpoint (2026-09-13): matches the new counting-unit words
+  // natural-food-query.ts now recognizes (fej/gerezd/csokor/szál/csipet) —
+  // lets a Food's own curated serving data (if any) satisfy these units the
+  // same way "piece"/"cup"/etc. already do; a Food with no matching serving
+  // still falls through to AI-estimate/confirmation exactly as before, never
+  // silently invents a weight.
+  head: ["head", "heads", "fej", "kopf", "kopfe"], clove: ["clove", "cloves", "gerezd", "zehe", "zehen"],
+  bunch: ["bunch", "bunches", "csokor", "bund", "bunde"], stalk: ["stalk", "stalks", "szal", "stange", "stangen"],
+  pinch: ["pinch", "pinches", "csipet", "prise", "prisen"]
 };
 
 function servingMatchesUnit(serving: Serving, unit: string) {
@@ -345,10 +384,66 @@ async function interpretOne(
   }
 
   const prepUnavailable = needsPreparedFormLookup && !preparedFound;
+  // Owner-beta checkpoint (2026-09-15): a trusted local match must not win
+  // merely because it is already cached — see localFormMismatch. Only
+  // relevant when a REAL (non-disabled) semantic gate is actually
+  // configured — without one, skipping the local match has nowhere safe to
+  // fall through to (a disabled gate approves nothing) and would just
+  // regress a perfectly good, zero-cost local/confirmed-alias match to a
+  // wasted call or an outright miss.
+  const hasRealSemanticGate = !!dynamic?.semanticCandidateGateProvider && dynamic.semanticCandidateGateProvider.id !== "disabled";
+  const localFormMismatched = !!top.match && isTrustedLocalMatch(top.match) && hasRealSemanticGate
+    && localFormMismatch(top.originalName ?? top.name, { rawIngredient: input }, top.match);
+  const locallyTrusted = !!top.match && isTrustedLocalMatch(top.match) && !localFormMismatched;
+
+  // Owner-beta checkpoint (2026-09-13): the ingredient-resolution forensic
+  // trace proved a WEAK local partial match (e.g. "zsír" scoring low enough
+  // to need confirmation) previously short-circuited resolution entirely —
+  // dynamic external resolution is only ever attempted from the `!top`
+  // branch above, so any nonzero-score local candidate, however weak,
+  // permanently prevented the (potentially much better) search-intent/
+  // authoritative-search/semantic-gate chain from ever running. This
+  // doesn't automatically prefer either source: the WEAK local candidate is
+  // kept as a fallback candidate, and dynamic resolution is additionally
+  // attempted; a genuine dynamic "resolved" (stronger evidence — an actual
+  // verified authoritative match) wins, a dynamic "confirmation_required"
+  // offers the external candidates instead of the weak local one (more
+  // actionable evidence for the user), and a dynamic "unresolved" leaves
+  // the existing weak-local-match behavior completely unchanged (never
+  // regresses to worse than before this checkpoint). Scoped narrowly to the
+  // plain weak-match case — prepUnavailable/ambiguous keep their own
+  // pre-existing, unrelated handling below, untouched.
+  if (!locallyTrusted && !prepUnavailable && !ambiguous && dynamic && parsed.foodQuery) {
+    const outcome = await timeStage("dynamic_resolution", () => resolveDynamicFood(dynamic.prisma, { foodQuery: parsed.foodQuery, preparation: parsed.preparation }, dynamic));
+    if (outcome.status === "resolved") {
+      const resolvedFood = outcome.food as ResolvedFood;
+      // Same convergence-gate re-verification as the `!top` branch above —
+      // a dynamic "resolved" outcome must still be checked against what the
+      // user actually typed before it is trusted here.
+      if (hasSemanticCoverage(normalizeSearch(parsed.foodQuery), foodNameRepresentations(resolvedFood))) {
+        const quantity = await timeStage("quantity_resolution", () => resolveQuantity(parsed, resolvedFood, provider));
+        return {
+          input, parsed, foodResolution: "resolved", selectedFood: resolvedFood, candidates: [resolvedFood], quantity,
+          canConfirm: quantity.status === "resolved" && !quantity.requiresConfirmation,
+          confidence: 1, preparation: parsed.preparation, interpretationSource: "deterministic"
+        };
+      }
+    } else if (outcome.status === "confirmation_required") {
+      return {
+        input, parsed, foodResolution: "confirmation_required", selectedFood: null, candidates, quantity: null,
+        canConfirm: false, confidence: score / 100, preparation: parsed.preparation, interpretationSource: "deterministic",
+        externalCandidates: outcome.candidates, externalCandidatesReason: outcome.reason
+      };
+    }
+    // "unresolved" (or a resolved candidate that failed the convergence
+    // gate) falls through to the existing weak-local-match handling below —
+    // the local candidate remains the best available evidence.
+  }
+
   let foodResolution: FoodResolutionStatus;
   if (prepUnavailable) foodResolution = "confirmation_required";
   else if (ambiguous) foodResolution = "confirmation_required";
-  else if (top.match && isTrustedLocalMatch(top.match)) foodResolution = "resolved";
+  else if (locallyTrusted) foodResolution = "resolved";
   else if (score >= 80) foodResolution = "preview";
   else foodResolution = "confirmation_required";
 
@@ -408,13 +503,35 @@ async function interpretDeterministically(
   return interpretOne(prisma, text, parsed, provider, dynamic);
 }
 
+// Owner-beta (2026-09-14): "weak_match" is the one externalCandidatesReason
+// that does NOT represent an exact-identity match — see external-food.ts:
+// it fires specifically when the top dynamic candidate's matchPolicy isn't
+// exact_normalized_name (a token-similar result, never a confirmed
+// identity), the weakest signal dynamic resolution can produce. Treating it
+// as "already a complete, meaningful outcome" — the same bar "ambiguous"
+// (an exact-name match, just low-confidence or tied) and "possible_duplicate"
+// (a genuine near-identical existing Food) correctly clear — blocked
+// AI-assisted compound-dish classification entirely for any phrase whose
+// bare name happens to token-overlap an unrelated USDA/BLS row (proven live:
+// "halászlé" got a weak fish-product match and never reached the AI at all).
+// ambiguous/possible_duplicate keep skipping AI fallback exactly as before —
+// both required an exact-name match, which IS meaningful evidence AI
+// reclassification must not silently discard (see the "2 tányér
+// marhahúsleves" precedent below, a similar but stronger case).
+function hasStrongExternalCandidateSignal(result: InterpretResult): boolean {
+  const isStrong = (reason?: "ambiguous" | "possible_duplicate" | "weak_match") => !!reason && reason !== "weak_match";
+  if (result.externalCandidates?.length && isStrong(result.externalCandidatesReason)) return true;
+  return !!result.items?.some((item) => item.externalCandidates?.length && isStrong(item.externalCandidatesReason));
+}
+
 function shouldUseAiFallback(result: InterpretResult, aiProvider: AiProvider) {
   if (!aiProvider.supports("food_nlp")) return false;
   if (result.ambiguous) return false;
   // A pending external-candidate confirmation is already a complete,
   // meaningful outcome — food-understanding AI reinterpretation must never
-  // silently discard it and start over.
-  if (result.externalCandidates?.length || result.items?.some((item) => item.externalCandidates?.length)) return false;
+  // silently discard it and start over. See hasStrongExternalCandidateSignal
+  // for why a mere weak_match does NOT count as that outcome.
+  if (hasStrongExternalCandidateSignal(result)) return false;
   if (result.items?.length) {
     return !result.items.every((item) => item.selectedFood && item.confidence >= 0.8 && !item.preparationUnavailable);
   }
@@ -456,8 +573,26 @@ async function interpretAiUnderstanding(
   aiProvider: AiProvider,
   dynamic: DynamicResolutionDeps = null
 ): Promise<InterpretResult> {
-  const dishNormalized = normalizeSearch(understanding.dishName ?? "");
-  const hasDishItem = !!dishNormalized && understanding.items.some((item) => normalizeSearch(item.canonicalName) === dishNormalized);
+  // Some providers occasionally label "a plate/bowl of X + Y" as a flat
+  // multi-food list even though the primary plated/bowled item is clearly a
+  // prepared-dish portion. Promote that STRUCTURE (not any food name) so the
+  // dish remains eligible for recipe resolution while Y stays an explicit
+  // sibling meal item.
+  const platedDishItem = !understanding.dishName && understanding.items.length > 1
+    ? understanding.items.find((item) => item.unit === "plate" || item.unit === "bowl")
+    : undefined;
+  const effectiveDishName = understanding.dishName ?? platedDishItem?.canonicalName;
+  const effectiveKind = platedDishItem ? "compound_dish" : understanding.kind;
+  const dishNormalized = normalizeSearch(effectiveDishName ?? "");
+  const HOUSEHOLD_CONTAINER_NAMES = new Set(["plate", "tanyer", "tányér", "teller", "bowl", "tal", "tál", "schussel", "schüssel", "cup", "csesze", "csésze", "tasse", "glass", "pohar", "pohár", "glas", "mug", "bogre", "bögre"]);
+  const containerItem = effectiveKind === "compound_dish"
+    ? understanding.items.find((item) => HOUSEHOLD_CONTAINER_NAMES.has(normalizeSearch(item.canonicalName)))
+    : undefined;
+  const cleanedItems = containerItem ? understanding.items.filter((item) => item !== containerItem) : understanding.items;
+  const inferredDishQuantity = understanding.dishQuantity ?? platedDishItem?.quantity ?? containerItem?.quantity;
+  const inferredDishUnit = understanding.dishUnit ?? platedDishItem?.unit ?? (containerItem ? ((HOUSEHOLD_CONTAINER_NAMES.has(normalizeSearch(containerItem.canonicalName)) ? normalizeSearch(containerItem.canonicalName) : containerItem.unit) as FoodUnderstanding["dishUnit"]) : undefined);
+  const normalizedDishUnit = ({ tanyer: "plate", tányér: "plate", teller: "plate", tal: "bowl", tál: "bowl", schussel: "bowl", schüssel: "bowl", csesze: "cup", csésze: "cup", tasse: "cup", pohar: "cup", pohár: "cup", glas: "cup", bogre: "cup", bögre: "cup" } as Record<string, FoodUnderstanding["dishUnit"]>)[String(inferredDishUnit)] ?? inferredDishUnit;
+  const hasDishItem = !!dishNormalized && cleanedItems.some((item) => normalizeSearch(item.canonicalName) === dishNormalized);
   // Owner-beta blocker (2026-09-12): when the user explicitly stated the
   // dish's FULL composition ("a következőkből" / "bestehend aus" / "made
   // from" / ...), the AI sets dishIsComposition — the dish name is a group
@@ -467,14 +602,16 @@ async function interpretAiUnderstanding(
   // the sum of its parts). Without an explicit composition cue, the prior
   // behavior is unchanged — a named dish mentioned alongside a few add-ons
   // (not fully defined by them) still gets its own resolution attempt.
-  const semanticItems = hasDishItem || !understanding.dishName || understanding.dishIsComposition
-    ? understanding.items
+  const semanticItems = hasDishItem || !effectiveDishName || understanding.dishIsComposition
+    ? cleanedItems
     : [{
-        originalText: understanding.dishName,
-        canonicalName: understanding.dishName,
+        originalText: effectiveDishName,
+        canonicalName: effectiveDishName,
+        quantity: inferredDishQuantity,
+        unit: normalizedDishUnit,
         evidence: "explicit" as const,
         confidence: understanding.confidence
-      }, ...understanding.items];
+      }, ...cleanedItems];
   // Bounded concurrency (owner-beta performance principle): each explicit
   // item's own resolution is independent of the others (its own local
   // search, and on a miss its own search-intent/semantic-gate/quantity AI
@@ -495,8 +632,10 @@ async function interpretAiUnderstanding(
   });
   const metadata = {
     language: understanding.language,
-    kind: understanding.kind,
-    dishName: understanding.dishName,
+    kind: effectiveKind,
+    dishName: effectiveDishName,
+    dishQuantity: inferredDishQuantity,
+    dishUnit: normalizedDishUnit,
     clarificationNeeded: understanding.clarificationNeeded,
     clarificationReason: understanding.clarificationReason
   };
@@ -514,7 +653,7 @@ async function interpretAiUnderstanding(
   // multi-item or multi-food phrase still goes through the compound/multi
   // path below unchanged.
   const singleStrongMatch = items.length === 1 && items[0].foodResolution === "resolved" && !!items[0].selectedFood;
-  if ((understanding.kind === "single_food" || singleStrongMatch) && items.length === 1) {
+  if ((effectiveKind === "single_food" || singleStrongMatch) && items.length === 1) {
     return {
       ...items[0],
       input: text,
@@ -531,7 +670,7 @@ async function interpretAiUnderstanding(
   return {
     input: text,
     parsed: top.parsed,
-    foodResolution: understanding.kind === "compound_dish" ? "compound" : "multi",
+    foodResolution: effectiveKind === "compound_dish" ? "compound" : "multi",
     selectedFood: top.selectedFood,
     candidates: top.candidates,
     quantity: top.quantity,
@@ -551,23 +690,39 @@ export async function interpretMealInput(
   text: string,
   quantityProvider: QuantityEstimationProvider = new DisabledQuantityEstimationProvider(),
   aiProvider: AiProvider = new StubAiProvider(),
-  dynamic: DynamicResolutionDeps = null
+  dynamic: DynamicResolutionDeps = null,
+  onProgress?: (stage: ProgressStage) => void
 ): Promise<InterpretResult> {
   const requestStartedAt = performance.now();
   // Resolve food semantics before allowing any external weight estimation.
   const disabled = new DisabledQuantityEstimationProvider();
+  onProgress?.("local_food_search");
   const deterministic = await timeStage("deterministic_pass", () => interpretDeterministically(prisma, text, disabled, dynamic));
   let result = deterministic;
   if (shouldUseAiFallback(deterministic, aiProvider)) {
     try {
+      onProgress?.("food_understanding");
       const understanding = await timeStage("food_understanding_ai", () => understandFood(aiProvider, { text }));
       result = await timeStage("ai_assisted_items", () => interpretAiUnderstanding(prisma, text, understanding, disabled, aiProvider, dynamic));
-    } catch {
+    } catch (error) {
+      // Owner-beta (2026-09-12): previously silent — indistinguishable from
+      // "the AI genuinely classified this as simple/already-resolved". Both
+      // ai_failover (per-provider) AND this line together make the real
+      // cause traceable: a provider error code if the underlying AiProvider
+      // threw one, or "unknown" for anything else — never the raw error
+      // message/stack, which could echo back request content.
+      const code = error instanceof AiProviderError ? error.code : "unknown";
+      console.log(`ai_understanding_fallback outcome=deterministic_only reason=${code}`);
       result = deterministic;
+      result.aiUnderstandingFailure = { code };
     }
   }
   if (!result.semantic?.clarificationNeeded && result.foodResolution !== "compound") {
     const pending = (result.items ?? [result]).filter((item) => item.foodResolution === "resolved" && item.selectedFood && !item.ambiguous && !item.preparationUnavailable && item.nutritionEligible !== false);
+    // Only a genuine AI quantity estimate (conversion_missing) is real work
+    // worth announcing — an already-resolved trusted serving needs no
+    // further stage, matching this loop's own inner condition exactly.
+    if (pending.some((item) => item.quantity?.reason === "conversion_missing")) onProgress?.("quantity_resolution");
     // Same bounded-concurrency reasoning as the resolution passes above —
     // several items each needing their own AI quantity estimate (e.g. a
     // multi-ingredient salad) must not be estimated one at a time.

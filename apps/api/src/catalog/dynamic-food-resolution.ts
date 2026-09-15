@@ -35,7 +35,7 @@ type DynamicPrisma = Parameters<typeof resolveAuthoritativeFood>[0];
  * and "Champignoncremesuppe" got permanently, silently aliased to "bok choy"
  * and "beech mushroom".
  */
-async function learnSearchAlias(prisma: DynamicPrisma, food: { id: string; name?: unknown; originalName?: unknown; names?: unknown }, rawQuery: string, locale: string | undefined) {
+export async function learnSearchAlias(prisma: DynamicPrisma, food: { id: string; name?: unknown; originalName?: unknown; names?: unknown }, rawQuery: string, locale: string | undefined) {
   const normalizedAlias = normalizeSearch(rawQuery);
   if (!normalizedAlias || normalizedAlias.length < 2) return;
   if (!hasSemanticCoverage(normalizedAlias, foodNameRepresentations(food))) return;
@@ -80,14 +80,96 @@ function aliasLocaleFor(deps: { foodLocale?: FoodLocale }, sourceLanguage: strin
  * from "rate limited" apart from "no adapters configured" — all silently
  * indistinguishable in production logs.
  */
-function logDynamicResolutionOutcome(status: DynamicResolutionOutcome["status"], via?: "search_intent" | "raw_query", reason?: string) {
+function logDynamicResolutionOutcome(status: DynamicResolutionOutcome["status"], via?: "search_intent" | "raw_query" | "normalized_identity", reason?: string) {
   console.log(`dynamic_food_resolution status=${status}${via ? ` via=${via}` : ""}${reason ? ` reason=${reason}` : ""}`);
 }
 
 export type DynamicResolutionOutcome =
-  | { status: "resolved"; food: any; via: "search_intent" | "raw_query" }
+  | { status: "resolved"; food: any; via: "search_intent" | "raw_query" | "normalized_identity" }
   | { status: "confirmation_required"; candidates: ExternalFoodCandidate[]; reason: "ambiguous" | "possible_duplicate" | "weak_match" }
   | { status: "unresolved"; reason: "not_found" | "invalid_external_data" | "external_unavailable" | "rate_limited" | "no_adapters" };
+
+type ResolveFromSearchTermDeps = {
+  adapters: readonly StructuredFoodLookupAdapter[];
+  rateLimiter: DynamicFoodResolutionRateLimiter;
+  userId: string;
+  // The authenticated user's own persisted locale (never a client-supplied
+  // value) — governs display-name localization only, never search/matching.
+  // Optional + internally defaulted so a caller that hasn't wired
+  // localization yet (e.g. an older test fixture) degrades to "no
+  // localization" instead of crashing.
+  locale?: Locale;
+  // Owner-beta blocker #8 (2026-09-11): the user's REGIONAL food-vocabulary
+  // locale (e.g. "de-AT"), when known — drives display localization (sent to
+  // resolveAuthoritativeFood) with real regional precision. Optional and
+  // independent of `locale` for backward compatibility.
+  foodLocale?: FoodLocale;
+  localizationProvider?: CandidateLocalizationProvider;
+  // Owner-beta blocker #9 (2026-09-11): validates a candidate against the
+  // ORIGINAL identity, independent of whatever (possibly over-specific/wrong)
+  // term the search term actually was — see semantic-candidate-gate.ts for
+  // the full root-cause writeup. Optional in the TYPE only for structural
+  // backward compatibility; defaults to DisabledSemanticCandidateGateProvider,
+  // which FAILS CLOSED (rejects every candidate) rather than silently
+  // skipping the check — a caller that doesn't wire a real gate gets safe
+  // "unresolved" outcomes, never ungated candidates.
+  semanticCandidateGateProvider?: SemanticCandidateGateProvider;
+};
+
+/**
+ * The shared core both resolveDynamicFood and resolveDynamicFoodFromIdentity
+ * converge into once a search term is known: rate-limit, run
+ * resolveAuthoritativeFood's existing confidence/dedup/persistence/semantic-
+ * gate logic unchanged, then (on a genuine resolution) learn a conservative
+ * search alias for next time. `originalIdentity` is what the semantic gate
+ * and alias-coverage check validate the result against — the thing the user
+ * (or, for a recipe ingredient, the recipe page) actually said the food was,
+ * independent of whatever the search term itself turned out to be.
+ */
+// Owner-beta checkpoint (2026-09-13): `no_adapters`/`rate_limited` are
+// checked by EACH caller (resolveDynamicFood, resolveDynamicFoodFromIdentity)
+// BEFORE it does any of its own AI-call work, never inside this shared core —
+// resolveDynamicFood's check must run before its search-intent call (so a
+// rate-limited/adapter-less request never wastes that call), and checking
+// here too would silently double-consume the rate limiter's budget per call.
+async function resolveFromSearchTerm(
+  prisma: DynamicPrisma,
+  searchTerm: string,
+  originalIdentity: string,
+  via: "search_intent" | "raw_query" | "normalized_identity",
+  deps: ResolveFromSearchTermDeps,
+  aliasLocale: string | undefined,
+  semanticContext?: { rawIngredient?: string; recipeTitle?: string; recipeContext?: string; preparation?: string; sourceQuantity?: number; sourceUnit?: string }
+): Promise<DynamicResolutionOutcome> {
+  const outcome: ResolutionOutcome = await resolveAuthoritativeFood(prisma, searchTerm, deps.adapters, {
+    locale: deps.foodLocale ?? deps.locale ?? "hu",
+    provider: deps.localizationProvider ?? new DisabledCandidateLocalizationProvider()
+  }, {
+    provider: deps.semanticCandidateGateProvider ?? new DisabledSemanticCandidateGateProvider(),
+    originalIdentity,
+    canonicalIdentity: searchTerm,
+    rawIngredient: semanticContext?.rawIngredient,
+    recipeTitle: semanticContext?.recipeTitle,
+    recipeContext: semanticContext?.recipeContext,
+    preparation: semanticContext?.preparation,
+    sourceQuantity: semanticContext?.sourceQuantity,
+    sourceUnit: semanticContext?.sourceUnit,
+    locale: deps.foodLocale ?? deps.locale
+  });
+  switch (outcome.status) {
+    case "resolved_local":
+    case "resolved_external":
+      await learnSearchAlias(prisma, outcome.food, originalIdentity, aliasLocale);
+      logDynamicResolutionOutcome("resolved", via);
+      return { status: "resolved", food: outcome.food, via };
+    case "confirmation_required":
+      logDynamicResolutionOutcome("confirmation_required", via, outcome.reason);
+      return { status: "confirmation_required", candidates: outcome.candidates, reason: outcome.reason };
+    case "unresolved":
+      logDynamicResolutionOutcome("unresolved", via, outcome.reason);
+      return { status: "unresolved", reason: outcome.reason };
+  }
+}
 
 /**
  * The local-miss fallback: one search-intent call (best-effort — a disabled/
@@ -99,36 +181,7 @@ export type DynamicResolutionOutcome =
 export async function resolveDynamicFood(
   prisma: DynamicPrisma,
   input: { foodQuery: string; preparation?: string },
-  deps: {
-    searchIntentProvider: SearchIntentProvider;
-    adapters: readonly StructuredFoodLookupAdapter[];
-    rateLimiter: DynamicFoodResolutionRateLimiter;
-    userId: string;
-    // The authenticated user's own persisted locale (never a client-supplied
-    // value) — governs display-name localization only, never search/matching.
-    // Optional + internally defaulted so a caller that hasn't wired
-    // localization yet (e.g. an older test fixture) degrades to "no
-    // localization" instead of crashing.
-    locale?: Locale;
-    // Owner-beta blocker #8 (2026-09-11): the user's REGIONAL food-vocabulary
-    // locale (e.g. "de-AT"), when known — drives canonical search
-    // normalization (sent to searchIntentProvider) and display localization
-    // (sent to resolveAuthoritativeFood) with real regional precision.
-    // Optional and independent of `locale` for backward compatibility: an
-    // older caller that only wires `locale` still works exactly as before.
-    foodLocale?: FoodLocale;
-    localizationProvider?: CandidateLocalizationProvider;
-    // Owner-beta blocker #9 (2026-09-11): validates a candidate against the
-    // ORIGINAL identity the user actually typed, independent of whatever
-    // (possibly over-specific/wrong) term canonical search normalization
-    // produced — see semantic-candidate-gate.ts for the full root-cause
-    // writeup. Optional in the TYPE only for structural backward
-    // compatibility; defaults to DisabledSemanticCandidateGateProvider,
-    // which FAILS CLOSED (rejects every candidate) rather than silently
-    // skipping the check — a caller that doesn't wire a real gate gets safe
-    // "unresolved" outcomes, never ungated candidates.
-    semanticCandidateGateProvider?: SemanticCandidateGateProvider;
-  }
+  deps: ResolveFromSearchTermDeps & { searchIntentProvider: SearchIntentProvider }
 ): Promise<DynamicResolutionOutcome> {
   if (!deps.adapters.length) { logDynamicResolutionOutcome("unresolved", undefined, "no_adapters"); return { status: "unresolved", reason: "no_adapters" }; }
   if (!deps.rateLimiter.consume(deps.userId)) { logDynamicResolutionOutcome("unresolved", undefined, "rate_limited"); return { status: "unresolved", reason: "rate_limited" }; }
@@ -136,26 +189,35 @@ export async function resolveDynamicFood(
   const intent = await timeStage("search_intent_ai", () => deps.searchIntentProvider.generate({ foodQuery: input.foodQuery, preparation: input.preparation, foodLocale: deps.foodLocale }));
   const searchTerm = intent?.searchTerms[0]?.trim() || input.foodQuery;
   const via: "search_intent" | "raw_query" = intent?.searchTerms[0]?.trim() ? "search_intent" : "raw_query";
+  return resolveFromSearchTerm(prisma, searchTerm, input.foodQuery, via, deps, aliasLocaleFor(deps, intent?.sourceLanguage));
+}
 
-  const outcome: ResolutionOutcome = await resolveAuthoritativeFood(prisma, searchTerm, deps.adapters, {
-    locale: deps.foodLocale ?? deps.locale ?? "hu",
-    provider: deps.localizationProvider ?? new DisabledCandidateLocalizationProvider()
-  }, {
-    provider: deps.semanticCandidateGateProvider ?? new DisabledSemanticCandidateGateProvider(),
-    originalIdentity: input.foodQuery,
-    locale: deps.foodLocale ?? deps.locale
+/**
+ * Owner-beta checkpoint (2026-09-13): the ingredient-resolution forensic
+ * trace proved the isolated per-ingredient search_intent call is unreliable
+ * on unfamiliar/regional terms in isolation (a reproduced live failure:
+ * "marhalábszár" hallucinated as "apricot") — when a WHOLE-RECIPE-CONTEXT
+ * batch normalization (recipe-ingredient-normalization.ts) has already
+ * produced a clean canonical identity, re-running search_intent on it would
+ * both waste a call AND reintroduce exactly the isolated-context risk this
+ * variant exists to avoid. This is identical to resolveDynamicFood in every
+ * other respect (same rate limiting, same resolveAuthoritativeFood trust
+ * chain, same semantic gate, same alias learning) — it only skips the
+ * search-intent step because a good search term is already in hand.
+ */
+export async function resolveDynamicFoodFromIdentity(
+  prisma: DynamicPrisma,
+  input: { canonicalIdentity: string; originalIdentity: string; rawIngredient?: string; recipeTitle?: string; recipeContext?: string; preparation?: string; sourceQuantity?: number; sourceUnit?: string; sourceLanguage?: string },
+  deps: ResolveFromSearchTermDeps
+): Promise<DynamicResolutionOutcome> {
+  if (!deps.adapters.length) { logDynamicResolutionOutcome("unresolved", undefined, "no_adapters"); return { status: "unresolved", reason: "no_adapters" }; }
+  if (!deps.rateLimiter.consume(deps.userId)) { logDynamicResolutionOutcome("unresolved", undefined, "rate_limited"); return { status: "unresolved", reason: "rate_limited" }; }
+  return resolveFromSearchTerm(prisma, input.canonicalIdentity, input.originalIdentity, "normalized_identity", deps, aliasLocaleFor(deps, input.sourceLanguage), {
+    rawIngredient: input.rawIngredient,
+    recipeTitle: input.recipeTitle,
+    recipeContext: input.recipeContext,
+    preparation: input.preparation,
+    sourceQuantity: input.sourceQuantity,
+    sourceUnit: input.sourceUnit
   });
-  switch (outcome.status) {
-    case "resolved_local":
-    case "resolved_external":
-      await learnSearchAlias(prisma, outcome.food, input.foodQuery, aliasLocaleFor(deps, intent?.sourceLanguage));
-      logDynamicResolutionOutcome("resolved", via);
-      return { status: "resolved", food: outcome.food, via };
-    case "confirmation_required":
-      logDynamicResolutionOutcome("confirmation_required", via, outcome.reason);
-      return { status: "confirmation_required", candidates: outcome.candidates, reason: outcome.reason };
-    case "unresolved":
-      logDynamicResolutionOutcome("unresolved", via, outcome.reason);
-      return { status: "unresolved", reason: outcome.reason };
-  }
 }

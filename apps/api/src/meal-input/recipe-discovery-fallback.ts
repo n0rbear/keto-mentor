@@ -1,6 +1,7 @@
 import type { PrismaClient } from "@prisma/client";
 import type { Locale } from "@keto-mentor/shared";
 import type { DynamicResolutionDeps, InterpretResult } from "./interpret.js";
+import { normalizeSearch } from "../catalog/normalize.js";
 import { previewRecipeImport, RecipeImportError } from "../recipes/recipe-import.js";
 import { createRecipeImportProof } from "../recipes/import-proof.js";
 import type { RecipeExtractionProvider } from "../recipes/recipe-extraction-provider.js";
@@ -8,21 +9,35 @@ import { RecipeDiscoveryService, type RecipeDiscoveryCandidate, type RecipeDisco
 import { domainOf } from "../web-knowledge/web-knowledge-search-provider.js";
 import type { SafeFetcherDependencies } from "../recipes/safe-url-fetcher.js";
 import { classifyRecipeReview, computeTrustedNutrition, toIngredientReview, type RecipeIngredientReview, type RecipeReviewSummary, type ReviewableIngredient } from "../recipes/recipe-ingredient-review.js";
+import { findTrustedLocalRecipe } from "./local-recipe-lookup.js";
+import type { ProgressStage } from "./progress-bus.js";
+import type { RecipeIngredientNormalizationProvider } from "../recipes/recipe-ingredient-normalization.js";
+import type { RecipeQuantityEstimationProvider } from "../recipes/recipe-quantity-estimation.js";
 
 export type RecipeDiscoveryFallbackDeps = {
   discoveryService: RecipeDiscoveryService;
   recipeAiProvider: RecipeExtractionProvider;
-  prisma: Parameters<typeof previewRecipeImport>[0];
+  prisma: Parameters<typeof previewRecipeImport>[0] & Pick<PrismaClient, "recipe">;
   userId: string;
+  onProgress?: (stage: ProgressStage) => void;
   locale: Locale;
   // Test-only injection point — production never sets this, so
   // previewRecipeImport always runs against the real safe-url-fetcher.
   fetchDependencies?: SafeFetcherDependencies;
-  // Not yet wired by the production route (server.ts) — passing this through
-  // is what lets the PR #49 live-eval diagnostic exercise real USDA/dynamic
-  // resolution for recipe-derived ingredients. Omitted (undefined) everywhere
-  // else, which previewRecipeImport treats identically to its own null default.
+  // Owner-beta (2026-09-13): wired by the production route (server.ts) using
+  // the exact same deps as ordinary meal-input's dynamic resolution — proven
+  // necessary for recipe-derived ingredients to reach trusted USDA/BLS Food
+  // identities rather than only the sparse local catalog. Optional (rather
+  // than required) so callers without external adapters configured (or test
+  // doubles) can omit it; previewRecipeImport treats that identically to an
+  // explicit null.
   dynamic?: DynamicResolutionDeps;
+  // Owner-beta checkpoint (2026-09-13): the whole-recipe-context batch
+  // ingredient-normalization path (see recipe-ingredient-normalization.ts).
+  // Optional — previewRecipeImport itself defaults to Disabled (falls back
+  // to the existing per-ingredient path) when omitted.
+  recipeIngredientNormalizationProvider?: RecipeIngredientNormalizationProvider;
+  recipeQuantityEstimationProvider?: RecipeQuantityEstimationProvider;
 };
 
 type ExtractedPreview = Awaited<ReturnType<typeof previewRecipeImport>>;
@@ -77,7 +92,7 @@ function logCandidateAttempt(index: number, domain: string, outcome: "unusable" 
 }
 
 function toCandidateShape(extracted: ExtractedPreview, reviews: readonly RecipeIngredientReview[], summary: RecipeReviewSummary, importProof: string): NonNullable<RecipeDiscoveryPreview["candidate"]> {
-  const trusted = computeTrustedNutrition(reviews);
+  const trusted = computeTrustedNutrition(reviews, extracted.servings);
   return {
     title: extracted.title,
     sourceUrl: extracted.sourceUrl,
@@ -90,6 +105,12 @@ function toCandidateShape(extracted: ExtractedPreview, reviews: readonly RecipeI
     confirmationRequiredIngredientCount: summary.confirmationRequiredCount,
     ingredientSummary: extracted.ingredients.map((ingredient) => ingredient.originalText).slice(0, 50),
     nutritionPer100g: trusted.macros,
+    // A discovered recipe never has a known cooked-yield weight — see
+    // recipe-ingredient-review.ts's computeTrustedNutrition — so this is
+    // always the raw-ingredient-weight basis, explicitly, whenever non-null.
+    nutritionPer100gBasis: trusted.macros != null ? "raw_ingredient_weight" : null,
+    nutritionPerServing: trusted.perServing,
+    nutritionTotal: trusted.total,
     nutritionCalculable: trusted.calculable,
     ingredientWeightGrams: trusted.weightGrams,
     recipeState: summary.state === "fully_resolved" ? "fully_resolved" : "reviewable",
@@ -126,7 +147,7 @@ type AttemptResult =
 async function attemptCandidate(index: number, candidate: RecipeDiscoveryCandidate, deps: RecipeDiscoveryFallbackDeps): Promise<AttemptResult> {
   let extracted: ExtractedPreview;
   try {
-    extracted = await previewRecipeImport(deps.prisma, candidate.url, deps.fetchDependencies ?? {}, deps.recipeAiProvider, deps.dynamic ?? null);
+    extracted = await previewRecipeImport(deps.prisma, candidate.url, deps.fetchDependencies ?? {}, deps.recipeAiProvider, deps.dynamic ?? null, deps.recipeIngredientNormalizationProvider, deps.recipeQuantityEstimationProvider);
   } catch (error) {
     const code = error instanceof RecipeImportError ? error.publicCode : "unknown";
     if (error instanceof RecipeImportError && RECOVERABLE_CANDIDATE_CODES.has(code)) {
@@ -182,21 +203,106 @@ function isBetterReviewable(a: RecipeReviewSummary, b: RecipeReviewSummary): boo
   return a.trustedNutritionReadyCount > b.trustedNutritionReadyCount;
 }
 
+function isSufficientReviewable(summary: RecipeReviewSummary): boolean {
+  const total = summary.resolvedCount + summary.confirmationRequiredCount + summary.unresolvedCount;
+  return total > 0 && summary.trustedNutritionReadyCount / total >= 0.7 && summary.unresolvedCount <= 2;
+}
+
+type DiscoveryTarget = { location: "result" } | { location: "item"; index: number };
+
 /**
- * Only the clean whole-dish case: the AI classified the phrase as a
- * compound/prepared dish, no explicit component ingredients were stated
- * (so there is exactly one semantic item — the dish name itself), and that
- * item's own local+structured-source resolution genuinely found nothing.
- * A multi-ingredient compound phrase ("lecsó with 2 sausages and 3 eggs")
- * still goes through the existing item-level path unchanged — recipe
- * discovery for a partially-specified dish is out of this checkpoint's scope.
+ * The compound/prepared dish is classified, and exactly one of its semantic
+ * items represents the DISH'S OWN identity (matched by canonicalName against
+ * semantic.dishName — see interpret.ts's hasDishItem/injection logic), and
+ * that item's own local+structured-source resolution genuinely found
+ * nothing. Two shapes are eligible:
+ *
+ *  - "result": the classic single-item case ("rakott krumpli" alone) — the
+ *    dish item IS the whole result, so the preview attaches at the top
+ *    level exactly as before this checkpoint.
+ *
+ *  - "item": owner-beta blocker (2026-09-12) — "csülökpörkölt krumplival"-
+ *    style phrases where the dish is named ALONGSIDE a side/add-on that
+ *    resolves independently (here: burgonya/krumpli as its own trusted
+ *    Food). Every OTHER item must have already reached some non-"unresolved"
+ *    outcome; a second still-unresolved item means the phrase itself is
+ *    under-specified/ambiguous ("lecsó" + "2 virsli" with neither
+ *    resolving), which stays out of scope exactly as before — recipe
+ *    discovery only ever targets a single, unambiguous, genuinely-unresolved
+ *    dish identity, never a whole under-specified meal.
  */
-function isEligibleForRecipeDiscovery(result: InterpretResult): boolean {
-  if (result.semantic?.kind !== "compound_dish") return false;
-  if (result.semantic?.clarificationNeeded) return false;
-  if (!result.items || result.items.length !== 1) return false;
-  const item = result.items[0];
-  return item.foodResolution === "unresolved" && !item.selectedFood;
+function findEligibleDiscoveryTarget(result: InterpretResult): DiscoveryTarget | null {
+  if (result.semantic?.kind !== "compound_dish") return null;
+  if (result.semantic?.clarificationNeeded) return null;
+  const dishName = result.semantic?.dishName?.trim();
+  if (!dishName || !result.items?.length) return null;
+
+  const dishNormalized = normalizeSearch(dishName);
+  const dishItemEntries = result.items
+    .map((item, index) => ({ item, index }))
+    .filter(({ item }) => normalizeSearch(item.semanticItem?.canonicalName ?? "") === dishNormalized);
+  if (dishItemEntries.length !== 1) return null;
+
+  const { item: dishItem, index } = dishItemEntries[0];
+  if (dishItem.foodResolution !== "unresolved" || dishItem.selectedFood) return null;
+
+  const othersAllSettled = result.items.every((item, i) => i === index || item.foodResolution !== "unresolved");
+  if (!othersAllSettled) return null;
+
+  return result.items.length === 1 ? { location: "result" } : { location: "item", index };
+}
+
+type SiblingOverlapMatch = { itemIndex: number; canonicalName: string };
+
+/**
+ * Owner-beta (2026-09-14) — Blocker 4 (double counting): for a multi-item
+ * phrase (e.g. "csülökpörkölt krumplival" -> [csülökpörkölt, krumpli]),
+ * checks whether a fully_resolved recipe candidate's OWN resolved
+ * ingredients are the SAME Food as another, separately-resolved item in the
+ * phrase — if so, that sibling must not ALSO independently contribute
+ * nutrition once the recipe is accepted (see cases A-E in the owner-beta
+ * spec: a discovered recipe may or may not already include a named side).
+ *
+ * Two tiers, by design — "prefer confirmation over guessing":
+ *  - `confirmed`: an ingredient's own trusted resolvedFood.id equals the
+ *    sibling's own selectedFood.id — the only fully general (never
+ *    hardcoded) identity signal available, since both independently
+ *    converge on the SAME underlying Food row for the same real identity
+ *    (see findDuplicate's dedup behavior in external-food.ts).
+ *  - `possible`: no identity match, but the ingredient's own name (its
+ *    resolvedFood.name if trusted, otherwise its own parsed search query)
+ *    normalizes to substantially the same text as the sibling's name —
+ *    e.g. the recipe's own "krumpli" ingredient failed to reach a trusted
+ *    Food (today's sparse catalog reality) but its raw text still clearly
+ *    names the same food the sibling independently resolved. Never
+ *    auto-decided either way.
+ */
+export function detectSiblingOverlap(ingredients: readonly RecipeIngredientReview[], items: readonly InterpretResult[], targetIndex: number): { confirmed: SiblingOverlapMatch[]; possible: SiblingOverlapMatch[] } {
+  const confirmed: SiblingOverlapMatch[] = [];
+  const possible: SiblingOverlapMatch[] = [];
+  items.forEach((sibling, index) => {
+    if (index === targetIndex) return;
+    const siblingFood = sibling.selectedFood;
+    const siblingName = siblingFood?.name ?? sibling.semanticItem?.canonicalName ?? sibling.parsed?.foodQuery;
+    const siblingNormalized = siblingName ? normalizeSearch(siblingName) : "";
+    if (!siblingNormalized) return;
+
+    let confirmedMatch = false;
+    let possibleMatch = false;
+    for (const ingredient of ingredients) {
+      // A source-recipe serving accompaniment is visible context, not part
+      // of the base dish. If the user explicitly consumes the same food as
+      // a sibling item, it must remain independently countable.
+      if (ingredient.excludeFromNutrition || !ingredient.includedInBaseNutrition) continue;
+      if (siblingFood && ingredient.resolvedFood && ingredient.resolvedFood.id === siblingFood.id) { confirmedMatch = true; break; }
+      const ingredientNormalized = normalizeSearch(ingredient.resolvedFood?.name ?? ingredient.parsedFoodQuery);
+      if (ingredientNormalized && (ingredientNormalized === siblingNormalized || ingredientNormalized.includes(siblingNormalized) || siblingNormalized.includes(ingredientNormalized))) possibleMatch = true;
+    }
+    const canonicalName = sibling.semanticItem?.canonicalName ?? siblingName!;
+    if (confirmedMatch) confirmed.push({ itemIndex: index, canonicalName });
+    else if (possibleMatch) possible.push({ itemIndex: index, canonicalName });
+  });
+  return { confirmed, possible };
 }
 
 /**
@@ -214,15 +320,18 @@ function isEligibleForRecipeDiscovery(result: InterpretResult): boolean {
  * importable and fully ingredient-resolvable. No additional search is ever
  * made to find more candidates.
  */
-export async function attachRecipeDiscoveryFallback(result: InterpretResult, deps: RecipeDiscoveryFallbackDeps): Promise<InterpretResult> {
-  if (!isEligibleForRecipeDiscovery(result)) return result;
-  const dishName = result.semantic?.dishName?.trim() || result.parsed.foodQuery;
-  if (!dishName) return result;
+/** Attaches `preview` at the location `findEligibleDiscoveryTarget` identified — the top level for the classic single-item case, or only the one dish item's own slot for a multi-item phrase, leaving every other item byte-identical (no re-shaping, no risk of touching an already-settled sibling like an independently-resolved potato). */
+function applyPreview(result: InterpretResult, target: DiscoveryTarget, preview: RecipeDiscoveryPreview): InterpretResult {
+  if (target.location === "result") return { ...result, recipeDiscovery: preview };
+  const items = result.items!.map((item, i) => (i === target.index ? { ...item, recipeDiscovery: preview } : item));
+  return { ...result, items };
+}
 
+async function runRecipeDiscovery(dishName: string, deps: RecipeDiscoveryFallbackDeps): Promise<RecipeDiscoveryPreview> {
   const discovery = await deps.discoveryService.discover({ originalPhrase: dishName, locale: deps.locale, userId: deps.userId });
 
   if (discovery.status !== "found") {
-    const preview: RecipeDiscoveryPreview = {
+    return {
       status: "unresolved",
       searchAttempted: discovery.status !== "disabled",
       resultCount: "resultCount" in discovery ? discovery.resultCount : 0,
@@ -230,7 +339,6 @@ export async function attachRecipeDiscoveryFallback(result: InterpretResult, dep
       candidatesAttempted: 0,
       reason: discovery.status === "no_results" ? "no_relevant_results" : discovery.status === "disabled" ? "disabled" : discovery.status === "rate_limited" ? "rate_limited" : "provider_error"
     };
-    return { ...result, recipeDiscovery: preview };
   }
 
   logCandidateSetOutcome(discovery.candidates.length);
@@ -242,7 +350,7 @@ export async function attachRecipeDiscoveryFallback(result: InterpretResult, dep
     attemptsMade += 1;
     const attempt = await attemptCandidate(attemptsMade, candidate, deps);
     if (attempt.outcome === "fully_resolved") {
-      const preview: RecipeDiscoveryPreview = {
+      return {
         status: "confirmation_required",
         searchAttempted: true,
         resultCount: discovery.resultCount,
@@ -250,11 +358,14 @@ export async function attachRecipeDiscoveryFallback(result: InterpretResult, dep
         candidatesAttempted: attemptsMade,
         candidate: attempt.candidate
       };
-      return { ...result, recipeDiscovery: preview };
     }
     if (attempt.outcome === "reviewable" && (!bestReviewable || isBetterReviewable(attempt.summary, bestReviewable.summary))) {
       bestReviewable = { candidate: attempt.candidate, summary: attempt.summary };
     }
+    // The discovery provider already orders relevant pages. Once the current
+    // page is strongly reviewable, trying lower-ranked pages repeats the full
+    // ingredient AI pipeline without a proportionate correctness benefit.
+    if (attempt.outcome === "reviewable" && isSufficientReviewable(attempt.summary)) break;
     if (attempt.outcome === "systemic_error") { sawSystemicError = true; break; } // stop trying — see RECOVERABLE_CANDIDATE_CODES comment above
   }
 
@@ -264,7 +375,7 @@ export async function attachRecipeDiscoveryFallback(result: InterpretResult, dep
   // away merely because human confirmation is required), rather than only
   // ever returning a candidate when every ingredient auto-resolved.
   if (bestReviewable) {
-    const preview: RecipeDiscoveryPreview = {
+    return {
       status: "confirmation_required",
       searchAttempted: true,
       resultCount: discovery.resultCount,
@@ -272,10 +383,9 @@ export async function attachRecipeDiscoveryFallback(result: InterpretResult, dep
       candidatesAttempted: attemptsMade,
       candidate: bestReviewable.candidate
     };
-    return { ...result, recipeDiscovery: preview };
   }
 
-  const preview: RecipeDiscoveryPreview = {
+  return {
     status: "unresolved",
     searchAttempted: true,
     resultCount: discovery.resultCount,
@@ -283,5 +393,81 @@ export async function attachRecipeDiscoveryFallback(result: InterpretResult, dep
     candidatesAttempted: attemptsMade,
     reason: sawSystemicError ? "systemic_error" : "no_fully_resolvable_candidate"
   };
-  return { ...result, recipeDiscovery: preview };
+}
+
+export async function attachRecipeDiscoveryFallback(result: InterpretResult, deps: RecipeDiscoveryFallbackDeps): Promise<InterpretResult> {
+  const target = findEligibleDiscoveryTarget(result);
+  if (!target) return result;
+  const dishName = result.semantic?.dishName?.trim();
+  if (!dishName) return result;
+
+  // Step B of the prepared-dish resolution order: a trusted local Recipe
+  // wins outright, at zero search/fetch/AI cost, before web discovery is
+  // ever attempted.
+  deps.onProgress?.("local_recipe_search");
+  const local = await findTrustedLocalRecipe(deps.prisma, dishName, deps.userId);
+  if (local.status === "found") {
+    const preview: RecipeDiscoveryPreview = {
+      status: "local_match",
+      searchAttempted: false,
+      resultCount: 0,
+      candidatesAfterRelevanceFilter: 0,
+      candidatesAttempted: 0,
+      localMatch: local
+    };
+    return applyPreview(result, target, preview);
+  }
+  if (local.status === "ambiguous") {
+    const preview: RecipeDiscoveryPreview = {
+      status: "confirmation_required",
+      searchAttempted: false,
+      resultCount: 0,
+      candidatesAfterRelevanceFilter: 0,
+      candidatesAttempted: 0,
+      reason: "ambiguous_local_matches",
+      localAlternatives: local.candidates
+    };
+    return applyPreview(result, target, preview);
+  }
+
+  deps.onProgress?.("recipe_discovery");
+  let preview = await runRecipeDiscovery(dishName, deps);
+  const portionUnit = result.semantic?.dishUnit;
+  const portionCount = result.semantic?.dishQuantity;
+  if (preview.candidate && portionCount && (portionUnit === "plate" || portionUnit === "bowl" || portionUnit === "portion")) {
+    preview = { ...preview, candidate: { ...preview.candidate, requestedPortion: {
+      count: portionCount, unit: portionUnit, provenance: "explicit_household_unit",
+      nutrition: preview.candidate.nutritionPerServing ? Object.fromEntries(Object.entries(preview.candidate.nutritionPerServing).map(([key, value]) => [key, value * portionCount])) as typeof preview.candidate.nutritionPerServing : null
+    } } };
+  }
+  let siblingsScoped = result;
+  // Blocker 4 (double counting): only meaningful for the multi-item case
+  // (a single-item phrase has no siblings), and only once a candidate's own
+  // ingredients are actually known (fully_resolved — see attemptCandidate).
+  if (target.location === "item" && preview.candidate && result.items) {
+    const overlap = detectSiblingOverlap(preview.candidate.ingredients, result.items, target.index);
+    if (overlap.confirmed.length || overlap.possible.length) {
+      preview = {
+        ...preview,
+        candidate: {
+          ...preview.candidate,
+          overlapsWithSiblingItems: overlap.confirmed.length ? overlap.confirmed : undefined,
+          possibleOverlapWithSiblingItems: overlap.possible.length ? overlap.possible : undefined
+        }
+      };
+      siblingsScoped = {
+        ...result,
+        items: result.items.map((item, index) => {
+          if (overlap.confirmed.some((m) => m.itemIndex === index)) {
+            return { ...item, nutritionEligible: false, canConfirm: true, excludedBySiblingRecipe: { dishItemIndex: target.index, dishName } };
+          }
+          if (overlap.possible.some((m) => m.itemIndex === index)) {
+            return { ...item, ambiguous: true, canConfirm: false };
+          }
+          return item;
+        })
+      };
+    }
+  }
+  return applyPreview(siblingsScoped, target, preview);
 }

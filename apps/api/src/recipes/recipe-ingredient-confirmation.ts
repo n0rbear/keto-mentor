@@ -9,6 +9,8 @@ import type { DynamicResolutionDeps } from "../meal-input/interpret.js";
 import type { SafeFetcherDependencies } from "./safe-url-fetcher.js";
 import { learnConfirmedAlias } from "../catalog/confirmed-alias.js";
 import type { FoodLocale } from "../catalog/food-locale.js";
+import type { RecipeIngredientNormalizationProvider } from "./recipe-ingredient-normalization.js";
+import type { RecipeQuantityEstimationProvider } from "./recipe-quantity-estimation.js";
 
 /**
  * Batch recipe-ingredient confirmation (owner-beta blocker #7, 2026-09-11).
@@ -65,6 +67,10 @@ export type RecipeIngredientConfirmationResult = {
     unresolvedCount: number;
     nutritionCalculable: boolean;
     nutritionPer100g: ReturnType<typeof computeTrustedNutrition>["macros"];
+    // Same raw-ingredient-weight basis as recipe-discovery-fallback.ts's
+    // candidate shape — a manually-imported recipe never has a known cooked
+    // yield weight either. See computeTrustedNutrition's own doc comment.
+    nutritionPer100gBasis: "raw_ingredient_weight" | null;
     ingredients: ReturnType<typeof toIngredientReview>[];
   };
   /** A fresh proof for the RECOMPUTED preview, minted the same way /import-url/preview already does — the old proof is single-purpose (this request) and not reused for a follow-up confirmation round. */
@@ -85,6 +91,12 @@ export type RecipeIngredientConfirmationDeps = {
   // `localization`'s own locale fields, though callers normally derive all
   // three from the same source (the authenticated user's trusted locale).
   foodLocale: FoodLocale;
+  // Owner-beta checkpoint (2026-09-13): the whole-recipe-context batch
+  // ingredient-normalization path (see recipe-ingredient-normalization.ts).
+  // Optional — reDerivePreview's own previewRecipeImport call defaults to
+  // Disabled (the existing per-ingredient path) when omitted.
+  recipeIngredientNormalizationProvider?: RecipeIngredientNormalizationProvider;
+  recipeQuantityEstimationProvider?: RecipeQuantityEstimationProvider;
 };
 
 function invalidRequest(publicCode: string) {
@@ -100,7 +112,7 @@ function invalidRequest(publicCode: string) {
  * externalCandidates array, regardless of what the client claims.
  */
 async function reDerivePreview(prisma: PrismaClient, sourceUrl: string, deps: RecipeIngredientConfirmationDeps) {
-  const extracted = await previewRecipeImport(prisma, sourceUrl, deps.fetchDependencies ?? {}, deps.recipeAiProvider, deps.dynamic);
+  const extracted = await previewRecipeImport(prisma, sourceUrl, deps.fetchDependencies ?? {}, deps.recipeAiProvider, deps.dynamic, deps.recipeIngredientNormalizationProvider, deps.recipeQuantityEstimationProvider);
   const reviews = extracted.ingredients.map((ingredient) => toIngredientReview(ingredient as unknown as ReviewableIngredient));
   return { extracted, reviews };
 }
@@ -188,6 +200,7 @@ export async function confirmRecipeIngredients(
       unresolvedCount: afterSummary.unresolvedCount,
       nutritionCalculable: afterNutrition.calculable,
       nutritionPer100g: afterNutrition.macros,
+      nutritionPer100gBasis: afterNutrition.macros != null ? "raw_ingredient_weight" : null,
       ingredients: afterReviews
     },
     importProof: deps.mintProof(request.sourceUrl, request.extractionMethod)

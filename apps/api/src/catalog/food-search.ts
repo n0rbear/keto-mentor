@@ -39,7 +39,7 @@ const QUERY_ALIASES: Record<string, readonly string[]> = {
   "12 cm kígyóuborka": ["cucumber"],
 };
 
-export type FoodSearchMatch = { stage: "exact" | "alias" | "partial" | "fuzzy"; score: number; query: string };
+export type FoodSearchMatch = { stage: "exact" | "alias" | "partial" | "fuzzy"; score: number; query: string; aliasKind?: string };
 type AliasEntry = { normalizedAlias: string; kind: string };
 
 /**
@@ -102,6 +102,71 @@ export function isTrustedLocalMatch(match: { stage: string; score: number }): bo
   return (match.stage === "exact" || match.stage === "alias") && match.score >= 95;
 }
 
+// Generic, language-spanning preparation-state vocabulary — deliberately the
+// same word list already used elsewhere (recipe-ingredient-batch-resolution's
+// explicitPreparedState check) so the two never drift apart. Not exhaustive
+// by design: this is a cheap textual signal, not a semantic judgment — real
+// nuance (a candidate that is a processed DERIVATIVE rather than merely
+// cooked, or a preparation word this list doesn't know) is exactly what the
+// semantic gate exists to reason about once the fast path is skipped below.
+const PREPARED_STATE_WORDS = /\b(cooked|boiled|roasted|fried|grilled|steamed|baked|smoked|f[őo]tt|s[üu]lt|p[áa]rolt|f[üu]st[öo]lt|gekocht|gebraten|ged[üu]nstet|ger[äa]uchert)\b/i;
+const RAW_STATE_WORDS = /\braw\b/i;
+
+export type FormEvidence = { rawIngredient?: string };
+
+/**
+ * Owner-beta checkpoint (2026-09-15): whether a LOCALLY CACHED trusted
+ * candidate's own preparation state conflicts with what the source ingredient
+ * evidence indicates — closes the "stale local cache permanently overrides
+ * better semantic form evidence" bug. Live, reproduced case: this catalog's
+ * only locally-cached "tomato" Food happened to be "Tomatoes, red, ripe,
+ * cooked" (persisted by an earlier, unrelated session) — with no mismatch
+ * check, every future "1 db paradicsom" (an ordinary FRESH tomato, no cooked
+ * wording at all) silently kept reusing it forever, purely because it was the
+ * only thing already cached, never because it was actually correct.
+ *
+ * Deliberately conservative and free (no AI call): a mismatch is reported
+ * ONLY when there is actual source evidence to compare against (some
+ * preparation/rawIngredient text) AND it textually disagrees with the
+ * candidate's own name. No evidence on either side is never treated as a
+ * conflict — the common case (onion, garlic, carrot, salt, an already-"raw"-
+ * or neutral local candidate...) is completely unaffected and keeps
+ * resolving at zero extra cost. The rule is symmetric: a source with no
+ * stated preparation should not silently accept an explicitly cooked/
+ * processed local candidate, and a source that explicitly states a prepared
+ * state should not silently accept an explicitly raw one either
+ * ("2 főtt paradicsom" must not become raw).
+ */
+export function localFormMismatch(candidateName: string, evidence: FormEvidence, match?: { stage: string; aliasKind?: string }): boolean {
+  // Scoped narrowly to how the candidate actually EARNED local trust: only
+  // an unreviewed, single-resolution "dynamic_search" alias (learned by
+  // learnSearchAlias from a single past AI resolution, right or wrong — see
+  // dynamic-food-resolution.ts) is second-guessed here. An EXACT name match,
+  // or any alias kind that represents a genuinely validated identity
+  // (confirmed_external — an explicit human confirmation via
+  // /foods/resolve-external/confirm — curated_seed, synonym,
+  // localized_name, external), is never demoted by this heuristic: a
+  // regex-based textual guess must not outrank a human/system-validated
+  // mapping. Callers that don't pass `match` (no provenance available)
+  // default to the OLD, unscoped behavior for backward compatibility.
+  if (match && !(match.stage === "alias" && match.aliasKind === "dynamic_search")) return false;
+  // Deliberately the literal source line ONLY, never a caller's own
+  // free-text "preparation" field — a value meant for an AI prompt's
+  // consumption can legitimately contain a NEGATED preparation word (e.g.
+  // "no pre-cooked state stated" literally contains "cooked" as a
+  // substring), which this cheap regex cannot safely disambiguate from a
+  // genuine affirmative statement. The raw ingredient text is the one
+  // signal actually safe for literal keyword matching.
+  const sourceText = (evidence.rawIngredient ?? "").trim();
+  if (!sourceText) return false;
+  const sourceStatesCooked = PREPARED_STATE_WORDS.test(sourceText);
+  const candidateCooked = PREPARED_STATE_WORDS.test(candidateName);
+  const candidateRaw = RAW_STATE_WORDS.test(candidateName) && !candidateCooked;
+  if (!sourceStatesCooked && candidateCooked) return true;
+  if (sourceStatesCooked && candidateRaw) return true;
+  return false;
+}
+
 export function expandFoodQuery(rawQuery: string) {
   const normalized = normalizeSearch(rawQuery);
   return [...new Set([normalized, ...(QUERY_ALIASES[normalized] ?? [])].map(normalizeSearch).filter((value) => value.length >= 2))];
@@ -138,7 +203,7 @@ function scoreFood(food: any, variants: readonly string[], aliasesByFood: Readon
     const aliasContains = aliasStrings.some((alias) => alias.includes(variant));
     const tokenCoverage = variant.split(" ").filter((token) => searchable.includes(token)).length / variant.split(" ").length;
     const score = exact ? 100 : exactAlias ? 95 : weakDynamicAlias ? 35 : searchable.startsWith(variant) ? 80 : aliasPrefix ? 75 : searchable.includes(variant) ? 70 : aliasContains ? 65 : Math.round(tokenCoverage * 50);
-    if (score > best.score) best = { stage: exact ? "exact" : exactAlias ? "alias" : weakDynamicAlias ? "fuzzy" : "partial", score, query: variant };
+    if (score > best.score) best = { stage: exact ? "exact" : exactAlias ? "alias" : weakDynamicAlias ? "fuzzy" : "partial", score, query: variant, aliasKind: exactAlias || weakDynamicAlias ? matchingAlias?.kind : undefined };
   }
   return best.score === 0 && fuzzyIds.has(food.id) ? { stage: "fuzzy", score: 35, query: variants[0] ?? "" } : best;
 }

@@ -6,6 +6,48 @@ describe("natural food query parser", () => {
   it("parses exact mass", () => expect(parseNaturalFoodQuery("250 g csirkemell")).toEqual({ quantity: 250, unit: "g", foodQuery: "csirkemell" }));
   it("parses length without pretending it is a weight", () => expect(parseNaturalFoodQuery("15 cm kígyóuborka")).toEqual({ quantity: 15, unit: "cm", foodQuery: "kigyouborka" }));
   it("parses with ékezet nélkül input", () => expect(parseNaturalFoodQuery("12 cm kigyóuborka")).toEqual({ quantity: 12, unit: "cm", foodQuery: "kigyouborka" }));
+  // Owner-beta checkpoint (2026-09-13): "dkg" (dekagram = 10 g) is extremely
+  // common in traditional Hungarian recipes ("60 dkg Marhalábszár", "30 dkg
+  // Vöröshagyma", "25 dkg Kolbász") but was entirely unrecognized as a unit
+  // — real production evidence via live gulyásleves/halászlé recipe-
+  // discovery traces: the unmatched "dkg" token stayed glued onto the food
+  // query itself ("dkg marhalabszar" instead of "marhalabszar"), breaking
+  // food-identity search for every dkg-measured ingredient. Resolves to unit
+  // "g" with the quantity scaled ×10, so downstream code (resolveQuantity's
+  // g/kg exact-mass fast path) needs no awareness that "dkg" exists at all.
+  it.each([
+    ["25 dkg Kolbász", { quantity: 250, unit: "g", foodQuery: "kolbasz" }],
+    ["60 dkg Marhalábszár", { quantity: 600, unit: "g", foodQuery: "marhalabszar" }],
+    ["1 deka só", { quantity: 10, unit: "g", foodQuery: "so" }]
+  ] as const)("parses dekagram (dkg) as a scaled gram quantity, never glued onto the food name: %s", (input, expected) => {
+    expect(parseNaturalFoodQuery(input)).toEqual(expected);
+  });
+  // Owner-beta checkpoint (2026-09-13): the ingredient-resolution forensic
+  // trace proved these five ordinary Hungarian recipe counting-unit words
+  // (fej/gerezd/csokor/szál/csipet) were entirely unrecognized, exactly the
+  // same failure class as "dkg"/"bögre" above — real live evidence: "2
+  // gerezd fokhagyma" (2 cloves of garlic) parsed to foodQuery "gerezd
+  // fokhagyma" instead of "fokhagyma", breaking identity search for garlic,
+  // onion, parsley, carrot and cumin ingredients across multiple real
+  // recipes (halászlé, gulyásleves).
+  it.each([
+    ["2 gerezd fokhagyma", { quantity: 2, unit: "clove", foodQuery: "fokhagyma" }],
+    ["2 fej vöröshagyma", { quantity: 2, unit: "head", foodQuery: "voroshagyma" }],
+    ["1 csokor petrezselyem", { quantity: 1, unit: "bunch", foodQuery: "petrezselyem" }],
+    ["1 szál sárgarépa", { quantity: 1, unit: "stalk", foodQuery: "sargarepa" }],
+    ["1 csipet só", { quantity: 1, unit: "pinch", foodQuery: "so" }]
+  ] as const)("parses Hungarian counting-unit words, never glued onto the food name: %s", (input, expected) => {
+    expect(parseNaturalFoodQuery(input)).toEqual(expected);
+  });
+  // Owner-beta checkpoint (2026-09-13): a quantity RANGE ("1 - 2 tk mustár")
+  // — real live evidence: the unhandled second number occupied the
+  // unit-detection step's expected token position, so the real unit word one
+  // token later ("tk") was never recognized and instead got swept into the
+  // food-query text alongside the food name ("tk mustar" instead of
+  // "mustar"). The lower bound is kept as the deterministic quantity.
+  it("parses a quantity range, keeping the lower bound and never letting the upper bound swallow the real unit", () => {
+    expect(parseNaturalFoodQuery("1 - 2 tk mustár")).toEqual({ quantity: 1, quantityUpper: 2, unit: "tsp", foodQuery: "mustar" });
+  });
   it.each([
     ["5 tojás", { quantity: 5, unit: "piece", foodQuery: "tojas" }],
     ["5 db tojás", { quantity: 5, unit: "piece", foodQuery: "tojas" }],

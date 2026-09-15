@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import { Activity, ChevronLeft, ChevronRight, ExternalLink, LogOut, Mail, Pencil, Plus, Repeat, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
 
 import { dict, type Lang } from "./i18n";
-import { api, ApiError, type ApiState } from "./api";
+import { api, ApiError, streamProgress, type ApiState } from "./api";
 import { mondayOf, shiftDate, todayLocalDate } from "./date";
 import "./styles.css";
 import norbappLogo from "./assets/norbapp-logo-new.png";
@@ -12,7 +12,7 @@ import { RecipeBuilder } from "./RecipeBuilder";
 import { MealEditDialog, DeleteMealDialog, RepeatMealDialog, type MealDetail } from "./MealActions";
 import { WeekOverviewCard, type WeekOverviewData } from "./WeekOverview";
 import { AuthForm } from "./AuthForm";
-import { FoodUnderstandingPreview, type ExternalCandidate } from "./FoodUnderstandingPreview";
+import { FoodUnderstandingPreview, type ExternalCandidate, type RecipeDiscoveryPreviewValue, type RecipeDiscoveryCandidateValue } from "./FoodUnderstandingPreview";
 import { pickDisplayName } from "./food-display-name";
 import { QuantityClarification } from "./QuantityClarification";
 import { BarcodeLookup } from "./BarcodeLookup";
@@ -20,6 +20,8 @@ import { MobileNav } from "./MobileNav";
 import { InstallPrompt } from "./InstallPrompt";
 import { UpdateBanner } from "./UpdateBanner";
 import { OfflineBanner } from "./OfflineBanner";
+import { DiagnosticsPanel, type DiagnosticEvent } from "./DiagnosticsPanel";
+import { BuildInfo } from "./BuildInfo";
 import type { QuantityClarification as Clarification } from "@keto-mentor/shared";
 
 type User = { id: string; username: string; locale: Lang; profile?: any };
@@ -46,7 +48,15 @@ type MealInterpretation = {
   nutritionEligible?: boolean;
   externalCandidates?: ExternalCandidate[];
   externalCandidatesReason?: "ambiguous" | "possible_duplicate" | "weak_match";
+  recipeDiscovery?: RecipeDiscoveryPreviewValue;
+  diagnostics?: DiagnosticEvent[];
 };
+
+// Real backend stage names published by the server during interpretation —
+// see apps/api/src/meal-input/progress-bus.ts. Kept in exact sync; a stage
+// this client doesn't recognize is simply ignored (forward-compatible, no
+// crash), never fabricated on a timer.
+type ProgressStage = "food_understanding" | "local_food_search" | "local_recipe_search" | "recipe_discovery" | "quantity_resolution" | "finalizing";
 
 export function App() {
   const [lang, setLang] = useState<Lang>("hu");
@@ -71,7 +81,9 @@ export function App() {
   const [naturalInput, setNaturalInput] = useState("");
   const [interpretation, setInterpretation] = useState<MealInterpretation | null>(null);
   const [interpreting, setInterpreting] = useState(false);
+  const [progressStage, setProgressStage] = useState<ProgressStage | null>(null);
   const [confirmingExternalId, setConfirmingExternalId] = useState<string | null>(null);
+  const [confirmingRecipe, setConfirmingRecipe] = useState(false);
   const t = dict[lang];
   const state = useMemo(() => ({ token, setToken }), [token]);
 
@@ -253,8 +265,18 @@ export function App() {
   async function interpretNaturalInput() {
     if (naturalInput.trim().length < 2 || interpreting) return;
     setInterpreting(true);
+    setProgressStage(null);
+    // Real backend stages, not a timer: opened in parallel with the POST
+    // below, reading actual server-side stage events (see api.ts's
+    // streamProgress / server.ts's GET /meal-input/progress/:operationId).
+    // A fast deterministic request (e.g. "100 g gouda") typically resolves
+    // before any event even arrives — progressStage simply stays null and
+    // the result replaces the (very briefly shown, if at all) button
+    // spinner directly, with no artificial delay.
+    const operationId = crypto.randomUUID();
+    const stopProgress = streamProgress(operationId, state, (stage) => setProgressStage(stage as ProgressStage));
     try {
-      const result = await api<MealInterpretation>("/meal-input/interpret", { method: "POST", body: JSON.stringify({ text: naturalInput }) }, state);
+      const result = await api<MealInterpretation>("/meal-input/interpret", { method: "POST", body: JSON.stringify({ text: naturalInput, operationId }) }, state);
       setInterpretation(result);
       // Auto-fill the single-food form only for a single, confirmable interpretation.
       if (result.canConfirm && result.selectedFood && result.parsed.quantity && !result.items) {
@@ -271,6 +293,8 @@ export function App() {
     } catch {
       setInterpretation(null);
     } finally {
+      stopProgress();
+      setProgressStage(null);
       setInterpreting(false);
     }
   }
@@ -296,6 +320,42 @@ export function App() {
       setMealStatus({ kind: "error", text: t.foodUnderstanding.externalConfirmFailed });
     } finally {
       setConfirmingExternalId(null);
+    }
+  }
+
+  // Owner-beta PR #52 final review (2026-09-13) — Gate 2/3: confirms a
+  // JUST-DISCOVERED web recipe (never one the user already owns — that's
+  // RecipeDetail's own addToMeal) straight into a real meal, at whatever
+  // portion the user explicitly states. The server re-derives the entire
+  // trusted ingredient set from sourceUrl itself (never trusts anything
+  // echoed back from this preview) and independently enforces every
+  // invariant this checkpoint's Gate 2 requires: unit "serving" without a
+  // known servings count is refused (recipe_servings_required), an
+  // ingredient that never reached trusted nutrition refuses the whole
+  // recipe (recipe_not_fully_resolved / recipe_nutrition_not_calculable),
+  // and a sibling item already covering the same ingredient is refused
+  // (recipe_sibling_overlap) — this function only ever surfaces whatever the
+  // server actually decided, never overrides it client-side.
+  async function confirmRecipe(candidate: RecipeDiscoveryCandidateValue, quantity: number, unit: "g" | "serving") {
+    if (confirmingRecipe || mealSaving) return;
+    setConfirmingRecipe(true);
+    setMealStatus(null);
+    try {
+      await api("/meals", {
+        method: "POST",
+        body: JSON.stringify({
+          title: interpretation?.semantic?.dishName || candidate.title,
+          items: [{ sourceUrl: candidate.sourceUrl, importProof: candidate.importProof, extractionMethod: candidate.extractionMethod, quantity, unit }]
+        })
+      }, state);
+      setInterpretation(null);
+      setNaturalInput("");
+      await handleMealLogged();
+      setMealStatus({ kind: "success", text: t.mealSaved });
+    } catch (error) {
+      setMealStatus({ kind: "error", text: mealErrorText(error, t.recipeErrors) });
+    } finally {
+      setConfirmingRecipe(false);
     }
   }
 
@@ -511,7 +571,9 @@ export function App() {
               <label htmlFor="natural-meal-input">{lang === "hu" ? "Mondd el, mit ettél" : lang === "de" ? "Beschreibe, was du gegessen hast" : "Describe what you ate"}</label>
               <p className="natural-input-helper">{lang === "hu" ? "Írj természetesen — az ellenőrzött tápértékeket mindig a katalógus adja." : lang === "de" ? "Natürlich formulieren — geprüfte Nährwerte kommen immer aus dem Katalog." : "Use natural language — verified nutrition always comes from the catalog."}</p>
               <div className="natural-input-row"><input id="natural-meal-input" className="field" value={naturalInput} onChange={(event) => { setNaturalInput(event.target.value); setInterpretation(null); setSelectedFood(null); setMealQuantity("1"); setMealMeasure("g"); setGramsOverride(""); }} placeholder={lang === "hu" ? "Például: 5 tojás" : lang === "de" ? "Zum Beispiel: 3 Scheiben Gouda" : "For example: 5 eggs"}/><button type="button" className="btn primary" disabled={interpreting || naturalInput.trim().length < 2} onClick={interpretNaturalInput}>{interpreting ? "…" : lang === "hu" ? "Értelmezés" : lang === "de" ? "Verstehen" : "Interpret"}</button></div>
-              {interpretation && <FoodUnderstandingPreview value={interpretation} lang={lang} labels={t.foodUnderstanding} busy={mealSaving || interpreting || !!confirmingExternalId} onConfirmAll={confirmMultiMeal} onConfirmExternal={confirmExternalCandidate} confirmingExternalId={confirmingExternalId}/>}
+              {interpreting && progressStage && <p className="natural-input-progress" role="status" aria-live="polite">{t.progress[progressStage] ?? t.progress.finalizing}</p>}
+              {interpretation && <FoodUnderstandingPreview value={interpretation} lang={lang} labels={t.foodUnderstanding} busy={mealSaving || interpreting || !!confirmingExternalId || confirmingRecipe} onConfirmAll={confirmMultiMeal} onConfirmExternal={confirmExternalCandidate} confirmingExternalId={confirmingExternalId} onConfirmRecipe={confirmRecipe}/>}
+              {interpretation?.diagnostics && <DiagnosticsPanel events={interpretation.diagnostics} lang={lang}/>}
               {interpretation?.clarification && (() => { const row = (interpretation.items ?? [interpretation])[interpretation.clarification!.itemIndex]; return <QuantityClarification key={`${interpretation.input}:${interpretation.clarification.itemIndex}`} value={interpretation.clarification} foodName={pickDisplayName(row?.selectedFood, lang)} quantity={row?.parsed.quantity} unit={row?.parsed.unit} lang={lang} onResolve={resolveClarification}/>; })()}
             </div>
             <input className="field" name="title" placeholder={t.mealName} required/>
@@ -550,6 +612,7 @@ export function App() {
             <a className="contact-link" href="mailto:norbert@norbapp.com"><Mail size={15}/>norbert@norbapp.com</a>
           </div>
         </div>
+        <BuildInfo lang={lang}/>
       </footer>
       {editingMeal && <MealEditDialog meal={editingMeal} lang={lang} state={state} onCancel={() => setEditingMeal(null)} onSaved={handleMealEdited}/>}
       {deletingMealId && <DeleteMealDialog lang={lang} onCancel={() => setDeletingMealId(null)} onConfirm={confirmDeleteMeal}/>}

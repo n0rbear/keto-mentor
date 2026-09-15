@@ -57,3 +57,48 @@ export async function api<T>(path: string, init: RequestInit = {}, state?: ApiSt
   if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;
 }
+
+// Owner-beta (2026-09-12): truthful real-stage progress for long
+// interpretation operations — reads newline-delimited {"stage":"..."} lines
+// from GET /meal-input/progress/:operationId (see meal-input/progress-bus.ts
+// on the API). Purely additive: a network hiccup here just means the user
+// sees no progress text, never an error, and never affects the actual
+// interpretation result. Does not retry on 401 (unlike `api()`) — a stale
+// token here only costs a cosmetic progress display, not correctness.
+export function streamProgress(operationId: string, state: ApiState | undefined, onStage: (stage: string) => void): () => void {
+  const controller = new AbortController();
+  (async () => {
+    try {
+      const res = await fetch(`${API_URL}/meal-input/progress/${operationId}`, {
+        credentials: "include",
+        headers: { ...(state?.token ? { Authorization: `Bearer ${state.token}` } : {}) },
+        signal: controller.signal
+      });
+      if (!res.ok || !res.body) return;
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        let newlineIndex: number;
+        while ((newlineIndex = buffer.indexOf("\n")) >= 0) {
+          const line = buffer.slice(0, newlineIndex).trim();
+          buffer = buffer.slice(newlineIndex + 1);
+          if (!line) continue;
+          try {
+            const parsed = JSON.parse(line) as { stage?: string };
+            if (parsed.stage) onStage(parsed.stage);
+          } catch {
+            // Malformed line — ignore, purely cosmetic stream.
+          }
+        }
+      }
+    } catch {
+      // Aborted (normal, once the main request resolves) or a network error
+      // — either way, the progress stream is optional and non-fatal.
+    }
+  })();
+  return () => controller.abort();
+}

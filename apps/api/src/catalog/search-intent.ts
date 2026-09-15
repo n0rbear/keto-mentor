@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { CANONICAL_SEARCH_LOCALE, type FoodLocale } from "./food-locale.js";
+import { AiProviderError } from "../ai/chat-completions-provider.js";
 
 /**
  * What the LLM is allowed to contribute to dynamic external food resolution:
@@ -67,7 +68,7 @@ export class DisabledSearchIntentProvider implements SearchIntentProvider {
 export type SearchIntentTransport = {
   readonly id: string;
   readonly model: string;
-  complete<T>(instruction: string, input: string, validate: (value: unknown) => T): Promise<T>;
+  complete<T>(instruction: string, input: string, validate: (value: unknown) => T, capability?: string): Promise<T>;
 };
 
 export class ChatSearchIntentProvider implements SearchIntentProvider {
@@ -85,8 +86,18 @@ export class ChatSearchIntentProvider implements SearchIntentProvider {
     // user-identifying data) leaves the system.
     const context = { foodQuery: input.foodQuery, preparation: input.preparation, foodLocale: input.foodLocale };
     try {
-      return await this.transport.complete(searchIntentInstruction(input.foodLocale), JSON.stringify(context), (value) => searchIntentOutputSchema.parse(value));
-    } catch {
+      return await this.transport.complete(searchIntentInstruction(input.foodLocale), JSON.stringify(context), (value) => searchIntentOutputSchema.parse(value), "search_intent");
+    } catch (error) {
+      // Owner-beta (2026-09-14): previously silent — indistinguishable from
+      // "the AI genuinely had nothing useful to add". A failure here degrades
+      // safely (dynamic-food-resolution.ts falls back to the raw, untranslated
+      // phrase, which a non-English-vocabulary source will usually miss) but
+      // was invisible: live pre-merge validation found MOST of a real
+      // multi-ingredient recipe's search-intent calls failing under the
+      // concurrent load of resolving many ingredients at once, with zero
+      // trace of why. Category code only, never the food phrase itself.
+      const code = error instanceof AiProviderError ? error.code : "unknown";
+      console.log(`search_intent_fallback outcome=raw_query reason=${code}`);
       return null;
     }
   }

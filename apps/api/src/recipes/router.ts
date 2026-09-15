@@ -14,8 +14,11 @@ import { UsdaFoodDataCentralLookupAdapter, OpenFoodFactsProductAdapter } from ".
 import { configuredSearchIntentProvider } from "../catalog/search-intent-gateway.js";
 import { configuredCandidateLocalizationProvider } from "../catalog/candidate-localization-gateway.js";
 import { configuredSemanticCandidateGateProvider } from "../catalog/semantic-candidate-gate-gateway.js";
+import { configuredRecipeSemanticGateProvider } from "../catalog/semantic-candidate-gate-batch-gateway.js";
 import { DynamicFoodResolutionRateLimiter } from "../catalog/dynamic-food-rate-limit.js";
 import { foodLocaleFor } from "../catalog/food-locale.js";
+import { configuredRecipeIngredientNormalizationProvider } from "./recipe-ingredient-normalization-gateway.js";
+import { configuredRecipeQuantityEstimationProvider } from "./recipe-quantity-estimation-gateway.js";
 
 export const recipeRouter = Router();
 recipeRouter.use(requireAuth);
@@ -48,6 +51,14 @@ const candidateLocalizationProvider = configuredCandidateLocalizationProvider(en
 // auto-resolved, or (via confirmRecipeIngredients's own re-derivation)
 // become eligible for a confirmed_external alias.
 const semanticCandidateGateProvider = configuredSemanticCandidateGateProvider(env);
+const recipeSemanticGateProvider = configuredRecipeSemanticGateProvider(env);
+// Owner-beta checkpoint (2026-09-13): the whole-recipe-context batch
+// ingredient-normalization path — same mirrored self-contained wiring
+// pattern as every other AI gateway in this router. Degrades to Disabled
+// (falls back to the existing per-ingredient path) exactly like every other
+// provider here on misconfiguration.
+const recipeIngredientNormalizationProvider = configuredRecipeIngredientNormalizationProvider(env);
+const recipeQuantityEstimationProvider = configuredRecipeQuantityEstimationProvider(env);
 const dynamicFoodResolutionLimiter = new DynamicFoodResolutionRateLimiter();
 // Identical to server.ts's own trustedLocale — the authenticated user's own
 // persisted locale is the single trusted source of UI language, never a
@@ -56,10 +67,26 @@ function trustedLocale(user: { locale: string }): Locale {
   return (locales as readonly string[]).includes(user.locale) ? (user.locale as Locale) : "hu";
 }
 
+// Owner-beta checkpoint (2026-09-15) — final recipe nutrition review: this
+// previously extracted the recipe ONLY (identity resolution was a no-op —
+// dynamic/normalizationProvider/quantityProvider were never passed, so every
+// ingredient defaulted to the per-line local-search-only path with no
+// authoritative/external resolution). That made a nutrition-trustworthy
+// preview reachable ONLY via web discovery, whose search ranking is
+// non-deterministic — no deterministic, direct-URL way to reach a fully
+// trusted recipe preview for verification/testing existed. Now wires the
+// exact same full resolution stack /import-url/preview/confirm-ingredients
+// already uses, so a direct URL import can reach the SAME trusted
+// nutritionCalculable=true result web discovery would, deterministically.
 recipeRouter.post("/import-url/preview", importPreviewLimiter, async (req, res, next) => {
   try {
     const { url } = recipeImportPreviewSchema.parse(req.body);
-    const preview = await previewRecipeImport(prisma, url, {}, recipeAiProvider);
+    const locale = trustedLocale(req.user!);
+    const foodLocale = foodLocaleFor(locale);
+    const dynamic = externalFoodAdapters.length
+      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale, foodLocale, localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider }
+      : null;
+    const preview = await previewRecipeImport(prisma, url, {}, recipeAiProvider, dynamic, recipeIngredientNormalizationProvider, recipeQuantityEstimationProvider);
     res.json({ preview: { ...preview, importProof: createRecipeImportProof(req.user!.id, preview.sourceUrl, preview.extractionMethod) } });
   } catch (error) { next(error); }
 });
@@ -74,12 +101,12 @@ recipeRouter.post("/import-url/preview/confirm-ingredients", confirmIngredientsL
     // why this is a safe default rather than a finer-grained region pick).
     const foodLocale = foodLocaleFor(locale);
     const dynamic = externalFoodAdapters.length
-      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale, foodLocale, localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider }
+      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale, foodLocale, localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider }
       : null;
     const result = await confirmRecipeIngredients(prisma, req.user!.id, input, {
       recipeAiProvider, dynamic, confirmAdapters: externalFoodConfirmAdapters,
       localization: { locale: foodLocale, provider: candidateLocalizationProvider },
-      foodLocale,
+      foodLocale, recipeIngredientNormalizationProvider, recipeQuantityEstimationProvider,
       mintProof: (sourceUrl, method) => createRecipeImportProof(req.user!.id, sourceUrl, method)
     });
     res.json(result);

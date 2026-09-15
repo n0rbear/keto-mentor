@@ -540,6 +540,60 @@ describe("meal input interpretation", () => {
     expect(result.canConfirm).toBe(false);
   });
 
+  // Owner-beta (2026-09-13): live pre-merge review of PR #52 proved Groq
+  // returns kind=compound_dish with a real dishName but items: [] for dish
+  // names that don't naturally decompose ("rakott krumpli" — a single
+  // casserole, not "rakott" + "krumpli"). The shared schema now accepts this
+  // shape (see foodUnderstandingSchema's superRefine); this test proves
+  // interpretAiUnderstanding's PRE-EXISTING dishName-synthesis logic (line
+  // ~471, unchanged) correctly turns the empty item list into exactly one
+  // item named after the dish, reaching the same "unresolved compound dish"
+  // state a hand-written single explicit item would — this is what makes it
+  // eligible for local-recipe lookup / web recipe discovery afterward.
+  it("a compound_dish classification with an empty items array synthesizes a single item from dishName, rather than losing the classification", async () => {
+    const ai = new MockFoodNlpProvider({
+      language: "hu", kind: "compound_dish", dishName: "rakott krumpli", confidence: 0.95,
+      clarificationNeeded: false, items: []
+    });
+    const result = await interpretMealInput(prisma, "rakott krumpli", undefined, ai);
+    expect(result.foodResolution).toBe("compound");
+    expect(result.semantic).toMatchObject({ kind: "compound_dish", dishName: "rakott krumpli", clarificationNeeded: false });
+    expect(result.items).toHaveLength(1);
+    expect(result.items?.[0]).toMatchObject({ semanticItem: { originalText: "rakott krumpli", canonicalName: "rakott krumpli", evidence: "explicit" }, foodResolution: "unresolved" });
+  });
+
+  it.each([
+    ["egy tányér gulyásleves", "hu", "tányér", "plate"],
+    ["ein Teller Gulaschsuppe", "de", "Teller", "plate"],
+    ["a bowl of goulash soup", "en", "bowl", "bowl"]
+  ] as const)("treats household container as the dish portion, never a Food: %s", async (text, language, container, expectedUnit) => {
+    const ai = new MockFoodNlpProvider({ language, kind: "compound_dish", dishName: "goulash soup", confidence: .95, clarificationNeeded: false, items: [
+      { originalText: container, canonicalName: container, quantity: 1, unit: "piece", evidence: "explicit", confidence: .9 }
+    ] });
+    const result = await interpretMealInput(prisma, text, undefined, ai);
+    expect(result.semantic).toMatchObject({ dishQuantity: 1, dishUnit: expectedUnit });
+    expect(result.items).toHaveLength(1);
+    expect(result.items?.[0].semanticItem?.canonicalName).toBe("goulash soup");
+  });
+
+  it("keeps explicitly consumed bread beside a plate of soup", async () => {
+    const ai = new MockFoodNlpProvider({ language: "hu", kind: "compound_dish", dishName: "goulash soup", dishQuantity: 1, dishUnit: "plate", confidence: .95, clarificationNeeded: false, items: [
+      { originalText: "két szelet kenyér", canonicalName: "bread", quantity: 2, unit: "slice", evidence: "explicit", confidence: .95 }
+    ] });
+    const result = await interpretMealInput(prisma, "egy tányér gulyásleves két szelet kenyérrel", undefined, ai);
+    expect(result.items).toHaveLength(2);
+    expect(result.items?.some((item) => item.semanticItem?.canonicalName === "bread")).toBe(true);
+  });
+  it("repairs a flat multi-food classification when one explicit sibling is a plated dish", async () => {
+    const ai = new MockFoodNlpProvider({ language: "hu", kind: "multiple_foods", confidence: .9, clarificationNeeded: false, items: [
+      { originalText: "egy tányér gulyásleves", canonicalName: "goulash soup", quantity: 1, unit: "plate", evidence: "explicit", confidence: .9 },
+      { originalText: "két szelet kenyér", canonicalName: "bread", quantity: 2, unit: "slice", evidence: "explicit", confidence: .9 }
+    ] });
+    const result = await interpretMealInput(prisma, "egy tányér gulyásleves két szelet kenyérrel", undefined, ai);
+    expect(result).toMatchObject({ foodResolution: "compound", semantic: { kind: "compound_dish", dishName: "goulash soup" } });
+    expect(result.items).toHaveLength(2);
+  });
+
   it("supports an AI-assisted single food and re-resolves it through the trusted catalog", async () => {
     const ai = new MockFoodNlpProvider({
       language: "en", kind: "single_food", confidence: 0.95, clarificationNeeded: false,
@@ -1051,5 +1105,90 @@ describe("bounded concurrency for independent meal items (owner-beta blocker, 20
     expect(result.items).toHaveLength(6);
     expect(getMaxInFlight()).toBeLessThanOrEqual(DEFAULT_CONCURRENCY);
     expect(getMaxInFlight()).toBeGreaterThan(1);
+  });
+});
+
+// Owner-beta checkpoint (2026-09-13): the ingredient-resolution forensic
+// trace proved a WEAK local partial match (nonzero score, not trusted)
+// previously prevented dynamic external resolution from ever running at
+// all, regardless of how much better an authoritative match might be —
+// dynamic resolution was only ever attempted on a genuine LOCAL MISS
+// (`!top`). "pork" only ever weakly matches the local "Pork sausage" fixture
+// (a startsWith match, score 80, the "preview" tier — never locally
+// trusted), so this proves dynamic resolution now gets a real chance to
+// find something better instead of silently losing to that weak match.
+describe("a weak (non-trusted) local match no longer blocks dynamic resolution (owner-beta checkpoint, 2026-09-13)", () => {
+  it("a weak local partial match ('pork' -> 'Pork sausage', score 80) is superseded by a genuine dynamic resolution", async () => {
+    const searchIntentProvider: SearchIntentProvider = { id: "fixture", generate: async () => ({ canonicalConcept: "ground pork", searchTerms: ["ground pork"] }) };
+    const groundPork = {
+      source: "usda_fdc" as const, sourceId: "1", originalName: "Pork, ground", name: "Pork, ground",
+      names: { en: "Pork, ground" }, kcalPer100g: 263, fatPer100g: 21, proteinPer100g: 17, carbsPer100g: 0, fiberPer100g: 0, nutrients: [],
+      provenance: { source: "USDA FoodData Central", sourceId: "1", sourceUrl: "https://fdc.nal.usda.gov/1", retrievedAt: "2026-09-13T00:00:00.000Z", valuesPer: "100 g" },
+      sourceUrl: "https://fdc.nal.usda.gov/1", normalizedName: "pork ground", nutrientBasis: "per_100_g" as const,
+      retrievedAt: "2026-09-13T00:00:00.000Z", confidence: 0.6, matchPolicy: "review_required" as const, language: "en"
+    };
+    const permissiveGate = { id: "permissive", checkRelevance: async (_o: unknown, candidates: { id: string }[]) => new Map(candidates.map((c) => [c.id, true])) };
+    // A richer prisma double is needed here (unlike the shared read-only
+    // `prisma` fixture above) — a genuine dynamic resolution persists a new
+    // Food row (findDuplicate/persistCandidate in external-food.ts), which
+    // the shared fixture's minimal food.findMany-only mock doesn't support.
+    const persistedFoods: any[] = [];
+    const dynamicPrisma: any = {
+      food: {
+        findUnique: async () => null,
+        findMany: async () => [],
+        create: async ({ data }: any) => { const food = { id: `dyn-food-${persistedFoods.length}`, ...data }; persistedFoods.push(food); return food; }
+      },
+      foodAlias: { findFirst: async () => null, findMany: async () => [], createMany: async () => ({ count: 1 }), upsert: async ({ create }: any) => create },
+      nutrient: { upsert: async ({ create }: any) => ({ id: `nutrient-${create.key}`, ...create }) },
+      foodNutrient: { create: async () => ({}) },
+      $transaction: async (fn: any) => fn(dynamicPrisma)
+    };
+    const dynamic: DynamicResolutionDeps = {
+      prisma: dynamicPrisma, searchIntentProvider, adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [groundPork] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(), userId: "user-1", semanticCandidateGateProvider: permissiveGate
+    };
+    const result = await interpretMealInput(prisma, "100 g pork", undefined, undefined, dynamic);
+    expect(result.foodResolution).toBe("resolved");
+    expect(result.selectedFood?.name).toBe("Pork, ground");
+  });
+
+  it("without dynamic resolution configured, the weak local match's existing behavior is completely unchanged (no regression)", async () => {
+    const result = await interpretMealInput(prisma, "100 g pork", undefined, undefined, null);
+    expect(result.foodResolution).toBe("preview");
+    expect(result.selectedFood?.name).toBe("Pork sausage");
+  });
+});
+
+// Owner-beta (2026-09-12): truthful real-stage progress events — published
+// ONLY immediately before the corresponding real awaited work begins (see
+// meal-input/progress-bus.ts), never a fake percentage, never a timer.
+describe("interpretMealInput: real-stage progress events", () => {
+  it("H — a fast, fully deterministic trusted match publishes ONLY local_food_search — never food_understanding (no AI was needed)", async () => {
+    const stages: string[] = [];
+    await interpretMealInput(prisma, "5 tojás", undefined, undefined, null, (stage) => stages.push(stage));
+    expect(stages).toEqual(["local_food_search"]);
+  });
+
+  it("H2 — an AI-assisted resolution publishes local_food_search BEFORE food_understanding, in that real order", async () => {
+    const understanding: FoodUnderstanding = {
+      language: "hu", kind: "single_food",
+      items: [{ originalText: "krémsajt", canonicalName: "cream cheese", evidence: "explicit", confidence: 0.9 }],
+      clarificationNeeded: false, confidence: 0.9
+    };
+    const stages: string[] = [];
+    // "krémsajt" is not in the seeded catalog, so the deterministic pass
+    // genuinely finds nothing and shouldUseAiFallback triggers for real.
+    await interpretMealInput(prisma, "krémsajt", undefined, new MockFoodNlpProvider(understanding), null, (stage) => stages.push(stage));
+    expect(stages[0]).toBe("local_food_search");
+    expect(stages).toContain("food_understanding");
+    expect(stages.indexOf("local_food_search")).toBeLessThan(stages.indexOf("food_understanding"));
+  });
+
+  it("I — a request with no onProgress callback behaves identically to one with a callback (progress is purely additive, never required)", async () => {
+    const withCallback = await interpretMealInput(prisma, "5 tojás", undefined, undefined, null, () => {});
+    const withoutCallback = await interpretMealInput(prisma, "5 tojás");
+    expect(withCallback.selectedFood?.id).toBe(withoutCallback.selectedFood?.id);
+    expect(withCallback.quantity?.grams).toBe(withoutCallback.quantity?.grams);
   });
 });

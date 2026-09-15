@@ -2,6 +2,7 @@ import { resolveFoodAiGatewayConfig, type FoodAiGatewayConfigInput } from "../ai
 import { OpenRouterAiProvider } from "../ai/openrouter-provider.js";
 import { MistralAiProvider } from "../ai/mistral-provider.js";
 import { GroqAiProvider } from "../ai/groq-provider.js";
+import { OpenAiProvider } from "../ai/openai-provider.js";
 import { FailoverAiProvider, createFailoverObserver } from "../ai/failover-provider.js";
 import { ChatSemanticCandidateGateProvider, DisabledSemanticCandidateGateProvider, type SemanticCandidateGateProvider } from "./semantic-candidate-gate.js";
 
@@ -30,6 +31,9 @@ export function configuredSemanticCandidateGateProvider(config: FoodAiGatewayCon
       if (!resolved.secondary) return new ChatSemanticCandidateGateProvider(primary);
       const secondary = new GroqAiProvider({ apiKey: resolved.secondary.apiKey, model: resolved.secondary.model, baseUrl: resolved.secondary.baseUrl, fetchImpl: overrides.fetchImpl });
       return new ChatSemanticCandidateGateProvider(new FailoverAiProvider(primary, secondary, semanticCandidateGateFailoverObserver));
+    }
+    if (resolved.kind === "openai") {
+      return new ChatSemanticCandidateGateProvider(new OpenAiProvider({ apiKey: resolved.apiKey, model: resolved.model, baseUrl: resolved.baseUrl, fetchImpl: overrides.fetchImpl }));
     }
     if (resolved.kind === "mistral") {
       return new ChatSemanticCandidateGateProvider(new MistralAiProvider({ apiKey: resolved.apiKey, model: resolved.model, baseUrl: resolved.baseUrl, fetchImpl: overrides.fetchImpl }));

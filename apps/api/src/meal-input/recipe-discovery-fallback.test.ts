@@ -1,13 +1,15 @@
 process.env.JWT_ACCESS_SECRET = "a".repeat(32);
 
 import { describe, expect, it, vi } from "vitest";
-import { attachRecipeDiscoveryFallback } from "./recipe-discovery-fallback.js";
-import { interpretMealInput } from "./interpret.js";
+import { attachRecipeDiscoveryFallback, detectSiblingOverlap } from "./recipe-discovery-fallback.js";
+import { interpretMealInput, type DynamicResolutionDeps } from "./interpret.js";
 import { RecipeDiscoveryService } from "../recipes/recipe-discovery.js";
 import { WebKnowledgeSearchRateLimiter } from "../web-knowledge/web-knowledge-rate-limit.js";
 import { NegativeSearchCache } from "../web-knowledge/negative-search-cache.js";
 import { DisabledWebKnowledgeSearchProvider, type WebSearchResult } from "../web-knowledge/web-knowledge-search-provider.js";
 import { DisabledRecipeExtractionProvider, type RecipeExtraction, type RecipeExtractionProvider } from "../recipes/recipe-extraction-provider.js";
+import { DynamicFoodResolutionRateLimiter } from "../catalog/dynamic-food-rate-limit.js";
+import type { ExternalFoodCandidate } from "../catalog/external-food.js";
 import type { AiProvider, AiCapability } from "../ai/provider.js";
 import type { FoodUnderstanding } from "@keto-mentor/shared";
 
@@ -19,6 +21,21 @@ function emptyPrisma() {
     food: { findMany: async () => [] }
   } as any;
 }
+
+it("does not suppress an explicitly consumed sibling that appears only as an excluded recipe accompaniment", () => {
+  const bread = { id: "bread", name: "Bread", source: "usda_fdc", kcalPer100g: 250, fatPer100g: 3, proteinPer100g: 9, carbsPer100g: 48, fiberPer100g: 2 };
+  const ingredients = [{
+    originalText: "fresh bread", parsedFoodQuery: "bread", status: "resolved", resolvedFood: bread,
+    quantityStatus: "unresolved", quantitySource: "unknown", excludeFromNutrition: true,
+    role: "serving_accompaniment", optional: false, includedInBaseNutrition: false,
+    roleEvidence: "source_group", trustedNutritionReady: true
+  }] as any;
+  const items = [
+    { parsed: { foodQuery: "goulash" } },
+    { parsed: { foodQuery: "bread" }, semanticItem: { canonicalName: "bread" }, selectedFood: bread }
+  ] as any;
+  expect(detectSiblingOverlap(ingredients, items, 0)).toEqual({ confirmed: [], possible: [] });
+});
 
 function fakeAiProvider(understanding: FoodUnderstanding): AiProvider {
   return {
@@ -192,6 +209,40 @@ describe("attachRecipeDiscoveryFallback: extraction and nutrition (7, 8, 9, 10, 
     expect(withDiscovery.recipeDiscovery?.candidate?.nutritionCalculable).toBe(true);
     expect(withDiscovery.recipeDiscovery?.candidate?.nutritionPer100g).toMatchObject({ kcal: 25, fiber: 2.5 });
     expect(withDiscovery.recipeDiscovery?.candidate?.importProof).toEqual(expect.any(String));
+  });
+
+  // Owner-beta (2026-09-14) — Blocker 5 (portion/serving provenance):
+  // `servings` is structured metadata (schema.org recipeYield here), never a
+  // fabricated number — nutritionPerServing needs no raw-ingredient-weight
+  // assumption at all, unlike nutritionPer100g, so it is the stronger of the
+  // two figures whenever a real serving count is known. 1000 g cabbage @
+  // 25 kcal/100g = 250 kcal total, split across the stated 2 servings.
+  it("13 — a known serving count produces a real per-serving nutrition figure, independent of any raw-ingredient-weight assumption", async () => {
+    const html = `<html><script type="application/ld+json">${JSON.stringify({ "@type": "Recipe", name: "Cabbage soup", recipeYield: "2 servings", recipeIngredient: ["1000 g cabbage"], recipeInstructions: ["Simmer."] })}</script></html>`;
+    const prisma = { foodAlias: { findMany: async () => [] }, food: { findMany: async ({ where }: any) => where.OR.some((c: any) => "cabbage".includes(c.searchText.contains)) ? [{ id: "cabbage", name: "Cabbage", originalName: "Cabbage", names: {}, searchText: "cabbage", source: "bls", sourceId: "1", servings: [], kcalPer100g: 25, fatPer100g: 0.1, proteinPer100g: 1.3, carbsPer100g: 5.8, fiberPer100g: 2.5 }] : [] } } as any;
+    const provider = fakeSearchProvider([relevantResult]);
+    const result = await interpretMealInput(prisma, "töltött káposzta", undefined, fakeAiProvider(compoundDishOnly));
+    const withDiscovery = await attachRecipeDiscoveryFallback(result, {
+      ...discoveryDeps(provider), prisma,
+      fetchDependencies: { resolve: async () => [{ address: "93.184.216.34", family: 4 }], request: async () => ({ status: 200, headers: { "content-type": "text/html" }, body: Buffer.from(html) }) }
+    });
+    expect(withDiscovery.recipeDiscovery?.candidate?.servings).toBe(2);
+    expect(withDiscovery.recipeDiscovery?.candidate?.nutritionPerServing).toMatchObject({ kcal: 125 });
+  });
+
+  it("14 — no serving count in the source: nutritionPerServing stays null rather than guessing a serving size", async () => {
+    const html = `<html><script type="application/ld+json">${JSON.stringify({ "@type": "Recipe", name: "Cabbage soup", recipeIngredient: ["1000 g cabbage"], recipeInstructions: ["Simmer."] })}</script></html>`;
+    const prisma = { foodAlias: { findMany: async () => [] }, food: { findMany: async ({ where }: any) => where.OR.some((c: any) => "cabbage".includes(c.searchText.contains)) ? [{ id: "cabbage", name: "Cabbage", originalName: "Cabbage", names: {}, searchText: "cabbage", source: "bls", sourceId: "1", servings: [], kcalPer100g: 25, fatPer100g: 0.1, proteinPer100g: 1.3, carbsPer100g: 5.8, fiberPer100g: 2.5 }] : [] } } as any;
+    const provider = fakeSearchProvider([relevantResult]);
+    const result = await interpretMealInput(prisma, "töltött káposzta", undefined, fakeAiProvider(compoundDishOnly));
+    const withDiscovery = await attachRecipeDiscoveryFallback(result, {
+      ...discoveryDeps(provider), prisma,
+      fetchDependencies: { resolve: async () => [{ address: "93.184.216.34", family: 4 }], request: async () => ({ status: 200, headers: { "content-type": "text/html" }, body: Buffer.from(html) }) }
+    });
+    expect(withDiscovery.recipeDiscovery?.candidate?.servings).toBeUndefined();
+    expect(withDiscovery.recipeDiscovery?.candidate?.nutritionPerServing).toBeNull();
+    // The weaker, raw-ingredient-weight-basis figure is still available.
+    expect(withDiscovery.recipeDiscovery?.candidate?.nutritionPer100g).toMatchObject({ kcal: 25 });
   });
 });
 
@@ -416,5 +467,409 @@ describe("attachRecipeDiscoveryFallback: FULLY_RESOLVED vs REVIEWABLE candidate 
     expect(candidate?.resolvedIngredientCount).toBe(1);
     expect(candidate?.unresolvedIngredientCount).toBe(1);
     expect(candidate?.confirmationRequiredIngredientCount).toBe(0);
+  });
+});
+
+// Owner-beta (2026-09-12): "csülökpörkölt krumplival" reproduction — a
+// prepared dish named ALONGSIDE a side/add-on that resolves independently as
+// its own trusted Food. Before this fix, isEligibleForRecipeDiscovery
+// required the WHOLE result to be exactly one item, so a two-item phrase
+// like this never even reached the discovery gate for its genuinely-
+// unresolved dish component.
+describe("attachRecipeDiscoveryFallback: prepared dish named alongside an independently-resolving side (csülökpörkölt krumplival)", () => {
+  const potatoFood = { id: "potato", name: "Burgonya", originalName: "Burgonya", names: {}, searchText: "burgonya krumpli", source: "bls", sourceId: "1", servings: [], kcalPer100g: 77, fatPer100g: 0.1, proteinPer100g: 2, carbsPer100g: 17, fiberPer100g: 2.2 };
+  function potatoPrisma() {
+    return { foodAlias: { findMany: async () => [] }, food: { findMany: async ({ where }: any) => where.OR.some((c: any) => "burgonya krumpli".includes(c.searchText.contains)) ? [potatoFood] : [] } } as any;
+  }
+  function potatoPrismaWithRecipes(recipes: { id: string; title: string; servings?: number; finishedWeightGrams?: number; ingredients?: any[] }[]) {
+    return {
+      ...potatoPrisma(),
+      recipe: { findMany: async () => recipes.map((r) => ({ servings: null, finishedWeightGrams: null, ingredients: [], ...r })) }
+    } as any;
+  }
+  const dishAndSide: FoodUnderstanding = {
+    language: "hu", kind: "compound_dish", dishName: "csülökpörkölt",
+    items: [{ originalText: "krumplival", canonicalName: "burgonya", evidence: "explicit", confidence: 0.9 }],
+    clarificationNeeded: false, confidence: 0.9
+  };
+
+  it("A — the dish component IS eligible for web recipe discovery even though the potato side resolved independently", async () => {
+    const provider = fakeSearchProvider([]);
+    const result = await interpretMealInput(potatoPrisma(), "csülökpörkölt krumplival", undefined, fakeAiProvider(dishAndSide));
+    expect(result.foodResolution).toBe("compound");
+    expect(result.items).toHaveLength(2);
+    await attachRecipeDiscoveryFallback(result, { ...discoveryDeps(provider), prisma: potatoPrisma() });
+    expect(provider.search).toHaveBeenCalledOnce();
+  });
+
+  it("A2 — the recipe preview attaches ONLY to the csülökpörkölt item; the potato item and top-level result are untouched (no double counting)", async () => {
+    const provider = fakeSearchProvider([]);
+    const result = await interpretMealInput(potatoPrisma(), "csülökpörkölt krumplival", undefined, fakeAiProvider(dishAndSide));
+    const potatoItemBefore = result.items?.find((item) => item.semanticItem?.canonicalName === "burgonya");
+    const withDiscovery = await attachRecipeDiscoveryFallback(result, { ...discoveryDeps(provider), prisma: potatoPrisma() });
+    expect(withDiscovery.items).toHaveLength(2);
+    expect(withDiscovery.recipeDiscovery).toBeUndefined();
+    const dishItem = withDiscovery.items?.find((item) => item.semanticItem?.canonicalName === "csülökpörkölt");
+    const potatoItemAfter = withDiscovery.items?.find((item) => item.semanticItem?.canonicalName === "burgonya");
+    expect(dishItem?.recipeDiscovery).toBeDefined();
+    expect(potatoItemAfter?.recipeDiscovery).toBeUndefined();
+    expect(potatoItemAfter?.selectedFood).toEqual(potatoItemBefore?.selectedFood);
+    expect(potatoItemAfter?.foodResolution).toBe(potatoItemBefore?.foodResolution);
+  });
+
+  // Owner-beta (2026-09-14) — Blocker 4 (double counting): before a
+  // fully_resolved recipe is accepted for the dish item, its own resolved
+  // ingredients are compared against every other (sibling) item already
+  // resolved in the same phrase — see detectSiblingOverlap.
+  const porkHockFood = { id: "pork-hock", name: "Sertéscsülök", originalName: "Sertéscsülök", names: {}, searchText: "sertescsulok", source: "bls", sourceId: "2", servings: [], kcalPer100g: 280, fatPer100g: 22, proteinPer100g: 20, carbsPer100g: 0, fiberPer100g: 0 };
+  function potatoAndPorkPrisma() {
+    return { foodAlias: { findMany: async () => [] }, food: { findMany: async ({ where }: any) => where.OR.filter((c: any) => "burgonya krumpli".includes(c.searchText.contains)).length ? [potatoFood] : where.OR.filter((c: any) => "sertescsulok".includes(c.searchText.contains)).length ? [porkHockFood] : [] } } as any;
+  }
+  // A genuine local-catalog duplicate scenario: a SECOND Food row with the
+  // exact same display name ("Burgonya") but a DIFFERENT id/source — e.g. a
+  // separately-imported duplicate entry. Used to exercise the "possible"
+  // (name-matches, identity doesn't) overlap tier without relying on any
+  // ingredient staying unresolved (which would prevent the candidate from
+  // ever reaching fully_resolved at all, since every ingredient must resolve).
+  const duplicatePotatoFood = { ...potatoFood, id: "potato-duplicate-row", source: "usda_fdc", sourceId: "999" };
+  function duplicatePotatoAndPorkPrisma() {
+    return { foodAlias: { findMany: async () => [] }, food: { findMany: async ({ where }: any) => where.OR.filter((c: any) => "burgonya krumpli".includes(c.searchText.contains)).length ? [duplicatePotatoFood] : where.OR.filter((c: any) => "sertescsulok".includes(c.searchText.contains)).length ? [porkHockFood] : [] } } as any;
+  }
+
+  describe("sibling-overlap detection (Blocker 4: no double counting)", () => {
+    it("Case A — the selected recipe does NOT include the potato side: the sibling stays fully independent, no overlap fields set", async () => {
+      const html = `<html><script type="application/ld+json">${JSON.stringify({
+        "@type": "Recipe", name: "Csülökpörkölt", recipeYield: "4 servings",
+        recipeIngredient: ["800 g sertéscsülök"], recipeInstructions: ["Cook."]
+      })}</script></html>`;
+      const provider = fakeSearchProvider([{ url: "https://example.com/csulokporkolt", title: "Csülökpörkölt recept", domain: "example.com" }]);
+      const result = await interpretMealInput(potatoPrisma(), "csülökpörkölt krumplival", undefined, fakeAiProvider(dishAndSide));
+      const withDiscovery = await attachRecipeDiscoveryFallback(result, {
+        ...discoveryDeps(provider), prisma: potatoAndPorkPrisma(),
+        fetchDependencies: { resolve: async () => [{ address: "93.184.216.34", family: 4 }], request: async () => ({ status: 200, headers: { "content-type": "text/html" }, body: Buffer.from(html) }) }
+      });
+      const dishItem = withDiscovery.items?.find((item) => item.semanticItem?.canonicalName === "csülökpörkölt");
+      const potatoItem = withDiscovery.items?.find((item) => item.semanticItem?.canonicalName === "burgonya");
+      expect(dishItem?.recipeDiscovery?.candidate?.recipeState).toBe("fully_resolved");
+      expect(dishItem?.recipeDiscovery?.candidate?.overlapsWithSiblingItems).toBeUndefined();
+      expect(dishItem?.recipeDiscovery?.candidate?.possibleOverlapWithSiblingItems).toBeUndefined();
+      expect(potatoItem?.excludedBySiblingRecipe).toBeUndefined();
+      expect(potatoItem?.nutritionEligible).not.toBe(false);
+      expect(potatoItem?.ambiguous).not.toBe(true);
+    });
+
+    it("Case B — the selected recipe DOES include the potato side (same trusted Food identity): the sibling is excluded from independent nutrition, never silently deleted", async () => {
+      const html = `<html><script type="application/ld+json">${JSON.stringify({
+        "@type": "Recipe", name: "Csülökpörkölt", recipeYield: "4 servings",
+        recipeIngredient: ["800 g sertéscsülök", "500 g burgonya"], recipeInstructions: ["Cook."]
+      })}</script></html>`;
+      const provider = fakeSearchProvider([{ url: "https://example.com/csulokporkolt", title: "Csülökpörkölt recept", domain: "example.com" }]);
+      const result = await interpretMealInput(potatoPrisma(), "csülökpörkölt krumplival", undefined, fakeAiProvider(dishAndSide));
+      const withDiscovery = await attachRecipeDiscoveryFallback(result, {
+        ...discoveryDeps(provider), prisma: potatoAndPorkPrisma(),
+        fetchDependencies: { resolve: async () => [{ address: "93.184.216.34", family: 4 }], request: async () => ({ status: 200, headers: { "content-type": "text/html" }, body: Buffer.from(html) }) }
+      });
+      const dishItem = withDiscovery.items?.find((item) => item.semanticItem?.canonicalName === "csülökpörkölt");
+      const potatoItem = withDiscovery.items?.find((item) => item.semanticItem?.canonicalName === "burgonya");
+      expect(dishItem?.recipeDiscovery?.candidate?.overlapsWithSiblingItems).toMatchObject([{ itemIndex: expect.any(Number), canonicalName: "burgonya" }]);
+      // Never silently deleted — still present, still visible, just excluded from nutrition.
+      expect(potatoItem).toBeDefined();
+      expect(potatoItem?.excludedBySiblingRecipe).toMatchObject({ dishName: "csülökpörkölt" });
+      expect(potatoItem?.nutritionEligible).toBe(false);
+      // Excluded (not ambiguous) — does not block the rest of the meal from being confirmable.
+      expect(potatoItem?.canConfirm).toBe(true);
+    });
+
+    it("uncertain overlap — a DIFFERENT trusted Food row with the same display name (a real catalog-duplicate scenario): surfaced for confirmation, never auto-decided either way", async () => {
+      const html = `<html><script type="application/ld+json">${JSON.stringify({
+        "@type": "Recipe", name: "Csülökpörkölt", recipeYield: "4 servings",
+        recipeIngredient: ["800 g sertéscsülök", "500 g burgonya"], recipeInstructions: ["Cook."]
+      })}</script></html>`;
+      const provider = fakeSearchProvider([{ url: "https://example.com/csulokporkolt", title: "Csülökpörkölt recept", domain: "example.com" }]);
+      const result = await interpretMealInput(potatoPrisma(), "csülökpörkölt krumplival", undefined, fakeAiProvider(dishAndSide));
+      const withDiscovery = await attachRecipeDiscoveryFallback(result, {
+        ...discoveryDeps(provider), prisma: duplicatePotatoAndPorkPrisma(),
+        fetchDependencies: { resolve: async () => [{ address: "93.184.216.34", family: 4 }], request: async () => ({ status: 200, headers: { "content-type": "text/html" }, body: Buffer.from(html) }) }
+      });
+      const dishItem = withDiscovery.items?.find((item) => item.semanticItem?.canonicalName === "csülökpörkölt");
+      const potatoItem = withDiscovery.items?.find((item) => item.semanticItem?.canonicalName === "burgonya");
+      expect(dishItem?.recipeDiscovery?.candidate?.recipeState).toBe("fully_resolved");
+      expect(dishItem?.recipeDiscovery?.candidate?.possibleOverlapWithSiblingItems).toMatchObject([{ itemIndex: expect.any(Number), canonicalName: "burgonya" }]);
+      expect(dishItem?.recipeDiscovery?.candidate?.overlapsWithSiblingItems).toBeUndefined();
+      // Never auto-excluded on uncertain evidence — still present, still independently valid, unchanged.
+      expect(potatoItem?.excludedBySiblingRecipe).toBeUndefined();
+      expect(potatoItem?.nutritionEligible).not.toBe(false);
+      // ...but flagged as needing the user's own confirmation before the meal can be saved as-is.
+      expect(potatoItem?.ambiguous).toBe(true);
+      expect(potatoItem?.canConfirm).toBe(false);
+    });
+  });
+
+  it("B — a trusted local Recipe (the user's own saved csülökpörkölt) wins outright; no web search is ever attempted", async () => {
+    const provider = fakeSearchProvider([{ url: "https://example.com/r", title: "Csülökpörkölt recept", domain: "example.com" }]);
+    const result = await interpretMealInput(potatoPrisma(), "csülökpörkölt krumplival", undefined, fakeAiProvider(dishAndSide));
+    const prisma = potatoPrismaWithRecipes([{ id: "recipe-1", title: "Csülökpörkölt", servings: 4 }]);
+    const withDiscovery = await attachRecipeDiscoveryFallback(result, { ...discoveryDeps(provider), prisma, userId: "user-1" });
+    const dishItem = withDiscovery.items?.find((item) => item.semanticItem?.canonicalName === "csülökpörkölt");
+    expect(dishItem?.recipeDiscovery).toMatchObject({ status: "local_match", localMatch: { recipeId: "recipe-1", title: "Csülökpörkölt" } });
+    expect(provider.search).not.toHaveBeenCalled();
+  });
+
+  it("C — two of the user's own recipes match the dish name equally well: confirmation required, no candidate silently chosen, no web search", async () => {
+    const provider = fakeSearchProvider([]);
+    const result = await interpretMealInput(potatoPrisma(), "csülökpörkölt krumplival", undefined, fakeAiProvider(dishAndSide));
+    const prisma = potatoPrismaWithRecipes([{ id: "recipe-1", title: "Csülökpörkölt" }, { id: "recipe-2", title: "csülökpörkölt" }]);
+    const withDiscovery = await attachRecipeDiscoveryFallback(result, { ...discoveryDeps(provider), prisma, userId: "user-1" });
+    const dishItem = withDiscovery.items?.find((item) => item.semanticItem?.canonicalName === "csülökpörkölt");
+    expect(dishItem?.recipeDiscovery).toMatchObject({ status: "confirmation_required", reason: "ambiguous_local_matches" });
+    expect(dishItem?.recipeDiscovery?.localAlternatives).toHaveLength(2);
+    expect(dishItem?.recipeDiscovery?.candidate).toBeUndefined();
+    expect(provider.search).not.toHaveBeenCalled();
+  });
+
+  it("D — recipe discovery finds nothing usable: the dish item safely stays unresolved, the potato side is unaffected", async () => {
+    const provider = fakeSearchProvider([]);
+    const result = await interpretMealInput(potatoPrisma(), "csülökpörkölt krumplival", undefined, fakeAiProvider(dishAndSide));
+    const withDiscovery = await attachRecipeDiscoveryFallback(result, { ...discoveryDeps(provider), prisma: potatoPrisma() });
+    const dishItem = withDiscovery.items?.find((item) => item.semanticItem?.canonicalName === "csülökpörkölt");
+    const potatoItem = withDiscovery.items?.find((item) => item.semanticItem?.canonicalName === "burgonya");
+    expect(dishItem?.recipeDiscovery).toMatchObject({ status: "unresolved", reason: "no_relevant_results" });
+    expect(potatoItem?.foodResolution).not.toBe("unresolved");
+  });
+
+  it("E — an ingredient in the discovered recipe cannot be trusted: nutrition is never invented, candidate is skipped", async () => {
+    const html = `<html><script type="application/ld+json">${JSON.stringify({ "@type": "Recipe", name: "Csülökpörkölt", recipeIngredient: ["1 completely unknown mystery ingredient"], recipeInstructions: ["Cook."] })}</script></html>`;
+    const provider = fakeSearchProvider([{ url: "https://example.com/csulokporkolt", title: "Csülökpörkölt recept", domain: "example.com" }]);
+    const result = await interpretMealInput(potatoPrisma(), "csülökpörkölt krumplival", undefined, fakeAiProvider(dishAndSide));
+    const withDiscovery = await attachRecipeDiscoveryFallback(result, {
+      ...discoveryDeps(provider), prisma: potatoPrisma(),
+      fetchDependencies: { resolve: async () => [{ address: "93.184.216.34", family: 4 }], request: async () => ({ status: 200, headers: { "content-type": "text/html" }, body: Buffer.from(html) }) }
+    });
+    const dishItem = withDiscovery.items?.find((item) => item.semanticItem?.canonicalName === "csülökpörkölt");
+    expect(dishItem?.recipeDiscovery).toMatchObject({ status: "unresolved", reason: "no_fully_resolvable_candidate" });
+    expect(dishItem?.recipeDiscovery?.candidate).toBeUndefined();
+  });
+
+  it("F — a simple trusted Food (100 g gouda) never invokes recipe discovery or the local-recipe lookup", async () => {
+    const goudaFood = { id: "gouda", name: "Gouda sajt", originalName: "Gouda sajt", names: {}, searchText: "gouda sajt", source: "bls", sourceId: "1", servings: [], kcalPer100g: 356, fatPer100g: 27, proteinPer100g: 25, carbsPer100g: 2.2, fiberPer100g: 0 };
+    const prisma = { foodAlias: { findMany: async () => [] }, food: { findMany: async ({ where }: any) => where.OR.some((c: any) => "gouda sajt".includes(c.searchText.contains)) ? [goudaFood] : [] }, recipe: { findMany: vi.fn(async () => []) } } as any;
+    const provider = fakeSearchProvider([]);
+    const result = await interpretMealInput(prisma, "100 g gouda");
+    const withDiscovery = await attachRecipeDiscoveryFallback(result, { ...discoveryDeps(provider), prisma });
+    expect(withDiscovery.recipeDiscovery).toBeUndefined();
+    expect(provider.search).not.toHaveBeenCalled();
+    expect(prisma.recipe.findMany).not.toHaveBeenCalled();
+  });
+
+  it("still does not trigger discovery when the OTHER (non-dish) item is also genuinely unresolved — the phrase itself stays ambiguous/under-specified (unchanged prior behavior)", async () => {
+    const bothUnresolved: FoodUnderstanding = {
+      language: "hu", kind: "compound_dish", dishName: "csülökpörkölt",
+      items: [{ originalText: "krumplival", canonicalName: "burgonya", evidence: "explicit", confidence: 0.9 }],
+      clarificationNeeded: false, confidence: 0.9
+    };
+    const provider = fakeSearchProvider([]);
+    const result = await interpretMealInput(emptyPrisma(), "csülökpörkölt krumplival", undefined, fakeAiProvider(bothUnresolved));
+    await attachRecipeDiscoveryFallback(result, { ...discoveryDeps(provider), prisma: emptyPrisma() });
+    expect(provider.search).not.toHaveBeenCalled();
+  });
+});
+
+// Owner-beta (2026-09-13): live pre-merge review of PR #52 proved a real
+// recipe-discovery correctness gap — server.ts constructed a `dynamic`
+// (authoritative USDA/BLS resolution) deps object for ORDINARY meal-input
+// items, but never passed it into attachRecipeDiscoveryFallback, so a
+// discovered recipe's OWN ingredients had only the sparse local catalog to
+// resolve against. A real 7-ingredient recipe (halászlé) reproduced this
+// live: 0/7 ingredients trusted with `dynamic` withheld. These tests prove
+// the fix (server.ts now passes `dynamic` through) end-to-end with a
+// deterministic fixture: the exact same extracted ingredient goes from
+// unresolved to trusted, and only because `dynamic` was supplied.
+describe("attachRecipeDiscoveryFallback: dynamic resolution wiring (owner-beta 2026-09-13)", () => {
+  // Local catalog always misses, food.create/foodAlias.upsert etc. support
+  // resolveDynamicFood's own auto-resolve persistence — mirrors the minimal
+  // shape dynamic-food-resolution-integration.test.ts uses for the same purpose.
+  function dynamicCapablePrisma() {
+    const foods: any[] = [];
+    const prisma: any = {
+      food: {
+        findUnique: async () => null,
+        findMany: async () => [],
+        create: async ({ data }: any) => { const food = { id: `dynamic-food-${foods.length}`, createdById: null, ...data }; foods.push(food); return food; }
+      },
+      foodAlias: {
+        findFirst: async () => null,
+        findMany: async () => [],
+        upsert: async ({ create }: any) => create,
+        createMany: async ({ data }: any) => ({ count: data.length })
+      },
+      nutrient: { upsert: async ({ create }: any) => ({ id: `nutrient-${create.key}`, ...create }) },
+      foodNutrient: { create: async () => ({}) },
+      $transaction: async (fn: any) => fn(prisma)
+    };
+    return prisma;
+  }
+
+  // exact_normalized_name + high confidence + a permissive semantic gate
+  // auto-resolves (no confirmation_required detour) — mirrors the proven
+  // "salmon" fixture in dynamic-food-resolution-integration.test.ts.
+  const salmonCandidate: ExternalFoodCandidate = {
+    source: "usda_fdc", sourceId: "175167", originalName: "Salmon", name: "Salmon",
+    names: { en: "Salmon" }, kcalPer100g: 142, fatPer100g: 6.3, proteinPer100g: 19.8, carbsPer100g: 0, fiberPer100g: 0, nutrients: [],
+    provenance: { source: "USDA FoodData Central", sourceId: "175167", sourceUrl: "https://fdc.nal.usda.gov/175167", retrievedAt: "2026-09-09T00:00:00.000Z", valuesPer: "100 g" },
+    sourceUrl: "https://fdc.nal.usda.gov/175167", normalizedName: "salmon", nutrientBasis: "per_100_g",
+    retrievedAt: "2026-09-09T00:00:00.000Z", confidence: 0.97, matchPolicy: "exact_normalized_name", language: "en"
+  };
+
+  function makeDiscoveryDynamic(prisma: any): DynamicResolutionDeps {
+    return {
+      prisma,
+      searchIntentProvider: { id: "stub", generate: async () => ({ canonicalConcept: "salmon", searchTerms: ["salmon"], sourceLanguage: "en" }) },
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [salmonCandidate] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      locale: "hu",
+      localizationProvider: { id: "fixture", localize: async (items: { id: string }[]) => new Map(items.map((i) => [i.id, "Salmon"])) },
+      semanticCandidateGateProvider: { id: "permissive", checkRelevance: async (_original: string, candidates: { id: string }[]) => new Map(candidates.map((c) => [c.id, true])) }
+    } as DynamicResolutionDeps;
+  }
+
+  const salmonDish: FoodUnderstanding = {
+    language: "en", kind: "compound_dish", dishName: "salmon bowl",
+    items: [{ originalText: "salmon bowl", canonicalName: "salmon bowl", evidence: "explicit", confidence: 0.9 }],
+    clarificationNeeded: false, confidence: 0.9
+  };
+  const salmonHtml = `<html><script type="application/ld+json">${JSON.stringify({
+    "@type": "Recipe", name: "Salmon bowl", recipeYield: "2 servings",
+    recipeIngredient: ["100 g salmon"], recipeInstructions: ["Cook it."]
+  })}</script></html>`;
+
+  it("without `dynamic` wired (pre-fix server.ts), a recipe ingredient absent from the local catalog cannot be resolved at all", async () => {
+    const prisma = dynamicCapablePrisma();
+    const provider = fakeSearchProvider([{ url: "https://example.com/salmon-bowl", title: "Salmon bowl recipe", domain: "example.com" }]);
+    const result = await interpretMealInput(prisma, "salmon bowl", undefined, fakeAiProvider(salmonDish));
+    const withDiscovery = await attachRecipeDiscoveryFallback(result, {
+      ...discoveryDeps(provider), prisma,
+      fetchDependencies: { resolve: async () => [{ address: "93.184.216.34", family: 4 }], request: async () => ({ status: 200, headers: { "content-type": "text/html" }, body: Buffer.from(salmonHtml) }) }
+    });
+    expect(withDiscovery.recipeDiscovery).toMatchObject({ status: "unresolved", reason: "no_fully_resolvable_candidate" });
+    expect(withDiscovery.recipeDiscovery?.candidate).toBeUndefined();
+  });
+
+  it("with `dynamic` wired (the fix), the SAME extracted ingredient reaches authoritative USDA resolution and the recipe becomes usable", async () => {
+    const prisma = dynamicCapablePrisma();
+    const provider = fakeSearchProvider([{ url: "https://example.com/salmon-bowl", title: "Salmon bowl recipe", domain: "example.com" }]);
+    const result = await interpretMealInput(prisma, "salmon bowl", undefined, fakeAiProvider(salmonDish));
+    const withDiscovery = await attachRecipeDiscoveryFallback(result, {
+      ...discoveryDeps(provider), prisma,
+      dynamic: makeDiscoveryDynamic(prisma),
+      fetchDependencies: { resolve: async () => [{ address: "93.184.216.34", family: 4 }], request: async () => ({ status: 200, headers: { "content-type": "text/html" }, body: Buffer.from(salmonHtml) }) }
+    });
+    expect(withDiscovery.recipeDiscovery).toMatchObject({
+      status: "confirmation_required",
+      candidate: { resolvedIngredientCount: 1, unresolvedIngredientCount: 0, nutritionCalculable: true }
+    });
+    // Real ingredient-derived kcal/100g (142, the trusted USDA figure), never invented.
+    expect(withDiscovery.recipeDiscovery?.candidate?.nutritionPer100g?.kcal).toBeCloseTo(142, 5);
+  });
+});
+
+// PR #52 final correctness review (2026-09-13): detectSiblingOverlap
+// (recipe-discovery-fallback.ts) is a GENERAL identity/name-matching
+// algorithm — it never references a specific food or dish name. The
+// csülökpörkölt/krumpli suite above already proves both overlap tiers once;
+// these two blocks prove the SAME mechanism, unmodified, handles two other
+// dish+side combinations from the checkpoint's own required acceptance
+// list — "paprikás csirke nokedlivel" (nokedli/dumplings) and "lecsó 2
+// virslivel" (virsli/sausage) — with no dish-name-specific code anywhere.
+describe("attachRecipeDiscoveryFallback: sibling-overlap generality — paprikás csirke nokedlivel", () => {
+  const nokedliFood = { id: "nokedli", name: "Nokedli", originalName: "Nokedli", names: {}, searchText: "nokedli galuska", source: "bls", sourceId: "10", servings: [], kcalPer100g: 122, fatPer100g: 1.5, proteinPer100g: 4.5, carbsPer100g: 23, fiberPer100g: 1 };
+  const chickenFood = { id: "chicken", name: "Csirkemell", originalName: "Csirkemell", names: {}, searchText: "csirkemell csirke", source: "bls", sourceId: "11", servings: [], kcalPer100g: 165, fatPer100g: 3.6, proteinPer100g: 31, carbsPer100g: 0, fiberPer100g: 0 };
+  function nokedliAndChickenPrisma() {
+    return { foodAlias: { findMany: async () => [] }, food: { findMany: async ({ where }: any) => where.OR.filter((c: any) => "nokedli galuska".includes(c.searchText.contains)).length ? [nokedliFood] : where.OR.filter((c: any) => "csirkemell csirke".includes(c.searchText.contains)).length ? [chickenFood] : [] } } as any;
+  }
+  const dishAndSide: FoodUnderstanding = {
+    language: "hu", kind: "compound_dish", dishName: "paprikás csirke",
+    items: [{ originalText: "nokedlivel", canonicalName: "nokedli", evidence: "explicit", confidence: 0.9 }],
+    clarificationNeeded: false, confidence: 0.9
+  };
+
+  it("Case A — the selected recipe does NOT include nokedli: the side stays fully independent", async () => {
+    const html = `<html><script type="application/ld+json">${JSON.stringify({
+      "@type": "Recipe", name: "Paprikás csirke", recipeYield: "4 servings",
+      recipeIngredient: ["800 g csirkemell", "200 g tejföl"], recipeInstructions: ["Cook."]
+    })}</script></html>`;
+    const provider = fakeSearchProvider([{ url: "https://example.com/paprikas-csirke", title: "Paprikás csirke recept", domain: "example.com" }]);
+    const result = await interpretMealInput(nokedliAndChickenPrisma(), "paprikás csirke nokedlivel", undefined, fakeAiProvider(dishAndSide));
+    const withDiscovery = await attachRecipeDiscoveryFallback(result, {
+      ...discoveryDeps(provider), prisma: nokedliAndChickenPrisma(),
+      fetchDependencies: { resolve: async () => [{ address: "93.184.216.34", family: 4 }], request: async () => ({ status: 200, headers: { "content-type": "text/html" }, body: Buffer.from(html) }) }
+    });
+    const dishItem = withDiscovery.items?.find((item) => item.semanticItem?.canonicalName === "nokedli");
+    expect(dishItem?.excludedBySiblingRecipe).toBeUndefined();
+    expect(dishItem?.nutritionEligible).not.toBe(false);
+  });
+
+  it("Case B — the selected recipe DOES include nokedli (same trusted Food identity): the side is excluded from independent nutrition, never silently deleted", async () => {
+    const html = `<html><script type="application/ld+json">${JSON.stringify({
+      "@type": "Recipe", name: "Paprikás csirke nokedlivel", recipeYield: "4 servings",
+      recipeIngredient: ["800 g csirkemell", "200 g tejföl", "400 g nokedli"], recipeInstructions: ["Cook."]
+    })}</script></html>`;
+    const provider = fakeSearchProvider([{ url: "https://example.com/paprikas-csirke", title: "Paprikás csirke nokedlivel recept", domain: "example.com" }]);
+    const result = await interpretMealInput(nokedliAndChickenPrisma(), "paprikás csirke nokedlivel", undefined, fakeAiProvider(dishAndSide));
+    const withDiscovery = await attachRecipeDiscoveryFallback(result, {
+      ...discoveryDeps(provider), prisma: nokedliAndChickenPrisma(),
+      fetchDependencies: { resolve: async () => [{ address: "93.184.216.34", family: 4 }], request: async () => ({ status: 200, headers: { "content-type": "text/html" }, body: Buffer.from(html) }) }
+    });
+    const dishItem = withDiscovery.items?.find((item) => item.semanticItem?.canonicalName === "paprikás csirke") ?? withDiscovery.items?.find((item) => item.semanticItem?.canonicalName !== "nokedli");
+    const nokedliItem = withDiscovery.items?.find((item) => item.semanticItem?.canonicalName === "nokedli");
+    const recipeItem = withDiscovery.items?.find((item) => item.recipeDiscovery);
+    expect(recipeItem?.recipeDiscovery?.candidate?.overlapsWithSiblingItems).toMatchObject([{ itemIndex: expect.any(Number), canonicalName: "nokedli" }]);
+    expect(nokedliItem).toBeDefined();
+    expect(nokedliItem?.excludedBySiblingRecipe).toMatchObject({ dishName: "paprikás csirke" });
+    expect(nokedliItem?.nutritionEligible).toBe(false);
+    expect(nokedliItem?.canConfirm).toBe(true);
+  });
+});
+
+describe("attachRecipeDiscoveryFallback: sibling-overlap generality — lecsó 2 virslivel", () => {
+  const virsliFood = { id: "virsli", name: "Virsli", originalName: "Virsli", names: {}, searchText: "virsli kolbasz sausage", source: "bls", sourceId: "12", servings: [], kcalPer100g: 280, fatPer100g: 25, proteinPer100g: 12, carbsPer100g: 2, fiberPer100g: 0 };
+  function virsliOnlyPrisma() {
+    return { foodAlias: { findMany: async () => [] }, food: { findMany: async ({ where }: any) => where.OR.filter((c: any) => "virsli kolbasz sausage".includes(c.searchText.contains)).length ? [virsliFood] : [] } } as any;
+  }
+  const dishAndSide: FoodUnderstanding = {
+    language: "hu", kind: "compound_dish", dishName: "lecsó",
+    items: [{ originalText: "2 virslivel", canonicalName: "virsli", unit: "piece", quantity: 2, evidence: "explicit", confidence: 0.9 }],
+    clarificationNeeded: false, confidence: 0.9
+  };
+
+  it("the virsli side, resolving independently via the local catalog, unblocks recipe discovery for the otherwise-unresolved lecsó dish item", async () => {
+    const provider = fakeSearchProvider([{ url: "https://example.com/lecso", title: "Lecsó recept", domain: "example.com" }]);
+    const result = await interpretMealInput(virsliOnlyPrisma(), "lecsó 2 virslivel", undefined, fakeAiProvider(dishAndSide));
+    // Unlike the emptyPrisma() version of this phrase (see "still does not
+    // trigger discovery..." above), the side resolving locally here means
+    // only ONE item is genuinely unresolved — discovery IS eligible.
+    expect(result.items?.find((i) => i.semanticItem?.canonicalName === "virsli")?.foodResolution).not.toBe("unresolved");
+    await attachRecipeDiscoveryFallback(result, { ...discoveryDeps(provider), prisma: virsliOnlyPrisma() });
+    expect(provider.search).toHaveBeenCalledOnce();
+  });
+
+  it("Case B — the selected lecsó recipe DOES include virsli/sausage (same trusted Food identity): the side is excluded from independent nutrition, never silently deleted", async () => {
+    const html = `<html><script type="application/ld+json">${JSON.stringify({
+      "@type": "Recipe", name: "Lecsó virslivel", recipeYield: "4 servings",
+      recipeIngredient: ["600 g paprika", "400 g paradicsom", "200 g virsli"], recipeInstructions: ["Cook."]
+    })}</script></html>`;
+    const provider = fakeSearchProvider([{ url: "https://example.com/lecso", title: "Lecsó virslivel recept", domain: "example.com" }]);
+    const result = await interpretMealInput(virsliOnlyPrisma(), "lecsó 2 virslivel", undefined, fakeAiProvider(dishAndSide));
+    const withDiscovery = await attachRecipeDiscoveryFallback(result, {
+      ...discoveryDeps(provider), prisma: virsliOnlyPrisma(),
+      fetchDependencies: { resolve: async () => [{ address: "93.184.216.34", family: 4 }], request: async () => ({ status: 200, headers: { "content-type": "text/html" }, body: Buffer.from(html) }) }
+    });
+    const virsliItem = withDiscovery.items?.find((item) => item.semanticItem?.canonicalName === "virsli");
+    const recipeItem = withDiscovery.items?.find((item) => item.recipeDiscovery);
+    expect(recipeItem?.recipeDiscovery?.candidate?.overlapsWithSiblingItems).toMatchObject([{ itemIndex: expect.any(Number), canonicalName: "virsli" }]);
+    expect(virsliItem).toBeDefined();
+    expect(virsliItem?.excludedBySiblingRecipe).toMatchObject({ dishName: "lecsó" });
+    expect(virsliItem?.nutritionEligible).toBe(false);
+    expect(virsliItem?.canConfirm).toBe(true);
   });
 });

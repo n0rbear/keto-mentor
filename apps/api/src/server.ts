@@ -17,7 +17,7 @@ import { createSession, rotateSession, revokeActiveSession } from "./session.js"
 import { prisma } from "./db.js";
 import { searchFoods } from "./catalog/food-search.js";
 import { confirmAuthoritativeFood, externalFoodConfirmationSchema, resolveAuthoritativeFood, resolveBarcodeFood } from "./catalog/external-food.js";
-import { EXTERNAL_FOOD_CONFIRM_RATE_LIMIT, EXTERNAL_FOOD_RATE_LIMIT, externalFoodRateLimitKey } from "./catalog/external-food-rate-limit.js";
+import { EXTERNAL_FOOD_CONFIRM_RATE_LIMIT, EXTERNAL_FOOD_RATE_LIMIT, RECIPE_INGREDIENT_DYNAMIC_RATE_LIMIT, externalFoodRateLimitKey } from "./catalog/external-food-rate-limit.js";
 import { UsdaFoodDataCentralLookupAdapter, OpenFoodFactsProductAdapter } from "./catalog/structured-source-adapters.js";
 import { validateBarcode } from "./catalog/barcode.js";
 import { parseNaturalFoodQuery } from "./catalog/natural-food-query.js";
@@ -30,18 +30,23 @@ import { getWeekOverview } from "./meals/week-query.js";
 import { recipeRouter } from "./recipes/router.js";
 import { interpretMealInput } from "./meal-input/interpret.js";
 import { attachRecipeDiscoveryFallback } from "./meal-input/recipe-discovery-fallback.js";
+import { buildDiagnostics } from "./meal-input/diagnostics.js";
 import { configuredFoodAiProvider } from "./ai/food-ai-gateway.js";
 import { FoodNlpUserRateLimiter, rateLimitedFoodNlpProvider } from "./ai/food-nlp-rate-limit.js";
 import { configuredQuantityAiProvider } from "./meal-input/quantity-ai-gateway.js";
 import { configuredSearchIntentProvider } from "./catalog/search-intent-gateway.js";
 import { configuredCandidateLocalizationProvider } from "./catalog/candidate-localization-gateway.js";
 import { configuredSemanticCandidateGateProvider } from "./catalog/semantic-candidate-gate-gateway.js";
+import { configuredRecipeSemanticGateProvider } from "./catalog/semantic-candidate-gate-batch-gateway.js";
+import { configuredRecipeIngredientNormalizationProvider } from "./recipes/recipe-ingredient-normalization-gateway.js";
+import { configuredRecipeQuantityEstimationProvider } from "./recipes/recipe-quantity-estimation-gateway.js";
 import { DynamicFoodResolutionRateLimiter } from "./catalog/dynamic-food-rate-limit.js";
 import { configuredWebKnowledgeSearchProvider } from "./web-knowledge/web-knowledge-gateway.js";
 import { WebKnowledgeSearchRateLimiter } from "./web-knowledge/web-knowledge-rate-limit.js";
 import { NegativeSearchCache } from "./web-knowledge/negative-search-cache.js";
 import { RecipeDiscoveryService } from "./recipes/recipe-discovery.js";
 import { configuredRecipeAiProvider } from "./recipes/recipe-ai-gateway.js";
+import { publishProgress, subscribeProgress, closeProgress } from "./meal-input/progress-bus.js";
 
 const logger = createLogger(env.NODE_ENV === "production" ? "info" : "debug");
 const app = express();
@@ -75,7 +80,25 @@ const candidateLocalizationProvider = configuredCandidateLocalizationProvider(en
 // a SEPARATE call/schema from searchIntentProvider — never trusted merely
 // because the same model generated the search term being validated.
 const semanticCandidateGateProvider = configuredSemanticCandidateGateProvider(env);
+const recipeSemanticGateProvider = configuredRecipeSemanticGateProvider(env);
+// Owner-beta checkpoint (2026-09-13): the whole-recipe-context batch
+// ingredient-normalization path (see recipe-ingredient-normalization.ts and
+// the ingredient-resolution forensic checkpoint). Same configured AI gateway
+// again — a search-key generator, never a source of nutrition or trusted
+// identity; only used by recipe-discovery-fallback's own recipe-ingredient
+// resolution below, never wired into ordinary (non-recipe) meal-input items.
+const recipeIngredientNormalizationProvider = configuredRecipeIngredientNormalizationProvider(env);
+const recipeQuantityEstimationProvider = configuredRecipeQuantityEstimationProvider(env);
 const dynamicFoodResolutionLimiter = new DynamicFoodResolutionRateLimiter();
+// Owner-beta (2026-09-14): a SEPARATE, more generously-sized limiter
+// dedicated to recipe-discovery ingredient resolution — see
+// RECIPE_INGREDIENT_DYNAMIC_RATE_LIMIT. Live reproduction proved a single
+// real recipe candidate (8-12 ingredients) exhausts the ordinary per-meal
+// budget (dynamicFoodResolutionLimiter, 10/15min) partway through, so later
+// ingredients failed with reason="rate_limited" regardless of whether they
+// were actually resolvable. Keeps the original limiter's abuse protection
+// for ordinary meal-input items completely untouched.
+const recipeIngredientDynamicResolutionLimiter = new DynamicFoodResolutionRateLimiter(Date.now, RECIPE_INGREDIENT_DYNAMIC_RATE_LIMIT);
 // Web recipe discovery: strictly a fallback layered on top of meal-input
 // interpretation (see recipe-discovery-fallback.ts), never wired into
 // interpretMealInput itself. Reuses the exact same recipe-extraction AI
@@ -128,6 +151,30 @@ const externalFoodConfirmLimiter = rateLimit({ ...EXTERNAL_FOOD_CONFIRM_RATE_LIM
 const healthPayload = { ok: true, service: "keto-mentor-api" };
 app.get("/", (_req, res) => res.json(healthPayload));
 app.get("/health", (_req, res) => res.json(healthPayload));
+
+// Owner-beta staging checkpoint (2026-09-13): safe, non-secret build
+// identification so the owner can confirm which branch/commit a deployment
+// (staging or production) is actually running — Render sets RENDER_GIT_*
+// automatically for every service, never user/secret-derived. `bootedAt` is
+// this process's own start time (module load), a reasonable proxy for
+// "deployed at" absent a dedicated Render env var for it.
+const bootedAt = new Date().toISOString();
+const renderServiceName = process.env.RENDER_SERVICE_NAME ?? null;
+// Staging deliberately runs with NODE_ENV=production (see database-url.ts's
+// assertProductionDatabaseSchema and server.ts's secure-cookie/log-level
+// branches, none of which have a bespoke "staging" mode) — so NODE_ENV alone
+// cannot tell a human apart staging from production. RENDER_SERVICE_NAME
+// can: Render sets it to this exact service's own configured name
+// ("keto-mentor-api-staging" vs "keto-mentor-api"), which is what the owner
+// actually needs to see to know which deployment he's looking at.
+const deploymentEnvironment = renderServiceName?.includes("staging") ? "staging" : env.NODE_ENV === "production" ? "production" : env.NODE_ENV;
+app.get("/build-info", (_req, res) => res.json({
+  environment: deploymentEnvironment,
+  serviceName: renderServiceName,
+  branch: process.env.RENDER_GIT_BRANCH ?? null,
+  commit: process.env.RENDER_GIT_COMMIT ? process.env.RENDER_GIT_COMMIT.slice(0, 7) : null,
+  bootedAt
+}));
 
 app.post("/auth/register", authLimiter, async (req, res, next) => {
   try {
@@ -258,9 +305,31 @@ app.get("/foods/resolve-barcode", requireAuth, externalFoodLimiter, async (req, 
   } catch (error) { next(error); }
 });
 
+// Owner-beta (2026-09-12): a truthful, real-stage progress stream for the UI
+// during long interpretation operations — see meal-input/progress-bus.ts.
+// operationId is client-generated and validated by mealInterpretationSchema;
+// this endpoint is purely additive and never required — a client that never
+// opens it loses nothing but the progress display. Category-only stage
+// names only, never user text, prompts, or provider identity.
+app.get("/meal-input/progress/:operationId", requireAuth, (req, res) => {
+  const operationId = req.params.operationId;
+  if (!/^[A-Za-z0-9-]{1,64}$/.test(operationId)) return res.status(400).end();
+  res.writeHead(200, {
+    "content-type": "application/x-ndjson; charset=utf-8",
+    "cache-control": "no-cache, no-transform",
+    "x-accel-buffering": "no"
+  });
+  const unsubscribe = subscribeProgress(operationId, (stage) => {
+    res.write(`${JSON.stringify({ stage })}\n`);
+  });
+  req.on("close", unsubscribe);
+});
+
 app.post("/meal-input/interpret", requireAuth, async (req, res, next) => {
+  let operationId: string | undefined;
   try {
     const input = mealInterpretationSchema.parse(req.body);
+    operationId = input.operationId;
     const requestProvider = rateLimitedFoodNlpProvider(foodNlpProvider, foodNlpLimiter, req.user!.id);
     // A live read of quantityProvider.id, not a value captured once here: when
     // quantityProvider is a failover wrapper, its id can change between this
@@ -272,17 +341,37 @@ app.post("/meal-input/interpret", requireAuth, async (req, res, next) => {
     // never adds a request on a local hit. No adapters configured (e.g. no
     // USDA_FDC_API_KEY) means dynamic resolution is simply not offered.
     const dynamic = externalFoodAdapters.length
-      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale: trustedLocale(req.user!), localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider }
+      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale: trustedLocale(req.user!), localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider }
       : null;
-    const result = await interpretMealInput(prisma, input.text, requestQuantityProvider, requestProvider, dynamic);
+    // Same deps, but with recipeIngredientDynamicResolutionLimiter in place
+    // of dynamicFoodResolutionLimiter — see that limiter's own comment.
+    const recipeIngredientDynamic = dynamic ? { ...dynamic, rateLimiter: recipeIngredientDynamicResolutionLimiter } : null;
+    const onProgress = (stage: Parameters<typeof publishProgress>[1]) => publishProgress(input.operationId, stage);
+    const result = await interpretMealInput(prisma, input.text, requestQuantityProvider, requestProvider, dynamic, onProgress);
     // Fallback layered on top of interpretation, never inside it — only ever
     // reached when interpretMealInput's own local/structured/AI-assisted
     // resolution has already genuinely failed on a composite-dish phrase. A
     // no-op (webKnowledgeSearchProvider.id === "disabled") when
     // WEB_SEARCH_PROVIDER is unset, at zero extra cost.
-    res.json(await attachRecipeDiscoveryFallback(result, { discoveryService: recipeDiscoveryService, recipeAiProvider: recipeDiscoveryAiProvider, prisma, userId: req.user!.id, locale: trustedLocale(req.user!) }));
+    // Owner-beta (2026-09-13): `dynamic` (the same authoritative USDA/BLS
+    // resolution deps used for ordinary meal-input items) is passed through
+    // here too — proven by live reproduction to be required for discovered
+    // recipes' own ingredients to reach trusted Food identities at all: a
+    // real 7-ingredient recipe (halászlé) resolved 0/7 without it, since
+    // per-ingredient resolution otherwise has only the sparse local catalog
+    // to match against. Still `null` whenever no external adapters are
+    // configured, matching ordinary meal-input's own behavior exactly.
+    const withDiscovery = await attachRecipeDiscoveryFallback(result, { discoveryService: recipeDiscoveryService, recipeAiProvider: recipeDiscoveryAiProvider, prisma, userId: req.user!.id, locale: trustedLocale(req.user!), onProgress, dynamic: recipeIngredientDynamic, recipeIngredientNormalizationProvider, recipeQuantityEstimationProvider });
+    onProgress("finalizing");
+    // Owner-beta diagnostics checkpoint (2026-09-13): derived entirely from
+    // the already-computed, already-response-bound result above — see
+    // diagnostics.ts. Never a second AI/network call, never data the client
+    // couldn't already see elsewhere in this same JSON body.
+    res.json({ ...withDiscovery, diagnostics: buildDiagnostics(withDiscovery) });
   } catch (error) {
     next(error);
+  } finally {
+    closeProgress(operationId);
   }
 });
 
@@ -338,7 +427,18 @@ app.get("/meals/today", requireAuth, async (req, res, next) => {
 app.post("/meals", requireAuth, async (req, res, next) => {
   try {
     const input = createMealSchema.parse(req.body);
-    const meal = await createMeal(prisma, req.user!.id, input);
+    // Same recipe-ingredient dynamic deps as recipe-discovery-fallback's own
+    // wiring above (recipeIngredientDynamicResolutionLimiter, not the
+    // ordinary per-meal limiter) — a confirmed recipe-discovery item re-runs
+    // the same server-side ingredient resolution a fresh discovery preview
+    // would. `undefined` (not an error) when no external adapters are
+    // configured; createMeal only needs this when the request actually
+    // contains a recipe-discovery item, at which point its own explicit
+    // recipe_discovery_unavailable check fires instead of resolving anything.
+    const recipeDynamic = externalFoodAdapters.length
+      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: recipeIngredientDynamicResolutionLimiter, userId: req.user!.id, locale: trustedLocale(req.user!), localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider }
+      : null;
+    const meal = await createMeal(prisma, req.user!.id, input, { recipeAiProvider: recipeDiscoveryAiProvider, dynamic: recipeDynamic, recipeIngredientNormalizationProvider, recipeQuantityEstimationProvider });
     res.status(201).json({ meal });
   } catch (error) {
     next(error);

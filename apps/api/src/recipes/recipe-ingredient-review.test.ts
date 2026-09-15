@@ -13,6 +13,15 @@ function ingredient(overrides: Partial<ReviewableIngredient>): ReviewableIngredi
 }
 
 describe("toIngredientReview: the trusted-nutrition fix (owner-beta blocker #6)", () => {
+  it("an unresolved serving accompaniment stays visible but does not block base nutrition", () => {
+    const review = toIngredientReview(ingredient({ resolution: "unresolved", selectedFood: null, quantity: null, sourceGroup: "For serving", role: "serving_accompaniment", includedInBaseNutrition: false, evidence: "source_group" }));
+    expect(review).toMatchObject({ status: "unresolved", role: "serving_accompaniment", includedInBaseNutrition: false, excludeFromNutrition: true, trustedNutritionReady: true });
+  });
+
+  it("a material core ingredient with unknown quantity still blocks", () => {
+    const review = toIngredientReview(ingredient({ resolution: "resolved", selectedFood: cabbage, quantity: null, role: "core", includedInBaseNutrition: true }));
+    expect(review.trustedNutritionReady).toBe(false);
+  });
   // Test 2 (required) — the exact observed "Főtt tojás" case: a genuine
   // local EXACT match exists as a PREVIEW (interpretOne intentionally keeps
   // `top` around even for confirmation_required — see interpret.ts's
@@ -70,10 +79,13 @@ describe("toIngredientReview: the trusted-nutrition fix (owner-beta blocker #6)"
   });
 
   // Test 15 (required) — the exact real "25 dkg Kolbász" case observed live:
-  // the "dkg" unit-parsing bug pollutes parsedFoodQuery to "dkg kolbasz",
-  // which causes hasSemanticCoverage to reject an otherwise-successful
-  // dynamic resolution — surfacing here as a plain "unresolved" outcome.
-  // Never fixed in this checkpoint; only asserting it cannot leak into trust.
+  // the "dkg" unit-parsing bug (root-caused and fixed in natural-food-
+  // query.ts's UNITS map — owner-beta checkpoint 2026-09-13) used to
+  // pollute parsedFoodQuery to "dkg kolbasz", which made hasSemanticCoverage
+  // reject an otherwise-successful dynamic resolution. That specific cause is
+  // gone, but this defense-in-depth guarantee is worth keeping regardless —
+  // a hand-built, still-corrupted-looking query (however it might arise)
+  // must never count as trusted just because it carries a stale preview.
   it("15 — a dkg-corrupted ingredient query cannot count as trusted, even if it happened to carry a stale preview", () => {
     const review = toIngredientReview(ingredient({
       originalText: "25 dkg Kolbász", parsedFoodQuery: "dkg kolbasz", parsedUnit: "piece" as any,
@@ -139,6 +151,12 @@ describe("classifyRecipeReview: recipe-level state (FULLY_RESOLVED / REVIEWABLE 
 });
 
 describe("computeTrustedNutrition: final nutrition only from trusted ingredients", () => {
+  it("excludes a visible unquantified seasoning without blocking calculation", () => {
+    const trustedCabbage = toIngredientReview(ingredient({ resolution: "resolved", selectedFood: cabbage, quantity: { status: "resolved", grams: 500 }, quantitySource: "explicit" }));
+    const salt = toIngredientReview(ingredient({ originalText: "só ízlés szerint", parsedFoodQuery: "salt", resolution: "unresolved", selectedFood: null, quantity: null, quantitySource: "unquantified_seasoning", excludeFromNutrition: true }));
+    expect(salt).toMatchObject({ excludeFromNutrition: true, quantitySource: "unquantified_seasoning", trustedNutritionReady: true });
+    expect(computeTrustedNutrition([trustedCabbage, salt]).calculable).toBe(true);
+  });
   it("refuses to compute anything when even one ingredient is merely confirmation_required", () => {
     const trustedCabbage = toIngredientReview(ingredient({ resolution: "resolved", selectedFood: cabbage, quantity: { status: "resolved", grams: 500 } }));
     const previewEgg = toIngredientReview(ingredient({ resolution: "confirmation_required", selectedFood: egg, quantity: { status: "resolved", grams: 250 } }));
@@ -152,5 +170,139 @@ describe("computeTrustedNutrition: final nutrition only from trusted ingredients
     const result = computeTrustedNutrition([trustedCabbage]);
     expect(result.calculable).toBe(true);
     expect(result.macros?.kcal).toBeCloseTo(25, 5);
+  });
+});
+
+// Owner-beta checkpoint (2026-09-15): final recipe nutrition — deterministic
+// exact-math proof, computed independently in this test (not via any
+// application aggregate function) against known synthetic Food nutrition.
+describe("PHASE 3 — single-ingredient contribution formula: authoritativeFoodNutritionPer100g x quantityGrams/100, no premature rounding", () => {
+  const preciseFood = { id: "f", name: "Precise Food", source: "usda_fdc", kcalPer100g: 200, fatPer100g: 20, proteinPer100g: 10, carbsPer100g: 5, fiberPer100g: 0 };
+  it("250g of (200kcal/10P/20F/5C per 100g) -> exactly 500kcal/25P/50F/12.5C", () => {
+    const trusted = toIngredientReview(ingredient({ resolution: "resolved", selectedFood: preciseFood, quantity: { status: "resolved", grams: 250 } }));
+    const result = computeTrustedNutrition([trusted]);
+    expect(result.calculable).toBe(true);
+    // weightGrams === quantityGrams for a single ingredient, so macros
+    // (per 100g of total weight) reduces back to the food's own values —
+    // the real proof is `total`, the actual 250g contribution.
+    expect(result.total).toEqual({ kcal: 500, protein: 25, fat: 50, carbs: 12.5, fiber: 0, netCarbs: 12.5 });
+  });
+});
+
+describe("PHASE 4/17 — whole-recipe aggregation matrix: explicit + estimated + excluded-seasoning + excluded-accompaniment", () => {
+  // A: 200g, 100 kcal/100g, 10P/5F/2C/1Fi -> 200kcal/20P/10F/4C/2Fi, net=2
+  const foodA = { id: "a", name: "A", source: "usda_fdc", kcalPer100g: 100, proteinPer100g: 10, fatPer100g: 5, carbsPer100g: 2, fiberPer100g: 1 };
+  // B: 50g, 400 kcal/100g, 20P/30F/10C/3Fi -> 200kcal/10P/15F/5C/1.5Fi, net=3.5
+  const foodB = { id: "b", name: "B", source: "usda_fdc", kcalPer100g: 400, proteinPer100g: 20, fatPer100g: 30, carbsPer100g: 10, fiberPer100g: 3 };
+  // C: estimated 10g, 300 kcal/100g, 5P/25F/15C/5Fi -> 30kcal/0.5P/2.5F/1.5C/0.5Fi, net=1
+  const foodC = { id: "c", name: "C", source: "usda_fdc", kcalPer100g: 300, proteinPer100g: 5, fatPer100g: 25, carbsPer100g: 15, fiberPer100g: 5 };
+
+  function matrix() {
+    const a = toIngredientReview(ingredient({ originalText: "200g A", parsedFoodQuery: "a", resolution: "resolved", selectedFood: foodA, quantity: { status: "resolved", grams: 200 }, quantitySource: "explicit" }));
+    const b = toIngredientReview(ingredient({ originalText: "50g B", parsedFoodQuery: "b", resolution: "resolved", selectedFood: foodB, quantity: { status: "resolved", grams: 50 }, quantitySource: "explicit" }));
+    const c = toIngredientReview(ingredient({ originalText: "10g C (estimated)", parsedFoodQuery: "c", resolution: "resolved", selectedFood: foodC, quantity: { status: "resolved", grams: 10 }, quantitySource: "estimated", quantityConfidence: 0.8 }));
+    const salt = toIngredientReview(ingredient({ originalText: "só", parsedFoodQuery: "salt", resolution: "unresolved", selectedFood: null, quantity: null, quantitySource: "unquantified_seasoning", excludeFromNutrition: true }));
+    const bread = toIngredientReview(ingredient({ originalText: "friss kenyér", parsedFoodQuery: "bread", resolution: "unresolved", selectedFood: null, quantity: null, sourceGroup: "For serving", role: "serving_accompaniment", includedInBaseNutrition: false, evidence: "source_group" }));
+    return { a, b, c, salt, bread, all: [a, b, c, salt, bread] };
+  }
+
+  it("every included ingredient's OWN contribution matches the exact hand-computed formula", () => {
+    const { all } = matrix();
+    const result = computeTrustedNutrition(all, 2);
+    expect(result.calculable).toBe(true);
+    // Independently hand-computed expected whole-recipe total (Σ contributions of A, B, C only — salt and bread contribute exactly zero).
+    const expectedTotal = { kcal: 430, protein: 30.5, fat: 27.5, carbs: 10.5, fiber: 4, netCarbs: 6.5 };
+    expect(result.total!.kcal).toBeCloseTo(expectedTotal.kcal, 10);
+    expect(result.total!.protein).toBeCloseTo(expectedTotal.protein, 10);
+    expect(result.total!.fat).toBeCloseTo(expectedTotal.fat, 10);
+    expect(result.total!.carbs).toBeCloseTo(expectedTotal.carbs, 10);
+    expect(result.total!.fiber).toBeCloseTo(expectedTotal.fiber, 10);
+    expect(result.total!.netCarbs).toBeCloseTo(expectedTotal.netCarbs, 10);
+  });
+
+  it("excluded seasoning and excluded serving accompaniment contribute EXACTLY zero to the whole-recipe weight and total", () => {
+    const { a, b, c, all } = matrix();
+    const withoutExclusions = computeTrustedNutrition([a, b, c]);
+    const withExclusions = computeTrustedNutrition(all);
+    // Adding salt + bread to the ingredient list must not change the total at all.
+    expect(withExclusions.total).toEqual(withoutExclusions.total);
+    expect(withExclusions.weightGrams).toEqual(withoutExclusions.weightGrams);
+    expect(withExclusions.weightGrams).toBe(260); // 200 + 50 + 10, salt/bread excluded
+  });
+
+  it("both excluded ingredients remain VISIBLE in the review (never dropped from the ingredient list itself)", () => {
+    const { all } = matrix();
+    expect(all).toHaveLength(5);
+    expect(all.find((i) => i.parsedFoodQuery === "salt")).toBeDefined();
+    expect(all.find((i) => i.parsedFoodQuery === "bread")).toBeDefined();
+  });
+
+  it("per-100g basis is exactly Σcontributions x 100/includedWeightGrams — independently recomputed", () => {
+    const { all } = matrix();
+    const result = computeTrustedNutrition(all);
+    const expectedPer100g = { kcal: 430 * 100 / 260, protein: 30.5 * 100 / 260, fat: 27.5 * 100 / 260, carbs: 10.5 * 100 / 260, fiber: 4 * 100 / 260, netCarbs: 6.5 * 100 / 260 };
+    expect(result.macros!.kcal).toBeCloseTo(expectedPer100g.kcal, 10);
+    expect(result.macros!.protein).toBeCloseTo(expectedPer100g.protein, 10);
+    expect(result.macros!.fat).toBeCloseTo(expectedPer100g.fat, 10);
+    expect(result.macros!.carbs).toBeCloseTo(expectedPer100g.carbs, 10);
+    expect(result.macros!.fiber).toBeCloseTo(expectedPer100g.fiber, 10);
+  });
+
+  it("PHASE 6 — per-serving is exactly wholeRecipeTotal / servingCount, independently recomputed for S=1,2,4", () => {
+    const { all } = matrix();
+    for (const servings of [1, 2, 4]) {
+      const result = computeTrustedNutrition(all, servings);
+      expect(result.perServing!.kcal).toBeCloseTo(430 / servings, 10);
+      expect(result.perServing!.protein).toBeCloseTo(30.5 / servings, 10);
+      expect(result.perServing!.fat).toBeCloseTo(27.5 / servings, 10);
+      expect(result.perServing!.carbs).toBeCloseTo(10.5 / servings, 10);
+    }
+  });
+
+  it("PHASE 6 — invalid/missing/zero/negative servings never produce NaN/Infinity/a fabricated perServing — perServing is simply null", () => {
+    const { all } = matrix();
+    for (const servings of [0, -1, -4, NaN, undefined]) {
+      const result = computeTrustedNutrition(all, servings as any);
+      expect(result.perServing).toBeNull();
+      expect(result.calculable).toBe(true); // the whole-recipe total itself is unaffected by an invalid serving count
+    }
+  });
+
+  it("PHASE 11 — rounding: summing full-precision ingredient contributions avoids the error a naively pre-rounded sum would introduce", () => {
+    // If each ingredient's OWN contribution were rounded to 2dp before
+    // summing (100/3=33.33 x3=99.99 instead of 100.00), the naive approach
+    // would be off by a cent-like error. computeTrustedNutrition must not
+    // do this: it sums full-precision scaleMacros() results.
+    const thirds = { id: "t", name: "Thirds", source: "usda_fdc", kcalPer100g: 100, proteinPer100g: 0, fatPer100g: 0, carbsPer100g: 0, fiberPer100g: 0 };
+    const oneThirdGrams = 100 / 3; // 33.333...g x 3 = exactly 100g again
+    const three = Array.from({ length: 3 }, (_, i) => toIngredientReview(ingredient({ originalText: `slice ${i}`, parsedFoodQuery: "thirds", resolution: "resolved", selectedFood: thirds, quantity: { status: "resolved", grams: oneThirdGrams } })));
+    const result = computeTrustedNutrition(three);
+    expect(result.total!.kcal).toBeCloseTo(100, 9); // NOT 99.99 from premature per-ingredient rounding
+  });
+});
+
+describe("PHASE 18 — incomplete recipe matrix: five blockers vs two non-blockers", () => {
+  const known = { id: "k", name: "Known", source: "usda_fdc", kcalPer100g: 100, proteinPer100g: 10, fatPer100g: 5, carbsPer100g: 2, fiberPer100g: 1 };
+  const trustedOne = () => toIngredientReview(ingredient({ resolution: "resolved", selectedFood: known, quantity: { status: "resolved", grams: 100 } }));
+
+  it("1. an unresolved material Food blocks completeness", () => {
+    const unresolved = toIngredientReview(ingredient({ resolution: "unresolved", selectedFood: null, quantity: null }));
+    expect(computeTrustedNutrition([trustedOne(), unresolved]).calculable).toBe(false);
+  });
+  it("2. a confirmation_required Food blocks completeness even with a resolved-looking quantity", () => {
+    const pending = toIngredientReview(ingredient({ resolution: "confirmation_required", selectedFood: known, quantity: { status: "resolved", grams: 50 } }));
+    expect(computeTrustedNutrition([trustedOne(), pending]).calculable).toBe(false);
+  });
+  it("3. an unknown material quantity blocks completeness even for a resolved Food", () => {
+    const noQty = toIngredientReview(ingredient({ resolution: "resolved", selectedFood: known, quantity: null }));
+    expect(computeTrustedNutrition([trustedOne(), noQty]).calculable).toBe(false);
+  });
+  it("6. an excluded unquantified seasoning does NOT block completeness", () => {
+    const salt = toIngredientReview(ingredient({ resolution: "unresolved", selectedFood: null, quantity: null, quantitySource: "unquantified_seasoning", excludeFromNutrition: true }));
+    expect(computeTrustedNutrition([trustedOne(), salt]).calculable).toBe(true);
+  });
+  it("7. an excluded serving accompaniment does NOT block completeness, even fully unresolved", () => {
+    const bread = toIngredientReview(ingredient({ resolution: "unresolved", selectedFood: null, quantity: null, sourceGroup: "For serving", role: "serving_accompaniment", includedInBaseNutrition: false }));
+    expect(computeTrustedNutrition([trustedOne(), bread]).calculable).toBe(true);
   });
 });

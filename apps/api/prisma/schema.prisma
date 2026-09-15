@@ -239,14 +239,26 @@ model Recipe {
 model RecipeIngredient {
   id            String @id @default(cuid())
   recipeId      String
-  foodId        String
-  quantityGrams Float
+  foodId        String?
+  quantityGrams Float?
   originalText  String?
   preparation   String?
+  sourceGroup   String?
+  role          RecipeIngredientRole @default(core)
+  optional      Boolean @default(false)
+  includedInBaseNutrition Boolean @default(true)
+  roleProvenance Json?
   sortOrder     Int @default(0)
   recipe        Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
-  food          Food @relation(fields: [foodId], references: [id])
+  food          Food? @relation(fields: [foodId], references: [id])
 
   @@index([recipeId, sortOrder])
   @@index([foodId])
+}
+
+enum RecipeIngredientRole {
+  core
+  seasoning
+  garnish
+  serving_accompaniment
 }
