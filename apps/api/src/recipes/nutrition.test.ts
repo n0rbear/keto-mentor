@@ -31,6 +31,39 @@ describe("recipe nutrition calculator", () => {
     const snapshot = scaleRecipeSnapshot(result.total.macros, result.total.nutrients, 0.5);
     expect(snapshot.macros.kcal).toBe(200); expect(snapshot.nutrients.calcium.amount).toBe(100); expect(result.total.macros.kcal).toBe(400);
   });
+  // Owner-beta checkpoint (2026-09-15) — final recipe nutrition review: a
+  // real, reproduced live bug. computeTrustedNutrition (the PREVIEW path)
+  // correctly excludes an unquantified seasoning (no fixed gram amount —
+  // "salt, pepper to taste") from nutrition while keeping it visible and
+  // NOT blocking completeness. But the actual PERSISTED-recipe calculator
+  // only ever checked includedInBaseNutrition — an unquantified seasoning is
+  // includedInBaseNutrition=true (it IS a real core ingredient) with
+  // quantityGrams=null, so this threw "recipe_nutrition_not_calculable" for
+  // any real recipe containing one (extremely common), even though the
+  // preview correctly showed it complete.
+  it("PHASE 15 — an unquantified seasoning (role=seasoning, quantityGrams=null, includedInBaseNutrition=true) contributes zero and does NOT throw", () => {
+    const withSeasoning = recipe();
+    withSeasoning.ingredients.push({
+      id: "i3", recipeId: "r1", foodId: "f3", quantityGrams: null, originalText: "só, bors", preparation: null,
+      role: "seasoning", includedInBaseNutrition: true, sortOrder: 2,
+      food: { id: "f3", name: "Salt", names: null, synonyms: null, brand: null, barcode: null, source: "usda_fdc", sourceId: "3", originalName: "Salt", category: null, searchText: "salt", provenance: null, servingUnit: null, servingGrams: null, kcalPer100g: 0, fatPer100g: 0, proteinPer100g: 0, carbsPer100g: 0, fiberPer100g: 0, createdById: null, createdAt: new Date(), nutrients: [] }
+    });
+    const withSeasoningResult = calculateRecipeNutrition(withSeasoning);
+    // Identical total to the seasoning-free recipe — zero contribution, not an error.
+    expect(withSeasoningResult.total.macros.kcal).toBe(400);
+    expect(withSeasoningResult.ingredientWeightGrams).toBe(300);
+  });
+
+  it("a genuinely missing quantity on an ORDINARY (non-seasoning) ingredient still throws — the seasoning exemption is not a blanket relaxation", () => {
+    const broken = recipe();
+    broken.ingredients.push({
+      id: "i4", recipeId: "r1", foodId: "f4", quantityGrams: null, originalText: "mystery item", preparation: null,
+      role: "core", includedInBaseNutrition: true, sortOrder: 2,
+      food: { id: "f4", name: "Mystery", names: null, synonyms: null, brand: null, barcode: null, source: "usda_fdc", sourceId: "4", originalName: "Mystery", category: null, searchText: "mystery", provenance: null, servingUnit: null, servingGrams: null, kcalPer100g: 50, fatPer100g: 1, proteinPer100g: 1, carbsPer100g: 1, fiberPer100g: 0, createdById: null, createdAt: new Date(), nutrients: [] }
+    });
+    expect(() => calculateRecipeNutrition(broken)).toThrow("recipe_nutrition_not_calculable");
+  });
+
   it("computes correct macro totals from the lean list projection, which omits food.nutrients entirely", () => {
     const lean = {
       id: "r1", userId: "u1", title: "Lean", description: null, servings: 2, finishedWeightGrams: null,
