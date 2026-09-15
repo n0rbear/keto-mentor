@@ -46,7 +46,6 @@ import { NegativeSearchCache } from "./web-knowledge/negative-search-cache.js";
 import { RecipeDiscoveryService } from "./recipes/recipe-discovery.js";
 import { configuredRecipeAiProvider } from "./recipes/recipe-ai-gateway.js";
 import { publishProgress, subscribeProgress, closeProgress } from "./meal-input/progress-bus.js";
-import { MissingAuthoritativeFoodResolver } from "./catalog/missing-authoritative-food.js";
 
 const logger = createLogger(env.NODE_ENV === "production" ? "info" : "debug");
 const app = express();
@@ -105,7 +104,6 @@ const recipeIngredientDynamicResolutionLimiter = new DynamicFoodResolutionRateLi
 // second instance is intentional and cheap (stateless besides id/model), so
 // this file never needs to import from recipes/router.ts.
 const webKnowledgeSearchProvider = configuredWebKnowledgeSearchProvider(env);
-const missingFoodResolver = new MissingAuthoritativeFoodResolver(webKnowledgeSearchProvider);
 const webKnowledgeSearchRateLimiter = new WebKnowledgeSearchRateLimiter();
 const recipeDiscoveryNegativeCache = new NegativeSearchCache();
 const recipeDiscoveryAiProvider = configuredRecipeAiProvider(env);
@@ -341,7 +339,7 @@ app.post("/meal-input/interpret", requireAuth, async (req, res, next) => {
     // never adds a request on a local hit. No adapters configured (e.g. no
     // USDA_FDC_API_KEY) means dynamic resolution is simply not offered.
     const dynamic = externalFoodAdapters.length
-      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale: trustedLocale(req.user!), localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, missingFoodResolver }
+      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale: trustedLocale(req.user!), localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider }
       : null;
     // Same deps, but with recipeIngredientDynamicResolutionLimiter in place
     // of dynamicFoodResolutionLimiter — see that limiter's own comment.
@@ -436,7 +434,7 @@ app.post("/meals", requireAuth, async (req, res, next) => {
     // contains a recipe-discovery item, at which point its own explicit
     // recipe_discovery_unavailable check fires instead of resolving anything.
     const recipeDynamic = externalFoodAdapters.length
-      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: recipeIngredientDynamicResolutionLimiter, userId: req.user!.id, locale: trustedLocale(req.user!), localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, missingFoodResolver }
+      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: recipeIngredientDynamicResolutionLimiter, userId: req.user!.id, locale: trustedLocale(req.user!), localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider }
       : null;
     const meal = await createMeal(prisma, req.user!.id, input, { recipeAiProvider: recipeDiscoveryAiProvider, dynamic: recipeDynamic });
     res.status(201).json({ meal });

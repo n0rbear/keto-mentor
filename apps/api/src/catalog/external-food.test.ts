@@ -417,6 +417,86 @@ describe("semantic candidate gate on resolveAuthoritativeFood (owner-beta blocke
     expect(getCreated()).toMatchObject({ sourceId: "170026" });
   });
 
+  // Owner-beta checkpoint (2026-09-15): CRITICAL EXAMPLE — TOMATO STALE
+  // CACHE. Live, reproduced bug: this catalog's only locally cached "tomato"
+  // Food was "Tomatoes, red, ripe, cooked", reachable via an unreviewed
+  // dynamic_search alias learned from an earlier, unrelated resolution.
+  // Every future "1 db paradicsom" (an ordinary FRESH tomato, no cooked
+  // wording at all) kept silently reusing it forever, purely because it was
+  // the only thing already cached — never because it was actually correct.
+  // A trusted local match must not permanently outrank real external/gate
+  // evidence merely because it is cached; this proves the fast path is
+  // skipped for exactly this narrow, reproduced case (an unreviewed
+  // dynamic_search alias whose own name textually disagrees with the
+  // source's stated preparation) and the pipeline falls through to a fresh
+  // authoritative search, correctly finding and auto-resolving the raw form.
+  it("STALE LOCAL CACHE — TOMATO: a form-mismatched dynamic_search alias does not win merely because it is cached; falls through to a fresh authoritative search and resolves the raw form", async () => {
+    const cookedTomato = { id: "cooked-tomato", name: "Tomatoes, red, ripe, cooked", originalName: "Tomatoes, red, ripe, cooked", names: { en: "Tomatoes, red, ripe, cooked" }, searchText: "tomatoes red ripe cooked", createdById: null, servings: [] };
+    const prisma: any = {
+      food: {
+        findUnique: async () => null,
+        findMany: async ({ where }: any) => {
+          const variants: string[] = (where?.OR ?? []).map((c: any) => c.searchText?.contains).filter(Boolean);
+          return [cookedTomato].filter((f) => variants.some((v) => f.searchText.includes(String(v).toLowerCase())));
+        },
+        create: async ({ data }: any) => ({ id: "new-tomato", ...data })
+      },
+      foodAlias: {
+        findFirst: async () => null,
+        // A prior (buggy) dynamic resolution learned "tomato" as an
+        // unreviewed dynamic_search alias for the cooked record — exactly
+        // the reproduced live bug this test protects against.
+        findMany: async ({ where }: any) => {
+          const variants: string[] = (where?.OR ?? []).map((c: any) => c.normalizedAlias?.contains).filter(Boolean);
+          return variants.some((v) => "tomato".includes(v)) ? [{ foodId: "cooked-tomato", normalizedAlias: "tomato", kind: "dynamic_search" }] : [];
+        },
+        createMany: async () => ({ count: 1 })
+      },
+      nutrient: { upsert: async ({ create }: any) => ({ id: `nutrient-${create.key}`, ...create }) },
+      foodNutrient: { create: async () => ({}) },
+      $transaction: async (fn: any) => fn(prisma)
+    };
+    const rawTomato = candidate({ sourceId: "170457", name: "Tomatoes, red, ripe, raw", originalName: "Tomatoes, red, ripe, raw", normalizedName: "tomatoes red ripe raw", matchPolicy: "review_required", confidence: 0.6 });
+    const result = await resolveAuthoritativeFood(prisma, "tomato", [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [rawTomato] }], undefined, {
+      provider: gateFor(["Tomatoes, red, ripe, raw"]), originalIdentity: "paradicsom", rawIngredient: "1 db paradicsom"
+    });
+    expect(result.status).toBe("resolved_external");
+    expect((result as any).food.sourceId).toBe("170457");
+  });
+
+  // Symmetric regression: a locally cached RAW candidate must not win when
+  // the source explicitly states a cooked preparation either.
+  it("STALE LOCAL CACHE — symmetric: a cached raw candidate does not win when the source explicitly states a cooked preparation", async () => {
+    const rawLocal = { id: "raw-tomato", name: "Tomatoes, red, ripe, raw", originalName: "Tomatoes, red, ripe, raw", names: { en: "Tomatoes, red, ripe, raw" }, searchText: "tomatoes red ripe raw", createdById: null, servings: [] };
+    const prisma: any = {
+      food: {
+        findUnique: async () => null,
+        findMany: async ({ where }: any) => {
+          const variants: string[] = (where?.OR ?? []).map((c: any) => c.searchText?.contains).filter(Boolean);
+          return [rawLocal].filter((f) => variants.some((v) => f.searchText.includes(String(v).toLowerCase())));
+        },
+        create: async ({ data }: any) => ({ id: "new-tomato-cooked", ...data })
+      },
+      foodAlias: {
+        findFirst: async () => null,
+        findMany: async ({ where }: any) => {
+          const variants: string[] = (where?.OR ?? []).map((c: any) => c.normalizedAlias?.contains).filter(Boolean);
+          return variants.some((v) => "tomato".includes(v)) ? [{ foodId: "raw-tomato", normalizedAlias: "tomato", kind: "dynamic_search" }] : [];
+        },
+        createMany: async () => ({ count: 1 })
+      },
+      nutrient: { upsert: async ({ create }: any) => ({ id: `nutrient-${create.key}`, ...create }) },
+      foodNutrient: { create: async () => ({}) },
+      $transaction: async (fn: any) => fn(prisma)
+    };
+    const cookedTomatoExternal = candidate({ sourceId: "170050", name: "Tomatoes, red, ripe, cooked", originalName: "Tomatoes, red, ripe, cooked", normalizedName: "tomatoes red ripe cooked", matchPolicy: "review_required", confidence: 0.6 });
+    const result = await resolveAuthoritativeFood(prisma, "tomato", [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [cookedTomatoExternal] }], undefined, {
+      provider: gateFor(["Tomatoes, red, ripe, cooked"]), originalIdentity: "paradicsom", rawIngredient: "2 főtt paradicsom"
+    });
+    expect(result.status).toBe("resolved_external");
+    expect((result as any).food.sourceId).toBe("170050");
+  });
+
   // Required security test: token/substring overlap alone must never be
   // sufficient — the gate result is what decides, not shared words.
   it("token overlap between candidate and search term is NOT sufficient by itself — the gate's explicit verdict is what decides, even for a token-plausible candidate", async () => {

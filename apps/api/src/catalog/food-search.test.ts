@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { PrismaClient } from "@prisma/client";
-import { expandFoodQuery, hasSemanticCoverage, isTrustedLocalMatch, searchFoods } from "./food-search.js";
+import { expandFoodQuery, hasSemanticCoverage, isTrustedLocalMatch, localFormMismatch, searchFoods } from "./food-search.js";
 import { normalizeSearch } from "./normalize.js";
 
 const records = [
@@ -156,5 +156,53 @@ describe("isTrustedLocalMatch: the one shared strong-resolution bar (owner-beta 
     ["fuzzy", 35, false]
   ] as const)("stage=%s score=%i -> trusted=%s", (stage, score, expected) => {
     expect(isTrustedLocalMatch({ stage, score })).toBe(expected);
+  });
+});
+
+describe("localFormMismatch: a stale local cache must not permanently outrank real form evidence (owner-beta checkpoint, 2026-09-15)", () => {
+  const dynamicSearchAlias = { stage: "alias", aliasKind: "dynamic_search" };
+
+  it("flags the reproduced live bug: source states no preparation, the only cached candidate is explicitly cooked", () => {
+    expect(localFormMismatch("Tomatoes, red, ripe, cooked", { rawIngredient: "1 db paradicsom" }, dynamicSearchAlias)).toBe(true);
+  });
+
+  it("flags the symmetric case: source explicitly states a cooked/boiled preparation, the only cached candidate is explicitly raw", () => {
+    expect(localFormMismatch("Tomatoes, red, ripe, raw", { rawIngredient: "2 főtt paradicsom" }, dynamicSearchAlias)).toBe(true);
+    expect(localFormMismatch("Potatoes, raw, skin", { rawIngredient: "500 g főtt burgonya" }, dynamicSearchAlias)).toBe(true);
+  });
+
+  it("does not flag a candidate whose own name agrees with (or is silent about) the source's preparation", () => {
+    expect(localFormMismatch("Garlic, raw", { rawIngredient: "2 gerezd fokhagyma" }, dynamicSearchAlias)).toBe(false);
+    expect(localFormMismatch("Salt, table", { rawIngredient: "1 db paradicsom" }, dynamicSearchAlias)).toBe(false); // neutral candidate name, no state words either way
+  });
+
+  it("never flags a candidate when there is no source evidence at all (no preparation, no raw ingredient text)", () => {
+    expect(localFormMismatch("Tomatoes, red, ripe, cooked", {}, dynamicSearchAlias)).toBe(false);
+  });
+
+  it("never flags a candidate reached via anything OTHER than an unreviewed dynamic_search alias — an exact name match or a human/system-validated alias kind must never be second-guessed by this heuristic", () => {
+    const cases = [
+      { stage: "exact" as const },
+      { stage: "alias", aliasKind: "confirmed_external" }, // explicit human confirmation via /foods/resolve-external/confirm
+      { stage: "alias", aliasKind: "curated_seed" },
+      { stage: "alias", aliasKind: "external" },
+      { stage: "alias", aliasKind: "synonym" },
+      { stage: "alias", aliasKind: "localized_name" }
+    ];
+    for (const match of cases) {
+      expect(localFormMismatch("Tomatoes, red, ripe, cooked", { rawIngredient: "1 db paradicsom" }, match)).toBe(false);
+    }
+  });
+
+  it("falls back to the unscoped check when no match provenance is supplied at all (backward compatibility for callers without it)", () => {
+    expect(localFormMismatch("Tomatoes, red, ripe, cooked", { rawIngredient: "1 db paradicsom" })).toBe(true);
+  });
+
+  it("must never flag a processed-derivative candidate as merely 'cooked' — this heuristic is intentionally narrow (raw vs cooked state only), the derivative/different-food distinction remains the semantic gate's job", () => {
+    // "Bread, potato" contains none of the cooked/raw vocabulary at all —
+    // this check correctly has nothing to say about it either way; rejecting
+    // it is external-food.test.ts's semantic-gate responsibility, not this
+    // cheap textual heuristic's.
+    expect(localFormMismatch("Bread, potato", { rawIngredient: "500 g krumpli" }, dynamicSearchAlias)).toBe(false);
   });
 });

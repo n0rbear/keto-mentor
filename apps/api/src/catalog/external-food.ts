@@ -2,7 +2,7 @@ import type { FoodSource, PrismaClient } from "@prisma/client";
 import { z } from "zod";
 import type { Locale } from "@keto-mentor/shared";
 import { buildSearchText, normalizeSearch } from "./normalize.js";
-import { isTrustedLocalMatch, searchFoods } from "./food-search.js";
+import { isTrustedLocalMatch, localFormMismatch, searchFoods } from "./food-search.js";
 import type { ImportFood, ImportNutrient } from "../importers/types.js";
 import { localizeCandidateNames, type CandidateLocalizationProvider, type LocalizationLocale } from "./candidate-localization.js";
 import type { SemanticCandidateGateProvider } from "./semantic-candidate-gate.js";
@@ -74,8 +74,7 @@ const REQUIRED_MACROS = ["kcalPer100g", "fatPer100g", "proteinPer100g", "carbsPe
 // own sourceUrl — a candidate claiming source: "open_food_facts" but linking
 // to some other host (or vice versa) is rejected outright.
 const TRUSTED_SOURCE_HOSTS: Partial<Record<string, readonly string[]>> = {
-  usda_fdc: ["fdc.nal.usda.gov"], open_food_facts: ["world.openfoodfacts.org"],
-  manufacturer: ["univer.hu", "univer.ro"], open_database: ["myfcd.moh.gov.my"]
+  usda_fdc: ["fdc.nal.usda.gov"], open_food_facts: ["world.openfoodfacts.org"]
 };
 
 function finiteNonNegative(value: unknown): value is number {
@@ -309,7 +308,30 @@ export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: 
   // see isTrustedLocalMatch. A weak local echo is discarded here (falling
   // through to the external adapters below, exactly as a genuine local miss
   // would) rather than promoted; it never becomes an invented candidate.
-  if (local.length && isTrustedLocalMatch(local[0].match)) return { status: "resolved_local", food: local[0] };
+  const trustedLocal = local.filter((food) => isTrustedLocalMatch(food.match));
+  // Owner-beta checkpoint (2026-09-15): a trusted local match must not win
+  // merely because it is the only (or the alphabetically-first) thing
+  // already cached — see localFormMismatch. Live, reproduced case: this
+  // catalog's only cached "tomato" Food was "Tomatoes, red, ripe, cooked",
+  // learned as a dynamic_search alias from an earlier, unrelated session; an
+  // ordinary "1 db paradicsom" (no cooked wording at all) kept silently
+  // reusing it forever. Prefer the first trusted candidate whose own name
+  // does NOT textually conflict with the source's stated preparation; only
+  // when no adapters are configured (nowhere better to look) does a
+  // form-mismatched trusted candidate still win, as the best available
+  // answer. Only evaluated when a REAL (non-disabled) semantic gate is
+  // configured — resolveFromSearchTerm always passes a truthy semanticGate
+  // options object even when no real gate exists (it defaults the provider
+  // to DisabledSemanticCandidateGateProvider), so checking truthiness alone
+  // would skip a perfectly good, zero-cost local/alias match (including an
+  // explicitly user-CONFIRMED one — see confirmAuthoritativeFood) with
+  // nowhere safe to fall through to, since a disabled gate approves nothing.
+  const hasRealSemanticGate = !!semanticGate && semanticGate.provider.id !== "disabled";
+  const formEvidence = hasRealSemanticGate ? { rawIngredient: semanticGate!.rawIngredient ?? semanticGate!.originalIdentity } : undefined;
+  const localMatch = formEvidence
+    ? trustedLocal.find((food) => !localFormMismatch(food.originalName ?? food.name, formEvidence, food.match)) ?? (adapters.length === 0 ? trustedLocal[0] : undefined)
+    : trustedLocal[0];
+  if (localMatch) return { status: "resolved_local", food: localMatch };
   if (!adapters.length) return { status: "unresolved", candidates: [], reason: "external_unavailable" };
 
   let rawCandidates: unknown[] = [];

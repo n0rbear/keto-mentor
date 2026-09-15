@@ -1,4 +1,4 @@
-import { searchFoods, isTrustedLocalMatch, foodNameRepresentations, hasSemanticCoverage } from "../catalog/food-search.js";
+import { searchFoods, isTrustedLocalMatch, foodNameRepresentations, hasSemanticCoverage, localFormMismatch } from "../catalog/food-search.js";
 import { resolveDynamicFoodFromIdentity } from "../catalog/dynamic-food-resolution.js";
 import { resolveQuantity, type DynamicResolutionDeps } from "../meal-input/interpret.js";
 import { DisabledQuantityEstimationProvider } from "../meal-input/quantity-estimation.js";
@@ -71,11 +71,28 @@ export async function resolveRecipeIngredientsBatch(
       // an exact lexical hit for a DIFFERENT canonical food outrank it.
       const trustedCanonical = canonicalCandidates.filter((candidate) => isTrustedLocalMatch(candidate.match));
       const explicitPreparedState = !!(food.preparation ?? line.parsed.preparation) || /\b(cooked|boiled|roasted|fried|grilled|főtt|sült|párolt|gekocht|gebraten)\b/i.test(line.raw);
+      // Owner-beta checkpoint (2026-09-15): a trusted local candidate must
+      // not win merely because it is the only (or first) thing already
+      // cached — see localFormMismatch. Live, reproduced case: this
+      // catalog's only cached "tomato" Food was "Tomatoes, red, ripe,
+      // cooked" (a stale dynamic_search alias from an earlier session);
+      // every future "1 db paradicsom" — an ordinary fresh tomato, no
+      // cooked wording at all — silently kept reusing it. A form-mismatched
+      // trusted candidate is excluded from the fast path entirely, falling
+      // through to full authoritative search + semantic gate instead. Only
+      // evaluated when a REAL (non-disabled) semantic gate is configured —
+      // without one, excluding a mismatched local candidate has nowhere
+      // safe to fall through to, so the pre-existing (unfiltered) behavior
+      // applies unchanged.
+      const hasRealSemanticGate = !!dynamic?.semanticCandidateGateProvider && dynamic.semanticCandidateGateProvider.id !== "disabled";
+      const formEvidence = { rawIngredient: line.raw };
+      const formCompatible = (candidate: any) => !hasRealSemanticGate || !localFormMismatch(candidate.originalName ?? candidate.name, formEvidence, candidate.match);
+      const formCompatibleCanonical = trustedCanonical.filter(formCompatible);
       const canonicalTop = !explicitPreparedState
-        ? trustedCanonical.find((candidate) => /\braw\b/i.test(candidate.originalName ?? candidate.name) && !/\b(cooked|boiled|roasted|fried)\b/i.test(candidate.originalName ?? candidate.name)) ?? trustedCanonical[0]
-        : trustedCanonical[0];
+        ? formCompatibleCanonical.find((candidate) => /\braw\b/i.test(candidate.originalName ?? candidate.name) && !/\b(cooked|boiled|roasted|fried)\b/i.test(candidate.originalName ?? candidate.name)) ?? formCompatibleCanonical[0]
+        : formCompatibleCanonical[0];
       const top = canonicalTop
-        ?? sourceCandidates.find((candidate) => isTrustedLocalMatch(candidate.match) && (
+        ?? sourceCandidates.find((candidate) => isTrustedLocalMatch(candidate.match) && formCompatible(candidate) && (
           hasSemanticCoverage(identityQuery, foodNameRepresentations(candidate))
           // A persisted manufacturer/national-database Food reached this
           // exact strong source-phrase alias only after authoritative

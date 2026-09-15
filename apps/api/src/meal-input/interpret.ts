@@ -1,7 +1,7 @@
 import type { PrismaClient } from "@prisma/client";
 import type { FoodUnderstanding, FoodUnderstandingItem, Locale, QuantityClarification } from "@keto-mentor/shared";
 import { parseNaturalFoodQuery, type ParsedNaturalFoodQuery } from "../catalog/natural-food-query.js";
-import { foodNameRepresentations, hasSemanticCoverage, isTrustedLocalMatch, searchFoods } from "../catalog/food-search.js";
+import { foodNameRepresentations, hasSemanticCoverage, isTrustedLocalMatch, localFormMismatch, searchFoods } from "../catalog/food-search.js";
 import type { RecipeDiscoveryPreview } from "../recipes/recipe-discovery.js";
 import { DisabledQuantityEstimationProvider, type EstimateMethod, type QuantityEstimationClass, type QuantityEstimationMethodClass, type QuantityEstimationProvider, type VolumeQuantityModel, validateQuantityEstimate } from "./quantity-estimation.js";
 import { normalizeSearch } from "../catalog/normalize.js";
@@ -374,7 +374,17 @@ async function interpretOne(
   }
 
   const prepUnavailable = needsPreparedFormLookup && !preparedFound;
-  const locallyTrusted = !!top.match && isTrustedLocalMatch(top.match);
+  // Owner-beta checkpoint (2026-09-15): a trusted local match must not win
+  // merely because it is already cached — see localFormMismatch. Only
+  // relevant when a REAL (non-disabled) semantic gate is actually
+  // configured — without one, skipping the local match has nowhere safe to
+  // fall through to (a disabled gate approves nothing) and would just
+  // regress a perfectly good, zero-cost local/confirmed-alias match to a
+  // wasted call or an outright miss.
+  const hasRealSemanticGate = !!dynamic?.semanticCandidateGateProvider && dynamic.semanticCandidateGateProvider.id !== "disabled";
+  const localFormMismatched = !!top.match && isTrustedLocalMatch(top.match) && hasRealSemanticGate
+    && localFormMismatch(top.originalName ?? top.name, { rawIngredient: input }, top.match);
+  const locallyTrusted = !!top.match && isTrustedLocalMatch(top.match) && !localFormMismatched;
 
   // Owner-beta checkpoint (2026-09-13): the ingredient-resolution forensic
   // trace proved a WEAK local partial match (e.g. "zsír" scoring low enough

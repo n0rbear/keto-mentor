@@ -89,6 +89,42 @@ describe("resolveRecipeIngredientsBatch", () => {
     const prepared = await resolveRecipeIngredientsBatch(fake, provider, { lines: [{ index: 0, raw: "1 cooked tomato", parsed: parseNaturalFoodQuery("1 cooked tomato") }] }, null);
     expect(prepared?.[0].selectedFood?.id).toBe("cooked");
   });
+  // Owner-beta checkpoint (2026-09-15): CRITICAL EXAMPLE — TOMATO STALE
+  // CACHE, live/reproduced. When a REAL semantic gate is configured, a
+  // locally trusted candidate reached only via an unreviewed dynamic_search
+  // alias (learned from an earlier, unrelated resolution) must not
+  // permanently win merely because it is cached — see localFormMismatch. The
+  // fast path here excludes it, falls through to dynamic resolution, and the
+  // full authoritative search + gate correctly finds the raw form instead.
+  it("STALE LOCAL CACHE — TOMATO: a form-mismatched dynamic_search-aliased local candidate is excluded from the fast path and dynamic resolution finds the raw form instead", async () => {
+    const cookedTomato = { id: "cooked-tomato", name: "Tomatoes, red, ripe, cooked", originalName: "Tomatoes, red, ripe, cooked", names: { en: "Tomatoes, red, ripe, cooked" }, searchText: "tomatoes red ripe cooked", createdById: null, servings: [] };
+    const prisma: any = {
+      food: {
+        findUnique: async () => null,
+        findMany: async ({ where }: any) => {
+          const variants: string[] = (where?.OR ?? []).map((c: any) => c.searchText?.contains).filter(Boolean);
+          return [cookedTomato].filter((f) => variants.some((v) => f.searchText.includes(String(v).toLowerCase())));
+        },
+        create: async ({ data }: any) => ({ id: "new-tomato", ...data })
+      },
+      foodAlias: {
+        findFirst: async () => null,
+        findMany: async ({ where }: any) => {
+          const variants: string[] = (where?.OR ?? []).map((c: any) => c.normalizedAlias?.contains).filter(Boolean);
+          return variants.some((v) => "tomato".includes(v)) ? [{ foodId: "cooked-tomato", normalizedAlias: "tomato", kind: "dynamic_search" }] : [];
+        },
+        createMany: async () => ({ count: 1 })
+      },
+      nutrient: { upsert: async ({ create }: any) => ({ id: `nutrient-${create.key}`, ...create }) },
+      foodNutrient: { create: async () => ({}) },
+      $transaction: async (fn: any) => fn(prisma)
+    };
+    const rawTomato = externalCandidate({ sourceId: "170457", originalName: "Tomatoes, red, ripe, raw", name: "Tomatoes, red, ripe, raw", normalizedName: "tomatoes red ripe raw" });
+    const dynamic = dynamicDeps(prisma, async () => [rawTomato]);
+    const provider = normalizationProvider({ ingredients: [{ index: 0, foods: [{ canonicalIdentity: "tomato" }] }] });
+    const result = await resolveRecipeIngredientsBatch(prisma, provider, { lines: [{ index: 0, raw: "1 db paradicsom", parsed: parseNaturalFoodQuery("1 db paradicsom") }] }, dynamic);
+    expect(result?.[0].selectedFood).toMatchObject({ sourceId: "170457" });
+  });
   it("retries only quantity indexes omitted by the first batch and stays fail-closed after one retry", async () => {
     const { prisma } = fakePrisma();
     let calls = 0;
