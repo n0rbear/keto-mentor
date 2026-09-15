@@ -55,7 +55,20 @@ function dynamicDeps(prisma: any, adapterLookup: (q: string) => Promise<unknown[
     prisma, searchIntentProvider: { id: "unused", generate: async () => null },
     adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: adapterLookup }],
     rateLimiter: new DynamicFoodResolutionRateLimiter(), userId: "user-1",
-    semanticCandidateGateProvider: { id: "fixture", checkRelevance: async (_o, candidates) => new Map(candidates.map((c) => [c.id, gateApprovesAll])) }
+    semanticCandidateGateProvider: { id: "fixture", checkRelevance: async (_o, candidates) => new Map(candidates.map((c) => [c.id, gateApprovesAll])) },
+    // The recipe-batch resolver (catalog/dynamic-food-resolution-batch.ts)
+    // uses ONLY this batch-shaped gate, never the single-ingredient one
+    // above — see the owner-beta checkpoint (2026-09-15) cold-path
+    // performance work.
+    recipeSemanticGateProvider: {
+      id: "fixture",
+      checkRelevanceBatch: async (input) => {
+        const map = new Map<string, { relationship: "same_identity"; formCompatibility: "compatible"; contextualFit: "best_match" }>();
+        if (!gateApprovesAll) return map;
+        for (const ingredient of input.ingredients) for (const candidate of ingredient.candidates) map.set(`${ingredient.index}:${candidate.index}`, { relationship: "same_identity", formCompatibility: "compatible", contextualFit: "best_match" });
+        return map;
+      }
+    }
   };
 }
 
@@ -172,15 +185,17 @@ describe("resolveRecipeIngredientsBatch", () => {
     expect(result![0].selectedFood?.name).toBe("Garlic, raw");
   });
 
-  it("passes canonical identity, raw ingredient, and recipe title to the semantic safety gate", async () => {
+  it("passes canonical identity, raw ingredient, and recipe title to the batched semantic safety gate", async () => {
     const { prisma } = fakePrisma();
     let captured: any;
     const deps = dynamicDeps(prisma, async () => [externalCandidate({ originalName: "Mustard, prepared, yellow", name: "Mustard, prepared, yellow", normalizedName: "mustard prepared yellow" })]);
-    deps.semanticCandidateGateProvider = {
+    deps.recipeSemanticGateProvider = {
       id: "capturing-fixture",
-      checkRelevance: async (original, candidates) => {
-        captured = original;
-        return new Map(candidates.map((entry) => [entry.id, true]));
+      checkRelevanceBatch: async (input) => {
+        captured = input;
+        const map = new Map<string, { relationship: "same_identity"; formCompatibility: "compatible"; contextualFit: "best_match" }>();
+        for (const ingredient of input.ingredients) for (const candidate of ingredient.candidates) map.set(`${ingredient.index}:${candidate.index}`, { relationship: "same_identity", formCompatibility: "compatible", contextualFit: "best_match" });
+        return map;
       }
     };
     await resolveRecipeIngredientsBatch(
@@ -189,7 +204,8 @@ describe("resolveRecipeIngredientsBatch", () => {
       { title: "Klasszikus gulyásleves", locale: "hu", lines: [{ index: 0, raw: "1-2 tk mustár", parsed: parseNaturalFoodQuery("1-2 tk mustár") }] },
       deps
     );
-    expect(captured).toMatchObject({ identity: "prepared mustard", canonicalIdentity: "prepared mustard", rawIngredient: "1-2 tk mustár", recipeTitle: "Klasszikus gulyásleves" });
+    expect(captured.recipeTitle).toBe("Klasszikus gulyásleves");
+    expect(captured.ingredients).toMatchObject([{ identity: "prepared mustard", rawIngredient: "1-2 tk mustár" }]);
   });
 
   // Owner-beta checkpoint (2026-09-13): the "só, bors" case from the

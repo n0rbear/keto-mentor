@@ -35,7 +35,7 @@ type DynamicPrisma = Parameters<typeof resolveAuthoritativeFood>[0];
  * and "Champignoncremesuppe" got permanently, silently aliased to "bok choy"
  * and "beech mushroom".
  */
-async function learnSearchAlias(prisma: DynamicPrisma, food: { id: string; name?: unknown; originalName?: unknown; names?: unknown }, rawQuery: string, locale: string | undefined) {
+export async function learnSearchAlias(prisma: DynamicPrisma, food: { id: string; name?: unknown; originalName?: unknown; names?: unknown }, rawQuery: string, locale: string | undefined) {
   const normalizedAlias = normalizeSearch(rawQuery);
   if (!normalizedAlias || normalizedAlias.length < 2) return;
   if (!hasSemanticCoverage(normalizedAlias, foodNameRepresentations(food))) return;

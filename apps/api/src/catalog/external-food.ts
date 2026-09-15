@@ -167,9 +167,9 @@ export function validateExternalCandidate(value: unknown): ExternalFoodCandidate
   return { ...candidate, normalizedName, nutrients } as ExternalFoodCandidate;
 }
 
-type ResolutionPrisma = Pick<PrismaClient, "food" | "foodAlias" | "nutrient" | "foodNutrient" | "$transaction"> & Partial<Pick<PrismaClient, "$queryRaw">>;
+export type ResolutionPrisma = Pick<PrismaClient, "food" | "foodAlias" | "nutrient" | "foodNutrient" | "$transaction"> & Partial<Pick<PrismaClient, "$queryRaw">>;
 
-async function findDuplicate(prisma: ResolutionPrisma, candidate: ExternalFoodCandidate) {
+export async function findDuplicate(prisma: ResolutionPrisma, candidate: ExternalFoodCandidate) {
   const sourceMatch = await prisma.food.findUnique({
     where: { source_sourceId: { source: candidate.source, sourceId: candidate.sourceId } },
     include: { servings: true }

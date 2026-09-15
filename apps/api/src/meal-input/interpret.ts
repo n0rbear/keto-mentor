@@ -14,6 +14,7 @@ import type { CandidateLocalizationProvider } from "../catalog/candidate-localiz
 import type { DynamicFoodResolutionRateLimiter } from "../catalog/dynamic-food-rate-limit.js";
 import type { FoodLocale } from "../catalog/food-locale.js";
 import type { SemanticCandidateGateProvider } from "../catalog/semantic-candidate-gate.js";
+import type { RecipeSemanticGateProvider } from "../catalog/semantic-candidate-gate-batch.js";
 import { DEFAULT_CONCURRENCY, mapWithConcurrency, timeStage } from "../request-performance.js";
 import type { ProgressStage } from "./progress-bus.js";
 
@@ -86,6 +87,15 @@ export type DynamicResolutionDeps = {
   // provider to DisabledSemanticCandidateGateProvider, which FAILS CLOSED
   // (rejects every candidate), never silently skips the check.
   semanticCandidateGateProvider?: SemanticCandidateGateProvider;
+  // Owner-beta checkpoint (2026-09-15): cold-path performance. Only consumed
+  // by resolveRecipeIngredientsBatch's batched dynamic resolution
+  // (catalog/dynamic-food-resolution-batch.ts) — interpretOne's own
+  // per-item path never reads this field, since it only ever resolves one
+  // food at a time and has nothing to batch. Optional so every existing
+  // caller/fixture that predates this keeps compiling unchanged; a missing
+  // provider degrades to DisabledRecipeSemanticGateProvider inside the
+  // recipe-batch resolver, which also fails CLOSED.
+  recipeSemanticGateProvider?: RecipeSemanticGateProvider;
 } | null;
 
 export type InterpretResult = {

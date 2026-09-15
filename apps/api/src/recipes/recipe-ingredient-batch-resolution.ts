@@ -1,5 +1,6 @@
 import { searchFoods, isTrustedLocalMatch, foodNameRepresentations, hasSemanticCoverage, localFormMismatch } from "../catalog/food-search.js";
-import { resolveDynamicFoodFromIdentity } from "../catalog/dynamic-food-resolution.js";
+import { resolveManyAuthoritativeFoods, type PendingAuthoritativeResolution } from "../catalog/dynamic-food-resolution-batch.js";
+import { DisabledRecipeSemanticGateProvider } from "../catalog/semantic-candidate-gate-batch.js";
 import { resolveQuantity, type DynamicResolutionDeps } from "../meal-input/interpret.js";
 import { DisabledQuantityEstimationProvider } from "../meal-input/quantity-estimation.js";
 import type { ParsedNaturalFoodQuery } from "../catalog/natural-food-query.js";
@@ -40,6 +41,28 @@ export async function resolveRecipeIngredientsBatch(
   const results: BatchResolvedIngredient[] = [];
   const estimationItems: Parameters<RecipeQuantityEstimationProvider["estimate"]>[0]["items"][number][] = [];
 
+  // Owner-beta checkpoint (2026-09-15): cold-path performance. Restructured
+  // from one sequential pass (each ingredient's dynamic resolution — search +
+  // semantic gate + localization — awaited one at a time) into three passes:
+  // (1) local search + per-food fast-path decision, deferring anything that
+  // needs authoritative resolution into a `pending` list instead of resolving
+  // it immediately; (2) ONE call to resolveManyAuthoritativeFoods, which
+  // itself runs external search with bounded concurrency and batches
+  // semantic-gate + localization across EVERY pending ingredient at once
+  // (see catalog/dynamic-food-resolution-batch.ts); (3) finalize quantity for
+  // every food now that its identity is known, exactly as before. Every local
+  // search/fast-path/quantity computation below is byte-for-byte identical to
+  // the previous single-pass version — only WHEN dynamic resolution happens
+  // (batched afterward, not inline) changed.
+  type Draft = {
+    resultIndex: number; line: { index: number; raw: string; parsed: ParsedNaturalFoodQuery };
+    food: { canonicalIdentity: string; preparation?: string }; singleFoodLine: boolean; identityQuery: string;
+    selectedFood: any; resolution: ReviewableIngredient["resolution"]; candidates: ReviewableIngredient["candidates"];
+    externalCandidates?: ReviewableIngredient["externalCandidates"]; externalCandidatesReason?: ReviewableIngredient["externalCandidatesReason"];
+  };
+  const drafts: Draft[] = [];
+  const pending: PendingAuthoritativeResolution[] = [];
+
   for (const line of input.lines) {
     const foods = byIndex.get(line.index)?.foods ?? [];
     if (!foods.length) {
@@ -54,8 +77,6 @@ export async function resolveRecipeIngredientsBatch(
       let selectedFood: any = null;
       let resolution: ReviewableIngredient["resolution"] = "unresolved";
       let candidates: ReviewableIngredient["candidates"] = [];
-      let externalCandidates: ReviewableIngredient["externalCandidates"];
-      let externalCandidatesReason: ReviewableIngredient["externalCandidatesReason"];
 
       // A validated dynamically-created regional/branded Food is persisted
       // under its specific source phrase (for example pritaminpaprika-krém),
@@ -65,7 +86,6 @@ export async function resolveRecipeIngredientsBatch(
       const sourceIdentity = line.parsed.foodQuery.trim();
       const sourceCandidates = sourceIdentity && sourceIdentity !== identityQuery ? (await searchFoods(prisma, sourceIdentity, 8)) as any[] : [];
       const canonicalCandidates = (await searchFoods(prisma, identityQuery, 20)) as any[];
-      const localCandidates = [...canonicalCandidates, ...sourceCandidates.filter((candidate) => !canonicalCandidates.some((canonical) => canonical.id === candidate.id))];
       // Canonical normalization is the stronger identity evidence. A broad
       // source phrase ("mustár", or a split "só, bors" line) must not let
       // an exact lexical hit for a DIFFERENT canonical food outrank it.
@@ -104,39 +124,68 @@ export async function resolveRecipeIngredientsBatch(
           || candidate.source !== "usda_fdc"
         ));
       if (top) { selectedFood = top; resolution = "resolved"; candidates = [top]; }
-      if (!selectedFood && dynamic) {
-        const outcome = await resolveDynamicFoodFromIdentity(dynamic.prisma, { canonicalIdentity: identityQuery, originalIdentity: identityQuery, rawIngredient: line.raw, recipeTitle: input.title, recipeContext: input.context, preparation: food.preparation ?? line.parsed.preparation ?? "as supplied; no pre-cooked state stated", sourceQuantity: line.parsed.quantity, sourceUnit: line.parsed.unit }, dynamic);
-        if (outcome.status === "resolved") { selectedFood = outcome.food; resolution = "resolved"; candidates = [outcome.food]; }
-        else if (outcome.status === "confirmation_required") { resolution = "confirmation_required"; externalCandidates = outcome.candidates; externalCandidatesReason = outcome.reason; }
-      }
 
-      const mass = singleFoodLine ? explicitMass(line.parsed) : null;
-      let quantity: ReviewableIngredient["quantity"] = mass == null ? null : { status: "resolved", grams: mass };
-      let quantitySource: ReviewableIngredient["quantitySource"] = mass == null ? "unknown" : "explicit";
-      let excludeFromNutrition = false;
-      if (isUnquantifiedSeasoning(line.parsed, identityQuery)) {
-        quantitySource = "unquantified_seasoning";
-        excludeFromNutrition = true;
-      } else if (singleFoodLine && mass == null && line.parsed.quantity != null && selectedFood && resolution === "resolved") {
-        const authoritative = await resolveQuantity(line.parsed, selectedFood, new DisabledQuantityEstimationProvider());
-        if (authoritative?.status === "resolved" && !authoritative.requiresConfirmation) {
-          quantity = authoritative;
-          quantitySource = authoritative.method === "authoritative" ? "authoritative_conversion" : "explicit";
-        }
-      }
-
+      // Reserve this food's final slot in `results` NOW, at the same
+      // position it would have occupied in the original single-pass order
+      // (interleaved with "no foods" lines, which push directly) — patched
+      // in place once its identity/quantity are fully known below.
       const resultIndex = results.length;
-      if (singleFoodLine && !quantity && line.parsed.quantity != null && line.parsed.unit) estimationItems.push({ index: resultIndex, sourceIndex: line.index, raw: line.raw, identity: identityQuery, preparation: food.preparation ?? line.parsed.preparation, quantity: line.parsed.quantity, quantityUpper: line.parsed.quantityUpper, unit: line.parsed.unit });
-
-      results.push({
-        originalText: line.raw, parsedQuantity: singleFoodLine ? line.parsed.quantity : undefined, parsedUnit: singleFoodLine ? line.parsed.unit : undefined,
-        parsedFoodQuery: identityQuery, preparation: food.preparation ?? line.parsed.preparation,
-        resolution, selectedFood, candidates, quantity, quantitySource,
-        quantityGrams: quantity?.status === "resolved" ? quantity.grams : undefined,
-        quantityRange: singleFoodLine && line.parsed.quantityUpper != null ? { min: line.parsed.quantity!, max: line.parsed.quantityUpper, unit: line.parsed.unit } : undefined,
-        excludeFromNutrition, canConfirm: resolution === "resolved" && (!!quantity || excludeFromNutrition), externalCandidates, externalCandidatesReason
-      });
+      results.push(undefined as any);
+      const draft: Draft = { resultIndex, line, food, singleFoodLine, identityQuery, selectedFood, resolution, candidates };
+      drafts.push(draft);
+      if (!selectedFood && dynamic) {
+        pending.push({
+          id: String(resultIndex), canonicalIdentity: identityQuery, originalIdentity: identityQuery, rawIngredient: line.raw,
+          preparation: food.preparation ?? line.parsed.preparation ?? "as supplied; no pre-cooked state stated",
+          sourceQuantity: line.parsed.quantity, sourceUnit: line.parsed.unit
+        });
+      }
     }
+  }
+
+  if (pending.length && dynamic) {
+    const outcomes = await resolveManyAuthoritativeFoods(dynamic.prisma, pending, {
+      adapters: dynamic.adapters, rateLimiter: dynamic.rateLimiter, userId: dynamic.userId,
+      locale: dynamic.locale, foodLocale: dynamic.foodLocale, localizationProvider: dynamic.localizationProvider,
+      semanticGateProvider: dynamic.recipeSemanticGateProvider ?? new DisabledRecipeSemanticGateProvider(),
+      recipeTitle: input.title, recipeContext: input.context
+    });
+    for (const draft of drafts) {
+      const outcome = outcomes.get(String(draft.resultIndex));
+      if (!outcome) continue; // this draft resolved locally — never sent to the batch resolver
+      if (outcome.status === "resolved") { draft.selectedFood = outcome.food; draft.resolution = "resolved"; draft.candidates = [outcome.food]; }
+      else if (outcome.status === "confirmation_required") { draft.resolution = "confirmation_required"; draft.externalCandidates = outcome.candidates; draft.externalCandidatesReason = outcome.reason; }
+      // "unresolved" leaves the draft's initial unresolved state untouched.
+    }
+  }
+
+  for (const draft of drafts) {
+    const { line, food, singleFoodLine, identityQuery, selectedFood, resolution, candidates, externalCandidates, externalCandidatesReason } = draft;
+    const mass = singleFoodLine ? explicitMass(line.parsed) : null;
+    let quantity: ReviewableIngredient["quantity"] = mass == null ? null : { status: "resolved", grams: mass };
+    let quantitySource: ReviewableIngredient["quantitySource"] = mass == null ? "unknown" : "explicit";
+    let excludeFromNutrition = false;
+    if (isUnquantifiedSeasoning(line.parsed, identityQuery)) {
+      quantitySource = "unquantified_seasoning";
+      excludeFromNutrition = true;
+    } else if (singleFoodLine && mass == null && line.parsed.quantity != null && selectedFood && resolution === "resolved") {
+      const authoritative = await resolveQuantity(line.parsed, selectedFood, new DisabledQuantityEstimationProvider());
+      if (authoritative?.status === "resolved" && !authoritative.requiresConfirmation) {
+        quantity = authoritative;
+        quantitySource = authoritative.method === "authoritative" ? "authoritative_conversion" : "explicit";
+      }
+    }
+
+    if (singleFoodLine && !quantity && line.parsed.quantity != null && line.parsed.unit) estimationItems.push({ index: draft.resultIndex, sourceIndex: line.index, raw: line.raw, identity: identityQuery, preparation: food.preparation ?? line.parsed.preparation, quantity: line.parsed.quantity, quantityUpper: line.parsed.quantityUpper, unit: line.parsed.unit });
+
+    results[draft.resultIndex] = {
+      originalText: line.raw, parsedQuantity: singleFoodLine ? line.parsed.quantity : undefined, parsedUnit: singleFoodLine ? line.parsed.unit : undefined,
+      parsedFoodQuery: identityQuery, preparation: food.preparation ?? line.parsed.preparation,
+      resolution, selectedFood, candidates, quantity, quantitySource,
+      quantityGrams: quantity?.status === "resolved" ? quantity.grams : undefined,
+      quantityRange: singleFoodLine && line.parsed.quantityUpper != null ? { min: line.parsed.quantity!, max: line.parsed.quantityUpper, unit: line.parsed.unit } : undefined,
+      excludeFromNutrition, canConfirm: resolution === "resolved" && (!!quantity || excludeFromNutrition), externalCandidates, externalCandidatesReason
+    };
   }
 
   if (estimationItems.length) {

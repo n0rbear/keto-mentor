@@ -37,6 +37,7 @@ import { configuredQuantityAiProvider } from "./meal-input/quantity-ai-gateway.j
 import { configuredSearchIntentProvider } from "./catalog/search-intent-gateway.js";
 import { configuredCandidateLocalizationProvider } from "./catalog/candidate-localization-gateway.js";
 import { configuredSemanticCandidateGateProvider } from "./catalog/semantic-candidate-gate-gateway.js";
+import { configuredRecipeSemanticGateProvider } from "./catalog/semantic-candidate-gate-batch-gateway.js";
 import { configuredRecipeIngredientNormalizationProvider } from "./recipes/recipe-ingredient-normalization-gateway.js";
 import { configuredRecipeQuantityEstimationProvider } from "./recipes/recipe-quantity-estimation-gateway.js";
 import { DynamicFoodResolutionRateLimiter } from "./catalog/dynamic-food-rate-limit.js";
@@ -79,6 +80,7 @@ const candidateLocalizationProvider = configuredCandidateLocalizationProvider(en
 // a SEPARATE call/schema from searchIntentProvider — never trusted merely
 // because the same model generated the search term being validated.
 const semanticCandidateGateProvider = configuredSemanticCandidateGateProvider(env);
+const recipeSemanticGateProvider = configuredRecipeSemanticGateProvider(env);
 // Owner-beta checkpoint (2026-09-13): the whole-recipe-context batch
 // ingredient-normalization path (see recipe-ingredient-normalization.ts and
 // the ingredient-resolution forensic checkpoint). Same configured AI gateway
@@ -339,7 +341,7 @@ app.post("/meal-input/interpret", requireAuth, async (req, res, next) => {
     // never adds a request on a local hit. No adapters configured (e.g. no
     // USDA_FDC_API_KEY) means dynamic resolution is simply not offered.
     const dynamic = externalFoodAdapters.length
-      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale: trustedLocale(req.user!), localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider }
+      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale: trustedLocale(req.user!), localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider }
       : null;
     // Same deps, but with recipeIngredientDynamicResolutionLimiter in place
     // of dynamicFoodResolutionLimiter — see that limiter's own comment.
@@ -434,7 +436,7 @@ app.post("/meals", requireAuth, async (req, res, next) => {
     // contains a recipe-discovery item, at which point its own explicit
     // recipe_discovery_unavailable check fires instead of resolving anything.
     const recipeDynamic = externalFoodAdapters.length
-      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: recipeIngredientDynamicResolutionLimiter, userId: req.user!.id, locale: trustedLocale(req.user!), localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider }
+      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: recipeIngredientDynamicResolutionLimiter, userId: req.user!.id, locale: trustedLocale(req.user!), localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider }
       : null;
     const meal = await createMeal(prisma, req.user!.id, input, { recipeAiProvider: recipeDiscoveryAiProvider, dynamic: recipeDynamic });
     res.status(201).json({ meal });
