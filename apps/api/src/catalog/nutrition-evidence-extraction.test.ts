@@ -24,8 +24,10 @@ const JSON_LD_MISSING_FIBER = `<html><head>
 
 // Fixture J: real-world manufacturer-page shape (e.g. heinz.com/products/...):
 // array-wrapped JSON-LD, gram unit glued directly to the number with no space
-// ("(17g)", not "17 g"), and genuinely-stated zero-valued macros (a condiment
-// with 0g fat/protein/fiber per serving) — must NOT be treated as "missing".
+// ("(17g)", not "17 g"), genuinely-stated zero-valued macros (a condiment
+// with 0g fat/protein/fiber per serving — must NOT be treated as "missing"),
+// and the food's own name stated on the enclosing Product, not inside the
+// nested NutritionInformation object (the common real-world shape).
 const JSON_LD_ARRAY_WITH_ZERO_MACROS = `<html><head>
 <script type="application/ld+json">
 [{"@context":"https://schema.org","@type":"Product","name":"Tomato Ketchup","nutrition":{"@type":"NutritionInformation","servingSize":"1 Tbsp (17g)","calories":"20","carbohydrateContent":"5 g","fatContent":"0 g","proteinContent":"0 g","fiberContent":"0 g"}},{"@type":"BreadcrumbList"}]
@@ -65,10 +67,20 @@ describe("extractJsonLdNutrition — deterministic extraction, no AI call", () =
   it("fixture J: a real, unspaced gram unit ('17g') and genuinely-stated zero macros are extracted, not rejected as missing", () => {
     const result = extractJsonLdNutrition(JSON_LD_ARRAY_WITH_ZERO_MACROS);
     expect(result).toMatchObject({
-      extractionMethod: "json_ld",
+      sourceFoodName: "Tomato Ketchup", extractionMethod: "json_ld",
       basis: { amountGrams: 17 }, kcal: { value: 20 },
       protein: { value: 0 }, fat: { value: 0 }, carbs: { value: 5 }, fiber: { value: 0 }
     });
+  });
+
+  it("falls back to the enclosing Product/Recipe's own name when NutritionInformation itself has none — the identity gate needs a real name to compare, not an empty string", () => {
+    const nested = `<script type="application/ld+json">{"@type":"Recipe","name":"Grandma's Goulash","nutrition":{"@type":"NutritionInformation","servingSize":"300 g","calories":"450","proteinContent":"25 g","fatContent":"20 g","carbohydrateContent":"30 g","fiberContent":"5 g"}}</script>`;
+    expect(extractJsonLdNutrition(nested)?.sourceFoodName).toBe("Grandma's Goulash");
+  });
+
+  it("prefers NutritionInformation's own name over an ancestor's when both are present", () => {
+    const both = `<script type="application/ld+json">{"@type":"Product","name":"Product Wrapper Name","nutrition":{"@type":"NutritionInformation","name":"Specific Nutrition Label Name","servingSize":"100 g","calories":"100","proteinContent":"5 g","fatContent":"2 g","carbohydrateContent":"10 g","fiberContent":"1 g"}}</script>`;
+    expect(extractJsonLdNutrition(both)?.sourceFoodName).toBe("Specific Nutrition Label Name");
   });
 });
 

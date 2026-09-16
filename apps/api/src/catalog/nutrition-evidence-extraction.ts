@@ -39,7 +39,14 @@ function parseNumeric(text: string | undefined | null): number | null {
   return Number.isFinite(value) && value >= 0 ? value : null;
 }
 
-function findNutritionInformation(node: unknown, depth = 0): Record<string, unknown> | null {
+// The NutritionInformation node itself, plus the nearest enclosing node's own
+// "name" (e.g. a Product/Recipe's product name) — schema.org NutritionInformation
+// commonly has no "name" of its own; the food's identity is stated one level
+// up, on the Product/Recipe that nests it (this is the real, common shape on
+// manufacturer sites, not a Heinz-specific quirk).
+type NutritionSearchResult = { nutrition: Record<string, unknown>; ancestorName?: string };
+
+function findNutritionInformation(node: unknown, depth = 0): NutritionSearchResult | null {
   if (!node || typeof node !== "object" || depth > 6) return null;
   if (Array.isArray(node)) {
     for (const item of node) {
@@ -51,10 +58,11 @@ function findNutritionInformation(node: unknown, depth = 0): Record<string, unkn
   const record = node as Record<string, unknown>;
   const type = record["@type"];
   const typeMatches = typeof type === "string" ? type === "NutritionInformation" : Array.isArray(type) && type.includes("NutritionInformation");
-  if (typeMatches) return record;
+  if (typeMatches) return { nutrition: record };
+  const ownName = typeof record["name"] === "string" ? (record["name"] as string) : undefined;
   for (const value of Object.values(record)) {
     const found = findNutritionInformation(value, depth + 1);
-    if (found) return found;
+    if (found) return { nutrition: found.nutrition, ancestorName: found.ancestorName ?? ownName };
   }
   return null;
 }
@@ -81,8 +89,9 @@ export function extractJsonLdNutrition(html: string): ExtractedNutritionEvidence
   for (const scriptMatch of scriptMatches) {
     let parsed: unknown;
     try { parsed = JSON.parse(scriptMatch[1]); } catch { continue; }
-    const nutrition = findNutritionInformation(parsed);
-    if (!nutrition) continue;
+    const found = findNutritionInformation(parsed);
+    if (!found) continue;
+    const { nutrition, ancestorName } = found;
     const rawBlock = scriptMatch[1];
     const servingSize = nutrition["servingSize"];
     const amountGrams = parseGrams(typeof servingSize === "string" ? servingSize : undefined);
@@ -103,8 +112,9 @@ export function extractJsonLdNutrition(html: string): ExtractedNutritionEvidence
     if (calories == null || protein == null || fat == null || carbs == null
       || !caloriesQuote || !proteinQuote || !fatQuote || !carbsQuote) continue;
     const nameField = nutrition["name"];
+    const sourceFoodName = typeof nameField === "string" && nameField ? nameField : (ancestorName ?? "");
     return {
-      sourceFoodName: typeof nameField === "string" && nameField ? nameField : "",
+      sourceFoodName,
       basis: { amountGrams, quote: basisQuote },
       kcal: { value: calories, quote: caloriesQuote },
       protein: { value: protein, quote: proteinQuote },
