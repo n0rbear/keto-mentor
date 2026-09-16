@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
 import type { FoodUnderstanding, FoodUnderstandingItem, Locale, QuantityClarification } from "@keto-mentor/shared";
-import { parseNaturalFoodQuery, type ParsedNaturalFoodQuery } from "../catalog/natural-food-query.js";
+import { isBarePreparationToken, parseNaturalFoodQuery, type ParsedNaturalFoodQuery } from "../catalog/natural-food-query.js";
 import { foodNameRepresentations, hasSemanticCoverage, isTrustedLocalMatch, localFormMismatch, searchFoods } from "../catalog/food-search.js";
 import type { RecipeDiscoveryPreview } from "../recipes/recipe-discovery.js";
 import { DisabledQuantityEstimationProvider, type EstimateMethod, type QuantityEstimationClass, type QuantityEstimationMethodClass, type QuantityEstimationProvider, type VolumeQuantityModel, validateQuantityEstimate } from "./quantity-estimation.js";
@@ -304,7 +304,39 @@ async function interpretOne(
   const prepSearchToken = parsed.preparation ? PREP_SEARCH_TOKEN[parsed.preparation] : undefined;
   if (prepSearchToken) {
     const prepCandidates = await timeStage("local_search", async () => (await searchFoods(prisma, prepSearchToken, 8)) as unknown as ResolvedFood[]);
-    preparedFood = prepCandidates.find((food) => foodMatchesPreparation(food, parsed.preparation!)) ?? null;
+    const prepCandidate = prepCandidates.find((food) => foodMatchesPreparation(food, parsed.preparation!)) ?? null;
+    // Owner-reported checkpoint (2026-09-16) — real, reproduced bug: this
+    // lookup exists ONLY for the narrow "fried/scrambled/boiled EGG" catalog
+    // gap (PREP_SEARCH_TOKEN is entirely egg-specific), meant to catch bare
+    // Hungarian preparation-word shorthand for an egg dish ("sült" alone ->
+    // fried egg). It was being trusted unconditionally whenever the BASE
+    // foodQuery search came up empty — so "sült oldalas" (fried ribs), "sült
+    // hal" (fried fish) and "sült csirke" (fried chicken) were all silently
+    // "resolved" as Fried egg, since the local catalog has no "oldalas"/
+    // "hal"/"csirke" entry and nothing re-checked that the user's ACTUAL
+    // stated food word (oldalas/hal/csirke) has anything to do with eggs. A
+    // confident wrong identity is worse than an honest unresolved/
+    // confirmation_required result. Only trust this shortcut when either (a)
+    // no distinct food noun was stated at all beyond the bare preparation
+    // word itself (isBarePreparationToken — the genuinely-intended
+    // shorthand), or (b) the stated foodQuery is actually attested in the
+    // candidate's own full identity vocabulary. (b) deliberately checks
+    // `searchText` (name + names + SYNONYMS, all languages) rather than just
+    // `foodNameRepresentations` (name/names only): "tojásból rántotta"'s
+    // foodQuery ("tojas") never appears in Scrambled Egg's own display names
+    // ("Rántotta"/"Rührei"), only in its synonym list ("tojásrántotta") —
+    // still genuine evidence the query means egg, just not in the display
+    // name. Anything else (a real, distinct, unrelated food word — oldalas/
+    // hal/csirke) must fall through to genuine local/dynamic resolution
+    // against what the user actually said, never be silently reinterpreted
+    // as egg.
+    if (prepCandidate) {
+      const normalizedQuery = normalizeSearch(parsed.foodQuery);
+      const candidateVocabulary = normalizeSearch(prepCandidate.searchText || prepCandidate.name);
+      if (isBarePreparationToken(normalizedQuery) || hasSemanticCoverage(normalizedQuery, [candidateVocabulary])) {
+        preparedFood = prepCandidate;
+      }
+    }
   }
 
   const candidates = preparedFood

@@ -12,7 +12,7 @@ function corruptSourceMealError() {
 type SourceMealItem = {
   foodId: string | null; recipeId: string | null; quantityGrams: number; displayName: string | null;
   snapshotKcal: number | null; snapshotFat: number | null; snapshotProtein: number | null;
-  snapshotCarbs: number | null; snapshotFiber: number | null; snapshotNutrients: unknown;
+  snapshotCarbs: number | null; snapshotFiber: number | null; snapshotNetCarbs: number | null; snapshotNutrients: unknown;
   inputQuantity: number | null; inputUnit: string | null; conversionSnapshot: unknown;
 };
 
@@ -43,6 +43,7 @@ function cloneItemData(item: SourceMealItem) {
     snapshotProtein: item.snapshotProtein,
     snapshotCarbs: item.snapshotCarbs,
     snapshotFiber: item.snapshotFiber,
+    snapshotNetCarbs: item.snapshotNetCarbs,
     inputQuantity: item.inputQuantity,
     inputUnit: item.inputUnit,
     // Json columns: omit rather than pass null, matching this codebase's existing

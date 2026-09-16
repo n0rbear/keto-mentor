@@ -132,6 +132,24 @@ describe("repeatMeal", () => {
     expect(persisted.items[0].recipe).toEqual(chiliRecipe); // the same recipe reference, untouched
   });
 
+  // P0 checkpoint (2026-09-16): repeating a meal must clone snapshotNetCarbs
+  // verbatim too, exactly like every other snapshot field — a repeat reproduces
+  // the exact past representation, never recomputes it.
+  it("clones a recipe item's snapshotNetCarbs verbatim, not recomputed from carbs/fiber", async () => {
+    const fake = createFakeDb([{ id: "meal-1", userId: "user-a", title: "Dinner", eatenAt: NOW, createdAt: NOW, items: [fakeRecipeItem({ snapshotCarbs: 12, snapshotFiber: 6, snapshotNetCarbs: 9 })] }]);
+    const meal = await repeatMeal(fake.client, "user-a", "meal-1", NOW);
+    expect(meal.totals.netCarbs).toBe(9);
+    expect(meal.totals.netCarbs).not.toBe(6);
+  });
+
+  it("clones a legacy recipe item's null snapshotNetCarbs as null, without fabricating a value", async () => {
+    const fake = createFakeDb([{ id: "meal-1", userId: "user-a", title: "Dinner", eatenAt: NOW, createdAt: NOW, items: [fakeRecipeItem({ snapshotCarbs: 12, snapshotFiber: 6, snapshotNetCarbs: null })] }]);
+    const meal = await repeatMeal(fake.client, "user-a", "meal-1", NOW);
+    const persisted = fake.db.get(meal.id)!;
+    expect(persisted.items[0].snapshotNetCarbs).toBeNull();
+    expect(meal.totals.netCarbs).toBe(6); // legacy fallback, not authoritative
+  });
+
   it("preserves conversionSnapshot, including nested quantityConfirmation, unchanged", async () => {
     const fake = createFakeDb([{ id: "meal-1", userId: "user-a", title: "Lunch", eatenAt: NOW, createdAt: NOW, items: [fakeFoodItem()] }]);
     await repeatMeal(fake.client, "user-a", "meal-1", NOW);

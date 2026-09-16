@@ -8,6 +8,8 @@ import { normalizeSearch } from "./normalize.js";
 import { foodNameRepresentations, hasSemanticCoverage } from "./food-search.js";
 import { foodLocaleFor, type FoodLocale } from "./food-locale.js";
 import { DisabledSemanticCandidateGateProvider, type SemanticCandidateGateProvider } from "./semantic-candidate-gate.js";
+import type { AliasSemanticVerdict } from "./alias-semantic-verdict.js";
+import { computeAliasSemanticVerdict } from "./alias-semantic-verdict.js";
 import { timeStage } from "../request-performance.js";
 
 type DynamicPrisma = Parameters<typeof resolveAuthoritativeFood>[0];
@@ -34,19 +36,37 @@ type DynamicPrisma = Parameters<typeof resolveAuthoritativeFood>[0];
  * production case (2026-09-10): this is exactly how "gefüllte Kohlrouladen"
  * and "Champignoncremesuppe" got permanently, silently aliased to "bok choy"
  * and "beech mushroom".
+ *
+ * P0 semantic identity safety checkpoint (2026-09-16): hasSemanticCoverage
+ * (lexical token overlap) is necessary but NOT sufficient — it cannot tell
+ * "csülök is genuinely a form of sertéscsülök" from "mustár merely happens
+ * to be a lexical prefix of mustárlevél, a different food" (see
+ * food-search.ts's DYNAMIC_SEARCH_ALIAS_TRUST_THRESHOLD for the full
+ * writeup). `semanticVerdict` — computed by the caller via
+ * computeAliasSemanticVerdict, reusing the existing semantic-candidate-gate
+ * — decides the WRITTEN confidence: "validated" earns full trust (0.95, can
+ * reach the "exact" tier); "rejected" (a real gate explicitly said this is
+ * NOT the same identity) means the alias is never written at all, exactly
+ * like the pre-existing "gefüllte Kohlrouladen" precedent; "unknown" (no
+ * real gate configured, or a transient provider failure) preserves the
+ * original, pre-checkpoint behavior (0.7 — never enough for full trust,
+ * still a candidate for confirmation, self-heals to "validated" next time
+ * a real gate is available and this exact phrase comes up again).
  */
-export async function learnSearchAlias(prisma: DynamicPrisma, food: { id: string; name?: unknown; originalName?: unknown; names?: unknown }, rawQuery: string, locale: string | undefined) {
+export async function learnSearchAlias(prisma: DynamicPrisma, food: { id: string; name?: unknown; originalName?: unknown; names?: unknown }, rawQuery: string, locale: string | undefined, semanticVerdict: AliasSemanticVerdict = "unknown") {
   const normalizedAlias = normalizeSearch(rawQuery);
   if (!normalizedAlias || normalizedAlias.length < 2) return;
   if (!hasSemanticCoverage(normalizedAlias, foodNameRepresentations(food))) return;
+  if (semanticVerdict === "rejected") return;
+  const confidence = semanticVerdict === "validated" ? 0.95 : 0.7;
   const foodId = food.id;
   try {
     await prisma.foodAlias.upsert({
       where: { foodId_normalizedAlias_locale: { foodId, normalizedAlias, locale: locale ?? "und" } },
-      update: {},
+      update: semanticVerdict === "validated" ? { confidence } : {},
       create: {
         foodId, alias: rawQuery.trim(), normalizedAlias, locale: locale ?? "und",
-        kind: "dynamic_search", confidence: 0.7, provenance: { method: "dynamic_search", learnedAt: new Date().toISOString() }
+        kind: "dynamic_search", confidence, provenance: { method: "dynamic_search", learnedAt: new Date().toISOString(), semanticVerdict }
       }
     });
   } catch {
@@ -158,10 +178,23 @@ async function resolveFromSearchTerm(
   });
   switch (outcome.status) {
     case "resolved_local":
-    case "resolved_external":
-      await learnSearchAlias(prisma, outcome.food, originalIdentity, aliasLocale);
+    case "resolved_external": {
+      // P0 semantic identity safety checkpoint (2026-09-16): resolveAuthoritativeFood's
+      // "resolved_local" branch (a genuinely trusted LOCAL match) never
+      // invokes the semantic-candidate-gate at all — that gate only ever ran
+      // for freshly-fetched EXTERNAL candidates. Without this check, a
+      // dynamic_search alias would keep memorializing/reusing whatever the
+      // local short-circuit found, right or wrong, forever. Only runs once,
+      // right here, for a genuinely new (or previously-demoted) resolution —
+      // never on an already-fully-trusted repeat query, which short-circuits
+      // in interpretOne's own local search and never reaches this function.
+      const semanticVerdict = await computeAliasSemanticVerdict(
+        deps.semanticCandidateGateProvider, originalIdentity, outcome.food, aliasLocale, semanticContext
+      );
+      await learnSearchAlias(prisma, outcome.food, originalIdentity, aliasLocale, semanticVerdict);
       logDynamicResolutionOutcome("resolved", via);
       return { status: "resolved", food: outcome.food, via };
+    }
     case "confirmation_required":
       logDynamicResolutionOutcome("confirmation_required", via, outcome.reason);
       return { status: "confirmation_required", candidates: outcome.candidates, reason: outcome.reason };

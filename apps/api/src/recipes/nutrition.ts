@@ -1,5 +1,5 @@
 import type { Food, FoodNutrient, Nutrient, Recipe, RecipeIngredient } from "@prisma/client";
-import { addMacros, emptyMacros, scaleMacros, type MacroTotals } from "../nutrition-core.js";
+import { addMacros, emptyMacros, scaleMacros, scaleMacroTotals, type MacroTotals } from "../nutrition-core.js";
 
 // `nutrients` is optional: the lean recipe-list query (see service.ts's
 // recipeSummaryInclude) intentionally omits the Food->FoodNutrient->Nutrient
@@ -60,7 +60,10 @@ export function calculateRecipeNutrition(recipe: RecipeWithIngredients) {
     }
   }
 
-  const scale = (factor: number) => ({ macros: scaleMacros(totals, factor), nutrients: scaleNutrients(nutrients, factor) });
+  // scaleMacroTotals (never scaleMacros) here: `totals` is already an
+  // accumulated MacroTotals whose own netCarbs was correctly clamped once
+  // per ingredient — see nutrition-core.ts's scaleMacroTotals comment.
+  const scale = (factor: number) => ({ macros: scaleMacroTotals(totals, factor), nutrients: scaleNutrients(nutrients, factor) });
   return {
     total: { macros: totals, nutrients },
     perServing: recipe.servings ? scale(1 / recipe.servings) : null,
@@ -70,5 +73,8 @@ export function calculateRecipeNutrition(recipe: RecipeWithIngredients) {
 }
 
 export function scaleRecipeSnapshot(macros: MacroTotals, nutrients: Record<string, NutrientTotal>, factor: number) {
-  return { macros: scaleMacros(macros, factor), nutrients: scaleNutrients(nutrients, factor) };
+  // scaleMacroTotals, not scaleMacros: `macros` is already a whole-recipe
+  // MacroTotals (its netCarbs already correctly clamped once per
+  // ingredient) — see nutrition-core.ts's scaleMacroTotals comment.
+  return { macros: scaleMacroTotals(macros, factor), nutrients: scaleNutrients(nutrients, factor) };
 }

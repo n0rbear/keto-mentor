@@ -168,6 +168,10 @@ export function computeRecipeMealItemData(prepared: PreparedRecipeDiscoveryItem,
     snapshotProtein: snapshot.macros.protein,
     snapshotCarbs: snapshot.macros.carbs,
     snapshotFiber: snapshot.macros.fiber,
+    // The portion's own already-correctly-scaled netCarbs (see scaleMacroTotals) —
+    // persisted directly, never re-derived from snapshotCarbs/snapshotFiber at read
+    // time, which would re-clamp an already-aggregated total. See nutrition.ts.
+    snapshotNetCarbs: snapshot.macros.netCarbs,
     snapshotNutrients: snapshot.nutrients
   };
 }

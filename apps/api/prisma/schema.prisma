@@ -198,6 +198,13 @@ model MealItem {
   snapshotProtein Float?
   snapshotCarbs Float?
   snapshotFiber Float?
+  /// The consumed portion's netCarbs, computed once (sum of per-ingredient-clamped
+  /// values, scaled linearly to this portion) at the moment a recipe-backed item is
+  /// created or its quantity is corrected — never re-derived from snapshotCarbs/
+  /// snapshotFiber, which would re-clamp an already-aggregated total. Null on rows
+  /// written before this column existed; see nutrition.ts's itemTotals for the
+  /// documented legacy fallback.
+  snapshotNetCarbs Float?
   snapshotNutrients Json?
   inputQuantity Float?
   inputUnit String?

@@ -268,6 +268,23 @@ describe("PHASE 4/17 — whole-recipe aggregation matrix: explicit + estimated +
     }
   });
 
+  it("PHASE 27 — total.netCarbs and perServing/per100g(.macros).netCarbs never disagree, even when one ingredient's fiber exceeds its own carbs", () => {
+    // fiber (5) > carbs (2) -> this ingredient's OWN netCarbs clamps to 0.
+    const husk = { id: "husk", name: "Husk", source: "usda_fdc", kcalPer100g: 50, proteinPer100g: 1, fatPer100g: 1, carbsPer100g: 2, fiberPer100g: 5 };
+    // ordinary: carbs (10) > fiber (1) -> netCarbs = 9.
+    const grain = { id: "grain", name: "Grain", source: "usda_fdc", kcalPer100g: 80, proteinPer100g: 2, fatPer100g: 2, carbsPer100g: 10, fiberPer100g: 1 };
+    const a = toIngredientReview(ingredient({ resolution: "resolved", selectedFood: husk, quantity: { status: "resolved", grams: 100 } }));
+    const b = toIngredientReview(ingredient({ resolution: "resolved", selectedFood: grain, quantity: { status: "resolved", grams: 100 } }));
+    const result = computeTrustedNutrition([a, b], 2);
+    // total.netCarbs = max(0, 2-5) + max(0, 10-1) = 0 + 9 = 9 (sum of each ingredient's own clamp).
+    expect(result.total!.netCarbs).toBe(9);
+    // perServing (S=2) must be EXACTLY total/2 = 4.5 — never a fresh, differently-clamped 3
+    // (which max(0, (2+10)*0.5 - (5+1)*0.5) = max(0,6-3) = 3 would silently produce).
+    expect(result.perServing!.netCarbs).toBe(4.5);
+    // macros (per-100g-of-included-weight, factor=100/200=0.5 here too) must agree with perServing.
+    expect(result.macros!.netCarbs).toBe(4.5);
+  });
+
   it("PHASE 11 — rounding: summing full-precision ingredient contributions avoids the error a naively pre-rounded sum would introduce", () => {
     // If each ingredient's OWN contribution were rounded to 2dp before
     // summing (100/3=33.33 x3=99.99 instead of 100.00), the naive approach

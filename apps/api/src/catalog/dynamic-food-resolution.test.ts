@@ -1,10 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
-import { resolveDynamicFood } from "./dynamic-food-resolution.js";
+import { resolveDynamicFood, learnSearchAlias } from "./dynamic-food-resolution.js";
 import { DynamicFoodResolutionRateLimiter } from "./dynamic-food-rate-limit.js";
 import { DisabledSearchIntentProvider, type SearchIntent, type SearchIntentProvider } from "./search-intent.js";
 import type { ExternalFoodCandidate } from "./external-food.js";
 import type { CandidateLocalizationProvider } from "./candidate-localization.js";
 import type { SemanticCandidateGateProvider } from "./semantic-candidate-gate.js";
+import { computeAliasSemanticVerdict } from "./alias-semantic-verdict.js";
 
 // Mirrors real production wiring (server.ts always configures a real
 // candidateLocalizationProvider): resolveAuthoritativeFood's auto-resolve
@@ -29,7 +30,7 @@ function pork(overrides: Partial<ExternalFoodCandidate> = {}): ExternalFoodCandi
 
 function fakePrisma(options: { seedFoods?: any[] } = {}) {
   const foods: any[] = options.seedFoods ?? [];
-  const aliases: Array<{ foodId: string; alias: string; normalizedAlias: string; locale: string; kind: string }> = [];
+  const aliases: Array<{ foodId: string; alias: string; normalizedAlias: string; locale: string; kind: string; confidence: number }> = [];
   const prisma: any = {
     food: {
       findUnique: async ({ where }: any) => foods.find((f) => f.source === where.source_sourceId.source && f.sourceId === where.source_sourceId.sourceId) ?? null,
@@ -54,11 +55,11 @@ function fakePrisma(options: { seedFoods?: any[] } = {}) {
         return aliases.filter((a) => variants.some((v) => a.normalizedAlias.includes(v))).map((a) => ({ foodId: a.foodId, normalizedAlias: a.normalizedAlias }));
       },
       createMany: async () => ({ count: 1 }),
-      upsert: async ({ where, create }: any) => {
+      upsert: async ({ where, update, create }: any) => {
         const key = where.foodId_normalizedAlias_locale;
         const existing = aliases.find((a) => a.foodId === key.foodId && a.normalizedAlias === key.normalizedAlias && a.locale === key.locale);
-        if (existing) return existing;
-        const row = { foodId: create.foodId, alias: create.alias, normalizedAlias: create.normalizedAlias, locale: create.locale, kind: create.kind };
+        if (existing) { Object.assign(existing, update); return existing; }
+        const row = { foodId: create.foodId, alias: create.alias, normalizedAlias: create.normalizedAlias, locale: create.locale, kind: create.kind, confidence: create.confidence };
         aliases.push(row);
         return row;
       }
@@ -287,5 +288,84 @@ describe("resolveDynamicFood: persist once, reuse forever", () => {
     });
     expect(foods).toHaveLength(1); // the (mis-)resolution itself is unchanged by this fix
     expect(aliases).toEqual([]); // but the raw phrase must never be memorized for it
+  });
+});
+
+// P0 semantic identity safety checkpoint (2026-09-16): learnSearchAlias's
+// semanticVerdict parameter is what makes food-search.ts's
+// DYNAMIC_SEARCH_ALIAS_TRUST_THRESHOLD meaningful — see that file's own
+// tests for the read-side (a low-confidence alias never auto-resolves).
+// These are the write-side tests: what confidence gets written for each
+// verdict, reusing the exact "mustár"/"csülök" pair from the live bug.
+describe("learnSearchAlias: semanticVerdict decides the written confidence", () => {
+  const mustardGreens = { id: "mustard-greens", name: "Mustard greens, raw", originalName: "Mustard greens, raw", names: { en: "Mustard greens, raw", hu: "nyers mustárlevél" } };
+  const porkHock = { id: "pork-hock", name: "Pork hock, cooked", originalName: "Pork hock, cooked", names: { en: "Pork hock, cooked", hu: "Csülök" } };
+
+  it('"validated" (a real gate confirmed same_identity) writes full trust (0.95)', async () => {
+    const { prisma, aliases } = fakePrisma();
+    await learnSearchAlias(prisma, porkHock, "csülök", "hu", "validated");
+    expect(aliases).toContainEqual(expect.objectContaining({ normalizedAlias: "csulok", kind: "dynamic_search", confidence: 0.95 }));
+  });
+
+  it('"rejected" (a real gate explicitly said this is NOT the same identity) never writes an alias at all — the mustár/mustárlevél case', async () => {
+    const { prisma, aliases } = fakePrisma();
+    await learnSearchAlias(prisma, mustardGreens, "mustár", "hu", "rejected");
+    expect(aliases).toEqual([]);
+  });
+
+  it('"unknown" (no real gate configured, or a transient provider failure) preserves the original pre-checkpoint behavior (0.7 — a candidate, never full trust)', async () => {
+    const { prisma, aliases } = fakePrisma();
+    await learnSearchAlias(prisma, mustardGreens, "mustár", "hu", "unknown");
+    expect(aliases).toContainEqual(expect.objectContaining({ normalizedAlias: "mustar", kind: "dynamic_search", confidence: 0.7 }));
+  });
+
+  it("defaults to \"unknown\" (0.7) when no verdict is passed at all — every pre-existing caller keeps compiling and behaving unchanged", async () => {
+    const { prisma, aliases } = fakePrisma();
+    await learnSearchAlias(prisma, porkHock, "csülök", "hu");
+    expect(aliases).toContainEqual(expect.objectContaining({ confidence: 0.7 }));
+  });
+
+  it("hasSemanticCoverage is still checked FIRST — a validated verdict cannot rescue a phrase with zero lexical relationship to the food", async () => {
+    const { prisma, aliases } = fakePrisma();
+    await learnSearchAlias(prisma, mustardGreens, "gefüllte Kohlrouladen", "de", "validated");
+    expect(aliases).toEqual([]);
+  });
+
+  it("re-learning the identical alias with a NEW validated verdict upgrades an existing low-confidence row's own confidence (self-healing, no migration)", async () => {
+    const { prisma, aliases } = fakePrisma();
+    await learnSearchAlias(prisma, porkHock, "csülök", "hu", "unknown");
+    expect(aliases).toContainEqual(expect.objectContaining({ confidence: 0.7 }));
+    await learnSearchAlias(prisma, porkHock, "csülök", "hu", "validated");
+    expect(aliases).toHaveLength(1);
+    expect(aliases[0]).toMatchObject({ confidence: 0.95 });
+  });
+});
+
+describe("computeAliasSemanticVerdict", () => {
+  const food = { id: "food-1", name: "Mustard greens, raw", originalName: "Mustard greens, raw" };
+
+  it("returns \"unknown\" with zero calls when no real gate is configured", async () => {
+    const checkRelevance = vi.fn();
+    const result = await computeAliasSemanticVerdict({ id: "disabled", checkRelevance } as any, "mustár", food, "hu");
+    expect(result).toBe("unknown");
+    expect(checkRelevance).not.toHaveBeenCalled();
+  });
+
+  it("returns \"validated\" when the real gate approves the candidate", async () => {
+    const provider: SemanticCandidateGateProvider = { id: "real", checkRelevance: async (_o, candidates) => new Map(candidates.map((c) => [c.id, true])) };
+    const result = await computeAliasSemanticVerdict(provider, "csülök", { id: "pork-hock", name: "Pork hock, cooked" }, "hu");
+    expect(result).toBe("validated");
+  });
+
+  it('returns "rejected" when a real gate explicitly does not approve the candidate (fail-closed — absence IS a rejection, not "unknown")', async () => {
+    const provider: SemanticCandidateGateProvider = { id: "real", checkRelevance: async () => new Map() };
+    const result = await computeAliasSemanticVerdict(provider, "mustár", food, "hu");
+    expect(result).toBe("rejected");
+  });
+
+  it('returns "unknown" (never blocks) on a transient provider failure', async () => {
+    const provider: SemanticCandidateGateProvider = { id: "real", checkRelevance: async () => { throw new Error("timeout"); } };
+    const result = await computeAliasSemanticVerdict(provider, "mustár", food, "hu");
+    expect(result).toBe("unknown");
   });
 });
