@@ -20,6 +20,7 @@ import type { ProgressStage } from "./progress-bus.js";
 import type { AiNutritionEstimate } from "../catalog/ai-nutrition-estimation.js";
 import { createAiEstimateProof } from "../catalog/ai-estimate-proof.js";
 import type { WebEvidenceFallbackDiagnostics } from "../catalog/web-evidence-fallback.js";
+import type { DynamicResolutionDiagnostics } from "../catalog/dynamic-food-resolution.js";
 
 type SearchablePrisma = Pick<PrismaClient, "food" | "foodAlias"> & Partial<Pick<PrismaClient, "$queryRaw">>;
 type Serving = { id: string; key: string; unit: string; labels: unknown; grams: number; isEstimated: boolean; confidence: number; provenance: unknown };
@@ -171,8 +172,11 @@ export type InterpretResult = {
   // in transit.
   aiEstimate?: AiNutritionEstimate & { requestedIdentity: string; canonicalIdentity: string; proof: string };
   // P0 effectiveness-investigation instrumentation (2026-09-16) — see
-  // debugWebEvidenceDiagnostics's own doc. Never present in production.
+  // debugResolutionDiagnostics's own doc. Never present in production.
   webEvidenceDiagnostics?: WebEvidenceFallbackDiagnostics;
+  // Production web-evidence effectiveness RCA (2026-09-17) — see
+  // debugResolutionDiagnostics's own doc. Never present in production.
+  resolutionDiagnostics?: DynamicResolutionDiagnostics;
 };
 
 function aiEstimatePendingResult(
@@ -189,17 +193,17 @@ function aiEstimatePendingResult(
     input, parsed, foodResolution: "ai_estimate_pending", selectedFood: null, candidates: [], quantity: null,
     canConfirm: false, confidence: 0, preparation: parsed.preparation, interpretationSource: "deterministic",
     aiEstimate: { ...outcome.estimate, requestedIdentity: outcome.requestedIdentity, canonicalIdentity: outcome.canonicalIdentity, proof },
-    ...debugWebEvidenceDiagnostics(outcome.webEvidenceDiagnostics)
+    ...debugResolutionDiagnostics(outcome.webEvidenceDiagnostics, outcome.resolutionDiagnostics)
   };
 }
 
-// P0 effectiveness-investigation instrumentation (2026-09-16): the full
-// web-evidence funnel trace is ALWAYS computed cheaply (see
-// dynamic-food-resolution.ts) but only ever surfaced to an API caller
-// outside production — never "noisy permanent production logging", an
-// explicit opt-in for verification. No secrets/PII in this object (see
-// WebEvidenceFallbackDiagnostics's own doc — domains, tiers, rejection
-// stages only).
+// P0 effectiveness-investigation instrumentation (2026-09-16, extended
+// 2026-09-17 with resolutionDiagnostics): both diagnostic traces are ALWAYS
+// computed cheaply (see dynamic-food-resolution.ts) but only ever surfaced
+// to an API caller outside production — never "noisy permanent production
+// logging", an explicit opt-in for verification. No secrets/PII in either
+// object (see each type's own doc — domains, tiers, search terms, rejection
+// stages only, never page content or provider credentials).
 // Staging deliberately runs with NODE_ENV=production (see server.ts's own
 // deploymentEnvironment/build-info logic — NODE_ENV alone cannot tell
 // staging apart from real production). RENDER_SERVICE_NAME can: Render sets
@@ -213,16 +217,19 @@ function isProductionDeployment(): boolean {
   return process.env.NODE_ENV === "production";
 }
 
-function debugWebEvidenceDiagnostics(diagnostics: InterpretResult["webEvidenceDiagnostics"]) {
-  if (!diagnostics || isProductionDeployment()) return {};
-  return { webEvidenceDiagnostics: diagnostics };
+function debugResolutionDiagnostics(webEvidenceDiagnostics?: InterpretResult["webEvidenceDiagnostics"], resolutionDiagnostics?: InterpretResult["resolutionDiagnostics"]) {
+  if (isProductionDeployment()) return {};
+  return {
+    ...(webEvidenceDiagnostics ? { webEvidenceDiagnostics } : {}),
+    ...(resolutionDiagnostics ? { resolutionDiagnostics } : {})
+  };
 }
 
-function unresolvedResult(input: string, parsed: ParsedNaturalFoodQuery, webEvidenceDiagnostics?: InterpretResult["webEvidenceDiagnostics"]): InterpretResult {
+function unresolvedResult(input: string, parsed: ParsedNaturalFoodQuery, webEvidenceDiagnostics?: InterpretResult["webEvidenceDiagnostics"], resolutionDiagnostics?: InterpretResult["resolutionDiagnostics"]): InterpretResult {
   return {
     input, parsed, foodResolution: "unresolved", selectedFood: null, candidates: [], quantity: null,
     canConfirm: false, confidence: 0, preparation: parsed.preparation, interpretationSource: "deterministic",
-    ...debugWebEvidenceDiagnostics(webEvidenceDiagnostics)
+    ...debugResolutionDiagnostics(webEvidenceDiagnostics, resolutionDiagnostics)
   };
 }
 
@@ -455,7 +462,7 @@ async function interpretOne(
         return aiEstimatePendingResult(input, parsed, outcome, dynamic.userId);
       }
       if (outcome.status === "unresolved") {
-        return unresolvedResult(input, parsed, outcome.webEvidenceDiagnostics);
+        return unresolvedResult(input, parsed, outcome.webEvidenceDiagnostics, outcome.resolutionDiagnostics);
       }
     }
     return unresolvedResult(input, parsed);

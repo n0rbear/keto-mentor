@@ -67,7 +67,14 @@ export type ResolutionOutcome =
   | { status: "resolved_local"; food: any }
   | { status: "resolved_external"; food: any; provenance: ExternalFoodCandidate["provenance"] }
   | { status: "confirmation_required"; candidates: ExternalFoodCandidate[]; reason: "ambiguous" | "possible_duplicate" | "weak_match" }
-  | { status: "unresolved"; candidates: []; reason: "not_found" | "invalid_external_data" | "external_unavailable" };
+  // rawCandidateCount/structurallyValidCount (2026-09-17, production
+  // web-evidence effectiveness RCA): purely diagnostic — how many candidates
+  // adapters actually returned vs how many survived validateExternalCandidate
+  // — lets a caller distinguish "adapters found genuinely nothing" from
+  // "adapters found candidates but every one was structurally incomplete"
+  // without changing what reason means or how any caller behaves. Always
+  // present on "unresolved" (0 when never reached that stage).
+  | { status: "unresolved"; candidates: []; reason: "not_found" | "invalid_external_data" | "external_unavailable"; rawCandidateCount: number; structurallyValidCount: number };
 
 const REQUIRED_MACROS = ["kcalPer100g", "fatPer100g", "proteinPer100g", "carbsPer100g"] as const;
 // Every trusted external source must resolve to exactly this hostname in its
@@ -332,7 +339,7 @@ export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: 
     ? trustedLocal.find((food) => !localFormMismatch(food.originalName ?? food.name, formEvidence, food.match)) ?? (adapters.length === 0 ? trustedLocal[0] : undefined)
     : trustedLocal[0];
   if (localMatch) return { status: "resolved_local", food: localMatch };
-  if (!adapters.length) return { status: "unresolved", candidates: [], reason: "external_unavailable" };
+  if (!adapters.length) return { status: "unresolved", candidates: [], reason: "external_unavailable", rawCandidateCount: 0, structurallyValidCount: 0 };
 
   let rawCandidates: unknown[] = [];
   let successfulProviders = 0;
@@ -347,12 +354,12 @@ export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: 
       }
     }
   });
-  if (!rawCandidates.length) return { status: "unresolved", candidates: [], reason: successfulProviders > 0 ? "not_found" : "external_unavailable" };
+  if (!rawCandidates.length) return { status: "unresolved", candidates: [], reason: successfulProviders > 0 ? "not_found" : "external_unavailable", rawCandidateCount: 0, structurallyValidCount: 0 };
   const structurallyValid = rawCandidates.map(validateExternalCandidate).filter((candidate): candidate is ExternalFoodCandidate => Boolean(candidate));
-  if (!structurallyValid.length) return { status: "unresolved", candidates: [], reason: "invalid_external_data" };
+  if (!structurallyValid.length) return { status: "unresolved", candidates: [], reason: "invalid_external_data", rawCandidateCount: rawCandidates.length, structurallyValidCount: 0 };
   // Structurally valid is not the same as relevant — see isRelevantExternalCandidate.
   let candidates = structurallyValid.filter((candidate) => isRelevantExternalCandidate(query, candidate.normalizedName)).sort((a, b) => b.confidence - a.confidence);
-  if (!candidates.length) return { status: "unresolved", candidates: [], reason: "not_found" };
+  if (!candidates.length) return { status: "unresolved", candidates: [], reason: "not_found", rawCandidateCount: rawCandidates.length, structurallyValidCount: structurallyValid.length };
 
   // Owner-beta blocker #9 (2026-09-11): isRelevantExternalCandidate above
   // only validates a candidate against the SEARCH TERM actually sent — never
@@ -390,7 +397,7 @@ export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: 
     });
     const best = reviewCandidates.filter((_, index) => relevance.get(String(index)) === "best_match");
     candidates = best.length ? best : approved;
-    if (!candidates.length) return { status: "unresolved", candidates: [], reason: "not_found" };
+    if (!candidates.length) return { status: "unresolved", candidates: [], reason: "not_found", rawCandidateCount: rawCandidates.length, structurallyValidCount: structurallyValid.length };
     candidates = collapseEquivalentCandidates(candidates);
   }
 

@@ -130,23 +130,45 @@ function logDynamicResolutionOutcome(status: DynamicResolutionOutcome["status"],
   console.log(`dynamic_food_resolution status=${status}${via ? ` via=${via}` : ""}${reason ? ` reason=${reason}` : ""}`);
 }
 
+// resolutionDiagnostics (2026-09-17, production web-evidence effectiveness
+// RCA): the funnel stage BEFORE web-evidence is even considered — what
+// search term was actually used, and exactly why resolveAuthoritativeFood
+// didn't resolve. Closes a real investigative blind spot found live: a
+// production "unresolved" with no webEvidenceDiagnostics at all is
+// ambiguous between "web-evidence tried and failed" and "web-evidence was
+// never attempted because the authoritative reason wasn't not_found/
+// external_unavailable" (e.g. invalid_external_data, or the outer
+// rate-limiter/no-adapters guard) — this field always answers which.
+// Same non-production-only surfacing rule as webEvidenceDiagnostics (see
+// meal-input/interpret.ts's debugWebEvidenceDiagnostics) — purely
+// observability, never read by any resolution logic, no secrets/user text
+// beyond the search term itself.
+export type DynamicResolutionDiagnostics = {
+  searchTerm: string;
+  via: "search_intent" | "raw_query" | "normalized_identity";
+  authoritativeReason?: "not_found" | "invalid_external_data" | "external_unavailable" | "rate_limited" | "no_adapters";
+  rawCandidateCount?: number;
+  structurallyValidCount?: number;
+  webEvidenceAttempted: boolean;
+};
+
 export type DynamicResolutionOutcome =
   | { status: "resolved"; food: any; via: "search_intent" | "raw_query" | "normalized_identity" }
-  | { status: "confirmation_required"; candidates: ExternalFoodCandidate[]; reason: "ambiguous" | "possible_duplicate" | "weak_match" }
+  | { status: "confirmation_required"; candidates: ExternalFoodCandidate[]; reason: "ambiguous" | "possible_duplicate" | "weak_match"; resolutionDiagnostics?: DynamicResolutionDiagnostics }
   // webEvidenceDiagnostics (2026-09-16, P0 effectiveness investigation):
   // present only when a web-evidence attempt actually ran — the full funnel
   // trace (search query, candidate domains/tiers, per-candidate fetch/
   // extraction/grounding/identity outcome). Purely observability, never
   // read by any resolution logic; the API layer (meal-input/interpret.ts)
   // only ever surfaces it to a caller outside production.
-  | { status: "unresolved"; reason: "not_found" | "invalid_external_data" | "external_unavailable" | "rate_limited" | "no_adapters"; webEvidenceDiagnostics?: WebEvidenceFallbackDiagnostics }
+  | { status: "unresolved"; reason: "not_found" | "invalid_external_data" | "external_unavailable" | "rate_limited" | "no_adapters"; webEvidenceDiagnostics?: WebEvidenceFallbackDiagnostics; resolutionDiagnostics?: DynamicResolutionDiagnostics }
   // FINAL FALLBACK (2026-09-16): local + authoritative-adapter + web-evidence
   // resolution all genuinely failed, AND the AI estimation provider produced
   // a structurally-plausible estimate. This is NEVER auto-persisted as a
   // Food — see the "ai_estimate_pending" doc on the caller side
   // (meal-input/interpret.ts) for exactly how a user must explicitly accept
   // (or reject in favor of their own values) before anything is written.
-  | { status: "ai_estimate_pending"; estimate: AiNutritionEstimate; requestedIdentity: string; canonicalIdentity: string; webEvidenceDiagnostics?: WebEvidenceFallbackDiagnostics };
+  | { status: "ai_estimate_pending"; estimate: AiNutritionEstimate; requestedIdentity: string; canonicalIdentity: string; webEvidenceDiagnostics?: WebEvidenceFallbackDiagnostics; resolutionDiagnostics?: DynamicResolutionDiagnostics };
 
 type ResolveFromSearchTermDeps = {
   adapters: readonly StructuredFoodLookupAdapter[];
@@ -227,6 +249,14 @@ async function resolveFromSearchTerm(
     sourceUnit: semanticContext?.sourceUnit,
     locale: deps.foodLocale ?? deps.locale
   });
+  // Built once, attached wherever the outcome isn't a clean "resolved" — see
+  // DynamicResolutionDiagnostics's own doc for why this closes a real
+  // investigative gap (distinguishing "web-evidence tried and failed" from
+  // "web-evidence was never eligible to run").
+  const baseDiagnostics = (webEvidenceAttempted: boolean): DynamicResolutionDiagnostics => ({
+    searchTerm, via, webEvidenceAttempted,
+    ...(outcome.status === "unresolved" ? { authoritativeReason: outcome.reason, rawCandidateCount: outcome.rawCandidateCount, structurallyValidCount: outcome.structurallyValidCount } : {})
+  });
   switch (outcome.status) {
     case "resolved_local":
     case "resolved_external": {
@@ -248,7 +278,7 @@ async function resolveFromSearchTerm(
     }
     case "confirmation_required":
       logDynamicResolutionOutcome("confirmation_required", via, outcome.reason);
-      return { status: "confirmation_required", candidates: outcome.candidates, reason: outcome.reason };
+      return { status: "confirmation_required", candidates: outcome.candidates, reason: outcome.reason, resolutionDiagnostics: baseDiagnostics(false) };
     case "unresolved": {
       // DATABASE MISS -> AUTHORITATIVE EXTERNAL EVIDENCE FALLBACK
       // (2026-09-16): only attempted for a GENUINE exhaustion ("not_found":
@@ -261,6 +291,7 @@ async function resolveFromSearchTerm(
       // this branch is unreachable unless resolveAuthoritativeFood itself
       // already returned "unresolved" above.
       let webEvidenceDiagnostics: WebEvidenceFallbackDiagnostics | undefined;
+      let webEvidenceAttempted = false;
       if (outcome.reason === "not_found" || outcome.reason === "external_unavailable") {
         // Part O / cost efficiency (2026-09-16 live-staging finding): checked
         // FIRST, before web-evidence discovery is ever attempted — a repeat
@@ -278,6 +309,7 @@ async function resolveFromSearchTerm(
           }
         }
         if (deps.webEvidenceFallback) {
+          webEvidenceAttempted = true;
           const fallback = await timeStage("web_evidence_fallback", () => attemptWebEvidenceFallback(searchTerm, originalIdentity, {
             ...deps.webEvidenceFallback!,
             semanticGateProvider: deps.semanticCandidateGateProvider ?? new DisabledSemanticCandidateGateProvider(),
@@ -321,13 +353,13 @@ async function resolveFromSearchTerm(
             catch { estimate = null; }
             if (estimate) {
               logDynamicResolutionOutcome("ai_estimate_pending", via);
-              return { status: "ai_estimate_pending", estimate, requestedIdentity: originalIdentity, canonicalIdentity: searchTerm, webEvidenceDiagnostics };
+              return { status: "ai_estimate_pending", estimate, requestedIdentity: originalIdentity, canonicalIdentity: searchTerm, webEvidenceDiagnostics, resolutionDiagnostics: baseDiagnostics(webEvidenceAttempted) };
             }
           }
         }
       }
       logDynamicResolutionOutcome("unresolved", via, outcome.reason);
-      return { status: "unresolved", reason: outcome.reason, webEvidenceDiagnostics };
+      return { status: "unresolved", reason: outcome.reason, webEvidenceDiagnostics, resolutionDiagnostics: baseDiagnostics(webEvidenceAttempted) };
     }
   }
 }

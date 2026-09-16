@@ -183,7 +183,10 @@ describe("resolveDynamicFood: bounded local-miss fallback", () => {
       rateLimiter: new DynamicFoodResolutionRateLimiter(),
       userId: "user-1"
     });
-    expect(result).toEqual({ status: "unresolved", reason: "not_found" });
+    expect(result).toEqual({
+      status: "unresolved", reason: "not_found", webEvidenceDiagnostics: undefined,
+      resolutionDiagnostics: { searchTerm: "unknown food xyz", via: "search_intent", authoritativeReason: "not_found", rawCandidateCount: 0, structurallyValidCount: 0, webEvidenceAttempted: false }
+    });
     expect(foods).toHaveLength(0);
   });
 
@@ -195,7 +198,10 @@ describe("resolveDynamicFood: bounded local-miss fallback", () => {
       rateLimiter: new DynamicFoodResolutionRateLimiter(),
       userId: "user-1"
     });
-    expect(result).toEqual({ status: "unresolved", reason: "external_unavailable" });
+    expect(result).toEqual({
+      status: "unresolved", reason: "external_unavailable", webEvidenceDiagnostics: undefined,
+      resolutionDiagnostics: { searchTerm: "pork hock", via: "search_intent", authoritativeReason: "external_unavailable", rawCandidateCount: 0, structurallyValidCount: 0, webEvidenceAttempted: false }
+    });
     expect(foods).toHaveLength(0);
   });
 });
@@ -428,7 +434,10 @@ describe("resolveDynamicFood: web-evidence fallback hook-in", () => {
       userId: "user-1",
       webEvidenceFallback: webEvidenceDeps
     });
-    expect(result).toEqual({ status: "unresolved", reason: "not_found" });
+    expect(result).toEqual({
+      status: "unresolved", reason: "not_found", webEvidenceDiagnostics: undefined,
+      resolutionDiagnostics: { searchTerm: "sterlet", via: "search_intent", authoritativeReason: "not_found", rawCandidateCount: 0, structurallyValidCount: 0, webEvidenceAttempted: true }
+    });
     expect(foods).toHaveLength(0);
     expect(persistWebEvidenceFood).not.toHaveBeenCalled();
   });
@@ -444,7 +453,10 @@ describe("resolveDynamicFood: web-evidence fallback hook-in", () => {
       userId: "user-1",
       webEvidenceFallback: webEvidenceDeps
     });
-    expect(result).toEqual({ status: "unresolved", reason: "invalid_external_data" });
+    expect(result).toEqual({
+      status: "unresolved", reason: "invalid_external_data", webEvidenceDiagnostics: undefined,
+      resolutionDiagnostics: { searchTerm: "pork hock", via: "search_intent", authoritativeReason: "invalid_external_data", rawCandidateCount: 1, structurallyValidCount: 0, webEvidenceAttempted: false }
+    });
     expect(attemptWebEvidenceFallback).not.toHaveBeenCalled();
   });
 
@@ -474,7 +486,10 @@ describe("resolveDynamicFood: web-evidence fallback hook-in", () => {
       rateLimiter: new DynamicFoodResolutionRateLimiter(),
       userId: "user-1"
     });
-    expect(result).toEqual({ status: "unresolved", reason: "not_found" });
+    expect(result).toEqual({
+      status: "unresolved", reason: "not_found", webEvidenceDiagnostics: undefined,
+      resolutionDiagnostics: { searchTerm: "unknown food xyz", via: "search_intent", authoritativeReason: "not_found", rawCandidateCount: 0, structurallyValidCount: 0, webEvidenceAttempted: false }
+    });
     expect(foods).toHaveLength(0);
     expect(attemptWebEvidenceFallback).not.toHaveBeenCalled();
   });
@@ -534,7 +549,10 @@ describe("resolveDynamicFood: AI-estimation final-fallback hook-in", () => {
       userId: "user-1",
       aiEstimation: aiDeps({ provider: { id: "groq", estimate: async () => null } })
     });
-    expect(result).toEqual({ status: "unresolved", reason: "not_found" });
+    expect(result).toEqual({
+      status: "unresolved", reason: "not_found", webEvidenceDiagnostics: undefined,
+      resolutionDiagnostics: { searchTerm: "crucian carp", via: "search_intent", authoritativeReason: "not_found", rawCandidateCount: 0, structurallyValidCount: 0, webEvidenceAttempted: false }
+    });
   });
 
   it("Part O: a previously-accepted private Food for the SAME user is reused instead of spending a fresh AI call", async () => {
@@ -596,7 +614,10 @@ describe("resolveDynamicFood: AI-estimation final-fallback hook-in", () => {
       userId: "user-1",
       aiEstimation: aiDeps({ provider: { id: "groq", estimate }, rateLimiter: { consume: () => false } })
     });
-    expect(result).toEqual({ status: "unresolved", reason: "not_found" });
+    expect(result).toEqual({
+      status: "unresolved", reason: "not_found", webEvidenceDiagnostics: undefined,
+      resolutionDiagnostics: { searchTerm: "crucian carp", via: "search_intent", authoritativeReason: "not_found", rawCandidateCount: 0, structurallyValidCount: 0, webEvidenceAttempted: false }
+    });
     expect(estimate).not.toHaveBeenCalled();
   });
 

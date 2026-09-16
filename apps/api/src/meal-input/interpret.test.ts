@@ -1419,4 +1419,57 @@ describe("interpretMealInput: AI-estimate-pending propagation", () => {
       process.env.RENDER_SERVICE_NAME = originalServiceName;
     }
   });
+
+  // Production web-evidence effectiveness RCA (2026-09-17): the real gap
+  // found live — an "unresolved" with no webEvidenceDiagnostics is ambiguous
+  // between "web-evidence tried and failed" and "web-evidence was never
+  // eligible to run" (e.g. invalid_external_data). resolutionDiagnostics
+  // always answers which, even when webEvidenceDiagnostics itself is absent.
+  it("surfaces resolutionDiagnostics outside production, distinguishing invalid_external_data (web-evidence never attempted) from a genuine web-evidence attempt", async () => {
+    const originalEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = "test";
+    try {
+      const { dynamicPrisma } = dynamicPrismaFixture();
+      const dynamic = {
+        prisma: dynamicPrisma,
+        searchIntentProvider: { id: "fixture", generate: async () => ({ canonicalConcept: "crucian carp", searchTerms: ["crucian carp"] }) },
+        adapters: [{ source: "usda_fdc" as const, sourceName: "USDA", lookup: async () => [{ not: "a valid candidate shape" }] }],
+        rateLimiter: new DynamicFoodResolutionRateLimiter(),
+        userId: "user-1",
+        webEvidenceFallback: { searchProvider: { id: "tavily", search: async () => [] }, extractionProvider: { id: "groq" }, rateLimiter: { consume: () => true } }
+      };
+      const result = await interpretMealInput(prisma, "kárász", undefined, undefined, dynamic as any);
+      expect(result.foodResolution).toBe("unresolved");
+      // The load-bearing assertion: no web-evidence trace at all...
+      expect(result.webEvidenceDiagnostics).toBeUndefined();
+      // ...but resolutionDiagnostics proves WHY — invalid_external_data, never attempted.
+      expect(result.resolutionDiagnostics).toMatchObject({
+        searchTerm: "crucian carp", authoritativeReason: "invalid_external_data",
+        rawCandidateCount: 1, structurallyValidCount: 0, webEvidenceAttempted: false
+      });
+    } finally {
+      process.env.NODE_ENV = originalEnv;
+    }
+  });
+
+  it("NEVER surfaces resolutionDiagnostics in production", async () => {
+    const originalEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = "production";
+    try {
+      const { dynamicPrisma } = dynamicPrismaFixture();
+      const dynamic = {
+        prisma: dynamicPrisma,
+        searchIntentProvider: { id: "fixture", generate: async () => ({ canonicalConcept: "crucian carp", searchTerms: ["crucian carp"] }) },
+        adapters: [{ source: "usda_fdc" as const, sourceName: "USDA", lookup: async () => [{ not: "a valid candidate shape" }] }],
+        rateLimiter: new DynamicFoodResolutionRateLimiter(),
+        userId: "user-1",
+        webEvidenceFallback: { searchProvider: { id: "tavily", search: async () => [] }, extractionProvider: { id: "groq" }, rateLimiter: { consume: () => true } }
+      };
+      const result = await interpretMealInput(prisma, "kárász", undefined, undefined, dynamic as any);
+      expect(result.foodResolution).toBe("unresolved");
+      expect(result.resolutionDiagnostics).toBeUndefined();
+    } finally {
+      process.env.NODE_ENV = originalEnv;
+    }
+  });
 });
