@@ -1,0 +1,233 @@
+/**
+ * DATABASE MISS -> AUTHORITATIVE EXTERNAL EVIDENCE FALLBACK (2026-09-16).
+ *
+ * Pure types and pure validation/classification functions for the
+ * last-resort web-evidence fallback. Nothing here performs I/O (no
+ * fetch/search/AI call) — see web-evidence-fallback.ts for the orchestrator
+ * and nutrition-evidence-extraction.ts for the extraction provider.
+ *
+ * HARD INVARIANT this whole subsystem exists to enforce: AI MAY find and
+ * read nutrition data; AI MUST NEVER invent it. Every function here is a
+ * mechanical (non-AI) check that a piece of claimed evidence is real,
+ * consistent, and actually present in the source text — never a "trust the
+ * model's JSON" shortcut.
+ */
+
+export type EvidenceSourceTier = "tier_a_official" | "tier_b_manufacturer" | "tier_c_institutional" | "discovery_only";
+
+// Government / official food-composition-database domains. Pattern-based
+// (TLD suffixes) plus a small, explicitly-documented, easily-extensible
+// allowlist of known official non-.gov databases — deliberately NOT a giant
+// hardcoded domain list: the TLD patterns generalize to any country's
+// official database without needing a new entry per country.
+const TIER_A_TLD_PATTERNS: RegExp[] = [
+  /\.gov$/, /\.gov\.[a-z]{2,}$/, /\.europa\.eu$/, /\.admin\.ch$/, /\.canada\.ca$/, /\.bund\.de$/
+];
+// Known official government/institutional food-composition databases whose
+// own domain does not match a TLD pattern above. Extend this list as new
+// national databases are identified — each entry should be a real, verified
+// official government-operated or government-commissioned dataset.
+const TIER_A_KNOWN_DOMAINS = new Set<string>([
+  "fdc.nal.usda.gov",
+  "blsdb.de", // Bundeslebensmittelschlüssel (Max Rubner-Institut, DE)
+  "frida.fooddata.dk", // Danish national food database (DTU)
+  "ciqual.anses.fr" // French official food composition database (ANSES)
+]);
+// Recognized institutional/licensed nutrition databases — not government,
+// but a maintained, citation-quality dataset. Reviewed periodically; not a
+// substitute for tier A, and never preferred over it.
+const TIER_C_KNOWN_DOMAINS = new Set<string>([]);
+
+function normalizedDomainLabel(domain: string): string {
+  const parts = domain.toLowerCase().split(".");
+  // second-level label, e.g. "univer" from "univer.hu" or "shop.univer.hu"
+  return parts.length >= 2 ? parts[parts.length - 2] : parts[0] ?? "";
+}
+
+/**
+ * A domain counts as a plausible manufacturer/brand domain for THIS request
+ * only when its own registrable label is genuinely attested as a token of
+ * the identity the user actually asked about (e.g. domain "univer.hu" for a
+ * request naming "Univer Erős Pista") — never merely because the caller
+ * marked the request as "branded". This mirrors isRelevantExternalCandidate's
+ * token-overlap philosophy (external-food.ts) rather than a hardcoded brand
+ * list, so it generalizes to any brand without a new entry per product.
+ */
+export function domainMatchesRequestedBrand(domain: string, requestedIdentity: string): boolean {
+  const label = normalizedDomainLabel(domain);
+  if (label.length < 3) return false;
+  const identityTokens = requestedIdentity
+    .toLowerCase()
+    .normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .split(/[^a-z0-9]+/)
+    .filter((token) => token.length >= 3);
+  return identityTokens.some((token) => token === label || token.startsWith(label) || label.startsWith(token));
+}
+
+export function classifySourceTier(domain: string, requestedIdentity: string): EvidenceSourceTier {
+  const normalized = domain.toLowerCase().replace(/^www\./, "");
+  if (TIER_A_TLD_PATTERNS.some((pattern) => pattern.test(normalized)) || TIER_A_KNOWN_DOMAINS.has(normalized)) return "tier_a_official";
+  if (domainMatchesRequestedBrand(normalized, requestedIdentity)) return "tier_b_manufacturer";
+  if (TIER_C_KNOWN_DOMAINS.has(normalized)) return "tier_c_institutional";
+  return "discovery_only";
+}
+
+// discovery_only sources are never authoritative — they exist purely to help
+// a search engine locate a real source; the actual nutrition numbers must
+// come from a tier A/B/C page.
+export function isAuthoritativeTier(tier: EvidenceSourceTier): boolean {
+  return tier !== "discovery_only";
+}
+
+export type ExtractedNutritionValue = { value: number; quote: string } | null;
+
+export type ExtractedNutritionBasis = { amountGrams: number; quote: string } | null;
+
+// Raw shape the extraction provider (LLM-grounded or deterministic JSON-LD
+// parser) produces — every numeric claim carries its own verbatim supporting
+// quote so it can be mechanically checked against the actual fetched text.
+export type ExtractedNutritionEvidence = {
+  sourceFoodName: string;
+  basis: ExtractedNutritionBasis;
+  kcal: ExtractedNutritionValue;
+  protein: ExtractedNutritionValue;
+  fat: ExtractedNutritionValue;
+  carbs: ExtractedNutritionValue;
+  // Distinct from "0g fiber": null means the source never stated a fiber
+  // value at all and must never be treated as zero (Phase 6's hard
+  // requirement — this app computes netCarbs = carbs - fiber, and a keto
+  // tracker silently assuming fiber=0 when it is merely unknown produces a
+  // falsely-inflated netCarbs, the wrong direction for user trust/safety).
+  fiber: ExtractedNutritionValue;
+  extractionMethod: "json_ld" | "html_table" | "llm_grounded";
+};
+
+// The fully-validated, per-100g-normalized, grounded evidence — the only
+// shape allowed to reach persistence.
+export type NutritionEvidence = {
+  sourceUrl: string;
+  sourceDomain: string;
+  sourceTitle: string;
+  sourceTier: EvidenceSourceTier;
+  retrievedAt: string;
+  requestedIdentity: string;
+  canonicalIdentity: string;
+  sourceFoodName: string;
+  basisAmountGrams: number;
+  kcalPer100g: number;
+  proteinPer100g: number;
+  fatPer100g: number;
+  carbsPer100g: number;
+  fiberPer100g: number;
+  extractionMethod: "json_ld" | "html_table" | "llm_grounded";
+  evidenceExcerpt: string;
+  energyConsistent: boolean;
+  confidence: number;
+};
+
+/**
+ * Mechanical grounding check (Phase 11 — load-bearing): a claimed quote is
+ * only trusted if it is an actual, verbatim (whitespace/case-insensitive)
+ * substring of the text that was really fetched. This runs in code, not the
+ * model — an LLM that "returns valid JSON" is not sufficient trust; only a
+ * quote that genuinely appears in the source text is.
+ */
+export function isGroundedInSource(quote: string, sourceText: string): boolean {
+  const normalize = (value: string) => value.toLowerCase().replace(/\s+/g, " ").trim();
+  const normalizedQuote = normalize(quote);
+  if (normalizedQuote.length < 2) return false;
+  return normalize(sourceText).includes(normalizedQuote);
+}
+
+function finiteNonNegative(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0;
+}
+
+// Same physical/plausibility bounds validateExternalCandidate (external-food.ts)
+// already applies to USDA/OFF candidates — reused verbatim so a web-evidence
+// Food can never be more permissive than an authoritative-adapter Food.
+export function withinPhysicalBounds(values: { kcal: number; protein: number; fat: number; carbs: number; fiber: number }): boolean {
+  return finiteNonNegative(values.kcal) && finiteNonNegative(values.protein) && finiteNonNegative(values.fat)
+    && finiteNonNegative(values.carbs) && finiteNonNegative(values.fiber)
+    && values.kcal <= 1_000 && values.protein <= 100 && values.fat <= 100 && values.carbs <= 100 && values.fiber <= 100;
+}
+
+/**
+ * Anomaly detection only (Phase 12) — never replaces the source's own
+ * stated kcal with a calculated one. A gross mismatch (unit confusion such
+ * as kJ misread as kcal, or a per-serving/per-100g mixup) is rejected;
+ * ordinary differences from fiber, polyols, organic acids, and rounding are
+ * tolerated with a generous band.
+ */
+export function isEnergyConsistent(kcal: number, protein: number, fat: number, carbs: number): boolean {
+  const derived = protein * 4 + carbs * 4 + fat * 9;
+  const tolerance = Math.max(50, kcal * 0.35, derived * 0.35);
+  return Math.abs(derived - kcal) <= tolerance;
+}
+
+/**
+ * Normalizes extracted-but-ungrounded values to null (never silently drops
+ * the whole evidence object for one bad field) and basis conversion to
+ * per-100g. Returns null if the basis itself isn't grounded/known, or if
+ * any of the four REQUIRED macros (kcal/protein/fat/carbs) is missing or
+ * ungrounded, or if fiber is missing (Phase 6: never fabricate fiber=0).
+ * Does not perform the semantic-identity check or persistence — purely the
+ * mechanical grounding + basis + bounds + sanity gate.
+ */
+export function validateAndNormalizeEvidence(
+  extracted: ExtractedNutritionEvidence,
+  sourceText: string,
+  source: { sourceUrl: string; sourceDomain: string; sourceTitle: string; sourceTier: EvidenceSourceTier; retrievedAt: string; requestedIdentity: string; canonicalIdentity: string }
+): NutritionEvidence | null {
+  if (!isAuthoritativeTier(source.sourceTier)) return null;
+  if (!extracted.basis || !isGroundedInSource(extracted.basis.quote, sourceText) || extracted.basis.amountGrams <= 0) return null;
+
+  const groundedValue = (field: ExtractedNutritionValue): number | null => {
+    if (!field) return null;
+    if (!isGroundedInSource(field.quote, sourceText)) return null;
+    return field.value;
+  };
+
+  const kcalRaw = groundedValue(extracted.kcal);
+  const proteinRaw = groundedValue(extracted.protein);
+  const fatRaw = groundedValue(extracted.fat);
+  const carbsRaw = groundedValue(extracted.carbs);
+  const fiberRaw = groundedValue(extracted.fiber);
+  // Required macros: any missing/ungrounded value means the evidence is
+  // incomplete — never filled in from model memory.
+  if (kcalRaw == null || proteinRaw == null || fatRaw == null || carbsRaw == null) return null;
+  // Fiber unknown -> reject rather than assume 0 (see ExtractedNutritionEvidence.fiber doc).
+  if (fiberRaw == null) return null;
+
+  const factor = 100 / extracted.basis.amountGrams;
+  const kcalPer100g = kcalRaw * factor;
+  const proteinPer100g = proteinRaw * factor;
+  const fatPer100g = fatRaw * factor;
+  const carbsPer100g = carbsRaw * factor;
+  const fiberPer100g = fiberRaw * factor;
+
+  if (!withinPhysicalBounds({ kcal: kcalPer100g, protein: proteinPer100g, fat: fatPer100g, carbs: carbsPer100g, fiber: fiberPer100g })) return null;
+  const energyConsistent = isEnergyConsistent(kcalPer100g, proteinPer100g, fatPer100g, carbsPer100g);
+  if (!energyConsistent) return null; // gross mismatch: likely unit confusion, reject outright rather than merely flag
+
+  const excerptParts = [extracted.basis.quote, extracted.kcal?.quote, extracted.protein?.quote, extracted.fat?.quote, extracted.carbs?.quote, extracted.fiber?.quote]
+    .filter((value): value is string => Boolean(value));
+  const evidenceExcerpt = [...new Set(excerptParts)].join(" | ").slice(0, 2_000);
+
+  return {
+    sourceUrl: source.sourceUrl,
+    sourceDomain: source.sourceDomain,
+    sourceTitle: source.sourceTitle,
+    sourceTier: source.sourceTier,
+    retrievedAt: source.retrievedAt,
+    requestedIdentity: source.requestedIdentity,
+    canonicalIdentity: source.canonicalIdentity,
+    sourceFoodName: extracted.sourceFoodName,
+    basisAmountGrams: extracted.basis.amountGrams,
+    kcalPer100g, proteinPer100g, fatPer100g, carbsPer100g, fiberPer100g,
+    extractionMethod: extracted.extractionMethod,
+    evidenceExcerpt,
+    energyConsistent,
+    confidence: source.sourceTier === "tier_a_official" ? 0.9 : source.sourceTier === "tier_b_manufacturer" ? 0.85 : 0.7
+  };
+}

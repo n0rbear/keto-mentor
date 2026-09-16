@@ -16,6 +16,12 @@ enum FoodSource {
   barcode
   user_input
   ai_ocr
+  /// Authoritative external-evidence fallback (2026-09-16): a Food whose
+  /// nutrition was extracted from a fetched, tier-classified webpage (never
+  /// from AI model memory) after every curated/local/USDA/OFF path was
+  /// genuinely exhausted. Kept distinct from bls/usda_fdc/open_food_facts so
+  /// it is never mistaken for a curated dataset — see web-evidence-fallback.ts.
+  web_evidence
 }
 
 enum EntitlementPlan {

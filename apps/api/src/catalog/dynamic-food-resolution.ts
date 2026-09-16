@@ -11,6 +11,7 @@ import { DisabledSemanticCandidateGateProvider, type SemanticCandidateGateProvid
 import type { AliasSemanticVerdict } from "./alias-semantic-verdict.js";
 import { computeAliasSemanticVerdict } from "./alias-semantic-verdict.js";
 import { timeStage } from "../request-performance.js";
+import { attemptWebEvidenceFallback, persistWebEvidenceFood, type WebEvidenceFallbackDeps } from "./web-evidence-fallback.js";
 
 type DynamicPrisma = Parameters<typeof resolveAuthoritativeFood>[0];
 
@@ -134,6 +135,14 @@ type ResolveFromSearchTermDeps = {
   // skipping the check — a caller that doesn't wire a real gate gets safe
   // "unresolved" outcomes, never ungated candidates.
   semanticCandidateGateProvider?: SemanticCandidateGateProvider;
+  // DATABASE MISS -> AUTHORITATIVE EXTERNAL EVIDENCE FALLBACK (2026-09-16):
+  // the last-resort stage, tried only inside resolveFromSearchTerm's own
+  // "unresolved" branch below, after resolveAuthoritativeFood (local +
+  // USDA/OFF + semantic gate) has already found nothing. Optional — a
+  // caller that doesn't wire it (e.g. an older test, or a deployment
+  // without WEB_SEARCH_PROVIDER configured) degrades to the pre-existing
+  // "unresolved" outcome, byte-for-byte unchanged.
+  webEvidenceFallback?: Pick<WebEvidenceFallbackDeps, "searchProvider" | "extractionProvider" | "rateLimiter">;
 };
 
 /**
@@ -198,9 +207,42 @@ async function resolveFromSearchTerm(
     case "confirmation_required":
       logDynamicResolutionOutcome("confirmation_required", via, outcome.reason);
       return { status: "confirmation_required", candidates: outcome.candidates, reason: outcome.reason };
-    case "unresolved":
+    case "unresolved": {
+      // DATABASE MISS -> AUTHORITATIVE EXTERNAL EVIDENCE FALLBACK
+      // (2026-09-16): only attempted for a GENUINE exhaustion ("not_found":
+      // nothing local/USDA/OFF matched at all; "external_unavailable": no
+      // adapters configured at all) — never for "invalid_external_data",
+      // which means a candidate DID exist but failed structural validation
+      // (a data-quality problem the web fallback cannot safely second-guess
+      // by design). Phase 24's regression requirement (external fallback
+      // must never run for an already-resolved food) holds by construction:
+      // this branch is unreachable unless resolveAuthoritativeFood itself
+      // already returned "unresolved" above.
+      if (deps.webEvidenceFallback && (outcome.reason === "not_found" || outcome.reason === "external_unavailable")) {
+        const fallback = await timeStage("web_evidence_fallback", () => attemptWebEvidenceFallback(searchTerm, originalIdentity, {
+          ...deps.webEvidenceFallback!,
+          semanticGateProvider: deps.semanticCandidateGateProvider ?? new DisabledSemanticCandidateGateProvider(),
+          userId: deps.userId,
+          locale: deps.foodLocale ?? deps.locale
+        }));
+        if (fallback) {
+          const food = await persistWebEvidenceFood(prisma as any, fallback.evidence);
+          // Reuses the EXACT same write-path safety net PR #54 built for
+          // every other dynamic resolution: a fresh semantic-gate verdict
+          // decides the learned alias's confidence (0.95 validated / 0.7
+          // unknown), and the existing DYNAMIC_SEARCH_ALIAS_TRUST_THRESHOLD
+          // (food-search.ts) governs whether a repeat query ever short-
+          // circuits back to this Food without re-verifying. No new
+          // alias-trust code was written for this checkpoint.
+          const semanticVerdict = await computeAliasSemanticVerdict(deps.semanticCandidateGateProvider, originalIdentity, food, aliasLocale, semanticContext);
+          await learnSearchAlias(prisma, food, originalIdentity, aliasLocale, semanticVerdict);
+          logDynamicResolutionOutcome("resolved", via);
+          return { status: "resolved", food, via };
+        }
+      }
       logDynamicResolutionOutcome("unresolved", via, outcome.reason);
       return { status: "unresolved", reason: outcome.reason };
+    }
   }
 }
 

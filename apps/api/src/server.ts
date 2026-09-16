@@ -46,6 +46,8 @@ import { WebKnowledgeSearchRateLimiter } from "./web-knowledge/web-knowledge-rat
 import { NegativeSearchCache } from "./web-knowledge/negative-search-cache.js";
 import { RecipeDiscoveryService } from "./recipes/recipe-discovery.js";
 import { configuredRecipeAiProvider } from "./recipes/recipe-ai-gateway.js";
+import { configuredNutritionEvidenceExtractionProvider } from "./catalog/nutrition-evidence-extraction-gateway.js";
+import { WebEvidenceFallbackRateLimiter } from "./catalog/web-evidence-fallback.js";
 import { publishProgress, subscribeProgress, closeProgress } from "./meal-input/progress-bus.js";
 
 const logger = createLogger(env.NODE_ENV === "production" ? "info" : "debug");
@@ -114,6 +116,15 @@ const recipeDiscoveryService = new RecipeDiscoveryService({
   rateLimiter: webKnowledgeSearchRateLimiter,
   negativeCache: recipeDiscoveryNegativeCache
 });
+// DATABASE MISS -> AUTHORITATIVE EXTERNAL EVIDENCE FALLBACK (2026-09-16):
+// reuses the SAME Tavily web-search gateway instance recipe discovery
+// already uses above (no second search credential) plus its own dedicated
+// nutrition-extraction AI gateway and its own tighter rate limiter — see
+// catalog/web-evidence-fallback.ts. A no-op end-to-end when either
+// WEB_SEARCH_PROVIDER is unset or the AI gateway is disabled.
+const nutritionEvidenceExtractionProvider = configuredNutritionEvidenceExtractionProvider(env);
+const webEvidenceFallbackRateLimiter = new WebEvidenceFallbackRateLimiter();
+const webEvidenceFallback = { searchProvider: webKnowledgeSearchProvider, extractionProvider: nutritionEvidenceExtractionProvider, rateLimiter: webEvidenceFallbackRateLimiter };
 
 // The authenticated user's own persisted locale (from requireAuth's DB read)
 // is the single trusted source of UI language for server-side localization —
@@ -341,7 +352,7 @@ app.post("/meal-input/interpret", requireAuth, async (req, res, next) => {
     // never adds a request on a local hit. No adapters configured (e.g. no
     // USDA_FDC_API_KEY) means dynamic resolution is simply not offered.
     const dynamic = externalFoodAdapters.length
-      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale: trustedLocale(req.user!), localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider }
+      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale: trustedLocale(req.user!), localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider, webEvidenceFallback }
       : null;
     // Same deps, but with recipeIngredientDynamicResolutionLimiter in place
     // of dynamicFoodResolutionLimiter — see that limiter's own comment.
@@ -436,7 +447,7 @@ app.post("/meals", requireAuth, async (req, res, next) => {
     // contains a recipe-discovery item, at which point its own explicit
     // recipe_discovery_unavailable check fires instead of resolving anything.
     const recipeDynamic = externalFoodAdapters.length
-      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: recipeIngredientDynamicResolutionLimiter, userId: req.user!.id, locale: trustedLocale(req.user!), localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider }
+      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: recipeIngredientDynamicResolutionLimiter, userId: req.user!.id, locale: trustedLocale(req.user!), localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider, webEvidenceFallback }
       : null;
     const meal = await createMeal(prisma, req.user!.id, input, { recipeAiProvider: recipeDiscoveryAiProvider, dynamic: recipeDynamic, recipeIngredientNormalizationProvider, recipeQuantityEstimationProvider });
     res.status(201).json({ meal });

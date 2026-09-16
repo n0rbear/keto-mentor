@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { resolveDynamicFood, learnSearchAlias } from "./dynamic-food-resolution.js";
 import { DynamicFoodResolutionRateLimiter } from "./dynamic-food-rate-limit.js";
 import { DisabledSearchIntentProvider, type SearchIntent, type SearchIntentProvider } from "./search-intent.js";
@@ -367,5 +367,112 @@ describe("computeAliasSemanticVerdict", () => {
     const provider: SemanticCandidateGateProvider = { id: "real", checkRelevance: async () => { throw new Error("timeout"); } };
     const result = await computeAliasSemanticVerdict(provider, "mustár", food, "hu");
     expect(result).toBe("unknown");
+  });
+});
+
+// DATABASE MISS -> AUTHORITATIVE EXTERNAL EVIDENCE FALLBACK (2026-09-16):
+// resolveFromSearchTerm's new terminal branch. attemptWebEvidenceFallback and
+// persistWebEvidenceFood are mocked here — their own internals (search ->
+// fetch -> extract -> ground -> identity-gate -> persist) are covered in
+// web-evidence-fallback.test.ts; this file only proves the INTEGRATION: when
+// the hook fires, when it doesn't, and that a success reuses the exact same
+// write-path alias-safety machinery as every other resolved outcome.
+vi.mock("./web-evidence-fallback.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./web-evidence-fallback.js")>();
+  return { ...actual, attemptWebEvidenceFallback: vi.fn(), persistWebEvidenceFood: vi.fn() };
+});
+
+describe("resolveDynamicFood: web-evidence fallback hook-in", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  const evidenceFood = { id: "food-web-1", name: "Cauliflower, raw", originalName: "Cauliflower, raw", names: { en: "Cauliflower, raw", hu: "Karfiol, nyers" } };
+  const evidence = {
+    sourceUrl: "https://example.gov/cauliflower", sourceDomain: "example.gov", sourceTitle: "Cauliflower",
+    sourceTier: "tier_a_official" as const, retrievedAt: "2026-09-16T00:00:00.000Z", requestedIdentity: "karfiol", canonicalIdentity: "cauliflower",
+    sourceFoodName: "Cauliflower, raw", basisAmountGrams: 100, kcalPer100g: 25, proteinPer100g: 2, fatPer100g: 0.3, carbsPer100g: 5, fiberPer100g: 2,
+    extractionMethod: "llm_grounded" as const, evidenceExcerpt: "25 kcal", energyConsistent: true, confidence: 0.9
+  };
+  const webEvidenceDeps = { searchProvider: { id: "tavily" } as any, extractionProvider: { id: "groq" } as any, rateLimiter: { consume: () => true } as any };
+
+  it("a genuine local+external miss (not_found) triggers the fallback; success returns resolved and learns an alias via the normal verdict machinery", async () => {
+    const { attemptWebEvidenceFallback, persistWebEvidenceFood } = await import("./web-evidence-fallback.js");
+    vi.mocked(attemptWebEvidenceFallback).mockResolvedValue({ evidence, diagnostics: {} as any });
+    vi.mocked(persistWebEvidenceFood).mockResolvedValue(evidenceFood);
+    const { prisma, aliases } = fakePrisma();
+    const result = await resolveDynamicFood(prisma, { foodQuery: "karfiol" }, {
+      searchIntentProvider: stubSearchIntent({ canonicalConcept: "cauliflower", searchTerms: ["cauliflower"] }),
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      semanticCandidateGateProvider: permissiveSemanticGate(),
+      webEvidenceFallback: webEvidenceDeps
+    });
+    expect(result).toMatchObject({ status: "resolved", food: evidenceFood });
+    expect(persistWebEvidenceFood).toHaveBeenCalledWith(prisma, evidence);
+    // Same write-path safety as every other resolved outcome: a learned alias exists.
+    expect(aliases).toHaveLength(1);
+    expect(aliases[0]).toMatchObject({ foodId: "food-web-1", kind: "dynamic_search" });
+  });
+
+  it("the fallback ALSO failing (returns null) still produces the ordinary unresolved(not_found) outcome — never a crash, never a silent guess", async () => {
+    const { attemptWebEvidenceFallback, persistWebEvidenceFood } = await import("./web-evidence-fallback.js");
+    vi.mocked(attemptWebEvidenceFallback).mockResolvedValue(null);
+    const { prisma, foods } = fakePrisma();
+    const result = await resolveDynamicFood(prisma, { foodQuery: "kecsege" }, {
+      searchIntentProvider: stubSearchIntent({ canonicalConcept: "sterlet", searchTerms: ["sterlet"] }),
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      webEvidenceFallback: webEvidenceDeps
+    });
+    expect(result).toEqual({ status: "unresolved", reason: "not_found" });
+    expect(foods).toHaveLength(0);
+    expect(persistWebEvidenceFood).not.toHaveBeenCalled();
+  });
+
+  it('reason "invalid_external_data" (a candidate DID exist but failed structural validation) never triggers the fallback', async () => {
+    const { attemptWebEvidenceFallback } = await import("./web-evidence-fallback.js");
+    vi.mocked(attemptWebEvidenceFallback).mockClear();
+    const { prisma } = fakePrisma();
+    const result = await resolveDynamicFood(prisma, { foodQuery: "csülök" }, {
+      searchIntentProvider: stubSearchIntent({ canonicalConcept: "pork hock", searchTerms: ["pork hock"] }),
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [{ not: "a valid candidate shape" }] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      webEvidenceFallback: webEvidenceDeps
+    });
+    expect(result).toEqual({ status: "unresolved", reason: "invalid_external_data" });
+    expect(attemptWebEvidenceFallback).not.toHaveBeenCalled();
+  });
+
+  it("Phase 24 regression: the fallback is never even attempted when the ordinary pipeline already resolves the food", async () => {
+    const { attemptWebEvidenceFallback } = await import("./web-evidence-fallback.js");
+    vi.mocked(attemptWebEvidenceFallback).mockClear();
+    const { prisma } = fakePrisma();
+    const result = await resolveDynamicFood(prisma, { foodQuery: "csülök" }, {
+      searchIntentProvider: stubSearchIntent({ canonicalConcept: "pork hock", searchTerms: ["pork hock"] }),
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [pork()] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      semanticCandidateGateProvider: permissiveSemanticGate(),
+      webEvidenceFallback: webEvidenceDeps
+    });
+    expect(result).toMatchObject({ status: "resolved" });
+    expect(attemptWebEvidenceFallback).not.toHaveBeenCalled();
+  });
+
+  it("no webEvidenceFallback dep wired at all (e.g. WEB_SEARCH_PROVIDER unset) -> byte-for-byte the pre-existing unresolved behavior, zero new calls", async () => {
+    const { attemptWebEvidenceFallback } = await import("./web-evidence-fallback.js");
+    vi.mocked(attemptWebEvidenceFallback).mockClear();
+    const { prisma, foods } = fakePrisma();
+    const result = await resolveDynamicFood(prisma, { foodQuery: "teljesen ismeretlen étel" }, {
+      searchIntentProvider: stubSearchIntent({ canonicalConcept: "unknown", searchTerms: ["unknown food xyz"] }),
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1"
+    });
+    expect(result).toEqual({ status: "unresolved", reason: "not_found" });
+    expect(foods).toHaveLength(0);
+    expect(attemptWebEvidenceFallback).not.toHaveBeenCalled();
   });
 });
