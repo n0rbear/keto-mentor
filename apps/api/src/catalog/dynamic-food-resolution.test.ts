@@ -442,9 +442,43 @@ describe("resolveDynamicFood: web-evidence fallback hook-in", () => {
     expect(persistWebEvidenceFood).not.toHaveBeenCalled();
   });
 
-  it('reason "invalid_external_data" (a candidate DID exist but failed structural validation) never triggers the fallback', async () => {
+  // Production effectiveness RCA (2026-09-17): re-reviewed independently
+  // what "invalid_external_data" actually means in resolveAuthoritativeFood
+  // (external-food.ts) — it is set ONLY when adapters returned raw
+  // candidates but EVERY one failed the purely STRUCTURAL
+  // validateExternalCandidate check (missing macros, wrong host), which runs
+  // strictly BEFORE the semantic-candidate-gate is ever consulted. A genuine
+  // identity/security rejection instead produces "not_found" (already
+  // eligible below), never "invalid_external_data" — so a structurally
+  // incomplete USDA/OFF stub for an unrelated candidate has no bearing on
+  // whether an independent, fully-gated (tier/domain/SSRF/grounding/
+  // identity) web source should even get a chance. Reproduced live: a
+  // USDA branded-food entry missing required macros for "Heinz Baked Beans"
+  // silently prevented web-evidence from ever running at all. Widened so
+  // this reason is now ALSO eligible — every other safety gate on the web-
+  // evidence path itself is completely unchanged (see the adversarial test
+  // right below, proving a genuine identity rejection still fails closed).
+  it('reason "invalid_external_data" (a candidate DID exist but failed structural validation) now ALSO triggers the fallback — a data-quality problem in one source says nothing about another', async () => {
+    const { attemptWebEvidenceFallback, persistWebEvidenceFood } = await import("./web-evidence-fallback.js");
+    vi.mocked(attemptWebEvidenceFallback).mockResolvedValue({ evidence, diagnostics: {} as any });
+    vi.mocked(persistWebEvidenceFood).mockResolvedValue(evidenceFood);
+    const { prisma, aliases } = fakePrisma();
+    const result = await resolveDynamicFood(prisma, { foodQuery: "karfiol" }, {
+      searchIntentProvider: stubSearchIntent({ canonicalConcept: "cauliflower", searchTerms: ["cauliflower"] }),
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [{ not: "a valid candidate shape" }] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      semanticCandidateGateProvider: permissiveSemanticGate(),
+      webEvidenceFallback: webEvidenceDeps
+    });
+    expect(attemptWebEvidenceFallback).toHaveBeenCalledOnce();
+    expect(result).toMatchObject({ status: "resolved", food: evidenceFood });
+    expect(aliases).toHaveLength(1);
+  });
+
+  it('reason "invalid_external_data" -> web-evidence ALSO finding nothing still produces the ordinary unresolved outcome with the correct diagnostics, never a crash', async () => {
     const { attemptWebEvidenceFallback } = await import("./web-evidence-fallback.js");
-    vi.mocked(attemptWebEvidenceFallback).mockClear();
+    vi.mocked(attemptWebEvidenceFallback).mockResolvedValue(null);
     const { prisma } = fakePrisma();
     const result = await resolveDynamicFood(prisma, { foodQuery: "csülök" }, {
       searchIntentProvider: stubSearchIntent({ canonicalConcept: "pork hock", searchTerms: ["pork hock"] }),
@@ -455,9 +489,36 @@ describe("resolveDynamicFood: web-evidence fallback hook-in", () => {
     });
     expect(result).toEqual({
       status: "unresolved", reason: "invalid_external_data", webEvidenceDiagnostics: undefined,
-      resolutionDiagnostics: { searchTerm: "pork hock", via: "search_intent", authoritativeReason: "invalid_external_data", rawCandidateCount: 1, structurallyValidCount: 0, webEvidenceAttempted: false }
+      resolutionDiagnostics: { searchTerm: "pork hock", via: "search_intent", authoritativeReason: "invalid_external_data", rawCandidateCount: 1, structurallyValidCount: 0, webEvidenceAttempted: true }
     });
-    expect(attemptWebEvidenceFallback).not.toHaveBeenCalled();
+  });
+
+  // Phase 17 adversarial requirement: widening WHEN web-evidence is
+  // attempted must never let it override an EARLIER genuine security/
+  // identity rejection. A candidate the semantic gate correctly rejects
+  // (wrong product) produces "not_found", not "invalid_external_data" — it
+  // was ALREADY eligible for web-evidence before this change, and the web-
+  // evidence attempt is still independently subject to its own identity
+  // gate (see web-evidence-fallback.test.ts), so nothing here weakens that.
+  it("adversarial: a semantic-gate identity rejection (wrong product, not incomplete data) still cannot be bypassed by widening invalid_external_data eligibility", async () => {
+    const { attemptWebEvidenceFallback } = await import("./web-evidence-fallback.js");
+    vi.mocked(attemptWebEvidenceFallback).mockResolvedValue(null);
+    const { prisma } = fakePrisma();
+    // A structurally VALID but wrong-identity candidate — the semantic gate
+    // rejects it, which must still land on "not_found", never
+    // "invalid_external_data" (proving the two reasons stay genuinely
+    // distinct after this change).
+    const rejectingGate = { id: "fixture", checkRelevance: async () => new Map([["0", false]]) };
+    const result = await resolveDynamicFood(prisma, { foodQuery: "csülök" }, {
+      searchIntentProvider: stubSearchIntent({ canonicalConcept: "pork hock", searchTerms: ["pork hock"] }),
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [pork()] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      semanticCandidateGateProvider: rejectingGate as any,
+      webEvidenceFallback: webEvidenceDeps
+    });
+    expect((result as any).reason).toBe("not_found");
+    expect((result as any).resolutionDiagnostics.authoritativeReason).toBe("not_found");
   });
 
   it("Phase 24 regression: the fallback is never even attempted when the ordinary pipeline already resolves the food", async () => {

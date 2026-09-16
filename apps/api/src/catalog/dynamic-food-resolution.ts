@@ -281,18 +281,38 @@ async function resolveFromSearchTerm(
       return { status: "confirmation_required", candidates: outcome.candidates, reason: outcome.reason, resolutionDiagnostics: baseDiagnostics(false) };
     case "unresolved": {
       // DATABASE MISS -> AUTHORITATIVE EXTERNAL EVIDENCE FALLBACK
-      // (2026-09-16): only attempted for a GENUINE exhaustion ("not_found":
-      // nothing local/USDA/OFF matched at all; "external_unavailable": no
-      // adapters configured at all) — never for "invalid_external_data",
-      // which means a candidate DID exist but failed structural validation
-      // (a data-quality problem the web fallback cannot safely second-guess
-      // by design). Phase 24's regression requirement (external fallback
-      // must never run for an already-resolved food) holds by construction:
-      // this branch is unreachable unless resolveAuthoritativeFood itself
-      // already returned "unresolved" above.
+      // (2026-09-16, widened 2026-09-17 — production effectiveness RCA):
+      // attempted for every genuine exhaustion reason, INCLUDING
+      // "invalid_external_data" as of this change. Re-reviewed independently
+      // what that reason actually means in resolveAuthoritativeFood
+      // (external-food.ts): it is set ONLY when adapters returned raw
+      // candidates but EVERY one failed validateExternalCandidate's purely
+      // STRUCTURAL check (missing macros, wrong host, malformed shape) —
+      // this check runs strictly BEFORE the semantic-candidate-gate is ever
+      // consulted. A genuine identity/security rejection (the gate correctly
+      // deciding a candidate is the wrong product) instead falls through to
+      // "not_found" (see the two separate "not_found" returns in
+      // resolveAuthoritativeFood, one pre-gate/post-relevance-filter, one
+      // post-gate) — which was ALREADY eligible for web-evidence. So
+      // "invalid_external_data" can only ever mean "USDA/OFF's own returned
+      // data for this query was incomplete", never "this candidate was
+      // rejected for being the wrong food" — a USDA branded-food stub
+      // missing a fiber field has no bearing on whether heinz.com's own
+      // product page is trustworthy. Reproduced live (2026-09-17): a
+      // structurally-incomplete USDA match for "Heinz Baked Beans" silently
+      // prevented web-evidence from ever being tried at all. Every
+      // downstream safety gate (SSRF-safe fetch, source-tier/domain
+      // classification, mechanical grounding, the SAME semantic-candidate-
+      // gate) is completely unchanged and still independently decides
+      // whether any web evidence found this way is ever trusted — this
+      // change only decides whether the ATTEMPT is made, never what counts
+      // as a pass. Phase 24's regression requirement (external fallback must
+      // never run for an already-resolved food) holds by construction: this
+      // branch is unreachable unless resolveAuthoritativeFood itself already
+      // returned "unresolved" above.
       let webEvidenceDiagnostics: WebEvidenceFallbackDiagnostics | undefined;
       let webEvidenceAttempted = false;
-      if (outcome.reason === "not_found" || outcome.reason === "external_unavailable") {
+      if (outcome.reason === "not_found" || outcome.reason === "external_unavailable" || outcome.reason === "invalid_external_data") {
         // Part O / cost efficiency (2026-09-16 live-staging finding): checked
         // FIRST, before web-evidence discovery is ever attempted — a repeat
         // query for a food this exact user already has a private Food for
