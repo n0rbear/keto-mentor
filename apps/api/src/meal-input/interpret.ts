@@ -19,6 +19,7 @@ import { DEFAULT_CONCURRENCY, mapWithConcurrency, timeStage } from "../request-p
 import type { ProgressStage } from "./progress-bus.js";
 import type { AiNutritionEstimate } from "../catalog/ai-nutrition-estimation.js";
 import { createAiEstimateProof } from "../catalog/ai-estimate-proof.js";
+import type { WebEvidenceFallbackDiagnostics } from "../catalog/web-evidence-fallback.js";
 
 type SearchablePrisma = Pick<PrismaClient, "food" | "foodAlias"> & Partial<Pick<PrismaClient, "$queryRaw">>;
 type Serving = { id: string; key: string; unit: string; labels: unknown; grams: number; isEstimated: boolean; confidence: number; provenance: unknown };
@@ -169,6 +170,9 @@ export type InterpretResult = {
   // numeric value — it cannot be reused for a different food or edited
   // in transit.
   aiEstimate?: AiNutritionEstimate & { requestedIdentity: string; canonicalIdentity: string; proof: string };
+  // P0 effectiveness-investigation instrumentation (2026-09-16) — see
+  // debugWebEvidenceDiagnostics's own doc. Never present in production.
+  webEvidenceDiagnostics?: WebEvidenceFallbackDiagnostics;
 };
 
 function aiEstimatePendingResult(
@@ -184,7 +188,28 @@ function aiEstimatePendingResult(
   return {
     input, parsed, foodResolution: "ai_estimate_pending", selectedFood: null, candidates: [], quantity: null,
     canConfirm: false, confidence: 0, preparation: parsed.preparation, interpretationSource: "deterministic",
-    aiEstimate: { ...outcome.estimate, requestedIdentity: outcome.requestedIdentity, canonicalIdentity: outcome.canonicalIdentity, proof }
+    aiEstimate: { ...outcome.estimate, requestedIdentity: outcome.requestedIdentity, canonicalIdentity: outcome.canonicalIdentity, proof },
+    ...debugWebEvidenceDiagnostics(outcome.webEvidenceDiagnostics)
+  };
+}
+
+// P0 effectiveness-investigation instrumentation (2026-09-16): the full
+// web-evidence funnel trace is ALWAYS computed cheaply (see
+// dynamic-food-resolution.ts) but only ever surfaced to an API caller
+// outside production — never "noisy permanent production logging", an
+// explicit opt-in for verification. No secrets/PII in this object (see
+// WebEvidenceFallbackDiagnostics's own doc — domains, tiers, rejection
+// stages only).
+function debugWebEvidenceDiagnostics(diagnostics: InterpretResult["webEvidenceDiagnostics"]) {
+  if (!diagnostics || process.env.NODE_ENV === "production") return {};
+  return { webEvidenceDiagnostics: diagnostics };
+}
+
+function unresolvedResult(input: string, parsed: ParsedNaturalFoodQuery, webEvidenceDiagnostics?: InterpretResult["webEvidenceDiagnostics"]): InterpretResult {
+  return {
+    input, parsed, foodResolution: "unresolved", selectedFood: null, candidates: [], quantity: null,
+    canConfirm: false, confidence: 0, preparation: parsed.preparation, interpretationSource: "deterministic",
+    ...debugWebEvidenceDiagnostics(webEvidenceDiagnostics)
   };
 }
 
@@ -416,12 +441,11 @@ async function interpretOne(
       if (outcome.status === "ai_estimate_pending") {
         return aiEstimatePendingResult(input, parsed, outcome, dynamic.userId);
       }
-      // "unresolved" (not_found / invalid_external_data / external_unavailable /
-      // rate_limited / no_adapters) — fall through to the same honest
-      // unresolved result a local-only miss would have produced. Never
-      // invent a Food just because every avenue was tried.
+      if (outcome.status === "unresolved") {
+        return unresolvedResult(input, parsed, outcome.webEvidenceDiagnostics);
+      }
     }
-    return { input, parsed, foodResolution: "unresolved", selectedFood: null, candidates: [], quantity: null, canConfirm: false, confidence: 0, preparation: parsed.preparation, interpretationSource: "deterministic" };
+    return unresolvedResult(input, parsed);
   }
 
   const score = top.match?.score ?? 0;

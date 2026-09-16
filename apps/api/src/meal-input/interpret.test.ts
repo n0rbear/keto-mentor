@@ -1344,4 +1344,51 @@ describe("interpretMealInput: AI-estimate-pending propagation", () => {
     expect(result.foodResolution).toBe("unresolved");
     expect(result.aiEstimate).toBeUndefined();
   });
+
+  // P0 effectiveness-investigation instrumentation (2026-09-16): the
+  // web-evidence funnel trace is surfaced outside production only.
+  it("surfaces webEvidenceDiagnostics outside production when a web-evidence attempt ran", async () => {
+    const originalEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = "test";
+    try {
+      const { dynamicPrisma } = dynamicPrismaFixture();
+      const dynamic = {
+        prisma: dynamicPrisma,
+        searchIntentProvider: { id: "fixture", generate: async () => ({ canonicalConcept: "crucian carp", searchTerms: ["crucian carp"] }) },
+        adapters: [{ source: "usda_fdc" as const, sourceName: "USDA", lookup: async () => [] }],
+        rateLimiter: new DynamicFoodResolutionRateLimiter(),
+        userId: "user-1",
+        webEvidenceFallback: { searchProvider: { id: "tavily", search: async () => [] }, extractionProvider: { id: "groq" }, rateLimiter: { consume: () => true } },
+        aiEstimation: { provider: { id: "groq", estimate: async () => goodEstimate }, rateLimiter: { consume: () => true } }
+      };
+      const result = await interpretMealInput(prisma, "kárász", undefined, undefined, dynamic as any);
+      expect(result.foodResolution).toBe("ai_estimate_pending");
+      expect(result.webEvidenceDiagnostics).toBeDefined();
+      expect((result.webEvidenceDiagnostics as any).rejectionReason).toBe("no_authoritative_candidates");
+    } finally {
+      process.env.NODE_ENV = originalEnv;
+    }
+  });
+
+  it("NEVER surfaces webEvidenceDiagnostics in production, even when a web-evidence attempt ran", async () => {
+    const originalEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = "production";
+    try {
+      const { dynamicPrisma } = dynamicPrismaFixture();
+      const dynamic = {
+        prisma: dynamicPrisma,
+        searchIntentProvider: { id: "fixture", generate: async () => ({ canonicalConcept: "crucian carp", searchTerms: ["crucian carp"] }) },
+        adapters: [{ source: "usda_fdc" as const, sourceName: "USDA", lookup: async () => [] }],
+        rateLimiter: new DynamicFoodResolutionRateLimiter(),
+        userId: "user-1",
+        webEvidenceFallback: { searchProvider: { id: "tavily", search: async () => [] }, extractionProvider: { id: "groq" }, rateLimiter: { consume: () => true } },
+        aiEstimation: { provider: { id: "groq", estimate: async () => goodEstimate }, rateLimiter: { consume: () => true } }
+      };
+      const result = await interpretMealInput(prisma, "kárász", undefined, undefined, dynamic as any);
+      expect(result.foodResolution).toBe("ai_estimate_pending");
+      expect(result.webEvidenceDiagnostics).toBeUndefined();
+    } finally {
+      process.env.NODE_ENV = originalEnv;
+    }
+  });
 });

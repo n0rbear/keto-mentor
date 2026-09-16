@@ -157,6 +157,67 @@ describe("attemptWebEvidenceFallback — end-to-end orchestration", () => {
   });
 });
 
+// P0 effectiveness-investigation instrumentation (2026-09-16): onDiagnostics
+// fires on EVERY call, success or failure, with a rich per-candidate funnel
+// trace — this is what made the live root-cause investigation possible.
+describe("attemptWebEvidenceFallback — diagnostics instrumentation", () => {
+  it("on success: reports the search query, result count, candidate tiers, and the approved candidate's full funnel", async () => {
+    const diagnosticsCalls: any[] = [];
+    await attemptWebEvidenceFallback("cauliflower", "karfiol", baseDeps({ onDiagnostics: (d) => diagnosticsCalls.push(d) } as any));
+    expect(diagnosticsCalls).toHaveLength(1);
+    const d = diagnosticsCalls[0];
+    expect(d.queriesAttempted[0]).toContain("cauliflower");
+    expect(d.searchResultCount).toBe(1);
+    expect(d.candidates).toHaveLength(1);
+    expect(d.candidates[0]).toMatchObject({ domain: "example.gov", tier: "tier_a_official", fetch: "ok", extractionMethod: "llm_grounded", extractionVerdict: "grounded", identityVerdict: "approved" });
+  });
+
+  it("on discovery_only rejection: reports which domains were discarded and why, before any fetch", async () => {
+    const diagnosticsCalls: any[] = [];
+    const fetchHtml = vi.fn();
+    await attemptWebEvidenceFallback("x", "karfiol", baseDeps({
+      searchProvider: searchProvider([{ url: "https://some-food-blog.com/x", title: "x", snippet: "", domain: "some-food-blog.com" }]),
+      fetchHtml, onDiagnostics: (d) => diagnosticsCalls.push(d)
+    } as any));
+    expect(fetchHtml).not.toHaveBeenCalled();
+    const d = diagnosticsCalls[0];
+    expect(d.discardedDiscoveryOnlyDomains).toEqual(["some-food-blog.com"]);
+    expect(d.candidates).toHaveLength(0);
+    expect(d.rejectionReason).toBe("no_authoritative_candidates");
+  });
+
+  it("on fetch failure: reports the per-candidate fetch error distinctly from other rejection stages", async () => {
+    const diagnosticsCalls: any[] = [];
+    await attemptWebEvidenceFallback("x", "karfiol", baseDeps({
+      fetchHtml: async () => { throw new SafeFetchError("blocked_url"); },
+      onDiagnostics: (d) => diagnosticsCalls.push(d)
+    } as any));
+    const d = diagnosticsCalls[0];
+    expect(d.candidates[0]).toMatchObject({ fetch: "failed", fetchError: "blocked_url" });
+  });
+
+  it("on ungrounded extraction: reports the specific candidate's extraction verdict", async () => {
+    const diagnosticsCalls: any[] = [];
+    await attemptWebEvidenceFallback("x", "x", baseDeps({
+      extractionProvider: extractionProvider({
+        sourceFoodName: "Cauliflower, raw", basis: { amountGrams: 100, quote: "not on page" },
+        kcal: { value: 25, quote: "not on page" }, protein: { value: 1.9, quote: "x" }, fat: { value: 0.3, quote: "x" }, carbs: { value: 5, quote: "x" }, fiber: { value: 2, quote: "x" },
+        extractionMethod: "llm_grounded"
+      }),
+      onDiagnostics: (d) => diagnosticsCalls.push(d)
+    } as any));
+    const d = diagnosticsCalls[0];
+    expect(d.candidates[0].extractionVerdict).toBe("ungrounded");
+  });
+
+  it("on identity rejection: reports the specific candidate's identity verdict, distinct from extraction", async () => {
+    const diagnosticsCalls: any[] = [];
+    await attemptWebEvidenceFallback("mustard", "mustár", baseDeps({ semanticGateProvider: identityGate(false), onDiagnostics: (d) => diagnosticsCalls.push(d) } as any));
+    const d = diagnosticsCalls[0];
+    expect(d.candidates[0]).toMatchObject({ extractionVerdict: "grounded", identityVerdict: "rejected" });
+  });
+});
+
 function fakePersistPrisma() {
   const foods: any[] = [];
   const aliases: any[] = [];

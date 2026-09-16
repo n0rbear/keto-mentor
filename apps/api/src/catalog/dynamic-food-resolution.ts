@@ -11,7 +11,7 @@ import { DisabledSemanticCandidateGateProvider, type SemanticCandidateGateProvid
 import type { AliasSemanticVerdict } from "./alias-semantic-verdict.js";
 import { computeAliasSemanticVerdict } from "./alias-semantic-verdict.js";
 import { timeStage } from "../request-performance.js";
-import { attemptWebEvidenceFallback, persistWebEvidenceFood, type WebEvidenceFallbackDeps } from "./web-evidence-fallback.js";
+import { attemptWebEvidenceFallback, persistWebEvidenceFood, type WebEvidenceFallbackDeps, type WebEvidenceFallbackDiagnostics } from "./web-evidence-fallback.js";
 import type { AiNutritionEstimate, AiNutritionEstimationProvider } from "./ai-nutrition-estimation.js";
 import type { AiEstimateRateLimiter } from "./ai-estimate-rate-limit.js";
 
@@ -133,14 +133,20 @@ function logDynamicResolutionOutcome(status: DynamicResolutionOutcome["status"],
 export type DynamicResolutionOutcome =
   | { status: "resolved"; food: any; via: "search_intent" | "raw_query" | "normalized_identity" }
   | { status: "confirmation_required"; candidates: ExternalFoodCandidate[]; reason: "ambiguous" | "possible_duplicate" | "weak_match" }
-  | { status: "unresolved"; reason: "not_found" | "invalid_external_data" | "external_unavailable" | "rate_limited" | "no_adapters" }
+  // webEvidenceDiagnostics (2026-09-16, P0 effectiveness investigation):
+  // present only when a web-evidence attempt actually ran — the full funnel
+  // trace (search query, candidate domains/tiers, per-candidate fetch/
+  // extraction/grounding/identity outcome). Purely observability, never
+  // read by any resolution logic; the API layer (meal-input/interpret.ts)
+  // only ever surfaces it to a caller outside production.
+  | { status: "unresolved"; reason: "not_found" | "invalid_external_data" | "external_unavailable" | "rate_limited" | "no_adapters"; webEvidenceDiagnostics?: WebEvidenceFallbackDiagnostics }
   // FINAL FALLBACK (2026-09-16): local + authoritative-adapter + web-evidence
   // resolution all genuinely failed, AND the AI estimation provider produced
   // a structurally-plausible estimate. This is NEVER auto-persisted as a
   // Food — see the "ai_estimate_pending" doc on the caller side
   // (meal-input/interpret.ts) for exactly how a user must explicitly accept
   // (or reject in favor of their own values) before anything is written.
-  | { status: "ai_estimate_pending"; estimate: AiNutritionEstimate; requestedIdentity: string; canonicalIdentity: string };
+  | { status: "ai_estimate_pending"; estimate: AiNutritionEstimate; requestedIdentity: string; canonicalIdentity: string; webEvidenceDiagnostics?: WebEvidenceFallbackDiagnostics };
 
 type ResolveFromSearchTermDeps = {
   adapters: readonly StructuredFoodLookupAdapter[];
@@ -254,6 +260,7 @@ async function resolveFromSearchTerm(
       // must never run for an already-resolved food) holds by construction:
       // this branch is unreachable unless resolveAuthoritativeFood itself
       // already returned "unresolved" above.
+      let webEvidenceDiagnostics: WebEvidenceFallbackDiagnostics | undefined;
       if (outcome.reason === "not_found" || outcome.reason === "external_unavailable") {
         // Part O / cost efficiency (2026-09-16 live-staging finding): checked
         // FIRST, before web-evidence discovery is ever attempted — a repeat
@@ -275,7 +282,8 @@ async function resolveFromSearchTerm(
             ...deps.webEvidenceFallback!,
             semanticGateProvider: deps.semanticCandidateGateProvider ?? new DisabledSemanticCandidateGateProvider(),
             userId: deps.userId,
-            locale: deps.foodLocale ?? deps.locale
+            locale: deps.foodLocale ?? deps.locale,
+            onDiagnostics: (d) => { webEvidenceDiagnostics = d; }
           }));
           if (fallback) {
             const food = await persistWebEvidenceFood(prisma as any, fallback.evidence);
@@ -313,13 +321,13 @@ async function resolveFromSearchTerm(
             catch { estimate = null; }
             if (estimate) {
               logDynamicResolutionOutcome("ai_estimate_pending", via);
-              return { status: "ai_estimate_pending", estimate, requestedIdentity: originalIdentity, canonicalIdentity: searchTerm };
+              return { status: "ai_estimate_pending", estimate, requestedIdentity: originalIdentity, canonicalIdentity: searchTerm, webEvidenceDiagnostics };
             }
           }
         }
       }
       logDynamicResolutionOutcome("unresolved", via, outcome.reason);
-      return { status: "unresolved", reason: outcome.reason };
+      return { status: "unresolved", reason: outcome.reason, webEvidenceDiagnostics };
     }
   }
 }
