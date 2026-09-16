@@ -200,8 +200,21 @@ function aiEstimatePendingResult(
 // explicit opt-in for verification. No secrets/PII in this object (see
 // WebEvidenceFallbackDiagnostics's own doc — domains, tiers, rejection
 // stages only).
+// Staging deliberately runs with NODE_ENV=production (see server.ts's own
+// deploymentEnvironment/build-info logic — NODE_ENV alone cannot tell
+// staging apart from real production). RENDER_SERVICE_NAME can: Render sets
+// it to this exact service's own configured name ("keto-mentor-api-staging"
+// vs "keto-mentor-api"). Mirrors that same check here so this diagnostic
+// field is available on staging (where this investigation actually runs)
+// while still never reaching real production traffic.
+function isProductionDeployment(): boolean {
+  const renderServiceName = process.env.RENDER_SERVICE_NAME ?? null;
+  if (renderServiceName?.includes("staging")) return false;
+  return process.env.NODE_ENV === "production";
+}
+
 function debugWebEvidenceDiagnostics(diagnostics: InterpretResult["webEvidenceDiagnostics"]) {
-  if (!diagnostics || process.env.NODE_ENV === "production") return {};
+  if (!diagnostics || isProductionDeployment()) return {};
   return { webEvidenceDiagnostics: diagnostics };
 }
 

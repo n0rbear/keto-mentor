@@ -1391,4 +1391,32 @@ describe("interpretMealInput: AI-estimate-pending propagation", () => {
       process.env.NODE_ENV = originalEnv;
     }
   });
+
+  // The exact real-world case this instrumentation exists for: Render's
+  // staging service runs with NODE_ENV=production (see server.ts's own
+  // build-info logic) -- RENDER_SERVICE_NAME is what actually distinguishes
+  // it, and diagnostics must still surface there.
+  it("surfaces webEvidenceDiagnostics on Render's staging service even though it runs with NODE_ENV=production", async () => {
+    const originalNodeEnv = process.env.NODE_ENV;
+    const originalServiceName = process.env.RENDER_SERVICE_NAME;
+    process.env.NODE_ENV = "production";
+    process.env.RENDER_SERVICE_NAME = "keto-mentor-api-staging";
+    try {
+      const { dynamicPrisma } = dynamicPrismaFixture();
+      const dynamic = {
+        prisma: dynamicPrisma,
+        searchIntentProvider: { id: "fixture", generate: async () => ({ canonicalConcept: "crucian carp", searchTerms: ["crucian carp"] }) },
+        adapters: [{ source: "usda_fdc" as const, sourceName: "USDA", lookup: async () => [] }],
+        rateLimiter: new DynamicFoodResolutionRateLimiter(),
+        userId: "user-1",
+        webEvidenceFallback: { searchProvider: { id: "tavily", search: async () => [] }, extractionProvider: { id: "groq" }, rateLimiter: { consume: () => true } },
+        aiEstimation: { provider: { id: "groq", estimate: async () => goodEstimate }, rateLimiter: { consume: () => true } }
+      };
+      const result = await interpretMealInput(prisma, "kárász", undefined, undefined, dynamic as any);
+      expect(result.webEvidenceDiagnostics).toBeDefined();
+    } finally {
+      process.env.NODE_ENV = originalNodeEnv;
+      process.env.RENDER_SERVICE_NAME = originalServiceName;
+    }
+  });
 });
