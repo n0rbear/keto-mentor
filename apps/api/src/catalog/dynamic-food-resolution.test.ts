@@ -21,7 +21,12 @@ function fakeLocalizationProvider(displayName: string): CandidateLocalizationPro
 function pork(overrides: Partial<ExternalFoodCandidate> = {}): ExternalFoodCandidate {
   return {
     source: "usda_fdc", sourceId: "172152", originalName: "Pork hock, cooked", name: "Pork hock, cooked",
-    names: { en: "Pork hock, cooked" }, kcalPer100g: 280, fatPer100g: 22, proteinPer100g: 20, carbsPer100g: 0, fiberPer100g: 0, nutrients: [],
+    // "hu" included so the (now-centralized, 2026-09-17) convergence gate
+    // legitimately passes against the "csülök" queries these tests use —
+    // exactly the localized-name shape a real, localized Food would carry
+    // (see the P0 semantic identity safety checkpoint comment on
+    // hasSemanticCoverage: "csülök" genuinely IS the base food here).
+    names: { en: "Pork hock, cooked", hu: "Sertéscsülök" }, kcalPer100g: 280, fatPer100g: 22, proteinPer100g: 20, carbsPer100g: 0, fiberPer100g: 0, nutrients: [],
     provenance: { source: "USDA FoodData Central", sourceId: "172152", sourceUrl: "https://fdc.nal.usda.gov/172152", retrievedAt: "2026-09-09T00:00:00.000Z", valuesPer: "100 g" },
     sourceUrl: "https://fdc.nal.usda.gov/172152", normalizedName: "pork hock", nutrientBasis: "per_100_g",
     retrievedAt: "2026-09-09T00:00:00.000Z", confidence: 0.97, matchPolicy: "exact_normalized_name", language: "en", ...overrides
@@ -710,5 +715,262 @@ describe("resolveDynamicFood: AI-estimation final-fallback hook-in", () => {
     // this proves the CALLER also survives if a misbehaving provider did throw.
     expect((result as any).threw).toBeUndefined();
     expect(foods).toHaveLength(0);
+  });
+});
+
+// PRODUCTION EFFECTIVENESS RCA — convergence-gate fallback continuation
+// (2026-09-17). Live staging investigation reproduced, for Vegemite,
+// Marmite, and plain "brokkoli" (proving it is NOT brand-specific): a
+// confident "resolved" outcome from resolveAuthoritativeFood that then
+// failed the convergence re-check against the user's literal identity
+// returned a bare, diagnostics-blind "unresolved" — web-evidence and
+// AI-estimate were never attempted at all, because both only ever ran
+// inside resolveFromSearchTerm's OWN "unresolved" handling, which this path
+// never reached (the status was "resolved", just later rejected by the
+// caller). The fix centralizes the convergence check into
+// resolveFromSearchTerm itself so a rejection can fall through to the SAME
+// fallback chain a genuine miss gets.
+describe("resolveDynamicFood: convergence-gate rejection now continues to the fallback chain", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  const webEvidenceDeps = { searchProvider: { id: "tavily" } as any, extractionProvider: { id: "groq" } as any, rateLimiter: { consume: () => true } as any };
+  // A confident LOCAL match resolveAuthoritativeFood would return for a
+  // search-intent term that has genericized a specific brand away — e.g.
+  // "Vegemite" -> "yeast extract spread", which matches this pre-existing
+  // generic catalog entry. Deliberately shares NO lexical tokens with
+  // "Vegemite" itself (the exact live-reproduced shape).
+  const genericSpread = { id: "local-yeast-extract", name: "Yeast extract spread", originalName: "Yeast extract spread", names: { en: "Yeast extract spread" }, match: { stage: "exact", score: 100 } };
+
+  function fakePrismaWithLocal(localFood: any) {
+    const foods: any[] = [];
+    const aliases: any[] = [];
+    const prisma: any = {
+      food: {
+        findUnique: async () => null,
+        findMany: async (args: any) => {
+          if (args?.where?.id?.in) return foods.filter((f) => args.where.id.in.includes(f.id)).map((f) => ({ ...f, servings: [] }));
+          // resolveAuthoritativeFood's own local search — always returns the
+          // seeded local candidate as a TRUSTED match, simulating a genuinely
+          // confident (not weak) local hit.
+          return [{ ...localFood, servings: [] }];
+        },
+        create: async ({ data }: any) => { const f = { id: `food-${foods.length}`, ...data }; foods.push(f); return f; },
+        findFirst: async () => null
+      },
+      foodAlias: {
+        findFirst: async () => null,
+        findMany: async () => [],
+        createMany: async () => ({ count: 1 }),
+        upsert: async ({ where, update, create }: any) => {
+          const key = where.foodId_normalizedAlias_locale;
+          const existing = aliases.find((a) => a.foodId === key.foodId && a.normalizedAlias === key.normalizedAlias && a.locale === key.locale);
+          if (existing) { Object.assign(existing, update); return existing; }
+          const row = { foodId: create.foodId, alias: create.alias, normalizedAlias: create.normalizedAlias, locale: create.locale, kind: create.kind, confidence: create.confidence };
+          aliases.push(row);
+          return row;
+        }
+      },
+      nutrient: { upsert: async ({ create }: any) => ({ id: `nutrient-${create.key}`, ...create }) },
+      foodNutrient: { create: async () => ({}) },
+      $transaction: async (fn: any) => fn(prisma)
+    };
+    return { prisma, foods, aliases };
+  }
+
+  it("1: discards the rejected LOCAL candidate outright — it is never returned, in any outcome", async () => {
+    const { prisma } = fakePrismaWithLocal(genericSpread);
+    const result = await resolveDynamicFood(prisma, { foodQuery: "Vegemite" }, {
+      searchIntentProvider: stubSearchIntent({ canonicalConcept: "yeast extract spread", searchTerms: ["yeast extract spread"] }),
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      semanticCandidateGateProvider: permissiveSemanticGate()
+    });
+    expect((result as any).food?.id).not.toBe("local-yeast-extract");
+    expect((result as any).food?.name).not.toBe("Yeast extract spread");
+  });
+
+  it("2: continues to web-evidence after rejection, searching with the ORIGINAL identity (not the rejected candidate's name)", async () => {
+    const { attemptWebEvidenceFallback } = await import("./web-evidence-fallback.js");
+    vi.mocked(attemptWebEvidenceFallback).mockResolvedValue(null);
+    const { prisma } = fakePrismaWithLocal(genericSpread);
+    await resolveDynamicFood(prisma, { foodQuery: "Vegemite" }, {
+      searchIntentProvider: stubSearchIntent({ canonicalConcept: "yeast extract spread", searchTerms: ["yeast extract spread"] }),
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      semanticCandidateGateProvider: permissiveSemanticGate(),
+      webEvidenceFallback: webEvidenceDeps
+    });
+    expect(attemptWebEvidenceFallback).toHaveBeenCalledOnce();
+    const [, originalIdentityArg] = vi.mocked(attemptWebEvidenceFallback).mock.calls[0];
+    // The SEARCH TERM (first arg) may legitimately still be the generic
+    // translation (that's what a real search needs) — what must NEVER
+    // regress is the second arg, the identity the eventual evidence is
+    // validated against, staying the user's own literal phrase.
+    expect(originalIdentityArg).toBe("Vegemite");
+  });
+
+  it("3: a web-evidence SUCCESS after convergence rejection returns web_evidence — never the rejected local candidate", async () => {
+    const { attemptWebEvidenceFallback, persistWebEvidenceFood } = await import("./web-evidence-fallback.js");
+    const evidence = {
+      sourceUrl: "https://vegemite.com.au/product", sourceDomain: "vegemite.com.au", sourceTitle: "Vegemite",
+      sourceTier: "tier_b_manufacturer" as const, retrievedAt: "2026-09-17T00:00:00.000Z", requestedIdentity: "Vegemite", canonicalIdentity: "yeast extract spread",
+      sourceFoodName: "Vegemite", basisAmountGrams: 100, kcalPer100g: 180, proteinPer100g: 22, fatPer100g: 0.9, carbsPer100g: 20, fiberPer100g: 3.4,
+      extractionMethod: "json_ld" as const, evidenceExcerpt: "180 kcal", energyConsistent: true, confidence: 0.9
+    };
+    const evidenceFood = { id: "food-vegemite-1", name: "Vegemite", originalName: "Vegemite", names: { en: "Vegemite" }, source: "web_evidence" };
+    vi.mocked(attemptWebEvidenceFallback).mockResolvedValue({ evidence, diagnostics: {} as any });
+    vi.mocked(persistWebEvidenceFood).mockResolvedValue(evidenceFood);
+    const { prisma } = fakePrismaWithLocal(genericSpread);
+    const result = await resolveDynamicFood(prisma, { foodQuery: "Vegemite" }, {
+      searchIntentProvider: stubSearchIntent({ canonicalConcept: "yeast extract spread", searchTerms: ["yeast extract spread"] }),
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      semanticCandidateGateProvider: permissiveSemanticGate(),
+      webEvidenceFallback: webEvidenceDeps
+    });
+    expect(result).toMatchObject({ status: "resolved", food: evidenceFood });
+    expect((result as any).food.name).toBe("Vegemite");
+  });
+
+  it("4: web-evidence FAILURE after convergence rejection continues to AI estimate", async () => {
+    const { attemptWebEvidenceFallback } = await import("./web-evidence-fallback.js");
+    vi.mocked(attemptWebEvidenceFallback).mockResolvedValue(null);
+    const estimate = { canonicalFoodName: "Vegemite", basisGrams: 100 as const, kcalPer100g: 180, proteinPer100g: 22, fatPer100g: 0.9, carbsPer100g: 20, fiberPer100g: 3.4, confidence: "low" as const, assumptions: "Estimated typical values.", identityConfidence: "medium" as const };
+    const { prisma } = fakePrismaWithLocal(genericSpread);
+    const result = await resolveDynamicFood(prisma, { foodQuery: "Vegemite" }, {
+      searchIntentProvider: stubSearchIntent({ canonicalConcept: "yeast extract spread", searchTerms: ["yeast extract spread"] }),
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      semanticCandidateGateProvider: permissiveSemanticGate(),
+      webEvidenceFallback: webEvidenceDeps,
+      aiEstimation: { provider: { id: "groq", estimate: async () => estimate }, rateLimiter: { consume: () => true } }
+    });
+    expect(result).toMatchObject({ status: "ai_estimate_pending", requestedIdentity: "Vegemite" });
+  });
+
+  it("5: AI-estimate ALSO failing ends safely unresolved, with resolutionDiagnostics.authoritativeReason = 'convergence_rejected' (never crashes, never leaks the rejected candidate)", async () => {
+    const { attemptWebEvidenceFallback } = await import("./web-evidence-fallback.js");
+    vi.mocked(attemptWebEvidenceFallback).mockResolvedValue(null);
+    const { prisma } = fakePrismaWithLocal(genericSpread);
+    const result = await resolveDynamicFood(prisma, { foodQuery: "Vegemite" }, {
+      searchIntentProvider: stubSearchIntent({ canonicalConcept: "yeast extract spread", searchTerms: ["yeast extract spread"] }),
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      semanticCandidateGateProvider: permissiveSemanticGate(),
+      webEvidenceFallback: webEvidenceDeps,
+      aiEstimation: { provider: { id: "groq", estimate: async () => null }, rateLimiter: { consume: () => true } }
+    });
+    expect(result).toMatchObject({
+      status: "unresolved",
+      resolutionDiagnostics: { searchTerm: "yeast extract spread", authoritativeReason: "convergence_rejected", webEvidenceAttempted: true }
+    });
+  });
+
+  it("6: web-evidence is attempted AT MOST ONCE per resolution, even after a convergence rejection (no duplicate search/fetch cost)", async () => {
+    const { attemptWebEvidenceFallback } = await import("./web-evidence-fallback.js");
+    vi.mocked(attemptWebEvidenceFallback).mockResolvedValue(null);
+    const { prisma } = fakePrismaWithLocal(genericSpread);
+    await resolveDynamicFood(prisma, { foodQuery: "Vegemite" }, {
+      searchIntentProvider: stubSearchIntent({ canonicalConcept: "yeast extract spread", searchTerms: ["yeast extract spread"] }),
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      semanticCandidateGateProvider: permissiveSemanticGate(),
+      webEvidenceFallback: webEvidenceDeps,
+      aiEstimation: { provider: { id: "groq", estimate: async () => null }, rateLimiter: { consume: () => true } }
+    });
+    expect(attemptWebEvidenceFallback).toHaveBeenCalledTimes(1);
+  });
+
+  it("7: a REJECTED EXTERNAL candidate (not just local) is discarded the same way — proves both resolved_local and resolved_external converge through the same gate", async () => {
+    const { attemptWebEvidenceFallback } = await import("./web-evidence-fallback.js");
+    vi.mocked(attemptWebEvidenceFallback).mockResolvedValue(null);
+    const { prisma } = fakePrisma();
+    const result = await resolveDynamicFood(prisma, { foodQuery: "Vegemite" }, {
+      searchIntentProvider: stubSearchIntent({ canonicalConcept: "yeast extract spread", searchTerms: ["yeast extract spread"] }),
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [pork({ sourceId: "999", name: "Yeast extract spread", originalName: "Yeast extract spread", names: { en: "Yeast extract spread" }, normalizedName: "yeast extract spread" })] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      semanticCandidateGateProvider: permissiveSemanticGate(),
+      webEvidenceFallback: webEvidenceDeps
+    });
+    expect((result as any).food?.name).not.toBe("Yeast extract spread");
+    expect(attemptWebEvidenceFallback).toHaveBeenCalledOnce();
+  });
+
+  // Phase 9 adversarial identity tests — the fallback continuation must
+  // never become a way to smuggle a wrong identity through.
+  describe("adversarial: rejected candidate never leaks into the result under any circumstance", () => {
+    it("specific branded food vs generic category: the generic candidate's OWN macros never appear in a subsequent unresolved/ai_estimate_pending result", async () => {
+      const { attemptWebEvidenceFallback } = await import("./web-evidence-fallback.js");
+      vi.mocked(attemptWebEvidenceFallback).mockResolvedValue(null);
+      const { prisma } = fakePrismaWithLocal({ ...genericSpread, kcalPer100g: 200 });
+      const result = await resolveDynamicFood(prisma, { foodQuery: "Vegemite" }, {
+        searchIntentProvider: stubSearchIntent({ canonicalConcept: "yeast extract spread", searchTerms: ["yeast extract spread"] }),
+        adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [] }],
+        rateLimiter: new DynamicFoodResolutionRateLimiter(),
+        userId: "user-1",
+        semanticCandidateGateProvider: permissiveSemanticGate(),
+        webEvidenceFallback: webEvidenceDeps
+      });
+      expect(result.status).toBe("unresolved");
+      expect(JSON.stringify(result)).not.toContain("Yeast extract spread");
+    });
+
+    it("product variant A vs B: a local match for the WRONG variant is rejected, never silently accepted as the requested variant", async () => {
+      const { attemptWebEvidenceFallback } = await import("./web-evidence-fallback.js");
+      vi.mocked(attemptWebEvidenceFallback).mockResolvedValue(null);
+      const zeroSugarVariant = { id: "local-coke-zero", name: "Coca-Cola Zero Sugar", originalName: "Coca-Cola Zero Sugar", names: { en: "Coca-Cola Zero Sugar" }, match: { stage: "exact", score: 100 } };
+      const { prisma } = fakePrismaWithLocal(zeroSugarVariant);
+      const result = await resolveDynamicFood(prisma, { foodQuery: "Coca-Cola Original Taste" }, {
+        searchIntentProvider: stubSearchIntent({ canonicalConcept: "cola", searchTerms: ["cola"] }),
+        adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [] }],
+        rateLimiter: new DynamicFoodResolutionRateLimiter(),
+        userId: "user-1",
+        semanticCandidateGateProvider: permissiveSemanticGate(),
+        webEvidenceFallback: webEvidenceDeps
+      });
+      expect((result as any).food?.name).not.toBe("Coca-Cola Zero Sugar");
+    });
+
+    it("raw ingredient vs prepared derivative: a match for a differently-prepared form of an unrelated word is rejected, not silently substituted", async () => {
+      const { attemptWebEvidenceFallback } = await import("./web-evidence-fallback.js");
+      vi.mocked(attemptWebEvidenceFallback).mockResolvedValue(null);
+      const tomatoSauce = { id: "local-tomato-sauce", name: "Tomato sauce, canned", originalName: "Tomato sauce, canned", names: { en: "Tomato sauce, canned" }, match: { stage: "exact", score: 100 } };
+      const { prisma } = fakePrismaWithLocal(tomatoSauce);
+      const result = await resolveDynamicFood(prisma, { foodQuery: "paradicsom" }, {
+        searchIntentProvider: stubSearchIntent({ canonicalConcept: "tomato sauce", searchTerms: ["tomato sauce"] }),
+        adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [] }],
+        rateLimiter: new DynamicFoodResolutionRateLimiter(),
+        userId: "user-1",
+        semanticCandidateGateProvider: permissiveSemanticGate(),
+        webEvidenceFallback: webEvidenceDeps
+      });
+      expect((result as any).food?.name).not.toBe("Tomato sauce, canned");
+    });
+  });
+
+  it("security: a candidate the semantic gate itself already rejects (not merely a convergence mismatch) still fails closed as 'not_found', unaffected by this change", async () => {
+    const { attemptWebEvidenceFallback } = await import("./web-evidence-fallback.js");
+    vi.mocked(attemptWebEvidenceFallback).mockResolvedValue(null);
+    const rejectingGate = { id: "fixture", checkRelevance: async () => new Map([["0", false]]) };
+    const { prisma } = fakePrisma();
+    const result = await resolveDynamicFood(prisma, { foodQuery: "csülök" }, {
+      searchIntentProvider: stubSearchIntent({ canonicalConcept: "pork hock", searchTerms: ["pork hock"] }),
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [pork()] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      semanticCandidateGateProvider: rejectingGate as any,
+      webEvidenceFallback: webEvidenceDeps
+    });
+    // Reached via resolveAuthoritativeFood's OWN "not_found" (semantic-gate
+    // rejection), never via this change's "convergence_rejected" — proving
+    // the two stay genuinely distinct and this change didn't touch that path.
+    expect((result as any).resolutionDiagnostics?.authoritativeReason).toBe("not_found");
   });
 });

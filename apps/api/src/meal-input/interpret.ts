@@ -1,7 +1,7 @@
 import type { PrismaClient } from "@prisma/client";
 import type { FoodUnderstanding, FoodUnderstandingItem, Locale, QuantityClarification } from "@keto-mentor/shared";
 import { isBarePreparationToken, parseNaturalFoodQuery, type ParsedNaturalFoodQuery } from "../catalog/natural-food-query.js";
-import { foodNameRepresentations, hasSemanticCoverage, isTrustedLocalMatch, localFormMismatch, searchFoods } from "../catalog/food-search.js";
+import { hasSemanticCoverage, isTrustedLocalMatch, localFormMismatch, searchFoods } from "../catalog/food-search.js";
 import type { RecipeDiscoveryPreview } from "../recipes/recipe-discovery.js";
 import { DisabledQuantityEstimationProvider, type EstimateMethod, type QuantityEstimationClass, type QuantityEstimationMethodClass, type QuantityEstimationProvider, type VolumeQuantityModel, validateQuantityEstimate } from "./quantity-estimation.js";
 import { normalizeSearch } from "../catalog/normalize.js";
@@ -432,18 +432,15 @@ async function interpretOne(
       if (outcome.status === "resolved") {
         const resolvedFood = outcome.food as ResolvedFood;
         // Convergence gate (defense-in-depth, owner-beta blocker #3,
-        // 2026-09-10): a "resolved" outcome here means an UPSTREAM function
-        // (resolveAuthoritativeFood) decided this Food was trustworthy — but
-        // that decision was made against the AI-translated search-intent
-        // term, never against what the user actually typed. Search intent is
-        // a query generator, not identity evidence: a mistranslation
-        // ("tojásleves" -> "tofu soup") can satisfy every upstream check and
-        // still be the wrong food. Re-verify against the ORIGINAL phrase
-        // before granting full trust here, at the one place every dynamic
-        // outcome (local or external) converges into "resolved"/confidence 1.
-        if (!hasSemanticCoverage(normalizeSearch(parsed.foodQuery), foodNameRepresentations(resolvedFood))) {
-          return { input, parsed, foodResolution: "unresolved", selectedFood: null, candidates: [], quantity: null, canConfirm: false, confidence: 0, preparation: parsed.preparation, interpretationSource: "deterministic" };
-        }
+        // 2026-09-10; CENTRALIZED into resolveFromSearchTerm 2026-09-17 —
+        // see dynamic-food-resolution.ts's own doc): a "resolved" outcome
+        // here has ALREADY been re-verified against the ORIGINAL identity
+        // (parsed.foodQuery) inside resolveDynamicFood itself — a rejected
+        // candidate now falls through to the same web-evidence/AI-estimate
+        // chain a genuine miss gets, rather than reaching here at all. No
+        // separate re-check is needed (or safe to duplicate: re-deriving it
+        // here would silently diverge from the centralized one again,
+        // exactly the bug this centralization fixes).
         const quantity = await timeStage("quantity_resolution", () => resolveQuantity(parsed, resolvedFood, provider));
         return {
           input, parsed, foodResolution: "resolved", selectedFood: resolvedFood, candidates: [resolvedFood], quantity,
@@ -528,18 +525,19 @@ async function interpretOne(
   if (!locallyTrusted && !prepUnavailable && !ambiguous && dynamic && parsed.foodQuery) {
     const outcome = await timeStage("dynamic_resolution", () => resolveDynamicFood(dynamic.prisma, { foodQuery: parsed.foodQuery, preparation: parsed.preparation }, dynamic));
     if (outcome.status === "resolved") {
+      // Convergence gate now CENTRALIZED into resolveDynamicFood itself (see
+      // dynamic-food-resolution.ts's own doc) — a "resolved" outcome here
+      // has already been re-verified against the user's original phrase,
+      // and a rejected candidate has already been given its own chance at
+      // web-evidence/AI-estimate before ever falling through to "unresolved"
+      // below. No separate re-check needed here.
       const resolvedFood = outcome.food as ResolvedFood;
-      // Same convergence-gate re-verification as the `!top` branch above —
-      // a dynamic "resolved" outcome must still be checked against what the
-      // user actually typed before it is trusted here.
-      if (hasSemanticCoverage(normalizeSearch(parsed.foodQuery), foodNameRepresentations(resolvedFood))) {
-        const quantity = await timeStage("quantity_resolution", () => resolveQuantity(parsed, resolvedFood, provider));
-        return {
-          input, parsed, foodResolution: "resolved", selectedFood: resolvedFood, candidates: [resolvedFood], quantity,
-          canConfirm: quantity.status === "resolved" && !quantity.requiresConfirmation,
-          confidence: 1, preparation: parsed.preparation, interpretationSource: "deterministic"
-        };
-      }
+      const quantity = await timeStage("quantity_resolution", () => resolveQuantity(parsed, resolvedFood, provider));
+      return {
+        input, parsed, foodResolution: "resolved", selectedFood: resolvedFood, candidates: [resolvedFood], quantity,
+        canConfirm: quantity.status === "resolved" && !quantity.requiresConfirmation,
+        confidence: 1, preparation: parsed.preparation, interpretationSource: "deterministic"
+      };
     } else if (outcome.status === "confirmation_required") {
       return {
         input, parsed, foodResolution: "confirmation_required", selectedFood: null, candidates, quantity: null,
@@ -549,9 +547,10 @@ async function interpretOne(
     } else if (outcome.status === "ai_estimate_pending") {
       return aiEstimatePendingResult(input, parsed, outcome, dynamic.userId);
     }
-    // "unresolved" (or a resolved candidate that failed the convergence
-    // gate) falls through to the existing weak-local-match handling below —
-    // the local candidate remains the best available evidence.
+    // "unresolved" (now only ever a GENUINE miss — local, USDA/OFF,
+    // web-evidence, AND AI-estimate all tried) falls through to the
+    // existing weak-local-match handling below — the local candidate
+    // remains the best available evidence.
   }
 
   let foodResolution: FoodResolutionStatus;

@@ -1215,6 +1215,57 @@ describe("a weak (non-trusted) local match no longer blocks dynamic resolution (
     expect(result.foodResolution).toBe("preview");
     expect(result.selectedFood?.name).toBe("Pork sausage");
   });
+
+  // Production effectiveness RCA (2026-09-17): the convergence-gate
+  // fallback-continuation fix must also work through THIS caller
+  // (interpretDeterministically's "Branch B") — the convergence check now
+  // lives centrally inside resolveDynamicFood, but this proves the wiring:
+  // a dynamic "resolved" outcome whose food fails convergence against the
+  // literal query is no longer silently discarded down to the weak local
+  // match without ever trying web-evidence.
+  it("a dynamic 'resolved' outcome that fails convergence still gets a web-evidence attempt before falling back to the weak local match", async () => {
+    const searchIntentProvider: SearchIntentProvider = { id: "fixture", generate: async () => ({ canonicalConcept: "unrelated generic food", searchTerms: ["unrelated generic food"] }) };
+    // Shares NO lexical tokens with "pork" — resolveAuthoritativeFood would
+    // return this as "resolved" (a confident external match for the
+    // TRANSLATED term), but the convergence gate must reject it against the
+    // user's literal "pork".
+    const unrelatedFood = {
+      source: "usda_fdc" as const, sourceId: "2", originalName: "Unrelated Generic Food", name: "Unrelated Generic Food",
+      names: { en: "Unrelated Generic Food" }, kcalPer100g: 50, fatPer100g: 1, proteinPer100g: 2, carbsPer100g: 5, fiberPer100g: 1, nutrients: [],
+      provenance: { source: "USDA FoodData Central", sourceId: "2", sourceUrl: "https://fdc.nal.usda.gov/2", retrievedAt: "2026-09-17T00:00:00.000Z", valuesPer: "100 g" },
+      sourceUrl: "https://fdc.nal.usda.gov/2", normalizedName: "unrelated generic food", nutrientBasis: "per_100_g" as const,
+      retrievedAt: "2026-09-17T00:00:00.000Z", confidence: 0.9, matchPolicy: "exact_normalized_name" as const, language: "en"
+    };
+    const permissiveGate = { id: "permissive", checkRelevance: async (_o: unknown, candidates: { id: string }[]) => new Map(candidates.map((c) => [c.id, true])) };
+    let searchCalled = false;
+    const persistedFoods: any[] = [];
+    const dynamicPrisma: any = {
+      food: {
+        findUnique: async () => null,
+        findMany: async () => [],
+        create: async ({ data }: any) => { const food = { id: `dyn-food-${persistedFoods.length}`, ...data }; persistedFoods.push(food); return food; }
+      },
+      foodAlias: { findFirst: async () => null, findMany: async () => [], createMany: async () => ({ count: 1 }), upsert: async ({ create }: any) => create },
+      nutrient: { upsert: async ({ create }: any) => ({ id: `nutrient-${create.key}`, ...create }) },
+      foodNutrient: { create: async () => ({}) },
+      $transaction: async (fn: any) => fn(dynamicPrisma)
+    };
+    const dynamic: DynamicResolutionDeps = {
+      prisma: dynamicPrisma, searchIntentProvider, adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [unrelatedFood] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(), userId: "user-1", semanticCandidateGateProvider: permissiveGate,
+      webEvidenceFallback: { searchProvider: { id: "tavily", search: async () => { searchCalled = true; return []; } }, extractionProvider: { id: "groq" }, rateLimiter: { consume: () => true } }
+    };
+    const result = await interpretMealInput(prisma, "100 g pork", undefined, undefined, dynamic);
+    // The rejected candidate never leaks into the result...
+    expect(result.selectedFood?.name).not.toBe("Unrelated Generic Food");
+    // ...and web-evidence genuinely got a chance to search for the ORIGINAL
+    // identity before this fell back to the weak local match.
+    expect(searchCalled).toBe(true);
+    // With web-evidence also finding nothing, this correctly lands back on
+    // the pre-existing weak-local-match behavior, never a crash/wrong food.
+    expect(result.foodResolution).toBe("preview");
+    expect(result.selectedFood?.name).toBe("Pork sausage");
+  });
 });
 
 // Owner-beta (2026-09-12): truthful real-stage progress events — published
