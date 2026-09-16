@@ -99,11 +99,51 @@ export const recipeDiscoveryMealItemSchema = z.object({
   unit: z.enum(["g", "serving"])
 }).strict();
 
+// FINAL FALLBACK: AI-ESTIMATED NUTRITION (2026-09-16) — accepts a
+// server-generated AI nutrition estimate as part of a real meal. Deliberately
+// mirrors recipeDiscoveryMealItemSchema's trust model, not manualMealItemSchema's:
+// the client echoes back the exact identity/numbers POST /meal-input/interpret
+// returned, plus the signed `aiEstimateProof` that was minted alongside them
+// (see catalog/ai-estimate-proof.ts) — the server re-verifies every one of
+// those numbers against the proof before ever persisting anything, so a
+// client cannot submit self-chosen numbers mislabeled as "this is what the
+// AI said". `quantityGrams` is the only field never covered by the proof
+// (echoing recipeDiscoveryMealItemSchema's own quantity/unit being separate
+// from its identity proof), since accepting an estimate at a different
+// portion size than shown is legitimate.
+export const aiEstimateMealItemSchema = z.object({
+  aiEstimateProof: z.string().max(4_000),
+  requestedIdentity: z.string().trim().min(1).max(200),
+  canonicalFoodName: z.string().trim().min(1).max(200),
+  kcalPer100g: z.number().min(0).max(1_000),
+  proteinPer100g: z.number().min(0).max(200),
+  fatPer100g: z.number().min(0).max(200),
+  carbsPer100g: z.number().min(0).max(200),
+  fiberPer100g: z.number().min(0).max(100),
+  quantityGrams: z.number().positive().max(5000)
+}).strict();
+
 export const createMealSchema = z.object({
   title: z.string().trim().min(2).max(100),
   eatenAt: z.string().datetime().optional(),
-  items: z.array(z.union([catalogMealItemSchema, manualMealItemSchema, recipeDiscoveryMealItemSchema])).min(1).max(20)
+  items: z.array(z.union([catalogMealItemSchema, manualMealItemSchema, recipeDiscoveryMealItemSchema, aiEstimateMealItemSchema])).min(1).max(20)
 });
+
+// Part P (2026-09-16): correcting a PRIVATE Food's own macros by hand — only
+// ever valid for a Food this user owns (createdById) and whose source is
+// itself non-authoritative (ai_estimated or user_input; see PATCH /foods/:id
+// in server.ts, which also enforces this server-side, never trusting a
+// client-supplied source/ownership check). Editing an ai_estimated Food
+// transitions its source to user_input — it must never keep reading as "the
+// AI's estimate" once a human has corrected it.
+export const editPrivateFoodSchema = z.object({
+  name: z.string().trim().min(1).max(200).optional(),
+  kcalPer100g: z.number().min(0).max(1_000),
+  proteinPer100g: z.number().min(0).max(200),
+  fatPer100g: z.number().min(0).max(200),
+  carbsPer100g: z.number().min(0).max(200),
+  fiberPer100g: z.number().min(0).max(100)
+}).strict();
 
 // Editing an existing meal never re-specifies food/recipe identity or nutrition —
 // only the trusted existing MealItem may have its grams corrected or be removed.
@@ -303,4 +343,5 @@ export type LoginInput = z.infer<typeof loginSchema>;
 export type OnboardingInput = z.infer<typeof onboardingSchema>;
 export type LocaleUpdateInput = z.infer<typeof localeUpdateSchema>;
 export type CreateMealInput = z.infer<typeof createMealSchema>;
+export type EditPrivateFoodInput = z.infer<typeof editPrivateFoodSchema>;
 export type RecipeDiscoveryMealItemInput = z.infer<typeof recipeDiscoveryMealItemSchema>;

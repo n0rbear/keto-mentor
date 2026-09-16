@@ -1249,3 +1249,99 @@ describe("interpretMealInput: real-stage progress events", () => {
     expect(withCallback.quantity?.grams).toBe(withoutCallback.quantity?.grams);
   });
 });
+
+// FINAL FALLBACK: AI-ESTIMATED NUTRITION (2026-09-16) — interpret.ts's own
+// propagation (foodResolution: "ai_estimate_pending", aiEstimate payload
+// with a minted acceptance proof) once dynamic-food-resolution.ts's chain
+// reaches this last tier. The resolution chain's own gating/reuse/rate-
+// limit logic is already exhaustively covered in dynamic-food-resolution.test.ts —
+// this only proves interpret.ts wires the outcome through correctly.
+process.env.JWT_ACCESS_SECRET ??= "a".repeat(32);
+
+describe("interpretMealInput: AI-estimate-pending propagation", () => {
+  const goodEstimate = {
+    canonicalFoodName: "Crucian carp, raw", basisGrams: 100 as const,
+    kcalPer100g: 97, proteinPer100g: 17.8, fatPer100g: 2.7, carbsPer100g: 0, fiberPer100g: 0,
+    confidence: "low" as const, assumptions: "Assumed a typical raw whole-fish composition.", identityConfidence: "medium" as const
+  };
+
+  function dynamicPrismaFixture() {
+    const persistedFoods: any[] = [];
+    const dynamicPrisma: any = {
+      food: {
+        findUnique: async () => null,
+        findMany: async () => [],
+        findFirst: async () => null,
+        create: async ({ data }: any) => { const food = { id: `dyn-food-${persistedFoods.length}`, ...data }; persistedFoods.push(food); return food; }
+      },
+      foodAlias: { findFirst: async () => null, findMany: async () => [], createMany: async () => ({ count: 1 }), upsert: async ({ create }: any) => create },
+      nutrient: { upsert: async ({ create }: any) => ({ id: `nutrient-${create.key}`, ...create }) },
+      foodNutrient: { create: async () => ({}) },
+      $transaction: async (fn: any) => fn(dynamicPrisma)
+    };
+    return { dynamicPrisma, persistedFoods };
+  }
+
+  it("a genuine miss all the way down the chain surfaces foodResolution: ai_estimate_pending with a usable aiEstimate + proof, and persists NOTHING", async () => {
+    const { dynamicPrisma, persistedFoods } = dynamicPrismaFixture();
+    const dynamic = {
+      prisma: dynamicPrisma,
+      searchIntentProvider: { id: "fixture", generate: async () => ({ canonicalConcept: "crucian carp", searchTerms: ["crucian carp"] }) },
+      adapters: [{ source: "usda_fdc" as const, sourceName: "USDA", lookup: async () => [] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      aiEstimation: { provider: { id: "groq", estimate: async () => goodEstimate }, rateLimiter: { consume: () => true } }
+    };
+    const result = await interpretMealInput(prisma, "kárász", undefined, undefined, dynamic as any);
+    expect(result.foodResolution).toBe("ai_estimate_pending");
+    expect(result.selectedFood).toBeNull();
+    expect(result.canConfirm).toBe(false);
+    // requestedIdentity is the normalized food query (diacritics stripped,
+    // like every other identity string this pipeline compares/aliases on) —
+    // not the raw input text.
+    expect(result.aiEstimate).toMatchObject({ canonicalFoodName: "Crucian carp, raw", kcalPer100g: 97, requestedIdentity: "karasz" });
+    expect(typeof result.aiEstimate?.proof).toBe("string");
+    expect(result.aiEstimate?.proof.length).toBeGreaterThan(10);
+    expect(persistedFoods).toHaveLength(0);
+  });
+
+  it("the minted proof genuinely verifies against the returned estimate values (round-trips through verifyAiEstimateProof)", async () => {
+    const { dynamicPrisma } = dynamicPrismaFixture();
+    const dynamic = {
+      prisma: dynamicPrisma,
+      searchIntentProvider: { id: "fixture", generate: async () => ({ canonicalConcept: "crucian carp", searchTerms: ["crucian carp"] }) },
+      adapters: [{ source: "usda_fdc" as const, sourceName: "USDA", lookup: async () => [] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-42",
+      aiEstimation: { provider: { id: "groq", estimate: async () => goodEstimate }, rateLimiter: { consume: () => true } }
+    };
+    const result = await interpretMealInput(prisma, "kárász", undefined, undefined, dynamic as any);
+    const { verifyAiEstimateProof } = await import("../catalog/ai-estimate-proof.js");
+    const verified = verifyAiEstimateProof(result.aiEstimate!.proof, "user-42", {
+      requestedIdentity: result.aiEstimate!.requestedIdentity, canonicalFoodName: result.aiEstimate!.canonicalFoodName,
+      kcalPer100g: result.aiEstimate!.kcalPer100g, proteinPer100g: result.aiEstimate!.proteinPer100g,
+      fatPer100g: result.aiEstimate!.fatPer100g, carbsPer100g: result.aiEstimate!.carbsPer100g, fiberPer100g: result.aiEstimate!.fiberPer100g
+    });
+    expect(verified.canonicalFoodName).toBe("Crucian carp, raw");
+    // A different user can never verify (accept) someone else's estimate proof.
+    expect(() => verifyAiEstimateProof(result.aiEstimate!.proof, "user-1", {
+      requestedIdentity: result.aiEstimate!.requestedIdentity, canonicalFoodName: result.aiEstimate!.canonicalFoodName,
+      kcalPer100g: result.aiEstimate!.kcalPer100g, proteinPer100g: result.aiEstimate!.proteinPer100g,
+      fatPer100g: result.aiEstimate!.fatPer100g, carbsPer100g: result.aiEstimate!.carbsPer100g, fiberPer100g: result.aiEstimate!.fiberPer100g
+    })).toThrowError(expect.objectContaining({ publicCode: "invalid_ai_estimate_proof" }));
+  });
+
+  it("without aiEstimation wired, an otherwise-identical genuine miss remains the pre-existing unresolved outcome (no regression)", async () => {
+    const { dynamicPrisma } = dynamicPrismaFixture();
+    const dynamic = {
+      prisma: dynamicPrisma,
+      searchIntentProvider: { id: "fixture", generate: async () => ({ canonicalConcept: "crucian carp", searchTerms: ["crucian carp"] }) },
+      adapters: [{ source: "usda_fdc" as const, sourceName: "USDA", lookup: async () => [] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1"
+    };
+    const result = await interpretMealInput(prisma, "kárász", undefined, undefined, dynamic as any);
+    expect(result.foodResolution).toBe("unresolved");
+    expect(result.aiEstimate).toBeUndefined();
+  });
+});

@@ -46,7 +46,10 @@ function fakePrisma(options: { seedFoods?: any[] } = {}) {
         return foods.filter((food) => variants.some((v) => String(food.searchText ?? "").toLowerCase().includes(String(v).toLowerCase())))
           .map((food) => ({ ...food, servings: [] }));
       },
-      create: async ({ data }: any) => { const food = { id: `food-${foods.length}`, ...data }; foods.push(food); return food; }
+      create: async ({ data }: any) => { const food = { id: `food-${foods.length}`, ...data }; foods.push(food); return food; },
+      // Mirrors dynamic-food-resolution.ts's own findUserPrivateFood query
+      // shape exactly (createdById + searchText contains), scoped per-user.
+      findFirst: async ({ where }: any) => foods.find((f) => f.createdById === where.createdById && String(f.searchText ?? "").toLowerCase().includes(String(where.searchText?.contains ?? "").toLowerCase())) ?? null
     },
     foodAlias: {
       findFirst: async () => null,
@@ -474,5 +477,137 @@ describe("resolveDynamicFood: web-evidence fallback hook-in", () => {
     expect(result).toEqual({ status: "unresolved", reason: "not_found" });
     expect(foods).toHaveLength(0);
     expect(attemptWebEvidenceFallback).not.toHaveBeenCalled();
+  });
+});
+
+// FINAL FALLBACK: AI-ESTIMATED NUTRITION (2026-09-16) — resolveFromSearchTerm's
+// final tier, tried only after web evidence ALSO genuinely fails.
+describe("resolveDynamicFood: AI-estimation final-fallback hook-in", () => {
+  const goodEstimate = {
+    canonicalFoodName: "Crucian carp, raw", basisGrams: 100 as const,
+    kcalPer100g: 97, proteinPer100g: 17.8, fatPer100g: 2.7, carbsPer100g: 0, fiberPer100g: 0,
+    confidence: "low" as const, assumptions: "Assumed a typical raw whole-fish composition.", identityConfidence: "medium" as const
+  };
+  function aiDeps(overrides: Partial<{ provider: any; rateLimiter: any }> = {}) {
+    return {
+      provider: overrides.provider ?? { id: "groq", estimate: async () => goodEstimate },
+      rateLimiter: overrides.rateLimiter ?? { consume: () => true }
+    };
+  }
+
+  it("web evidence ALSO fails (null) -> AI estimation is attempted and returns ai_estimate_pending, never auto-persisted", async () => {
+    const { attemptWebEvidenceFallback } = await import("./web-evidence-fallback.js");
+    vi.mocked(attemptWebEvidenceFallback).mockResolvedValue(null);
+    const { prisma, foods } = fakePrisma();
+    const result = await resolveDynamicFood(prisma, { foodQuery: "kárász" }, {
+      searchIntentProvider: stubSearchIntent({ canonicalConcept: "crucian carp", searchTerms: ["crucian carp"] }),
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      webEvidenceFallback: { searchProvider: { id: "tavily" } as any, extractionProvider: { id: "groq" } as any, rateLimiter: { consume: () => true } as any },
+      aiEstimation: aiDeps()
+    });
+    expect(result).toMatchObject({ status: "ai_estimate_pending", estimate: goodEstimate, requestedIdentity: "kárász" });
+    // Load-bearing: nothing was ever written to the Food table.
+    expect(foods).toHaveLength(0);
+  });
+
+  it("no webEvidenceFallback dep at all, but AI estimation IS wired -> still reaches AI estimation (the chain degrades per-tier independently)", async () => {
+    const { prisma, foods } = fakePrisma();
+    const result = await resolveDynamicFood(prisma, { foodQuery: "kárász" }, {
+      searchIntentProvider: stubSearchIntent({ canonicalConcept: "crucian carp", searchTerms: ["crucian carp"] }),
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      aiEstimation: aiDeps()
+    });
+    expect(result).toMatchObject({ status: "ai_estimate_pending" });
+    expect(foods).toHaveLength(0);
+  });
+
+  it("AI estimation ALSO returns null -> falls through to the ordinary unresolved outcome, never a crash", async () => {
+    const { prisma } = fakePrisma();
+    const result = await resolveDynamicFood(prisma, { foodQuery: "kárász" }, {
+      searchIntentProvider: stubSearchIntent({ canonicalConcept: "crucian carp", searchTerms: ["crucian carp"] }),
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      aiEstimation: aiDeps({ provider: { id: "groq", estimate: async () => null } })
+    });
+    expect(result).toEqual({ status: "unresolved", reason: "not_found" });
+  });
+
+  it("Part O: a previously-accepted private Food for the SAME user is reused instead of spending a fresh AI call", async () => {
+    const { prisma, foods } = fakePrisma({ seedFoods: [{ id: "private-1", name: "Crucian carp, raw", createdById: "user-1", source: "ai_estimated", searchText: "crucian carp raw karasz", kcalPer100g: 97, proteinPer100g: 17.8, fatPer100g: 2.7, carbsPer100g: 0, fiberPer100g: 0 }] });
+    const estimate = vi.fn(async () => goodEstimate);
+    const result = await resolveDynamicFood(prisma, { foodQuery: "kárász" }, {
+      searchIntentProvider: stubSearchIntent({ canonicalConcept: "crucian carp", searchTerms: ["crucian carp"] }),
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      aiEstimation: aiDeps({ provider: { id: "groq", estimate } })
+    });
+    expect(result).toMatchObject({ status: "resolved", food: expect.objectContaining({ id: "private-1" }) });
+    expect(estimate).not.toHaveBeenCalled();
+    expect(foods).toHaveLength(1); // no duplicate created
+  });
+
+  it("Part W (P0): a DIFFERENT user's private Food is never reused — only this exact user's own createdById scope is queried", async () => {
+    const { prisma } = fakePrisma({ seedFoods: [{ id: "private-1", name: "Crucian carp, raw", createdById: "user-OTHER", source: "ai_estimated", searchText: "crucian carp raw karasz", kcalPer100g: 97, proteinPer100g: 17.8, fatPer100g: 2.7, carbsPer100g: 0, fiberPer100g: 0 }] });
+    const estimate = vi.fn(async () => goodEstimate);
+    const result = await resolveDynamicFood(prisma, { foodQuery: "kárász" }, {
+      searchIntentProvider: stubSearchIntent({ canonicalConcept: "crucian carp", searchTerms: ["crucian carp"] }),
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      aiEstimation: aiDeps({ provider: { id: "groq", estimate } })
+    });
+    // user-1 has no private food of their own -> falls through to a fresh AI estimate, never user-OTHER's row.
+    expect(result).toMatchObject({ status: "ai_estimate_pending" });
+    expect(estimate).toHaveBeenCalledOnce();
+  });
+
+  it("rate-limited AI-estimation user -> falls through to unresolved, never calls the provider", async () => {
+    const { prisma } = fakePrisma();
+    const estimate = vi.fn(async () => goodEstimate);
+    const result = await resolveDynamicFood(prisma, { foodQuery: "kárász" }, {
+      searchIntentProvider: stubSearchIntent({ canonicalConcept: "crucian carp", searchTerms: ["crucian carp"] }),
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      aiEstimation: aiDeps({ provider: { id: "groq", estimate }, rateLimiter: { consume: () => false } })
+    });
+    expect(result).toEqual({ status: "unresolved", reason: "not_found" });
+    expect(estimate).not.toHaveBeenCalled();
+  });
+
+  it("Phase 24-equivalent regression: AI estimation is never attempted when the ordinary pipeline already resolves the food", async () => {
+    const { prisma } = fakePrisma();
+    const estimate = vi.fn(async () => goodEstimate);
+    const result = await resolveDynamicFood(prisma, { foodQuery: "csülök" }, {
+      searchIntentProvider: stubSearchIntent({ canonicalConcept: "pork hock", searchTerms: ["pork hock"] }),
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [pork()] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      semanticCandidateGateProvider: permissiveSemanticGate(),
+      aiEstimation: aiDeps({ provider: { id: "groq", estimate } })
+    });
+    expect(result).toMatchObject({ status: "resolved" });
+    expect(estimate).not.toHaveBeenCalled();
+  });
+
+  it("malformed/null provider output never crashes and never fabricates a Food", async () => {
+    const { prisma, foods } = fakePrisma();
+    const result = await resolveDynamicFood(prisma, { foodQuery: "kárász" }, {
+      searchIntentProvider: stubSearchIntent({ canonicalConcept: "crucian carp", searchTerms: ["crucian carp"] }),
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      aiEstimation: aiDeps({ provider: { id: "groq", estimate: async () => { throw new Error("provider down"); } } })
+    }).catch((e) => ({ threw: e }));
+    // The provider itself is documented to fail-closed to null, never throw —
+    // this proves the CALLER also survives if a misbehaving provider did throw.
+    expect((result as any).threw).toBeUndefined();
+    expect(foods).toHaveLength(0);
   });
 });
