@@ -552,6 +552,25 @@ describe("resolveDynamicFood: AI-estimation final-fallback hook-in", () => {
     expect(foods).toHaveLength(1); // no duplicate created
   });
 
+  it("cost-efficiency (2026-09-16 live-staging finding): the reuse check runs BEFORE web-evidence discovery too — a repeat query never re-attempts a real search/fetch just to discard it", async () => {
+    const { attemptWebEvidenceFallback } = await import("./web-evidence-fallback.js");
+    vi.mocked(attemptWebEvidenceFallback).mockClear();
+    const { prisma, foods } = fakePrisma({ seedFoods: [{ id: "private-1", name: "Crucian carp, raw", createdById: "user-1", source: "ai_estimated", searchText: "crucian carp raw karasz", kcalPer100g: 97, proteinPer100g: 17.8, fatPer100g: 2.7, carbsPer100g: 0, fiberPer100g: 0 }] });
+    const estimate = vi.fn(async () => goodEstimate);
+    const result = await resolveDynamicFood(prisma, { foodQuery: "kárász" }, {
+      searchIntentProvider: stubSearchIntent({ canonicalConcept: "crucian carp", searchTerms: ["crucian carp"] }),
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      webEvidenceFallback: { searchProvider: { id: "tavily" } as any, extractionProvider: { id: "groq" } as any, rateLimiter: { consume: () => true } as any },
+      aiEstimation: aiDeps({ provider: { id: "groq", estimate } })
+    });
+    expect(result).toMatchObject({ status: "resolved", food: expect.objectContaining({ id: "private-1" }) });
+    expect(attemptWebEvidenceFallback).not.toHaveBeenCalled();
+    expect(estimate).not.toHaveBeenCalled();
+    expect(foods).toHaveLength(1);
+  });
+
   it("Part W (P0): a DIFFERENT user's private Food is never reused — only this exact user's own createdById scope is queried", async () => {
     const { prisma } = fakePrisma({ seedFoods: [{ id: "private-1", name: "Crucian carp, raw", createdById: "user-OTHER", source: "ai_estimated", searchText: "crucian carp raw karasz", kcalPer100g: 97, proteinPer100g: 17.8, fatPer100g: 2.7, carbsPer100g: 0, fiberPer100g: 0 }] });
     const estimate = vi.fn(async () => goodEstimate);

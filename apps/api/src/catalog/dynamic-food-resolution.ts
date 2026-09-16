@@ -255,6 +255,21 @@ async function resolveFromSearchTerm(
       // this branch is unreachable unless resolveAuthoritativeFood itself
       // already returned "unresolved" above.
       if (outcome.reason === "not_found" || outcome.reason === "external_unavailable") {
+        // Part O / cost efficiency (2026-09-16 live-staging finding): checked
+        // FIRST, before web-evidence discovery is ever attempted — a repeat
+        // query for a food this exact user already has a private Food for
+        // (from an earlier accepted estimate or manual entry) must reuse it
+        // immediately, not re-run a real Tavily search + page fetch every
+        // time only to discard the result once the AI-estimation tier's own
+        // reuse check finally ran. Only ever this user's own createdById
+        // scope (see findUserPrivateFood's own doc for why that is safe).
+        if (deps.aiEstimation) {
+          const existingPrivate = await findUserPrivateFood(prisma, deps.userId, normalizeSearch(originalIdentity));
+          if (existingPrivate) {
+            logDynamicResolutionOutcome("resolved", via);
+            return { status: "resolved", food: existingPrivate, via };
+          }
+        }
         if (deps.webEvidenceFallback) {
           const fallback = await timeStage("web_evidence_fallback", () => attemptWebEvidenceFallback(searchTerm, originalIdentity, {
             ...deps.webEvidenceFallback!,
@@ -281,18 +296,12 @@ async function resolveFromSearchTerm(
         // (if configured) ALSO genuinely found nothing — independently gated
         // on its OWN dep, not nested inside webEvidenceFallback's presence,
         // so a deployment can enable AI estimation even when web-evidence
-        // discovery itself is unavailable (e.g. no WEB_SEARCH_PROVIDER).
-        // Before spending a fresh AI call, prefer this exact user's own
-        // previously accepted estimate/manual entry for this identity if one
-        // exists (Part O — never re-charges unnecessarily, and never
-        // reachable for any OTHER user's private Food; see
-        // findUserPrivateFood's own doc for why this is safe).
+        // discovery itself is unavailable (e.g. no WEB_SEARCH_PROVIDER). The
+        // existing-private-Food reuse check already ran at the very top of
+        // this block (before web-evidence was even attempted) — reaching
+        // here means this user genuinely has no private Food for this
+        // identity yet, so a fresh estimate is the only remaining option.
         if (deps.aiEstimation) {
-          const existingPrivate = await findUserPrivateFood(prisma, deps.userId, normalizeSearch(originalIdentity));
-          if (existingPrivate) {
-            logDynamicResolutionOutcome("resolved", via);
-            return { status: "resolved", food: existingPrivate, via };
-          }
           if (deps.aiEstimation.rateLimiter.consume(deps.userId)) {
             // Defensive: ChatAiNutritionEstimationProvider already fails
             // closed (catches internally, returns null) — this extra guard
