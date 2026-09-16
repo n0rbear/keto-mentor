@@ -113,11 +113,30 @@ export async function attemptWebEvidenceFallback(query: string, originalIdentity
     return null;
   }
 
-  const searchQuery = `${originalIdentity} nutrition per 100g official`;
+  // P0 effectiveness review (2026-09-16): a real, concrete bug found via live
+  // staging investigation (0/9 success rate) — this previously searched on
+  // `originalIdentity` (the RAW, possibly non-English user phrase, e.g.
+  // Hungarian "kárász") instead of `query` (the already-translated canonical
+  // search term this same function receives, e.g. "crucian carp" — the exact
+  // term resolveDynamicFood's own search-intent step already produced for
+  // the USDA/OFF adapters). Searching literal Hungarian/German words against
+  // a search index that's overwhelmingly English-language official nutrition
+  // content starves the pipeline of any realistic chance of a tier-A/B hit.
+  // `query` is used as the primary search text now; `originalIdentity` is
+  // still appended when it differs, for extra recall on branded/regional
+  // terms a translation might have genericized away (e.g. a specific brand
+  // name), never in place of the canonical term.
+  const searchQuery = normalizeSearch(query) === normalizeSearch(originalIdentity)
+    ? `${query} nutrition facts per 100g`
+    : `${query} (${originalIdentity}) nutrition facts per 100g`;
   diagnostics.queriesAttempted.push(searchQuery);
   let results: WebSearchResult[];
   try {
-    results = await timeStage("web_evidence_search", () => deps.searchProvider.search({ query: searchQuery, maxResults: 5 }));
+    // maxResults widened from 5 to 8 (2026-09-16): more raw candidates for
+    // the tier filter to consider before any fetch — tier classification
+    // alone already keeps this safe (discovery_only results are dropped
+    // regardless of how many are returned), so this only affects recall.
+    results = await timeStage("web_evidence_search", () => deps.searchProvider.search({ query: searchQuery, maxResults: 8 }));
   } catch {
     diagnostics.rejectionReason = "search_failed";
     logWebEvidenceFallbackOutcome(diagnostics, false);

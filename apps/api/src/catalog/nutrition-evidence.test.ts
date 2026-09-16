@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   classifySourceTier, domainMatchesRequestedBrand, isAuthoritativeTier, isEnergyConsistent,
-  isGroundedInSource, validateAndNormalizeEvidence, withinPhysicalBounds, type ExtractedNutritionEvidence
+  isGroundedInSource, isNutrientGrounded, validateAndNormalizeEvidence, withinPhysicalBounds, type ExtractedNutritionEvidence
 } from "./nutrition-evidence.js";
 
 describe("classifySourceTier", () => {
@@ -142,6 +142,88 @@ describe("validateAndNormalizeEvidence — the full mechanical gate before persi
   it("REJECTS out-of-physical-bounds normalized values (e.g. a nonsensical tiny basis amount inflating values past plausibility)", () => {
     const extracted = baseExtracted({ basis: { amountGrams: 1, quote: "per 1 g" }, kcal: { value: 25, quote: "25 kcal" } });
     const text = "per 1 g: 25 kcal, 1.9 g protein, 0.3 g fat, 5 g carb, 2 g fiber";
+    expect(validateAndNormalizeEvidence(extracted, text, sourceMeta)).toBeNull();
+  });
+});
+
+// P0 grounding-hardening review (2026-09-16): adversarial cases proving
+// grounding binds LABEL + VALUE + UNIT together, not merely "this text
+// exists somewhere on the page".
+describe("isNutrientGrounded — adversarial label/value/unit binding", () => {
+  it("REJECTS an unrelated number elsewhere on the page merely because the digits match", () => {
+    const text = "Page view count: 20. Serving size 100 g.";
+    expect(isNutrientGrounded("protein", 20, "Page view count: 20", text)).toBe(false);
+  });
+
+  it("REJECTS a calories/protein swap — citing the calories line as evidence for protein", () => {
+    const text = "Calories 111 kcal. Protein 5.51 g.";
+    expect(isNutrientGrounded("protein", 111, "Calories 111 kcal", text)).toBe(false);
+  });
+
+  it("REJECTS a quote borrowed from an entirely different nutrient's line even when both numbers coincidentally match", () => {
+    const text = "Sodium 20 mg. Protein 20 g.";
+    // A quote of the sodium line has no "protein" label token -> rejected for the protein field.
+    expect(isNutrientGrounded("protein", 20, "Sodium 20 mg", text)).toBe(false);
+    // The genuine protein line is accepted.
+    expect(isNutrientGrounded("protein", 20, "Protein 20 g", text)).toBe(true);
+  });
+
+  it("REJECTS 20 mg being misread as 20 g for a gram-denominated macro field", () => {
+    const text = "Sodium 20 mg. Fiber content unclear.";
+    expect(isNutrientGrounded("fiber", 20, "Sodium 20 mg", text)).toBe(false);
+  });
+
+  it("kcal is exempt from the mg/g unit check (kcal has no gram unit to confuse)", () => {
+    const text = "Energy 111 kcal per serving.";
+    expect(isNutrientGrounded("kcal", 111, "Energy 111 kcal", text)).toBe(true);
+  });
+
+  it("REJECTS two nutrition tables on the same page when the quote is from the WRONG table's matching-but-irrelevant field", () => {
+    const text = "Product A - Protein: 8 g. ---- Product B - Protein: 20 g.";
+    // Value 20 is only genuinely grounded against Product B's own line.
+    expect(isNutrientGrounded("protein", 20, "Product B - Protein: 20 g", text)).toBe(true);
+    expect(isNutrientGrounded("protein", 20, "Product A - Protein: 8 g", text)).toBe(false);
+  });
+
+  it("REJECTS unrelated product nutrition appearing elsewhere on the page (cross-product contamination)", () => {
+    const text = "You might also like: Granola Bar, Calories 150 kcal. Our product: Calories 111 kcal.";
+    expect(isNutrientGrounded("kcal", 150, "Our product: Calories 111 kcal", text)).toBe(false);
+  });
+
+  it("ACCEPTS a decimal-comma value (European formatting)", () => {
+    const text = "Eiweiß 5,51 g";
+    expect(isNutrientGrounded("protein", 5.51, "Eiweiß 5,51 g", text)).toBe(true);
+  });
+
+  it("ACCEPTS localized HU/DE/EN nutrient labels", () => {
+    expect(isNutrientGrounded("protein", 5.51, "Fehérje: 5,51 g", "Fehérje: 5,51 g")).toBe(true);
+    expect(isNutrientGrounded("fat", 6.96, "Zsírtartalom 6.96g", "Zsírtartalom 6.96g")).toBe(true);
+    expect(isNutrientGrounded("fiber", 4.5, "Ballaststoffe: 4.5 g", "Ballaststoffe: 4.5 g")).toBe(true);
+    expect(isNutrientGrounded("carbs", 2.94, "Szénhidrát 2.94 g", "Szénhidrát 2.94 g")).toBe(true);
+  });
+
+  it("REJECTS a quote with the right label but the WRONG number (LLM cites the right line but a hallucinated value)", () => {
+    const text = "Protein: 5.51 g";
+    expect(isNutrientGrounded("protein", 99, "Protein: 5.51 g", text)).toBe(false);
+  });
+
+  it("REJECTS a quote with the right number but no label at all (bare number, no nutrient context)", () => {
+    const text = "The product code is 111.";
+    expect(isNutrientGrounded("kcal", 111, "The product code is 111", text)).toBe(false);
+  });
+});
+
+describe("validateAndNormalizeEvidence — end-to-end with the hardened grounding", () => {
+  it("REJECTS a hallucinated value even when its quote is a real, verbatim (but irrelevant) substring of the page", () => {
+    // The old (pre-hardening) grounding check would have accepted this: the
+    // quote genuinely appears on the page, it just has nothing to do with protein.
+    const extracted = baseExtracted({ protein: { value: 1.9, quote: "Serving size: 100 g" } });
+    expect(validateAndNormalizeEvidence(extracted, pageText, sourceMeta)).toBeNull();
+  });
+
+  it("REJECTS a basis quote that states the amount but with no gram unit attached", () => {
+    const extracted = baseExtracted({ basis: { amountGrams: 100, quote: "About 100 servings sold" } });
+    const text = pageText + " About 100 servings sold";
     expect(validateAndNormalizeEvidence(extracted, text, sourceMeta)).toBeNull();
   });
 });

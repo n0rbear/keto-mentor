@@ -45,6 +45,25 @@ describe("attemptWebEvidenceFallback — end-to-end orchestration", () => {
     expect(result!.diagnostics.identityVerdict).toBe("approved");
   });
 
+  // P0 effectiveness review (2026-09-16): a real bug found via live staging
+  // investigation — the search query previously used the RAW, untranslated
+  // originalIdentity (e.g. Hungarian "kárász") instead of the already-
+  // translated canonical search term, starving results of English-language
+  // official nutrition content.
+  it("searches using the canonical (translated) term, not the raw original-language identity", async () => {
+    const search = vi.fn(async () => []);
+    await attemptWebEvidenceFallback("crucian carp", "kárász", baseDeps({ searchProvider: { id: "tavily", search } }));
+    const [queryArg] = search.mock.calls[0];
+    expect(queryArg.query).toContain("crucian carp");
+  });
+
+  it("still includes the original identity alongside the canonical term for extra recall when they differ", async () => {
+    const search = vi.fn(async () => []);
+    await attemptWebEvidenceFallback("crucian carp", "kárász", baseDeps({ searchProvider: { id: "tavily", search } }));
+    const [queryArg] = search.mock.calls[0];
+    expect(queryArg.query).toContain("kárász");
+  });
+
   it("no search/extraction provider configured (disabled) -> null, zero search calls", async () => {
     const search = vi.fn(async () => []);
     const result = await attemptWebEvidenceFallback("x", "x", baseDeps({ searchProvider: { id: "disabled", search } }));

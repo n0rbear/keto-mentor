@@ -131,12 +131,75 @@ export type NutritionEvidence = {
  * substring of the text that was really fetched. This runs in code, not the
  * model — an LLM that "returns valid JSON" is not sufficient trust; only a
  * quote that genuinely appears in the source text is.
+ *
+ * P0 grounding-hardening review (2026-09-16): text-presence alone is
+ * necessary but NOT sufficient — a quote can be a real, verbatim substring
+ * of the page while having nothing to do with the claimed nutrient (e.g. the
+ * LLM cites "Serving size 100 g" as "evidence" for a hallucinated protein
+ * value). See isNutrientGrounded below, which adds the missing bindings:
+ * the quote must also contain the claimed NUMBER itself and a recognized
+ * LABEL for that specific nutrient — never just any text from the page.
  */
 export function isGroundedInSource(quote: string, sourceText: string): boolean {
   const normalize = (value: string) => value.toLowerCase().replace(/\s+/g, " ").trim();
   const normalizedQuote = normalize(quote);
   if (normalizedQuote.length < 2) return false;
   return normalize(sourceText).includes(normalizedQuote);
+}
+
+export type GroundedNutrientKey = "kcal" | "protein" | "fat" | "carbs" | "fiber";
+
+// Multilingual (HU/DE/EN) label tokens per nutrient — deliberately generic
+// vocabulary, not food-specific. Each nutrient's token list is disjoint from
+// every other's, so a calories/protein swap (citing a "protein 20g" quote as
+// evidence for kcal, or vice versa) fails the label check for the field it
+// was actually claimed against.
+const NUTRIENT_LABEL_TOKENS: Record<GroundedNutrientKey, readonly string[]> = {
+  kcal: ["kcal", "calorie", "calories", "energy", "energia", "energiaérték", "kalória", "kalóriák", "energie", "brennwert", "kalorien"],
+  protein: ["protein", "proteins", "fehérje", "eiweiß", "eiweiss"],
+  fat: ["fat", "fats", "zsír", "zsírtartalom", "fett"],
+  carbs: ["carbohydrate", "carbohydrates", "carb", "carbs", "szénhidrát", "kohlenhydrat", "kohlenhydrate"],
+  fiber: ["fiber", "fibre", "dietary fiber", "dietary fibre", "rost", "ballaststoff", "ballaststoffe", "élelmi rost", "rosttartalom"]
+};
+
+// Accepts "20", "20.5", "20,5" (decimal comma), and tolerates the quote
+// spelling the number with or without a trailing ".0" — but the digits
+// themselves must appear, not merely be inferable.
+function quoteContainsValue(quote: string, value: number): boolean {
+  const rounded2 = Math.round(value * 100) / 100;
+  const candidates = new Set([String(value), String(rounded2), rounded2.toFixed(1), rounded2.toFixed(2), rounded2.toFixed(0)]);
+  const normalizedQuote = quote.toLowerCase();
+  for (const candidate of candidates) {
+    if (normalizedQuote.includes(candidate) || normalizedQuote.includes(candidate.replace(".", ","))) return true;
+  }
+  return false;
+}
+
+// Basic unit sanity: a gram-denominated macro field (protein/fat/carbs/fiber)
+// must not be grounded by a quote whose number is explicitly tagged "mg"
+// with no accompanying gram figure — catches "20 mg" being misread as 20 g.
+function hasConflictingMilligramUnit(quote: string, nutrient: GroundedNutrientKey): boolean {
+  if (nutrient === "kcal") return false;
+  const mgMatch = /\d[\d.,]*\s*mg\b/i.test(quote);
+  const gMatch = /\d[\d.,]*\s*g\b/i.test(quote);
+  return mgMatch && !gMatch;
+}
+
+/**
+ * The hardened, nutrient-aware grounding check: binds NUTRIENT LABEL + VALUE
+ * + UNIT together, not just "this text exists on the page somewhere". A
+ * quote passes only if it (a) is a real verbatim substring of the fetched
+ * text, (b) contains the claimed numeric value itself, (c) contains a
+ * recognized label for THIS specific nutrient (rejecting cross-nutrient
+ * mix-ups), and (d) is not unit-conflicting (mg cited for a gram field).
+ * This is what validateAndNormalizeEvidence now requires for every macro.
+ */
+export function isNutrientGrounded(nutrient: GroundedNutrientKey, value: number, quote: string, sourceText: string): boolean {
+  if (!isGroundedInSource(quote, sourceText)) return false;
+  if (!quoteContainsValue(quote, value)) return false;
+  if (!NUTRIENT_LABEL_TOKENS[nutrient].some((token) => quote.toLowerCase().includes(token))) return false;
+  if (hasConflictingMilligramUnit(quote, nutrient)) return false;
+  return true;
 }
 
 function finiteNonNegative(value: unknown): value is number {
@@ -180,19 +243,27 @@ export function validateAndNormalizeEvidence(
   source: { sourceUrl: string; sourceDomain: string; sourceTitle: string; sourceTier: EvidenceSourceTier; retrievedAt: string; requestedIdentity: string; canonicalIdentity: string }
 ): NutritionEvidence | null {
   if (!isAuthoritativeTier(source.sourceTier)) return null;
+  // The basis quote must be grounded AND itself contain the claimed gram
+  // amount AND a mass unit — "Serving size 100 g" style, not a bare number.
   if (!extracted.basis || !isGroundedInSource(extracted.basis.quote, sourceText) || extracted.basis.amountGrams <= 0) return null;
+  if (!quoteContainsValue(extracted.basis.quote, extracted.basis.amountGrams) || !/\bg\b/i.test(extracted.basis.quote)) return null;
 
-  const groundedValue = (field: ExtractedNutritionValue): number | null => {
+  // P0 grounding-hardening review (2026-09-16): each macro now requires the
+  // FULL binding (label + value + unit), not merely text-presence anywhere
+  // on the page — see isNutrientGrounded's own doc for the exact reasoning
+  // and the adversarial cases this specifically closes (unrelated numbers,
+  // calories/protein swaps, mg-for-g misreads).
+  const groundedValue = (nutrient: GroundedNutrientKey, field: ExtractedNutritionValue): number | null => {
     if (!field) return null;
-    if (!isGroundedInSource(field.quote, sourceText)) return null;
+    if (!isNutrientGrounded(nutrient, field.value, field.quote, sourceText)) return null;
     return field.value;
   };
 
-  const kcalRaw = groundedValue(extracted.kcal);
-  const proteinRaw = groundedValue(extracted.protein);
-  const fatRaw = groundedValue(extracted.fat);
-  const carbsRaw = groundedValue(extracted.carbs);
-  const fiberRaw = groundedValue(extracted.fiber);
+  const kcalRaw = groundedValue("kcal", extracted.kcal);
+  const proteinRaw = groundedValue("protein", extracted.protein);
+  const fatRaw = groundedValue("fat", extracted.fat);
+  const carbsRaw = groundedValue("carbs", extracted.carbs);
+  const fiberRaw = groundedValue("fiber", extracted.fiber);
   // Required macros: any missing/ungrounded value means the evidence is
   // incomplete — never filled in from model memory.
   if (kcalRaw == null || proteinRaw == null || fatRaw == null || carbsRaw == null) return null;
