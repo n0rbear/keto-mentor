@@ -4,6 +4,9 @@ import { serializeMeal } from "../nutrition.js";
 import { assertExactlyOneMealItemSource } from "./meal-item-source.js";
 import { convertFoodQuantity } from "./food-quantity.js";
 import { prepareRecipeDiscoveryItem, persistPreparedRecipe, computeRecipeMealItemData, resolvedFoodIdsOf, type RecipeDiscoveryMealItemDeps, type PreparedRecipeDiscoveryItem } from "./recipe-discovery-meal-item.js";
+import { verifyAiEstimateProof } from "../catalog/ai-estimate-proof.js";
+import { findUserPrivateFood } from "../catalog/dynamic-food-resolution.js";
+import { normalizeSearch, buildSearchText } from "../catalog/normalize.js";
 
 function siblingOverlapError(canonicalName: string) {
   return Object.assign(new Error("recipe_sibling_overlap"), { status: 409, publicCode: "recipe_sibling_overlap", canonicalName });
@@ -14,6 +17,43 @@ export async function createMeal(prisma: PrismaClient, userId: string, input: Cr
   const catalogFoodIds = catalogItems.map((item) => item.foodId);
   const catalogFoods = await prisma.food.findMany({ where: { id: { in: catalogFoodIds } }, include: { servings: true } });
   const byId = new Map(catalogFoods.map((food) => [food.id, food]));
+
+  // FINAL FALLBACK: AI-ESTIMATED NUTRITION (2026-09-16). Every proof is
+  // verified BEFORE any DB write (same "validate everything, then persist"
+  // discipline the recipe-discovery items below already follow) — a client
+  // cannot accept an estimate's identity while substituting different
+  // numbers, and cannot accept an estimate that was never actually generated
+  // for this user (verifyAiEstimateProof throws invalid_ai_estimate_proof).
+  // Part O: if this exact user already has ANY private Food (ai_estimated OR
+  // user_input — either kind of prior acceptance/entry counts) for this
+  // identity, it is reused rather than creating a duplicate; new private
+  // Foods are always createdById: userId, which is what keeps them entirely
+  // invisible to every OTHER user's resolution (searchFoods only ever
+  // queries createdById: null — see catalog/food-search.ts).
+  const aiEstimateFoodIdByIndex = new Map<number, string>();
+  for (const [index, item] of input.items.entries()) {
+    if (!("aiEstimateProof" in item)) continue;
+    verifyAiEstimateProof(item.aiEstimateProof, userId, {
+      requestedIdentity: item.requestedIdentity, canonicalFoodName: item.canonicalFoodName,
+      kcalPer100g: item.kcalPer100g, proteinPer100g: item.proteinPer100g, fatPer100g: item.fatPer100g,
+      carbsPer100g: item.carbsPer100g, fiberPer100g: item.fiberPer100g
+    });
+    const existing = await findUserPrivateFood(prisma, userId, normalizeSearch(item.requestedIdentity));
+    if (existing) {
+      aiEstimateFoodIdByIndex.set(index, existing.id);
+      continue;
+    }
+    const created = await prisma.food.create({
+      data: {
+        name: item.canonicalFoodName, originalName: item.requestedIdentity, source: "ai_estimated", createdById: userId,
+        kcalPer100g: item.kcalPer100g, fatPer100g: item.fatPer100g, proteinPer100g: item.proteinPer100g,
+        carbsPer100g: item.carbsPer100g, fiberPer100g: item.fiberPer100g,
+        searchText: buildSearchText({ name: item.canonicalFoodName, originalName: item.requestedIdentity }),
+        provenance: { method: "ai_estimated", requestedIdentity: item.requestedIdentity, canonicalFoodName: item.canonicalFoodName, userAccepted: true, acceptedAt: new Date().toISOString() }
+      }
+    });
+    aiEstimateFoodIdByIndex.set(index, created.id);
+  }
 
   // Recipe-discovery items involve real network/AI work (re-deriving the
   // trusted ingredient list server-side) and must never trust the client for
@@ -127,6 +167,11 @@ export async function createMeal(prisma: PrismaClient, userId: string, input: Cr
             assertExactlyOneMealItemSource({ hasFood: false, hasRecipe: true });
             const { recipeId, ...rest } = recipeMealItemDataByOriginalIndex.get(index)!;
             return { ...rest, recipe: { connect: { id: recipeId } } };
+          }
+          if ("aiEstimateProof" in item) {
+            assertExactlyOneMealItemSource({ hasFood: true, hasRecipe: false });
+            const foodId = aiEstimateFoodIdByIndex.get(index)!;
+            return { quantityGrams: item.quantityGrams, food: { connect: { id: foodId } } };
           }
           assertExactlyOneMealItemSource({ hasFood: true, hasRecipe: false });
           return {

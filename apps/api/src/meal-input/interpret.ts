@@ -17,6 +17,9 @@ import type { SemanticCandidateGateProvider } from "../catalog/semantic-candidat
 import type { RecipeSemanticGateProvider } from "../catalog/semantic-candidate-gate-batch.js";
 import { DEFAULT_CONCURRENCY, mapWithConcurrency, timeStage } from "../request-performance.js";
 import type { ProgressStage } from "./progress-bus.js";
+import type { AiNutritionEstimate } from "../catalog/ai-nutrition-estimation.js";
+import { createAiEstimateProof } from "../catalog/ai-estimate-proof.js";
+import type { WebEvidenceFallbackDiagnostics } from "../catalog/web-evidence-fallback.js";
 
 type SearchablePrisma = Pick<PrismaClient, "food" | "foodAlias"> & Partial<Pick<PrismaClient, "$queryRaw">>;
 type Serving = { id: string; key: string; unit: string; labels: unknown; grams: number; isEstimated: boolean; confidence: number; provenance: unknown };
@@ -51,7 +54,7 @@ export type QuantityResolution = {
   volumeModel?: VolumeQuantityModel;
 };
 
-export type FoodResolutionStatus = "resolved" | "preview" | "confirmation_required" | "unresolved" | "multi" | "compound";
+export type FoodResolutionStatus = "resolved" | "preview" | "confirmation_required" | "unresolved" | "multi" | "compound" | "ai_estimate_pending";
 
 /**
  * Wired only when a genuine authenticated user + configured gateway/adapters
@@ -153,7 +156,75 @@ export type InterpretResult = {
   // AiProviderError's own code enum) — a closed, safe vocabulary only, for
   // diagnostics.ts to translate into a human-readable beta message.
   aiUnderstandingFailure?: { code: string };
+  // FINAL FALLBACK: AI-ESTIMATED NUTRITION (2026-09-16). Present only when
+  // foodResolution === "ai_estimate_pending" — local + authoritative-adapter
+  // + web-evidence resolution all genuinely failed, and the model produced a
+  // structurally-plausible estimate. Never treated as authoritative and
+  // NEVER auto-persisted: the client must show this clearly marked as an
+  // estimate and offer the user exactly two actions — accept it (POST
+  // /meals with an aiEstimate item, echoing `proof` back verbatim; the
+  // server re-verifies every number against the proof before persisting,
+  // see ai-estimate-proof.ts) or enter their own values instead (the
+  // existing manual-fallback item, source: "user_input"). `proof` expires
+  // in 15 minutes and is bound to this exact user + identity + every
+  // numeric value — it cannot be reused for a different food or edited
+  // in transit.
+  aiEstimate?: AiNutritionEstimate & { requestedIdentity: string; canonicalIdentity: string; proof: string };
+  // P0 effectiveness-investigation instrumentation (2026-09-16) — see
+  // debugWebEvidenceDiagnostics's own doc. Never present in production.
+  webEvidenceDiagnostics?: WebEvidenceFallbackDiagnostics;
 };
+
+function aiEstimatePendingResult(
+  input: string, parsed: ParsedNaturalFoodQuery,
+  outcome: Extract<Awaited<ReturnType<typeof resolveDynamicFood>>, { status: "ai_estimate_pending" }>,
+  userId: string
+): InterpretResult {
+  const proof = createAiEstimateProof(userId, {
+    requestedIdentity: outcome.requestedIdentity, canonicalFoodName: outcome.estimate.canonicalFoodName,
+    kcalPer100g: outcome.estimate.kcalPer100g, proteinPer100g: outcome.estimate.proteinPer100g,
+    fatPer100g: outcome.estimate.fatPer100g, carbsPer100g: outcome.estimate.carbsPer100g, fiberPer100g: outcome.estimate.fiberPer100g
+  });
+  return {
+    input, parsed, foodResolution: "ai_estimate_pending", selectedFood: null, candidates: [], quantity: null,
+    canConfirm: false, confidence: 0, preparation: parsed.preparation, interpretationSource: "deterministic",
+    aiEstimate: { ...outcome.estimate, requestedIdentity: outcome.requestedIdentity, canonicalIdentity: outcome.canonicalIdentity, proof },
+    ...debugWebEvidenceDiagnostics(outcome.webEvidenceDiagnostics)
+  };
+}
+
+// P0 effectiveness-investigation instrumentation (2026-09-16): the full
+// web-evidence funnel trace is ALWAYS computed cheaply (see
+// dynamic-food-resolution.ts) but only ever surfaced to an API caller
+// outside production — never "noisy permanent production logging", an
+// explicit opt-in for verification. No secrets/PII in this object (see
+// WebEvidenceFallbackDiagnostics's own doc — domains, tiers, rejection
+// stages only).
+// Staging deliberately runs with NODE_ENV=production (see server.ts's own
+// deploymentEnvironment/build-info logic — NODE_ENV alone cannot tell
+// staging apart from real production). RENDER_SERVICE_NAME can: Render sets
+// it to this exact service's own configured name ("keto-mentor-api-staging"
+// vs "keto-mentor-api"). Mirrors that same check here so this diagnostic
+// field is available on staging (where this investigation actually runs)
+// while still never reaching real production traffic.
+function isProductionDeployment(): boolean {
+  const renderServiceName = process.env.RENDER_SERVICE_NAME ?? null;
+  if (renderServiceName?.includes("staging")) return false;
+  return process.env.NODE_ENV === "production";
+}
+
+function debugWebEvidenceDiagnostics(diagnostics: InterpretResult["webEvidenceDiagnostics"]) {
+  if (!diagnostics || isProductionDeployment()) return {};
+  return { webEvidenceDiagnostics: diagnostics };
+}
+
+function unresolvedResult(input: string, parsed: ParsedNaturalFoodQuery, webEvidenceDiagnostics?: InterpretResult["webEvidenceDiagnostics"]): InterpretResult {
+  return {
+    input, parsed, foodResolution: "unresolved", selectedFood: null, candidates: [], quantity: null,
+    canConfirm: false, confidence: 0, preparation: parsed.preparation, interpretationSource: "deterministic",
+    ...debugWebEvidenceDiagnostics(webEvidenceDiagnostics)
+  };
+}
 
 const PREP_KEYWORDS: Record<string, readonly string[]> = {
   fried: ["fried", "tukortojas", "tükörtojás", "spiegelei", "sult tojas", "sült tojás"],
@@ -380,12 +451,14 @@ async function interpretOne(
           externalCandidates: outcome.candidates, externalCandidatesReason: outcome.reason
         };
       }
-      // "unresolved" (not_found / invalid_external_data / external_unavailable /
-      // rate_limited / no_adapters) — fall through to the same honest
-      // unresolved result a local-only miss would have produced. Never
-      // invent a Food just because every avenue was tried.
+      if (outcome.status === "ai_estimate_pending") {
+        return aiEstimatePendingResult(input, parsed, outcome, dynamic.userId);
+      }
+      if (outcome.status === "unresolved") {
+        return unresolvedResult(input, parsed, outcome.webEvidenceDiagnostics);
+      }
     }
-    return { input, parsed, foodResolution: "unresolved", selectedFood: null, candidates: [], quantity: null, canConfirm: false, confidence: 0, preparation: parsed.preparation, interpretationSource: "deterministic" };
+    return unresolvedResult(input, parsed);
   }
 
   const score = top.match?.score ?? 0;
@@ -466,6 +539,8 @@ async function interpretOne(
         canConfirm: false, confidence: score / 100, preparation: parsed.preparation, interpretationSource: "deterministic",
         externalCandidates: outcome.candidates, externalCandidatesReason: outcome.reason
       };
+    } else if (outcome.status === "ai_estimate_pending") {
+      return aiEstimatePendingResult(input, parsed, outcome, dynamic.userId);
     }
     // "unresolved" (or a resolved candidate that failed the convergence
     // gate) falls through to the existing weak-local-match handling below —

@@ -19,6 +19,11 @@ import { DynamicFoodResolutionRateLimiter } from "../catalog/dynamic-food-rate-l
 import { foodLocaleFor } from "../catalog/food-locale.js";
 import { configuredRecipeIngredientNormalizationProvider } from "./recipe-ingredient-normalization-gateway.js";
 import { configuredRecipeQuantityEstimationProvider } from "./recipe-quantity-estimation-gateway.js";
+import { configuredWebKnowledgeSearchProvider } from "../web-knowledge/web-knowledge-gateway.js";
+import { configuredNutritionEvidenceExtractionProvider } from "../catalog/nutrition-evidence-extraction-gateway.js";
+import { WebEvidenceFallbackRateLimiter } from "../catalog/web-evidence-fallback.js";
+import { configuredAiNutritionEstimationProvider } from "../catalog/ai-nutrition-estimation-gateway.js";
+import { AiEstimateRateLimiter } from "../catalog/ai-estimate-rate-limit.js";
 
 export const recipeRouter = Router();
 recipeRouter.use(requireAuth);
@@ -60,6 +65,19 @@ const recipeSemanticGateProvider = configuredRecipeSemanticGateProvider(env);
 const recipeIngredientNormalizationProvider = configuredRecipeIngredientNormalizationProvider(env);
 const recipeQuantityEstimationProvider = configuredRecipeQuantityEstimationProvider(env);
 const dynamicFoodResolutionLimiter = new DynamicFoodResolutionRateLimiter();
+// DATABASE MISS -> AUTHORITATIVE EXTERNAL EVIDENCE FALLBACK (2026-09-16):
+// same self-contained-per-router wiring pattern as everything else here.
+// Reuses the exact same Tavily web-search gateway recipe discovery already
+// uses (WEB_SEARCH_PROVIDER/TAVILY_API_KEY — no new secret) and the same
+// food-AI gateway credentials as every other capability. A no-op
+// (searchProvider.id === "disabled") when WEB_SEARCH_PROVIDER is unset.
+const webKnowledgeSearchProvider = configuredWebKnowledgeSearchProvider(env);
+const nutritionEvidenceExtractionProvider = configuredNutritionEvidenceExtractionProvider(env);
+const webEvidenceFallbackRateLimiter = new WebEvidenceFallbackRateLimiter();
+const webEvidenceFallback = { searchProvider: webKnowledgeSearchProvider, extractionProvider: nutritionEvidenceExtractionProvider, rateLimiter: webEvidenceFallbackRateLimiter };
+const aiNutritionEstimationProvider = configuredAiNutritionEstimationProvider(env);
+const aiEstimateRateLimiter = new AiEstimateRateLimiter();
+const aiEstimation = { provider: aiNutritionEstimationProvider, rateLimiter: aiEstimateRateLimiter };
 // Identical to server.ts's own trustedLocale — the authenticated user's own
 // persisted locale is the single trusted source of UI language, never a
 // client-supplied value; falls back to "hu" only if somehow unsupported.
@@ -84,7 +102,7 @@ recipeRouter.post("/import-url/preview", importPreviewLimiter, async (req, res, 
     const locale = trustedLocale(req.user!);
     const foodLocale = foodLocaleFor(locale);
     const dynamic = externalFoodAdapters.length
-      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale, foodLocale, localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider }
+      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale, foodLocale, localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider, webEvidenceFallback, aiEstimation }
       : null;
     const preview = await previewRecipeImport(prisma, url, {}, recipeAiProvider, dynamic, recipeIngredientNormalizationProvider, recipeQuantityEstimationProvider);
     res.json({ preview: { ...preview, importProof: createRecipeImportProof(req.user!.id, preview.sourceUrl, preview.extractionMethod) } });
@@ -101,7 +119,7 @@ recipeRouter.post("/import-url/preview/confirm-ingredients", confirmIngredientsL
     // why this is a safe default rather than a finer-grained region pick).
     const foodLocale = foodLocaleFor(locale);
     const dynamic = externalFoodAdapters.length
-      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale, foodLocale, localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider }
+      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale, foodLocale, localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider, webEvidenceFallback, aiEstimation }
       : null;
     const result = await confirmRecipeIngredients(prisma, req.user!.id, input, {
       recipeAiProvider, dynamic, confirmAdapters: externalFoodConfirmAdapters,

@@ -5,6 +5,7 @@ import type { Food, PrismaClient } from "@prisma/client";
 import { createMealSchema } from "@keto-mentor/shared";
 import { createMeal } from "./create-meal.js";
 import { createRecipeImportProof } from "../recipes/import-proof.js";
+import { createAiEstimateProof } from "../catalog/ai-estimate-proof.js";
 import { DisabledRecipeExtractionProvider, type RecipeExtractionProvider } from "../recipes/recipe-extraction-provider.js";
 import type { RecipeDiscoveryMealItemDeps } from "./recipe-discovery-meal-item.js";
 
@@ -299,5 +300,110 @@ describe("meal creation with a recipe-discovery item", () => {
       unit: "g" as const
     };
     expect(createMealSchema.safeParse({ title: "Ebéd", items: [mixed] }).success).toBe(false);
+  });
+});
+
+// FINAL FALLBACK: AI-ESTIMATED NUTRITION (2026-09-16) — the accept-estimate
+// flow: verify the signed proof, then either reuse the user's own existing
+// private Food or create a new one (source: ai_estimated, createdById:
+// userId). Part W (cross-user isolation) is the P0 security property this
+// block most needs to prove live.
+describe("meal creation with an AI-estimate item", () => {
+  const estimate = {
+    requestedIdentity: "karasz", canonicalFoodName: "Crucian carp, raw",
+    kcalPer100g: 97, proteinPer100g: 17.8, fatPer100g: 2.7, carbsPer100g: 0, fiberPer100g: 0
+  };
+
+  function fakePrismaWithFoods(seedFoods: any[] = []) {
+    const foods: any[] = [...seedFoods];
+    const meals: any[] = [];
+    const client: any = {
+      food: {
+        findMany: async ({ where }: any) => where?.id?.in ? foods.filter((f) => where.id.in.includes(f.id)) : [],
+        findFirst: async ({ where }: any) => foods.find((f) => f.createdById === where.createdById && String(f.searchText ?? "").toLowerCase().includes(String(where.searchText?.contains ?? "").toLowerCase())) ?? null,
+        create: async ({ data }: any) => { const f = { id: `food-${foods.length}`, servings: [], ...data }; foods.push(f); return f; }
+      },
+      meal: {
+        create: async ({ data }: any) => {
+          const items = data.items.create.map((item: any, i: number) => { const foodId = item.food.connect.id; return { id: `item-${i}`, mealId: "meal", foodId, quantityGrams: item.quantityGrams, food: foods.find((f) => f.id === foodId) }; });
+          const meal = { id: `meal-${meals.length}`, userId: data.userId, title: data.title, eatenAt: data.eatenAt ?? new Date(), createdAt: new Date(), items };
+          meals.push(meal);
+          return meal;
+        }
+      }
+    };
+    return { client, foods, meals };
+  }
+
+  function acceptItem(userId: string, overrides: Partial<typeof estimate & { quantityGrams: number }> = {}) {
+    const merged = { ...estimate, ...overrides };
+    const proof = createAiEstimateProof(userId, merged);
+    return { aiEstimateProof: proof, ...merged, quantityGrams: overrides.quantityGrams ?? 150 };
+  }
+
+  it("accepts a valid estimate: persists a new Food tagged ai_estimated, createdById-scoped to the accepting user", async () => {
+    const fake = fakePrismaWithFoods();
+    const meal = await createMeal(fake.client, "user-1", createMealSchema.parse({ title: "Dinner", items: [acceptItem("user-1")] }));
+    expect(fake.foods).toHaveLength(1);
+    expect(fake.foods[0]).toMatchObject({ source: "ai_estimated", createdById: "user-1", name: "Crucian carp, raw", kcalPer100g: 97 });
+    expect(fake.foods[0].provenance).toMatchObject({ method: "ai_estimated", userAccepted: true, requestedIdentity: "karasz" });
+    expect(meal.items[0].quantityGrams).toBe(150);
+  });
+
+  it("rejects acceptance when the proof was minted for a DIFFERENT user (tamper/identity-theft defense)", async () => {
+    const fake = fakePrismaWithFoods();
+    const stolenProof = createAiEstimateProof("user-1", estimate);
+    const item = { aiEstimateProof: stolenProof, ...estimate, quantityGrams: 150 };
+    await expect(createMeal(fake.client, "user-2", createMealSchema.parse({ title: "Dinner", items: [item] })))
+      .rejects.toMatchObject({ publicCode: "invalid_ai_estimate_proof" });
+    expect(fake.foods).toHaveLength(0);
+  });
+
+  it("rejects acceptance when the client substitutes different numeric values than what was proven (tamper defense)", async () => {
+    const fake = fakePrismaWithFoods();
+    const item = acceptItem("user-1", {});
+    item.kcalPer100g = 999; // tampered AFTER minting the proof for the original value
+    await expect(createMeal(fake.client, "user-1", createMealSchema.parse({ title: "Dinner", items: [item] })))
+      .rejects.toMatchObject({ publicCode: "invalid_ai_estimate_proof" });
+    expect(fake.foods).toHaveLength(0);
+  });
+
+  it("Part O: accepting the SAME identity again reuses the existing private Food instead of creating a duplicate", async () => {
+    const fake = fakePrismaWithFoods();
+    await createMeal(fake.client, "user-1", createMealSchema.parse({ title: "Dinner", items: [acceptItem("user-1")] }));
+    await createMeal(fake.client, "user-1", createMealSchema.parse({ title: "Dinner again", items: [acceptItem("user-1")] }));
+    expect(fake.foods).toHaveLength(1);
+  });
+
+  it("Part W (P0, mandatory): a SECOND user's identical-looking request creates their OWN private Food, never reusing or reading User A's row", async () => {
+    const fake = fakePrismaWithFoods();
+    await createMeal(fake.client, "user-A", createMealSchema.parse({ title: "Dinner", items: [acceptItem("user-A")] }));
+    await createMeal(fake.client, "user-B", createMealSchema.parse({ title: "Dinner", items: [acceptItem("user-B")] }));
+    expect(fake.foods).toHaveLength(2);
+    expect(fake.foods[0].createdById).toBe("user-A");
+    expect(fake.foods[1].createdById).toBe("user-B");
+    expect(fake.foods[0].id).not.toBe(fake.foods[1].id);
+  });
+
+  it("Part W: User B cannot accept using a proof minted for User A even with matching request shape", async () => {
+    const fake = fakePrismaWithFoods();
+    const proofForA = createAiEstimateProof("user-A", estimate);
+    await expect(createMeal(fake.client, "user-B", createMealSchema.parse({ title: "Dinner", items: [{ aiEstimateProof: proofForA, ...estimate, quantityGrams: 150 }] })))
+      .rejects.toMatchObject({ publicCode: "invalid_ai_estimate_proof" });
+  });
+
+  it("Part K/N: a user's own EARLIER manually-entered (user_input) private Food is also reused, not duplicated, by a later AI-estimate acceptance for the same identity", async () => {
+    const priorManual = { id: "manual-1", name: "Crucian carp (my own entry)", createdById: "user-1", source: "user_input", searchText: "crucian carp my own entry karasz", kcalPer100g: 90, proteinPer100g: 18, fatPer100g: 2, carbsPer100g: 0, fiberPer100g: 0 };
+    const fake = fakePrismaWithFoods([priorManual]);
+    const meal = await createMeal(fake.client, "user-1", createMealSchema.parse({ title: "Dinner", items: [acceptItem("user-1")] }));
+    expect(fake.foods).toHaveLength(1); // no new Food created — the prior private entry was reused
+    expect(meal.items[0].food?.id).toBe("manual-1");
+  });
+
+  it("expired proof is rejected", async () => {
+    const fake = fakePrismaWithFoods();
+    const expiredProof = createAiEstimateProof("user-1", estimate, "a".repeat(32), Date.now() - 20 * 60 * 1000);
+    await expect(createMeal(fake.client, "user-1", createMealSchema.parse({ title: "Dinner", items: [{ aiEstimateProof: expiredProof, ...estimate, quantityGrams: 150 }] })))
+      .rejects.toMatchObject({ publicCode: "invalid_ai_estimate_proof" });
   });
 });

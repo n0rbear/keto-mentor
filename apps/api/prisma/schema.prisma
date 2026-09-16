@@ -16,6 +16,23 @@ enum FoodSource {
   barcode
   user_input
   ai_ocr
+  /// Authoritative external-evidence fallback (2026-09-16): a Food whose
+  /// nutrition was extracted from a fetched, tier-classified webpage (never
+  /// from AI model memory) after every curated/local/USDA/OFF path was
+  /// genuinely exhausted. Kept distinct from bls/usda_fdc/open_food_facts so
+  /// it is never mistaken for a curated dataset — see web-evidence-fallback.ts.
+  web_evidence
+  /// Last-resort AI nutrition ESTIMATE (2026-09-16) — explicitly NOT
+  /// authoritative evidence. Used only after local/BLS/USDA/web_evidence are
+  /// all genuinely exhausted, the model's own general knowledge produced a
+  /// structurally-valid estimate, and the requesting user explicitly
+  /// accepted it (never auto-persisted). Always createdById-scoped to that
+  /// one user — never visible to any other user's resolution (searchFoods
+  /// only ever queries createdById: null). If the user later edits these
+  /// values by hand, the row's source transitions to user_input (see
+  /// PATCH /foods/:id) — it must never keep reading as an AI estimate once
+  /// a human has corrected it. See ai-nutrition-estimation.ts.
+  ai_estimated
 }
 
 enum EntitlementPlan {

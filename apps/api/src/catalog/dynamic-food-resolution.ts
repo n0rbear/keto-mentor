@@ -11,8 +11,34 @@ import { DisabledSemanticCandidateGateProvider, type SemanticCandidateGateProvid
 import type { AliasSemanticVerdict } from "./alias-semantic-verdict.js";
 import { computeAliasSemanticVerdict } from "./alias-semantic-verdict.js";
 import { timeStage } from "../request-performance.js";
+import { attemptWebEvidenceFallback, persistWebEvidenceFood, type WebEvidenceFallbackDeps, type WebEvidenceFallbackDiagnostics } from "./web-evidence-fallback.js";
+import type { AiNutritionEstimate, AiNutritionEstimationProvider } from "./ai-nutrition-estimation.js";
+import type { AiEstimateRateLimiter } from "./ai-estimate-rate-limit.js";
 
 type DynamicPrisma = Parameters<typeof resolveAuthoritativeFood>[0];
+
+/**
+ * FINAL FALLBACK reuse (Part O, 2026-09-16): before spending a fresh AI
+ * estimation call, check whether THIS user already has their own previously
+ * accepted estimate/manually-entered Food for this identity. Deliberately
+ * NOT the same code path as searchFoods (catalog/food-search.ts) — that
+ * function only ever queries createdById: null (global/authoritative Foods)
+ * by design, so a private Food is structurally invisible to it, which is
+ * exactly the property that keeps one user's estimate from ever leaking
+ * into another user's resolution (Part W). This is a second, narrower,
+ * explicitly userId-scoped lookup that exists ONLY to avoid re-charging the
+ * same user for an identical repeat query — it can never be reached without
+ * an authenticated userId, and its WHERE clause hardcodes createdById:
+ * userId, so it is structurally incapable of returning another user's row.
+ */
+export async function findUserPrivateFood(prisma: DynamicPrisma, userId: string, normalizedIdentity: string) {
+  if (!normalizedIdentity) return null;
+  return (prisma as any).food.findFirst({
+    where: { createdById: userId, searchText: { contains: normalizedIdentity, mode: "insensitive" } },
+    orderBy: { createdAt: "desc" },
+    include: { servings: true }
+  });
+}
 
 /**
  * Conservative alias learning (Part 11): the ONLY thing ever remembered is
@@ -107,7 +133,20 @@ function logDynamicResolutionOutcome(status: DynamicResolutionOutcome["status"],
 export type DynamicResolutionOutcome =
   | { status: "resolved"; food: any; via: "search_intent" | "raw_query" | "normalized_identity" }
   | { status: "confirmation_required"; candidates: ExternalFoodCandidate[]; reason: "ambiguous" | "possible_duplicate" | "weak_match" }
-  | { status: "unresolved"; reason: "not_found" | "invalid_external_data" | "external_unavailable" | "rate_limited" | "no_adapters" };
+  // webEvidenceDiagnostics (2026-09-16, P0 effectiveness investigation):
+  // present only when a web-evidence attempt actually ran — the full funnel
+  // trace (search query, candidate domains/tiers, per-candidate fetch/
+  // extraction/grounding/identity outcome). Purely observability, never
+  // read by any resolution logic; the API layer (meal-input/interpret.ts)
+  // only ever surfaces it to a caller outside production.
+  | { status: "unresolved"; reason: "not_found" | "invalid_external_data" | "external_unavailable" | "rate_limited" | "no_adapters"; webEvidenceDiagnostics?: WebEvidenceFallbackDiagnostics }
+  // FINAL FALLBACK (2026-09-16): local + authoritative-adapter + web-evidence
+  // resolution all genuinely failed, AND the AI estimation provider produced
+  // a structurally-plausible estimate. This is NEVER auto-persisted as a
+  // Food — see the "ai_estimate_pending" doc on the caller side
+  // (meal-input/interpret.ts) for exactly how a user must explicitly accept
+  // (or reject in favor of their own values) before anything is written.
+  | { status: "ai_estimate_pending"; estimate: AiNutritionEstimate; requestedIdentity: string; canonicalIdentity: string; webEvidenceDiagnostics?: WebEvidenceFallbackDiagnostics };
 
 type ResolveFromSearchTermDeps = {
   adapters: readonly StructuredFoodLookupAdapter[];
@@ -134,6 +173,18 @@ type ResolveFromSearchTermDeps = {
   // skipping the check — a caller that doesn't wire a real gate gets safe
   // "unresolved" outcomes, never ungated candidates.
   semanticCandidateGateProvider?: SemanticCandidateGateProvider;
+  // DATABASE MISS -> AUTHORITATIVE EXTERNAL EVIDENCE FALLBACK (2026-09-16):
+  // the last-resort stage, tried only inside resolveFromSearchTerm's own
+  // "unresolved" branch below, after resolveAuthoritativeFood (local +
+  // USDA/OFF + semantic gate) has already found nothing. Optional — a
+  // caller that doesn't wire it (e.g. an older test, or a deployment
+  // without WEB_SEARCH_PROVIDER configured) degrades to the pre-existing
+  // "unresolved" outcome, byte-for-byte unchanged.
+  webEvidenceFallback?: Pick<WebEvidenceFallbackDeps, "searchProvider" | "extractionProvider" | "rateLimiter">;
+  // FINAL FALLBACK: AI-ESTIMATED NUTRITION (2026-09-16) — tried only after
+  // web-evidence ALSO genuinely fails. Optional; a caller that doesn't wire
+  // it degrades to the pre-existing "unresolved" outcome.
+  aiEstimation?: { provider: AiNutritionEstimationProvider; rateLimiter: AiEstimateRateLimiter };
 };
 
 /**
@@ -198,9 +249,86 @@ async function resolveFromSearchTerm(
     case "confirmation_required":
       logDynamicResolutionOutcome("confirmation_required", via, outcome.reason);
       return { status: "confirmation_required", candidates: outcome.candidates, reason: outcome.reason };
-    case "unresolved":
+    case "unresolved": {
+      // DATABASE MISS -> AUTHORITATIVE EXTERNAL EVIDENCE FALLBACK
+      // (2026-09-16): only attempted for a GENUINE exhaustion ("not_found":
+      // nothing local/USDA/OFF matched at all; "external_unavailable": no
+      // adapters configured at all) — never for "invalid_external_data",
+      // which means a candidate DID exist but failed structural validation
+      // (a data-quality problem the web fallback cannot safely second-guess
+      // by design). Phase 24's regression requirement (external fallback
+      // must never run for an already-resolved food) holds by construction:
+      // this branch is unreachable unless resolveAuthoritativeFood itself
+      // already returned "unresolved" above.
+      let webEvidenceDiagnostics: WebEvidenceFallbackDiagnostics | undefined;
+      if (outcome.reason === "not_found" || outcome.reason === "external_unavailable") {
+        // Part O / cost efficiency (2026-09-16 live-staging finding): checked
+        // FIRST, before web-evidence discovery is ever attempted — a repeat
+        // query for a food this exact user already has a private Food for
+        // (from an earlier accepted estimate or manual entry) must reuse it
+        // immediately, not re-run a real Tavily search + page fetch every
+        // time only to discard the result once the AI-estimation tier's own
+        // reuse check finally ran. Only ever this user's own createdById
+        // scope (see findUserPrivateFood's own doc for why that is safe).
+        if (deps.aiEstimation) {
+          const existingPrivate = await findUserPrivateFood(prisma, deps.userId, normalizeSearch(originalIdentity));
+          if (existingPrivate) {
+            logDynamicResolutionOutcome("resolved", via);
+            return { status: "resolved", food: existingPrivate, via };
+          }
+        }
+        if (deps.webEvidenceFallback) {
+          const fallback = await timeStage("web_evidence_fallback", () => attemptWebEvidenceFallback(searchTerm, originalIdentity, {
+            ...deps.webEvidenceFallback!,
+            semanticGateProvider: deps.semanticCandidateGateProvider ?? new DisabledSemanticCandidateGateProvider(),
+            userId: deps.userId,
+            locale: deps.foodLocale ?? deps.locale,
+            onDiagnostics: (d) => { webEvidenceDiagnostics = d; }
+          }));
+          if (fallback) {
+            const food = await persistWebEvidenceFood(prisma as any, fallback.evidence);
+            // Reuses the EXACT same write-path safety net PR #54 built for
+            // every other dynamic resolution: a fresh semantic-gate verdict
+            // decides the learned alias's confidence (0.95 validated / 0.7
+            // unknown), and the existing DYNAMIC_SEARCH_ALIAS_TRUST_THRESHOLD
+            // (food-search.ts) governs whether a repeat query ever short-
+            // circuits back to this Food without re-verifying. No new
+            // alias-trust code was written for this checkpoint.
+            const semanticVerdict = await computeAliasSemanticVerdict(deps.semanticCandidateGateProvider, originalIdentity, food, aliasLocale, semanticContext);
+            await learnSearchAlias(prisma, food, originalIdentity, aliasLocale, semanticVerdict);
+            logDynamicResolutionOutcome("resolved", via);
+            return { status: "resolved", food, via };
+          }
+        }
+        // FINAL FALLBACK: AI-ESTIMATED NUTRITION (2026-09-16). Web evidence
+        // (if configured) ALSO genuinely found nothing — independently gated
+        // on its OWN dep, not nested inside webEvidenceFallback's presence,
+        // so a deployment can enable AI estimation even when web-evidence
+        // discovery itself is unavailable (e.g. no WEB_SEARCH_PROVIDER). The
+        // existing-private-Food reuse check already ran at the very top of
+        // this block (before web-evidence was even attempted) — reaching
+        // here means this user genuinely has no private Food for this
+        // identity yet, so a fresh estimate is the only remaining option.
+        if (deps.aiEstimation) {
+          if (deps.aiEstimation.rateLimiter.consume(deps.userId)) {
+            // Defensive: ChatAiNutritionEstimationProvider already fails
+            // closed (catches internally, returns null) — this extra guard
+            // is only for a misbehaving THIRD-PARTY provider implementation
+            // that violates that contract; Part T explicitly requires this
+            // path can never crash the request no matter what a provider does.
+            let estimate = null;
+            try { estimate = await timeStage("ai_nutrition_estimation", () => deps.aiEstimation!.provider.estimate({ requestedIdentity: originalIdentity, canonicalIdentity: searchTerm, locale: deps.foodLocale ?? deps.locale })); }
+            catch { estimate = null; }
+            if (estimate) {
+              logDynamicResolutionOutcome("ai_estimate_pending", via);
+              return { status: "ai_estimate_pending", estimate, requestedIdentity: originalIdentity, canonicalIdentity: searchTerm, webEvidenceDiagnostics };
+            }
+          }
+        }
+      }
       logDynamicResolutionOutcome("unresolved", via, outcome.reason);
-      return { status: "unresolved", reason: outcome.reason };
+      return { status: "unresolved", reason: outcome.reason, webEvidenceDiagnostics };
+    }
   }
 }
 

@@ -7,7 +7,7 @@ import helmet from "helmet";
 import jwt from "jsonwebtoken";
 import { pinoHttp } from "pino-http";
 import { z } from "zod";
-import { createMealSchema, editMealSchema, repeatMealSchema, loginSchema, localeUpdateSchema, locales, mealInterpretationSchema, onboardingSchema, registerSchema, type Locale } from "@keto-mentor/shared";
+import { createMealSchema, editMealSchema, editPrivateFoodSchema, repeatMealSchema, loginSchema, localeUpdateSchema, locales, mealInterpretationSchema, onboardingSchema, registerSchema, type Locale } from "@keto-mentor/shared";
 import { env } from "./config.js";
 import { createLogger } from "./logger.js";
 
@@ -46,6 +46,11 @@ import { WebKnowledgeSearchRateLimiter } from "./web-knowledge/web-knowledge-rat
 import { NegativeSearchCache } from "./web-knowledge/negative-search-cache.js";
 import { RecipeDiscoveryService } from "./recipes/recipe-discovery.js";
 import { configuredRecipeAiProvider } from "./recipes/recipe-ai-gateway.js";
+import { configuredNutritionEvidenceExtractionProvider } from "./catalog/nutrition-evidence-extraction-gateway.js";
+import { WebEvidenceFallbackRateLimiter } from "./catalog/web-evidence-fallback.js";
+import { configuredAiNutritionEstimationProvider } from "./catalog/ai-nutrition-estimation-gateway.js";
+import { AiEstimateRateLimiter } from "./catalog/ai-estimate-rate-limit.js";
+import { editPrivateFood } from "./catalog/edit-private-food.js";
 import { publishProgress, subscribeProgress, closeProgress } from "./meal-input/progress-bus.js";
 
 const logger = createLogger(env.NODE_ENV === "production" ? "info" : "debug");
@@ -114,6 +119,22 @@ const recipeDiscoveryService = new RecipeDiscoveryService({
   rateLimiter: webKnowledgeSearchRateLimiter,
   negativeCache: recipeDiscoveryNegativeCache
 });
+// DATABASE MISS -> AUTHORITATIVE EXTERNAL EVIDENCE FALLBACK (2026-09-16):
+// reuses the SAME Tavily web-search gateway instance recipe discovery
+// already uses above (no second search credential) plus its own dedicated
+// nutrition-extraction AI gateway and its own tighter rate limiter — see
+// catalog/web-evidence-fallback.ts. A no-op end-to-end when either
+// WEB_SEARCH_PROVIDER is unset or the AI gateway is disabled.
+const nutritionEvidenceExtractionProvider = configuredNutritionEvidenceExtractionProvider(env);
+const webEvidenceFallbackRateLimiter = new WebEvidenceFallbackRateLimiter();
+const webEvidenceFallback = { searchProvider: webKnowledgeSearchProvider, extractionProvider: nutritionEvidenceExtractionProvider, rateLimiter: webEvidenceFallbackRateLimiter };
+// FINAL FALLBACK: AI-ESTIMATED NUTRITION (2026-09-16) — same configured AI
+// gateway credentials as every other capability; its own dedicated, tighter
+// rate limiter (see ai-estimate-rate-limit.ts). Tried only after web
+// evidence ALSO genuinely fails — see dynamic-food-resolution.ts.
+const aiNutritionEstimationProvider = configuredAiNutritionEstimationProvider(env);
+const aiEstimateRateLimiter = new AiEstimateRateLimiter();
+const aiEstimation = { provider: aiNutritionEstimationProvider, rateLimiter: aiEstimateRateLimiter };
 
 // The authenticated user's own persisted locale (from requireAuth's DB read)
 // is the single trusted source of UI language for server-side localization —
@@ -276,6 +297,18 @@ app.get("/foods", requireAuth, async (req, res, next) => {
   }
 });
 
+// Part P (2026-09-16): correcting a PRIVATE Food's own macros by hand — see
+// catalog/edit-private-food.ts for the ownership/editability enforcement.
+app.patch("/foods/:foodId", requireAuth, async (req, res, next) => {
+  try {
+    const input = editPrivateFoodSchema.parse(req.body);
+    const food = await editPrivateFood(prisma, req.user!.id, req.params.foodId, input);
+    res.json({ food });
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.post("/foods/resolve-external", requireAuth, externalFoodLimiter, async (req, res, next) => {
   try {
     const { query } = z.object({ query: z.string().trim().min(2).max(120) }).parse(req.body);
@@ -341,7 +374,7 @@ app.post("/meal-input/interpret", requireAuth, async (req, res, next) => {
     // never adds a request on a local hit. No adapters configured (e.g. no
     // USDA_FDC_API_KEY) means dynamic resolution is simply not offered.
     const dynamic = externalFoodAdapters.length
-      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale: trustedLocale(req.user!), localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider }
+      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale: trustedLocale(req.user!), localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider, webEvidenceFallback, aiEstimation }
       : null;
     // Same deps, but with recipeIngredientDynamicResolutionLimiter in place
     // of dynamicFoodResolutionLimiter — see that limiter's own comment.
@@ -436,7 +469,7 @@ app.post("/meals", requireAuth, async (req, res, next) => {
     // contains a recipe-discovery item, at which point its own explicit
     // recipe_discovery_unavailable check fires instead of resolving anything.
     const recipeDynamic = externalFoodAdapters.length
-      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: recipeIngredientDynamicResolutionLimiter, userId: req.user!.id, locale: trustedLocale(req.user!), localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider }
+      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: recipeIngredientDynamicResolutionLimiter, userId: req.user!.id, locale: trustedLocale(req.user!), localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider, webEvidenceFallback, aiEstimation }
       : null;
     const meal = await createMeal(prisma, req.user!.id, input, { recipeAiProvider: recipeDiscoveryAiProvider, dynamic: recipeDynamic, recipeIngredientNormalizationProvider, recipeQuantityEstimationProvider });
     res.status(201).json({ meal });
