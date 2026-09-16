@@ -24,6 +24,16 @@ describe("classifySourceTier", () => {
     expect(classifySourceTier("recipesite.hu", "Univer Erős Pista")).toBe("discovery_only");
   });
 
+  it("a manufacturer domain under a multi-part TLD (.co.uk) is still tier_b_manufacturer — the brand label sits one level up from a two-label TLD", () => {
+    expect(classifySourceTier("heinztohome.co.uk", "heinz tomato ketchup")).toBe("tier_b_manufacturer");
+    expect(classifySourceTier("heinz.com", "heinz tomato ketchup")).toBe("tier_b_manufacturer");
+  });
+
+  it("an unrelated domain under a multi-part TLD is NOT swept into tier_b just because the TLD has two labels", () => {
+    expect(classifySourceTier("randomblog.co.uk", "heinz tomato ketchup")).toBe("discovery_only");
+    expect(classifySourceTier("bbc.co.uk", "heinz tomato ketchup")).toBe("discovery_only");
+  });
+
   it("isAuthoritativeTier is false only for discovery_only", () => {
     expect(isAuthoritativeTier("tier_a_official")).toBe(true);
     expect(isAuthoritativeTier("tier_b_manufacturer")).toBe(true);
@@ -39,6 +49,23 @@ describe("domainMatchesRequestedBrand", () => {
   it("does not match a coincidental short/unrelated label", () => {
     expect(domainMatchesRequestedBrand("aa.com", "Univer Erős Pista")).toBe(false);
     expect(domainMatchesRequestedBrand("unrelatedshop.hu", "Univer Erős Pista")).toBe(false);
+  });
+
+  it("matches a brand token glued directly (no separator) onto a generic suffix — a real manufacturer domain shape", () => {
+    expect(domainMatchesRequestedBrand("heinztohome.co.uk", "heinz tomato ketchup")).toBe(true);
+  });
+
+  it("matches a hyphenated domain ONLY when every hyphen-separated word is itself part of the identity", () => {
+    expect(domainMatchesRequestedBrand("coca-cola.com", "Coca-Cola Original Taste")).toBe(true);
+  });
+
+  // Named adversarial cases: a domain that merely starts with (or contains)
+  // the brand as a substring, with an unrelated word hyphenated on, must
+  // still fail closed even though a naive prefix/substring check would pass
+  // it — this is the exact impersonation shape the gate exists to reject.
+  it("REJECTS an impersonating hyphenated domain that tacks an unrelated word onto the brand", () => {
+    expect(domainMatchesRequestedBrand("nutella-nutrition.example", "nutella")).toBe(false);
+    expect(domainMatchesRequestedBrand("nutrition-karfiol.example", "karfiol")).toBe(false);
   });
 });
 
@@ -225,5 +252,19 @@ describe("validateAndNormalizeEvidence — end-to-end with the hardened groundin
     const extracted = baseExtracted({ basis: { amountGrams: 100, quote: "About 100 servings sold" } });
     const text = pageText + " About 100 servings sold";
     expect(validateAndNormalizeEvidence(extracted, text, sourceMeta)).toBeNull();
+  });
+
+  it("ACCEPTS a real-world basis quote with the gram unit glued directly to the number, no space (e.g. \"(17g)\")", () => {
+    const extracted = baseExtracted({
+      basis: { amountGrams: 17, quote: "1 Tbsp (17g)" },
+      kcal: { value: 20, quote: "Calories: 20 kcal" },
+      protein: { value: 0, quote: "Protein: 0 g" },
+      fat: { value: 0, quote: "Fat: 0 g" },
+      carbs: { value: 5, quote: "Carbohydrate: 5 g" },
+      fiber: { value: 0, quote: "Dietary fiber: 0 g" }
+    });
+    const text = "1 Tbsp (17g). Calories: 20 kcal. Protein: 0 g. Fat: 0 g. Carbohydrate: 5 g. Dietary fiber: 0 g.";
+    const result = validateAndNormalizeEvidence(extracted, text, sourceMeta);
+    expect(result).toMatchObject({ basisAmountGrams: 17, proteinPer100g: 0, fatPer100g: 0, fiberPer100g: 0 });
   });
 });

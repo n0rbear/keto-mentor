@@ -38,10 +38,33 @@ const TIER_A_KNOWN_DOMAINS = new Set<string>([
 // substitute for tier A, and never preferred over it.
 const TIER_C_KNOWN_DOMAINS = new Set<string>([]);
 
+// A domain's own brand label sits one level higher when the TLD itself is
+// multi-part ("co.uk", "com.au", ...) — the naive second-from-last split
+// below would read "heinztohome.co.uk" as "co" instead of "heinztohome",
+// wrongly falling through to discovery_only for a real manufacturer domain.
+// Not an exhaustive public-suffix list (that dataset is much larger and
+// changes independently of this app) — covers the common multi-part
+// suffixes seen among manufacturer domains; extend as new ones are found.
+const MULTI_PART_TLD_SUFFIXES = new Set<string>([
+  "co.uk", "org.uk", "me.uk", "ltd.uk", "plc.uk",
+  "co.jp", "ne.jp", "or.jp",
+  "com.au", "net.au", "org.au",
+  "co.nz", "co.za", "co.in", "co.kr", "co.il", "co.th", "co.id",
+  "com.br", "com.mx", "com.ar", "com.sg", "com.hk", "com.tw", "com.cn",
+  "com.co", "com.tr"
+]);
+
 function normalizedDomainLabel(domain: string): string {
   const parts = domain.toLowerCase().split(".");
+  if (parts.length < 2) return parts[0] ?? "";
+  const lastTwo = parts.slice(-2).join(".");
+  if (parts.length >= 3 && MULTI_PART_TLD_SUFFIXES.has(lastTwo)) {
+    // second-level label ahead of a multi-part TLD, e.g. "heinztohome" from
+    // "heinztohome.co.uk"
+    return parts[parts.length - 3];
+  }
   // second-level label, e.g. "univer" from "univer.hu" or "shop.univer.hu"
-  return parts.length >= 2 ? parts[parts.length - 2] : parts[0] ?? "";
+  return parts[parts.length - 2];
 }
 
 /**
@@ -61,6 +84,26 @@ export function domainMatchesRequestedBrand(domain: string, requestedIdentity: s
     .normalize("NFD").replace(/[̀-ͯ]/g, "")
     .split(/[^a-z0-9]+/)
     .filter((token) => token.length >= 3);
+  if (identityTokens.length === 0) return false;
+
+  // A label containing its own separator ("coca-cola", "tomato_ketchup")
+  // reads as several words glued together — a legitimate brand domain only
+  // when EVERY one of those words is itself part of the requested identity
+  // (e.g. "coca-cola.com" for "Coca-Cola"). An unrelated word tacked on with
+  // a separator ("nutella-nutrition.example" for "Nutella") is the classic
+  // impersonation pattern this gate exists to reject: anyone can register
+  // that string with no brand affiliation at all.
+  const labelSubTokens = label.split(/[^a-z0-9]+/).filter((token) => token.length > 0);
+  if (labelSubTokens.length > 1) {
+    return labelSubTokens.every((subToken) =>
+      identityTokens.some((token) => token === subToken || token.startsWith(subToken) || subToken.startsWith(token))
+    );
+  }
+
+  // No internal separator: allow a brand token glued directly onto a generic
+  // suffix with no boundary at all (e.g. "heinztohome" for "Heinz") — a far
+  // more brand-specific string for an unrelated registrant to have picked
+  // than a hyphenated one.
   return identityTokens.some((token) => token === label || token.startsWith(label) || label.startsWith(token));
 }
 
@@ -175,14 +218,22 @@ function quoteContainsValue(quote: string, value: number): boolean {
   return false;
 }
 
+// A gram unit attached directly to its number ("17g)") or separated by a
+// space ("17 g)") — real-world serving sizes are commonly written either
+// way, so the check must not require a standalone " g" token (a bare \bg\b
+// never matches "17g": the digit right before "g" is itself a word
+// character, so there is no boundary between them).
+function hasGramUnit(quote: string): boolean {
+  return /\d[\d.,]*\s*g\b/i.test(quote);
+}
+
 // Basic unit sanity: a gram-denominated macro field (protein/fat/carbs/fiber)
 // must not be grounded by a quote whose number is explicitly tagged "mg"
 // with no accompanying gram figure — catches "20 mg" being misread as 20 g.
 function hasConflictingMilligramUnit(quote: string, nutrient: GroundedNutrientKey): boolean {
   if (nutrient === "kcal") return false;
   const mgMatch = /\d[\d.,]*\s*mg\b/i.test(quote);
-  const gMatch = /\d[\d.,]*\s*g\b/i.test(quote);
-  return mgMatch && !gMatch;
+  return mgMatch && !hasGramUnit(quote);
 }
 
 /**
@@ -246,7 +297,7 @@ export function validateAndNormalizeEvidence(
   // The basis quote must be grounded AND itself contain the claimed gram
   // amount AND a mass unit — "Serving size 100 g" style, not a bare number.
   if (!extracted.basis || !isGroundedInSource(extracted.basis.quote, sourceText) || extracted.basis.amountGrams <= 0) return null;
-  if (!quoteContainsValue(extracted.basis.quote, extracted.basis.amountGrams) || !/\bg\b/i.test(extracted.basis.quote)) return null;
+  if (!quoteContainsValue(extracted.basis.quote, extracted.basis.amountGrams) || !hasGramUnit(extracted.basis.quote)) return null;
 
   // P0 grounding-hardening review (2026-09-16): each macro now requires the
   // FULL binding (label + value + unit), not merely text-presence anywhere

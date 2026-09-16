@@ -22,6 +22,16 @@ const JSON_LD_MISSING_FIBER = `<html><head>
 </script>
 </head></html>`;
 
+// Fixture J: real-world manufacturer-page shape (e.g. heinz.com/products/...):
+// array-wrapped JSON-LD, gram unit glued directly to the number with no space
+// ("(17g)", not "17 g"), and genuinely-stated zero-valued macros (a condiment
+// with 0g fat/protein/fiber per serving) — must NOT be treated as "missing".
+const JSON_LD_ARRAY_WITH_ZERO_MACROS = `<html><head>
+<script type="application/ld+json">
+[{"@context":"https://schema.org","@type":"Product","name":"Tomato Ketchup","nutrition":{"@type":"NutritionInformation","servingSize":"1 Tbsp (17g)","calories":"20","carbohydrateContent":"5 g","fatContent":"0 g","proteinContent":"0 g","fiberContent":"0 g"}},{"@type":"BreadcrumbList"}]
+</script>
+</head></html>`;
+
 describe("extractJsonLdNutrition — deterministic extraction, no AI call", () => {
   it("fixture A: extracts a complete, gram-based schema.org NutritionInformation block", () => {
     const result = extractJsonLdNutrition(JSON_LD_PAGE);
@@ -45,6 +55,20 @@ describe("extractJsonLdNutrition — deterministic extraction, no AI call", () =
 
   it("malformed/non-JSON script content -> returns null cleanly, no crash", () => {
     expect(extractJsonLdNutrition(`<script type="application/ld+json">{not valid json,,,</script>`)).toBeNull();
+  });
+
+  it("a stated 0g serving size (basis) is still rejected — unlike a macro content, a zero-gram basis is never physically valid", () => {
+    const zeroBasis = `<script type="application/ld+json">{"@type":"NutritionInformation","servingSize":"0 g","calories":"20","carbohydrateContent":"5 g","fatContent":"0 g","proteinContent":"0 g","fiberContent":"0 g"}</script>`;
+    expect(extractJsonLdNutrition(zeroBasis)).toBeNull();
+  });
+
+  it("fixture J: a real, unspaced gram unit ('17g') and genuinely-stated zero macros are extracted, not rejected as missing", () => {
+    const result = extractJsonLdNutrition(JSON_LD_ARRAY_WITH_ZERO_MACROS);
+    expect(result).toMatchObject({
+      extractionMethod: "json_ld",
+      basis: { amountGrams: 17 }, kcal: { value: 20 },
+      protein: { value: 0 }, fat: { value: 0 }, carbs: { value: 5 }, fiber: { value: 0 }
+    });
   });
 });
 

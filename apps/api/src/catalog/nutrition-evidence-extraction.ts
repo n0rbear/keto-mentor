@@ -18,12 +18,17 @@ import type { ExtractedNutritionEvidence } from "./nutrition-evidence.js";
 // (1) Deterministic JSON-LD extraction — no AI call.
 // ---------------------------------------------------------------------------
 
-function parseGrams(text: string | undefined | null): number | null {
+// allowZero: a nutrient content field (fiber/protein/fat/carbs) can be
+// genuinely, explicitly stated as "0 g" (e.g. ketchup's 0g fat/protein) and
+// that must be accepted, not treated as "missing" — but a serving-size BASIS
+// of 0g is never physically valid, so basis parsing keeps requiring >0.
+function parseGrams(text: string | undefined | null, allowZero = false): number | null {
   if (!text) return null;
   const match = String(text).match(/([\d.,]+)\s*(g|gram|grams|gramm)\b/i);
   if (!match) return null;
   const value = Number(match[1].replace(",", "."));
-  return Number.isFinite(value) && value > 0 ? value : null;
+  if (!Number.isFinite(value)) return null;
+  return allowZero ? (value >= 0 ? value : null) : (value > 0 ? value : null);
 }
 
 function parseNumeric(text: string | undefined | null): number | null {
@@ -84,13 +89,13 @@ export function extractJsonLdNutrition(html: string): ExtractedNutritionEvidence
     const basisQuote = jsonFieldQuote(rawBlock, "servingSize");
     if (!amountGrams || !basisQuote) continue; // no explicit gram basis -> cannot safely normalize, defer to LLM stage
     const fiberText = nutrition["fiberContent"];
-    const fiberGrams = parseGrams(typeof fiberText === "string" ? fiberText : undefined);
+    const fiberGrams = parseGrams(typeof fiberText === "string" ? fiberText : undefined, true);
     const fiberQuote = jsonFieldQuote(rawBlock, "fiberContent");
     if (fiberGrams == null || !fiberQuote) continue; // fiber not stated -> never assume 0, defer (LLM stage will also fail closed on this)
     const calories = parseNumeric(typeof nutrition["calories"] === "string" ? (nutrition["calories"] as string) : undefined);
-    const protein = parseGrams(typeof nutrition["proteinContent"] === "string" ? (nutrition["proteinContent"] as string) : undefined);
-    const fat = parseGrams(typeof nutrition["fatContent"] === "string" ? (nutrition["fatContent"] as string) : undefined);
-    const carbs = parseGrams(typeof nutrition["carbohydrateContent"] === "string" ? (nutrition["carbohydrateContent"] as string) : undefined);
+    const protein = parseGrams(typeof nutrition["proteinContent"] === "string" ? (nutrition["proteinContent"] as string) : undefined, true);
+    const fat = parseGrams(typeof nutrition["fatContent"] === "string" ? (nutrition["fatContent"] as string) : undefined, true);
+    const carbs = parseGrams(typeof nutrition["carbohydrateContent"] === "string" ? (nutrition["carbohydrateContent"] as string) : undefined, true);
     const caloriesQuote = jsonFieldQuote(rawBlock, "calories");
     const proteinQuote = jsonFieldQuote(rawBlock, "proteinContent");
     const fatQuote = jsonFieldQuote(rawBlock, "fatContent");
