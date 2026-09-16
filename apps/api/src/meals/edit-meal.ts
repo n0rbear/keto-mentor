@@ -19,7 +19,7 @@ function futureEatenAtError() {
 type SnapshotItem = {
   quantityGrams: number;
   snapshotKcal: number | null; snapshotFat: number | null; snapshotProtein: number | null;
-  snapshotCarbs: number | null; snapshotFiber: number | null; snapshotNutrients: unknown;
+  snapshotCarbs: number | null; snapshotFiber: number | null; snapshotNetCarbs: number | null; snapshotNutrients: unknown;
   conversionSnapshot: unknown;
 };
 
@@ -38,15 +38,25 @@ function quantityCorrectionData(item: SnapshotItem, newGrams: number): Record<st
     const factor = newGrams / item.quantityGrams;
     const carbs = item.snapshotCarbs!;
     const fiber = item.snapshotFiber!;
+    // P0 checkpoint (2026-09-16): netCarbs must be scaled LINEARLY from the
+    // item's own already-correct stored value, never re-derived from
+    // snapshotCarbs/snapshotFiber (an already-aggregated recipe-portion total —
+    // max(0, carbs - fiber) on it would re-clamp a total that was already
+    // correctly clamped once, per ingredient, at creation time).
+    // LEGACY FALLBACK: a row written before snapshotNetCarbs existed has no
+    // stored value; max(0, carbs - fiber) is the best available approximation
+    // for that one case only, not treated as authoritative.
+    const netCarbs = item.snapshotNetCarbs ?? Math.max(0, carbs - fiber);
     const scaled = scaleRecipeSnapshot(
-      { kcal: item.snapshotKcal!, fat: item.snapshotFat!, protein: item.snapshotProtein!, carbs, fiber, netCarbs: Math.max(0, carbs - fiber) },
+      { kcal: item.snapshotKcal!, fat: item.snapshotFat!, protein: item.snapshotProtein!, carbs, fiber, netCarbs },
       (item.snapshotNutrients as Record<string, NutrientTotal> | null) ?? {},
       factor
     );
     return {
       quantityGrams: newGrams,
       snapshotKcal: scaled.macros.kcal, snapshotFat: scaled.macros.fat, snapshotProtein: scaled.macros.protein,
-      snapshotCarbs: scaled.macros.carbs, snapshotFiber: scaled.macros.fiber, snapshotNutrients: scaled.nutrients
+      snapshotCarbs: scaled.macros.carbs, snapshotFiber: scaled.macros.fiber, snapshotNetCarbs: scaled.macros.netCarbs,
+      snapshotNutrients: scaled.nutrients
     };
   }
   // A catalog-Food or manual-fallback-Food item has no absolute snapshot; nutrition

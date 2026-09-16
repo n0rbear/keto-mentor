@@ -13,11 +13,12 @@ function foodItem(quantityGrams: number) {
   return { quantityGrams, snapshotKcal: null, snapshotFat: null, snapshotProtein: null, snapshotCarbs: null, snapshotFiber: null, food };
 }
 
-function snapshotItem(overrides: Partial<{ kcal: number; fat: number; protein: number; carbs: number; fiber: number }>) {
+function snapshotItem(overrides: Partial<{ kcal: number; fat: number; protein: number; carbs: number; fiber: number; netCarbs: number | null }>) {
   return {
     quantityGrams: 1,
     snapshotKcal: overrides.kcal ?? 300, snapshotFat: overrides.fat ?? 20,
     snapshotProtein: overrides.protein ?? 25, snapshotCarbs: overrides.carbs ?? 8, snapshotFiber: overrides.fiber ?? 3,
+    snapshotNetCarbs: overrides.netCarbs,
     food: null
   };
 }
@@ -69,6 +70,25 @@ describe("getWeekOverview", () => {
     const fri = result.days.find((d) => d.date === "2026-09-11")!;
     expect(fri.kcal).toBe(450);
     expect(fri.netCarbs).toBe(7); // 12 - 5
+  });
+
+  // P0 checkpoint (2026-09-16): week totals must use the item's own stored
+  // snapshotNetCarbs, never re-derive max(0, carbs - fiber) from an
+  // already-aggregated snapshot — see nutrition.ts's itemTotals.
+  it("uses stored snapshotNetCarbs for a recipe item, not max(0, carbs - fiber), when fiber exceeds carbs for part of the recipe", async () => {
+    const fake = fakePrisma([{ eatenAt: new Date("2026-09-11T08:00:00Z"), items: [snapshotItem({ kcal: 400, carbs: 12, fiber: 6, netCarbs: 9 })] }]);
+    const result = await getWeekOverview(fake.client, "user-a", week);
+    const fri = result.days.find((d) => d.date === "2026-09-11")!;
+    expect(fri.netCarbs).toBe(9);
+    expect(fri.netCarbs).not.toBe(6);
+  });
+
+  it("LEGACY FALLBACK: a recipe item with snapshotNetCarbs explicitly null still produces a number, never NaN", async () => {
+    const fake = fakePrisma([{ eatenAt: new Date("2026-09-11T08:00:00Z"), items: [snapshotItem({ kcal: 400, carbs: 12, fiber: 6, netCarbs: null })] }]);
+    const result = await getWeekOverview(fake.client, "user-a", week);
+    const fri = result.days.find((d) => d.date === "2026-09-11")!;
+    expect(fri.netCarbs).toBe(6);
+    expect(Number.isNaN(fri.netCarbs)).toBe(false);
   });
 
   it("sums multiple meals on the same day", async () => {

@@ -25,7 +25,7 @@ export async function getMealsForDay(
           items: { select: {
             quantityGrams: true,
             snapshotKcal: true, snapshotFat: true, snapshotProtein: true,
-            snapshotCarbs: true, snapshotFiber: true,
+            snapshotCarbs: true, snapshotFiber: true, snapshotNetCarbs: true,
             food: { select: {
               kcalPer100g: true, fatPer100g: true, proteinPer100g: true,
               carbsPer100g: true, fiberPer100g: true

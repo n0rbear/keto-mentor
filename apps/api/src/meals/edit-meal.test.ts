@@ -141,6 +141,40 @@ describe("editMeal", () => {
     expect(meal.totals.kcal).toBe(200);
   });
 
+  // P0 checkpoint (2026-09-16): a quantity correction must scale the item's own
+  // stored snapshotNetCarbs LINEARLY, never re-derive it from the (already
+  // re-scaled) snapshotCarbs/snapshotFiber — which would re-clamp an
+  // already-aggregated total a second time.
+  it("scales a recipe item's stored snapshotNetCarbs linearly on a quantity correction (4.5 -> double quantity -> 9)", async () => {
+    const fake = createFakeDb([{
+      id: "meal-1", userId: "user-a", title: "Dinner", eatenAt: NOW, createdAt: NOW,
+      items: [fakeRecipeItem({ quantityGrams: 200, snapshotCarbs: 6, snapshotFiber: 3, snapshotNetCarbs: 4.5 })]
+    }]);
+    const meal = await editMeal(fake.client, "user-a", "meal-1", editMealSchema.parse({ items: [{ mealItemId: "item-2", quantityGrams: 400 }] }), NOW);
+    expect(meal.totals.netCarbs).toBe(9);
+  });
+
+  it("LEGACY FALLBACK: a recipe item with no stored snapshotNetCarbs still scales without crashing (approximation, not authoritative)", async () => {
+    const fake = createFakeDb([{
+      id: "meal-1", userId: "user-a", title: "Dinner", eatenAt: NOW, createdAt: NOW,
+      items: [fakeRecipeItem({ quantityGrams: 200, snapshotCarbs: 12, snapshotFiber: 6, snapshotNetCarbs: null })]
+    }]);
+    const meal = await editMeal(fake.client, "user-a", "meal-1", editMealSchema.parse({ items: [{ mealItemId: "item-2", quantityGrams: 100 }] }), NOW);
+    // Legacy approximation: max(0, 12-6)=6 at the original grams, halved to 3. Not
+    // claimed to be the true historical value — see nutrition.ts's documented fallback.
+    expect(meal.totals.netCarbs).toBe(3);
+    expect(Number.isNaN(meal.totals.netCarbs)).toBe(false);
+  });
+
+  it("a stored snapshotNetCarbs of exactly 0 is scaled (and stays) as 0, not treated as a missing legacy row", async () => {
+    const fake = createFakeDb([{
+      id: "meal-1", userId: "user-a", title: "Dinner", eatenAt: NOW, createdAt: NOW,
+      items: [fakeRecipeItem({ quantityGrams: 200, snapshotCarbs: 5, snapshotFiber: 5, snapshotNetCarbs: 0 })]
+    }]);
+    const meal = await editMeal(fake.client, "user-a", "meal-1", editMealSchema.parse({ items: [{ mealItemId: "item-2", quantityGrams: 400 }] }), NOW);
+    expect(meal.totals.netCarbs).toBe(0);
+  });
+
   it("rejects edits from a user who does not own the meal", async () => {
     const fake = createFakeDb([{ id: "meal-1", userId: "user-a", title: "Lunch", eatenAt: NOW, createdAt: NOW, items: [fakeFoodItem()] }]);
     await expect(editMeal(fake.client, "user-b", "meal-1", editMealSchema.parse({ title: "Hijacked" }), NOW)).rejects.toThrow("meal_not_found");

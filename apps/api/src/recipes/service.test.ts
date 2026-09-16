@@ -19,7 +19,7 @@ function fakePrisma(seed = [fullRecipe()]) {
     update: async ({ where, data }: any) => { const row = recipes.find((value) => value.id === where.id); const nested = data.ingredients?.create; Object.assign(row, { ...data, ingredients: nested ? nested.map((value: any, index: number) => ({ ...value, id: `ui${index}`, recipeId: row.id, food })) : row.ingredients }); return row; },
     create: async ({ data }: any) => { const source = recipes.find((row) => row.id === data.forkedFromRecipeId); const row = fullRecipe({ ...data, id: `copy-${recipes.length}`, user: { id: data.userId, username: data.userId }, ingredients: data.ingredients?.create?.map((value: any, index: number) => ({ ...value, id: `ci${index}`, recipeId: `copy-${recipes.length}`, food: source?.ingredients.find((item: any) => item.foodId === value.foodId)?.food ?? food })) ?? [] }); recipes.push(row); return row; }
   };
-  const prisma: any = { recipe, food: { count: async () => 1 }, recipeIngredient: { deleteMany: async () => ({ count: 1 }) }, meal: { create: async ({ data }: any) => { const item = { id: "mi1", mealId: "m1", foodId: null, recipeId: data.items.create.recipeId, quantityGrams: data.items.create.quantityGrams, displayName: data.items.create.displayName, snapshotKcal: data.items.create.snapshotKcal, snapshotFat: data.items.create.snapshotFat, snapshotProtein: data.items.create.snapshotProtein, snapshotCarbs: data.items.create.snapshotCarbs, snapshotFiber: data.items.create.snapshotFiber, snapshotNutrients: data.items.create.snapshotNutrients, food: null, recipe: recipes.find((row) => row.id === data.items.create.recipeId) }; const meal = { id: "m1", userId: data.userId, title: data.title, eatenAt: new Date(), createdAt: new Date(), items: [item] }; meals.push(meal); return meal; } } };
+  const prisma: any = { recipe, food: { count: async () => 1 }, recipeIngredient: { deleteMany: async () => ({ count: 1 }) }, meal: { create: async ({ data }: any) => { const item = { id: "mi1", mealId: "m1", foodId: null, recipeId: data.items.create.recipeId, quantityGrams: data.items.create.quantityGrams, displayName: data.items.create.displayName, snapshotKcal: data.items.create.snapshotKcal, snapshotFat: data.items.create.snapshotFat, snapshotProtein: data.items.create.snapshotProtein, snapshotCarbs: data.items.create.snapshotCarbs, snapshotFiber: data.items.create.snapshotFiber, snapshotNetCarbs: data.items.create.snapshotNetCarbs, snapshotNutrients: data.items.create.snapshotNutrients, food: null, recipe: recipes.find((row) => row.id === data.items.create.recipeId) }; const meal = { id: "m1", userId: data.userId, title: data.title, eatenAt: new Date(), createdAt: new Date(), items: [item] }; meals.push(meal); return meal; } } };
   prisma.$transaction = async (callback: any) => callback(prisma);
   return { prisma, recipes, meals };
 }
@@ -100,6 +100,30 @@ describe("recipe meal snapshots", () => {
   it("logs grams with a complete nutrition snapshot", async () => { const { prisma, meals } = fakePrisma([fullRecipe({ visibility: "public" })]); await addRecipeToMeal(prisma, "other", "r1", { quantity: 50, unit: "g" }); expect(meals[0].items[0]).toMatchObject({ quantityGrams: 50, snapshotKcal: 50, snapshotProtein: 10 }); expect(meals[0].items[0].snapshotNutrients.calcium.amount).toBe(20); });
   it("does not change after recipe or Food edits", async () => { const { prisma, recipes, meals } = fakePrisma([fullRecipe({ visibility: "public" })]); await addRecipeToMeal(prisma, "other", "r1", { quantity: 1, unit: "serving" }); const before = itemTotals(meals[0].items[0]); recipes[0].ingredients[0].quantityGrams = 1000; recipes[0].ingredients[0].food.kcalPer100g = 999; expect(itemTotals(meals[0].items[0])).toEqual(before); });
   it("soft delete preserves the historical meal snapshot", async () => { const { prisma, meals } = fakePrisma(); await addRecipeToMeal(prisma, "owner", "r1", { quantity: 1, unit: "serving" }); await deleteRecipe(prisma, "owner", "r1"); expect(meals).toHaveLength(1); expect(itemTotals(meals[0].items[0]).kcal).toBe(100); });
+
+  // P0 checkpoint (2026-09-16): end-to-end high-fiber regression. Ingredient A
+  // (carbs 2, fiber 5) clamps to netCarbs 0; ingredient B (carbs 10, fiber 1) has
+  // netCarbs 9. Correct whole-recipe netCarbs = 0 + 9 = 9, NOT max(0, 12-6) = 6.
+  // Persisting and reading the logged MealItem back through itemTotals must
+  // still report 9, not the re-clamped 6.
+  it("persists and reads back the correct (non-re-clamped) netCarbs for a high-fiber recipe logged to a meal", async () => {
+    const foodA = { id: "fa", name: "A", kcalPer100g: 50, fatPer100g: 0, proteinPer100g: 0, carbsPer100g: 2, fiberPer100g: 5, nutrients: [] };
+    const foodB = { id: "fb", name: "B", kcalPer100g: 50, fatPer100g: 0, proteinPer100g: 0, carbsPer100g: 10, fiberPer100g: 1, nutrients: [] };
+    const highFiberRecipe = fullRecipe({
+      servings: 2, finishedWeightGrams: 200,
+      ingredients: [
+        { id: "ia", recipeId: "r1", foodId: "fa", quantityGrams: 100, originalText: null, preparation: null, sortOrder: 0, food: foodA },
+        { id: "ib", recipeId: "r1", foodId: "fb", quantityGrams: 100, originalText: null, preparation: null, sortOrder: 1, food: foodB }
+      ]
+    });
+    const { prisma, meals } = fakePrisma([highFiberRecipe]);
+    await addRecipeToMeal(prisma, "owner", "r1", { quantity: 1, unit: "serving" });
+    const item = meals[0].items[0];
+    // Whole recipe netCarbs = 9, 1 of 2 servings -> 4.5, persisted directly.
+    expect(item.snapshotNetCarbs).toBe(4.5);
+    expect(itemTotals(item).netCarbs).toBe(4.5);
+    expect(itemTotals(item).netCarbs).not.toBe(3); // the re-clamped max(0, 6-3) bug value
+  });
   it("rejects client-supplied nutrition on the add-to-meal request at the schema boundary", () => {
     expect(recipeMealSchema.safeParse({ quantity: 1, unit: "g", kcal: 9999 }).success).toBe(false);
     expect(recipeMealSchema.safeParse({ quantity: 1, unit: "g" }).success).toBe(true);
