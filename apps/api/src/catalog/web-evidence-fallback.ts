@@ -118,6 +118,13 @@ function logWebEvidenceFallbackOutcome(diagnostics: WebEvidenceFallbackDiagnosti
   console.log(`web_evidence_fallback resolved=${resolved} candidates=${diagnostics.candidateDomains.length} fetchFailures=${diagnostics.fetchFailures.length}${diagnostics.sourceTier ? ` tier=${diagnostics.sourceTier}` : ""}${diagnostics.identityVerdict ? ` identity=${diagnostics.identityVerdict}` : ""}${diagnostics.extractionVerdict ? ` extraction=${diagnostics.extractionVerdict}` : ""}${diagnostics.rejectionReason ? ` reason=${diagnostics.rejectionReason}` : ""}`);
 }
 
+function sourceFoodNameFromHtml(html: string, fallback: string): string {
+  const heading = html.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/iu)?.[1];
+  if (!heading) return fallback;
+  const text = htmlToSafeText(heading).trim();
+  return text && text.length <= 200 ? text : fallback;
+}
+
 /**
  * Attempts the full discovery -> fetch -> extract -> validate -> identity-gate
  * chain for one food query. Returns null on ANY failure at ANY stage — a
@@ -212,7 +219,7 @@ export async function attemptWebEvidenceFallback(query: string, originalIdentity
     // machine-readable was found on the page.
     const safeText = htmlToSafeText(html);
     const extracted = extractJsonLdNutrition(html)
-      ?? extractVisibleTextNutrition(safeText, result.title)
+      ?? extractVisibleTextNutrition(safeText, sourceFoodNameFromHtml(html, result.title))
       ?? await timeStage("web_evidence_extraction_ai", () => deps.extractionProvider.extract({ requestedIdentity: originalIdentity, canonicalIdentity: query, sourceDomain: result.domain, sourceTitle: result.title, pageText: safeText }));
     if (!extracted) {
       candidateDiag.extractionVerdict = "no_evidence";

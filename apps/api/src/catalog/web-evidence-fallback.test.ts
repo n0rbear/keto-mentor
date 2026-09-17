@@ -45,6 +45,23 @@ describe("attemptWebEvidenceFallback — end-to-end orchestration", () => {
     expect(result!.diagnostics.identityVerdict).toBe("approved");
   });
 
+  it("uses the fetched page h1 as identity evidence for a deterministic visible per-100g table", async () => {
+    const extraction = vi.fn(async () => null);
+    let gatedName = "";
+    const result = await attemptWebEvidenceFallback("clif bar chocolate chip", "CLIF BAR Chocolate Chip", baseDeps({
+      searchProvider: searchProvider([{ url: "https://clifbar.com/products/chocolate-chip", title: "Products | CLIF", snippet: "", domain: "clifbar.com" }]),
+      extractionProvider: { id: "fixture", extract: extraction },
+      semanticGateProvider: { id: "real", checkRelevance: async (_input, candidates) => { gatedName = candidates[0].authoritativeName; return new Map([["evidence", true]]); } },
+      fetchHtml: async () => ({
+        html: "<html><h1>Chocolate Chip CLIF BAR</h1><body>Nutrition Information Per 100g Energy 1596kJ / 379kcal Fat 9g Carbohydrate 56g Fibre 8g Protein 15g</body></html>",
+        finalUrl: "https://clifbar.com/products/chocolate-chip"
+      })
+    }));
+    expect(gatedName).toBe("Chocolate Chip CLIF BAR");
+    expect(result?.evidence).toMatchObject({ sourceFoodName: "Chocolate Chip CLIF BAR", extractionMethod: "html_table", kcalPer100g: 379 });
+    expect(extraction).not.toHaveBeenCalled();
+  });
+
   // P0 effectiveness review (2026-09-16): a real bug found via live staging
   // investigation — the search query previously used the RAW, untranslated
   // originalIdentity (e.g. Hungarian "kárász") instead of the already-
