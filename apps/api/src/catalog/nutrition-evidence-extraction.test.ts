@@ -152,4 +152,12 @@ describe("ChatNutritionEvidenceExtractionProvider — LLM-grounded extraction (f
   it("keeps the deterministic bound even when a page contains many nutrition markers", () => {
     expect(selectNutritionEvidenceText("Nutrition protein fat carbohydrate fibre ".repeat(2_000)).length).toBeLessThanOrEqual(6_000);
   });
+
+  it("ranks a late numeric nutrition table above earlier navigation/script labels", () => {
+    const navigation = "Nutrition protein fat carbohydrate fibre menu without values ".repeat(180);
+    const filler = "brand story ".repeat(500);
+    const table = "Nutrition Information Per 100g Energy 1596kJ / 379kcal Fat 9g Carbohydrate 56g Fibre 8.0g Protein 15g";
+    const selected = selectNutritionEvidenceText(`${navigation}${filler}${table}`);
+    expect(selected).toContain(table);
+  });
 });

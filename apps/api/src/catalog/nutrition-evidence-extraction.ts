@@ -188,17 +188,21 @@ const NUTRITION_MARKER = /nutrition|nutritional|energy|calories|kcal|protein|fat
  */
 export function selectNutritionEvidenceText(pageText: string): string {
   if (pageText.length <= NUTRITION_EVIDENCE_MAX_PAGE_TEXT_CHARS) return pageText;
-  const windows: string[] = [];
+  const windows: Array<{ start: number; text: string; score: number }> = [];
   const seen = new Set<number>();
   for (const match of pageText.matchAll(NUTRITION_MARKER)) {
     const start = Math.max(0, match.index - 350);
     const bucket = Math.floor(start / 500);
     if (seen.has(bucket)) continue;
     seen.add(bucket);
-    windows.push(pageText.slice(start, Math.min(pageText.length, start + 1_500)));
-    if (windows.join("\n…\n").length >= NUTRITION_EVIDENCE_MAX_PAGE_TEXT_CHARS) break;
+    const text = pageText.slice(start, Math.min(pageText.length, start + 1_500));
+    const labels = new Set(Array.from(text.matchAll(NUTRITION_MARKER), (item) => item[0].toLocaleLowerCase())).size;
+    const numericValues = (text.match(/\b\d+(?:[.,]\d+)?\s*(?:kcal|kj|g|gram|grams|gramm)\b/giu) ?? []).length;
+    const explicitBasis = /(?:per|par|pro|je|100)\s*(?:serving|portion|100)?\s*\(?\s*\d+(?:[.,]\d+)?\s*g\b/iu.test(text) ? 4 : 0;
+    windows.push({ start, text, score: labels * 3 + Math.min(numericValues, 12) + explicitBasis });
   }
-  return (windows.length ? windows.join("\n…\n") : pageText).slice(0, NUTRITION_EVIDENCE_MAX_PAGE_TEXT_CHARS);
+  const selected = windows.sort((a, b) => b.score - a.score || a.start - b.start).slice(0, 4).sort((a, b) => a.start - b.start);
+  return (selected.length ? selected.map((item) => item.text).join("\n…\n") : pageText).slice(0, NUTRITION_EVIDENCE_MAX_PAGE_TEXT_CHARS);
 }
 
 export class ChatNutritionEvidenceExtractionProvider implements NutritionEvidenceExtractionProvider {
