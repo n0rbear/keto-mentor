@@ -119,6 +119,11 @@ function logWebEvidenceFallbackOutcome(diagnostics: WebEvidenceFallbackDiagnosti
 }
 
 function sourceFoodNameFromHtml(html: string, fallback: string): string {
+  const documentTitle = html.match(/<title\b[^>]*>([\s\S]*?)<\/title>/iu)?.[1];
+  if (documentTitle) {
+    const text = htmlToSafeText(documentTitle).trim();
+    if (text && text.length <= 200) return text;
+  }
   const heading = html.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/iu)?.[1];
   if (!heading) return fallback;
   const text = htmlToSafeText(heading).trim();

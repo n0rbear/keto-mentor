@@ -53,12 +53,12 @@ describe("attemptWebEvidenceFallback — end-to-end orchestration", () => {
       extractionProvider: { id: "fixture", extract: extraction },
       semanticGateProvider: { id: "real", checkRelevance: async (_input, candidates) => { gatedName = candidates[0].authoritativeName; return new Map([["evidence", true]]); } },
       fetchHtml: async () => ({
-        html: "<html><h1>Chocolate Chip CLIF BAR</h1><body>Nutrition Information Per 100g Energy 1596kJ / 379kcal Fat 9g Carbohydrate 56g Fibre 8g Protein 15g</body></html>",
+        html: "<html><title>CLIF BAR Chocolate Chip | CLIF BAR</title><h1>Chocolate Chip</h1><body>Nutrition Information Per 100g Energy 1596kJ / 379kcal Fat 9g Carbohydrate 56g Fibre 8g Protein 15g</body></html>",
         finalUrl: "https://clifbar.com/products/chocolate-chip"
       })
     }));
-    expect(gatedName).toBe("Chocolate Chip CLIF BAR");
-    expect(result?.evidence).toMatchObject({ sourceFoodName: "Chocolate Chip CLIF BAR", extractionMethod: "html_table", kcalPer100g: 379 });
+    expect(gatedName).toBe("CLIF BAR Chocolate Chip | CLIF BAR");
+    expect(result?.evidence).toMatchObject({ sourceFoodName: "CLIF BAR Chocolate Chip | CLIF BAR", extractionMethod: "html_table", kcalPer100g: 379 });
     expect(extraction).not.toHaveBeenCalled();
   });
 
