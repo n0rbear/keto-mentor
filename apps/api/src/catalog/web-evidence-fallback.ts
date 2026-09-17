@@ -1,6 +1,6 @@
 import type { WebKnowledgeSearchProvider, WebSearchResult } from "../web-knowledge/web-knowledge-search-provider.js";
 import type { NutritionEvidenceExtractionProvider } from "./nutrition-evidence-extraction.js";
-import { extractJsonLdNutrition } from "./nutrition-evidence-extraction.js";
+import { extractJsonLdNutrition, extractVisibleTextNutrition } from "./nutrition-evidence-extraction.js";
 import type { SemanticCandidateGateProvider } from "./semantic-candidate-gate.js";
 import { classifySourceTier, isAuthoritativeTier, validateAndNormalizeEvidence, type EvidenceSourceTier, type NutritionEvidence } from "./nutrition-evidence.js";
 import { fetchPublicHtml, type SafeFetcherDependencies } from "../recipes/safe-url-fetcher.js";
@@ -89,7 +89,7 @@ export type WebEvidenceCandidateDiagnostic = {
   tier: EvidenceSourceTier;
   fetch: "ok" | "failed";
   fetchError?: string;
-  extractionMethod?: "json_ld" | "llm_grounded";
+  extractionMethod?: "json_ld" | "html_table" | "llm_grounded";
   extractionVerdict?: "grounded" | "ungrounded" | "no_evidence";
   identityVerdict?: "approved" | "rejected" | "gate_disabled";
 };
@@ -210,18 +210,20 @@ export async function attemptWebEvidenceFallback(query: string, originalIdentity
     // Deterministic extraction first (no AI call, exact when available);
     // only falls back to the LLM-grounded extractor when nothing
     // machine-readable was found on the page.
+    const safeText = htmlToSafeText(html);
     const extracted = extractJsonLdNutrition(html)
-      ?? await timeStage("web_evidence_extraction_ai", () => deps.extractionProvider.extract({ requestedIdentity: originalIdentity, canonicalIdentity: query, sourceDomain: result.domain, sourceTitle: result.title, pageText: htmlToSafeText(html) }));
+      ?? extractVisibleTextNutrition(safeText, result.title)
+      ?? await timeStage("web_evidence_extraction_ai", () => deps.extractionProvider.extract({ requestedIdentity: originalIdentity, canonicalIdentity: query, sourceDomain: result.domain, sourceTitle: result.title, pageText: safeText }));
     if (!extracted) {
       candidateDiag.extractionVerdict = "no_evidence";
       diagnostics.extractionVerdict = "no_evidence";
       continue;
     }
-    candidateDiag.extractionMethod = extracted.extractionMethod === "json_ld" ? "json_ld" : "llm_grounded";
+    candidateDiag.extractionMethod = extracted.extractionMethod;
     // JSON-LD quotes are raw snippets of the original html; LLM quotes are
     // taken from the stripped visible text — ground each against the text
     // it was actually drawn from.
-    const groundingSource = extracted.extractionMethod === "json_ld" ? html : htmlToSafeText(html);
+    const groundingSource = extracted.extractionMethod === "json_ld" ? html : safeText;
     const evidence = validateAndNormalizeEvidence(extracted, groundingSource, {
       sourceUrl: finalUrl, sourceDomain: result.domain, sourceTitle: result.title, sourceTier: tier,
       retrievedAt: new Date().toISOString(), requestedIdentity: originalIdentity, canonicalIdentity: query

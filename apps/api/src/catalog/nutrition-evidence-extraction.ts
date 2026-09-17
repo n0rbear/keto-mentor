@@ -127,6 +127,33 @@ export function extractJsonLdNutrition(html: string): ExtractedNutritionEvidence
   return null;
 }
 
+function labeledValue(text: string, label: RegExp, unit: "g" | "kcal"): { value: number; quote: string } | null {
+  const unitPattern = unit === "g" ? "g\\b" : "kcal\\b";
+  const match = text.match(new RegExp(`(?:${label.source})[^0-9]{0,30}(?<value>\\d+(?:[.,]\\d+)?)\\s*${unitPattern}`, "iu"));
+  if (!match?.groups?.value) return null;
+  const value = Number(match.groups.value.replace(",", "."));
+  return Number.isFinite(value) && value >= 0 ? { value, quote: match[0] } : null;
+}
+
+/** Deterministic fallback for conventional visible per-100g manufacturer tables. */
+export function extractVisibleTextNutrition(pageText: string, sourceFoodName: string): ExtractedNutritionEvidence | null {
+  const basisMatch = pageText.match(/(?:per|pro|je|par)\s*100\s*g\b/iu);
+  if (!basisMatch || basisMatch.index == null) return null;
+  const table = pageText.slice(basisMatch.index, Math.min(pageText.length, basisMatch.index + 2_500));
+  const energyMatch = table.match(/(?:energy|energia|energie)[^0-9]{0,30}(?:\d+(?:[.,]\d+)?\s*kJ\s*(?:\/|\|)?\s*)?(\d+(?:[.,]\d+)?)\s*kcal\b/iu);
+  const kcal = energyMatch ? { value: Number(energyMatch[1].replace(",", ".")), quote: energyMatch[0] } : labeledValue(table, /calories?/iu, "kcal");
+  const fat = labeledValue(table, /(?:total\s+)?fat|zsír|fett/iu, "g");
+  const carbs = labeledValue(table, /carbohydrate|carbs|szénhidrát|kohlenhydrat/iu, "g");
+  const fiber = labeledValue(table, /dietary\s+fiber|fibre|fiber|rost|ballaststoff/iu, "g");
+  const protein = labeledValue(table, /protein|fehérje|eiweiß/iu, "g");
+  if (!kcal || !fat || !carbs || !fiber || !protein || !Number.isFinite(kcal.value)) return null;
+  return {
+    sourceFoodName,
+    basis: { amountGrams: 100, quote: basisMatch[0] }, kcal, protein, fat, carbs, fiber,
+    extractionMethod: "html_table"
+  };
+}
+
 // ---------------------------------------------------------------------------
 // (2) LLM-grounded extraction.
 // ---------------------------------------------------------------------------

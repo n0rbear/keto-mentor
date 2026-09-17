@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ChatNutritionEvidenceExtractionProvider, DisabledNutritionEvidenceExtractionProvider, extractJsonLdNutrition, selectNutritionEvidenceText, type NutritionEvidenceExtractionTransport } from "./nutrition-evidence-extraction.js";
+import { ChatNutritionEvidenceExtractionProvider, DisabledNutritionEvidenceExtractionProvider, extractJsonLdNutrition, extractVisibleTextNutrition, selectNutritionEvidenceText, type NutritionEvidenceExtractionTransport } from "./nutrition-evidence-extraction.js";
 
 // Fixture A: an official-style page with clean schema.org JSON-LD NutritionInformation.
 const JSON_LD_PAGE = `<html><head>
@@ -159,5 +159,23 @@ describe("ChatNutritionEvidenceExtractionProvider — LLM-grounded extraction (f
     const table = "Nutrition Information Per 100g Energy 1596kJ / 379kcal Fat 9g Carbohydrate 56g Fibre 8.0g Protein 15g";
     const selected = selectNutritionEvidenceText(`${navigation}${filler}${table}`);
     expect(selected).toContain(table);
+  });
+});
+
+describe("deterministic visible nutrition table extraction", () => {
+  it("extracts a complete explicit per-100g manufacturer table without AI", () => {
+    const result = extractVisibleTextNutrition("Nutrition Information Per 100g Energy 1596kJ / 379kcal Fat 9g Saturates 2.7g Carbohydrate 56g Sugars 26g Fibre 8.0g Protein 15g", "CLIF BAR Chocolate Chip");
+    expect(result).toMatchObject({
+      sourceFoodName: "CLIF BAR Chocolate Chip", extractionMethod: "html_table", basis: { amountGrams: 100 },
+      kcal: { value: 379 }, fat: { value: 9 }, carbs: { value: 56 }, fiber: { value: 8 }, protein: { value: 15 }
+    });
+  });
+
+  it("rejects a serving table without an explicit gram-normalizable per-100g basis", () => {
+    expect(extractVisibleTextNutrition("Serving size 1 cup Calories 90 Total Fat 1g Carbohydrate 15g Dietary Fiber 2g Protein 4g", "Soup")).toBeNull();
+  });
+
+  it("rejects an otherwise complete per-100g table when fiber is missing", () => {
+    expect(extractVisibleTextNutrition("Per 100g Energy 379kcal Fat 9g Carbohydrate 56g Protein 15g", "Bar")).toBeNull();
   });
 });
