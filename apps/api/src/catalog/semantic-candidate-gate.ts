@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { AiProviderError } from "../ai/chat-completions-provider.js";
 
 /**
  * Owner-beta blocker #9 (2026-09-11) — closes the exact gap that let
@@ -131,8 +132,8 @@ export type SemanticCandidateGateStatus = "completed" | "disabled" | "invalid_in
 
 export type SemanticCandidateGateDiagnostic = {
   status: SemanticCandidateGateStatus;
-  reasonCode: "verdict_returned" | "missing_candidate_verdict" | "gate_disabled" | "missing_identity" | "no_candidates" | "request_aborted" | "invalid_response_schema" | "provider_error";
-  providerFailureClass?: "schema" | "abort" | "transport";
+  reasonCode: "verdict_returned" | "missing_candidate_verdict" | "gate_disabled" | "missing_identity" | "no_candidates" | "request_aborted" | "invalid_response_schema" | "provider_rate_limited" | "provider_request_rejected" | "provider_upstream_error" | "provider_invalid_response" | "provider_error";
+  providerFailureClass?: "schema" | "abort" | "rate_limit" | "request" | "upstream" | "invalid_response" | "transport";
   decisions: Map<string, {
     relationship: CandidateRelationship;
     formCompatibility: "compatible" | "incompatible" | "uncertain";
@@ -231,14 +232,25 @@ export class ChatSemanticCandidateGateProvider implements SemanticCandidateGateP
       // the opposite of search-intent/candidate-localization's fail-open
       // degradation, since this is the safety gate itself.
       const schemaFailure = error instanceof z.ZodError;
-      const aborted = signal?.aborted || (error instanceof Error && error.name === "AbortError");
+      const aborted = signal?.aborted || (error instanceof Error && error.name === "AbortError") || (error instanceof AiProviderError && error.code === "timeout");
+      const providerFailure = error instanceof AiProviderError
+        ? error.code === "invalid_response" || error.code === "response_too_large"
+          ? { reasonCode: "provider_invalid_response" as const, providerFailureClass: "invalid_response" as const }
+          : error.code === "http_error" && error.httpStatus === 429
+            ? { reasonCode: "provider_rate_limited" as const, providerFailureClass: "rate_limit" as const }
+            : error.code === "http_error" && error.httpStatus != null && error.httpStatus >= 500
+              ? { reasonCode: "provider_upstream_error" as const, providerFailureClass: "upstream" as const }
+              : error.code === "http_error" && error.httpStatus != null && error.httpStatus >= 400
+                ? { reasonCode: "provider_request_rejected" as const, providerFailureClass: "request" as const }
+                : { reasonCode: "provider_error" as const, providerFailureClass: "transport" as const }
+        : { reasonCode: "provider_error" as const, providerFailureClass: "transport" as const };
       return {
         verdicts: empty,
         diagnostic: aborted
           ? { status: "aborted", reasonCode: "request_aborted", providerFailureClass: "abort", decisions: new Map() }
           : schemaFailure
             ? { status: "schema_failure", reasonCode: "invalid_response_schema", providerFailureClass: "schema", decisions: new Map() }
-            : { status: "provider_failure", reasonCode: "provider_error", providerFailureClass: "transport", decisions: new Map() }
+            : { status: "provider_failure", ...providerFailure, decisions: new Map() }
       };
     }
   }

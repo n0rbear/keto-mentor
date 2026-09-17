@@ -96,7 +96,7 @@ export type WebEvidenceCandidateDiagnostic = {
   semanticGateStatus?: SemanticCandidateGateStatus;
   semanticGateVerdict?: "approved" | "negative" | "unavailable";
   semanticGateReasonCode?: string;
-  providerFailureClass?: "schema" | "abort" | "transport";
+  providerFailureClass?: "schema" | "abort" | "rate_limit" | "request" | "upstream" | "invalid_response" | "transport";
   requestedIdentity?: string;
   sourceFoodName?: string;
 };

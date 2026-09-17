@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { AiProviderError } from "../ai/chat-completions-provider.js";
 import {
   ChatSemanticCandidateGateProvider, DisabledSemanticCandidateGateProvider,
   SEMANTIC_CANDIDATE_GATE_INSTRUCTION, type SemanticCandidateGateTransport
@@ -180,6 +181,20 @@ describe("ChatSemanticCandidateGateProvider", () => {
     expect(result.verdicts.size).toBe(0);
     expect(result.diagnostic).toEqual({ status: "provider_failure", reasonCode: "provider_error", providerFailureClass: "transport", decisions: new Map() });
     expect(JSON.stringify(result.diagnostic)).not.toContain("secret upstream detail");
+  });
+
+  it.each([
+    [new AiProviderError("http_error", 429), "provider_rate_limited", "rate_limit"],
+    [new AiProviderError("http_error", 400), "provider_request_rejected", "request"],
+    [new AiProviderError("http_error", 503), "provider_upstream_error", "upstream"],
+    [new AiProviderError("invalid_response"), "provider_invalid_response", "invalid_response"],
+    [new AiProviderError("timeout"), "request_aborted", "abort"]
+  ] as const)("classifies the bounded provider failure %s without exposing upstream content", async (error, reasonCode, providerFailureClass) => {
+    const result = await new ChatSemanticCandidateGateProvider(fakeTransport(async () => { throw error; })).checkRelevanceDetailed(
+      { identity: "product" }, [{ id: "0", authoritativeName: "Product" }]
+    );
+    expect(result.verdicts.size).toBe(0);
+    expect(result.diagnostic).toMatchObject({ reasonCode, providerFailureClass });
   });
 
   it("returns an EMPTY map when the transport returns a schema-invalid/poisoned payload", async () => {
