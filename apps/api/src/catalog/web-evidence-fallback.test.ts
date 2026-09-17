@@ -233,6 +233,44 @@ describe("attemptWebEvidenceFallback — diagnostics instrumentation", () => {
     const d = diagnosticsCalls[0];
     expect(d.candidates[0]).toMatchObject({ extractionVerdict: "grounded", identityVerdict: "rejected" });
   });
+
+  it("distinguishes a completed negative semantic verdict from an unavailable gate", async () => {
+    const diagnosticsCalls: any[] = [];
+    const semanticGateProvider: SemanticCandidateGateProvider = {
+      id: "real",
+      checkRelevance: async () => new Map([["evidence", false]]),
+      checkRelevanceDetailed: async () => ({
+        verdicts: new Map([["evidence", false]]),
+        diagnostic: {
+          status: "completed",
+          reasonCode: "verdict_returned",
+          decisions: new Map([["evidence", { relationship: "different_prepared_food", formCompatibility: "incompatible", contextualFit: "acceptable_alternative" }]])
+        }
+      })
+    };
+    await attemptWebEvidenceFallback("mustard", "mustár", baseDeps({ semanticGateProvider, onDiagnostics: (d) => diagnosticsCalls.push(d) } as any));
+    expect(diagnosticsCalls[0].candidates[0]).toMatchObject({
+      semanticGateAttempted: true,
+      semanticGateStatus: "completed",
+      semanticGateVerdict: "negative",
+      semanticGateReasonCode: "verdict_returned",
+      requestedIdentity: "mustár",
+      sourceFoodName: "Cauliflower, raw"
+    });
+  });
+
+  it("reports provider failure as unavailable rather than a semantic negative, without retrying the gate", async () => {
+    const diagnosticsCalls: any[] = [];
+    const detailed = vi.fn(async () => ({
+      verdicts: new Map<string, boolean>(),
+      diagnostic: { status: "provider_failure" as const, reasonCode: "provider_error" as const, providerFailureClass: "transport" as const, decisions: new Map() }
+    }));
+    const semanticGateProvider: SemanticCandidateGateProvider = { id: "real", checkRelevance: vi.fn(), checkRelevanceDetailed: detailed };
+    await attemptWebEvidenceFallback("product", "product", baseDeps({ semanticGateProvider, onDiagnostics: (d) => diagnosticsCalls.push(d) } as any));
+    expect(detailed).toHaveBeenCalledTimes(1);
+    expect(semanticGateProvider.checkRelevance).not.toHaveBeenCalled();
+    expect(diagnosticsCalls[0].candidates[0]).toMatchObject({ semanticGateStatus: "provider_failure", semanticGateVerdict: "unavailable", semanticGateReasonCode: "provider_error", providerFailureClass: "transport" });
+  });
 });
 
 function fakePersistPrisma() {

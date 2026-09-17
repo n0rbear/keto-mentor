@@ -1,7 +1,7 @@
 import type { WebKnowledgeSearchProvider, WebSearchResult } from "../web-knowledge/web-knowledge-search-provider.js";
 import type { NutritionEvidenceExtractionProvider } from "./nutrition-evidence-extraction.js";
 import { extractJsonLdNutrition, extractVisibleTextNutrition } from "./nutrition-evidence-extraction.js";
-import type { SemanticCandidateGateProvider } from "./semantic-candidate-gate.js";
+import type { SemanticCandidateGateProvider, SemanticCandidateGateStatus } from "./semantic-candidate-gate.js";
 import { classifySourceTier, isAuthoritativeTier, validateAndNormalizeEvidence, type EvidenceSourceTier, type NutritionEvidence } from "./nutrition-evidence.js";
 import { fetchPublicHtml, type SafeFetcherDependencies } from "../recipes/safe-url-fetcher.js";
 import { htmlToSafeText } from "../recipes/recipe-import.js";
@@ -92,6 +92,13 @@ export type WebEvidenceCandidateDiagnostic = {
   extractionMethod?: "json_ld" | "html_table" | "llm_grounded";
   extractionVerdict?: "grounded" | "ungrounded" | "no_evidence";
   identityVerdict?: "approved" | "rejected" | "gate_disabled";
+  semanticGateAttempted?: boolean;
+  semanticGateStatus?: SemanticCandidateGateStatus;
+  semanticGateVerdict?: "approved" | "negative" | "unavailable";
+  semanticGateReasonCode?: string;
+  providerFailureClass?: "schema" | "abort" | "transport";
+  requestedIdentity?: string;
+  sourceFoodName?: string;
 };
 
 export type WebEvidenceFallbackDiagnostics = {
@@ -257,17 +264,29 @@ export async function attemptWebEvidenceFallback(query: string, originalIdentity
       diagnostics.identityVerdict = "gate_disabled";
       continue;
     }
-    const verdicts = await timeStage("web_evidence_identity_gate", () => deps.semanticGateProvider.checkRelevance(
-      { identity: originalIdentity, canonicalIdentity: query, locale: deps.locale },
-      [{ id: "evidence", authoritativeName: evidence.sourceFoodName }]
-    ));
+    candidateDiag.semanticGateAttempted = true;
+    candidateDiag.requestedIdentity = originalIdentity.slice(0, 160);
+    candidateDiag.sourceFoodName = evidence.sourceFoodName.slice(0, 160);
+    const gateInput = { identity: originalIdentity, canonicalIdentity: query, locale: deps.locale };
+    const gateCandidates = [{ id: "evidence", authoritativeName: evidence.sourceFoodName }];
+    const detailed = deps.semanticGateProvider.checkRelevanceDetailed
+      ? await timeStage("web_evidence_identity_gate", () => deps.semanticGateProvider.checkRelevanceDetailed!(gateInput, gateCandidates))
+      : null;
+    const verdicts = detailed?.verdicts ?? await timeStage("web_evidence_identity_gate", () => deps.semanticGateProvider.checkRelevance(gateInput, gateCandidates));
     const verdict = verdicts.get("evidence");
+    if (detailed) {
+      candidateDiag.semanticGateStatus = detailed.diagnostic.status;
+      candidateDiag.semanticGateReasonCode = detailed.diagnostic.reasonCode;
+      candidateDiag.providerFailureClass = detailed.diagnostic.providerFailureClass;
+    }
     if (verdict !== true && verdict !== "best_match" && verdict !== "acceptable_alternative") {
       candidateDiag.identityVerdict = "rejected";
+      candidateDiag.semanticGateVerdict = detailed?.diagnostic.status === "completed" && detailed.diagnostic.decisions.has("evidence") ? "negative" : "unavailable";
       diagnostics.identityVerdict = "rejected";
       continue;
     }
     candidateDiag.identityVerdict = "approved";
+    candidateDiag.semanticGateVerdict = "approved";
     diagnostics.identityVerdict = "approved";
     diagnostics.selectedSourceUrl = finalUrl;
     diagnostics.sourceTier = tier;
