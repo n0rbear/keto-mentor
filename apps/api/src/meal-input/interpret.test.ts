@@ -1265,6 +1265,10 @@ describe("a weak (non-trusted) local match no longer blocks dynamic resolution (
     // the pre-existing weak-local-match behavior, never a crash/wrong food.
     expect(result.foodResolution).toBe("preview");
     expect(result.selectedFood?.name).toBe("Pork sausage");
+    expect(result.resolutionDiagnostics).toMatchObject({
+      candidateFound: true, convergenceRejected: true, fallbackIdentity: "pork",
+      fallbackContinued: true, webEvidenceAttempted: true, finalOutcome: "unresolved"
+    });
   });
 });
 

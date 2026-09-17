@@ -150,10 +150,16 @@ export type DynamicResolutionDiagnostics = {
   rawCandidateCount?: number;
   structurallyValidCount?: number;
   webEvidenceAttempted: boolean;
+  candidateFound?: boolean;
+  convergenceRejected?: boolean;
+  rejectionReason?: "identity_mismatch";
+  fallbackIdentity?: string;
+  fallbackContinued?: boolean;
+  finalOutcome?: "resolved" | "ai_estimate_pending" | "unresolved";
 };
 
 export type DynamicResolutionOutcome =
-  | { status: "resolved"; food: any; via: "search_intent" | "raw_query" | "normalized_identity" }
+  | { status: "resolved"; food: any; via: "search_intent" | "raw_query" | "normalized_identity"; resolutionDiagnostics?: DynamicResolutionDiagnostics }
   | { status: "confirmation_required"; candidates: ExternalFoodCandidate[]; reason: "ambiguous" | "possible_duplicate" | "weak_match"; resolutionDiagnostics?: DynamicResolutionDiagnostics }
   // webEvidenceDiagnostics (2026-09-16, P0 effectiveness investigation):
   // present only when a web-evidence attempt actually ran — the full funnel
@@ -273,9 +279,13 @@ async function attemptFallbackChain(
   reason: "not_found" | "invalid_external_data" | "external_unavailable" | "convergence_rejected",
   candidateCounts: { rawCandidateCount?: number; structurallyValidCount?: number }
 ): Promise<DynamicResolutionOutcome> {
-  const baseDiagnostics = (webEvidenceAttempted: boolean): DynamicResolutionDiagnostics => ({
+  const baseDiagnostics = (webEvidenceAttempted: boolean, finalOutcome: DynamicResolutionDiagnostics["finalOutcome"]): DynamicResolutionDiagnostics => ({
     searchTerm, via, webEvidenceAttempted, authoritativeReason: reason,
-    rawCandidateCount: candidateCounts.rawCandidateCount, structurallyValidCount: candidateCounts.structurallyValidCount
+    rawCandidateCount: candidateCounts.rawCandidateCount, structurallyValidCount: candidateCounts.structurallyValidCount,
+    ...(reason === "convergence_rejected" ? {
+      candidateFound: true, convergenceRejected: true, rejectionReason: "identity_mismatch" as const,
+      fallbackIdentity: originalIdentity, fallbackContinued: true, finalOutcome
+    } : {})
   });
   let webEvidenceDiagnostics: WebEvidenceFallbackDiagnostics | undefined;
   let webEvidenceAttempted = false;
@@ -291,7 +301,7 @@ async function attemptFallbackChain(
     const existingPrivate = await findUserPrivateFood(prisma, deps.userId, normalizeSearch(originalIdentity));
     if (existingPrivate) {
       logDynamicResolutionOutcome("resolved", via);
-      return { status: "resolved", food: existingPrivate, via };
+      return { status: "resolved", food: existingPrivate, via, resolutionDiagnostics: baseDiagnostics(false, "resolved") };
     }
   }
   if (deps.webEvidenceFallback) {
@@ -315,7 +325,7 @@ async function attemptFallbackChain(
       const semanticVerdict = await computeAliasSemanticVerdict(deps.semanticCandidateGateProvider, originalIdentity, food, aliasLocale, semanticContext);
       await learnSearchAlias(prisma, food, originalIdentity, aliasLocale, semanticVerdict);
       logDynamicResolutionOutcome("resolved", via);
-      return { status: "resolved", food, via };
+      return { status: "resolved", food, via, resolutionDiagnostics: baseDiagnostics(true, "resolved") };
     }
   }
   // FINAL FALLBACK: AI-ESTIMATED NUTRITION (2026-09-16). Web evidence (if
@@ -338,12 +348,12 @@ async function attemptFallbackChain(
       catch { estimate = null; }
       if (estimate) {
         logDynamicResolutionOutcome("ai_estimate_pending", via);
-        return { status: "ai_estimate_pending", estimate, requestedIdentity: originalIdentity, canonicalIdentity: searchTerm, webEvidenceDiagnostics, resolutionDiagnostics: baseDiagnostics(webEvidenceAttempted) };
+        return { status: "ai_estimate_pending", estimate, requestedIdentity: originalIdentity, canonicalIdentity: searchTerm, webEvidenceDiagnostics, resolutionDiagnostics: baseDiagnostics(webEvidenceAttempted, "ai_estimate_pending") };
       }
     }
   }
   logDynamicResolutionOutcome("unresolved", via, reason);
-  return { status: "unresolved", reason, webEvidenceDiagnostics, resolutionDiagnostics: baseDiagnostics(webEvidenceAttempted) };
+  return { status: "unresolved", reason, webEvidenceDiagnostics, resolutionDiagnostics: baseDiagnostics(webEvidenceAttempted, "unresolved") };
 }
 
 async function resolveFromSearchTerm(

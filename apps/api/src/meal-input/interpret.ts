@@ -445,7 +445,8 @@ async function interpretOne(
         return {
           input, parsed, foodResolution: "resolved", selectedFood: resolvedFood, candidates: [resolvedFood], quantity,
           canConfirm: quantity.status === "resolved" && !quantity.requiresConfirmation,
-          confidence: 1, preparation: parsed.preparation, interpretationSource: "deterministic"
+          confidence: 1, preparation: parsed.preparation, interpretationSource: "deterministic",
+          ...debugResolutionDiagnostics(undefined, outcome.resolutionDiagnostics)
         };
       }
       if (outcome.status === "confirmation_required") {
@@ -523,6 +524,7 @@ async function interpretOne(
   // plain weak-match case — prepUnavailable/ambiguous keep their own
   // pre-existing, unrelated handling below, untouched.
   if (!locallyTrusted && !prepUnavailable && !ambiguous && dynamic && parsed.foodQuery) {
+    let fallbackDiagnostics: ReturnType<typeof debugResolutionDiagnostics> = {};
     const outcome = await timeStage("dynamic_resolution", () => resolveDynamicFood(dynamic.prisma, { foodQuery: parsed.foodQuery, preparation: parsed.preparation }, dynamic));
     if (outcome.status === "resolved") {
       // Convergence gate now CENTRALIZED into resolveDynamicFood itself (see
@@ -536,7 +538,8 @@ async function interpretOne(
       return {
         input, parsed, foodResolution: "resolved", selectedFood: resolvedFood, candidates: [resolvedFood], quantity,
         canConfirm: quantity.status === "resolved" && !quantity.requiresConfirmation,
-        confidence: 1, preparation: parsed.preparation, interpretationSource: "deterministic"
+        confidence: 1, preparation: parsed.preparation, interpretationSource: "deterministic",
+        ...debugResolutionDiagnostics(undefined, outcome.resolutionDiagnostics)
       };
     } else if (outcome.status === "confirmation_required") {
       return {
@@ -546,11 +549,21 @@ async function interpretOne(
       };
     } else if (outcome.status === "ai_estimate_pending") {
       return aiEstimatePendingResult(input, parsed, outcome, dynamic.userId);
+    } else {
+      fallbackDiagnostics = debugResolutionDiagnostics(outcome.webEvidenceDiagnostics, outcome.resolutionDiagnostics);
     }
     // "unresolved" (now only ever a GENUINE miss — local, USDA/OFF,
     // web-evidence, AND AI-estimate all tried) falls through to the
     // existing weak-local-match handling below — the local candidate
     // remains the best available evidence.
+    if (Object.keys(fallbackDiagnostics).length) {
+      const quantity = await timeStage("quantity_resolution", () => resolveQuantity(parsed, top, new DisabledQuantityEstimationProvider()));
+      return {
+        input, parsed, foodResolution: score >= 80 ? "preview" : "confirmation_required", selectedFood: top, candidates, quantity,
+        canConfirm: false, confidence: score / 100, preparation: parsed.preparation, interpretationSource: "deterministic",
+        ...fallbackDiagnostics
+      };
+    }
   }
 
   let foodResolution: FoodResolutionStatus;

@@ -177,6 +177,30 @@ export type NutritionEvidenceExtractionTransport = {
 // bounded (Phase 20) regardless of caller behavior.
 export const NUTRITION_EVIDENCE_MAX_PAGE_TEXT_CHARS = 6_000;
 
+const NUTRITION_MARKER = /nutrition|nutritional|energy|calories|kcal|protein|fat|carbohydrate|carbs|fibre|fiber|tápérték|energia|fehérje|zsír|szénhidrát|rost|nährwert|eiweiß|fett|kohlenhydrat|ballaststoff/giu;
+
+/**
+ * Keep the existing hard prompt-size bound, but do not assume nutrition is
+ * near the top of a manufacturer page. Long navigation/marketing sections
+ * routinely push the actual static nutrition table beyond character 6000.
+ * Windows are copied verbatim from the already-fetched safe text so later
+ * quote grounding remains exact; no values are parsed or synthesized here.
+ */
+export function selectNutritionEvidenceText(pageText: string): string {
+  if (pageText.length <= NUTRITION_EVIDENCE_MAX_PAGE_TEXT_CHARS) return pageText;
+  const windows: string[] = [];
+  const seen = new Set<number>();
+  for (const match of pageText.matchAll(NUTRITION_MARKER)) {
+    const start = Math.max(0, match.index - 350);
+    const bucket = Math.floor(start / 500);
+    if (seen.has(bucket)) continue;
+    seen.add(bucket);
+    windows.push(pageText.slice(start, Math.min(pageText.length, start + 1_500)));
+    if (windows.join("\n…\n").length >= NUTRITION_EVIDENCE_MAX_PAGE_TEXT_CHARS) break;
+  }
+  return (windows.length ? windows.join("\n…\n") : pageText).slice(0, NUTRITION_EVIDENCE_MAX_PAGE_TEXT_CHARS);
+}
+
 export class ChatNutritionEvidenceExtractionProvider implements NutritionEvidenceExtractionProvider {
   constructor(private readonly transport: NutritionEvidenceExtractionTransport) {}
 
@@ -184,7 +208,7 @@ export class ChatNutritionEvidenceExtractionProvider implements NutritionEvidenc
 
   async extract(input: { requestedIdentity: string; canonicalIdentity: string; sourceDomain: string; sourceTitle: string; pageText: string }, signal?: AbortSignal): Promise<ExtractedNutritionEvidence | null> {
     if (signal?.aborted || !input.pageText.trim()) return null;
-    const boundedPageText = input.pageText.slice(0, NUTRITION_EVIDENCE_MAX_PAGE_TEXT_CHARS);
+    const boundedPageText = selectNutritionEvidenceText(input.pageText);
     const context = {
       requestedIdentity: input.requestedIdentity,
       canonicalIdentity: input.canonicalIdentity,

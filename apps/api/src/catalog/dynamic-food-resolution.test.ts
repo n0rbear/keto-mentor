@@ -833,6 +833,10 @@ describe("resolveDynamicFood: convergence-gate rejection now continues to the fa
     });
     expect(result).toMatchObject({ status: "resolved", food: evidenceFood });
     expect((result as any).food.name).toBe("Vegemite");
+    expect((result as any).resolutionDiagnostics).toMatchObject({
+      candidateFound: true, convergenceRejected: true, rejectionReason: "identity_mismatch",
+      fallbackIdentity: "Vegemite", fallbackContinued: true, webEvidenceAttempted: true, finalOutcome: "resolved"
+    });
   });
 
   it("4: web-evidence FAILURE after convergence rejection continues to AI estimate", async () => {
@@ -850,6 +854,7 @@ describe("resolveDynamicFood: convergence-gate rejection now continues to the fa
       aiEstimation: { provider: { id: "groq", estimate: async () => estimate }, rateLimiter: { consume: () => true } }
     });
     expect(result).toMatchObject({ status: "ai_estimate_pending", requestedIdentity: "Vegemite" });
+    expect((result as any).resolutionDiagnostics?.finalOutcome).toBe("ai_estimate_pending");
   });
 
   it("5: AI-estimate ALSO failing ends safely unresolved, with resolutionDiagnostics.authoritativeReason = 'convergence_rejected' (never crashes, never leaks the rejected candidate)", async () => {
@@ -867,7 +872,11 @@ describe("resolveDynamicFood: convergence-gate rejection now continues to the fa
     });
     expect(result).toMatchObject({
       status: "unresolved",
-      resolutionDiagnostics: { searchTerm: "yeast extract spread", authoritativeReason: "convergence_rejected", webEvidenceAttempted: true }
+      resolutionDiagnostics: {
+        searchTerm: "yeast extract spread", authoritativeReason: "convergence_rejected", webEvidenceAttempted: true,
+        candidateFound: true, convergenceRejected: true, rejectionReason: "identity_mismatch",
+        fallbackIdentity: "Vegemite", fallbackContinued: true, finalOutcome: "unresolved"
+      }
     });
   });
 

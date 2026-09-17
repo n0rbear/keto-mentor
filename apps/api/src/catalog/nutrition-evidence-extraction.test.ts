@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ChatNutritionEvidenceExtractionProvider, DisabledNutritionEvidenceExtractionProvider, extractJsonLdNutrition, type NutritionEvidenceExtractionTransport } from "./nutrition-evidence-extraction.js";
+import { ChatNutritionEvidenceExtractionProvider, DisabledNutritionEvidenceExtractionProvider, extractJsonLdNutrition, selectNutritionEvidenceText, type NutritionEvidenceExtractionTransport } from "./nutrition-evidence-extraction.js";
 
 // Fixture A: an official-style page with clean schema.org JSON-LD NutritionInformation.
 const JSON_LD_PAGE = `<html><head>
@@ -138,5 +138,18 @@ describe("ChatNutritionEvidenceExtractionProvider — LLM-grounded extraction (f
     const provider = new ChatNutritionEvidenceExtractionProvider(fakeTransport({ ...goodResponse, fiber: null }));
     const result = await provider.extract({ requestedIdentity: "x", canonicalIdentity: "x", sourceDomain: "x", sourceTitle: "x", pageText: "some text" });
     expect(result?.fiber).toBeNull();
+  });
+
+  it("selects a verbatim nutrition window when a long manufacturer page places the table after the old 6000-character cutoff", () => {
+    const prefix = "marketing navigation ".repeat(500);
+    const table = "Nutrition Information per 100 g Energy 379 kcal Fat 9 g Carbohydrate 56 g Fibre 8 g Protein 15 g";
+    const selected = selectNutritionEvidenceText(`${prefix}${table}`);
+    expect(selected.length).toBeLessThanOrEqual(6_000);
+    expect(selected).toContain(table);
+    expect(selected).not.toContain("379 kcal Fat 8 g");
+  });
+
+  it("keeps the deterministic bound even when a page contains many nutrition markers", () => {
+    expect(selectNutritionEvidenceText("Nutrition protein fat carbohydrate fibre ".repeat(2_000)).length).toBeLessThanOrEqual(6_000);
   });
 });
