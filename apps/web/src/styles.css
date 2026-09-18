@@ -81,7 +81,14 @@ a { color: inherit; }
 .health-note svg { flex: 0 0 auto; color: rgb(var(--brand)); }
 .eyebrow { display: inline-flex; align-items: center; gap: .45rem; border: 1px solid rgb(var(--border) / .16); border-radius: 999px; background: rgb(var(--surface) / .72); padding: .38rem .65rem; color: rgb(var(--brand-bright)); font-size: .68rem; font-weight: 850; letter-spacing: .14em; text-transform: uppercase; }
 
-.card { border: 1px solid rgb(var(--border) / .14); border-radius: 18px; background: linear-gradient(145deg, rgb(var(--surface) / .96), rgb(var(--bg-elevated) / .96)); padding: clamp(1rem, 2.5vw, 1.4rem); box-shadow: inset 0 1px rgb(255 255 255 / .035), var(--shadow-sm); }
+/* min-width: 0 — a .card sitting as a grid item (dashboard-main's single
+   mobile column) otherwise inherits CSS grid's automatic minimum size: its
+   own min-content width, driven by whatever it contains. A card wrapping an
+   internally-scrollable row (e.g. week-card's week-strip, which deliberately
+   uses overflow-x: auto with a fixed per-track minimum) would then force the
+   CARD itself — and the whole page — wider than the viewport instead of
+   letting that row scroll within a properly viewport-width card. */
+.card { min-width: 0; border: 1px solid rgb(var(--border) / .14); border-radius: 18px; background: linear-gradient(145deg, rgb(var(--surface) / .96), rgb(var(--bg-elevated) / .96)); padding: clamp(1rem, 2.5vw, 1.4rem); box-shadow: inset 0 1px rgb(255 255 255 / .035), var(--shadow-sm); }
 .auth-panel, .onboarding-panel { border-color: rgb(var(--border-strong) / .2); box-shadow: inset 0 1px rgb(255 255 255 / .05), var(--shadow-lg); }
 .panel-kicker { margin: 0 0 .2rem; color: rgb(var(--brand-bright)); font-size: .67rem; font-weight: 850; letter-spacing: .14em; text-transform: uppercase; }
 .panel-copy { margin: .35rem 0 0; color: rgb(var(--text-muted)); font-size: .86rem; }
@@ -122,7 +129,13 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
 
 .dashboard-shell { display: grid; width: min(1180px, calc(100% - 32px)); margin: 0 auto; gap: 1.25rem; padding: 1rem 0 2.5rem; grid-template-columns: minmax(0, 1fr) minmax(340px, 400px); align-items: start; }
 .dashboard-main { display: grid; min-width: 0; gap: 1.25rem; }
-.macro-grid { display: grid; gap: .75rem; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+/* min-width: 0 — a direct grid item of dashboard-main (no .card wrapper);
+   same automatic-minimum-size issue .card's own min-width fix above
+   addresses, but macro-grid needs it on itself since it IS the grid item.
+   Without it, the mobile media query's fixed-minimum tracks (minmax(118px,
+   1fr) etc.) force this element — and the page — past the viewport instead
+   of scrolling within it via the existing overflow-x: auto. */
+.macro-grid { display: grid; min-width: 0; gap: .75rem; grid-template-columns: repeat(5, minmax(0, 1fr)); }
 .metric-tile { position: relative; min-width: 0; overflow: hidden; border: 1px solid rgb(var(--border) / .11); border-radius: 15px; background: rgb(var(--surface) / .84); padding: .9rem; box-shadow: inset 0 1px rgb(255 255 255 / .025); }
 .metric-tile::after { position: absolute; right: -.8rem; bottom: -2.2rem; width: 5rem; height: 5rem; border: 1px solid rgb(var(--border) / .06); border-radius: 50%; content: ""; }
 .metric-tile.is-primary { grid-column: span 2; border-color: rgb(var(--brand) / .35); background: linear-gradient(145deg, rgb(var(--surface-active) / .9), rgb(var(--surface) / .96)); box-shadow: inset 0 1px rgb(255 255 255 / .04), 0 14px 34px rgb(var(--brand-glow) / .07); }
@@ -207,6 +220,22 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
 .understanding-resolution svg { flex: 0 0 auto; color: rgb(var(--brand)); }
 .inferred-label { color: rgb(var(--warning)); font-style: normal; }
 .clarification-note { margin-top: .1rem; border-left: 2px solid rgb(var(--warning)); padding-left: .55rem; color: rgb(var(--text-muted)); }
+
+/* Responsive audit (2026-09-18): this component previously had NO layout
+   rules at all — a long official dataset name, its original-language
+   variant, category and source ran together as one undifferentiated block
+   of inline text, with the confirm button's association to its own
+   candidate unclear once a name wrapped to multiple lines. flex-wrap lets
+   the button drop to its own row on narrow screens rather than being
+   squeezed beside a long, multi-line name. */
+.external-candidates { display: grid; gap: .55rem; margin-top: .5rem; }
+.external-candidate-list { display: grid; gap: .55rem; margin: 0; padding: 0; list-style: none; }
+.external-candidate { display: flex; flex-wrap: wrap; min-width: 0; align-items: center; justify-content: space-between; gap: .5rem .75rem; border: 1px solid rgb(var(--border) / .12); border-radius: 11px; background: rgb(var(--bg) / .4); padding: .7rem .8rem; }
+.external-candidate-copy { display: grid; min-width: 0; flex: 1 1 220px; gap: .15rem; overflow-wrap: anywhere; }
+.external-candidate-name { color: rgb(var(--text)); font-weight: 750; font-size: .85rem; }
+.external-candidate-original { display: block; color: rgb(var(--text-soft)); font-size: .72rem; font-style: italic; }
+.external-candidate-category, .external-candidate-source { display: block; color: rgb(var(--text-soft)); font-size: .7rem; }
+.external-candidate .btn { flex: 0 0 auto; }
 
 .diagnostics-panel { display: grid; gap: .4rem; border: 1px solid rgb(var(--border) / .12); border-radius: 12px; background: rgb(var(--bg) / .4); padding: .5rem .65rem; font-size: .74rem; }
 .diagnostics-toggle { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: .5rem; border: 0; background: transparent; padding: .2rem 0; color: rgb(var(--text-muted)); font-size: .74rem; font-weight: 700; cursor: pointer; }
