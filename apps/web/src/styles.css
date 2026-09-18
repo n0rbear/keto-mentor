@@ -237,6 +237,29 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
 .external-candidate-category, .external-candidate-source { display: block; color: rgb(var(--text-soft)); font-size: .7rem; }
 .external-candidate .btn { flex: 0 0 auto; }
 
+/* FINAL FALLBACK: AI-ESTIMATED NUTRITION — frontend card (2026-09-18).
+   Deliberately a distinct border/badge tone from both .ai-assisted-badge
+   (brand-colored — merely "AI helped parse the input", still authoritative
+   once resolved) and .understanding-resolution's trusted state (success
+   green) — never relying on color alone: .ai-estimate-disclaimer's own text
+   states the non-authoritative distinction explicitly. min-width: 0 on the
+   card itself is required (not just its children) for the exact same
+   automatic-grid-minimum reason documented on .card/.macro-grid above — this
+   card is a flex/grid CHILD of .understanding-item, which is itself a list
+   item with no fixed width of its own. */
+.ai-estimate-card { display: grid; min-width: 0; gap: .5rem; margin-top: .5rem; border: 1px solid rgb(var(--warning) / .3); border-radius: 12px; background: rgb(var(--warning) / .05); padding: .8rem .85rem; overflow-wrap: anywhere; }
+.ai-estimate-badge { display: inline-flex; width: fit-content; align-items: center; gap: .25rem; border: 1px solid rgb(var(--warning) / .35); border-radius: 999px; background: rgb(var(--warning) / .12); padding: .16rem .5rem; color: rgb(var(--warning)); font-size: .62rem; font-weight: 800; }
+.ai-estimate-disclaimer { margin: 0; color: rgb(var(--warning)); font-size: .74rem; font-weight: 700; }
+.ai-estimate-name { color: rgb(var(--text)); font-size: .9rem; }
+.ai-estimate-macros { display: flex; flex-wrap: wrap; gap: .3rem .9rem; color: rgb(var(--text-muted)); font-size: .8rem; font-variant-numeric: tabular-nums; }
+.ai-estimate-macros b { color: rgb(var(--text)); }
+.ai-estimate-basis, .ai-estimate-confidence, .ai-estimate-assumptions { display: block; color: rgb(var(--text-soft)); font-size: .72rem; }
+.ai-estimate-quantity { display: grid; max-width: 160px; gap: .25rem; color: rgb(var(--text-muted)); font-size: .78rem; font-weight: 700; }
+.ai-estimate-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .2rem; }
+.ai-estimate-actions .btn { flex: 1 1 auto; }
+.ai-estimate-edit-grid { display: grid; gap: .5rem .6rem; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); }
+.ai-estimate-edit-grid label { color: rgb(var(--text-muted)); font-size: .74rem; font-weight: 700; }
+
 .diagnostics-panel { display: grid; gap: .4rem; border: 1px solid rgb(var(--border) / .12); border-radius: 12px; background: rgb(var(--bg) / .4); padding: .5rem .65rem; font-size: .74rem; }
 .diagnostics-toggle { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: .5rem; border: 0; background: transparent; padding: .2rem 0; color: rgb(var(--text-muted)); font-size: .74rem; font-weight: 700; cursor: pointer; }
 .diagnostics-toggle:hover { color: rgb(var(--brand-bright)); }

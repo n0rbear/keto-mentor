@@ -74,6 +74,14 @@ export const dict = {
         webRateLimited: "Túl sok recept-keresés volt mostanában — próbáld később.",
         confirmAdd: "Hozzáadás étkezéshez", confirmAdding: "…",
         confirmQuantity: "Mennyiség", confirmUnit: "Egység", confirmServingUnit: "adag"
+      },
+      aiEstimate: {
+        badge: "AI-becslés", disclaimer: "AI-becslés — nem hiteles tápérték-forrás",
+        kcal: "kcal", protein: "Fehérje", fat: "Zsír", carbs: "Szénhidrát", fiber: "Rost", per100g: "100 g-onként",
+        confidenceLabel: "Becslési bizonyosság", confidenceValues: { low: "alacsony", medium: "közepes" },
+        assumptionsLabel: "Feltételezések", quantityLabel: "Mennyiség (g)",
+        accept: "Elfogadom", accepting: "…", edit: "Módosítom", cancelEdit: "Mégse", saveEdited: "Mentés a módosított értékekkel",
+        decline: "Másik étel keresése"
       }
     },
     progress: {
@@ -84,7 +92,7 @@ export const dict = {
       quantity_resolution: "Mennyiség becslése…",
       finalizing: "Majdnem kész…"
     },
-    mealErrors: { selectFood: "Válassz ételt a találati listából.", network_error: "Az API nem érhető el. Ellenőrizd a kapcsolatot; ezt CORS vagy hálózati hiba is okozhatja.", validation_error: "Ellenőrizd az étkezés nevét és a mennyiséget.", food_not_found: "A kiválasztott étel már nem található. Keress rá újra.", unauthorized: "A munkamenet lejárt. Jelentkezz be újra.", server: "A szerver nem tudta elmenteni az étkezést. Próbáld meg később.", unknown: "Az étkezést nem sikerült elmenteni.", meal_not_found: "Ez az étkezés már nem található.", meal_item_not_found: "Ez a tétel már nem található ebben az étkezésben.", meal_items_empty: "Egy étkezésben legalább egy tételnek maradnia kell — inkább töröld az egész étkezést.", future_eaten_at: "Az időpont nem lehet a jövőben.", meal_repeat_invalid_source: "Ez az étkezés sérült, nem ismételhető meg." },
+    mealErrors: { selectFood: "Válassz ételt a találati listából.", network_error: "Az API nem érhető el. Ellenőrizd a kapcsolatot; ezt CORS vagy hálózati hiba is okozhatja.", validation_error: "Ellenőrizd az étkezés nevét és a mennyiséget.", food_not_found: "A kiválasztott étel már nem található. Keress rá újra.", unauthorized: "A munkamenet lejárt. Jelentkezz be újra.", server: "A szerver nem tudta elmenteni az étkezést. Próbáld meg később.", unknown: "Az étkezést nem sikerült elmenteni.", meal_not_found: "Ez az étkezés már nem található.", meal_item_not_found: "Ez a tétel már nem található ebben az étkezésben.", meal_items_empty: "Egy étkezésben legalább egy tételnek maradnia kell — inkább töröld az egész étkezést.", future_eaten_at: "Az időpont nem lehet a jövőben.", meal_repeat_invalid_source: "Ez az étkezés sérült, nem ismételhető meg.", invalid_ai_estimate_proof: "Ez az AI-becslés már lejárt vagy megváltozott. Kérj új becslést, és próbáld újra." },
     recipes: {
       heading: "Receptek", subheading: "Saját alapanyagokból, kizárólag a Food katalógus tápértékeivel.",
       newRecipe: "Új recept", myRecipes: "Receptjeim", publicRecipes: "Közösségi receptek",
@@ -262,6 +270,14 @@ export const dict = {
         webRateLimited: "Zu viele Rezeptsuchen zuletzt — bitte später erneut versuchen.",
         confirmAdd: "Zur Mahlzeit hinzufügen", confirmAdding: "…",
         confirmQuantity: "Menge", confirmUnit: "Einheit", confirmServingUnit: "Portion"
+      },
+      aiEstimate: {
+        badge: "KI-Schätzung", disclaimer: "KI-Schätzung — keine verlässliche Nährwertquelle",
+        kcal: "kcal", protein: "Eiweiß", fat: "Fett", carbs: "Kohlenhydrate", fiber: "Ballaststoffe", per100g: "Pro 100 g",
+        confidenceLabel: "Schätzsicherheit", confidenceValues: { low: "niedrig", medium: "mittel" },
+        assumptionsLabel: "Annahmen", quantityLabel: "Menge (g)",
+        accept: "Akzeptieren", accepting: "…", edit: "Ändern", cancelEdit: "Abbrechen", saveEdited: "Geänderte Werte speichern",
+        decline: "Anderes Lebensmittel suchen"
       }
     },
     progress: {
@@ -272,7 +288,7 @@ export const dict = {
       quantity_resolution: "Menge wird geschätzt…",
       finalizing: "Fast fertig…"
     },
-    mealErrors: { selectFood: "Bitte ein Lebensmittel aus der Trefferliste wählen.", network_error: "Die API ist nicht erreichbar. Netzwerk oder CORS prüfen.", validation_error: "Name und Menge der Mahlzeit prüfen.", food_not_found: "Das gewählte Lebensmittel ist nicht mehr verfügbar.", unauthorized: "Die Sitzung ist abgelaufen. Bitte neu anmelden.", server: "Die Mahlzeit konnte serverseitig nicht gespeichert werden.", unknown: "Die Mahlzeit konnte nicht gespeichert werden.", meal_not_found: "Diese Mahlzeit gibt es nicht mehr.", meal_item_not_found: "Diese Zutat gibt es in dieser Mahlzeit nicht mehr.", meal_items_empty: "Eine Mahlzeit braucht mindestens eine Zutat — lösche stattdessen die ganze Mahlzeit.", future_eaten_at: "Die Uhrzeit darf nicht in der Zukunft liegen.", meal_repeat_invalid_source: "Diese Mahlzeit ist beschädigt und kann nicht wiederholt werden." },
+    mealErrors: { selectFood: "Bitte ein Lebensmittel aus der Trefferliste wählen.", network_error: "Die API ist nicht erreichbar. Netzwerk oder CORS prüfen.", validation_error: "Name und Menge der Mahlzeit prüfen.", food_not_found: "Das gewählte Lebensmittel ist nicht mehr verfügbar.", unauthorized: "Die Sitzung ist abgelaufen. Bitte neu anmelden.", server: "Die Mahlzeit konnte serverseitig nicht gespeichert werden.", unknown: "Die Mahlzeit konnte nicht gespeichert werden.", meal_not_found: "Diese Mahlzeit gibt es nicht mehr.", meal_item_not_found: "Diese Zutat gibt es in dieser Mahlzeit nicht mehr.", meal_items_empty: "Eine Mahlzeit braucht mindestens eine Zutat — lösche stattdessen die ganze Mahlzeit.", future_eaten_at: "Die Uhrzeit darf nicht in der Zukunft liegen.", meal_repeat_invalid_source: "Diese Mahlzeit ist beschädigt und kann nicht wiederholt werden.", invalid_ai_estimate_proof: "Diese KI-Schätzung ist abgelaufen oder hat sich geändert. Bitte eine neue Schätzung anfordern und erneut versuchen." },
     recipes: {
       heading: "Rezepte", subheading: "Aus deinen eigenen Zutaten, ausschließlich mit den Nährwerten aus dem Food-Katalog.",
       newRecipe: "Neues Rezept", myRecipes: "Meine Rezepte", publicRecipes: "Community-Rezepte",
@@ -450,6 +466,14 @@ export const dict = {
         webRateLimited: "Too many recipe searches recently — try again later.",
         confirmAdd: "Add to meal", confirmAdding: "…",
         confirmQuantity: "Quantity", confirmUnit: "Unit", confirmServingUnit: "serving"
+      },
+      aiEstimate: {
+        badge: "AI estimate", disclaimer: "AI estimate — not an authoritative nutrition source",
+        kcal: "kcal", protein: "Protein", fat: "Fat", carbs: "Carbs", fiber: "Fiber", per100g: "Per 100 g",
+        confidenceLabel: "Estimate confidence", confidenceValues: { low: "low", medium: "medium" },
+        assumptionsLabel: "Assumptions", quantityLabel: "Quantity (g)",
+        accept: "Accept", accepting: "…", edit: "Edit", cancelEdit: "Cancel", saveEdited: "Save edited values",
+        decline: "Choose another food"
       }
     },
     progress: {
@@ -460,7 +484,7 @@ export const dict = {
       quantity_resolution: "Estimating quantity…",
       finalizing: "Almost done…"
     },
-    mealErrors: { selectFood: "Choose a food from the results.", network_error: "The API is unreachable. Check the network or CORS configuration.", validation_error: "Check the meal name and quantity.", food_not_found: "The selected food is no longer available. Search again.", unauthorized: "Your session expired. Log in again.", server: "The server could not save the meal. Try again later.", unknown: "The meal could not be saved.", meal_not_found: "This meal no longer exists.", meal_item_not_found: "This item no longer exists in this meal.", meal_items_empty: "A meal needs at least one item — delete the whole meal instead.", future_eaten_at: "The time can't be in the future.", meal_repeat_invalid_source: "This meal is corrupted and can't be repeated." },
+    mealErrors: { selectFood: "Choose a food from the results.", network_error: "The API is unreachable. Check the network or CORS configuration.", validation_error: "Check the meal name and quantity.", food_not_found: "The selected food is no longer available. Search again.", unauthorized: "Your session expired. Log in again.", server: "The server could not save the meal. Try again later.", unknown: "The meal could not be saved.", meal_not_found: "This meal no longer exists.", meal_item_not_found: "This item no longer exists in this meal.", meal_items_empty: "A meal needs at least one item — delete the whole meal instead.", future_eaten_at: "The time can't be in the future.", meal_repeat_invalid_source: "This meal is corrupted and can't be repeated.", invalid_ai_estimate_proof: "This AI estimate has expired or changed. Request a new estimate and try again." },
     recipes: {
       heading: "Recipes", subheading: "From your own ingredients, using only the Food catalog's nutrition.",
       newRecipe: "New recipe", myRecipes: "My recipes", publicRecipes: "Community recipes",
