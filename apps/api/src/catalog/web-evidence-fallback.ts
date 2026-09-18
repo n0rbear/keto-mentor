@@ -230,8 +230,9 @@ export async function attemptWebEvidenceFallback(query: string, originalIdentity
     // only falls back to the LLM-grounded extractor when nothing
     // machine-readable was found on the page.
     const safeText = htmlToSafeText(html);
-    const extracted = extractJsonLdNutrition(html)
-      ?? extractVisibleTextNutrition(safeText, sourceFoodNameFromHtml(html, result.title))
+    const groundedIdentity = sourceFoodNameFromHtml(html, result.title);
+    const extracted = extractJsonLdNutrition(html, groundedIdentity)
+      ?? extractVisibleTextNutrition(safeText, groundedIdentity)
       ?? await timeStage("web_evidence_extraction_ai", () => deps.extractionProvider.extract({ requestedIdentity: originalIdentity, canonicalIdentity: query, sourceDomain: result.domain, sourceTitle: result.title, pageText: safeText }));
     if (!extracted) {
       candidateDiag.extractionVerdict = "no_evidence";

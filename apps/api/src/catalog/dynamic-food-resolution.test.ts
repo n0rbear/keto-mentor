@@ -428,6 +428,34 @@ describe("resolveDynamicFood: web-evidence fallback hook-in", () => {
     expect(aliases[0]).toMatchObject({ foodId: "food-web-1", kind: "dynamic_search" });
   });
 
+  // Task B (2026-09-18) — AI fallback regression verification: a confident
+  // web-evidence success must never be second-guessed or overridden by the
+  // AI-estimate tier, even when both are wired. The estimate provider is
+  // spied on directly (not just asserted by outcome) so this fails loudly if
+  // the fallback chain's early return above this tier is ever removed.
+  it("AI estimation is NEVER invoked once web evidence already succeeded, even when both tiers are wired", async () => {
+    const { attemptWebEvidenceFallback, persistWebEvidenceFood } = await import("./web-evidence-fallback.js");
+    vi.mocked(attemptWebEvidenceFallback).mockResolvedValue({ evidence, diagnostics: {} as any });
+    vi.mocked(persistWebEvidenceFood).mockResolvedValue(evidenceFood);
+    const estimateSpy = vi.fn(async () => ({
+      canonicalFoodName: "Should never be reached", basisGrams: 100 as const,
+      kcalPer100g: 1, proteinPer100g: 1, fatPer100g: 1, carbsPer100g: 1, fiberPer100g: 1,
+      confidence: "low" as const, assumptions: "n/a", identityConfidence: "low" as const
+    }));
+    const { prisma } = fakePrisma();
+    const result = await resolveDynamicFood(prisma, { foodQuery: "karfiol" }, {
+      searchIntentProvider: stubSearchIntent({ canonicalConcept: "cauliflower", searchTerms: ["cauliflower"] }),
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      semanticCandidateGateProvider: permissiveSemanticGate(),
+      webEvidenceFallback: webEvidenceDeps,
+      aiEstimation: { provider: { id: "groq", estimate: estimateSpy }, rateLimiter: { consume: () => true } as any }
+    });
+    expect(result).toMatchObject({ status: "resolved", food: evidenceFood });
+    expect(estimateSpy).not.toHaveBeenCalled();
+  });
+
   it("the fallback ALSO failing (returns null) still produces the ordinary unresolved(not_found) outcome — never a crash, never a silent guess", async () => {
     const { attemptWebEvidenceFallback, persistWebEvidenceFood } = await import("./web-evidence-fallback.js");
     vi.mocked(attemptWebEvidenceFallback).mockResolvedValue(null);

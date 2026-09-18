@@ -82,6 +82,58 @@ describe("extractJsonLdNutrition — deterministic extraction, no AI call", () =
     const both = `<script type="application/ld+json">{"@type":"Product","name":"Product Wrapper Name","nutrition":{"@type":"NutritionInformation","name":"Specific Nutrition Label Name","servingSize":"100 g","calories":"100","proteinContent":"5 g","fatContent":"2 g","carbohydrateContent":"10 g","fiberContent":"1 g"}}</script>`;
     expect(extractJsonLdNutrition(both)?.sourceFoodName).toBe("Specific Nutrition Label Name");
   });
+
+  describe("Phase 27 multi-variant hardening", () => {
+    // Two distinct, fully-valid NutritionInformation blocks in ONE JSON-LD
+    // graph (a real comparison/listing-page shape) — Original has 42 kcal,
+    // Zero has 0 kcal. Taking the first (array order) would silently bind
+    // Original's macros to a "Zero" request.
+    const MULTI_VARIANT_JSON_LD = `<script type="application/ld+json">
+[
+  {"@type":"Product","name":"Coca-Cola Original Taste","nutrition":{"@type":"NutritionInformation","servingSize":"100 g","calories":"42","proteinContent":"0 g","fatContent":"0 g","carbohydrateContent":"10.6 g","fiberContent":"0 g"}},
+  {"@type":"Product","name":"Coca-Cola Zero Sugar","nutrition":{"@type":"NutritionInformation","servingSize":"100 g","calories":"0.3","proteinContent":"0 g","fatContent":"0 g","carbohydrateContent":"0 g","fiberContent":"0 g"}}
+]
+</script>`;
+
+    it("does NOT blindly accept the first block when no grounded identity is supplied — fails closed", () => {
+      expect(extractJsonLdNutrition(MULTI_VARIANT_JSON_LD)).toBeNull();
+    });
+
+    it("does NOT blindly accept the first block when the grounded identity does not confidently tie to either candidate", () => {
+      expect(extractJsonLdNutrition(MULTI_VARIANT_JSON_LD, "Some Unrelated Snack Bar")).toBeNull();
+    });
+
+    it("selects the SECOND (non-first) block when the grounded page identity confidently ties to it — array order never wins", () => {
+      const result = extractJsonLdNutrition(MULTI_VARIANT_JSON_LD, "Coca-Cola Zero Sugar | Coca-Cola GB");
+      expect(result).toMatchObject({ sourceFoodName: "Coca-Cola Zero Sugar", kcal: { value: 0.3 } });
+    });
+
+    it("selects the FIRST block when the grounded page identity ties to it instead — proves selection is identity-driven, not position-driven", () => {
+      const result = extractJsonLdNutrition(MULTI_VARIANT_JSON_LD, "Coca-Cola Original Taste | Coca-Cola GB");
+      expect(result).toMatchObject({ sourceFoodName: "Coca-Cola Original Taste", kcal: { value: 42 } });
+    });
+
+    it("returns null when the grounded identity ambiguously matches BOTH candidates (e.g. a generic brand-only title)", () => {
+      const result = extractJsonLdNutrition(MULTI_VARIANT_JSON_LD, "Coca-Cola");
+      expect(result).toBeNull();
+    });
+
+    it("multiple nodes claiming the SAME identity are NOT ambiguous — redundant/duplicate markup uses the first without needing a grounded identity", () => {
+      const duplicate = `<script type="application/ld+json">
+[
+  {"@type":"Product","name":"Cauliflower, raw","nutrition":{"@type":"NutritionInformation","servingSize":"100 g","calories":"25","proteinContent":"1.9 g","fatContent":"0.3 g","carbohydrateContent":"5 g","fiberContent":"2 g"}},
+  {"@type":"Product","name":"Cauliflower, raw","nutrition":{"@type":"NutritionInformation","servingSize":"100 g","calories":"25","proteinContent":"1.9 g","fatContent":"0.3 g","carbohydrateContent":"5 g","fiberContent":"2 g"}}
+]
+</script>`;
+      expect(extractJsonLdNutrition(duplicate)).toMatchObject({ sourceFoodName: "Cauliflower, raw", kcal: { value: 25 } });
+    });
+
+    it("each candidate's quote is bound to ITS OWN raw value, never borrowed from the other variant's identical-key occurrence", () => {
+      const result = extractJsonLdNutrition(MULTI_VARIANT_JSON_LD, "Coca-Cola Zero Sugar | Coca-Cola GB");
+      expect(result?.kcal.quote).toContain("0.3");
+      expect(result?.kcal.quote).not.toContain('"calories":"42"');
+    });
+  });
 });
 
 describe("DisabledNutritionEvidenceExtractionProvider", () => {
@@ -177,5 +229,41 @@ describe("deterministic visible nutrition table extraction", () => {
 
   it("rejects an otherwise complete per-100g table when fiber is missing", () => {
     expect(extractVisibleTextNutrition("Per 100g Energy 379kcal Fat 9g Carbohydrate 56g Protein 15g", "Bar")).toBeNull();
+  });
+
+  describe("Phase 27 multi-variant hardening", () => {
+    // A realistic comparison page: two independently-labeled products, each
+    // with its own complete per-100 g table and clearly different macros.
+    // Variant B's heading sits immediately before its own table — close
+    // enough for the proximity check, far enough from Variant A's table that
+    // taking the "first" table in the page would silently return A's numbers.
+    function multiVariantPage(requestedHeading: string) {
+      const variantA = "Acme Original Crisps Nutrition Per 100g Energy 550kcal Fat 35g Carbohydrate 45g Fibre 3g Protein 6g";
+      const filler = "Related products you may also like. ".repeat(40);
+      const variantB = `${requestedHeading} Nutrition Per 100g Energy 480kcal Fat 28g Carbohydrate 40g Fibre 5g Protein 7g`;
+      return `${variantA} ${filler} ${variantB}`;
+    }
+
+    it("does NOT silently accept the first table's macros when a second, different table exists and no identity association is given", () => {
+      const result = extractVisibleTextNutrition(multiVariantPage("Acme Reduced Fat Crisps"), "Some Unrelated Product");
+      expect(result).toBeNull();
+    });
+
+    it("selects the SECOND (non-first) table when the grounded identity confidently ties to its nearby heading — never defaults to the first", () => {
+      const result = extractVisibleTextNutrition(multiVariantPage("Acme Reduced Fat Crisps"), "Acme Reduced Fat Crisps");
+      expect(result).toMatchObject({ kcal: { value: 480 }, fat: { value: 28 } });
+      // Explicitly proves Variant A's (first, wrong) macros were never returned.
+      expect(result?.kcal.value).not.toBe(550);
+    });
+
+    it("ambiguous structure (identity matches neither, or is absent) returns null and falls through safely — never guesses", () => {
+      expect(extractVisibleTextNutrition(multiVariantPage("Acme Reduced Fat Crisps"), "")).toBeNull();
+    });
+
+    it("two per-100g tables stating the IDENTICAL macros are not treated as ambiguous (duplicate rendering, not a second variant)", () => {
+      const table = "Nutrition Per 100g Energy 379kcal Fat 9g Carbohydrate 56g Fibre 8g Protein 15g";
+      const page = `${table} ${"padding text ".repeat(50)} ${table}`;
+      expect(extractVisibleTextNutrition(page, "Unrelated Identity")).toMatchObject({ kcal: { value: 379 } });
+    });
   });
 });
