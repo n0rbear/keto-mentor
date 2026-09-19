@@ -20,7 +20,7 @@ import type { ProgressStage } from "./progress-bus.js";
 import type { AiNutritionEstimate } from "../catalog/ai-nutrition-estimation.js";
 import { createAiEstimateProof } from "../catalog/ai-estimate-proof.js";
 import type { WebEvidenceFallbackDiagnostics } from "../catalog/web-evidence-fallback.js";
-import type { DynamicResolutionDiagnostics } from "../catalog/dynamic-food-resolution.js";
+import type { DecisionTrace, DynamicResolutionDiagnostics } from "../catalog/dynamic-food-resolution.js";
 
 type SearchablePrisma = Pick<PrismaClient, "food" | "foodAlias"> & Partial<Pick<PrismaClient, "$queryRaw">>;
 type Serving = { id: string; key: string; unit: string; labels: unknown; grams: number; isEstimated: boolean; confidence: number; provenance: unknown };
@@ -177,6 +177,14 @@ export type InterpretResult = {
   // Production web-evidence effectiveness RCA (2026-09-17) — see
   // debugResolutionDiagnostics's own doc. Never present in production.
   resolutionDiagnostics?: DynamicResolutionDiagnostics;
+  // Decision-transparency audit (2026-09-19) — deliberately NOT gated by
+  // isProductionDeployment() like webEvidenceDiagnostics/resolutionDiagnostics
+  // above: DecisionTrace carries only small, closed, already-safe outcome
+  // CATEGORIES (never a domain, URL, search term, or provider message — see
+  // its own doc in dynamic-food-resolution.ts), so it is always present when
+  // known, in every environment, and is what diagnostics.ts turns into the
+  // "Mi történt?" panel's web-evidence/AI-estimation lines.
+  decisionTrace?: DecisionTrace;
 };
 
 function aiEstimatePendingResult(
@@ -193,6 +201,7 @@ function aiEstimatePendingResult(
     input, parsed, foodResolution: "ai_estimate_pending", selectedFood: null, candidates: [], quantity: null,
     canConfirm: false, confidence: 0, preparation: parsed.preparation, interpretationSource: "deterministic",
     aiEstimate: { ...outcome.estimate, requestedIdentity: outcome.requestedIdentity, canonicalIdentity: outcome.canonicalIdentity, proof },
+    ...(outcome.decisionTrace ? { decisionTrace: outcome.decisionTrace } : {}),
     ...debugResolutionDiagnostics(outcome.webEvidenceDiagnostics, outcome.resolutionDiagnostics)
   };
 }
@@ -225,10 +234,11 @@ function debugResolutionDiagnostics(webEvidenceDiagnostics?: InterpretResult["we
   };
 }
 
-function unresolvedResult(input: string, parsed: ParsedNaturalFoodQuery, webEvidenceDiagnostics?: InterpretResult["webEvidenceDiagnostics"], resolutionDiagnostics?: InterpretResult["resolutionDiagnostics"]): InterpretResult {
+function unresolvedResult(input: string, parsed: ParsedNaturalFoodQuery, webEvidenceDiagnostics?: InterpretResult["webEvidenceDiagnostics"], resolutionDiagnostics?: InterpretResult["resolutionDiagnostics"], decisionTrace?: InterpretResult["decisionTrace"]): InterpretResult {
   return {
     input, parsed, foodResolution: "unresolved", selectedFood: null, candidates: [], quantity: null,
     canConfirm: false, confidence: 0, preparation: parsed.preparation, interpretationSource: "deterministic",
+    ...(decisionTrace ? { decisionTrace } : {}),
     ...debugResolutionDiagnostics(webEvidenceDiagnostics, resolutionDiagnostics)
   };
 }
@@ -460,7 +470,7 @@ async function interpretOne(
         return aiEstimatePendingResult(input, parsed, outcome, dynamic.userId);
       }
       if (outcome.status === "unresolved") {
-        return unresolvedResult(input, parsed, outcome.webEvidenceDiagnostics, outcome.resolutionDiagnostics);
+        return unresolvedResult(input, parsed, outcome.webEvidenceDiagnostics, outcome.resolutionDiagnostics, outcome.decisionTrace);
       }
     }
     return unresolvedResult(input, parsed);
@@ -525,6 +535,7 @@ async function interpretOne(
   // pre-existing, unrelated handling below, untouched.
   if (!locallyTrusted && !prepUnavailable && !ambiguous && dynamic && parsed.foodQuery) {
     let fallbackDiagnostics: ReturnType<typeof debugResolutionDiagnostics> = {};
+    let weakMatchDecisionTrace: InterpretResult["decisionTrace"];
     const outcome = await timeStage("dynamic_resolution", () => resolveDynamicFood(dynamic.prisma, { foodQuery: parsed.foodQuery, preparation: parsed.preparation }, dynamic));
     if (outcome.status === "resolved") {
       // Convergence gate now CENTRALIZED into resolveDynamicFood itself (see
@@ -551,16 +562,18 @@ async function interpretOne(
       return aiEstimatePendingResult(input, parsed, outcome, dynamic.userId);
     } else {
       fallbackDiagnostics = debugResolutionDiagnostics(outcome.webEvidenceDiagnostics, outcome.resolutionDiagnostics);
+      weakMatchDecisionTrace = outcome.decisionTrace;
     }
     // "unresolved" (now only ever a GENUINE miss — local, USDA/OFF,
     // web-evidence, AND AI-estimate all tried) falls through to the
     // existing weak-local-match handling below — the local candidate
     // remains the best available evidence.
-    if (Object.keys(fallbackDiagnostics).length) {
+    if (Object.keys(fallbackDiagnostics).length || weakMatchDecisionTrace) {
       const quantity = await timeStage("quantity_resolution", () => resolveQuantity(parsed, top, new DisabledQuantityEstimationProvider()));
       return {
         input, parsed, foodResolution: score >= 80 ? "preview" : "confirmation_required", selectedFood: top, candidates, quantity,
         canConfirm: false, confidence: score / 100, preparation: parsed.preparation, interpretationSource: "deterministic",
+        ...(weakMatchDecisionTrace ? { decisionTrace: weakMatchDecisionTrace } : {}),
         ...fallbackDiagnostics
       };
     }

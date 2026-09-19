@@ -169,3 +169,198 @@ describe("buildDiagnostics", () => {
     expect(a.some((e) => e.code === "unresolved")).toBe(false);
   });
 });
+
+// Human decision trace (2026-09-19) — real production case: a live staging
+// request for "túrós muffin" returned foodResolution=unresolved,
+// interpretationSource=ai_assisted (classification.code=ai_understood), with
+// webEvidenceDiagnostics.rejectionReason="rate_limited" — i.e. identity was
+// NEVER in question (the AI correctly understood "túrós muffin" as one
+// food); what actually happened downstream was that web-evidence's OWN
+// 3-per-15-minute budget refused the call before it ever reached a provider.
+// The OLD panel collapsed this into one flat "food_identity: unresolved"
+// line under ÉTELAZONOSÍTÁS. This proves the new decisionTrace-derived
+// events name the REAL, differently-attributed stages instead.
+describe("Human decision trace: real 'túrós muffin' live case + full outcome taxonomy", () => {
+  it("MANDATORY: the real live 'túrós muffin' shape produces distinct web_evidence + ai_estimation events, never just one flat 'unresolved' line", () => {
+    const events = buildDiagnostics(baseResult({
+      input: "túrós muffin", parsed: { foodQuery: "turos muffin" },
+      foodResolution: "unresolved", selectedFood: null, candidates: [], quantity: null, canConfirm: false, confidence: 0,
+      interpretationSource: "ai_assisted", semantic: { language: "hu", kind: "single_food", clarificationNeeded: false },
+      semanticItem: { canonicalName: "túrós muffin", evidence: "explicit" },
+      // Real live shape: web-evidence's own rate limiter refused the call;
+      // AI-estimation's own separate rate limiter also refused it — two
+      // DIFFERENT internal budgets, reconstructed here from the real
+      // observed webEvidenceOutcome plus a plausible, clearly-labeled
+      // aiEstimationOutcome (the exact live AI-estimation category wasn't
+      // itself capturable by the OLD code — this fix is precisely what
+      // makes it capturable going forward).
+      decisionTrace: { webEvidenceOutcome: "rate_limited", aiEstimationOutcome: "internal_rate_limited" }
+    }));
+    // Identity itself was never in question — must NOT show a generic
+    // ÉTELAZONOSÍTÁS-bucketed failure for what is actually a downstream gap.
+    const identity = events.find((e) => e.stage === "food_identity");
+    expect(identity?.code).toBe("unresolved");
+    // The two REAL, distinctly-attributed stages must both be present.
+    const webEvidence = events.find((e) => e.stage === "web_evidence");
+    expect(webEvidence).toMatchObject({ code: "web_evidence_rate_limited", status: "blocked" });
+    const aiEstimation = events.find((e) => e.stage === "ai_estimation");
+    expect(aiEstimation).toMatchObject({ code: "ai_estimation_internal_rate_limited", status: "blocked" });
+    // Never collapsed into a single event — at least 3 distinct, correctly
+    // staged events for this one item (classification + food_identity +
+    // web_evidence + ai_estimation = 4).
+    expect(events.length).toBeGreaterThanOrEqual(4);
+  });
+
+  it("exact catalog hit: no web_evidence/ai_estimation events at all (neither tier was ever reached)", () => {
+    const events = buildDiagnostics(baseResult());
+    expect(events.some((e) => e.stage === "web_evidence")).toBe(false);
+    expect(events.some((e) => e.stage === "ai_estimation")).toBe(false);
+  });
+
+  it("web evidence: rate_limited (our own budget, before any provider call)", () => {
+    const events = buildDiagnostics(baseResult({
+      foodResolution: "unresolved", selectedFood: null, candidates: [], quantity: null, canConfirm: false, confidence: 0,
+      decisionTrace: { webEvidenceOutcome: "rate_limited" }
+    }));
+    expect(events.find((e) => e.stage === "web_evidence")).toMatchObject({ code: "web_evidence_rate_limited", status: "blocked" });
+  });
+
+  it("web evidence: search itself failed (the search call transport-failed)", () => {
+    const events = buildDiagnostics(baseResult({
+      foodResolution: "unresolved", selectedFood: null, candidates: [], quantity: null, canConfirm: false, confidence: 0,
+      decisionTrace: { webEvidenceOutcome: "search_failed" }
+    }));
+    expect(events.find((e) => e.stage === "web_evidence")).toMatchObject({ code: "web_evidence_search_failed", status: "blocked" });
+  });
+
+  it("web evidence: no authoritative source among the search results", () => {
+    const events = buildDiagnostics(baseResult({
+      foodResolution: "unresolved", selectedFood: null, candidates: [], quantity: null, canConfirm: false, confidence: 0,
+      decisionTrace: { webEvidenceOutcome: "no_authoritative_source" }
+    }));
+    expect(events.find((e) => e.stage === "web_evidence")).toMatchObject({ code: "web_evidence_no_authoritative_source", status: "attention" });
+  });
+
+  it("web evidence: an authoritative page was fetched but had no usable nutrition numbers", () => {
+    const events = buildDiagnostics(baseResult({
+      foodResolution: "unresolved", selectedFood: null, candidates: [], quantity: null, canConfirm: false, confidence: 0,
+      decisionTrace: { webEvidenceOutcome: "nutrition_missing" }
+    }));
+    expect(events.find((e) => e.stage === "web_evidence")).toMatchObject({ code: "web_evidence_nutrition_missing", status: "attention" });
+  });
+
+  it("web evidence: numbers were found but couldn't be confirmed as the right food", () => {
+    const events = buildDiagnostics(baseResult({
+      foodResolution: "unresolved", selectedFood: null, candidates: [], quantity: null, canConfirm: false, confidence: 0,
+      decisionTrace: { webEvidenceOutcome: "identity_mismatch" }
+    }));
+    expect(events.find((e) => e.stage === "web_evidence")).toMatchObject({ code: "web_evidence_identity_mismatch", status: "attention" });
+  });
+
+  it("AI estimation: internal rate limit blocked the call before the provider was ever contacted", () => {
+    const events = buildDiagnostics(baseResult({
+      foodResolution: "unresolved", selectedFood: null, candidates: [], quantity: null, canConfirm: false, confidence: 0,
+      decisionTrace: { aiEstimationOutcome: "internal_rate_limited" }
+    }));
+    expect(events.find((e) => e.stage === "ai_estimation")).toMatchObject({ code: "ai_estimation_internal_rate_limited", status: "blocked" });
+  });
+
+  it("AI estimation: the provider itself was rate-limited (429) — DISTINCT from our own internal limiter", () => {
+    const events = buildDiagnostics(baseResult({
+      foodResolution: "unresolved", selectedFood: null, candidates: [], quantity: null, canConfirm: false, confidence: 0,
+      decisionTrace: { aiEstimationOutcome: "provider_rate_limited" }
+    }));
+    const event = events.find((e) => e.stage === "ai_estimation")!;
+    expect(event.code).toBe("ai_estimation_provider_rate_limited");
+    expect(event.code).not.toBe("ai_estimation_internal_rate_limited");
+  });
+
+  it("AI estimation: timeout", () => {
+    const events = buildDiagnostics(baseResult({
+      foodResolution: "unresolved", selectedFood: null, candidates: [], quantity: null, canConfirm: false, confidence: 0,
+      decisionTrace: { aiEstimationOutcome: "timeout" }
+    }));
+    expect(events.find((e) => e.stage === "ai_estimation")).toMatchObject({ code: "ai_estimation_timeout", status: "blocked" });
+  });
+
+  it("AI estimation: malformed/schema-invalid response", () => {
+    const events = buildDiagnostics(baseResult({
+      foodResolution: "unresolved", selectedFood: null, candidates: [], quantity: null, canConfirm: false, confidence: 0,
+      decisionTrace: { aiEstimationOutcome: "invalid_response" }
+    }));
+    expect(events.find((e) => e.stage === "ai_estimation")).toMatchObject({ code: "ai_estimation_invalid_response", status: "blocked" });
+  });
+
+  it("AI estimation: structurally implausible nutrition (well-formed, but the numbers don't add up)", () => {
+    const events = buildDiagnostics(baseResult({
+      foodResolution: "unresolved", selectedFood: null, candidates: [], quantity: null, canConfirm: false, confidence: 0,
+      decisionTrace: { aiEstimationOutcome: "structurally_implausible" }
+    }));
+    expect(events.find((e) => e.stage === "ai_estimation")).toMatchObject({ code: "ai_estimation_implausible", status: "attention" });
+  });
+
+  it("AI estimation: a valid estimate was produced (success)", () => {
+    const events = buildDiagnostics(baseResult({
+      foodResolution: "ai_estimate_pending", selectedFood: null, candidates: [], quantity: null, canConfirm: false, confidence: 0,
+      aiEstimate: { canonicalFoodName: "x", basisGrams: 100, kcalPer100g: 1, proteinPer100g: 1, fatPer100g: 1, carbsPer100g: 1, fiberPer100g: 1, confidence: "low", assumptions: "a", identityConfidence: "low", requestedIdentity: "x", canonicalIdentity: "x", proof: "p" },
+      decisionTrace: { aiEstimationOutcome: "success" }
+    }));
+    expect(events.find((e) => e.stage === "ai_estimation")).toMatchObject({ code: "ai_estimation_success", status: "ok" });
+  });
+
+  it("provider outage/generic error: distinct from every other category, never silently relabeled as invalid_response or timeout", () => {
+    const events = buildDiagnostics(baseResult({
+      foodResolution: "unresolved", selectedFood: null, candidates: [], quantity: null, canConfirm: false, confidence: 0,
+      decisionTrace: { aiEstimationOutcome: "provider_error" }
+    }));
+    expect(events.find((e) => e.stage === "ai_estimation")).toMatchObject({ code: "ai_estimation_provider_error", status: "blocked" });
+  });
+
+  it("stage not attempted because an earlier branch already stopped: decisionTrace is entirely absent, never rendered as a failure", () => {
+    // A plain local ambiguity (two local candidates, e.g. "sajt") never even
+    // reaches the dynamic-resolution chain, so `decisionTrace` is correctly
+    // absent altogether — must produce NO web_evidence/ai_estimation events,
+    // not a false "blocked" one.
+    const events = buildDiagnostics(baseResult({
+      foodResolution: "confirmation_required", selectedFood: food as any, candidates: [food as any],
+      quantity: null, canConfirm: false, confidence: 0.95, ambiguous: true
+    }));
+    expect(events.some((e) => e.stage === "web_evidence" || e.stage === "ai_estimation")).toBe(false);
+  });
+
+  it("recipe: unresolved ingredient names are named (not just a count) when the backend already knows them", () => {
+    const events = buildDiagnostics(baseResult({
+      foodResolution: "unresolved", selectedFood: null, candidates: [], quantity: null, canConfirm: true, confidence: 0, interpretationSource: "ai_assisted",
+      semantic: { language: "hu", kind: "compound_dish", dishName: "gulyásleves", clarificationNeeded: false },
+      recipeDiscovery: {
+        status: "confirmation_required", searchAttempted: true, resultCount: 3, candidatesAfterRelevanceFilter: 2, candidatesAttempted: 1,
+        candidate: {
+          title: "Gulyásleves", sourceUrl: "https://example.com/g", domain: "example.com", extractionMethod: "schema_org_json_ld",
+          ingredientCount: 3, resolvedIngredientCount: 1, confirmationRequiredIngredientCount: 1, unresolvedIngredientCount: 1,
+          ingredientSummary: [], nutritionPer100g: null, nutritionPerServing: null, nutritionTotal: null, nutritionCalculable: false,
+          ingredientWeightGrams: null, recipeState: "reviewable", importProof: "proof",
+          ingredients: [
+            { originalText: "marhalábszár", parsedFoodQuery: "marhalábszár", status: "resolved" },
+            { originalText: "pirospaprika", parsedFoodQuery: "pirospaprika", status: "unresolved" },
+            { originalText: "köménymag", parsedFoodQuery: "köménymag", status: "confirmation_required" }
+          ]
+        } as any
+      } as any
+    }));
+    const event = events.find((e) => e.code === "ingredients_need_review")!;
+    expect(event.params?.names).toBe("pirospaprika, köménymag");
+  });
+
+  it("recipe not found: no candidate at all, blocked at recipe_web_discovery, never fabricated as a resolved dish", () => {
+    const events = buildDiagnostics(baseResult({
+      foodResolution: "unresolved", selectedFood: null, candidates: [], quantity: null, canConfirm: false, confidence: 0, interpretationSource: "ai_assisted",
+      semantic: { language: "hu", kind: "compound_dish", dishName: "ismeretlen étel", clarificationNeeded: false },
+      recipeDiscovery: {
+        status: "unresolved", searchAttempted: true, resultCount: 2, candidatesAfterRelevanceFilter: 0, candidatesAttempted: 0,
+        reason: "no_fully_resolvable_candidate"
+      } as any
+    }));
+    expect(events.find((e) => e.stage === "recipe_web_discovery")).toMatchObject({ status: "blocked", code: "web_no_fully_resolvable_candidate" });
+    expect(events.some((e) => e.code === "ingredients_fully_resolved" || e.code === "ingredients_need_review")).toBe(false);
+  });
+});

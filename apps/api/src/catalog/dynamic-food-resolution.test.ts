@@ -645,7 +645,13 @@ describe("resolveDynamicFood: AI-estimation final-fallback hook-in", () => {
     });
     expect(result).toEqual({
       status: "unresolved", reason: "not_found", webEvidenceDiagnostics: undefined,
-      resolutionDiagnostics: { searchTerm: "crucian carp", via: "search_intent", authoritativeReason: "not_found", rawCandidateCount: 0, structurallyValidCount: 0, webEvidenceAttempted: false }
+      resolutionDiagnostics: { searchTerm: "crucian carp", via: "search_intent", authoritativeReason: "not_found", rawCandidateCount: 0, structurallyValidCount: 0, webEvidenceAttempted: false },
+      // Decision-transparency audit (2026-09-19): the fixture provider only
+      // implements the pre-existing `estimate()` method, not the new
+      // optional `estimateDetailed()` — a null return degrades to the
+      // generic "provider_error" category, never a crash, never a silent
+      // "success".
+      decisionTrace: { webEvidenceOutcome: undefined, aiEstimationOutcome: "provider_error" }
     });
   });
 
@@ -710,7 +716,12 @@ describe("resolveDynamicFood: AI-estimation final-fallback hook-in", () => {
     });
     expect(result).toEqual({
       status: "unresolved", reason: "not_found", webEvidenceDiagnostics: undefined,
-      resolutionDiagnostics: { searchTerm: "crucian carp", via: "search_intent", authoritativeReason: "not_found", rawCandidateCount: 0, structurallyValidCount: 0, webEvidenceAttempted: false }
+      resolutionDiagnostics: { searchTerm: "crucian carp", via: "search_intent", authoritativeReason: "not_found", rawCandidateCount: 0, structurallyValidCount: 0, webEvidenceAttempted: false },
+      // Decision-transparency audit (2026-09-19): "internal_rate_limited" is
+      // the whole point of this test — OUR OWN budget refused the call
+      // before the provider was ever contacted, which is exactly why
+      // `estimate` below is asserted never called.
+      decisionTrace: { webEvidenceOutcome: undefined, aiEstimationOutcome: "internal_rate_limited" }
     });
     expect(estimate).not.toHaveBeenCalled();
   });

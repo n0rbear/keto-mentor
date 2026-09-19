@@ -11,8 +11,8 @@ import { DisabledSemanticCandidateGateProvider, type SemanticCandidateGateProvid
 import type { AliasSemanticVerdict } from "./alias-semantic-verdict.js";
 import { computeAliasSemanticVerdict } from "./alias-semantic-verdict.js";
 import { timeStage } from "../request-performance.js";
-import { attemptWebEvidenceFallback, persistWebEvidenceFood, type WebEvidenceFallbackDeps, type WebEvidenceFallbackDiagnostics } from "./web-evidence-fallback.js";
-import type { AiNutritionEstimate, AiNutritionEstimationProvider } from "./ai-nutrition-estimation.js";
+import { attemptWebEvidenceFallback, persistWebEvidenceFood, summarizeWebEvidenceOutcome, type WebEvidenceFallbackDeps, type WebEvidenceFallbackDiagnostics, type WebEvidenceOutcomeCategory } from "./web-evidence-fallback.js";
+import type { AiEstimationOutcome, AiNutritionEstimate, AiNutritionEstimationProvider } from "./ai-nutrition-estimation.js";
 import type { AiEstimateRateLimiter } from "./ai-estimate-rate-limit.js";
 
 type DynamicPrisma = Parameters<typeof resolveAuthoritativeFood>[0];
@@ -179,14 +179,32 @@ export type DynamicResolutionOutcome =
   // never aliased) and the SAME fallback chain (private-food reuse ->
   // web-evidence -> AI-estimate) is attempted next, exactly as it would be
   // for a genuine miss.
-  | { status: "unresolved"; reason: "not_found" | "invalid_external_data" | "external_unavailable" | "rate_limited" | "no_adapters" | "convergence_rejected"; webEvidenceDiagnostics?: WebEvidenceFallbackDiagnostics; resolutionDiagnostics?: DynamicResolutionDiagnostics }
+  | { status: "unresolved"; reason: "not_found" | "invalid_external_data" | "external_unavailable" | "rate_limited" | "no_adapters" | "convergence_rejected"; webEvidenceDiagnostics?: WebEvidenceFallbackDiagnostics; resolutionDiagnostics?: DynamicResolutionDiagnostics; decisionTrace?: DecisionTrace }
   // FINAL FALLBACK (2026-09-16): local + authoritative-adapter + web-evidence
   // resolution all genuinely failed, AND the AI estimation provider produced
   // a structurally-plausible estimate. This is NEVER auto-persisted as a
   // Food — see the "ai_estimate_pending" doc on the caller side
   // (meal-input/interpret.ts) for exactly how a user must explicitly accept
   // (or reject in favor of their own values) before anything is written.
-  | { status: "ai_estimate_pending"; estimate: AiNutritionEstimate; requestedIdentity: string; canonicalIdentity: string; webEvidenceDiagnostics?: WebEvidenceFallbackDiagnostics; resolutionDiagnostics?: DynamicResolutionDiagnostics };
+  | { status: "ai_estimate_pending"; estimate: AiNutritionEstimate; requestedIdentity: string; canonicalIdentity: string; webEvidenceDiagnostics?: WebEvidenceFallbackDiagnostics; resolutionDiagnostics?: DynamicResolutionDiagnostics; decisionTrace?: DecisionTrace };
+
+// Decision-transparency audit (2026-09-19): a small, CLOSED, always-safe
+// summary of the LAST fallback tiers this specific attempt actually ran —
+// deliberately separate from webEvidenceDiagnostics/resolutionDiagnostics
+// (which stay staging/developer-only, see isProductionDeployment() in
+// interpret.ts): this carries only closed outcome CATEGORIES, never a
+// domain, URL, search term, or provider message, so it is safe to surface
+// to every user in every environment. `undefined` on either field means
+// that tier was never even attempted (see each field's own outcome union
+// for why) — the caller must never render a missing field as "it failed".
+export type DecisionTrace = {
+  webEvidenceOutcome?: WebEvidenceOutcomeCategory;
+  // "internal_rate_limited" is DISTINCT from AiEstimationOutcome's own
+  // "provider_rate_limited": the former means OUR OWN 3-per-15-minute budget
+  // refused the call before the provider was ever contacted; the latter
+  // means the call reached the provider and the PROVIDER refused it.
+  aiEstimationOutcome?: "internal_rate_limited" | AiEstimationOutcome;
+};
 
 type ResolveFromSearchTermDeps = {
   adapters: readonly StructuredFoodLookupAdapter[];
@@ -304,6 +322,7 @@ async function attemptFallbackChain(
       return { status: "resolved", food: existingPrivate, via, resolutionDiagnostics: baseDiagnostics(false, "resolved") };
     }
   }
+  let webEvidenceOutcome: WebEvidenceOutcomeCategory | undefined;
   if (deps.webEvidenceFallback) {
     webEvidenceAttempted = true;
     const fallback = await timeStage("web_evidence_fallback", () => attemptWebEvidenceFallback(searchTerm, originalIdentity, {
@@ -313,6 +332,7 @@ async function attemptFallbackChain(
       locale: deps.foodLocale ?? deps.locale,
       onDiagnostics: (d) => { webEvidenceDiagnostics = d; }
     }));
+    webEvidenceOutcome = webEvidenceDiagnostics ? summarizeWebEvidenceOutcome(webEvidenceDiagnostics, !!fallback) : undefined;
     if (fallback) {
       const food = await persistWebEvidenceFood(prisma as any, fallback.evidence);
       // Reuses the EXACT same write-path safety net PR #54 built for every
@@ -336,6 +356,7 @@ async function attemptFallbackChain(
   // private-Food reuse check already ran at the very top of this function —
   // reaching here means this user genuinely has no private Food for this
   // identity yet, so a fresh estimate is the only remaining option.
+  let aiEstimationOutcome: DecisionTrace["aiEstimationOutcome"];
   if (deps.aiEstimation) {
     if (deps.aiEstimation.rateLimiter.consume(deps.userId)) {
       // Defensive: ChatAiNutritionEstimationProvider already fails closed
@@ -344,11 +365,25 @@ async function attemptFallbackChain(
       // contract; Part T explicitly requires this path can never crash the
       // request no matter what a provider does.
       let estimate = null;
-      try { estimate = await timeStage("ai_nutrition_estimation", () => deps.aiEstimation!.provider.estimate({ requestedIdentity: originalIdentity, canonicalIdentity: searchTerm, locale: deps.foodLocale ?? deps.locale })); }
-      catch { estimate = null; }
+      try {
+        const provider = deps.aiEstimation!.provider;
+        const input = { requestedIdentity: originalIdentity, canonicalIdentity: searchTerm, locale: deps.foodLocale ?? deps.locale };
+        if (provider.estimateDetailed) {
+          const detailed = await timeStage("ai_nutrition_estimation", () => provider.estimateDetailed!(input));
+          estimate = detailed.estimate;
+          aiEstimationOutcome = detailed.outcome;
+        } else {
+          estimate = await timeStage("ai_nutrition_estimation", () => provider.estimate(input));
+          aiEstimationOutcome = estimate ? "success" : "provider_error";
+        }
+      } catch { estimate = null; aiEstimationOutcome = "provider_error"; }
       if (estimate) {
         logDynamicResolutionOutcome("ai_estimate_pending", via);
-        return { status: "ai_estimate_pending", estimate, requestedIdentity: originalIdentity, canonicalIdentity: searchTerm, webEvidenceDiagnostics, resolutionDiagnostics: baseDiagnostics(webEvidenceAttempted, "ai_estimate_pending") };
+        return {
+          status: "ai_estimate_pending", estimate, requestedIdentity: originalIdentity, canonicalIdentity: searchTerm, webEvidenceDiagnostics,
+          resolutionDiagnostics: baseDiagnostics(webEvidenceAttempted, "ai_estimate_pending"),
+          decisionTrace: { webEvidenceOutcome, aiEstimationOutcome: "success" }
+        };
       }
     } else {
       // Observability (2026-09-19): distinguishes "the estimator call itself
@@ -359,10 +394,21 @@ async function attemptFallbackChain(
       // live reports. Category-only: no user text, food name, user id, or
       // payload.
       console.log("ai_nutrition_estimation outcome=rate_limited");
+      aiEstimationOutcome = "internal_rate_limited";
     }
   }
   logDynamicResolutionOutcome("unresolved", via, reason);
-  return { status: "unresolved", reason, webEvidenceDiagnostics, resolutionDiagnostics: baseDiagnostics(webEvidenceAttempted, "unresolved") };
+  // Omit decisionTrace entirely (not an object with undefined fields) when
+  // neither tier was even configured for this caller — keeps a caller that
+  // wires neither webEvidenceFallback nor aiEstimation byte-for-byte
+  // unchanged, exactly like webEvidenceDiagnostics/resolutionDiagnostics
+  // already behave for that same caller shape.
+  const decisionTrace = webEvidenceOutcome !== undefined || aiEstimationOutcome !== undefined ? { webEvidenceOutcome, aiEstimationOutcome } : undefined;
+  return {
+    status: "unresolved", reason, webEvidenceDiagnostics,
+    resolutionDiagnostics: baseDiagnostics(webEvidenceAttempted, "unresolved"),
+    ...(decisionTrace ? { decisionTrace } : {})
+  };
 }
 
 async function resolveFromSearchTerm(

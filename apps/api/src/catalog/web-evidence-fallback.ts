@@ -118,6 +118,35 @@ export type WebEvidenceFallbackDiagnostics = {
   rejectionReason?: string;
 };
 
+// Decision-transparency audit (2026-09-19): a small, CLOSED, always-safe
+// category derived from the already-computed WebEvidenceFallbackDiagnostics
+// — distinct from that object itself (which carries domains, URLs and
+// per-candidate detail that stay staging/developer-only, see
+// isProductionDeployment() in interpret.ts). This category alone is safe to
+// show every user, in every environment: it names WHY, never WHAT (no
+// domain, no URL, no page text).
+export type WebEvidenceOutcomeCategory = "not_configured" | "rate_limited" | "search_failed" | "no_authoritative_source" | "nutrition_missing" | "identity_mismatch" | "success";
+
+export function summarizeWebEvidenceOutcome(diagnostics: WebEvidenceFallbackDiagnostics, succeeded: boolean): WebEvidenceOutcomeCategory {
+  if (succeeded) return "success";
+  switch (diagnostics.rejectionReason) {
+    case "no_provider_configured": return "not_configured";
+    case "rate_limited": return "rate_limited";
+    case "search_failed": return "search_failed";
+    case "no_authoritative_candidates": return "no_authoritative_source";
+    case "no_evidence_passed_all_gates": {
+      // The chain tried at least one candidate page but never reached a
+      // persisted result — distinguish "we never even got usable numbers
+      // off any page" from "we got numbers, but couldn't confirm they were
+      // for the right food" using the per-candidate trail already recorded.
+      if (diagnostics.candidates.some((c) => c.identityVerdict === "rejected")) return "identity_mismatch";
+      if (diagnostics.candidates.some((c) => c.extractionVerdict === "no_evidence" || c.extractionVerdict === "ungrounded")) return "nutrition_missing";
+      return "no_authoritative_source";
+    }
+    default: return "no_authoritative_source";
+  }
+}
+
 // Category-only observability (Phase 21) — no query text, no page text, no
 // API keys, no user id; mirrors dynamic-food-resolution.ts's own
 // logDynamicResolutionOutcome exactly.

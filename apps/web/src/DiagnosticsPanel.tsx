@@ -10,7 +10,7 @@ import type { Lang } from "./i18n";
 // this component doesn't recognize falls back to a generic, still-honest
 // "this step needs review" line rather than crashing or showing raw text.
 export type DiagnosticEvent = {
-  stage: "classification" | "food_identity" | "portion" | "local_recipe_search" | "recipe_web_discovery" | "ingredient_resolution" | "double_counting_guard";
+  stage: "classification" | "food_identity" | "portion" | "local_recipe_search" | "recipe_web_discovery" | "ingredient_resolution" | "double_counting_guard" | "web_evidence" | "ai_estimation";
   status: "ok" | "attention" | "blocked";
   code: string;
   blocking: boolean;
@@ -18,6 +18,12 @@ export type DiagnosticEvent = {
   params?: Record<string, string | number>;
 };
 
+// Human decision trace (2026-09-19) — a real "túrós muffin" case showed
+// EVERY downstream failure (local miss, web-evidence miss, AI-estimation
+// failure) collapsed under one generic ÉTELAZONOSÍTÁS heading, even though
+// food identity itself was never in question. Each stage now gets its own,
+// specific human heading — never a shared catch-all bucket for unrelated
+// failures.
 function stageHeading(stage: DiagnosticEvent["stage"], lang: Lang): string {
   const table: Record<DiagnosticEvent["stage"], [string, string, string]> = {
     classification: ["Étel felismerése", "Erkennung des Gerichts", "Understanding the input"],
@@ -26,7 +32,9 @@ function stageHeading(stage: DiagnosticEvent["stage"], lang: Lang): string {
     local_recipe_search: ["Saját receptek keresése", "Suche in eigenen Rezepten", "Searching your own recipes"],
     recipe_web_discovery: ["Recept keresése a weben", "Rezeptsuche im Web", "Web recipe discovery"],
     ingredient_resolution: ["Összetevők ellenőrzése", "Zutaten-Prüfung", "Ingredient resolution"],
-    double_counting_guard: ["Kettős számolás elleni védelem", "Schutz vor Doppelzählung", "Double-counting guard"]
+    double_counting_guard: ["Kettős számolás elleni védelem", "Schutz vor Doppelzählung", "Double-counting guard"],
+    web_evidence: ["Webes tápérték-forrás", "Web-Nährwertquelle", "Web nutrition source"],
+    ai_estimation: ["AI-becslés", "KI-Schätzung", "AI estimate"]
   };
   return table[stage][lang === "hu" ? 0 : lang === "de" ? 1 : 2];
 }
@@ -82,6 +90,22 @@ function eventText(event: DiagnosticEvent, lang: Lang): string {
     case "ingredients_fully_resolved": return hu ? `Mind a(z) ${p.total} összetevő megbízható ételadathoz kapcsolódott.` : de ? `Alle ${p.total} Zutaten wurden mit verlässlichen Daten verknüpft.` : `All ${p.total} ingredients matched trusted food data.`;
     case "ingredients_need_review": return hu ? `${p.resolved}/${p.total} összetevő ellenőrzött, ${p.needsReview} megerősítést igényel, ${p.unresolved} nem azonosítható.` : de ? `${p.resolved}/${p.total} Zutaten geprüft, ${p.needsReview} brauchen Bestätigung, ${p.unresolved} nicht identifizierbar.` : `${p.resolved}/${p.total} ingredients verified, ${p.needsReview} need confirmation, ${p.unresolved} unresolved.`;
     case "sibling_overlap_guarded": return hu ? "A recept és a mellette megadott összetevő közötti átfedést kiszűrtük, hogy ne számoljunk kétszer." : de ? "Eine Überschneidung zwischen Rezept und separat angegebener Zutat wurde erkannt, um Doppelzählung zu vermeiden." : "An overlap between the recipe and a separately-listed ingredient was caught to avoid double-counting.";
+    // Human decision trace (2026-09-19) — Task 8's own required wordings,
+    // plus the two DISTINCT AI-estimation rate-limit categories (Task 3):
+    // "our own budget" (internal) is never conflated with "the provider
+    // itself refused the call" (provider_rate_limited).
+    case "web_evidence_rate_limited": return withLabel(hu ? "Webes tápérték-keresést most nem indítottam, mert az ideiglenes keresési keret elfogyott." : de ? "Die Web-Nährwertsuche konnte ich jetzt nicht starten, da das vorübergehende Suchkontingent aufgebraucht ist." : "I couldn't start a web nutrition search right now — the temporary search budget is used up.", event);
+    case "web_evidence_search_failed": return withLabel(hu ? "A webes keresés technikai hiba miatt nem futott le." : de ? "Die Websuche ist aufgrund eines technischen Fehlers fehlgeschlagen." : "The web search failed due to a technical error.", event);
+    case "web_evidence_no_authoritative_source": return withLabel(hu ? "A weben talált oldalak közül egyik sem számított elég megbízható forrásnak." : de ? "Keine der im Web gefundenen Seiten galt als ausreichend verlässliche Quelle." : "None of the pages found on the web counted as a sufficiently trustworthy source.", event);
+    case "web_evidence_nutrition_missing": return withLabel(hu ? "Találtam megbízható oldalt, de nem volt rajta biztosan kiolvasható tápérték." : de ? "Ich habe eine verlässliche Seite gefunden, aber es waren keine sicher auslesbaren Nährwerte darauf." : "I found a trustworthy page, but it had no reliably readable nutrition values.", event);
+    case "web_evidence_identity_mismatch": return withLabel(hu ? "A weben talált oldalak közül egyiknél sem tudtam biztosan igazolni, hogy a tápérték ehhez az ételhez tartozik." : de ? "Bei keiner der im Web gefundenen Seiten konnte ich sicher bestätigen, dass die Nährwerte zu diesem Lebensmittel gehören." : "None of the pages found on the web could be confirmed to have nutrition for this exact food.", event);
+    case "ai_estimation_internal_rate_limited": return withLabel(hu ? "Az AI-becslést most nem tudtam elindítani, mert az ideiglenes becslési keret elfogyott." : de ? "Die KI-Schätzung konnte ich jetzt nicht starten, da das vorübergehende Schätzkontingent aufgebraucht ist." : "I couldn't start an AI estimate right now — the temporary estimate budget is used up.", event);
+    case "ai_estimation_provider_rate_limited": return withLabel(hu ? "Az AI-becslő szolgáltatás jelenleg túlterhelt, ezért most nem válaszolt." : de ? "Der KI-Schätzdienst ist derzeit überlastet und hat deshalb nicht geantwortet." : "The AI estimate service is currently overloaded and didn't respond.", event);
+    case "ai_estimation_timeout": return withLabel(hu ? "Az AI-becslő most nem válaszolt időben." : de ? "Die KI-Schätzung hat nicht rechtzeitig geantwortet." : "The AI estimator didn't respond in time.", event);
+    case "ai_estimation_provider_error": return withLabel(hu ? "Az AI-becslő szolgáltatás jelenleg nem elérhető." : de ? "Der KI-Schätzdienst ist derzeit nicht erreichbar." : "The AI estimate service is currently unavailable.", event);
+    case "ai_estimation_invalid_response": return withLabel(hu ? "Az AI válasza nem volt biztonságosan feldolgozható, ezért nem mutatok belőle becslést." : de ? "Die KI-Antwort war nicht sicher verarbeitbar, daher zeige ich keine Schätzung daraus." : "The AI's response couldn't be safely processed, so I'm not showing an estimate from it.", event);
+    case "ai_estimation_implausible": return withLabel(hu ? "Az AI adott becslést, de a tápértékek nem álltak össze életszerűen, ezért elutasítottam." : de ? "Die KI hat eine Schätzung geliefert, aber die Nährwerte ergaben keinen plausiblen Sinn, daher habe ich sie verworfen." : "The AI gave an estimate, but the numbers didn't add up realistically, so I rejected it.", event);
+    case "ai_estimation_success": return withLabel(hu ? "Az AI tudott készíteni egy becslést." : de ? "Die KI konnte eine Schätzung erstellen." : "The AI was able to produce an estimate.", event);
     default: return withLabel(hu ? "Ez a lépés ellenőrzést igényel." : de ? "Dieser Schritt braucht eine Prüfung." : "This step needs review.", event);
   }
 }
@@ -92,27 +116,107 @@ function StatusIcon({ status }: { status: DiagnosticEvent["status"] }) {
   return <span className="diagnostic-icon attention" aria-hidden="true">○</span>;
 }
 
+// Human decision trace (2026-09-19, Task 9) — "Miért álltam meg?" is
+// deliberately just the LAST event that actually blocked further progress
+// (events are already emitted in pipeline order — classification ->
+// food_identity -> web_evidence -> ai_estimation -> portion/recipe*), reusing
+// its own already-written eventText rather than a second, parallel copy of
+// the same wording that could drift out of sync.
+function lastBlockingEvent(events: DiagnosticEvent[]): DiagnosticEvent | undefined {
+  for (let i = events.length - 1; i >= 0; i--) if (events[i].blocking) return events[i];
+  return undefined;
+}
+
+// Human decision trace (2026-09-19, Task 4/9) — "Mit tehetsz most?" shows
+// ONLY the actions that are actually relevant to the real stop reason (never
+// a generic fixed list) — e.g. "try again later" only ever appears for a
+// rate-limit/timeout/provider-error category, never for a genuine "no
+// matching food exists" case.
+function nextActions(stopEvent: DiagnosticEvent | undefined, lang: Lang): string[] {
+  if (!stopEvent) return [];
+  const hu = lang === "hu", de = lang === "de";
+  const retryLater = hu ? "Próbáld újra egy kicsit később." : de ? "Versuche es etwas später erneut." : "Try again in a little while.";
+  const searchManually = hu ? "Keress rá kézzel a katalógusban." : de ? "Suche manuell im Katalog." : "Search the catalog manually.";
+  const enterOwnValues = hu ? "Add meg a tápértékeket kézzel." : de ? "Gib die Nährwerte manuell ein." : "Enter the nutrition values yourself.";
+  const rephrase = hu ? "Próbáld pontosabban vagy máshogy megfogalmazni az ételt." : de ? "Versuche, das Lebensmittel genauer oder anders zu beschreiben." : "Try describing the food more precisely or differently.";
+  const pickFromList = hu ? "Válassz a felkínált lehetőségek közül." : de ? "Wähle aus den angebotenen Möglichkeiten." : "Choose from the options shown.";
+  const reviewIngredients = hu ? "Nézd át és erősítsd meg a recept összetevőit." : de ? "Überprüfe und bestätige die Zutaten des Rezepts." : "Review and confirm the recipe's ingredients.";
+  switch (stopEvent.code) {
+    case "ai_estimation_internal_rate_limited":
+    case "ai_estimation_provider_rate_limited":
+    case "ai_estimation_timeout":
+    case "ai_estimation_provider_error":
+    case "ai_estimation_invalid_response":
+    case "ai_estimation_implausible":
+      return [retryLater, enterOwnValues];
+    case "web_evidence_rate_limited":
+    case "web_evidence_search_failed":
+      return [retryLater, searchManually, enterOwnValues];
+    case "web_evidence_no_authoritative_source":
+    case "web_evidence_nutrition_missing":
+    case "web_evidence_identity_mismatch":
+    case "web_no_fully_resolvable_candidate":
+    case "web_no_results":
+    case "web_rate_limited":
+    case "web_provider_error":
+    case "web_systemic_error":
+      return [searchManually, enterOwnValues];
+    case "ambiguous":
+    case "preview_match":
+    case "confirmation_required":
+    case "external_ambiguous":
+    case "external_possible_duplicate":
+    case "external_weak_match":
+    case "external_confirmation_required":
+      return [pickFromList, searchManually];
+    case "unresolved":
+      return [searchManually, rephrase, enterOwnValues];
+    case "ingredients_need_review":
+      return [reviewIngredients];
+    default:
+      return [searchManually];
+  }
+}
+
 export function DiagnosticsPanel({ events, lang }: { events: DiagnosticEvent[]; lang: Lang }) {
   const [open, setOpen] = useState(false);
   if (!events.length) return null;
   const heading = lang === "hu" ? "Mi történt?" : lang === "de" ? "Was ist passiert?" : "What happened?";
+  const whyHeading = lang === "hu" ? "Miért álltam meg?" : lang === "de" ? "Warum habe ich aufgehört?" : "Why did I stop?";
+  const nextHeading = lang === "hu" ? "Mit tehetsz most?" : lang === "de" ? "Was kannst du jetzt tun?" : "What can you do now?";
+  const stopEvent = lastBlockingEvent(events);
+  const actions = nextActions(stopEvent, lang);
   return (
     <div className="diagnostics-panel">
       <button type="button" className="diagnostics-toggle" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
         <span>{heading}</span>{open ? <ChevronUp size={16}/> : <ChevronDown size={16}/>}
       </button>
       {open && (
-        <ol className="diagnostics-list">
-          {events.map((event, index) => (
-            <li key={index} className={`diagnostics-entry status-${event.status}`}>
-              <StatusIcon status={event.status}/>
-              <div className="diagnostics-entry-copy">
-                <small className="diagnostics-stage">{stageHeading(event.stage, lang)}</small>
-                <span>{eventText(event, lang)}</span>
-              </div>
-            </li>
-          ))}
-        </ol>
+        <>
+          <ol className="diagnostics-list">
+            {events.map((event, index) => (
+              <li key={index} className={`diagnostics-entry status-${event.status}`}>
+                <StatusIcon status={event.status}/>
+                <div className="diagnostics-entry-copy">
+                  <small className="diagnostics-stage">{stageHeading(event.stage, lang)}</small>
+                  <span>{eventText(event, lang)}</span>
+                </div>
+              </li>
+            ))}
+          </ol>
+          {stopEvent && (
+            <div className="diagnostics-why">
+              <strong>{whyHeading}</strong>
+              <p>{eventText(stopEvent, lang)}</p>
+            </div>
+          )}
+          {!!actions.length && (
+            <div className="diagnostics-next">
+              <strong>{nextHeading}</strong>
+              <ul>{actions.map((action, index) => <li key={index}>{action}</li>)}</ul>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

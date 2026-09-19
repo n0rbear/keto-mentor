@@ -291,6 +291,17 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
 .diagnostic-icon.attention { color: rgb(var(--warning)); }
 .diagnostic-icon.blocked { color: rgb(var(--danger, var(--warning))); }
 
+/* Human decision trace (2026-09-19): "Miért álltam meg?" / "Mit tehetsz
+   most?" — deliberately reuse the same panel's own spacing/border language
+   (min-width: 0 + overflow-wrap for the same long-text-wrapping reason as
+   every other card in this file) rather than inventing a new visual style,
+   so the panel still reads as ONE coherent block once expanded. */
+.diagnostics-why, .diagnostics-next { display: grid; min-width: 0; gap: .25rem; padding-top: .3rem; border-top: 1px solid rgb(var(--border) / .1); overflow-wrap: anywhere; }
+.diagnostics-why strong, .diagnostics-next strong { color: rgb(var(--text)); font-size: .72rem; }
+.diagnostics-why p { margin: 0; color: rgb(var(--text-muted)); }
+.diagnostics-next ul { margin: 0; padding-left: 1.1rem; color: rgb(var(--text-muted)); }
+.diagnostics-next li + li { margin-top: .15rem; }
+
 .combobox-wrap { position: relative; display: grid; min-width: 0; gap: .4rem; }
 .food-results { position: absolute; z-index: 40; top: calc(100% + 5px); width: 100%; max-height: 280px; overflow-y: auto; border: 1px solid rgb(var(--border-strong) / .25); border-radius: 12px; background: rgb(var(--surface)); box-shadow: var(--shadow-lg); }
 .food-option { display: flex; width: 100%; min-height: 48px; align-items: center; justify-content: space-between; gap: .75rem; border: 0; padding: .7rem .8rem; text-align: left; color: rgb(var(--text)); background: transparent; }

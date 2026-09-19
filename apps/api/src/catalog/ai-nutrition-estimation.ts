@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { AiProviderError } from "../ai/chat-completions-provider.js";
 
 /**
  * FINAL FALLBACK: AI-ESTIMATED NUTRITION (2026-09-16).
@@ -40,9 +41,27 @@ export type AiNutritionEstimate = {
   identityConfidence: "low" | "medium" | "high";
 };
 
+// Decision-transparency audit (2026-09-19): the pre-existing `estimate()`
+// contract collapses EVERY non-success case into a bare `null` — a
+// provider 429, a timeout, a 5xx, a malformed/schema-invalid response, and a
+// structurally-implausible-but-well-formed response were all
+// indistinguishable to every caller, which is exactly why a real live
+// "túrós muffin" failure could only ever be reported to the user as a flat
+// "couldn't estimate", never as "the AI's own budget was exhausted" vs "the
+// provider was unavailable" vs "the AI answered but the numbers didn't add
+// up". `estimate()` itself is UNCHANGED (every existing caller/test keeps
+// working byte-for-byte) — this is a new, OPTIONAL, additive method, exactly
+// the same non-breaking pattern SemanticCandidateGateProvider's own
+// `checkRelevanceDetailed` already established.
+export type AiEstimationOutcome = "success" | "provider_rate_limited" | "timeout" | "provider_error" | "invalid_response" | "structurally_implausible";
+
+export type AiEstimationDetailedResult = { estimate: AiNutritionEstimate | null; outcome: AiEstimationOutcome };
+
 export interface AiNutritionEstimationProvider {
   readonly id: string;
   estimate(input: { requestedIdentity: string; canonicalIdentity: string; locale?: string }, signal?: AbortSignal): Promise<AiNutritionEstimate | null>;
+  /** Optional — same estimate, plus a closed, safe outcome category. Never leaks a raw provider message/prompt/stack; see AiEstimationOutcome's own doc. */
+  estimateDetailed?(input: { requestedIdentity: string; canonicalIdentity: string; locale?: string }, signal?: AbortSignal): Promise<AiEstimationDetailedResult>;
 }
 
 export class DisabledAiNutritionEstimationProvider implements AiNutritionEstimationProvider {
@@ -116,7 +135,11 @@ export class ChatAiNutritionEstimationProvider implements AiNutritionEstimationP
   get id() { return this.transport.id; }
 
   async estimate(input: { requestedIdentity: string; canonicalIdentity: string; locale?: string }, signal?: AbortSignal): Promise<AiNutritionEstimate | null> {
-    if (signal?.aborted || !input.requestedIdentity.trim()) return null;
+    return (await this.estimateDetailed(input, signal)).estimate;
+  }
+
+  async estimateDetailed(input: { requestedIdentity: string; canonicalIdentity: string; locale?: string }, signal?: AbortSignal): Promise<AiEstimationDetailedResult> {
+    if (signal?.aborted || !input.requestedIdentity.trim()) return { estimate: null, outcome: "timeout" };
     try {
       const result = await this.transport.complete(
         AI_NUTRITION_ESTIMATION_INSTRUCTION,
@@ -124,30 +147,43 @@ export class ChatAiNutritionEstimationProvider implements AiNutritionEstimationP
         (value) => estimationOutputSchema.parse(value),
         "ai_nutrition_estimation"
       );
-      if (!isStructurallyPlausible(result)) return null;
+      if (!isStructurallyPlausible(result)) return { estimate: null, outcome: "structurally_implausible" };
       const optional: AiNutritionEstimate["optional"] = {};
       if (result.sugarPer100g != null) optional.sugarPer100g = result.sugarPer100g;
       if (result.saturatedFatPer100g != null) optional.saturatedFatPer100g = result.saturatedFatPer100g;
       if (result.saltPer100g != null) optional.saltPer100g = result.saltPer100g;
       return {
-        canonicalFoodName: result.canonicalFoodName,
-        localizedFoodName: result.localizedFoodName,
-        basisGrams: 100,
-        kcalPer100g: result.kcalPer100g,
-        proteinPer100g: result.proteinPer100g,
-        fatPer100g: result.fatPer100g,
-        carbsPer100g: result.carbsPer100g,
-        fiberPer100g: result.fiberPer100g,
-        optional: Object.keys(optional).length ? optional : undefined,
-        confidence: result.confidence,
-        assumptions: result.assumptions,
-        preparationState: result.preparationState,
-        identityConfidence: result.identityConfidence
+        outcome: "success",
+        estimate: {
+          canonicalFoodName: result.canonicalFoodName,
+          localizedFoodName: result.localizedFoodName,
+          basisGrams: 100,
+          kcalPer100g: result.kcalPer100g,
+          proteinPer100g: result.proteinPer100g,
+          fatPer100g: result.fatPer100g,
+          carbsPer100g: result.carbsPer100g,
+          fiberPer100g: result.fiberPer100g,
+          optional: Object.keys(optional).length ? optional : undefined,
+          confidence: result.confidence,
+          assumptions: result.assumptions,
+          preparationState: result.preparationState,
+          identityConfidence: result.identityConfidence
+        }
       };
-    } catch {
+    } catch (error) {
       // Fail closed/safe: malformed response, schema violation, or transport
-      // failure all degrade to "no estimate" — never a partial/fabricated one.
-      return null;
+      // failure all still degrade to "no estimate" — never a partial/
+      // fabricated one — but the CATEGORY is now preserved instead of
+      // silently discarded, mirroring semantic-candidate-gate.ts's own
+      // catch-block classification exactly (same AiProviderError shape).
+      if (error instanceof z.ZodError) return { estimate: null, outcome: "invalid_response" };
+      if (error instanceof AiProviderError) {
+        if (error.code === "timeout") return { estimate: null, outcome: "timeout" };
+        if (error.code === "invalid_response" || error.code === "response_too_large") return { estimate: null, outcome: "invalid_response" };
+        if (error.code === "http_error" && error.httpStatus === 429) return { estimate: null, outcome: "provider_rate_limited" };
+        return { estimate: null, outcome: "provider_error" };
+      }
+      return { estimate: null, outcome: "provider_error" };
     }
   }
 }
