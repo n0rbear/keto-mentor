@@ -244,7 +244,24 @@ function findEligibleDiscoveryTarget(result: InterpretResult): DiscoveryTarget |
   if (dishItemEntries.length !== 1) return null;
 
   const { item: dishItem, index } = dishItemEntries[0];
-  if (dishItem.foodResolution !== "unresolved" || dishItem.selectedFood) return null;
+  // Prepared-dish routing audit (2026-09-19): "ai_estimate_pending" is now
+  // ALSO eligible, not just "unresolved". Root cause of all six tested
+  // prepared dishes (gulyásleves, paprikás csirke, töltött káposzta, rakott
+  // krumpli, túrós muffin, sajtos pogácsa) silently skipping this entire
+  // module: the dish item's own deterministic per-item resolution
+  // (interpretOne -> resolveDynamicFood) already reached AI-estimation
+  // before food-understanding ever got a chance to classify the phrase as a
+  // compound dish (see interpret.ts's shouldUseAiFallback/
+  // interpretAiUnderstanding for the other half of this fix — the settled
+  // estimate is REUSED there, never re-computed, so recipe discovery is now
+  // genuinely attempted without spending a second AI-estimate token). A
+  // dish item that already has a usable AI estimate is not thrown away by
+  // this widening — applyPreview below only ever ADDS `recipeDiscovery`
+  // metadata to the item, it never touches foodResolution/selectedFood/
+  // aiEstimate, so if recipe discovery fails, the existing AI estimate is
+  // completely unaffected and still shown; if it succeeds, the user sees
+  // BOTH, and can choose.
+  if ((dishItem.foodResolution !== "unresolved" && dishItem.foodResolution !== "ai_estimate_pending") || dishItem.selectedFood) return null;
 
   const othersAllSettled = result.items.every((item, i) => i === index || item.foodResolution !== "unresolved");
   if (!othersAllSettled) return null;

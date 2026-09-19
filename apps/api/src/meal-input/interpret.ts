@@ -690,9 +690,25 @@ function shouldUseAiFallback(result: InterpretResult, aiProvider: AiProvider) {
   // silently discard it and start over. See hasStrongExternalCandidateSignal
   // for why a mere weak_match does NOT count as that outcome.
   if (hasStrongExternalCandidateSignal(result)) return false;
-  // Single-item terminal case (no `items` array): see the duplicate-
-  // resolution doc above.
-  if (isSettledAiEstimate(result)) return false;
+  // Prepared-dish routing audit (2026-09-19): the single-item terminal case
+  // used to short-circuit here unconditionally (see isSettledAiEstimate's
+  // own doc for why that guard exists — a real, separate bug about wasted
+  // re-resolution). But that also meant a bare single-word phrase like
+  // "gulyásleves" could NEVER reach food-understanding at all once its own
+  // deterministic per-item resolution (interpretOne -> resolveDynamicFood)
+  // happened to reach AI-estimation first — live-proven root cause of ALL
+  // SIX tested prepared dishes silently skipping recipe discovery entirely
+  // (findEligibleDiscoveryTarget requires semantic.kind === "compound_dish",
+  // which only food-understanding AI ever sets). Falling through here now
+  // lets food-understanding run for that case too, purely to give a genuine
+  // compound-dish classification a chance — interpretAiUnderstanding below
+  // REUSES the already-settled deterministic result instead of re-resolving
+  // it (see its own doc), so this costs exactly one extra food_nlp call
+  // (25/15min budget) and NEVER a second AI-estimate/search/web-evidence
+  // call. The multi-item branch immediately below is unaffected: a genuine
+  // multi-item deterministic result's top-level foodResolution is always
+  // "multi", never "ai_estimate_pending", so isSettledAiEstimate(result)
+  // here only ever applied to the true single-item case anyway.
   if (result.items?.length) {
     // A multi-item child that already reached its own terminal
     // ai_estimate_pending counts as settled too — same reasoning as the
@@ -781,7 +797,15 @@ async function interpretAiUnderstanding(
   understanding: FoodUnderstanding,
   quantityProvider: QuantityEstimationProvider,
   aiProvider: AiProvider,
-  dynamic: DynamicResolutionDeps = null
+  dynamic: DynamicResolutionDeps = null,
+  // Prepared-dish routing audit (2026-09-19): only ever passed when
+  // shouldUseAiFallback let a SETTLED single-item ai_estimate_pending
+  // deterministic result through (see that function's own doc) — i.e. this
+  // is the exact InterpretResult whose own resolveDynamicFood chain already
+  // spent an AI_ESTIMATE_RATE_LIMIT token. Used below to detect the one
+  // semantic item that names the SAME identity, so it can be reused as-is
+  // instead of re-resolved — never to change classification/routing itself.
+  settledDeterministic: InterpretResult | undefined = undefined
 ): Promise<InterpretResult> {
   // Some providers occasionally label "a plate/bowl of X + Y" as a flat
   // multi-food list even though the primary plated/bowled item is clearly a
@@ -830,8 +854,26 @@ async function interpretAiUnderstanding(
   // with several ingredients each needing their own resolution). Same
   // DEFAULT_CONCURRENCY cap as the deterministic multi-item path, so the two
   // paths cannot drift into different burst-risk behavior.
+  // Prepared-dish routing audit (2026-09-19): the ONE semantic item (if any)
+  // naming the exact same identity the deterministic pass already settled
+  // via a real AI nutrition estimate — reusing it below means the AI_ESTIMATE_
+  // RATE_LIMIT token it already spent is never spent again just to let
+  // classification see the phrase. Only single-item settled results ever
+  // reach here (see shouldUseAiFallback/interpretMealInput's call site) — a
+  // multi-item deterministic result's top-level foodResolution is always
+  // "multi", never "ai_estimate_pending".
+  const settledKey = settledDeterministic && !settledDeterministic.items?.length && isSettledAiEstimate(settledDeterministic)
+    ? normalizeSearch(settledDeterministic.parsed.foodQuery) : undefined;
   const items = await mapWithConcurrency(semanticItems, DEFAULT_CONCURRENCY, async (item) => {
     if (item.evidence !== "explicit") return unresolvedSemanticItem(text, item);
+    if (settledKey && normalizeSearch(item.canonicalName) === settledKey) {
+      return {
+        ...settledDeterministic!,
+        interpretationSource: "ai_assisted" as const,
+        semanticItem: item,
+        nutritionEligible: false
+      };
+    }
     const resolved = await interpretOne(prisma, item.originalText, semanticParsed(item), quantityProvider, dynamic);
     return {
       ...resolved,
@@ -913,7 +955,7 @@ export async function interpretMealInput(
     try {
       onProgress?.("food_understanding");
       const understanding = await timeStage("food_understanding_ai", () => understandFood(aiProvider, { text }));
-      result = await timeStage("ai_assisted_items", () => interpretAiUnderstanding(prisma, text, understanding, disabled, aiProvider, dynamic));
+      result = await timeStage("ai_assisted_items", () => interpretAiUnderstanding(prisma, text, understanding, disabled, aiProvider, dynamic, deterministic));
       result = preserveAiEstimatePendingChildren(deterministic, result);
     } catch (error) {
       // Owner-beta (2026-09-12): previously silent — indistinguishable from

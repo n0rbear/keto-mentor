@@ -1593,7 +1593,20 @@ describe("interpretMealInput: AI-estimate duplicate-resolution fix", () => {
   // assertions, since a real MockFoodNlpProvider that supports food_nlp is
   // wired (proving shouldUseAiFallback genuinely could have fired) but must
   // never actually be called for an already-settled single-food result.
-  it("a successful single-food ai_estimate_pending is terminal: the estimator is called exactly once, food-understanding AI is never invoked, and the estimate is never overwritten", async () => {
+  it("a successful single-food ai_estimate_pending is terminal: the estimator is called exactly once and the estimate is never overwritten, even though food-understanding AI now DOES run once to check for a compound-dish reclassification", async () => {
+    // Prepared-dish routing audit (2026-09-19): this test used to assert
+    // food-understanding AI was NEVER invoked after a settled single-item
+    // ai_estimate_pending result — that was the exact mechanism that made
+    // ALL SIX tested prepared dishes (gulyásleves, paprikás csirke, töltött
+    // káposzta, rakott krumpli, túrós muffin, sajtos pogácsa) silently skip
+    // recipe discovery entirely, since only food-understanding AI can ever
+    // classify a phrase as semantic.kind === "compound_dish" (see
+    // recipe-discovery-fallback.ts's findEligibleDiscoveryTarget). The fix:
+    // food-understanding now DOES run once — but interpretAiUnderstanding
+    // REUSES this already-settled result instead of re-resolving it (see its
+    // own "settledKey" doc), so the ORIGINAL protection this test exists for
+    // (the estimator is never called a second time, the estimate is never
+    // silently downgraded to "unresolved") still holds exactly as before.
     const { dynamicPrisma } = dynamicPrismaFixture();
     let estimateCalls = 0;
     // Configured to reproduce the OLD bug's shape if it ever fires again: a
@@ -1601,7 +1614,14 @@ describe("interpretMealInput: AI-estimate duplicate-resolution fix", () => {
     // result to "unresolved". If this ever regresses, this test starts
     // failing with foodResolution "unresolved" and estimateCalls === 2.
     const estimateProvider = { id: "groq", estimate: async () => { estimateCalls += 1; return estimateCalls === 1 ? goodEstimate : null; } };
-    const ai = new MockFoodNlpProvider(new Error("food_understanding_ai must not run after a successful single-food ai_estimate_pending"));
+    // Genuinely classifies "kárász" as a plain single food (not a dish) —
+    // the realistic, common case (most ai_estimate_pending items are NOT
+    // prepared dishes) — proving that case costs exactly one extra food_nlp
+    // call and NOTHING else (no second search/web-evidence/estimate call).
+    const ai = new MockFoodNlpProvider({
+      language: "hu", kind: "single_food", confidence: 0.9, clarificationNeeded: false,
+      items: [{ originalText: "kárász", canonicalName: "kárász", evidence: "explicit", confidence: 0.9 }]
+    });
     const dynamic = {
       prisma: dynamicPrisma,
       searchIntentProvider: { id: "fixture", generate: async () => ({ canonicalConcept: "crucian carp", searchTerms: ["crucian carp"] }) },
@@ -1612,11 +1632,10 @@ describe("interpretMealInput: AI-estimate duplicate-resolution fix", () => {
     };
     const result = await interpretMealInput(prisma, "kárász", undefined, ai, dynamic as any);
     expect(result.foodResolution).toBe("ai_estimate_pending");
-    expect(result.interpretationSource).toBe("deterministic");
     expect(result.aiEstimate?.canonicalFoodName).toBe("Crucian carp, raw");
     expect(typeof result.aiEstimate?.proof).toBe("string");
     expect(estimateCalls).toBe(1);
-    expect(ai.calls).toBe(0);
+    expect(ai.calls).toBe(1);
   });
 
   // Test 6: the per-user AI_ESTIMATE_RATE_LIMIT (3 calls/15 min) budget is
@@ -1626,7 +1645,14 @@ describe("interpretMealInput: AI-estimate duplicate-resolution fix", () => {
   it("one successful single-food interpretation consumes exactly one AI-estimate rate-limit token", async () => {
     const { dynamicPrisma } = dynamicPrismaFixture();
     let consumeCalls = 0;
-    const ai = new MockFoodNlpProvider(new Error("must not be called"));
+    // Prepared-dish routing audit (2026-09-19): food-understanding now DOES
+    // run once even after a settled ai_estimate_pending (see the test
+    // above) — this fixture classifies "kárász" as single_food precisely so
+    // that run is harmless, rather than asserting it never happens at all.
+    const ai = new MockFoodNlpProvider({
+      language: "hu", kind: "single_food", confidence: 0.9, clarificationNeeded: false,
+      items: [{ originalText: "kárász", canonicalName: "kárász", evidence: "explicit", confidence: 0.9 }]
+    });
     const dynamic = {
       prisma: dynamicPrisma,
       searchIntentProvider: { id: "fixture", generate: async () => ({ canonicalConcept: "crucian carp", searchTerms: ["crucian carp"] }) },
