@@ -12,7 +12,7 @@ const compound: FoodUnderstandingPreviewValue = {
   quantity: null, canConfirm: false, foodResolution: "compound", interpretationSource: "ai_assisted",
   semantic: { dishName: "lecsó", clarificationNeeded: true, clarificationReason: "Base dish portion is unresolved." },
   items: [
-    { parsed: { foodQuery: "sausage", quantity: 2, unit: "piece" }, selectedFood: { name: "Sausage" }, quantity: { status: "resolved", grams: 100, estimated: false }, semanticItem: { canonicalName: "sausage", evidence: "explicit", modifiers: ["extra meat"], excludedModifiers: ["sauce"] }, nutritionEligible: true },
+    { parsed: { foodQuery: "sausage", quantity: 2, unit: "piece" }, selectedFood: { name: "Sausage" }, quantity: { status: "resolved", grams: 100, estimated: false }, foodResolution: "resolved", semanticItem: { canonicalName: "sausage", evidence: "explicit", modifiers: ["extra meat"], excludedModifiers: ["sauce"] }, nutritionEligible: true },
     { parsed: { foodQuery: "pepper" }, selectedFood: null, quantity: null, semanticItem: { canonicalName: "pepper", evidence: "inferred_common" } }
   ]
 };
@@ -390,7 +390,7 @@ describe("AI nutrition estimate confirmation UI", () => {
       parsed: { foodQuery: "chicken, Vegemite, cheese" }, selectedFood: null, quantity: null, canConfirm: false,
       foodResolution: "multi", interpretationSource: "deterministic",
       items: [
-        { parsed: { foodQuery: "chicken breast", quantity: 100, unit: "g" }, selectedFood: { name: "Chicken breast" }, quantity: { status: "resolved", grams: 100, estimated: false }, nutritionEligible: true },
+        { parsed: { foodQuery: "chicken breast", quantity: 100, unit: "g" }, selectedFood: { name: "Chicken breast" }, quantity: { status: "resolved", grams: 100, estimated: false }, foodResolution: "resolved", nutritionEligible: true },
         { parsed: { foodQuery: "Vegemite" }, selectedFood: null, quantity: null, foodResolution: "ai_estimate_pending", aiEstimate: estimate },
         { parsed: { foodQuery: "cheese" }, selectedFood: null, quantity: null, externalCandidates: [{ source: "usda_fdc", sourceId: "1", name: "Cheddar cheese", originalName: "Cheddar cheese", confidence: 0.9 }] }
       ]
@@ -405,5 +405,115 @@ describe("AI nutrition estimate confirmation UI", () => {
     // Accepting the AI item passes the multi-item's own index (1), not undefined.
     screen.getByText(dict.en.foodUnderstanding.aiEstimate.accept).click();
     expect(onAccept).toHaveBeenCalledWith(estimate, 100, 1);
+  });
+});
+
+// Owner-reported UX bug fix (2026-09-19): a "preview"/"confirmation_required"
+// result already carries real local-catalog candidates[] — previously never
+// rendered, leaving the user staring at "review and choose" with nothing
+// visible to pick. See FoodUnderstandingPreview.tsx's own CatalogCandidateList
+// doc for why this is deliberately distinct from ExternalCandidateList
+// (already-real Food rows, no confirmation round-trip needed).
+describe("local-catalog candidate selection UI (preview / confirmation_required)", () => {
+  const sconeCandidate = { id: "food-scone-1", name: "Cheese scone", names: { en: "Cheese scone", hu: "Sajtos pogácsa" }, category: "Baked Products", kcalPer100g: 380, proteinPer100g: 11, fatPer100g: 22, carbsPer100g: 34, fiberPer100g: 1.5 };
+  const biscuitCandidate = { id: "food-scone-2", name: "Cheese biscuit", names: { en: "Cheese biscuit" }, kcalPer100g: 410, proteinPer100g: 9, fatPer100g: 25, carbsPer100g: 38, fiberPer100g: 1 };
+
+  it("single 'preview' result: renders the candidate list with name, nutrition and a selection button — never the misleading 'choose' text", () => {
+    const value: FoodUnderstandingPreviewValue = {
+      parsed: { foodQuery: "sajtos pogácsa" }, selectedFood: sconeCandidate, quantity: null, canConfirm: false,
+      foodResolution: "preview", interpretationSource: "deterministic",
+      candidates: [sconeCandidate, biscuitCandidate]
+    };
+    const onSelect = vi.fn();
+    const { container } = render(<FoodUnderstandingPreview value={value} lang="en" labels={dict.en.foodUnderstanding} busy={false} onConfirmAll={vi.fn()} onSelectCandidate={onSelect}/>);
+    expect(screen.getByText(dict.en.foodUnderstanding.candidatesHeading)).toBeTruthy();
+    expect(screen.getByText("Cheese scone")).toBeTruthy();
+    expect(screen.getByText("Cheese biscuit")).toBeTruthy();
+    // Nutrition text is split across sibling <span>/<b> elements — matched
+    // against the rendered container text, same pattern already used for
+    // the AI-estimate card's own macro assertions.
+    expect(container.querySelector(".catalog-candidate-macros")?.textContent).toContain("380");
+    expect(screen.getAllByText(dict.en.foodUnderstanding.candidateSelect)).toHaveLength(2);
+    // The old, misleading "review and choose" fallback must never appear
+    // alongside an actual, visible list of choices.
+    expect(screen.queryByText(dict.en.foodUnderstanding.review)).toBeNull();
+  });
+
+  it("single 'confirmation_required' result: same actionable candidate UI as 'preview'", () => {
+    const value: FoodUnderstandingPreviewValue = {
+      parsed: { foodQuery: "sajtos pogácsa" }, selectedFood: sconeCandidate, quantity: null, canConfirm: false,
+      foodResolution: "confirmation_required", interpretationSource: "deterministic",
+      candidates: [sconeCandidate]
+    };
+    render(<FoodUnderstandingPreview value={value} lang="en" labels={dict.en.foodUnderstanding} busy={false} onConfirmAll={vi.fn()} onSelectCandidate={vi.fn()}/>);
+    expect(screen.getByText(dict.en.foodUnderstanding.candidatesHeading)).toBeTruthy();
+    expect(screen.getByText("Cheese scone")).toBeTruthy();
+    expect(screen.getByText(dict.en.foodUnderstanding.candidateSelect)).toBeTruthy();
+  });
+
+  it("no usable candidates: shows the truthful fallback message, never the candidate heading or a 'choose' instruction with nothing to choose", () => {
+    const value: FoodUnderstandingPreviewValue = {
+      parsed: { foodQuery: "valami ismeretlen étel" }, selectedFood: null, quantity: null, canConfirm: false,
+      foodResolution: "confirmation_required", interpretationSource: "deterministic",
+      candidates: []
+    };
+    render(<FoodUnderstandingPreview value={value} lang="en" labels={dict.en.foodUnderstanding} busy={false} onConfirmAll={vi.fn()} onSelectCandidate={vi.fn()}/>);
+    expect(screen.getByText(dict.en.foodUnderstanding.review)).toBeTruthy();
+    expect(screen.queryByText(dict.en.foodUnderstanding.candidatesHeading)).toBeNull();
+    expect(screen.queryByText(dict.en.foodUnderstanding.candidateSelect)).toBeNull();
+    // The new copy must be truthful — it must not tell the user to "choose"
+    // when nothing was ever shown to choose from.
+    expect(dict.en.foodUnderstanding.review.toLowerCase()).not.toContain("choose");
+  });
+
+  it("selecting a candidate calls onSelectCandidate with exactly that candidate — the component itself never persists anything", () => {
+    const onSelect = vi.fn();
+    const value: FoodUnderstandingPreviewValue = {
+      parsed: { foodQuery: "sajtos pogácsa" }, selectedFood: sconeCandidate, quantity: null, canConfirm: false,
+      foodResolution: "preview", interpretationSource: "deterministic",
+      candidates: [sconeCandidate, biscuitCandidate]
+    };
+    render(<FoodUnderstandingPreview value={value} lang="en" labels={dict.en.foodUnderstanding} busy={false} onConfirmAll={vi.fn()} onSelectCandidate={onSelect}/>);
+    const buttons = screen.getAllByText(dict.en.foodUnderstanding.candidateSelect);
+    fireEvent.click(buttons[1]);
+    expect(onSelect).toHaveBeenCalledExactlyOnceWith(biscuitCandidate);
+  });
+
+  it("multi-item: a child row with its own 'preview' candidates renders the candidate list for that row only, and its trusted/unresolved indicator honestly reflects it is NOT yet resolved", () => {
+    const onSelect = vi.fn();
+    const value: FoodUnderstandingPreviewValue = {
+      parsed: { foodQuery: "csirkemell, sajtos pogácsa" }, selectedFood: null, quantity: null, canConfirm: false,
+      foodResolution: "multi", interpretationSource: "deterministic",
+      items: [
+        { parsed: { foodQuery: "csirkemell", quantity: 100, unit: "g" }, selectedFood: { name: "Chicken breast" }, quantity: { status: "resolved", grams: 100, estimated: false }, foodResolution: "resolved", nutritionEligible: true },
+        { parsed: { foodQuery: "sajtos pogácsa" }, selectedFood: sconeCandidate, quantity: null, foodResolution: "preview", candidates: [sconeCandidate, biscuitCandidate] }
+      ]
+    };
+    render(<FoodUnderstandingPreview value={value} lang="en" labels={dict.en.foodUnderstanding} busy={false} onConfirmAll={vi.fn()} onSelectCandidate={onSelect}/>);
+    expect(screen.getByText(dict.en.foodUnderstanding.trusted)).toBeTruthy();
+    expect(screen.getByText(dict.en.foodUnderstanding.unresolved)).toBeTruthy();
+    expect(screen.getByText(dict.en.foodUnderstanding.candidatesHeading)).toBeTruthy();
+    // "Cheese scone" legitimately appears twice — see the single-item test's
+    // own comment above for why.
+    expect(screen.getAllByText("Cheese scone").length).toBeGreaterThanOrEqual(2);
+    const buttons = screen.getAllByText(dict.en.foodUnderstanding.candidateSelect);
+    expect(buttons).toHaveLength(2);
+    fireEvent.click(buttons[0]);
+    expect(onSelect).toHaveBeenCalledExactlyOnceWith(sconeCandidate);
+    // "Log all" must stay disabled — an unconfirmed preview item is present.
+    expect((screen.getByRole("button", { name: dict.en.foodUnderstanding.logAll }) as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it("never renders the candidate list when externalCandidates are what the backend actually returned (mutually exclusive lists)", () => {
+    const value: FoodUnderstandingPreviewValue = {
+      parsed: { foodQuery: "csülök" }, selectedFood: null, quantity: null, canConfirm: false,
+      foodResolution: "confirmation_required", interpretationSource: "deterministic",
+      externalCandidates: [{ source: "usda_fdc", sourceId: "172152", name: "Pork hock, cooked", originalName: "Pork hock, cooked", confidence: 0.96 }],
+      candidates: [sconeCandidate]
+    };
+    render(<FoodUnderstandingPreview value={value} lang="en" labels={dict.en.foodUnderstanding} busy={false} onConfirmAll={vi.fn()} onConfirmExternal={vi.fn()} onSelectCandidate={vi.fn()}/>);
+    expect(screen.getByText(dict.en.foodUnderstanding.externalSingleHeading)).toBeTruthy();
+    expect(screen.queryByText(dict.en.foodUnderstanding.candidatesHeading)).toBeNull();
+    expect(screen.queryByText("Cheese scone")).toBeNull();
   });
 });

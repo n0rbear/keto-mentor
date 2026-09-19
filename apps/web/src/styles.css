@@ -237,6 +237,25 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
 .external-candidate-category, .external-candidate-source { display: block; color: rgb(var(--text-soft)); font-size: .7rem; }
 .external-candidate .btn { flex: 0 0 auto; }
 
+/* Owner-reported UX bug fix (2026-09-19): a "preview"/"confirmation_required"
+   result's own local-catalog candidates — same layout idiom as
+   .external-candidate above (flex-wrap so the button drops to its own row on
+   narrow screens, min-width: 0 + overflow-wrap: anywhere so a long localized
+   name never forces the row to overflow), plus a compact per-100g nutrition
+   line mirroring .ai-estimate-macros, since these are already real Food rows
+   (unlike an external candidate, whose nutrition isn't shown until
+   confirmed). */
+.catalog-candidates { display: grid; gap: .55rem; margin-top: .5rem; }
+.catalog-candidate-list { display: grid; gap: .55rem; margin: 0; padding: 0; list-style: none; }
+.catalog-candidate { display: flex; flex-wrap: wrap; min-width: 0; align-items: center; justify-content: space-between; gap: .5rem .75rem; border: 1px solid rgb(var(--border) / .12); border-radius: 11px; background: rgb(var(--bg) / .4); padding: .7rem .8rem; }
+.catalog-candidate-copy { display: grid; min-width: 0; flex: 1 1 220px; gap: .15rem; overflow-wrap: anywhere; }
+.catalog-candidate-name { color: rgb(var(--text)); font-weight: 750; font-size: .85rem; }
+.catalog-candidate-original, .catalog-candidate-category, .catalog-candidate-basis { display: block; color: rgb(var(--text-soft)); font-size: .7rem; }
+.catalog-candidate-original { font-style: italic; }
+.catalog-candidate-macros { display: flex; flex-wrap: wrap; gap: .25rem .7rem; margin-top: .1rem; color: rgb(var(--text-muted)); font-size: .76rem; font-variant-numeric: tabular-nums; }
+.catalog-candidate-macros b { color: rgb(var(--text)); }
+.catalog-candidate .btn { flex: 0 0 auto; }
+
 /* FINAL FALLBACK: AI-ESTIMATED NUTRITION — frontend card (2026-09-18).
    Deliberately a distinct border/badge tone from both .ai-assisted-badge
    (brand-colored — merely "AI helped parse the input", still authoritative

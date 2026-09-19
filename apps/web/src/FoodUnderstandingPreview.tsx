@@ -13,6 +13,31 @@ export type ExternalCandidate = {
   confidence: number;
 };
 
+// Owner-reported UX bug fix (2026-09-19): a LOCAL/catalog `preview` or
+// `confirmation_required` result already carries real, trustworthy Food
+// candidates (the exact same shape FoodCombobox's own search results and the
+// existing selectedFood state use) — but nothing ever rendered them, so the
+// user only ever saw "review and choose the right food" with nothing visible
+// to actually choose. Deliberately distinct from ExternalCandidate: an
+// ExternalCandidate is an UNCONFIRMED USDA/OpenFoodFacts row that still needs
+// a server-side confirm call (see ExternalCandidateList's own doc) before it
+// has real nutrition, whereas a CandidateFood is already a persisted, real
+// Food row with genuine macros — selecting one needs no confirmation
+// round-trip at all, it goes straight into the pre-existing selected-food +
+// manual-quantity flow, exactly like a manual catalog search pick.
+export type CandidateFood = {
+  id: string;
+  name: string;
+  originalName?: string;
+  names?: Partial<Record<Lang, string>>;
+  category?: string;
+  kcalPer100g: number;
+  proteinPer100g: number;
+  fatPer100g: number;
+  carbsPer100g: number;
+  fiberPer100g: number;
+};
+
 // FINAL FALLBACK: AI-ESTIMATED NUTRITION (2026-09-18 frontend wiring) —
 // mirrors apps/api/src/meal-input/interpret.ts's own
 // `AiNutritionEstimate & { requestedIdentity, canonicalIdentity, proof }`
@@ -119,6 +144,12 @@ type PreviewItem = {
   // display-only and already covered by the existing trusted/unresolved icon.
   foodResolution?: string;
   aiEstimate?: AiEstimateValue;
+  // Owner-reported UX bug fix (2026-09-19): the backend's local-catalog
+  // candidate list for a "preview"/"confirmation_required" item (see
+  // apps/api/src/meal-input/interpret.ts's InterpretResult.candidates) —
+  // rendered by CatalogCandidateList below. Never populated at the same time
+  // as externalCandidates (mutually exclusive backend branches).
+  candidates?: CandidateFood[];
 };
 
 export type FoodUnderstandingPreviewValue = PreviewItem & {
@@ -156,6 +187,11 @@ export type FoodUnderstandingLabels = {
   externalConfirming: string;
   externalConfirmFailed: string;
   externalSourceNames: Record<string, string>;
+  // Owner-reported UX bug fix (2026-09-19): the local-catalog candidate list
+  // (see CandidateFood above) — distinct copy from the external* keys since
+  // these describe already-real Food rows, not an unconfirmed external match.
+  candidatesHeading: string;
+  candidateSelect: string;
   recipeDiscovery: {
     localMatch: string;
     ambiguousLocal: string;
@@ -263,6 +299,46 @@ function ExternalCandidateList({ candidates, lang, labels, busy, confirmingId, o
           <button type="button" className="btn secondary" disabled={busy} onClick={() => onConfirm(candidate)}>
             {isConfirming ? labels.externalConfirming : labels.externalConfirm}
           </button>
+        </li>;
+      })}
+    </ul>
+  </div>;
+}
+
+// Owner-reported UX bug fix (2026-09-19): renders the backend's genuine
+// local-catalog `candidates[]` for a preview/confirmation_required result —
+// never `externalCandidates` (a completely separate, still-unconfirmed list,
+// see ExternalCandidateList above). Nutrition is shown (unlike
+// ExternalCandidateList, which deliberately omits it) because these are
+// already real, persisted Food rows, not unverified external matches —
+// selecting one commits to nothing by itself, it only fills in the existing
+// selected-food + manual-quantity form, so showing the numbers up front here
+// is honest, not premature.
+function CatalogCandidateList({ candidates, lang, labels, busy, onSelect }: {
+  candidates: CandidateFood[]; lang: Lang; labels: FoodUnderstandingLabels; busy: boolean;
+  onSelect: (candidate: CandidateFood) => void;
+}) {
+  return <div className="catalog-candidates">
+    <strong>{labels.candidatesHeading}</strong>
+    <ul className="catalog-candidate-list">
+      {candidates.map((candidate) => {
+        const displayName = pickDisplayName(candidate, lang);
+        const originalName = candidate.originalName || candidate.name;
+        return <li className="catalog-candidate" key={candidate.id}>
+          <div className="catalog-candidate-copy">
+            <span className="catalog-candidate-name">{displayName}</span>
+            {displayName !== originalName && <small className="catalog-candidate-original">{originalName}</small>}
+            {candidate.category && <small className="catalog-candidate-category">{candidate.category}</small>}
+            <div className="catalog-candidate-macros">
+              <span>{labels.aiEstimate.kcal}: <b>{Math.round(candidate.kcalPer100g)}</b></span>
+              <span>{labels.aiEstimate.protein}: <b>{candidate.proteinPer100g} g</b></span>
+              <span>{labels.aiEstimate.fat}: <b>{candidate.fatPer100g} g</b></span>
+              <span>{labels.aiEstimate.carbs}: <b>{candidate.carbsPer100g} g</b></span>
+              <span>{labels.aiEstimate.fiber}: <b>{candidate.fiberPer100g} g</b></span>
+            </div>
+            <small className="catalog-candidate-basis">{labels.aiEstimate.per100g}</small>
+          </div>
+          <button type="button" className="btn secondary" disabled={busy} onClick={() => onSelect(candidate)}>{labels.candidateSelect}</button>
         </li>;
       })}
     </ul>
@@ -377,12 +453,13 @@ function AiEstimateCard({ estimate, labels, busy, onAccept, onOverride, onDeclin
   </div>;
 }
 
-function PreviewRow({ item, lang, labels, busy, confirmingId, onConfirmExternal, onConfirmRecipe, onAcceptAiEstimate, onOverrideAiEstimate }: {
+function PreviewRow({ item, lang, labels, busy, confirmingId, onConfirmExternal, onConfirmRecipe, onAcceptAiEstimate, onOverrideAiEstimate, onSelectCandidate }: {
   item: PreviewItem; lang: Lang; labels: FoodUnderstandingLabels; busy: boolean; confirmingId: string | null;
   onConfirmExternal?: (candidate: ExternalCandidate) => void;
   onConfirmRecipe?: (candidate: RecipeDiscoveryCandidateValue, quantity: number, unit: "g" | "serving") => void;
   onAcceptAiEstimate?: (estimate: AiEstimateValue, quantityGrams: number) => void;
   onOverrideAiEstimate?: (payload: AiEstimateOverridePayload) => void;
+  onSelectCandidate?: (candidate: CandidateFood) => void;
 }) {
   const quantity = quantityText(item.parsed.quantity, item.parsed.unit, labels);
   // Owned here (not inside AiEstimateCard) so declining correctly brings
@@ -392,22 +469,31 @@ function PreviewRow({ item, lang, labels, busy, confirmingId, onConfirmExternal,
   // at all once declined.
   const [aiEstimateDeclined, setAiEstimateDeclined] = useState(false);
   const isAiEstimatePending = item.foodResolution === "ai_estimate_pending" && !!item.aiEstimate && !aiEstimateDeclined;
+  // Owner-reported UX bug fix (2026-09-19): a "preview"/"confirmation_required"
+  // item DOES carry a `selectedFood` (the backend's best unconfirmed guess —
+  // see interpret.ts), which previously made this indicator claim "trusted"
+  // for a food the user never actually confirmed. Only a genuine
+  // foodResolution: "resolved" item is trustworthy; anything else must show
+  // the same honest "not yet linked" state as a true miss.
+  const isTrusted = !!item.selectedFood && item.foodResolution === "resolved" && item.nutritionEligible !== false;
+  const hasCatalogCandidates = !item.externalCandidates?.length && !!item.candidates?.length && (item.foodResolution === "preview" || item.foodResolution === "confirmation_required");
   return <li className="understanding-item">
     <div><strong>{quantity ? `${quantity} ${itemName(item, lang)}` : itemName(item, lang)}</strong></div>
     {item.preparation && <small>{labels.preparation}: {preparationLabel(item.preparation, labels)}</small>}
     {!!item.semanticItem?.modifiers?.length && <small>{labels.modifiers}: {item.semanticItem.modifiers.join(", ")}</small>}
     {!!item.semanticItem?.excludedModifiers?.length && <small>{labels.excluded}: {item.semanticItem.excludedModifiers.join(", ")}</small>}
     {item.semanticItem?.evidence === "inferred_common" && <small className="inferred-label">{labels.inferred}</small>}
-    {!isAiEstimatePending && <small className="understanding-resolution">{item.selectedFood && item.nutritionEligible !== false ? <CheckCircle2 aria-hidden="true" size={13}/> : <CircleDashed aria-hidden="true" size={13}/>} {item.selectedFood && item.nutritionEligible !== false ? labels.trusted : labels.unresolved}</small>}
+    {!isAiEstimatePending && <small className="understanding-resolution">{isTrusted ? <CheckCircle2 aria-hidden="true" size={13}/> : <CircleDashed aria-hidden="true" size={13}/>} {isTrusted ? labels.trusted : labels.unresolved}</small>}
     {item.quantity?.status === "resolved" && <small>{item.quantity.estimated ? "≈" : "="} {Math.round((item.quantity.grams ?? 0) * 10) / 10} g</small>}
     {item.recipeDiscovery && <small className="recipe-discovery-note">{recipeDiscoveryText(item.recipeDiscovery, labels)}</small>}
     {item.recipeDiscovery?.candidate && onConfirmRecipe && <RecipeConfirmControls candidate={item.recipeDiscovery.candidate} lang={lang} labels={labels} busy={busy} onConfirm={onConfirmRecipe}/>}
     {!!item.externalCandidates?.length && onConfirmExternal && <ExternalCandidateList candidates={item.externalCandidates} lang={lang} labels={labels} busy={busy} confirmingId={confirmingId} onConfirm={onConfirmExternal}/>}
+    {hasCatalogCandidates && onSelectCandidate && <CatalogCandidateList candidates={item.candidates!} lang={lang} labels={labels} busy={busy} onSelect={onSelectCandidate}/>}
     {isAiEstimatePending && onAcceptAiEstimate && onOverrideAiEstimate && <AiEstimateCard estimate={item.aiEstimate!} labels={labels.aiEstimate} busy={busy} onAccept={(quantityGrams) => onAcceptAiEstimate(item.aiEstimate!, quantityGrams)} onOverride={onOverrideAiEstimate} onDecline={() => setAiEstimateDeclined(true)}/>}
   </li>;
 }
 
-export function FoodUnderstandingPreview({ value, lang, labels, busy, onConfirmAll, onConfirmExternal, confirmingExternalId, onConfirmRecipe, onAcceptAiEstimate, onOverrideAiEstimate }: {
+export function FoodUnderstandingPreview({ value, lang, labels, busy, onConfirmAll, onConfirmExternal, confirmingExternalId, onConfirmRecipe, onAcceptAiEstimate, onOverrideAiEstimate, onSelectCandidate }: {
   value: FoodUnderstandingPreviewValue;
   lang: Lang;
   labels: FoodUnderstandingLabels;
@@ -418,6 +504,7 @@ export function FoodUnderstandingPreview({ value, lang, labels, busy, onConfirmA
   onConfirmRecipe?: (candidate: RecipeDiscoveryCandidateValue, quantity: number, unit: "g" | "serving") => void;
   onAcceptAiEstimate?: (estimate: AiEstimateValue, quantityGrams: number, itemIndex?: number) => void;
   onOverrideAiEstimate?: (payload: AiEstimateOverridePayload, itemIndex?: number) => void;
+  onSelectCandidate?: (candidate: CandidateFood) => void;
 }) {
   const rows = value.items?.length ? value.items : [value];
   const singleReady = !value.items?.length && value.canConfirm && value.selectedFood && value.quantity;
@@ -427,6 +514,17 @@ export function FoodUnderstandingPreview({ value, lang, labels, busy, onConfirmA
   // AI-assisted path — see dynamic-food-resolution.ts) — checked independently
   // of interpretationSource so the estimate card always gets a chance to render.
   const isSingleAiEstimatePending = !value.items?.length && value.foodResolution === "ai_estimate_pending" && !!value.aiEstimate;
+  // Owner-reported UX bug fix (2026-09-19): a PURE deterministic single-item
+  // preview/confirmation_required (interpretationSource: "deterministic", no
+  // items array) never enters the PreviewRow-based list below — the AI-
+  // assisted / multi-item / ai_estimate_pending gate on that list simply
+  // doesn't fire for it — so this exact backend candidate list needs its own
+  // top-level rendering, parallel to singleExternalCandidates. A single item
+  // that DOES enter the list below (ai_assisted-classified single food, or a
+  // genuine multi-item child) gets its candidate list from PreviewRow itself.
+  const singleCandidates = !value.items?.length && !singleExternalCandidates?.length && !isSingleAiEstimatePending
+    && (value.foodResolution === "preview" || value.foodResolution === "confirmation_required")
+    ? value.candidates : undefined;
   return <div className={`interpretation ${value.canConfirm ? "ready" : "needs-review"}`} role="status">
     <div className="understanding-heading">
       <strong>{labels.understood}</strong>
@@ -434,7 +532,7 @@ export function FoodUnderstandingPreview({ value, lang, labels, busy, onConfirmA
     </div>
     {value.semantic?.dishName && <div><strong>{labels.dish}:</strong> {value.semantic.dishName}</div>}
     {(value.items?.length || value.interpretationSource === "ai_assisted" || isSingleAiEstimatePending) && <ul className="multi-preview-list">
-      {rows.map((item, index) => <PreviewRow key={index} item={item} lang={lang} labels={labels} busy={busy} confirmingId={confirmingExternalId ?? null} onConfirmExternal={onConfirmExternal ? (candidate) => onConfirmExternal(candidate, index) : undefined} onConfirmRecipe={onConfirmRecipe} onAcceptAiEstimate={onAcceptAiEstimate ? (estimate, quantityGrams) => onAcceptAiEstimate(estimate, quantityGrams, value.items?.length ? index : undefined) : undefined} onOverrideAiEstimate={onOverrideAiEstimate ? (payload) => onOverrideAiEstimate(payload, value.items?.length ? index : undefined) : undefined}/>) }
+      {rows.map((item, index) => <PreviewRow key={index} item={item} lang={lang} labels={labels} busy={busy} confirmingId={confirmingExternalId ?? null} onConfirmExternal={onConfirmExternal ? (candidate) => onConfirmExternal(candidate, index) : undefined} onConfirmRecipe={onConfirmRecipe} onAcceptAiEstimate={onAcceptAiEstimate ? (estimate, quantityGrams) => onAcceptAiEstimate(estimate, quantityGrams, value.items?.length ? index : undefined) : undefined} onOverrideAiEstimate={onOverrideAiEstimate ? (payload) => onOverrideAiEstimate(payload, value.items?.length ? index : undefined) : undefined} onSelectCandidate={onSelectCandidate}/>) }
     </ul>}
     {singleReady && <div>
       <strong>{itemName(value, lang)}</strong>
@@ -442,7 +540,8 @@ export function FoodUnderstandingPreview({ value, lang, labels, busy, onConfirmA
       <span> · {value.parsed.quantity != null ? `${quantityText(value.parsed.quantity, value.parsed.unit, labels)} · ` : ""}{value.quantity?.estimated ? "≈" : "="} {Math.round((value.quantity?.grams ?? 0) * 10) / 10} g · {value.quantity?.estimated ? labels.estimated : labels.verified}</span>
     </div>}
     {!!singleExternalCandidates?.length && onConfirmExternal && <ExternalCandidateList candidates={singleExternalCandidates} lang={lang} labels={labels} busy={busy} confirmingId={confirmingExternalId ?? null} onConfirm={(candidate) => onConfirmExternal(candidate)}/>}
-    {!value.items?.length && !singleReady && !singleExternalCandidates?.length && !isSingleAiEstimatePending && value.interpretationSource !== "ai_assisted" && <span>
+    {!!singleCandidates?.length && onSelectCandidate && <CatalogCandidateList candidates={singleCandidates} lang={lang} labels={labels} busy={busy} onSelect={onSelectCandidate}/>}
+    {!value.items?.length && !singleReady && !singleExternalCandidates?.length && !isSingleAiEstimatePending && !singleCandidates?.length && value.interpretationSource !== "ai_assisted" && <span>
       {value.foodResolution === "unresolved" ? labels.unresolved : value.quantity && "reason" in value.quantity ? labels.conversionMissing : labels.review}
     </span>}
     {/* recipeDiscovery can only ever be set on an ai_assisted result (see

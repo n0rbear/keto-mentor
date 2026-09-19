@@ -50,7 +50,8 @@ export const dict = {
       inferred: "Szokásos összetevő – megerősítés szükséges", trusted: "Megbízható ételadathoz kapcsolva",
       unresolved: "A tápérték még nincs megbízható ételadathoz kapcsolva", needsDetail: "Pontosítás szükséges.",
       conversionMissing: "Az étel megvan, de ehhez a mértékhez nincs hiteles grammsúly. Add meg kézzel a grammot.",
-      review: "Ellenőrizd és válaszd ki a megfelelő ételt.", verified: "ellenőrzött", estimated: "becsült", logAll: "Összes naplózása",
+      review: "Nem találtam elég biztos egyezést. Keress rá kézzel, vagy próbáld pontosabban megadni az ételt.", verified: "ellenőrzött", estimated: "becsült", logAll: "Összes naplózása",
+      candidatesHeading: "Ezeket találtam — válaszd ki a megfelelőt.", candidateSelect: "Ez az",
       preparationValues: {
         scrambled: "rántotta", fried: "sült", boiled: "főtt", roasted: "sült/pirított", steamed: "párolt",
         smoked: "füstölt", raw: "nyers", baked: "sütőben sült", breaded: "rántott", grilled: "grillezett"
@@ -246,7 +247,8 @@ export const dict = {
       inferred: "Übliche Zutat – Bestätigung erforderlich", trusted: "Mit verlässlichen Lebensmitteldaten verknüpft",
       unresolved: "Nährwerte noch nicht mit verlässlichen Lebensmitteldaten verknüpft", needsDetail: "Präzisierung erforderlich.",
       conversionMissing: "Lebensmittel gefunden, aber kein verlässliches Grammgewicht. Bitte Gramm eingeben.",
-      review: "Bitte das richtige Lebensmittel auswählen.", verified: "geprüft", estimated: "geschätzt", logAll: "Alle eintragen",
+      review: "Keine ausreichend sichere Übereinstimmung gefunden. Bitte manuell suchen oder das Lebensmittel genauer angeben.", verified: "geprüft", estimated: "geschätzt", logAll: "Alle eintragen",
+      candidatesHeading: "Das habe ich gefunden — bitte das richtige auswählen.", candidateSelect: "Das ist es",
       unitValues: {
         piece: "Stück", slice: "Scheibe", portion: "Portion", plate: "Teller", bowl: "Schüssel", ladle: "Kelle",
         tbsp: "Esslöffel", tsp: "Teelöffel", cup: "Tasse", handful: "Handvoll", quarter: "Viertel",
@@ -442,7 +444,8 @@ export const dict = {
       inferred: "Common ingredient – confirmation required", trusted: "Linked to trusted food data",
       unresolved: "Nutrition is not yet linked to trusted food data", needsDetail: "Clarification needed.",
       conversionMissing: "Food found, but no reliable gram conversion exists. Enter grams manually.",
-      review: "Review and choose the correct food.", verified: "verified", estimated: "estimated", logAll: "Log all",
+      review: "No confident match was found. Search manually, or try describing the food more precisely.", verified: "verified", estimated: "estimated", logAll: "Log all",
+      candidatesHeading: "Here's what I found — pick the right one.", candidateSelect: "This one",
       unitValues: {
         piece: "piece", slice: "slice", portion: "portion", plate: "plate", bowl: "bowl", ladle: "ladle",
         tbsp: "tbsp", tsp: "tsp", cup: "cup", handful: "handful", quarter: "quarter",
