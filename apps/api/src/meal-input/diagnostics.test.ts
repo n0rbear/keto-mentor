@@ -77,6 +77,56 @@ describe("buildDiagnostics: local candidate names in ambiguous/preview/confirmat
   });
 });
 
+// Routing/localization audit (2026-09-19): every other food-name display
+// surface in the app (search, diary, recipe ingredients, candidate lists)
+// already shows the viewer's locale name via pickDisplayName's
+// `names[locale] -> en -> originalName -> name` fallback chain (see
+// apps/web/src/food-display-name.ts). The diagnostics itemLabel/candidate
+// names were the one remaining raw, English-only surface — a Hungarian user
+// previously saw "Gouda cheese: Megbízható ételadathoz kapcsolva." instead
+// of "Gouda sajt: ...". `locale` is optional and defaults to the exact old
+// (English/original-name) behavior, so every caller that doesn't pass it
+// (including every test above) stays byte-for-byte unchanged.
+describe("buildDiagnostics: locale-aware item/candidate names", () => {
+  const goudaLocalized = { id: "g1", source: "open_database", sourceId: "2", name: "Gouda cheese", names: { en: "Gouda cheese", hu: "Gouda sajt", de: "Gouda" } };
+  const cheddarLocalized = { id: "c1", source: "open_database", sourceId: "1", name: "Cheddar cheese", names: { en: "Cheddar cheese", hu: "Cheddar sajt", de: "Cheddar" } };
+
+  it("uses the requested locale's name for a trusted match's itemLabel", () => {
+    const events = buildDiagnostics(baseResult({ selectedFood: goudaLocalized as any, candidates: [goudaLocalized as any] }), "hu");
+    const event = events.find((e) => e.code === "trusted_match")!;
+    expect(event.itemLabel).toBe("Gouda sajt");
+  });
+
+  it("falls back to the English/original name when no locale is passed (old behavior, unchanged)", () => {
+    const events = buildDiagnostics(baseResult({ selectedFood: goudaLocalized as any, candidates: [goudaLocalized as any] }));
+    const event = events.find((e) => e.code === "trusted_match")!;
+    expect(event.itemLabel).toBe("Gouda cheese");
+  });
+
+  it("falls back to the English/original name when the food has no translation for the requested locale (never fabricated)", () => {
+    const englishOnly = { id: "x1", source: "open_database", sourceId: "9", name: "Beef jerky", names: { en: "Beef jerky" } };
+    const events = buildDiagnostics(baseResult({ selectedFood: englishOnly as any, candidates: [englishOnly as any] }), "hu");
+    const event = events.find((e) => e.code === "trusted_match")!;
+    expect(event.itemLabel).toBe("Beef jerky");
+  });
+
+  it("localizes the named candidate list for an ambiguous local tie, not just the itemLabel", () => {
+    const events = buildDiagnostics(baseResult({
+      foodResolution: "confirmation_required", selectedFood: cheddarLocalized as any, candidates: [cheddarLocalized as any, goudaLocalized as any],
+      quantity: null, canConfirm: false, confidence: 0.95, ambiguous: true
+    }), "hu");
+    const event = events.find((e) => e.code === "ambiguous")!;
+    expect(event.params?.names).toBe("Cheddar sajt, Gouda sajt");
+    expect(event.itemLabel).toBe("Cheddar sajt");
+  });
+
+  it("localizes the DE locale too, distinctly from HU (never the same string reused across languages)", () => {
+    const events = buildDiagnostics(baseResult({ selectedFood: goudaLocalized as any, candidates: [goudaLocalized as any] }), "de");
+    const event = events.find((e) => e.code === "trusted_match")!;
+    expect(event.itemLabel).toBe("Gouda");
+  });
+});
+
 describe("buildDiagnostics", () => {
   it("a clean, fully-resolved deterministic match produces a minimal, all-ok timeline", () => {
     const events = buildDiagnostics(baseResult());

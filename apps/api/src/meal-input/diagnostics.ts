@@ -42,8 +42,22 @@ export type DiagnosticEvent = {
   params?: Record<string, string | number>;
 };
 
-function itemLabel(item: InterpretResult): string | undefined {
-  return item.selectedFood?.name || item.semanticItem?.canonicalName || item.parsed?.foodQuery;
+// Routing/localization audit (2026-09-19): every OTHER food-name display
+// surface (search results, meal diary, recipe ingredients, candidate lists)
+// already goes through the client-side pickDisplayName -> `names[locale]`
+// fallback chain (see apps/web/src/food-display-name.ts) — this was the one
+// remaining raw, English-only name in the app, because the diagnostics
+// timeline is built server-side and DiagnosticEvent.itemLabel is already a
+// plain string by the time it reaches the client (no full Food object to
+// re-localize there). Mirrors the exact same fallback chain so a Hungarian
+// user sees "Gouda sajt: ..." instead of "Gouda cheese: ...".
+function pickName(food: { name: string; originalName?: string; names?: Record<string, string> } | null | undefined, locale?: string): string | undefined {
+  if (!food) return undefined;
+  return (locale ? food.names?.[locale] : undefined) ?? food.names?.en ?? food.originalName ?? food.name;
+}
+
+function itemLabel(item: InterpretResult, locale?: string): string | undefined {
+  return pickName(item.selectedFood, locale) || item.semanticItem?.canonicalName || item.parsed?.foodQuery;
 }
 
 function classificationEvent(result: InterpretResult): DiagnosticEvent {
@@ -59,8 +73,8 @@ function classificationEvent(result: InterpretResult): DiagnosticEvent {
   return { stage: "classification", status: "ok", code: "direct_match", blocking: false };
 }
 
-function foodIdentityEvent(item: InterpretResult): DiagnosticEvent | null {
-  const label = itemLabel(item);
+function foodIdentityEvent(item: InterpretResult, locale?: string): DiagnosticEvent | null {
+  const label = itemLabel(item, locale);
   if (item.nutritionEligible === false && item.excludedBySiblingRecipe) {
     return { stage: "food_identity", status: "ok", code: "excluded_double_counting", blocking: false, itemLabel: label, params: { dish: item.excludedBySiblingRecipe.dishName } };
   }
@@ -75,7 +89,7 @@ function foodIdentityEvent(item: InterpretResult): DiagnosticEvent | null {
   // plumbing: no new query, no new AI/external call, just carrying an
   // already-known value one step further. Bounded to 5 names so a
   // pathological local match burst can never produce an unbounded string.
-  const candidateNames = item.candidates?.length ? item.candidates.slice(0, 5).map((c) => c.name).join(", ") : undefined;
+  const candidateNames = item.candidates?.length ? item.candidates.slice(0, 5).map((c) => pickName(c, locale)).join(", ") : undefined;
   if (item.foodResolution === "preview") {
     return { stage: "food_identity", status: "attention", code: "preview_match", blocking: true, itemLabel: label, ...(candidateNames ? { params: { names: candidateNames } } : {}) };
   }
@@ -103,10 +117,10 @@ function foodIdentityEvent(item: InterpretResult): DiagnosticEvent | null {
 // separately being refused by ITS OWN rate limiter — two DIFFERENT internal
 // budgets, previously both invisible, both collapsed into one flat
 // "unresolved" line.
-function decisionTraceEvents(item: InterpretResult): DiagnosticEvent[] {
+function decisionTraceEvents(item: InterpretResult, locale?: string): DiagnosticEvent[] {
   const trace = item.decisionTrace;
   if (!trace) return [];
-  const label = itemLabel(item);
+  const label = itemLabel(item, locale);
   const events: DiagnosticEvent[] = [];
   switch (trace.webEvidenceOutcome) {
     case "rate_limited":
@@ -156,9 +170,9 @@ function decisionTraceEvents(item: InterpretResult): DiagnosticEvent[] {
   return events;
 }
 
-function portionEvent(item: InterpretResult): DiagnosticEvent | null {
+function portionEvent(item: InterpretResult, locale?: string): DiagnosticEvent | null {
   const q = item.quantity;
-  const label = itemLabel(item);
+  const label = itemLabel(item, locale);
   if (!q) return null;
   if (q.status === "resolved" && !q.requiresConfirmation) return null; // exact/authoritative — not worth a line
   if (q.status === "resolved" && q.requiresConfirmation) {
@@ -233,17 +247,17 @@ function recipeDiscoveryEvents(discovery: NonNullable<InterpretResult["recipeDis
  * post-recipe-discovery-fallback) InterpretResult. Safe to call on any
  * result shape — single item, multi-item, or compound-dish.
  */
-export function buildDiagnostics(result: InterpretResult): DiagnosticEvent[] {
+export function buildDiagnostics(result: InterpretResult, locale?: string): DiagnosticEvent[] {
   const events: DiagnosticEvent[] = [classificationEvent(result)];
   const rows = result.items?.length ? result.items : [result];
 
   for (const row of rows) {
-    const identity = foodIdentityEvent(row);
+    const identity = foodIdentityEvent(row, locale);
     if (identity) events.push(identity);
-    events.push(...decisionTraceEvents(row));
-    const portion = portionEvent(row);
+    events.push(...decisionTraceEvents(row, locale));
+    const portion = portionEvent(row, locale);
     if (portion) events.push(portion);
-    if (row.recipeDiscovery) events.push(...recipeDiscoveryEvents(row.recipeDiscovery, itemLabel(row)));
+    if (row.recipeDiscovery) events.push(...recipeDiscoveryEvents(row.recipeDiscovery, itemLabel(row, locale)));
   }
   // findEligibleDiscoveryTarget's "result" location (recipe-discovery-
   // fallback.ts) attaches `recipeDiscovery` at the TOP level even when
@@ -252,7 +266,7 @@ export function buildDiagnostics(result: InterpretResult): DiagnosticEvent[] {
   // a multi-item phrase like "csülökpörkölt krumplival"), so a top-level
   // preview none of the rows already carried must still be surfaced here.
   if (result.recipeDiscovery && !rows.some((row) => row.recipeDiscovery)) {
-    events.push(...recipeDiscoveryEvents(result.recipeDiscovery, result.semantic?.dishName ?? itemLabel(result)));
+    events.push(...recipeDiscoveryEvents(result.recipeDiscovery, result.semantic?.dishName ?? itemLabel(result, locale)));
   }
   return events;
 }

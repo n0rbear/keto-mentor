@@ -1017,6 +1017,74 @@ describe("Open Food Facts structured lookup adapter", () => {
   });
 });
 
+// Routing audit (2026-09-19): OFF's current recommended text-search API is
+// search-a-licious (search.openfoodfacts.org/search), verified live against
+// a real query for "Milbona görög joghurt" during the audit — confirmed
+// real hits with usable HU-language nutrition. Deliberately NOT wired into
+// lookup() (still a no-op — see "never performs a generic text search"
+// above, unchanged) or any automatic resolution path; this only proves the
+// standalone capability itself works and stays safely bounded/sanitized.
+describe("Open Food Facts name/brand search (search-a-licious) — standalone, not yet wired into resolution", () => {
+  function searchResponse(hits: any[], count = hits.length) {
+    return { ok: true, headers: { get: () => null }, text: async () => JSON.stringify({ count, hits }) };
+  }
+
+  it("queries the documented search-a-licious endpoint with q/langs/page_size and identifies the app via User-Agent", async () => {
+    const fetcher = vi.fn(async (url: string, init: any) => {
+      expect(url).toContain("https://search.openfoodfacts.org/search?");
+      expect(url).toContain("q=Milbona");
+      expect(url).toContain("langs=hu");
+      expect(url).toContain("page_size=5");
+      expect(init.headers["User-Agent"]).toContain("KetoMentor");
+      return searchResponse([]);
+    }) as any;
+    await new OpenFoodFactsProductAdapter(fetcher).searchByName("Milbona", { locale: "hu" });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
+  it("normalizes a real-shaped search hit (flat, brands as an array) into the same candidate shape lookupBarcode produces", async () => {
+    const hit = { code: "20047559", product_name: "Görög joghurt", brands: ["Milbona"], lang: "hu", categories: "Yogurts", nutriments: { "energy-kcal_100g": 121, proteins_100g: 4.6, fat_100g: 10, carbohydrates_100g: 3.2, fiber_100g: 0 } };
+    const fetcher = vi.fn(async () => searchResponse([hit])) as any;
+    const [candidate] = await new OpenFoodFactsProductAdapter(fetcher).searchByName("görög joghurt", { locale: "hu" });
+    expect(candidate).toMatchObject({ source: "open_food_facts", sourceId: "20047559", name: "Görög joghurt", brand: "Milbona", kcalPer100g: 121 });
+  });
+
+  it("drops hits with missing/implausible nutrition rather than surfacing a partial {name,brand} entry in a search list", async () => {
+    const incomplete = { code: "1", product_name: "No Macro Data", brands: ["Acme"], nutriments: {} };
+    const fetcher = vi.fn(async () => searchResponse([incomplete])) as any;
+    const candidates = await new OpenFoodFactsProductAdapter(fetcher).searchByName("acme");
+    expect(candidates).toEqual([]);
+  });
+
+  it("drops hits with no code at all (defensive — never crashes on a malformed hit)", async () => {
+    const fetcher = vi.fn(async () => searchResponse([{ product_name: "No Code" }, null, "garbage"])) as any;
+    const candidates = await new OpenFoodFactsProductAdapter(fetcher).searchByName("x");
+    expect(candidates).toEqual([]);
+  });
+
+  it("bounds the requested page size to the safe max even if a caller asks for more", async () => {
+    const fetcher = vi.fn(async (url: string) => { expect(url).toContain("page_size=10"); return searchResponse([]); }) as any;
+    await new OpenFoodFactsProductAdapter(fetcher).searchByName("x", { limit: 500 });
+  });
+
+  it("returns [] for a blank/whitespace-only query without ever calling the network", async () => {
+    const fetcher = vi.fn();
+    await expect(new OpenFoodFactsProductAdapter(fetcher as any).searchByName("   ")).resolves.toEqual([]);
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it("rejects non-OK, malformed JSON and oversized payloads the same way lookupBarcode does — no separate, weaker error path", async () => {
+    await expect(new OpenFoodFactsProductAdapter(vi.fn(async () => ({ ok: false })) as any).searchByName("x")).rejects.toThrow("Open Food Facts lookup failed");
+    await expect(new OpenFoodFactsProductAdapter(vi.fn(async () => ({ ok: true, headers: { get: () => null }, text: async () => "{" })) as any).searchByName("x")).rejects.toThrow("Open Food Facts response invalid");
+  });
+
+  it("still never makes lookup() (the generic resolution entry point) perform a text search — this method is additive, not a behavior change", async () => {
+    const fetcher = vi.fn();
+    await expect(new OpenFoodFactsProductAdapter(fetcher as any).lookup()).resolves.toEqual([]);
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+});
+
 describe("Open Food Facts confirmation (reuses confirmAuthoritativeFood unchanged)", () => {
   const offAdapter = (lookupById: (sourceId: string) => Promise<unknown>) => ({ source: "open_food_facts" as const, sourceName: "Open Food Facts", lookup: async () => [], lookupById });
 
