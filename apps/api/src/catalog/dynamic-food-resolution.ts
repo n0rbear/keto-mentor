@@ -350,6 +350,15 @@ async function attemptFallbackChain(
         logDynamicResolutionOutcome("ai_estimate_pending", via);
         return { status: "ai_estimate_pending", estimate, requestedIdentity: originalIdentity, canonicalIdentity: searchTerm, webEvidenceDiagnostics, resolutionDiagnostics: baseDiagnostics(webEvidenceAttempted, "ai_estimate_pending") };
       }
+    } else {
+      // Observability (2026-09-19): distinguishes "the estimator call itself
+      // failed/returned nothing plausible" from "its own 3-per-15-minute
+      // budget was already exhausted and the call was never attempted at
+      // all" — previously both silently fell through to the same generic
+      // unresolved log below, a real diagnostic blind spot when investigating
+      // live reports. Category-only: no user text, food name, user id, or
+      // payload.
+      console.log("ai_nutrition_estimation outcome=rate_limited");
     }
   }
   logDynamicResolutionOutcome("unresolved", via, reason);

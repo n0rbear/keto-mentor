@@ -650,6 +650,25 @@ function hasStrongExternalCandidateSignal(result: InterpretResult): boolean {
   return !!result.items?.some((item) => item.externalCandidates?.length && isStrong(item.externalCandidatesReason));
 }
 
+// FINAL FALLBACK: AI-ESTIMATED NUTRITION duplicate-resolution fix
+// (2026-09-19) — real Render staging logs proved a valid ai_estimate_pending
+// result was being silently discarded: local+authoritative+web-evidence all
+// missed, ai_nutrition_estimation succeeded, dynamic_food_resolution logged
+// status=ai_estimate_pending — and THEN this function ran anyway (because an
+// ai_estimate_pending result has selectedFood:null and confidence:0, which
+// the old logic read as "still needs understanding"), triggering a second,
+// redundant food-understanding pass whose own re-run of interpretOne could
+// invoke the ENTIRE dynamic-resolution chain again for the same food,
+// burning a second AI_ESTIMATE_RATE_LIMIT token (of only 3 per 15 minutes)
+// and sometimes replacing the perfectly good estimate with "unresolved" when
+// that second attempt failed. A successful ai_estimate_pending is already
+// the terminal outcome for this tier (every earlier source already ran) and
+// must be treated exactly like an already-resolved trusted match below —
+// never as a "needs more understanding" signal.
+function isSettledAiEstimate(item: InterpretResult): boolean {
+  return item.foodResolution === "ai_estimate_pending";
+}
+
 function shouldUseAiFallback(result: InterpretResult, aiProvider: AiProvider) {
   if (!aiProvider.supports("food_nlp")) return false;
   if (result.ambiguous) return false;
@@ -658,11 +677,63 @@ function shouldUseAiFallback(result: InterpretResult, aiProvider: AiProvider) {
   // silently discard it and start over. See hasStrongExternalCandidateSignal
   // for why a mere weak_match does NOT count as that outcome.
   if (hasStrongExternalCandidateSignal(result)) return false;
+  // Single-item terminal case (no `items` array): see the duplicate-
+  // resolution doc above.
+  if (isSettledAiEstimate(result)) return false;
   if (result.items?.length) {
-    return !result.items.every((item) => item.selectedFood && item.confidence >= 0.8 && !item.preparationUnavailable);
+    // A multi-item child that already reached its own terminal
+    // ai_estimate_pending counts as settled too — same reasoning as the
+    // single-item case above, extended per-item. A MIXED result (one
+    // settled ai_estimate_pending child alongside another item that
+    // genuinely still needs understanding) still returns true here, since
+    // `every` fails on the unsettled sibling — interpretMealInput's own
+    // post-processing (preserveAiEstimatePendingChildren) is what protects
+    // the already-settled child from being overwritten by that necessary
+    // re-run, rather than suppressing the re-run itself.
+    return !result.items.every((item) => (item.selectedFood && item.confidence >= 0.8 && !item.preparationUnavailable) || isSettledAiEstimate(item));
   }
   if (result.selectedFood && result.confidence >= 0.95 && !result.preparationUnavailable) return false;
   return result.foodResolution === "unresolved" || result.confidence < 0.95 || !!result.preparationUnavailable;
+}
+
+// Guards the MIXED multi-item case identified above: when the deterministic
+// pass already settled one or more child items as a valid ai_estimate_pending
+// (each carrying its own already-spent AI_ESTIMATE_RATE_LIMIT token and
+// signed proof) but another sibling genuinely needed the food-understanding
+// AI re-run, that re-run re-derives its OWN items from scratch via a fresh
+// AI classification of the whole phrase — it has no knowledge of which food
+// was already settled, so it can (and in the reproduced bug, did) re-attempt
+// dynamic resolution for that same food and overwrite a good estimate with a
+// worse one (or unresolved). This restores any deterministic
+// ai_estimate_pending child, matched to the AI-assisted result's own items by
+// normalized identity text, whenever the AI-assisted pass produced a
+// DIFFERENT (non-ai_estimate_pending) outcome for that same food — i.e. only
+// ever recovers a result that would otherwise have been silently downgraded,
+// never overrides a re-run that itself also reached (or improved on)
+// ai_estimate_pending. Deliberately narrow: an ambiguous match (two
+// deterministic pending items normalizing to the same key, or no
+// corresponding item found at all — e.g. the AI regrouped/merged items
+// differently) is left unmerged rather than guessed at.
+function preserveAiEstimatePendingChildren(deterministic: InterpretResult, aiAssisted: InterpretResult): InterpretResult {
+  if (!deterministic.items?.length || !aiAssisted.items?.length) return aiAssisted;
+  const pendingByKey = new Map<string, InterpretResult | null>();
+  for (const item of deterministic.items) {
+    if (!isSettledAiEstimate(item)) continue;
+    const key = normalizeSearch(item.parsed.foodQuery);
+    pendingByKey.set(key, pendingByKey.has(key) ? null : item);
+  }
+  if (!pendingByKey.size) return aiAssisted;
+  let changed = false;
+  const mergedItems = aiAssisted.items.map((newItem) => {
+    const key = normalizeSearch(newItem.semanticItem?.originalText ?? newItem.parsed.foodQuery);
+    const original = pendingByKey.get(key);
+    if (original && !isSettledAiEstimate(newItem)) {
+      changed = true;
+      return original;
+    }
+    return newItem;
+  });
+  return changed ? { ...aiAssisted, items: mergedItems } : aiAssisted;
 }
 
 function semanticParsed(item: FoodUnderstandingItem): ParsedNaturalFoodQuery {
@@ -830,6 +901,7 @@ export async function interpretMealInput(
       onProgress?.("food_understanding");
       const understanding = await timeStage("food_understanding_ai", () => understandFood(aiProvider, { text }));
       result = await timeStage("ai_assisted_items", () => interpretAiUnderstanding(prisma, text, understanding, disabled, aiProvider, dynamic));
+      result = preserveAiEstimatePendingChildren(deterministic, result);
     } catch (error) {
       // Owner-beta (2026-09-12): previously silent — indistinguishable from
       // "the AI genuinely classified this as simple/already-resolved". Both
