@@ -46,34 +46,104 @@ function parseNumeric(text: string | undefined | null): number | null {
 // manufacturer sites, not a Heinz-specific quirk).
 type NutritionSearchResult = { nutrition: Record<string, unknown>; ancestorName?: string };
 
-function findNutritionInformation(node: unknown, depth = 0): NutritionSearchResult | null {
-  if (!node || typeof node !== "object" || depth > 6) return null;
-  if (Array.isArray(node)) {
-    for (const item of node) {
-      const found = findNutritionInformation(item, depth + 1);
-      if (found) return found;
-    }
-    return null;
-  }
+// Collects EVERY NutritionInformation node on the page (Phase 27 —
+// multi-variant hardening), not just the first — a comparison/listing page
+// can legitimately carry more than one product's nutrition block in the same
+// JSON-LD graph. Each result's own "nearest enclosing name" is resolved
+// exactly as before (bottom-up: the closest ancestor with a "name" wins),
+// independently per node — array/object traversal order is preserved only as
+// a stable iteration order, never as a signal for which candidate is correct.
+function collectNutritionInformation(node: unknown, depth = 0): NutritionSearchResult[] {
+  if (!node || typeof node !== "object" || depth > 6) return [];
+  if (Array.isArray(node)) return node.flatMap((item) => collectNutritionInformation(item, depth + 1));
   const record = node as Record<string, unknown>;
   const type = record["@type"];
   const typeMatches = typeof type === "string" ? type === "NutritionInformation" : Array.isArray(type) && type.includes("NutritionInformation");
-  if (typeMatches) return { nutrition: record };
+  if (typeMatches) return [{ nutrition: record }];
   const ownName = typeof record["name"] === "string" ? (record["name"] as string) : undefined;
+  const results: NutritionSearchResult[] = [];
   for (const value of Object.values(record)) {
-    const found = findNutritionInformation(value, depth + 1);
-    if (found) return { nutrition: found.nutrition, ancestorName: found.ancestorName ?? ownName };
+    for (const found of collectNutritionInformation(value, depth + 1)) {
+      results.push({ nutrition: found.nutrition, ancestorName: found.ancestorName ?? ownName });
+    }
   }
-  return null;
+  return results;
 }
 
 // Narrow, per-field quote: the exact "<jsonKey>":"<rawValue>" pair as it
 // literally appears in the fetched script text, not the whole block — binds
 // each specific label to its own value (P0 grounding-hardening review,
 // 2026-09-16), matching the same label+value discipline the LLM path uses.
-function jsonFieldQuote(rawBlock: string, jsonKey: string): string | null {
-  const match = rawBlock.match(new RegExp(`"${jsonKey}"\\s*:\\s*"([^"]*)"`));
-  return match ? match[0] : null;
+// expectedRawValue (Phase 27): when a script block contains MULTIPLE
+// nutrition nodes, the same key (e.g. "calories") can legitimately appear
+// more than once with DIFFERENT values — a plain first-match would silently
+// bind one candidate's quote to a DIFFERENT candidate's raw text. Scanning
+// for the occurrence whose own captured value matches what was already
+// parsed off THIS node keeps every quote bound to the node it actually
+// came from; omitted (single-candidate pages, the overwhelmingly common
+// case) preserves the original first-match behavior exactly.
+function jsonFieldQuote(rawBlock: string, jsonKey: string, expectedRawValue?: string): string | null {
+  const pattern = new RegExp(`"${jsonKey}"\\s*:\\s*"([^"]*)"`, "g");
+  for (const match of rawBlock.matchAll(pattern)) {
+    if (expectedRawValue === undefined || match[1] === expectedRawValue) return match[0];
+  }
+  return null;
+}
+
+// Deterministic, case/punctuation-insensitive identity comparison shared by
+// both the JSON-LD and html_table multi-candidate disambiguation below
+// (Phase 27). Intentionally simple — a real page's JSON-LD "name" or visible
+// heading rarely matches the grounded page title byte-for-byte (brand
+// suffixes, pack sizes), so exact equality alone would reject almost every
+// genuine same-product case; substring containment (either direction) is the
+// smallest extra tolerance that still requires a real textual link, never a
+// semantic/fuzzy judgement. Empty input never matches — no identity to
+// compare against means no confident association, which must fail closed.
+function normalizeIdentityForMatch(text: string): string {
+  return text.toLocaleLowerCase().replace(/[^a-z0-9]+/giu, " ").trim().replace(/\s+/g, " ");
+}
+function identityLooselyMatches(a: string, b: string): boolean {
+  const na = normalizeIdentityForMatch(a);
+  const nb = normalizeIdentityForMatch(b);
+  if (!na || !nb) return false;
+  return na === nb || na.includes(nb) || nb.includes(na);
+}
+
+function buildJsonLdEvidence(nutrition: Record<string, unknown>, rawBlock: string, sourceFoodName: string): ExtractedNutritionEvidence | null {
+  const servingSize = nutrition["servingSize"];
+  const servingSizeRaw = typeof servingSize === "string" ? servingSize : undefined;
+  const amountGrams = parseGrams(servingSizeRaw);
+  const basisQuote = jsonFieldQuote(rawBlock, "servingSize", servingSizeRaw);
+  if (!amountGrams || !basisQuote) return null; // no explicit gram basis -> cannot safely normalize, defer to LLM stage
+  const fiberText = nutrition["fiberContent"];
+  const fiberTextRaw = typeof fiberText === "string" ? fiberText : undefined;
+  const fiberGrams = parseGrams(fiberTextRaw, true);
+  const fiberQuote = jsonFieldQuote(rawBlock, "fiberContent", fiberTextRaw);
+  if (fiberGrams == null || !fiberQuote) return null; // fiber not stated -> never assume 0, defer (LLM stage will also fail closed on this)
+  const caloriesRaw = typeof nutrition["calories"] === "string" ? (nutrition["calories"] as string) : undefined;
+  const proteinRaw = typeof nutrition["proteinContent"] === "string" ? (nutrition["proteinContent"] as string) : undefined;
+  const fatRaw = typeof nutrition["fatContent"] === "string" ? (nutrition["fatContent"] as string) : undefined;
+  const carbsRaw = typeof nutrition["carbohydrateContent"] === "string" ? (nutrition["carbohydrateContent"] as string) : undefined;
+  const calories = parseNumeric(caloriesRaw);
+  const protein = parseGrams(proteinRaw, true);
+  const fat = parseGrams(fatRaw, true);
+  const carbs = parseGrams(carbsRaw, true);
+  const caloriesQuote = jsonFieldQuote(rawBlock, "calories", caloriesRaw);
+  const proteinQuote = jsonFieldQuote(rawBlock, "proteinContent", proteinRaw);
+  const fatQuote = jsonFieldQuote(rawBlock, "fatContent", fatRaw);
+  const carbsQuote = jsonFieldQuote(rawBlock, "carbohydrateContent", carbsRaw);
+  if (calories == null || protein == null || fat == null || carbs == null
+    || !caloriesQuote || !proteinQuote || !fatQuote || !carbsQuote) return null;
+  return {
+    sourceFoodName,
+    basis: { amountGrams, quote: basisQuote },
+    kcal: { value: calories, quote: caloriesQuote },
+    protein: { value: protein, quote: proteinQuote },
+    fat: { value: fat, quote: fatQuote },
+    carbs: { value: carbs, quote: carbsQuote },
+    fiber: { value: fiberGrams, quote: fiberQuote },
+    extractionMethod: "json_ld"
+  };
 }
 
 /**
@@ -83,48 +153,129 @@ function jsonFieldQuote(rawBlock: string, jsonKey: string): string | null {
  * (Phase 6: never assume 0). Each field's "quote" is its own narrow
  * "key":"value" pair (see jsonFieldQuote) — grounding validation downstream
  * applies the same label+value+unit binding to both extraction methods.
+ *
+ * Multi-variant hardening (Phase 27): a page can legitimately carry more
+ * than one product's NutritionInformation (a comparison/listing page). Every
+ * structurally-complete candidate on the page is collected first; if they
+ * all claim the SAME product identity, this is redundant/duplicate markup,
+ * not ambiguity, and the first is used exactly as before. If two or more
+ * claim DIFFERENT identities, this is genuine ambiguity — the candidate is
+ * only ever picked when groundedIdentity (the page's own title/heading,
+ * supplied by the caller) confidently ties to exactly ONE of them; otherwise
+ * this returns null and the caller's fallback chain continues. Never falls
+ * back to array order to break a tie.
  */
-export function extractJsonLdNutrition(html: string): ExtractedNutritionEvidence | null {
+export function extractJsonLdNutrition(html: string, groundedIdentity?: string): ExtractedNutritionEvidence | null {
   const scriptMatches = html.matchAll(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi);
+  const candidates: Array<{ identity: string; evidence: ExtractedNutritionEvidence }> = [];
   for (const scriptMatch of scriptMatches) {
     let parsed: unknown;
     try { parsed = JSON.parse(scriptMatch[1]); } catch { continue; }
-    const found = findNutritionInformation(parsed);
-    if (!found) continue;
-    const { nutrition, ancestorName } = found;
     const rawBlock = scriptMatch[1];
-    const servingSize = nutrition["servingSize"];
-    const amountGrams = parseGrams(typeof servingSize === "string" ? servingSize : undefined);
-    const basisQuote = jsonFieldQuote(rawBlock, "servingSize");
-    if (!amountGrams || !basisQuote) continue; // no explicit gram basis -> cannot safely normalize, defer to LLM stage
-    const fiberText = nutrition["fiberContent"];
-    const fiberGrams = parseGrams(typeof fiberText === "string" ? fiberText : undefined, true);
-    const fiberQuote = jsonFieldQuote(rawBlock, "fiberContent");
-    if (fiberGrams == null || !fiberQuote) continue; // fiber not stated -> never assume 0, defer (LLM stage will also fail closed on this)
-    const calories = parseNumeric(typeof nutrition["calories"] === "string" ? (nutrition["calories"] as string) : undefined);
-    const protein = parseGrams(typeof nutrition["proteinContent"] === "string" ? (nutrition["proteinContent"] as string) : undefined, true);
-    const fat = parseGrams(typeof nutrition["fatContent"] === "string" ? (nutrition["fatContent"] as string) : undefined, true);
-    const carbs = parseGrams(typeof nutrition["carbohydrateContent"] === "string" ? (nutrition["carbohydrateContent"] as string) : undefined, true);
-    const caloriesQuote = jsonFieldQuote(rawBlock, "calories");
-    const proteinQuote = jsonFieldQuote(rawBlock, "proteinContent");
-    const fatQuote = jsonFieldQuote(rawBlock, "fatContent");
-    const carbsQuote = jsonFieldQuote(rawBlock, "carbohydrateContent");
-    if (calories == null || protein == null || fat == null || carbs == null
-      || !caloriesQuote || !proteinQuote || !fatQuote || !carbsQuote) continue;
-    const nameField = nutrition["name"];
-    const sourceFoodName = typeof nameField === "string" && nameField ? nameField : (ancestorName ?? "");
-    return {
-      sourceFoodName,
-      basis: { amountGrams, quote: basisQuote },
-      kcal: { value: calories, quote: caloriesQuote },
-      protein: { value: protein, quote: proteinQuote },
-      fat: { value: fat, quote: fatQuote },
-      carbs: { value: carbs, quote: carbsQuote },
-      fiber: { value: fiberGrams, quote: fiberQuote },
-      extractionMethod: "json_ld"
-    };
+    for (const { nutrition, ancestorName } of collectNutritionInformation(parsed)) {
+      const nameField = nutrition["name"];
+      const identity = (typeof nameField === "string" && nameField ? nameField : (ancestorName ?? "")).trim();
+      const evidence = buildJsonLdEvidence(nutrition, rawBlock, identity);
+      if (evidence) candidates.push({ identity, evidence });
+    }
   }
-  return null;
+  if (!candidates.length) return null;
+
+  const distinctIdentities = new Set(candidates.map((c) => normalizeIdentityForMatch(c.identity)));
+  if (distinctIdentities.size <= 1) return candidates[0].evidence;
+
+  // Genuine multi-variant ambiguity: never guess, never default to the
+  // first candidate. Only resolve when exactly one candidate's own claimed
+  // identity confidently ties to the grounded page identity.
+  if (!groundedIdentity) return null;
+  const matching = candidates.filter((c) => identityLooselyMatches(c.identity, groundedIdentity));
+  return matching.length === 1 ? matching[0].evidence : null;
+}
+
+function labeledValue(text: string, label: RegExp, unit: "g" | "kcal"): { value: number; quote: string } | null {
+  const unitPattern = unit === "g" ? "g\\b" : "kcal\\b";
+  const match = text.match(new RegExp(`(?:${label.source})[^0-9]{0,30}(?<value>\\d+(?:[.,]\\d+)?)\\s*${unitPattern}`, "iu"));
+  if (!match?.groups?.value) return null;
+  const value = Number(match.groups.value.replace(",", "."));
+  return Number.isFinite(value) && value >= 0 ? { value, quote: match[0] } : null;
+}
+
+function buildVisibleTableEvidence(table: string, basisQuote: string, sourceFoodName: string): ExtractedNutritionEvidence | null {
+  const energyMatch = table.match(/(?:energy|energia|energie)[^0-9]{0,30}(?:\d+(?:[.,]\d+)?\s*kJ\s*(?:\/|\|)?\s*)?(\d+(?:[.,]\d+)?)\s*kcal\b/iu);
+  const kcal = energyMatch ? { value: Number(energyMatch[1].replace(",", ".")), quote: energyMatch[0] } : labeledValue(table, /calories?/iu, "kcal");
+  const fat = labeledValue(table, /(?:total\s+)?fat|zsír|fett/iu, "g");
+  const carbs = labeledValue(table, /carbohydrate|carbs|szénhidrát|kohlenhydrat/iu, "g");
+  const fiber = labeledValue(table, /dietary\s+fiber|fibre|fiber|rost|ballaststoff/iu, "g");
+  const protein = labeledValue(table, /protein|fehérje|eiweiß/iu, "g");
+  if (!kcal || !fat || !carbs || !fiber || !protein || !Number.isFinite(kcal.value)) return null;
+  return {
+    sourceFoodName,
+    basis: { amountGrams: 100, quote: basisQuote }, kcal, protein, fat, carbs, fiber,
+    extractionMethod: "html_table"
+  };
+}
+
+function macroValueEqual(a: { value: number } | null, b: { value: number } | null): boolean {
+  if (a === null || b === null) return a === b;
+  return a.value === b.value;
+}
+
+function visibleMacrosEqual(a: ExtractedNutritionEvidence, b: ExtractedNutritionEvidence): boolean {
+  return macroValueEqual(a.kcal, b.kcal) && macroValueEqual(a.fat, b.fat) && macroValueEqual(a.carbs, b.carbs)
+    && macroValueEqual(a.fiber, b.fiber) && macroValueEqual(a.protein, b.protein);
+}
+
+/**
+ * Deterministic fallback for conventional visible per-100g manufacturer
+ * tables.
+ *
+ * Multi-variant hardening (Phase 27): a page can contain more than one
+ * independent "per 100 g" table (a comparison/listing page covering several
+ * products/variants) — blindly taking the first would risk silently binding
+ * one variant's macros to another's name. Every structurally-complete table
+ * on the page is collected first. If they all state the SAME macro values,
+ * this is one table rendered/repeated more than once, not genuine ambiguity,
+ * and the first is used exactly as before. If the values genuinely differ,
+ * this is only resolved automatically when sourceFoodName (the grounded page
+ * title/heading, supplied by the caller) is found in exactly ONE candidate's
+ * own nearby text — a plain, deterministic proximity check, never a DOM/
+ * layout assumption. Otherwise this returns null and the caller's fallback
+ * chain continues; array/document order never breaks the tie.
+ */
+export function extractVisibleTextNutrition(pageText: string, sourceFoodName: string): ExtractedNutritionEvidence | null {
+  const basisPattern = /(?:per|pro|je|par)\s*100\s*g\b/giu;
+  const seenBuckets = new Set<number>();
+  const candidates: Array<{ context: string; evidence: ExtractedNutritionEvidence }> = [];
+  for (const basisMatch of pageText.matchAll(basisPattern)) {
+    if (basisMatch.index == null) continue;
+    const start = basisMatch.index;
+    // Two basis phrases within the same ~500-char neighborhood (e.g. a
+    // repeated "per 100g" footnote inside one table) belong to the SAME
+    // table, not a second variant — only a new occurrence far enough away
+    // counts as an independent candidate.
+    const bucket = Math.floor(start / 500);
+    if (seenBuckets.has(bucket)) continue;
+    seenBuckets.add(bucket);
+    const tableEnd = Math.min(pageText.length, start + 2_500);
+    const evidence = buildVisibleTableEvidence(pageText.slice(start, tableEnd), basisMatch[0], sourceFoodName);
+    if (!evidence) continue;
+    // Identity context is deliberately a MUCH smaller, dedicated window than
+    // the 2,500-char value-extraction window above — a real product heading
+    // sits immediately next to its own table, not thousands of characters
+    // away. Keeping this tight avoids one candidate's context accidentally
+    // swallowing a neighboring, independent candidate's heading on a page
+    // where multiple tables sit within a few thousand characters of each
+    // other, which would otherwise defeat the whole disambiguation.
+    const identityContext = pageText.slice(Math.max(0, start - 500), Math.min(pageText.length, start + 250));
+    candidates.push({ context: identityContext, evidence });
+  }
+  if (!candidates.length) return null;
+  if (candidates.length === 1) return candidates[0].evidence;
+
+  if (candidates.every((c) => visibleMacrosEqual(c.evidence, candidates[0].evidence))) return candidates[0].evidence;
+
+  const matching = candidates.filter((c) => identityLooselyMatches(c.context, sourceFoodName));
+  return matching.length === 1 ? matching[0].evidence : null;
 }
 
 // ---------------------------------------------------------------------------
@@ -177,6 +328,34 @@ export type NutritionEvidenceExtractionTransport = {
 // bounded (Phase 20) regardless of caller behavior.
 export const NUTRITION_EVIDENCE_MAX_PAGE_TEXT_CHARS = 6_000;
 
+const NUTRITION_MARKER = /nutrition|nutritional|energy|calories|kcal|protein|fat|carbohydrate|carbs|fibre|fiber|tápérték|energia|fehérje|zsír|szénhidrát|rost|nährwert|eiweiß|fett|kohlenhydrat|ballaststoff/giu;
+
+/**
+ * Keep the existing hard prompt-size bound, but do not assume nutrition is
+ * near the top of a manufacturer page. Long navigation/marketing sections
+ * routinely push the actual static nutrition table beyond character 6000.
+ * Windows are copied verbatim from the already-fetched safe text so later
+ * quote grounding remains exact; no values are parsed or synthesized here.
+ */
+export function selectNutritionEvidenceText(pageText: string): string {
+  if (pageText.length <= NUTRITION_EVIDENCE_MAX_PAGE_TEXT_CHARS) return pageText;
+  const windows: Array<{ start: number; text: string; score: number }> = [];
+  const seen = new Set<number>();
+  for (const match of pageText.matchAll(NUTRITION_MARKER)) {
+    const start = Math.max(0, match.index - 350);
+    const bucket = Math.floor(start / 500);
+    if (seen.has(bucket)) continue;
+    seen.add(bucket);
+    const text = pageText.slice(start, Math.min(pageText.length, start + 1_500));
+    const labels = new Set(Array.from(text.matchAll(NUTRITION_MARKER), (item) => item[0].toLocaleLowerCase())).size;
+    const numericValues = (text.match(/\b\d+(?:[.,]\d+)?\s*(?:kcal|kj|g|gram|grams|gramm)\b/giu) ?? []).length;
+    const explicitBasis = /(?:per|par|pro|je|100)\s*(?:serving|portion|100)?\s*\(?\s*\d+(?:[.,]\d+)?\s*g\b/iu.test(text) ? 4 : 0;
+    windows.push({ start, text, score: labels * 3 + Math.min(numericValues, 12) + explicitBasis });
+  }
+  const selected = windows.sort((a, b) => b.score - a.score || a.start - b.start).slice(0, 4).sort((a, b) => a.start - b.start);
+  return (selected.length ? selected.map((item) => item.text).join("\n…\n") : pageText).slice(0, NUTRITION_EVIDENCE_MAX_PAGE_TEXT_CHARS);
+}
+
 export class ChatNutritionEvidenceExtractionProvider implements NutritionEvidenceExtractionProvider {
   constructor(private readonly transport: NutritionEvidenceExtractionTransport) {}
 
@@ -184,7 +363,7 @@ export class ChatNutritionEvidenceExtractionProvider implements NutritionEvidenc
 
   async extract(input: { requestedIdentity: string; canonicalIdentity: string; sourceDomain: string; sourceTitle: string; pageText: string }, signal?: AbortSignal): Promise<ExtractedNutritionEvidence | null> {
     if (signal?.aborted || !input.pageText.trim()) return null;
-    const boundedPageText = input.pageText.slice(0, NUTRITION_EVIDENCE_MAX_PAGE_TEXT_CHARS);
+    const boundedPageText = selectNutritionEvidenceText(input.pageText);
     const context = {
       requestedIdentity: input.requestedIdentity,
       canonicalIdentity: input.canonicalIdentity,

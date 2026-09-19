@@ -32,7 +32,12 @@ it("is collapsed by default and expands on click, in each supported language", (
 it("translates a blocked recipe-web-discovery event into an actionable, non-generic HU message — never a raw internal code", () => {
   render(<DiagnosticsPanel events={blockedEvents} lang="hu"/>);
   fireEvent.click(screen.getByText("Mi történt?"));
-  expect(screen.getByText(/Túl sok recept-keresés volt mostanában/)).toBeTruthy();
+  // Human decision trace (2026-09-19): this exact text now legitimately
+  // appears TWICE — once in the chronological list, once in the new "Miért
+  // álltam meg?" summary (it is the last blocking event, i.e. the real stop
+  // reason) — see DiagnosticsPanel.test.tsx's own "túrós muffin" fixture for
+  // the identical, intentional duplication.
+  expect(screen.getAllByText(/Túl sok recept-keresés volt mostanában/).length).toBeGreaterThanOrEqual(1);
   expect(screen.queryByText(/web_rate_limited/)).toBeNull();
   expect(screen.queryByText(/rate_limited/)).toBeNull();
 });
@@ -40,18 +45,18 @@ it("translates a blocked recipe-web-discovery event into an actionable, non-gene
 it("renders the DE and EN translations for the same blocked event distinctly", () => {
   const { rerender } = render(<DiagnosticsPanel events={blockedEvents} lang="de"/>);
   fireEvent.click(screen.getByText("Was ist passiert?"));
-  expect(screen.getByText(/Zu viele Rezeptsuchen zuletzt/)).toBeTruthy();
+  expect(screen.getAllByText(/Zu viele Rezeptsuchen zuletzt/).length).toBeGreaterThanOrEqual(1);
   cleanup();
   render(<DiagnosticsPanel events={blockedEvents} lang="en"/>);
   fireEvent.click(screen.getByText("What happened?"));
-  expect(screen.getByText(/Too many recipe searches recently/)).toBeTruthy();
+  expect(screen.getAllByText(/Too many recipe searches recently/).length).toBeGreaterThanOrEqual(1);
 });
 
 it("falls back to a generic but still honest message for an unrecognized code, instead of crashing or showing raw text", () => {
   const unknown: DiagnosticEvent[] = [{ stage: "portion", status: "attention", code: "some_future_code_v2", blocking: true, itemLabel: "gouda" }];
   render(<DiagnosticsPanel events={unknown} lang="en"/>);
   fireEvent.click(screen.getByText("What happened?"));
-  expect(screen.getByText(/needs review/)).toBeTruthy();
+  expect(screen.getAllByText(/needs review/).length).toBeGreaterThanOrEqual(1);
 });
 
 it("never renders a secret-shaped string even if one were smuggled into params", () => {

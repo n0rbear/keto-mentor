@@ -9,6 +9,7 @@ import { NegativeSearchCache } from "../web-knowledge/negative-search-cache.js";
 import { DisabledWebKnowledgeSearchProvider, type WebSearchResult } from "../web-knowledge/web-knowledge-search-provider.js";
 import { DisabledRecipeExtractionProvider, type RecipeExtraction, type RecipeExtractionProvider } from "../recipes/recipe-extraction-provider.js";
 import { DynamicFoodResolutionRateLimiter } from "../catalog/dynamic-food-rate-limit.js";
+import { normalizeSearch } from "../catalog/normalize.js";
 import type { ExternalFoodCandidate } from "../catalog/external-food.js";
 import type { AiProvider, AiCapability } from "../ai/provider.js";
 import type { FoodUnderstanding } from "@keto-mentor/shared";
@@ -871,5 +872,250 @@ describe("attachRecipeDiscoveryFallback: sibling-overlap generality — lecsó 2
     expect(virsliItem?.excludedBySiblingRecipe).toMatchObject({ dishName: "lecsó" });
     expect(virsliItem?.nutritionEligible).toBe(false);
     expect(virsliItem?.canConfirm).toBe(true);
+  });
+});
+
+// Prepared-dish routing audit (2026-09-19) — root cause: a bare single-word
+// dish phrase's OWN deterministic per-item resolution (interpretOne ->
+// resolveDynamicFood) could reach a genuine AI nutrition estimate BEFORE
+// food-understanding AI ever got a chance to classify the phrase as
+// semantic.kind === "compound_dish" — the one signal findEligibleDiscoveryTarget
+// requires. shouldUseAiFallback's isSettledAiEstimate short-circuit (added
+// 2026-09-19 for a real, separate duplicate-resolution bug) then refused to
+// even RUN food-understanding once that happened, and even if it had run,
+// findEligibleDiscoveryTarget's own eligibility check required
+// foodResolution === "unresolved" exactly — "ai_estimate_pending" was never
+// accepted. Both are fixed together: interpret.ts now lets food-understanding
+// run for a settled single-item estimate (REUSING it, never re-resolving —
+// see interpretAiUnderstanding's settledKey), and this file's
+// findEligibleDiscoveryTarget now also accepts "ai_estimate_pending". These
+// tests reproduce all six live-audited prepared dishes with a realistic
+// dynamic-resolution chain (local miss, external miss, AI-estimate configured
+// and succeeding) and prove recipe discovery is genuinely ATTEMPTED — never
+// that it must succeed.
+// Local catalog always misses, but every table resolveDynamicFood's own
+// fallback chain actually touches (food.findFirst/findUnique/create,
+// foodAlias upsert, nutrient/foodNutrient, $transaction) is present — unlike
+// emptyPrisma() above, which only ever needs to satisfy plain local search
+// and is missing every one of these. Mirrors this same file's own
+// dynamicCapablePrisma() (owner-beta 2026-09-13 describe block), duplicated
+// here rather than hoisted out of that describe's local scope.
+function dynamicCapablePrisma() {
+  const foods: any[] = [];
+  const prisma: any = {
+    food: {
+      findUnique: async () => null,
+      findFirst: async () => null,
+      findMany: async () => [],
+      create: async ({ data }: any) => { const food = { id: `dynamic-food-${foods.length}`, createdById: null, ...data }; foods.push(food); return food; }
+    },
+    foodAlias: {
+      findFirst: async () => null,
+      findMany: async () => [],
+      upsert: async ({ create }: any) => create,
+      createMany: async ({ data }: any) => ({ count: data.length })
+    },
+    nutrient: { upsert: async ({ create }: any) => ({ id: `nutrient-${create.key}`, ...create }) },
+    foodNutrient: { create: async () => ({}) },
+    $transaction: async (fn: any) => fn(prisma)
+  };
+  return prisma;
+}
+
+describe("attachRecipeDiscoveryFallback: prepared dishes reach recipe routing even after their own AI nutrition estimate already succeeded (2026-09-19 fix)", () => {
+  const goodEstimate = {
+    canonicalFoodName: "Hungarian stew, home-prepared", basisGrams: 100 as const,
+    kcalPer100g: 140, proteinPer100g: 9, fatPer100g: 6, carbsPer100g: 12, fiberPer100g: 2,
+    confidence: "low" as const, assumptions: "Generic estimate for a home-style Hungarian dish.", identityConfidence: "medium" as const
+  };
+
+  // Real local+external miss (no seeded Food, no adapter results) + a real,
+  // succeeding AI estimator — exactly the live-observed shape for all six
+  // dishes (classification: direct_match, web_evidence miss, ai_estimation:
+  // success). No web-evidence provider is wired, matching the simplest
+  // reproduction of "local+external missed, estimate succeeded".
+  function dishDynamic(): DynamicResolutionDeps {
+    return {
+      prisma: dynamicCapablePrisma(),
+      searchIntentProvider: { id: "fixture", generate: async () => null },
+      // A real, present adapter that finds nothing — resolveDynamicFood
+      // short-circuits to reason="no_adapters" BEFORE even attempting
+      // web-evidence/AI-estimate when the adapters array is empty (see its
+      // own guard), so an empty array does not reproduce the live "local +
+      // external missed, AI estimate succeeded" shape at all.
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      aiEstimation: { provider: { id: "groq", estimate: async () => goodEstimate }, rateLimiter: { consume: () => true } }
+    } as unknown as DynamicResolutionDeps;
+  }
+
+  function dishUnderstanding(dishName: string): FoodUnderstanding {
+    return {
+      language: "hu", kind: "compound_dish", dishName,
+      items: [{ originalText: dishName, canonicalName: dishName, evidence: "explicit", confidence: 0.9 }],
+      clarificationNeeded: false, confidence: 0.9
+    };
+  }
+
+  it.each([
+    ["gulyásleves"], ["paprikás csirke"], ["töltött káposzta"], ["rakott krumpli"], ["túrós muffin"], ["sajtos pogácsa"]
+  ])("%s: reaches recipe routing (local recipe search + web discovery attempted) even though its own AI estimate already succeeded", async (dishName) => {
+    const dynamic = dishDynamic();
+    const result = await interpretMealInput(dynamicCapablePrisma(), dishName, undefined, fakeAiProvider(dishUnderstanding(dishName)), dynamic);
+    // A single-word compound-dish classification carries its one item in
+    // `items` (the classic "dish name alone" shape findEligibleDiscoveryTarget
+    // documents as its "result" location) — foodResolution: "compound" is the
+    // correct top-level CONTAINER status; the actual settled estimate lives
+    // on the one item, genuinely reused (not recomputed) from the
+    // deterministic pass, and preserved unchanged.
+    expect(result.foodResolution).toBe("compound");
+    expect(result.semantic?.kind).toBe("compound_dish");
+    expect(result.items).toHaveLength(1);
+    expect(result.items?.[0].foodResolution).toBe("ai_estimate_pending");
+    expect(result.items?.[0].aiEstimate?.canonicalFoodName).toBe("Hungarian stew, home-prepared");
+
+    const provider = fakeSearchProvider([{ url: "https://example.com/recept", title: `${dishName} recept`, domain: "example.com" }]);
+    const withDiscovery = await attachRecipeDiscoveryFallback(result, { ...discoveryDeps(provider), prisma: dynamicCapablePrisma() });
+
+    // THE regression: local_recipe_search + recipe_web_discovery must be
+    // genuinely ATTEMPTED — never that they must succeed (no candidate is
+    // fetchable here, so the search returns a real "unresolved" outcome).
+    expect(provider.search).toHaveBeenCalledOnce();
+    expect(withDiscovery.recipeDiscovery).toBeDefined();
+    expect(withDiscovery.recipeDiscovery?.searchAttempted).toBe(true);
+
+    // "We are not trying to remove AI nutrition estimation": a recipe
+    // attempt that fails must never discard the already-good AI estimate —
+    // applyPreview only ever ADDS recipeDiscovery, it never touches the
+    // item's own foodResolution/aiEstimate.
+    expect(withDiscovery.items?.[0].foodResolution).toBe("ai_estimate_pending");
+    expect(withDiscovery.items?.[0].aiEstimate?.canonicalFoodName).toBe("Hungarian stew, home-prepared");
+  });
+
+  it("the AI estimator is never called twice for the same dish — food-understanding reuses the already-settled result instead of re-resolving it", async () => {
+    let estimateCalls = 0;
+    const dynamic: DynamicResolutionDeps = {
+      prisma: dynamicCapablePrisma(),
+      searchIntentProvider: { id: "fixture", generate: async () => null },
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      aiEstimation: { provider: { id: "groq", estimate: async () => { estimateCalls += 1; return goodEstimate; } }, rateLimiter: { consume: () => true } }
+    } as unknown as DynamicResolutionDeps;
+    await interpretMealInput(dynamicCapablePrisma(), "gulyásleves", undefined, fakeAiProvider(dishUnderstanding("gulyásleves")), dynamic);
+    expect(estimateCalls).toBe(1);
+  });
+});
+
+// Control cases (2026-09-19): the fix above must not over-route ordinary
+// foods — simple/exact matches, a genuinely ambiguous local match, and a
+// branded product — into recipe discovery just because they exist.
+describe("attachRecipeDiscoveryFallback: control cases — ordinary foods still never enter recipe routing", () => {
+  // Mirrors interpret.test.ts's own makePrisma exactly (alias-based matching
+  // via foodAlias.findMany, substring searchText matching via food.findMany)
+  // — the established, proven fixture shape for a genuine "resolved"-tier
+  // exact match, rather than a simplified mock that only produces a weak
+  // "preview"-tier match.
+  type SeedFood = { id: string; name: string; names: Record<string, string>; synonyms: Record<string, string[]>; kcalPer100g: number; fatPer100g: number; proteinPer100g: number; carbsPer100g: number; fiberPer100g: number };
+  function seededPrisma(foods: SeedFood[]) {
+    const fullFoods = foods.map((f) => ({
+      ...f, originalName: f.name, createdById: null, servings: [], source: "open_database", sourceId: f.id,
+      searchText: normalizeSearch([f.name, ...Object.values(f.synonyms).flat()].join(" "))
+    }));
+    const aliasRows = foods.flatMap((f) => Object.values(f.synonyms).flat().map((a) => ({ foodId: f.id, normalizedAlias: normalizeSearch(a) })));
+    return {
+      foodAlias: {
+        findMany: async ({ where }: any) => {
+          const variants = where.OR.map((o: any) => o.normalizedAlias.contains as string);
+          return aliasRows.filter((r) => variants.some((v: string) => r.normalizedAlias.includes(v)));
+        }
+      },
+      food: {
+        findMany: async ({ where }: any) => {
+          const variants = where.OR.map((o: any) => o.searchText.contains as string);
+          return fullFoods.filter((f) => variants.some((v: string) => f.searchText.toLowerCase().includes(v.toLowerCase()))).map((f) => ({ ...f }));
+        }
+      }
+    } as any;
+  }
+
+  const gouda: SeedFood = { id: "gouda", name: "Gouda cheese", names: { hu: "Gouda sajt", en: "Gouda cheese" }, synonyms: { hu: ["gouda"], en: ["gouda"] }, kcalPer100g: 356, fatPer100g: 27, proteinPer100g: 25, carbsPer100g: 2.2, fiberPer100g: 0 };
+  const egg: SeedFood = { id: "egg", name: "Egg", names: { hu: "Tojás", en: "Egg" }, synonyms: { hu: ["tojás", "tojas"], en: ["egg"] }, kcalPer100g: 155, fatPer100g: 11, proteinPer100g: 13, carbsPer100g: 1.1, fiberPer100g: 0 };
+  const chickenBreast: SeedFood = { id: "chicken-breast", name: "Roasted chicken breast", names: { hu: "Csirkemell", en: "Chicken breast" }, synonyms: { hu: ["csirkemell"], en: ["chicken breast"] }, kcalPer100g: 165, fatPer100g: 3.6, proteinPer100g: 31, carbsPer100g: 0, fiberPer100g: 0 };
+
+  it.each([
+    ["100 g gouda", gouda],
+    ["2 tojás", egg],
+    ["200 g csirkemell", chickenBreast]
+  ])("%s: an exact, high-confidence local match never even reaches food-understanding, so recipe discovery is never considered", async (text, food) => {
+    const prisma = seededPrisma([food as SeedFood]);
+    const provider = fakeSearchProvider([]);
+    const result = await interpretMealInput(prisma, text as string);
+    expect(result.foodResolution).toBe("resolved");
+    expect(result.interpretationSource).toBe("deterministic");
+    const withDiscovery = await attachRecipeDiscoveryFallback(result, { ...discoveryDeps(provider), prisma });
+    expect(withDiscovery.recipeDiscovery).toBeUndefined();
+    expect(provider.search).not.toHaveBeenCalled();
+  });
+
+  it("'sajt': a genuinely ambiguous local tie (two equally-strong cheese matches) is offered as a choice, never routed into recipe discovery", async () => {
+    const cheddar: SeedFood = { id: "cheddar", name: "Cheddar cheese", names: { hu: "Cheddar sajt" }, synonyms: { hu: ["sajt", "cheddar"] }, kcalPer100g: 403, fatPer100g: 33, proteinPer100g: 25, carbsPer100g: 1.3, fiberPer100g: 0 };
+    const gouda2: SeedFood = { id: "gouda2", name: "Gouda cheese", names: { hu: "Gouda sajt" }, synonyms: { hu: ["sajt", "gouda"] }, kcalPer100g: 356, fatPer100g: 27, proteinPer100g: 25, carbsPer100g: 2.2, fiberPer100g: 0 };
+    const prisma = seededPrisma([cheddar, gouda2]);
+    const provider = fakeSearchProvider([]);
+    const result = await interpretMealInput(prisma, "sajt");
+    expect(result.ambiguous).toBe(true);
+    const withDiscovery = await attachRecipeDiscoveryFallback(result, { ...discoveryDeps(provider), prisma });
+    expect(withDiscovery.recipeDiscovery).toBeUndefined();
+    expect(provider.search).not.toHaveBeenCalled();
+  });
+
+  it("a branded packaged product ('Milbona görög joghurt') with strong external candidates is offered for confirmation, never routed into recipe discovery", async () => {
+    const brandedCandidate: ExternalFoodCandidate = {
+      source: "usda_fdc", sourceId: "999", originalName: "Milbona görög joghurt", name: "Milbona görög joghurt",
+      names: { hu: "Milbona görög joghurt", en: "Milbona Greek yogurt" }, kcalPer100g: 97, fatPer100g: 5, proteinPer100g: 9, carbsPer100g: 4, fiberPer100g: 0, nutrients: [],
+      provenance: { source: "USDA FoodData Central", sourceId: "999", sourceUrl: "https://fdc.nal.usda.gov/999", retrievedAt: "2026-09-19T00:00:00.000Z", valuesPer: "100 g" },
+      sourceUrl: "https://fdc.nal.usda.gov/999", normalizedName: "yogurt greek plain", nutrientBasis: "per_100_g",
+      retrievedAt: "2026-09-19T00:00:00.000Z", confidence: 0.8, matchPolicy: "review_required", language: "en"
+    };
+    const dynamic: DynamicResolutionDeps = {
+      prisma: dynamicCapablePrisma(),
+      searchIntentProvider: { id: "fixture", generate: async () => ({ canonicalConcept: "greek yogurt", searchTerms: ["greek yogurt", "milbona greek yogurt"] }) },
+      // Two DISTINCT branded variants (not just two rows with the same
+      // name/sourceId) — resolveAuthoritativeFood auto-resolves when a real
+      // semantic gate leaves exactly ONE surviving candidate, regardless of
+      // confidence; genuine ambiguity (confirmation_required) requires 2+
+      // distinct candidates to actually survive.
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [brandedCandidate, { ...brandedCandidate, sourceId: "998", name: "Milbona görög joghurt natúr", originalName: "Milbona görög joghurt natúr", normalizedName: "milbona gorog joghurt natur", confidence: 0.79 }] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      // Without a real gate provider, resolveDynamicFood defaults to
+      // DisabledSemanticCandidateGateProvider, which fails CLOSED (rejects
+      // every candidate) — a permissive fixture is needed here so the two
+      // genuinely-offered candidates reach "confirmation_required" instead
+      // of being rejected down to "unresolved".
+      semanticCandidateGateProvider: { id: "permissive", checkRelevance: async (_original: string, candidates: { id: string }[]) => new Map(candidates.map((c) => [c.id, true])) }
+    } as unknown as DynamicResolutionDeps;
+    const provider = fakeSearchProvider([]);
+    // A real AI provider IS wired (unlike leaving it undefined, which would
+    // trivially skip food-understanding for an unrelated reason —
+    // aiProvider.supports("food_nlp") — and prove nothing about THIS
+    // control case specifically) — it even (unrealistically) misclassifies
+    // the phrase as a compound dish, to prove hasStrongExternalCandidateSignal
+    // itself is what blocks recipe routing here, not merely "AI never ran".
+    const misclassifiedAsDish: FoodUnderstanding = {
+      language: "hu", kind: "compound_dish", dishName: "Milbona görög joghurt",
+      items: [{ originalText: "Milbona görög joghurt", canonicalName: "Milbona görög joghurt", evidence: "explicit", confidence: 0.9 }],
+      clarificationNeeded: false, confidence: 0.9
+    };
+    const result = await interpretMealInput(dynamicCapablePrisma(), "Milbona görög joghurt", undefined, fakeAiProvider(misclassifiedAsDish), dynamic);
+    // Strong, real external evidence (a genuine USDA match, auto-resolved or
+    // offered for confirmation) — either way, never ambiguous-enough to fall
+    // through to recipe discovery.
+    expect(["resolved", "confirmation_required"]).toContain(result.foodResolution);
+    const withDiscovery = await attachRecipeDiscoveryFallback(result, { ...discoveryDeps(provider), prisma: dynamicCapablePrisma() });
+    expect(withDiscovery.recipeDiscovery).toBeUndefined();
+    expect(provider.search).not.toHaveBeenCalled();
   });
 });

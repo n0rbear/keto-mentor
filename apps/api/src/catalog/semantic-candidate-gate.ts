@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { AiProviderError } from "../ai/chat-completions-provider.js";
 
 /**
  * Owner-beta blocker #9 (2026-09-11) — closes the exact gap that let
@@ -127,6 +128,24 @@ export type SemanticCandidateIdentityContext = {
   locale?: string;
 };
 
+export type SemanticCandidateGateStatus = "completed" | "disabled" | "invalid_input" | "aborted" | "schema_failure" | "provider_failure";
+
+export type SemanticCandidateGateDiagnostic = {
+  status: SemanticCandidateGateStatus;
+  reasonCode: "verdict_returned" | "missing_candidate_verdict" | "gate_disabled" | "missing_identity" | "no_candidates" | "request_aborted" | "invalid_response_schema" | "provider_rate_limited" | "provider_request_rejected" | "provider_upstream_error" | "provider_invalid_response" | "provider_error";
+  providerFailureClass?: "schema" | "abort" | "rate_limit" | "request" | "upstream" | "invalid_response" | "transport";
+  decisions: Map<string, {
+    relationship: CandidateRelationship;
+    formCompatibility: "compatible" | "incompatible" | "uncertain";
+    contextualFit: "best_match" | "acceptable_alternative";
+  }>;
+};
+
+export type SemanticCandidateGateDetailedResult = {
+  verdicts: Map<string, boolean | "best_match" | "acceptable_alternative">;
+  diagnostic: SemanticCandidateGateDiagnostic;
+};
+
 export interface SemanticCandidateGateProvider {
   readonly id: string;
   /**
@@ -137,6 +156,8 @@ export interface SemanticCandidateGateProvider {
    * fail-closed contract — callers must never default a missing id to true.
    */
   checkRelevance(original: SemanticCandidateIdentityContext, candidates: SemanticCandidateGateInput[], signal?: AbortSignal): Promise<Map<string, boolean | "best_match" | "acceptable_alternative">>;
+  /** Optional bounded operational diagnostics. Acceptance remains fail-closed and is represented only by verdicts. */
+  checkRelevanceDetailed?(original: SemanticCandidateIdentityContext, candidates: SemanticCandidateGateInput[], signal?: AbortSignal): Promise<SemanticCandidateGateDetailedResult>;
 }
 
 /** Fail-closed by construction: every candidate is unvalidated (absent from the map) when no real gate is configured — never a silent pass-through. */
@@ -158,7 +179,14 @@ export class ChatSemanticCandidateGateProvider implements SemanticCandidateGateP
   get id() { return this.transport.id; }
 
   async checkRelevance(original: SemanticCandidateIdentityContext, candidates: SemanticCandidateGateInput[], signal?: AbortSignal): Promise<Map<string, boolean | "best_match" | "acceptable_alternative">> {
-    if (signal?.aborted || !original.identity.trim() || !candidates.length) return new Map();
+    return (await this.checkRelevanceDetailed(original, candidates, signal)).verdicts;
+  }
+
+  async checkRelevanceDetailed(original: SemanticCandidateIdentityContext, candidates: SemanticCandidateGateInput[], signal?: AbortSignal): Promise<SemanticCandidateGateDetailedResult> {
+    const empty = new Map<string, boolean | "best_match" | "acceptable_alternative">();
+    if (signal?.aborted) return { verdicts: empty, diagnostic: { status: "aborted", reasonCode: "request_aborted", providerFailureClass: "abort", decisions: new Map() } };
+    if (!original.identity.trim()) return { verdicts: empty, diagnostic: { status: "invalid_input", reasonCode: "missing_identity", decisions: new Map() } };
+    if (!candidates.length) return { verdicts: empty, diagnostic: { status: "invalid_input", reasonCode: "no_candidates", decisions: new Map() } };
     // Only the ingredient identity/context and candidate authoritative names
     // leave the system — no user id, username, meal history, or profile data.
     const context = {
@@ -177,6 +205,7 @@ export class ChatSemanticCandidateGateProvider implements SemanticCandidateGateP
       const result = await this.transport.complete(SEMANTIC_CANDIDATE_GATE_INSTRUCTION, JSON.stringify(context), (value) => semanticCandidateGateOutputSchema.parse(value), "semantic_candidate_gate");
       const knownIds = new Set(candidates.map((c) => c.id));
       const map = new Map<string, boolean | "best_match" | "acceptable_alternative">();
+      const decisions = new Map<string, { relationship: CandidateRelationship; formCompatibility: "compatible" | "incompatible" | "uncertain"; contextualFit: "best_match" | "acceptable_alternative" }>();
       for (const row of result.results) {
         // A response id that doesn't match one of the ids we sent is never
         // trusted onto some other candidate — silently dropped, not applied.
@@ -184,15 +213,45 @@ export class ChatSemanticCandidateGateProvider implements SemanticCandidateGateP
         // "processed_derivative" and "different_prepared_food" are rejected,
         // deterministically, in code (never re-asked of the model as a
         // separate yes/no that it could answer inconsistently).
-        if (knownIds.has(row.id)) map.set(row.id, row.relationship === "same_identity" && row.formCompatibility === "compatible" ? row.contextualFit : false);
+        if (knownIds.has(row.id)) {
+          decisions.set(row.id, { relationship: row.relationship, formCompatibility: row.formCompatibility, contextualFit: row.contextualFit });
+          map.set(row.id, row.relationship === "same_identity" && row.formCompatibility === "compatible" ? row.contextualFit : false);
+        }
       }
-      return map;
-    } catch {
+      return {
+        verdicts: map,
+        diagnostic: {
+          status: "completed",
+          reasonCode: candidates.every((candidate) => decisions.has(candidate.id)) ? "verdict_returned" : "missing_candidate_verdict",
+          decisions
+        }
+      };
+    } catch (error) {
       // FAIL CLOSED: on any failure, return an empty map so every candidate
       // is treated as unvalidated (rejected) by the caller — deliberately
       // the opposite of search-intent/candidate-localization's fail-open
       // degradation, since this is the safety gate itself.
-      return new Map();
+      const schemaFailure = error instanceof z.ZodError;
+      const aborted = signal?.aborted || (error instanceof Error && error.name === "AbortError") || (error instanceof AiProviderError && error.code === "timeout");
+      const providerFailure = error instanceof AiProviderError
+        ? error.code === "invalid_response" || error.code === "response_too_large"
+          ? { reasonCode: "provider_invalid_response" as const, providerFailureClass: "invalid_response" as const }
+          : error.code === "http_error" && error.httpStatus === 429
+            ? { reasonCode: "provider_rate_limited" as const, providerFailureClass: "rate_limit" as const }
+            : error.code === "http_error" && error.httpStatus != null && error.httpStatus >= 500
+              ? { reasonCode: "provider_upstream_error" as const, providerFailureClass: "upstream" as const }
+              : error.code === "http_error" && error.httpStatus != null && error.httpStatus >= 400
+                ? { reasonCode: "provider_request_rejected" as const, providerFailureClass: "request" as const }
+                : { reasonCode: "provider_error" as const, providerFailureClass: "transport" as const }
+        : { reasonCode: "provider_error" as const, providerFailureClass: "transport" as const };
+      return {
+        verdicts: empty,
+        diagnostic: aborted
+          ? { status: "aborted", reasonCode: "request_aborted", providerFailureClass: "abort", decisions: new Map() }
+          : schemaFailure
+            ? { status: "schema_failure", reasonCode: "invalid_response_schema", providerFailureClass: "schema", decisions: new Map() }
+            : { status: "provider_failure", ...providerFailure, decisions: new Map() }
+      };
     }
   }
 }

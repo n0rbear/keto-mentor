@@ -1,7 +1,7 @@
 import type { WebKnowledgeSearchProvider, WebSearchResult } from "../web-knowledge/web-knowledge-search-provider.js";
 import type { NutritionEvidenceExtractionProvider } from "./nutrition-evidence-extraction.js";
-import { extractJsonLdNutrition } from "./nutrition-evidence-extraction.js";
-import type { SemanticCandidateGateProvider } from "./semantic-candidate-gate.js";
+import { extractJsonLdNutrition, extractVisibleTextNutrition } from "./nutrition-evidence-extraction.js";
+import type { SemanticCandidateGateProvider, SemanticCandidateGateStatus } from "./semantic-candidate-gate.js";
 import { classifySourceTier, isAuthoritativeTier, validateAndNormalizeEvidence, type EvidenceSourceTier, type NutritionEvidence } from "./nutrition-evidence.js";
 import { fetchPublicHtml, type SafeFetcherDependencies } from "../recipes/safe-url-fetcher.js";
 import { htmlToSafeText } from "../recipes/recipe-import.js";
@@ -89,9 +89,16 @@ export type WebEvidenceCandidateDiagnostic = {
   tier: EvidenceSourceTier;
   fetch: "ok" | "failed";
   fetchError?: string;
-  extractionMethod?: "json_ld" | "llm_grounded";
+  extractionMethod?: "json_ld" | "html_table" | "llm_grounded";
   extractionVerdict?: "grounded" | "ungrounded" | "no_evidence";
   identityVerdict?: "approved" | "rejected" | "gate_disabled";
+  semanticGateAttempted?: boolean;
+  semanticGateStatus?: SemanticCandidateGateStatus;
+  semanticGateVerdict?: "approved" | "negative" | "unavailable";
+  semanticGateReasonCode?: string;
+  providerFailureClass?: "schema" | "abort" | "rate_limit" | "request" | "upstream" | "invalid_response" | "transport";
+  requestedIdentity?: string;
+  sourceFoodName?: string;
 };
 
 export type WebEvidenceFallbackDiagnostics = {
@@ -111,11 +118,52 @@ export type WebEvidenceFallbackDiagnostics = {
   rejectionReason?: string;
 };
 
+// Decision-transparency audit (2026-09-19): a small, CLOSED, always-safe
+// category derived from the already-computed WebEvidenceFallbackDiagnostics
+// — distinct from that object itself (which carries domains, URLs and
+// per-candidate detail that stay staging/developer-only, see
+// isProductionDeployment() in interpret.ts). This category alone is safe to
+// show every user, in every environment: it names WHY, never WHAT (no
+// domain, no URL, no page text).
+export type WebEvidenceOutcomeCategory = "not_configured" | "rate_limited" | "search_failed" | "no_authoritative_source" | "nutrition_missing" | "identity_mismatch" | "success";
+
+export function summarizeWebEvidenceOutcome(diagnostics: WebEvidenceFallbackDiagnostics, succeeded: boolean): WebEvidenceOutcomeCategory {
+  if (succeeded) return "success";
+  switch (diagnostics.rejectionReason) {
+    case "no_provider_configured": return "not_configured";
+    case "rate_limited": return "rate_limited";
+    case "search_failed": return "search_failed";
+    case "no_authoritative_candidates": return "no_authoritative_source";
+    case "no_evidence_passed_all_gates": {
+      // The chain tried at least one candidate page but never reached a
+      // persisted result — distinguish "we never even got usable numbers
+      // off any page" from "we got numbers, but couldn't confirm they were
+      // for the right food" using the per-candidate trail already recorded.
+      if (diagnostics.candidates.some((c) => c.identityVerdict === "rejected")) return "identity_mismatch";
+      if (diagnostics.candidates.some((c) => c.extractionVerdict === "no_evidence" || c.extractionVerdict === "ungrounded")) return "nutrition_missing";
+      return "no_authoritative_source";
+    }
+    default: return "no_authoritative_source";
+  }
+}
+
 // Category-only observability (Phase 21) — no query text, no page text, no
 // API keys, no user id; mirrors dynamic-food-resolution.ts's own
 // logDynamicResolutionOutcome exactly.
 function logWebEvidenceFallbackOutcome(diagnostics: WebEvidenceFallbackDiagnostics, resolved: boolean) {
   console.log(`web_evidence_fallback resolved=${resolved} candidates=${diagnostics.candidateDomains.length} fetchFailures=${diagnostics.fetchFailures.length}${diagnostics.sourceTier ? ` tier=${diagnostics.sourceTier}` : ""}${diagnostics.identityVerdict ? ` identity=${diagnostics.identityVerdict}` : ""}${diagnostics.extractionVerdict ? ` extraction=${diagnostics.extractionVerdict}` : ""}${diagnostics.rejectionReason ? ` reason=${diagnostics.rejectionReason}` : ""}`);
+}
+
+function sourceFoodNameFromHtml(html: string, fallback: string): string {
+  const documentTitle = html.match(/<title\b[^>]*>([\s\S]*?)<\/title>/iu)?.[1];
+  if (documentTitle) {
+    const text = htmlToSafeText(documentTitle).trim();
+    if (text && text.length <= 200) return text;
+  }
+  const heading = html.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/iu)?.[1];
+  if (!heading) return fallback;
+  const text = htmlToSafeText(heading).trim();
+  return text && text.length <= 200 ? text : fallback;
 }
 
 /**
@@ -210,18 +258,21 @@ export async function attemptWebEvidenceFallback(query: string, originalIdentity
     // Deterministic extraction first (no AI call, exact when available);
     // only falls back to the LLM-grounded extractor when nothing
     // machine-readable was found on the page.
-    const extracted = extractJsonLdNutrition(html)
-      ?? await timeStage("web_evidence_extraction_ai", () => deps.extractionProvider.extract({ requestedIdentity: originalIdentity, canonicalIdentity: query, sourceDomain: result.domain, sourceTitle: result.title, pageText: htmlToSafeText(html) }));
+    const safeText = htmlToSafeText(html);
+    const groundedIdentity = sourceFoodNameFromHtml(html, result.title);
+    const extracted = extractJsonLdNutrition(html, groundedIdentity)
+      ?? extractVisibleTextNutrition(safeText, groundedIdentity)
+      ?? await timeStage("web_evidence_extraction_ai", () => deps.extractionProvider.extract({ requestedIdentity: originalIdentity, canonicalIdentity: query, sourceDomain: result.domain, sourceTitle: result.title, pageText: safeText }));
     if (!extracted) {
       candidateDiag.extractionVerdict = "no_evidence";
       diagnostics.extractionVerdict = "no_evidence";
       continue;
     }
-    candidateDiag.extractionMethod = extracted.extractionMethod === "json_ld" ? "json_ld" : "llm_grounded";
+    candidateDiag.extractionMethod = extracted.extractionMethod;
     // JSON-LD quotes are raw snippets of the original html; LLM quotes are
     // taken from the stripped visible text — ground each against the text
     // it was actually drawn from.
-    const groundingSource = extracted.extractionMethod === "json_ld" ? html : htmlToSafeText(html);
+    const groundingSource = extracted.extractionMethod === "json_ld" ? html : safeText;
     const evidence = validateAndNormalizeEvidence(extracted, groundingSource, {
       sourceUrl: finalUrl, sourceDomain: result.domain, sourceTitle: result.title, sourceTier: tier,
       retrievedAt: new Date().toISOString(), requestedIdentity: originalIdentity, canonicalIdentity: query
@@ -243,17 +294,29 @@ export async function attemptWebEvidenceFallback(query: string, originalIdentity
       diagnostics.identityVerdict = "gate_disabled";
       continue;
     }
-    const verdicts = await timeStage("web_evidence_identity_gate", () => deps.semanticGateProvider.checkRelevance(
-      { identity: originalIdentity, canonicalIdentity: query, locale: deps.locale },
-      [{ id: "evidence", authoritativeName: evidence.sourceFoodName }]
-    ));
+    candidateDiag.semanticGateAttempted = true;
+    candidateDiag.requestedIdentity = originalIdentity.slice(0, 160);
+    candidateDiag.sourceFoodName = evidence.sourceFoodName.slice(0, 160);
+    const gateInput = { identity: originalIdentity, canonicalIdentity: query, locale: deps.locale };
+    const gateCandidates = [{ id: "evidence", authoritativeName: evidence.sourceFoodName }];
+    const detailed = deps.semanticGateProvider.checkRelevanceDetailed
+      ? await timeStage("web_evidence_identity_gate", () => deps.semanticGateProvider.checkRelevanceDetailed!(gateInput, gateCandidates))
+      : null;
+    const verdicts = detailed?.verdicts ?? await timeStage("web_evidence_identity_gate", () => deps.semanticGateProvider.checkRelevance(gateInput, gateCandidates));
     const verdict = verdicts.get("evidence");
+    if (detailed) {
+      candidateDiag.semanticGateStatus = detailed.diagnostic.status;
+      candidateDiag.semanticGateReasonCode = detailed.diagnostic.reasonCode;
+      candidateDiag.providerFailureClass = detailed.diagnostic.providerFailureClass;
+    }
     if (verdict !== true && verdict !== "best_match" && verdict !== "acceptable_alternative") {
       candidateDiag.identityVerdict = "rejected";
+      candidateDiag.semanticGateVerdict = detailed?.diagnostic.status === "completed" && detailed.diagnostic.decisions.has("evidence") ? "negative" : "unavailable";
       diagnostics.identityVerdict = "rejected";
       continue;
     }
     candidateDiag.identityVerdict = "approved";
+    candidateDiag.semanticGateVerdict = "approved";
     diagnostics.identityVerdict = "approved";
     diagnostics.selectedSourceUrl = finalUrl;
     diagnostics.sourceTier = tier;

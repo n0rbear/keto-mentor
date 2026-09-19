@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { AiProviderError } from "../ai/chat-completions-provider.js";
 import {
   ChatSemanticCandidateGateProvider, DisabledSemanticCandidateGateProvider,
   SEMANTIC_CANDIDATE_GATE_INSTRUCTION, type SemanticCandidateGateTransport
@@ -160,11 +161,57 @@ describe("ChatSemanticCandidateGateProvider", () => {
     expect(result.size).toBe(0);
   });
 
+  it("diagnoses a genuine negative semantic verdict separately from provider/schema failure while still rejecting", async () => {
+    const complete = vi.fn(async (_i: string, _input: string, validate: (v: unknown) => unknown) => validate({ results: [{ id: "0", relationship: "different_prepared_food", formCompatibility: "incompatible", contextualFit: "acceptable_alternative" }] }));
+    const result = await new ChatSemanticCandidateGateProvider(fakeTransport(complete)).checkRelevanceDetailed(
+      { identity: "mustard" },
+      [{ id: "0", authoritativeName: "Mustard greens, raw" }]
+    );
+    expect(result.verdicts.get("0")).toBe(false);
+    expect(result.diagnostic).toMatchObject({ status: "completed", reasonCode: "verdict_returned" });
+    expect(result.diagnostic.providerFailureClass).toBeUndefined();
+    expect(result.diagnostic.decisions.get("0")).toMatchObject({ relationship: "different_prepared_food", formCompatibility: "incompatible" });
+  });
+
+  it("diagnoses provider failure without exposing the error text and remains fail-closed", async () => {
+    const result = await new ChatSemanticCandidateGateProvider(fakeTransport(async () => { throw new Error("secret upstream detail"); })).checkRelevanceDetailed(
+      { identity: "product" },
+      [{ id: "0", authoritativeName: "Product title" }]
+    );
+    expect(result.verdicts.size).toBe(0);
+    expect(result.diagnostic).toEqual({ status: "provider_failure", reasonCode: "provider_error", providerFailureClass: "transport", decisions: new Map() });
+    expect(JSON.stringify(result.diagnostic)).not.toContain("secret upstream detail");
+  });
+
+  it.each([
+    [new AiProviderError("http_error", 429), "provider_rate_limited", "rate_limit"],
+    [new AiProviderError("http_error", 400), "provider_request_rejected", "request"],
+    [new AiProviderError("http_error", 503), "provider_upstream_error", "upstream"],
+    [new AiProviderError("invalid_response"), "provider_invalid_response", "invalid_response"],
+    [new AiProviderError("timeout"), "request_aborted", "abort"]
+  ] as const)("classifies the bounded provider failure %s without exposing upstream content", async (error, reasonCode, providerFailureClass) => {
+    const result = await new ChatSemanticCandidateGateProvider(fakeTransport(async () => { throw error; })).checkRelevanceDetailed(
+      { identity: "product" }, [{ id: "0", authoritativeName: "Product" }]
+    );
+    expect(result.verdicts.size).toBe(0);
+    expect(result.diagnostic).toMatchObject({ reasonCode, providerFailureClass });
+  });
+
   it("returns an EMPTY map when the transport returns a schema-invalid/poisoned payload", async () => {
     const complete = vi.fn(async (_i: string, _input: string, validate: (v: unknown) => unknown) => validate({ results: [{ id: "0", relationship: "same_identity", formCompatibility: "compatible", contextualFit: "best_match", kcalPer100g: 77 }] }));
     const provider = new ChatSemanticCandidateGateProvider(fakeTransport(complete));
     const result = await provider.checkRelevance({ identity: "burgonya" }, [{ id: "0", authoritativeName: "Potatoes, raw" }]);
     expect(result.size).toBe(0);
+  });
+
+  it("diagnoses an invalid structured response as schema failure and remains fail-closed", async () => {
+    const complete = vi.fn(async (_i: string, _input: string, validate: (v: unknown) => unknown) => validate({ results: [{ id: "0", relationship: "same_identity", formCompatibility: "compatible", contextualFit: "best_match", kcal: 42 }] }));
+    const result = await new ChatSemanticCandidateGateProvider(fakeTransport(complete)).checkRelevanceDetailed(
+      { identity: "product" },
+      [{ id: "0", authoritativeName: "Product" }]
+    );
+    expect(result.verdicts.size).toBe(0);
+    expect(result.diagnostic).toEqual({ status: "schema_failure", reasonCode: "invalid_response_schema", providerFailureClass: "schema", decisions: new Map() });
   });
 
   it("returns an EMPTY map when the transport returns a relationship value outside the enum (e.g. a stray boolean or free text)", async () => {

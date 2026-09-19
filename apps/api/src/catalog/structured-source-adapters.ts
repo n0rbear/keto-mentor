@@ -93,6 +93,10 @@ export class UsdaFoodDataCentralLookupAdapter implements ConfirmableFoodLookupAd
 export interface OpenFoodFactsLookupAdapter extends StructuredFoodLookupAdapter {
   readonly source: Extract<FoodSource, "open_food_facts">;
   lookupBarcode(barcode: string): Promise<unknown[]>;
+  // Optional (mirrors the existing estimateDetailed/checkRelevanceDetailed
+  // pattern elsewhere in this codebase): present on the real adapter, absent
+  // on lighter test doubles that only need barcode lookups.
+  searchByName?(query: string, opts?: { locale?: string; limit?: number }): Promise<unknown[]>;
 }
 
 const OFF_MAX = { kcal: 1000, fat: 200, protein: 200, carbs: 200, fiber: 100 } as const;
@@ -185,14 +189,50 @@ export function normalizeOffProduct(raw: any, barcode: string): ExternalFoodCand
 
 const OFF_PRODUCT_FIELDS = "product_name,product_name_en,generic_name,brands,categories,nutriments,code";
 
+// Routing audit (2026-09-19): search.openfoodfacts.org's "search-a-licious"
+// service is OFF's current recommended text-search API (the legacy
+// /cgi/search.pl endpoint is explicitly documented as unsuited for new
+// integrations, and OFF's v2/v3 product API has no free-text search at
+// all). Verified live against the real endpoint: `GET /search?q=...&langs=
+// ..&page_size=..&fields=..` returns `{ count, hits: [...] }`, where each
+// hit is already a FLAT object (code/product_name/brands[]/nutriments/
+// categories/lang) — a different shape from the nested `{status,
+// product:{...}}` the by-barcode endpoint returns, so it's reshaped into
+// that same nested shape before reuse of the existing normalizeOffProduct
+// (keeps exactly one nutrition-sanity/name-sanitization code path for both
+// entry points, never a second parallel one that could silently drift).
+const OFF_SEARCH_DEFAULT_LIMIT = 5;
+const OFF_SEARCH_MAX_LIMIT = 10;
+const OFF_SEARCH_FIELDS = "code,product_name,product_name_en,generic_name,brands,categories,nutriments,lang";
+
+function normalizeOffSearchHit(hit: any): ExternalFoodCandidate | { name?: string; brand?: string } | null {
+  if (!hit || typeof hit !== "object" || !hit.code) return null;
+  const product = {
+    product_name: hit.product_name, product_name_en: hit.product_name_en, generic_name: hit.generic_name,
+    brands: Array.isArray(hit.brands) ? hit.brands.join(", ") : hit.brands,
+    categories: hit.categories, nutriments: hit.nutriments
+  };
+  return normalizeOffProduct({ status: 1, product }, String(hit.code));
+}
+
 /**
- * Real Open Food Facts adapter: barcode-only. lookup() (the generic
- * text-search entry point required by StructuredFoodLookupAdapter) is
- * intentionally a no-op — ordinary food-name text search must never hit
- * Open Food Facts, only an explicit barcode lookup may. lookupById exists
- * so the existing confirmAuthoritativeFood flow (which re-fetches by ID
- * at confirmation time) works unchanged for barcode-sourced products too,
- * since sourceId is the barcode itself.
+ * Real Open Food Facts adapter: barcode-only for the ordinary lookup()
+ * entry point required by StructuredFoodLookupAdapter — ordinary food-name
+ * text search must never silently start hitting Open Food Facts through
+ * the existing dynamic-resolution chain, only an explicit barcode lookup
+ * may (that routing decision — category-expansion validation, branded-
+ * product search — is separate, larger work; see the routing audit's own
+ * report). lookupById exists so the existing confirmAuthoritativeFood flow
+ * (which re-fetches by ID at confirmation time) works unchanged for
+ * barcode-sourced products too, since sourceId is the barcode itself.
+ *
+ * searchByName() is a genuine, separately-tested name/brand text-search
+ * capability (Open Food Facts routing audit, 2026-09-19) — intentionally
+ * NOT wired into lookup() or any automatic resolution path yet. It has no
+ * rate limiter of its own here on purpose: search-a-licious's own request
+ * budget is undocumented (unlike the legacy endpoint's published 10 req/
+ * min/IP), so any caller that wires this in must give it its own explicit,
+ * reviewed budget rather than inherit one implicitly.
  */
 export class OpenFoodFactsProductAdapter implements OpenFoodFactsLookupAdapter, ConfirmableFoodLookupAdapter {
   readonly source = "open_food_facts" as const;
@@ -216,5 +256,29 @@ export class OpenFoodFactsProductAdapter implements OpenFoodFactsLookupAdapter, 
   async lookupById(sourceId: string) {
     const [first] = await this.lookupBarcode(sourceId);
     return first ?? null;
+  }
+
+  // Bounded, sanity-checked name/brand search. Returns only fully-usable
+  // candidates (real macros within OFF_MAX's sanity bounds) — a hit whose
+  // nutrition is missing/implausible is dropped here rather than surfaced
+  // as a `{name, brand}`-only partial (that shape exists for a single
+  // confirmed barcode's "found but incomplete" notice, not for a noisy
+  // multi-result search list where a partial entry can't be told apart
+  // from a good one). Never auto-confirms anything — the caller still owns
+  // the "review required" decision this list is offered into.
+  async searchByName(query: string, opts: { locale?: string; limit?: number } = {}): Promise<ExternalFoodCandidate[]> {
+    const trimmed = query.trim();
+    if (!trimmed) return [];
+    const limit = Math.min(Math.max(Math.trunc(opts.limit ?? OFF_SEARCH_DEFAULT_LIMIT), 1), OFF_SEARCH_MAX_LIMIT);
+    const params = new URLSearchParams({ q: trimmed, page_size: String(limit), fields: OFF_SEARCH_FIELDS });
+    if (opts.locale) params.set("langs", opts.locale);
+    const response = await this.fetcher(`https://search.openfoodfacts.org/search?${params.toString()}`, {
+      headers: { Accept: "application/json", "User-Agent": OFF_USER_AGENT },
+      signal: AbortSignal.timeout(OFF_FETCH_TIMEOUT_MS)
+    });
+    const payload = await readBoundedOffJson(response);
+    const hits = Array.isArray(payload?.hits) ? payload.hits.slice(0, OFF_SEARCH_MAX_LIMIT) : [];
+    const candidates = hits.map((hit: unknown) => normalizeOffSearchHit(hit));
+    return candidates.filter((candidate: ReturnType<typeof normalizeOffSearchHit>): candidate is ExternalFoodCandidate => !!candidate && "kcalPer100g" in candidate);
   }
 }

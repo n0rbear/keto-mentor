@@ -400,7 +400,7 @@ app.post("/meal-input/interpret", requireAuth, async (req, res, next) => {
     // the already-computed, already-response-bound result above — see
     // diagnostics.ts. Never a second AI/network call, never data the client
     // couldn't already see elsewhere in this same JSON body.
-    res.json({ ...withDiscovery, diagnostics: buildDiagnostics(withDiscovery) });
+    res.json({ ...withDiscovery, diagnostics: buildDiagnostics(withDiscovery, trustedLocale(req.user!)) });
   } catch (error) {
     next(error);
   } finally {
