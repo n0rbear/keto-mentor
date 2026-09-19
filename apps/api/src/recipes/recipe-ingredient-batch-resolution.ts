@@ -7,6 +7,8 @@ import type { ParsedNaturalFoodQuery } from "../catalog/natural-food-query.js";
 import type { RecipeIngredientNormalizationProvider } from "./recipe-ingredient-normalization.js";
 import { DisabledRecipeQuantityEstimationProvider, type RecipeQuantityEstimationProvider } from "./recipe-quantity-estimation.js";
 import type { ReviewableIngredient } from "./recipe-ingredient-review.js";
+import { attemptFallbackChain } from "../catalog/dynamic-food-resolution.js";
+import { createAiEstimateProof } from "../catalog/ai-estimate-proof.js";
 
 type SearchablePrisma = Parameters<typeof searchFoods>[0];
 export type BatchResolvedIngredient = ReviewableIngredient & { canConfirm: boolean };
@@ -59,6 +61,7 @@ export async function resolveRecipeIngredientsBatch(
     food: { canonicalIdentity: string; preparation?: string }; singleFoodLine: boolean; identityQuery: string;
     selectedFood: any; resolution: ReviewableIngredient["resolution"]; candidates: ReviewableIngredient["candidates"];
     externalCandidates?: ReviewableIngredient["externalCandidates"]; externalCandidatesReason?: ReviewableIngredient["externalCandidatesReason"];
+    aiEstimate?: ReviewableIngredient["aiEstimate"];
   };
   const drafts: Draft[] = [];
   const pending: PendingAuthoritativeResolution[] = [];
@@ -155,7 +158,20 @@ export async function resolveRecipeIngredientsBatch(
       if (!outcome) continue; // this draft resolved locally — never sent to the batch resolver
       if (outcome.status === "resolved") { draft.selectedFood = outcome.food; draft.resolution = "resolved"; draft.candidates = [outcome.food]; }
       else if (outcome.status === "confirmation_required") { draft.resolution = "confirmation_required"; draft.externalCandidates = outcome.candidates; draft.externalCandidatesReason = outcome.reason; }
-      // "unresolved" leaves the draft's initial unresolved state untouched.
+      else if (outcome.status === "unresolved" && ["not_found", "invalid_external_data", "external_unavailable"].includes(outcome.reason)
+        && (dynamic.webEvidenceFallback || dynamic.aiEstimation)) {
+        // Authoritative batch already exhausted this identity. Reuse the
+        // shared last-resort chain without repeating structured lookups.
+        const fallback = await attemptFallbackChain(dynamic.prisma, draft.identityQuery, draft.identityQuery,
+          "normalized_identity", dynamic, dynamic.locale, { rawIngredient: draft.line.raw, recipeTitle: input.title },
+          outcome.reason as "not_found" | "invalid_external_data" | "external_unavailable", {});
+        if (fallback.status === "resolved") {
+          draft.selectedFood = fallback.food; draft.resolution = "resolved"; draft.candidates = [fallback.food];
+        } else if (fallback.status === "ai_estimate_pending") {
+          draft.aiEstimate = { ...fallback.estimate, requestedIdentity: fallback.requestedIdentity, canonicalIdentity: fallback.canonicalIdentity,
+            proof: createAiEstimateProof(dynamic.userId, { ...fallback.estimate, requestedIdentity: fallback.requestedIdentity }) };
+        }
+      }
     }
   }
 
@@ -181,7 +197,7 @@ export async function resolveRecipeIngredientsBatch(
     results[draft.resultIndex] = {
       originalText: line.raw, parsedQuantity: singleFoodLine ? line.parsed.quantity : undefined, parsedUnit: singleFoodLine ? line.parsed.unit : undefined,
       parsedFoodQuery: identityQuery, preparation: food.preparation ?? line.parsed.preparation,
-      resolution, selectedFood, candidates, quantity, quantitySource,
+      resolution, selectedFood, candidates, quantity, quantitySource, aiEstimate: draft.aiEstimate,
       quantityGrams: quantity?.status === "resolved" ? quantity.grams : undefined,
       quantityRange: singleFoodLine && line.parsed.quantityUpper != null ? { min: line.parsed.quantity!, max: line.parsed.quantityUpper, unit: line.parsed.unit } : undefined,
       excludeFromNutrition, canConfirm: resolution === "resolved" && (!!quantity || excludeFromNutrition), externalCandidates, externalCandidatesReason

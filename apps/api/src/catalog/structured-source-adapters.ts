@@ -3,6 +3,7 @@ import { normalizeSearch } from "./normalize.js";
 import type { ConfirmableFoodLookupAdapter, ExternalFoodCandidate, StructuredFoodLookupAdapter } from "./external-food.js";
 import { mapNutrient, OFF_NUTRIENT_MAP, USDA_NUTRIENT_MAP } from "../importers/nutrient-mapping.js";
 import type { ImportNutrient } from "../importers/types.js";
+import { DynamicFoodResolutionRateLimiter } from "./dynamic-food-rate-limit.js";
 
 type FetchLike = typeof fetch;
 const MAX_USDA_RESPONSE_BYTES = 1_000_000;
@@ -210,7 +211,7 @@ function normalizeOffSearchHit(hit: any): ExternalFoodCandidate | { name?: strin
   const product = {
     product_name: hit.product_name, product_name_en: hit.product_name_en, generic_name: hit.generic_name,
     brands: Array.isArray(hit.brands) ? hit.brands.join(", ") : hit.brands,
-    categories: hit.categories, nutriments: hit.nutriments
+    categories: Array.isArray(hit.categories) ? hit.categories.join(", ") : hit.categories, nutriments: hit.nutriments
   };
   return normalizeOffProduct({ status: 1, product }, String(hit.code));
 }
@@ -280,5 +281,17 @@ export class OpenFoodFactsProductAdapter implements OpenFoodFactsLookupAdapter, 
     const hits = Array.isArray(payload?.hits) ? payload.hits.slice(0, OFF_SEARCH_MAX_LIMIT) : [];
     const candidates = hits.map((hit: unknown) => normalizeOffSearchHit(hit));
     return candidates.filter((candidate: ReturnType<typeof normalizeOffSearchHit>): candidate is ExternalFoodCandidate => !!candidate && "kcalPer100g" in candidate);
+  }
+}
+
+/** Shared process budget: at most ten text searches per minute across users.
+ * Products still pass the resolver's structural and semantic identity gates.
+ */
+const offNameSearchBudget = new DynamicFoodResolutionRateLimiter(Date.now, { windowMs: 60_000, limit: 10 });
+export class OpenFoodFactsNameAdapter extends OpenFoodFactsProductAdapter {
+  async lookup(query = ""): Promise<ExternalFoodCandidate[]> {
+    if (!query.trim()) return [];
+    if (!offNameSearchBudget.consume("off-name-search")) throw new Error("Open Food Facts name search budget exhausted");
+    return this.searchByName(query, { limit: 10 });
   }
 }

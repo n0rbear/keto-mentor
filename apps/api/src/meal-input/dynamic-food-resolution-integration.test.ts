@@ -231,7 +231,7 @@ describe("dynamic trusted food resolution: end-to-end via interpretMealInput", (
     expect(result.selectedFood).toBeNull();
     // Never forged/invented nutrition on the unresolved-pending-choice result.
     expect(result.quantity).toBeNull();
-    expect(ai.calls).toBe(0);
+    expect(ai.calls).toBe(1); // understanding now precedes dynamic lookup
   });
 
   // Owner-beta (2026-09-14): live pre-merge validation of PR #52 proved

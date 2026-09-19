@@ -499,7 +499,7 @@ describe("local-catalog candidate selection UI (preview / confirmation_required)
     const buttons = screen.getAllByText(dict.en.foodUnderstanding.candidateSelect);
     expect(buttons).toHaveLength(2);
     fireEvent.click(buttons[0]);
-    expect(onSelect).toHaveBeenCalledExactlyOnceWith(sconeCandidate);
+    expect(onSelect).toHaveBeenCalledExactlyOnceWith(sconeCandidate, 1);
     // "Log all" must stay disabled — an unconfirmed preview item is present.
     expect((screen.getByRole("button", { name: dict.en.foodUnderstanding.logAll }) as HTMLButtonElement).disabled).toBe(true);
   });

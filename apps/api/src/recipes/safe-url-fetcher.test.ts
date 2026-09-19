@@ -5,6 +5,15 @@ const publicDns = vi.fn(async () => [{ address: "93.184.216.34", family: 4 }]);
 const htmlResponse = (overrides: Partial<{ status: number; headers: Record<string, string>; body: Buffer }> = {}) => ({ status: 200, headers: { "content-type": "text/html; charset=utf-8" }, body: Buffer.from("<html></html>"), ...overrides });
 
 describe("recipe URL SSRF policy", () => {
+  it("accepts a Mindmegette-sized page within the bounded 2 MB budget and removes browser fragments", async () => {
+    const request = vi.fn(async (url: URL) => {
+      expect(url.hash).toBe("");
+      return htmlResponse({ body: Buffer.from("<html>" + " ".repeat(1_250_000) + "</html>") });
+    });
+    const page = await fetchPublicHtml("https://www.mindmegette.hu/recept/citromos-pofeteg-keksz#google_vignette", { resolve: publicDns, request });
+    expect(page.finalUrl).toBe("https://www.mindmegette.hu/recept/citromos-pofeteg-keksz");
+    expect(RECIPE_PAGE_MAX_BYTES).toBe(2_000_000);
+  });
   it.each(["127.0.0.1", "10.0.0.1", "172.16.1.1", "192.168.1.1", "169.254.169.254", "224.0.0.1", "::1", "fe80::1", "fc00::1", "2001:db8::1", "::ffff:127.0.0.1", "64:ff9b::127.0.0.1", "2001::1", "2002::1", "2001:20::1", "3fff::1"])("rejects non-public address %s", (address) => expect(isPublicAddress(address)).toBe(false));
   it("accepts public IPv4 and IPv6", () => { expect(isPublicAddress("93.184.216.34")).toBe(true); expect(isPublicAddress("2606:2800:220:1:248:1893:25c8:1946")).toBe(true); });
   it.each(["http://localhost/a", "http://127.0.0.1/a", "http://[::1]/a", "file:///etc/passwd"])("blocks %s", async (url) => {

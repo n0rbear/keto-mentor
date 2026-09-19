@@ -293,6 +293,6 @@ export async function searchFoods(prisma: CatalogPrisma, rawQuery: string, limit
   return candidates
     .map((food) => ({ ...food, match: scoreFood(food, variants, aliasesByFood, fuzzyIds) }))
     .filter((food) => food.match.score > 0)
-    .sort((a, b) => b.match.score - a.match.score || a.name.localeCompare(b.name))
+    .sort((a, b) => b.match.score - a.match.score || Number(b.source === "bls") - Number(a.source === "bls") || a.name.localeCompare(b.name))
     .slice(0, take);
 }

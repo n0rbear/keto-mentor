@@ -286,7 +286,7 @@ type ResolveFromSearchTermDeps = {
 // must never run for an already-resolved food) holds by construction: this
 // is only ever called when resolveAuthoritativeFood did NOT produce a
 // convergence-verified "resolved" outcome.
-async function attemptFallbackChain(
+export async function attemptFallbackChain(
   prisma: DynamicPrisma,
   searchTerm: string,
   originalIdentity: string,

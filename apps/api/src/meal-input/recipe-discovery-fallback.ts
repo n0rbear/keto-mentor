@@ -115,6 +115,7 @@ function toCandidateShape(extracted: ExtractedPreview, reviews: readonly RecipeI
     ingredientWeightGrams: trusted.weightGrams,
     recipeState: summary.state === "fully_resolved" ? "fully_resolved" : "reviewable",
     ingredients: reviews,
+    instructions: extracted.instructions,
     importProof
   };
 }
@@ -133,12 +134,12 @@ type AttemptResult =
  * candidate is:
  *  - "fully_resolved" when EVERY ingredient reached trusted nutrition —
  *    the caller stops immediately, this is the best possible outcome;
- *  - "reviewable" when extraction succeeded and at least one ingredient has
- *    something a human can act on (resolved or confirmation_required) —
+ *  - "reviewable" whenever extraction supplies ingredient rows, even when
+ *    none has resolved yet; the source recipe remains useful for review —
  *    the caller remembers it but keeps trying the remaining bounded
  *    candidates in case a fully_resolved one turns up;
- *  - "unusable" when extraction failed for a page-level reason, or every
- *    single ingredient is a dead end — try the next candidate exactly as
+ *  - "unusable" when extraction failed for a page-level reason or contains
+ *    no ingredient rows — try the next candidate exactly as
  *    before (owner-beta blocker #5).
  * A candidate is never discarded merely because some ingredients are
  * confirmation_required (owner-beta blocker #6) — that was the prior
@@ -165,7 +166,7 @@ async function attemptCandidate(index: number, candidate: RecipeDiscoveryCandida
   const reviews = extracted.ingredients.map((ingredient) => toIngredientReview(ingredient as unknown as ReviewableIngredient));
   const summary = classifyRecipeReview(reviews);
 
-  if (summary.state === "unusable") {
+  if (!reviews.length) {
     logCandidateAttempt(index, candidate.domain, "unusable", {
       fetch: "ok", extraction: "ok", ingredients: reviews.length,
       resolved: summary.resolvedCount, confirmationRequired: summary.confirmationRequiredCount, unresolved: summary.unresolvedCount,

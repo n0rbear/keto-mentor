@@ -207,6 +207,7 @@ async function resolveIngredientsPerLine(
       parsedFoodQuery: resolution.parsed.foodQuery,
       preparation: resolution.preparation,
       resolution: resolution.foodResolution,
+      aiEstimate: resolution.aiEstimate,
       selectedFood: resolution.selectedFood,
       candidates: resolution.candidates,
       quantity: resolution.quantity,

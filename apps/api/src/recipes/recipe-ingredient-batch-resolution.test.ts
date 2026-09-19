@@ -1,4 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { AiEstimateRateLimiter } from "../catalog/ai-estimate-rate-limit.js";
+import { toIngredientReview } from "./recipe-ingredient-review.js";
 import { resolveRecipeIngredientsBatch } from "./recipe-ingredient-batch-resolution.js";
 import { parseNaturalFoodQuery } from "../catalog/natural-food-query.js";
 import { normalizeSearch } from "../catalog/normalize.js";
@@ -77,6 +79,27 @@ function normalizationProvider(output: unknown): RecipeIngredientNormalizationPr
 }
 
 describe("resolveRecipeIngredientsBatch", () => {
+  afterEach(() => vi.unstubAllEnvs());
+  it("estimates only the one unresolved ingredient among four local matches, without persisting or counting pending nutrition", async () => {
+    vi.stubEnv("JWT_ACCESS_SECRET", "s".repeat(32));
+    const { prisma, persisted } = fakePrisma();
+    prisma.food.findFirst = vi.fn(async () => null);
+    const estimate = vi.fn(async () => ({ canonicalFoodName: "Yeast extract", basisGrams: 100 as const,
+      kcalPer100g: 180, proteinPer100g: 24, fatPer100g: 1, carbsPer100g: 14, fiberPer100g: 3,
+      confidence: "low" as const, assumptions: "Typical yeast extract", identityConfidence: "high" as const }));
+    const dynamic = dynamicDeps(prisma, async () => []);
+    dynamic.aiEstimation = { provider: { id: "fixture", estimate }, rateLimiter: new AiEstimateRateLimiter() };
+    const identities = ["onion", "onion", "onion", "onion", "yeast extract"];
+    const result = await resolveRecipeIngredientsBatch(prisma,
+      normalizationProvider({ ingredients: identities.map((canonicalIdentity, index) => ({ index, foods: [{ canonicalIdentity }] })) }),
+      { title: "Test recipe", lines: identities.map((identity, index) => ({ index, raw: `100 g ${identity}`, parsed: parseNaturalFoodQuery(`100 g ${identity}`) })) }, dynamic);
+    expect(estimate).toHaveBeenCalledTimes(1);
+    expect(estimate.mock.calls[0]).toEqual([expect.objectContaining({ requestedIdentity: "yeast extract" })]);
+    expect(result?.slice(0, 4).every((row) => row.selectedFood?.id === "local-onion")).toBe(true);
+    expect(result?.[4]).toMatchObject({ resolution: "unresolved", selectedFood: null, aiEstimate: { confidence: "low", proof: expect.any(String) } });
+    expect(toIngredientReview(result![4])).toMatchObject({ trustedNutritionReady: false, resolvedFood: null });
+    expect(persisted).toHaveLength(0);
+  });
   it("prefers canonical identity over a misleading exact source-phrase match", async () => {
     const foods = [
       { id: "greens", name: "Mustard greens, raw", names: { hu: "mustár" }, searchText: "mustár mustard greens raw", createdById: null, servings: [] },

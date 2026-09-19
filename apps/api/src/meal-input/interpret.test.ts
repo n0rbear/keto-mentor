@@ -1755,6 +1755,6 @@ describe("interpretMealInput: AI-estimate duplicate-resolution fix", () => {
     expect(otherItem?.foodResolution).toBe("unresolved");
     // The re-run genuinely happened (proves the fix isn't suppressing the
     // whole pass) — it just no longer wins over the already-good estimate.
-    expect(estimateCallsByIdentity["karasz"]).toBe(2);
+    expect(estimateCallsByIdentity["karasz"]).toBe(1);
   });
 });

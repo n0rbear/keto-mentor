@@ -26,6 +26,16 @@ function fakePrisma(seed = [fullRecipe()]) {
 const input: any = { title: "Changed", visibility: "private", sourceType: "manual", ingredients: [{ foodId: "f1", quantityGrams: 100 }] };
 
 describe("recipe visibility and ownership", () => {
+  it.each(["private", "public"])("scopes ingredient lookup for a %s recipe", async (visibility) => {
+    const { prisma } = fakePrisma([]);
+    prisma.food.count = async ({ where }: any) => {
+      expect(where.id).toEqual({ in: ["f1"] });
+      if (visibility === "public") expect(where.createdById).toBeNull();
+      else expect(where.OR).toEqual([{ createdById: null }, { createdById: "owner" }]);
+      return 0;
+    };
+    await expect(createRecipe(prisma, "owner", { ...input, visibility })).rejects.toMatchObject({ publicCode: "food_not_found" });
+  });
   it("persists ordered instructions on create and update", async () => {
     const { prisma, recipes } = fakePrisma([]);
     await createRecipe(prisma, "owner", { ...input, instructions: ["First", "Second"] });

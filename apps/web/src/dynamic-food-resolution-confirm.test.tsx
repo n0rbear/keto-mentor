@@ -2,6 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { App } from "./main";
+import { quantityLabels } from "./i18n";
 
 afterEach(() => { vi.restoreAllMocks(); localStorage.clear(); });
 beforeEach(() => localStorage.setItem("km_token", "test-token"));
@@ -48,8 +49,8 @@ function stubFetch({ onConfirm }: { onConfirm: () => void }) {
   }));
 }
 
-describe("dynamic food resolution: confirming an external candidate re-resolves locally", () => {
-  it("shows candidates, confirms via source+sourceId only, then re-interprets to a resolved local Food", async () => {
+describe("dynamic food resolution: confirming an external candidate", () => {
+  it("shows candidates and applies the Food returned by confirmation via source+sourceId only", async () => {
     let confirmCalled = false;
     stubFetch({ onConfirm: () => { confirmCalled = true; } });
     render(<App/>);
@@ -66,5 +67,48 @@ describe("dynamic food resolution: confirming an external candidate re-resolves 
 
     await waitFor(() => expect(confirmCalled).toBe(true));
     await waitFor(() => expect(screen.queryByText("I found this:")).toBeNull());
+  });
+});
+
+describe("catalog candidate selection and quantity", () => {
+  it.each([false, true])("selects only the intended row, asks for grams, and never logs on selection (multi=%s)", async (multi) => {
+    const posts: any[] = [];
+    const first = { parsed: { foodQuery: "egg", quantity: 50, unit: "g" }, foodResolution: "resolved",
+      selectedFood: { ...candidateFood, id: "egg", name: "Egg" }, candidates: [],
+      quantity: { status: "resolved", grams: 50, estimated: false }, canConfirm: true, nutritionEligible: true };
+    const pending = { parsed: { foodQuery: "pork hock" }, foodResolution: "confirmation_required", selectedFood: null,
+      candidates: [candidateFood], quantity: null, canConfirm: false, confidence: 0 };
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = new URL(String(input));
+      const json = (value: unknown) => new Response(JSON.stringify(value), { status: 200 });
+      if (url.pathname === "/me") return json({ user });
+      if (url.pathname === "/meals/week") return json(emptyWeek);
+      if (url.pathname === "/meals/today") return json({ meals: [], totals: emptyTotals });
+      if (url.pathname === "/meal-input/interpret") return json({ ...pending, input: "pork hock",
+        interpretationSource: multi ? "ai_assisted" : "deterministic", ...(multi ? { foodResolution: "multi", candidates: [], items: [first, pending] } : {}) });
+      if (url.pathname === "/meals" && init?.method === "POST") { posts.push(JSON.parse(String(init.body))); return json({ meal: { id: "m1", eatenAt: new Date().toISOString(), totals: emptyTotals } }); }
+      throw new Error(`Unexpected request: ${url.pathname}`);
+    }));
+    render(<App/>);
+    await screen.findByText("Daily overview");
+    fireEvent.change(screen.getByPlaceholderText("For example: 5 eggs"), { target: { value: "pork hock" } });
+    fireEvent.click(screen.getByText("Interpret"));
+    fireEvent.click(await screen.findByText("This one"));
+    expect(posts).toHaveLength(0);
+    const grams = await screen.findByLabelText(quantityLabels.en.grams);
+    fireEvent.change(grams, { target: { value: "175" } });
+    fireEvent.click(screen.getByRole("button", { name: quantityLabels.en.accept }));
+    expect(posts).toHaveLength(0);
+    if (multi) {
+      fireEvent.click(screen.getByRole("button", { name: "Log all" }));
+      await waitFor(() => expect(posts).toHaveLength(1));
+      expect(posts[0].items).toEqual([
+        { foodId: "egg", quantity: 50, unit: "g" },
+        { foodId: candidateFood.id, quantity: 175, unit: "g", quantityConfirmation: { accepted: true, method: "user_corrected", grams: 175 } }
+      ]);
+    } else {
+      expect(screen.queryByLabelText(quantityLabels.en.grams)).toBeNull();
+      expect(screen.getByDisplayValue("175")).toBeTruthy();
+    }
   });
 });

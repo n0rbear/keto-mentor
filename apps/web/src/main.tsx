@@ -311,14 +311,15 @@ export function App() {
   // input text: the food is now locally trusted, so this becomes a normal
   // local hit (no further external calls) and the usual quantity flow
   // (trusted serving / volume-aware estimate / manual grams) takes over.
-  async function confirmExternalCandidate(candidate: ExternalCandidate) {
+  async function confirmExternalCandidate(candidate: ExternalCandidate, itemIndex?: number) {
     if (confirmingExternalId) return;
     const id = `${candidate.source}:${candidate.sourceId}`;
     setConfirmingExternalId(id);
     try {
-      const result = await api<{ status: string }>("/foods/resolve-external/confirm", { method: "POST", body: JSON.stringify({ source: candidate.source, sourceId: candidate.sourceId }) }, state);
+      const result = await api<{ status: string; food?: Food }>("/foods/resolve-external/confirm", { method: "POST", body: JSON.stringify({ source: candidate.source, sourceId: candidate.sourceId }) }, state);
       if (result.status === "confirmed" || result.status === "existing") {
-        await interpretNaturalInput();
+        if (result.food) selectCandidate(result.food, itemIndex);
+        else await interpretNaturalInput();
       } else {
         setMealStatus({ kind: "error", text: t.foodUnderstanding.externalConfirmFailed });
       }
@@ -437,19 +438,42 @@ export function App() {
   // Owner-reported UX bug fix (2026-09-19): a "preview"/"confirmation_required"
   // result's own `candidates[]` are already real, persisted Food rows — the
   // exact same shape FoodCombobox's own search results are — so picking one
-  // needs no dedicated persistence call at all. Reuses the IDENTICAL
-  // mechanism FoodCombobox's onSelect already drives: populate selectedFood
-  // and let the pre-existing manual quantity form + addMeal do the rest.
-  // Never touches `interpretation` or `naturalInput`, so this works
-  // identically whether the candidate came from the single-item view or one
-  // row of a multi-item result — nothing is logged until the user explicitly
-  // submits the quantity form below.
-  function selectCandidate(candidate: CandidateFood) {
+  // needs no dedicated persistence call. Update the exact interpretation
+  // row, then require a usable mass; selection itself never logs a meal.
+  function selectCandidate(candidate: CandidateFood, itemIndex?: number) {
+    if (!interpretation) return;
+    const next = structuredClone(interpretation);
+    const rows = next.items ?? [next];
+    const index = next.items ? itemIndex : 0;
+    if (index == null || !rows[index]) return;
+    const item = rows[index];
+    item.selectedFood = candidate as Food;
+    item.candidates = [candidate as Food];
+    item.foodResolution = "resolved";
+    item.nutritionEligible = true;
+    item.externalCandidates = undefined;
+    item.externalCandidatesReason = undefined;
+    item.aiEstimate = undefined;
+    item.quantityConfirmation = undefined;
+    // Only explicit mass survives a change of food. A serving/AI conversion
+    // belongs to the previous candidate and must be reviewed again.
+    const mass = item.parsed.quantity && (item.parsed.unit === "g" || item.parsed.unit === "kg")
+      ? item.parsed.quantity * (item.parsed.unit === "kg" ? 1000 : 1) : undefined;
+    item.quantity = mass ? { status: "resolved", grams: mass, estimated: false, requiresConfirmation: false }
+      : { status: "unresolved", estimated: false, requiresConfirmation: true, reason: "quantity_missing" };
+    item.canConfirm = !!mass;
+    next.canConfirm = rows.every((row) => row.canConfirm);
+    const pendingIndex = rows.findIndex((row) => row.foodResolution === "resolved" && !row.canConfirm);
+    next.clarification = pendingIndex < 0 ? undefined : { type: "grams_required", itemIndex: pendingIndex, allowCustomGrams: true };
+    next.diagnostics = undefined;
+    setInterpretation(next);
     // Structurally the same runtime shape as Food (same Food row from the
     // catalog) — cast needed only because CandidateFood's `names` is
     // Partial<Record<Lang,string>> (a food need not have every locale's
     // translation) while Food's own field type doesn't express that.
+    if (next.items) return;
     setSelectedFood(candidate as Food);
+    setMealQuantity(mass ? String(mass) : "");
     setMealMeasure("g");
     setGramsOverride("");
   }

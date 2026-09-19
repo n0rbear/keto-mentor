@@ -10,7 +10,8 @@ import { createRecipeImportProof, verifyRecipeImportProof, type ImportProofMetho
 import { RECIPE_IMPORT_RATE_LIMIT, recipeImportRateLimitKey } from "./recipe-import-rate-limit.js";
 import { configuredRecipeAiProvider } from "./recipe-ai-gateway.js";
 import { confirmRecipeIngredients, recipeIngredientConfirmationRequestSchema } from "./recipe-ingredient-confirmation.js";
-import { UsdaFoodDataCentralLookupAdapter, OpenFoodFactsProductAdapter } from "../catalog/structured-source-adapters.js";
+import { UsdaFoodDataCentralLookupAdapter, OpenFoodFactsProductAdapter, OpenFoodFactsNameAdapter } from "../catalog/structured-source-adapters.js";
+import { acceptIngredientEstimate } from "./accept-ingredient-estimate.js";
 import { configuredSearchIntentProvider } from "../catalog/search-intent-gateway.js";
 import { configuredCandidateLocalizationProvider } from "../catalog/candidate-localization-gateway.js";
 import { configuredSemanticCandidateGateProvider } from "../catalog/semantic-candidate-gate-gateway.js";
@@ -46,7 +47,8 @@ const TRUSTED_SOURCE_METHODS: Partial<Record<string, ImportProofMethod>> = { sch
 // these is the SAME function/class server.ts already uses.
 const usdaAdapter = env.USDA_FDC_API_KEY ? new UsdaFoodDataCentralLookupAdapter(env.USDA_FDC_API_KEY) : null;
 const openFoodFactsAdapter = new OpenFoodFactsProductAdapter();
-const externalFoodAdapters = usdaAdapter ? [usdaAdapter] : [];
+const offNameAdapter = new OpenFoodFactsNameAdapter();
+const externalFoodAdapters = usdaAdapter ? [usdaAdapter, offNameAdapter] : [offNameAdapter];
 const externalFoodConfirmAdapters = usdaAdapter ? [usdaAdapter, openFoodFactsAdapter] : [openFoodFactsAdapter];
 const searchIntentProvider = configuredSearchIntentProvider(env);
 const candidateLocalizationProvider = configuredCandidateLocalizationProvider(env);
@@ -133,6 +135,10 @@ recipeRouter.post("/import-url/preview/confirm-ingredients", confirmIngredientsL
 
 recipeRouter.get("/", async (req, res, next) => {
   try { res.json(await listOwnRecipes(prisma, req.user!.id, recipeListQuerySchema.parse(req.query))); } catch (error) { next(error); }
+});
+recipeRouter.post("/ingredients/accept-estimate", confirmIngredientsLimiter, async (req, res, next) => {
+  try { res.json({ food: await acceptIngredientEstimate(prisma, req.user!.id, req.body) }); }
+  catch (error) { next(error); }
 });
 recipeRouter.get("/public", async (req, res, next) => {
   try { res.json(await listPublicRecipes(prisma, recipeListQuerySchema.parse(req.query))); } catch (error) { next(error); }

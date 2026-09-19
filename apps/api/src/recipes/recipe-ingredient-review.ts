@@ -1,6 +1,7 @@
 import type { ExternalFoodCandidate } from "../catalog/external-food.js";
 import { addMacros, emptyMacros, scaleMacros, scaleMacroTotals, type MacroTotals } from "../nutrition-core.js";
 import type { RecipeIngredientRole } from "./recipe-ingredient-role.js";
+import type { InterpretResult } from "../meal-input/interpret.js";
 
 /**
  * The recipe ingredient review contract (owner-beta blocker #6, 2026-09-11).
@@ -16,6 +17,7 @@ export type RecipeIngredientReviewStatus = "resolved" | "confirmation_required" 
 export type RecipeQuantitySource = "explicit" | "authoritative_conversion" | "estimated" | "unquantified_seasoning" | "unknown";
 
 export type TrustedFoodSummary = {
+  sourceId?: string | null;
   id: string;
   name: string;
   source: string;
@@ -29,6 +31,7 @@ export type TrustedFoodSummary = {
 export type LocalCandidateSummary = { id: string; name: string; source: string };
 
 export type RecipeIngredientReview = {
+  aiEstimate?: InterpretResult["aiEstimate"];
   originalText: string;
   parsedQuantity?: number;
   parsedUnit?: string;
@@ -78,13 +81,14 @@ export type RecipeIngredientReview = {
 // The minimal shape this module needs from a previewRecipeImport ingredient
 // result — avoids a circular import on recipe-import.ts's own richer type.
 export type ReviewableIngredient = {
+  aiEstimate?: InterpretResult["aiEstimate"];
   originalText: string;
   parsedQuantity?: number;
   parsedUnit?: string;
   parsedFoodQuery: string;
   preparation?: string;
   resolution: string;
-  selectedFood: { id: string; name: string; source: string; kcalPer100g: number; fatPer100g: number; proteinPer100g: number; carbsPer100g: number; fiberPer100g: number } | null;
+  selectedFood: { id: string; name: string; source: string; sourceId?: string | null; kcalPer100g: number; fatPer100g: number; proteinPer100g: number; carbsPer100g: number; fiberPer100g: number } | null;
   candidates: readonly { id: string; name: string; source: string }[];
   quantity: { status: string; grams?: number } | null;
   quantitySource?: RecipeQuantitySource;
@@ -102,7 +106,7 @@ export type ReviewableIngredient = {
 };
 
 function toTrustedFoodSummary(food: NonNullable<ReviewableIngredient["selectedFood"]>): TrustedFoodSummary {
-  return { id: food.id, name: food.name, source: food.source, kcalPer100g: food.kcalPer100g, fatPer100g: food.fatPer100g, proteinPer100g: food.proteinPer100g, carbsPer100g: food.carbsPer100g, fiberPer100g: food.fiberPer100g };
+  return { id: food.id, name: food.name, source: food.source, ...(food.sourceId ? { sourceId: food.sourceId } : {}), kcalPer100g: food.kcalPer100g, fatPer100g: food.fatPer100g, proteinPer100g: food.proteinPer100g, carbsPer100g: food.carbsPer100g, fiberPer100g: food.fiberPer100g };
 }
 
 function toLocalCandidateSummary(food: { id: string; name: string; source: string }): LocalCandidateSummary {
@@ -139,6 +143,7 @@ export function toIngredientReview(ingredient: ReviewableIngredient): RecipeIngr
 
   return {
     originalText: ingredient.originalText,
+    aiEstimate: ingredient.aiEstimate,
     parsedQuantity: ingredient.parsedQuantity,
     parsedUnit: ingredient.parsedUnit,
     parsedFoodQuery: ingredient.parsedFoodQuery,

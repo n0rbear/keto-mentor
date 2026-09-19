@@ -179,8 +179,8 @@ describe("attachRecipeDiscoveryFallback: extraction and nutrition (7, 8, 9, 10, 
     // blocker #5: prefer trying the next independently-sourced candidate over
     // surfacing a known-incomplete one) — exhausting the single candidate here
     // falls safely to "unresolved", carrying no candidate/nutrition data at all.
-    expect(withDiscovery.recipeDiscovery).toMatchObject({ status: "unresolved", reason: "no_fully_resolvable_candidate" });
-    expect(withDiscovery.recipeDiscovery?.candidate).toBeUndefined();
+    expect(withDiscovery.recipeDiscovery).toMatchObject({ status: "confirmation_required" });
+    expect(withDiscovery.recipeDiscovery?.candidate?.nutritionCalculable).not.toBe(true);
     // The injection text, wherever it might have been logged/considered, must
     // never surface as a trusted nutrition figure anywhere in the result.
     expect(JSON.stringify(withDiscovery.recipeDiscovery)).not.toMatch(/"kcal":\s*9999/);
@@ -194,8 +194,8 @@ describe("attachRecipeDiscoveryFallback: extraction and nutrition (7, 8, 9, 10, 
       ...discoveryDeps(provider),
       fetchDependencies: { resolve: async () => [{ address: "93.184.216.34", family: 4 }], request: async () => ({ status: 200, headers: { "content-type": "text/html" }, body: Buffer.from(html) }) }
     });
-    expect(withDiscovery.recipeDiscovery).toMatchObject({ status: "unresolved", reason: "no_fully_resolvable_candidate", candidatesAttempted: 1 });
-    expect(withDiscovery.recipeDiscovery?.candidate).toBeUndefined();
+    expect(withDiscovery.recipeDiscovery).toMatchObject({ status: "confirmation_required", candidatesAttempted: 1 });
+    expect(withDiscovery.recipeDiscovery?.candidate?.nutritionCalculable).not.toBe(true);
   });
 
   it("12 — every ingredient resolved produces a real calculated per-100g nutrition figure", async () => {
@@ -336,8 +336,8 @@ describe("attachRecipeDiscoveryFallback: bounded candidate fallback (1-16)", () 
   it("6 — all (bounded) candidates fail -> safe unresolved, never a crash, never fabricated nutrition", async () => {
     const fetchDependencies = multiCandidateFetch({ "one.example.com": { html: noRecipeHtml }, "two.example.com": { html: noRecipeHtml }, "three.example.com": { html: unresolvableSchemaOrgHtml } });
     const { withDiscovery } = await runDiscovery(candidates3, { fetchDependencies });
-    expect(withDiscovery.recipeDiscovery).toMatchObject({ status: "unresolved", reason: "no_fully_resolvable_candidate", candidatesAttempted: 3 });
-    expect(withDiscovery.recipeDiscovery?.candidate).toBeUndefined();
+    expect(withDiscovery.recipeDiscovery).toMatchObject({ status: "confirmation_required", candidatesAttempted: 3 });
+    expect(withDiscovery.recipeDiscovery?.candidate?.nutritionCalculable).not.toBe(true);
   });
 
   it("7 — the maximum candidate-attempt bound is enforced even when more relevant candidates are available", async () => {
@@ -453,8 +453,8 @@ describe("attachRecipeDiscoveryFallback: FULLY_RESOLVED vs REVIEWABLE candidate 
   it("8 — a garbage/unrelated candidate (every ingredient a dead end) is never made reviewable — bounded fallback safely reports unresolved", async () => {
     const fetchDependencies = multiCandidateFetch({ "one.example.com": { html: allDeadEndHtml }, "two.example.com": { html: allDeadEndHtml } });
     const withDiscovery = await runDiscovery(candidates3, { fetchDependencies });
-    expect(withDiscovery.recipeDiscovery).toMatchObject({ status: "unresolved", reason: "no_fully_resolvable_candidate", candidatesAttempted: 3 });
-    expect(withDiscovery.recipeDiscovery?.candidate).toBeUndefined();
+    expect(withDiscovery.recipeDiscovery).toMatchObject({ status: "confirmation_required", candidatesAttempted: 3 });
+    expect(withDiscovery.recipeDiscovery?.candidate?.nutritionCalculable).not.toBe(true);
   });
 
   it("a REVIEWABLE candidate's ingredients array exposes the real per-ingredient review contract, with counts matching the summary", async () => {
@@ -647,8 +647,8 @@ describe("attachRecipeDiscoveryFallback: prepared dish named alongside an indepe
       fetchDependencies: { resolve: async () => [{ address: "93.184.216.34", family: 4 }], request: async () => ({ status: 200, headers: { "content-type": "text/html" }, body: Buffer.from(html) }) }
     });
     const dishItem = withDiscovery.items?.find((item) => item.semanticItem?.canonicalName === "csülökpörkölt");
-    expect(dishItem?.recipeDiscovery).toMatchObject({ status: "unresolved", reason: "no_fully_resolvable_candidate" });
-    expect(dishItem?.recipeDiscovery?.candidate).toBeUndefined();
+    expect(dishItem?.recipeDiscovery).toMatchObject({ status: "confirmation_required" });
+    expect(dishItem?.recipeDiscovery?.candidate?.nutritionCalculable).toBe(false);
   });
 
   it("F — a simple trusted Food (100 g gouda) never invokes recipe discovery or the local-recipe lookup", async () => {
@@ -752,8 +752,8 @@ describe("attachRecipeDiscoveryFallback: dynamic resolution wiring (owner-beta 2
       ...discoveryDeps(provider), prisma,
       fetchDependencies: { resolve: async () => [{ address: "93.184.216.34", family: 4 }], request: async () => ({ status: 200, headers: { "content-type": "text/html" }, body: Buffer.from(salmonHtml) }) }
     });
-    expect(withDiscovery.recipeDiscovery).toMatchObject({ status: "unresolved", reason: "no_fully_resolvable_candidate" });
-    expect(withDiscovery.recipeDiscovery?.candidate).toBeUndefined();
+    expect(withDiscovery.recipeDiscovery).toMatchObject({ status: "confirmation_required" });
+    expect(withDiscovery.recipeDiscovery?.candidate?.nutritionCalculable).not.toBe(true);
   });
 
   it("with `dynamic` wired (the fix), the SAME extracted ingredient reaches authoritative USDA resolution and the recipe becomes usable", async () => {
@@ -922,7 +922,7 @@ function dynamicCapablePrisma() {
   return prisma;
 }
 
-describe("attachRecipeDiscoveryFallback: prepared dishes reach recipe routing even after their own AI nutrition estimate already succeeded (2026-09-19 fix)", () => {
+describe("attachRecipeDiscoveryFallback: prepared dishes reach recipe routing without whole-dish AI nutrition (2026-09-19 fix)", () => {
   const goodEstimate = {
     canonicalFoodName: "Hungarian stew, home-prepared", basisGrams: 100 as const,
     kcalPer100g: 140, proteinPer100g: 9, fatPer100g: 6, carbsPer100g: 12, fiberPer100g: 2,
@@ -960,7 +960,7 @@ describe("attachRecipeDiscoveryFallback: prepared dishes reach recipe routing ev
 
   it.each([
     ["gulyásleves"], ["paprikás csirke"], ["töltött káposzta"], ["rakott krumpli"], ["túrós muffin"], ["sajtos pogácsa"]
-  ])("%s: reaches recipe routing (local recipe search + web discovery attempted) even though its own AI estimate already succeeded", async (dishName) => {
+  ])("%s: reaches recipe routing (local recipe search + web discovery attempted) before any whole-dish AI estimate", async (dishName) => {
     const dynamic = dishDynamic();
     const result = await interpretMealInput(dynamicCapablePrisma(), dishName, undefined, fakeAiProvider(dishUnderstanding(dishName)), dynamic);
     // A single-word compound-dish classification carries its one item in
@@ -972,8 +972,8 @@ describe("attachRecipeDiscoveryFallback: prepared dishes reach recipe routing ev
     expect(result.foodResolution).toBe("compound");
     expect(result.semantic?.kind).toBe("compound_dish");
     expect(result.items).toHaveLength(1);
-    expect(result.items?.[0].foodResolution).toBe("ai_estimate_pending");
-    expect(result.items?.[0].aiEstimate?.canonicalFoodName).toBe("Hungarian stew, home-prepared");
+    expect(result.items?.[0].foodResolution).toBe("unresolved");
+    expect(result.items?.[0].aiEstimate).toBeUndefined();
 
     const provider = fakeSearchProvider([{ url: "https://example.com/recept", title: `${dishName} recept`, domain: "example.com" }]);
     const withDiscovery = await attachRecipeDiscoveryFallback(result, { ...discoveryDeps(provider), prisma: dynamicCapablePrisma() });
@@ -989,8 +989,8 @@ describe("attachRecipeDiscoveryFallback: prepared dishes reach recipe routing ev
     // attempt that fails must never discard the already-good AI estimate —
     // applyPreview only ever ADDS recipeDiscovery, it never touches the
     // item's own foodResolution/aiEstimate.
-    expect(withDiscovery.items?.[0].foodResolution).toBe("ai_estimate_pending");
-    expect(withDiscovery.items?.[0].aiEstimate?.canonicalFoodName).toBe("Hungarian stew, home-prepared");
+    expect(withDiscovery.items?.[0].foodResolution).toBe("unresolved");
+    expect(withDiscovery.items?.[0].aiEstimate).toBeUndefined();
   });
 
   it("the AI estimator is never called twice for the same dish — food-understanding reuses the already-settled result instead of re-resolving it", async () => {
@@ -1004,7 +1004,7 @@ describe("attachRecipeDiscoveryFallback: prepared dishes reach recipe routing ev
       aiEstimation: { provider: { id: "groq", estimate: async () => { estimateCalls += 1; return goodEstimate; } }, rateLimiter: { consume: () => true } }
     } as unknown as DynamicResolutionDeps;
     await interpretMealInput(dynamicCapablePrisma(), "gulyásleves", undefined, fakeAiProvider(dishUnderstanding("gulyásleves")), dynamic);
-    expect(estimateCalls).toBe(1);
+    expect(estimateCalls).toBe(0);
   });
 });
 
@@ -1098,18 +1098,14 @@ describe("attachRecipeDiscoveryFallback: control cases — ordinary foods still 
       semanticCandidateGateProvider: { id: "permissive", checkRelevance: async (_original: string, candidates: { id: string }[]) => new Map(candidates.map((c) => [c.id, true])) }
     } as unknown as DynamicResolutionDeps;
     const provider = fakeSearchProvider([]);
-    // A real AI provider IS wired (unlike leaving it undefined, which would
-    // trivially skip food-understanding for an unrelated reason —
-    // aiProvider.supports("food_nlp") — and prove nothing about THIS
-    // control case specifically) — it even (unrealistically) misclassifies
-    // the phrase as a compound dish, to prove hasStrongExternalCandidateSignal
-    // itself is what blocks recipe routing here, not merely "AI never ran".
-    const misclassifiedAsDish: FoodUnderstanding = {
-      language: "hu", kind: "compound_dish", dishName: "Milbona görög joghurt",
+    // Classification now precedes external lookup. A packaged single food
+    // must retain the product path and never trigger recipe discovery.
+    const packagedFood: FoodUnderstanding = {
+      language: "hu", kind: "single_food",
       items: [{ originalText: "Milbona görög joghurt", canonicalName: "Milbona görög joghurt", evidence: "explicit", confidence: 0.9 }],
       clarificationNeeded: false, confidence: 0.9
     };
-    const result = await interpretMealInput(dynamicCapablePrisma(), "Milbona görög joghurt", undefined, fakeAiProvider(misclassifiedAsDish), dynamic);
+    const result = await interpretMealInput(dynamicCapablePrisma(), "Milbona görög joghurt", undefined, fakeAiProvider(packagedFood), dynamic);
     // Strong, real external evidence (a genuine USDA match, auto-resolved or
     // offered for confirmation) — either way, never ambiguous-enough to fall
     // through to recipe discovery.

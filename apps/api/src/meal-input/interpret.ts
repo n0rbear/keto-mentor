@@ -100,6 +100,8 @@ export type DynamicResolutionDeps = {
   // provider degrades to DisabledRecipeSemanticGateProvider inside the
   // recipe-batch resolver, which also fails CLOSED.
   recipeSemanticGateProvider?: RecipeSemanticGateProvider;
+  webEvidenceFallback?: Parameters<typeof resolveDynamicFood>[2]["webEvidenceFallback"];
+  aiEstimation?: Parameters<typeof resolveDynamicFood>[2]["aiEstimation"];
 } | null;
 
 export type InterpretResult = {
@@ -866,6 +868,12 @@ async function interpretAiUnderstanding(
     ? normalizeSearch(settledDeterministic.parsed.foodQuery) : undefined;
   const items = await mapWithConcurrency(semanticItems, DEFAULT_CONCURRENCY, async (item) => {
     if (item.evidence !== "explicit") return unresolvedSemanticItem(text, item);
+    // A named prepared dish is resolved by the recipe layer. Never send its
+    // whole identity through food nutrition estimation, even on a cache miss.
+    if (effectiveKind === "compound_dish" && !understanding.dishIsComposition
+      && normalizeSearch(item.canonicalName) === dishNormalized && dynamic) {
+      return unresolvedSemanticItem(text, item);
+    }
     if (settledKey && normalizeSearch(item.canonicalName) === settledKey) {
       return {
         ...settledDeterministic!,
@@ -949,7 +957,11 @@ export async function interpretMealInput(
   // Resolve food semantics before allowing any external weight estimation.
   const disabled = new DisabledQuantityEstimationProvider();
   onProgress?.("local_food_search");
-  const deterministic = await timeStage("deterministic_pass", () => interpretDeterministically(prisma, text, disabled, dynamic));
+  // Classify unknown input before a dynamic resolver can estimate nutrition.
+  // Trusted simple local foods keep their zero-AI fast path. Ingredient import
+  // uses a disabled understanding provider and retains its existing resolver.
+  const classifyFirst = !!dynamic && aiProvider.supports("food_nlp");
+  const deterministic = await timeStage("deterministic_pass", () => interpretDeterministically(prisma, text, disabled, classifyFirst ? null : dynamic));
   let result = deterministic;
   if (shouldUseAiFallback(deterministic, aiProvider)) {
     try {

@@ -18,6 +18,15 @@ const prisma = {
 } as unknown as Pick<PrismaClient, "food" | "foodAlias">;
 
 describe("food search resolver", () => {
+  it("prefers BLS over USDA only when identity scores tie", async () => {
+    const base = { name: "Butter", originalName: "Butter", searchText: "butter", servings: [] };
+    const fake = { foodAlias: { findMany: async () => [] }, food: { findMany: async () => [
+      { ...base, id: "usda", source: "usda_fdc" }, { ...base, id: "bls", source: "bls" },
+      { ...base, id: "bls-other", source: "bls", name: "Butter flavored sauce", originalName: "Butter flavored sauce", searchText: "butter flavored sauce" }
+    ] } } as any;
+    const result = await searchFoods(fake, "butter");
+    expect(result.map((row) => row.id)).toEqual(["bls", "usda", "bls-other"]);
+  });
   it.each([
     ["csirkemell", "chicken"], ["Hähnchenbrust", "chicken"], ["chicken breast", "chicken"],
     ["tukortojas", "egg"], ["sült tojás", "egg"], ["kígyóuborka", "cucumber"], ["uborka", "cucumber"]

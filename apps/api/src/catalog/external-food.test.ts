@@ -6,7 +6,18 @@ process.env.JWT_REFRESH_SECRET = "b".repeat(32);
 import { describe, expect, it, vi } from "vitest";
 import { collapseEquivalentCandidates, confirmAuthoritativeFood, externalFoodConfirmationSchema, resolveAuthoritativeFood, resolveBarcodeFood, validateExternalCandidate, type ExternalFoodCandidate } from "./external-food.js";
 import { EXTERNAL_FOOD_CONFIRM_RATE_LIMIT, EXTERNAL_FOOD_RATE_LIMIT, externalFoodRateLimitKey } from "./external-food-rate-limit.js";
-import { normalizeOffProduct, normalizeUsdaNutrients, OpenFoodFactsProductAdapter, UsdaFoodDataCentralLookupAdapter } from "./structured-source-adapters.js";
+import { normalizeOffProduct, normalizeUsdaNutrients, OpenFoodFactsNameAdapter, OpenFoodFactsProductAdapter, UsdaFoodDataCentralLookupAdapter } from "./structured-source-adapters.js";
+
+it("automatic OFF text lookup is bounded across adapter instances and exposes budget exhaustion as unavailable, not no match", async () => {
+  const fetcher = vi.fn(async () => new Response(JSON.stringify({ hits: [] }), { status: 200 })) as any;
+  const first = new OpenFoodFactsNameAdapter(fetcher);
+  const second = new OpenFoodFactsNameAdapter(fetcher);
+  await expect(first.lookup(" ")).resolves.toEqual([]);
+  for (let index = 0; index < 10; index++) await (index % 2 ? first : second).lookup("Milbona");
+  await expect(first.lookup("Milbona")).rejects.toThrow("budget exhausted");
+  expect(fetcher).toHaveBeenCalledTimes(10);
+  expect(fetcher.mock.calls[0][0]).toContain("page_size=10");
+});
 
 function candidate(overrides: Partial<ExternalFoodCandidate> = {}): ExternalFoodCandidate {
   return {

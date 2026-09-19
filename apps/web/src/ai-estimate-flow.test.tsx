@@ -7,7 +7,7 @@
 // aiEstimateMealItemSchema / manualMealItemSchema require, not just that the
 // UI renders in isolation.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import { App } from "./main";
 
 afterEach(() => { vi.restoreAllMocks(); localStorage.clear(); });
@@ -73,7 +73,7 @@ describe("AI nutrition estimate — accept flow", () => {
     }]);
     // The interpretation preview is cleared and the meal is treated as logged.
     await waitFor(() => expect(screen.queryByText("AI estimate")).toBeNull());
-    expect(screen.getByText("Meal saved and daily totals updated.")).toBeTruthy();
+    expect(screen.getAllByText("Meal saved and daily totals updated.").length).toBeGreaterThan(0);
   });
 
   it("an expired/invalid proof surfaces a clear, recoverable error — never a raw backend error string", async () => {
@@ -97,7 +97,7 @@ describe("AI nutrition estimate — accept flow", () => {
     fireEvent.click(screen.getByText("Interpret"));
     await waitFor(() => expect(screen.getByText("AI estimate")).toBeTruthy());
     fireEvent.click(screen.getByText("Accept"));
-    await waitFor(() => expect(screen.getByText("This AI estimate has expired or changed. Request a new estimate and try again.")).toBeTruthy());
+    await waitFor(() => expect(screen.getAllByText("This AI estimate has expired or changed. Request a new estimate and try again.").length).toBeGreaterThan(0));
     // Recoverable: the card is still there, nothing was silently discarded.
     expect(screen.getByText("AI estimate")).toBeTruthy();
     expect(screen.queryByText("undefined")).toBeNull();
@@ -126,7 +126,8 @@ describe("AI nutrition estimate — override flow", () => {
     await waitFor(() => expect(screen.getByText("AI estimate")).toBeTruthy());
 
     fireEvent.click(screen.getByText("Edit"));
-    fireEvent.change(screen.getByLabelText(/^kcal/), { target: { value: "160" } });
+    const estimateCard = screen.getByText("Save edited values").closest(".ai-estimate-card") as HTMLElement;
+    fireEvent.change(within(estimateCard).getByLabelText(/^kcal/), { target: { value: "160" } });
     fireEvent.click(screen.getByText("Save edited values"));
 
     await waitFor(() => expect(posts.length).toBe(1));
