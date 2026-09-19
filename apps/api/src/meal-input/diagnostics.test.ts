@@ -19,6 +19,64 @@ function baseResult(overrides: Partial<InterpretResult> = {}): InterpretResult {
   };
 }
 
+// Decision-transparency audit (2026-09-19) — real production case ("sajt"
+// -> Cheddar sajt / Gouda sajt, both score 95, ambiguous): the trace
+// previously only ever said "several similarly good matches exist", with no
+// names attached, even though the candidate names were already sitting
+// right there on the InterpretResult. These prove the names now reach the
+// event, bounded to 5, without requiring any new lookup/call.
+describe("buildDiagnostics: local candidate names in ambiguous/preview/confirmation_required events", () => {
+  const cheddar = { id: "c1", source: "open_database", sourceId: "1", name: "Cheddar cheese" };
+  const gouda = { id: "g1", source: "open_database", sourceId: "2", name: "Gouda cheese" };
+
+  it("an ambiguous local tie names the actual candidates, not just 'several matches'", () => {
+    const events = buildDiagnostics(baseResult({
+      foodResolution: "confirmation_required", selectedFood: cheddar as any, candidates: [cheddar as any, gouda as any],
+      quantity: null, canConfirm: false, confidence: 0.95, ambiguous: true
+    }));
+    const event = events.find((e) => e.code === "ambiguous")!;
+    expect(event).toBeTruthy();
+    expect(event.params?.names).toBe("Cheddar cheese, Gouda cheese");
+    expect(event.params?.count).toBe(2);
+  });
+
+  it("bounds the named candidate list to 5 even when more are present", () => {
+    const many = Array.from({ length: 8 }, (_, i) => ({ id: `x${i}`, source: "open_database", sourceId: String(i), name: `Cheese ${i}` }));
+    const events = buildDiagnostics(baseResult({
+      foodResolution: "confirmation_required", selectedFood: many[0] as any, candidates: many as any,
+      quantity: null, canConfirm: false, confidence: 0.5, ambiguous: true
+    }));
+    const event = events.find((e) => e.code === "ambiguous")!;
+    expect(event.params?.names).toBe("Cheese 0, Cheese 1, Cheese 2, Cheese 3, Cheese 4");
+  });
+
+  it("a weak 'preview' match also names the candidate(s)", () => {
+    const events = buildDiagnostics(baseResult({
+      foodResolution: "preview", selectedFood: gouda as any, candidates: [gouda as any],
+      quantity: null, canConfirm: false, confidence: 0.82
+    }));
+    const event = events.find((e) => e.code === "preview_match")!;
+    expect(event.params?.names).toBe("Gouda cheese");
+  });
+
+  it("a plain confirmation_required (no ambiguity flag) also names the candidate(s)", () => {
+    const events = buildDiagnostics(baseResult({
+      foodResolution: "confirmation_required", selectedFood: gouda as any, candidates: [gouda as any],
+      quantity: null, canConfirm: false, confidence: 0.6
+    }));
+    const event = events.find((e) => e.code === "confirmation_required")!;
+    expect(event.params?.names).toBe("Gouda cheese");
+  });
+
+  it("never adds a names param when there are no local candidates at all (unresolved stays exactly as before)", () => {
+    const events = buildDiagnostics(baseResult({
+      foodResolution: "unresolved", selectedFood: null, candidates: [], quantity: null, canConfirm: false, confidence: 0
+    }));
+    const event = events.find((e) => e.code === "unresolved")!;
+    expect(event.params).toBeUndefined();
+  });
+});
+
 describe("buildDiagnostics", () => {
   it("a clean, fully-resolved deterministic match produces a minimal, all-ok timeline", () => {
     const events = buildDiagnostics(baseResult());

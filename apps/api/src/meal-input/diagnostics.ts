@@ -56,16 +56,27 @@ function foodIdentityEvent(item: InterpretResult): DiagnosticEvent | null {
   if (item.foodResolution === "resolved" && item.selectedFood) {
     return { stage: "food_identity", status: "ok", code: "trusted_match", blocking: false, itemLabel: label };
   }
+  // Decision-transparency audit (2026-09-19): the candidate NAMES were
+  // already computed and already sitting on `item.candidates` (the frontend
+  // has rendered them as a selectable list since the candidate-selection UX
+  // fix) — but the "Mi történt?" trace never named them, only ever said
+  // "several similarly good matches exist" with no names attached. Pure
+  // plumbing: no new query, no new AI/external call, just carrying an
+  // already-known value one step further. Bounded to 5 names so a
+  // pathological local match burst can never produce an unbounded string.
+  const candidateNames = item.candidates?.length ? item.candidates.slice(0, 5).map((c) => c.name).join(", ") : undefined;
   if (item.foodResolution === "preview") {
-    return { stage: "food_identity", status: "attention", code: "preview_match", blocking: true, itemLabel: label };
+    return { stage: "food_identity", status: "attention", code: "preview_match", blocking: true, itemLabel: label, ...(candidateNames ? { params: { names: candidateNames } } : {}) };
   }
-  if (item.ambiguous) return { stage: "food_identity", status: "attention", code: "ambiguous", blocking: true, itemLabel: label };
+  if (item.ambiguous) return { stage: "food_identity", status: "attention", code: "ambiguous", blocking: true, itemLabel: label, ...(candidateNames ? { params: { count: item.candidates!.length, names: candidateNames } } : {}) };
   if (item.preparationUnavailable) return { stage: "food_identity", status: "attention", code: "preparation_unavailable", blocking: true, itemLabel: label };
   if (item.externalCandidates?.length) {
     return { stage: "food_identity", status: "attention", code: `external_${item.externalCandidatesReason ?? "confirmation_required"}`, blocking: true, itemLabel: label, params: { count: item.externalCandidates.length } };
   }
   if (item.foodResolution === "unresolved") return { stage: "food_identity", status: "blocked", code: "unresolved", blocking: true, itemLabel: label };
-  if (item.foodResolution === "confirmation_required") return { stage: "food_identity", status: "attention", code: "confirmation_required", blocking: true, itemLabel: label };
+  if (item.foodResolution === "confirmation_required") {
+    return { stage: "food_identity", status: "attention", code: "confirmation_required", blocking: true, itemLabel: label, ...(candidateNames ? { params: { names: candidateNames } } : {}) };
+  }
   return null;
 }
 
