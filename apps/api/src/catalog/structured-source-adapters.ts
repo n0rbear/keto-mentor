@@ -202,6 +202,7 @@ const OFF_PRODUCT_FIELDS = "product_name,product_name_en,generic_name,brands,cat
 // that same nested shape before reuse of the existing normalizeOffProduct
 // (keeps exactly one nutrition-sanity/name-sanitization code path for both
 // entry points, never a second parallel one that could silently drift).
+export const OFF_TEXT_SEARCH_CONFIDENCE = 0.6;
 const OFF_SEARCH_DEFAULT_LIMIT = 5;
 const OFF_SEARCH_MAX_LIMIT = 10;
 const OFF_SEARCH_FIELDS = "code,product_name,product_name_en,generic_name,brands,categories,nutriments,lang";
@@ -280,7 +281,15 @@ export class OpenFoodFactsProductAdapter implements OpenFoodFactsLookupAdapter, 
     const payload = await readBoundedOffJson(response);
     const hits = Array.isArray(payload?.hits) ? payload.hits.slice(0, OFF_SEARCH_MAX_LIMIT) : [];
     const candidates = hits.map((hit: unknown) => normalizeOffSearchHit(hit));
-    return candidates.filter((candidate: ReturnType<typeof normalizeOffSearchHit>): candidate is ExternalFoodCandidate => !!candidate && "kcalPer100g" in candidate);
+    // normalizeOffProduct's confidence 1 / exact_normalized_name is correct for
+    // an exact BARCODE hit, but a free-text hit is a crowd-sourced packaged
+    // product whose name merely matched words. Live finding (2026-09-19): at
+    // confidence 1 these sorted above USDA (0.86-0.97) in both resolvers, and
+    // generic "tomato"/"wheat flour" resolved to a packaged OFF product.
+    // Ranked below every USDA/BLS candidate and never an exact-name match.
+    return candidates
+      .filter((candidate: ReturnType<typeof normalizeOffSearchHit>): candidate is ExternalFoodCandidate => !!candidate && "kcalPer100g" in candidate)
+      .map((candidate: ExternalFoodCandidate) => ({ ...candidate, confidence: OFF_TEXT_SEARCH_CONFIDENCE, matchPolicy: "review_required" as const }));
   }
 }
 

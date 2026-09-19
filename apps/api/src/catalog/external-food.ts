@@ -124,6 +124,18 @@ function nearlyEqual(a: number, b: number, absolute: number, relative: number) {
  * analytical tolerances. Materially different same-name records remain
  * separate and therefore confirmation-required.
  */
+/**
+ * Open Food Facts text-search hits are crowd-sourced PACKAGED products, not
+ * reference composition data. When the semantic gate approved at least one
+ * reference-source candidate (USDA / BLS / ...) for the same identity, an
+ * approved OFF product must never compete with it — it only survives when it
+ * is the sole approved evidence (e.g. a branded "Milbona görög joghurt").
+ */
+export function preferReferenceSourceSurvivors<T extends { source: string }>(survivors: readonly T[]): T[] {
+  const reference = survivors.filter((candidate) => candidate.source !== "open_food_facts");
+  return reference.length ? reference : [...survivors];
+}
+
 export function collapseEquivalentCandidates(candidates: readonly ExternalFoodCandidate[]): ExternalFoodCandidate[] {
   const dataType = (item: ExternalFoodCandidate) => item.provenance && typeof item.provenance === "object" && !Array.isArray(item.provenance)
     ? String((item.provenance as Record<string, unknown>).dataType ?? "") : "";
@@ -343,6 +355,7 @@ export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: 
 
   let rawCandidates: unknown[] = [];
   let successfulProviders = 0;
+  let failedProviders = 0;
   await timeStage("external_lookup", async () => {
     for (const adapter of adapters) {
       try {
@@ -350,11 +363,14 @@ export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: 
         successfulProviders += 1;
         rawCandidates.push(...result.slice(0, 20));
       } catch {
+        failedProviders += 1;
         continue;
       }
     }
   });
-  if (!rawCandidates.length) return { status: "unresolved", candidates: [], reason: successfulProviders > 0 ? "not_found" : "external_unavailable", rawCandidateCount: 0, structurallyValidCount: 0 };
+  // A provider that THREW (rate limit / outage) is not evidence of absence:
+  // with no candidates from the others, report unavailable, never a clean "not_found".
+  if (!rawCandidates.length) return { status: "unresolved", candidates: [], reason: successfulProviders > 0 && failedProviders === 0 ? "not_found" : "external_unavailable", rawCandidateCount: 0, structurallyValidCount: 0 };
   const structurallyValid = rawCandidates.map(validateExternalCandidate).filter((candidate): candidate is ExternalFoodCandidate => Boolean(candidate));
   if (!structurallyValid.length) return { status: "unresolved", candidates: [], reason: "invalid_external_data", rawCandidateCount: rawCandidates.length, structurallyValidCount: 0 };
   // Structurally valid is not the same as relevant — see isRelevantExternalCandidate.
@@ -396,7 +412,12 @@ export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: 
       return decision === true || decision === "best_match" || decision === "acceptable_alternative";
     });
     const best = reviewCandidates.filter((_, index) => relevance.get(String(index)) === "best_match");
-    candidates = best.length ? best : approved;
+    // Applied to the approved set BEFORE the best_match narrowing: an OFF
+    // product the gate merely name-matched as "best" must not displace an
+    // approved reference-source candidate.
+    const referenceApproved = preferReferenceSourceSurvivors(approved);
+    const referenceBest = best.filter((candidate) => referenceApproved.includes(candidate));
+    candidates = referenceBest.length ? referenceBest : referenceApproved;
     if (!candidates.length) return { status: "unresolved", candidates: [], reason: "not_found", rawCandidateCount: rawCandidates.length, structurallyValidCount: structurallyValid.length };
     candidates = collapseEquivalentCandidates(candidates);
   }

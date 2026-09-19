@@ -1,5 +1,5 @@
 import {
-  validateExternalCandidate, isRelevantExternalCandidate, collapseEquivalentCandidates, findDuplicate, persistCandidate,
+  validateExternalCandidate, isRelevantExternalCandidate, collapseEquivalentCandidates, preferReferenceSourceSurvivors, findDuplicate, persistCandidate,
   type ExternalFoodCandidate, type StructuredFoodLookupAdapter, type ResolutionPrisma
 } from "./external-food.js";
 import { learnSearchAlias } from "./dynamic-food-resolution.js";
@@ -121,15 +121,16 @@ export async function resolveManyAuthoritativeFoods(
   const searched = await mapWithConcurrency(allowed, SEARCH_CONCURRENCY, async (p): Promise<Searched> => {
     const raw: unknown[] = [];
     let successfulProviders = 0;
+    let failedProviders = 0;
     for (const adapter of deps.adapters) {
       try {
         const result = await adapter.lookup(p.canonicalIdentity);
         successfulProviders += 1;
         raw.push(...result.slice(0, 20));
-      } catch { /* try the next adapter */ }
+      } catch { failedProviders += 1; /* try the next adapter */ }
     }
     if (!raw.length) {
-      outcomes.set(p.id, { status: "unresolved", reason: successfulProviders > 0 ? "not_found" : "external_unavailable" });
+      outcomes.set(p.id, { status: "unresolved", reason: successfulProviders > 0 && failedProviders === 0 ? "not_found" : "external_unavailable" });
       return { pending: p, candidates: [] };
     }
     const structurallyValid = raw.map(validateExternalCandidate).filter((c): c is ExternalFoodCandidate => Boolean(c));
@@ -174,7 +175,9 @@ export async function resolveManyAuthoritativeFoods(
     const verdictOf = (candidateIndex: number) => gateResults.get(`${ingredientIndex}:${candidateIndex}`);
     const approved = candidates.filter((_, ci) => { const v = verdictOf(ci); return v?.relationship === "same_identity" && v.formCompatibility === "compatible"; });
     const best = candidates.filter((_, ci) => { const v = verdictOf(ci); return v?.relationship === "same_identity" && v.formCompatibility === "compatible" && v.contextualFit === "best_match"; });
-    let survivors = best.length ? best : approved;
+    const referenceApproved = preferReferenceSourceSurvivors(approved);
+    const referenceBest = best.filter((c) => referenceApproved.includes(c));
+    let survivors = referenceBest.length ? referenceBest : referenceApproved;
     if (!survivors.length) { outcomes.set(p.id, { status: "unresolved", reason: "not_found" }); continue; }
     survivors = collapseEquivalentCandidates(survivors);
 

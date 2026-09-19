@@ -1195,3 +1195,50 @@ describe("full barcode round-trip integration", () => {
     expect(offCalls).toBe(2);
   });
 });
+
+// Live staging finding (2026-09-19, 8c0bf0e): generic "tomato" / "wheat flour"
+// recipe ingredients resolved to Open Food Facts PACKAGED products
+// ("Tomatoes", "Plain Wheat Flour") instead of USDA reference data. Text-search
+// OFF hits inherited the barcode path's confidence 1 / exact_normalized_name,
+// so they out-ranked USDA, and a name-only "best_match" then picked them.
+describe("Open Food Facts text-search hits never out-rank reference sources", () => {
+  const gateApproving = (names: readonly string[]) => ({ id: "fixture", checkRelevance: async (_o: unknown, cands: { id: string; authoritativeName: string }[]) => new Map(cands.map((c) => [c.id, names.includes(c.authoritativeName) ? "best_match" as const : false])) });
+  const usdaTomato = candidate({ source: "usda_fdc", sourceId: "170457", name: "Tomatoes, red, ripe, raw", originalName: "Tomatoes, red, ripe, raw", normalizedName: "tomatoes red ripe raw", confidence: 0.86, matchPolicy: "review_required" });
+  const offTomato = offCandidate({ sourceId: "814553001090", name: "Tomatoes", originalName: "Tomatoes", normalizedName: "tomatoes", brand: undefined, confidence: 0.6, matchPolicy: "review_required" });
+
+  it("searchByName candidates are ranked below USDA and are never an exact-name match", async () => {
+    const hit = { code: "20047559", product_name: "Görög joghurt", brands: ["Milbona"], nutriments: { "energy-kcal_100g": 121, proteins_100g: 4.6, fat_100g: 10, carbohydrates_100g: 3.2, fiber_100g: 0 } };
+    const fetcher = vi.fn(async () => ({ ok: true, headers: { get: () => null }, text: async () => JSON.stringify({ hits: [hit] }) })) as any;
+    const [c] = await new OpenFoodFactsProductAdapter(fetcher).searchByName("görög joghurt");
+    expect(c.confidence).toBeLessThan(0.86);
+    expect(c.matchPolicy).toBe("review_required");
+  });
+
+  it("when the gate approves BOTH a USDA and an OFF candidate (OFF even marked best_match), the OFF product is dropped", async () => {
+    const { prisma } = fakePrisma();
+    const result = await resolveAuthoritativeFood(prisma, "tomato", [{ source: "off", sourceName: "OFF", lookup: async () => [offTomato] } as any, { source: "usda_fdc", sourceName: "USDA", lookup: async () => [usdaTomato] }], undefined, { provider: gateApproving(["Tomatoes", "Tomatoes, red, ripe, raw"]), originalIdentity: "paradicsom" });
+    expect(result.status).toBe("resolved_external");
+    expect((result as any).food.source).toBe("usda_fdc");
+  });
+
+  it("an OFF product still survives when it is the ONLY approved evidence (branded product)", async () => {
+    const { prisma } = fakePrisma();
+    const result = await resolveAuthoritativeFood(prisma, "tomato", [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [usdaTomato] }, { source: "off", sourceName: "OFF", lookup: async () => [offTomato] } as any], undefined, { provider: gateApproving(["Tomatoes"]), originalIdentity: "paradicsom" });
+    expect(result.status).toBe("resolved_external");
+    expect((result as any).food.source).toBe("open_food_facts");
+  });
+
+  it("a provider that THREW (e.g. OFF budget exhausted) is reported as external_unavailable, not a clean not_found", async () => {
+    const { prisma } = fakePrisma();
+    const throwing = { source: "off", sourceName: "OFF", lookup: async () => { throw new Error("Open Food Facts name search budget exhausted"); } } as any;
+    const empty = { source: "usda_fdc", sourceName: "USDA", lookup: async () => [] };
+    const result = await resolveAuthoritativeFood(prisma, "szalonna", [empty, throwing]);
+    expect(result).toMatchObject({ status: "unresolved", reason: "external_unavailable" });
+  });
+
+  it("with every provider healthy and empty it is still an honest not_found", async () => {
+    const { prisma } = fakePrisma();
+    const result = await resolveAuthoritativeFood(prisma, "szalonna", [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [] }]);
+    expect(result).toMatchObject({ status: "unresolved", reason: "not_found" });
+  });
+});

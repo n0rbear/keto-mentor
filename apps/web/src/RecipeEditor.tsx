@@ -84,6 +84,13 @@ export function RecipeEditor({ lang, state, editing, onSaved, onCancel }: {
 
   const allIngredients = useMemo(() => combineRecipeIngredients(importPreview?.ingredients ?? [], ingredients), [importPreview, ingredients]);
   const importBlocked = !!importPreview && importPreview.ingredients.some((item) => !item.omitted && (!item.canConfirm || !item.selectedFood || item.quantity?.status !== "resolved" || !item.quantity.grams));
+  // A row only counts toward nutrition once fully resolved (same predicate as
+  // ingredientsFromImport / importBlocked). While any required row is not,
+  // `live` is a SUBTOTAL of the resolved rows only — never the whole recipe —
+  // so it must not be labeled, or scaled per serving / per 100 g, as complete.
+  const requiredRows = (importPreview?.ingredients ?? []).filter((item) => !item.omitted);
+  const unresolvedCount = requiredRows.filter((item) => !(item.canConfirm && item.selectedFood && item.quantity?.status === "resolved" && item.quantity.grams)).length;
+  const partialNutrition = !!importPreview && unresolvedCount > 0;
   const live = useMemo(() => allIngredients.reduce((sum, ingredient) => {
     const factor = ingredient.quantityGrams / 100;
     sum.kcal += ingredient.food.kcalPer100g * factor; sum.fat += ingredient.food.fatPer100g * factor; sum.protein += ingredient.food.proteinPer100g * factor; sum.carbs += ingredient.food.carbsPer100g * factor; sum.fiber += ingredient.food.fiberPer100g * factor; sum.netCarbs = Math.max(0, sum.carbs - sum.fiber);
@@ -151,11 +158,15 @@ export function RecipeEditor({ lang, state, editing, onSaved, onCancel }: {
     <fieldset className="visibility-toggle"><legend>{t.recipes.visibilityLegend}</legend><label><input type="radio" checked={visibility === "private"} onChange={() => setVisibility("private")}/> {t.recipes.visibilityPrivateOption}</label><label><input type="radio" checked={visibility === "public"} onChange={() => setVisibility("public")}/> {t.recipes.visibilityPublicOption}</label></fieldset>
     <div className="ingredient-adder"><FoodCombobox idPrefix="recipe-food" lang={lang} state={state} selected={candidate} onSelect={setCandidate} resetVersion={resetVersion} labels={{ label: reviewIndex == null ? t.recipes.ingredientLabel : imp.resolve, placeholder: t.foodSearch.placeholder, loading: t.foodSearch.loading, noResults: t.foodSearch.noResults, hint: t.foodSearch.hint, selected: t.foodSearch.selected }}/><label>{t.recipes.gramsFieldLabel}<input className="field" type="number" min="0.1" step="0.1" value={candidateGrams} onChange={(e) => setCandidateGrams(e.target.value)}/></label><button type="button" className="btn secondary" onClick={addIngredient}><Plus size={16}/>{t.recipes.addIngredient}</button></div>
     <div className="ingredient-list">{ingredients.map((ingredient, index) => { const ingredientName = pickDisplayName(ingredient.food, lang); return <div className="ingredient-row" key={`${ingredient.foodId}-${index}`}><strong>{ingredientName}</strong><input aria-label={`${ingredientName} ${t.recipes.gramsFieldLabel}`} className="field" type="number" min="0.1" step="0.1" value={ingredient.quantityGrams} onChange={(e) => setIngredients((items) => items.map((item, i) => i === index ? { ...item, quantityGrams: Number(e.target.value) } : item))}/><span>g</span><button className="icon-button" aria-label={t.recipes.removeIngredient} onClick={() => setIngredients((items) => items.filter((_, i) => i !== index))}><Trash2 size={17}/></button></div>; })}</div>
-    <NutritionSummary title={t.recipes.totalNutrition} totals={live}/>
-    <div className="recipe-nutrition-grid">
+    <NutritionSummary title={partialNutrition ? t.recipes.partialNutrition : t.recipes.totalNutrition} totals={live}/>
+    {partialNutrition && <div className="status error" role="status" data-testid="partial-nutrition-status">
+      <div>{t.recipes.ingredientsProgress.replace("{resolved}", String(requiredRows.length - unresolvedCount)).replace("{total}", String(requiredRows.length))}</div>
+      <div>{t.recipes.ingredientsNeedReview.replace("{n}", String(unresolvedCount))}</div>
+    </div>}
+    {!partialNutrition && <div className="recipe-nutrition-grid">
       {Number(servings) > 0 && <NutritionSummary title={t.recipes.perServing} totals={scale(live, 1 / Number(servings))}/>}
       {Number(finishedWeight) > 0 && <NutritionSummary title={t.recipes.per100g} totals={scale(live, 100 / Number(finishedWeight))}/>}
-    </div>
+    </div>}
     <div className="recipe-actions"><button className="btn secondary" onClick={onCancel} disabled={saving}>{t.diary.cancel}</button><button className="btn primary" disabled={importBlocked || saving} aria-busy={saving} onClick={saveRecipe}><Save size={17}/>{t.save}</button></div>
   </div>;
 }
