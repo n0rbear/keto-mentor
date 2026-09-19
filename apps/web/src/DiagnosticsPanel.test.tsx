@@ -134,6 +134,28 @@ describe("DiagnosticsPanel: real 'túrós muffin' live case", () => {
     expect(screen.queryByText("Mit tehetsz most?")).toBeNull();
   });
 
+  it("REAL LIVE BUG FOUND DURING STAGING VERIFICATION: a blocking web-evidence step followed by a SUCCESSFUL AI estimate must show NO stop-reason at all — the process did not stop, it succeeded", () => {
+    // Exact live shape observed on staging for "túrós muffin": web-evidence
+    // failed (no_authoritative_source, blocking:true) but AI-estimation then
+    // succeeded (blocking:false) — the OLD lastBlockingEvent walked
+    // backwards and wrongly quoted the superseded web-evidence failure as
+    // "why I stopped", even though the request ended in a usable estimate.
+    const events: DiagnosticEvent[] = [
+      { stage: "classification", status: "ok", code: "direct_match", blocking: false },
+      { stage: "web_evidence", status: "attention", code: "web_evidence_no_authoritative_source", blocking: true, itemLabel: "túrós muffin" },
+      { stage: "ai_estimation", status: "ok", code: "ai_estimation_success", blocking: false, itemLabel: "túrós muffin" }
+    ];
+    render(<DiagnosticsPanel events={events} lang="hu"/>);
+    open();
+    // The chronological list still HONESTLY shows the web-evidence miss —
+    // that part of the story is true and must stay visible.
+    expect(screen.getByText(/sem számított elég megbízható forrásnak/)).toBeTruthy();
+    // But since the process actually succeeded, there is nothing to
+    // "explain away" — no stop reason, no next-action list.
+    expect(screen.queryByText("Miért álltam meg?")).toBeNull();
+    expect(screen.queryByText("Mit tehetsz most?")).toBeNull();
+  });
+
   it("distinguishes the provider-side AI rate limit from our own internal one with different wording", () => {
     const events: DiagnosticEvent[] = [
       { stage: "ai_estimation", status: "blocked", code: "ai_estimation_provider_rate_limited", blocking: true }

@@ -123,6 +123,16 @@ function StatusIcon({ status }: { status: DiagnosticEvent["status"] }) {
 // its own already-written eventText rather than a second, parallel copy of
 // the same wording that could drift out of sync.
 function lastBlockingEvent(events: DiagnosticEvent[]): DiagnosticEvent | undefined {
+  // Real live bug found while verifying this on staging: a "túrós muffin"
+  // request whose web-evidence step failed (blocking) but whose AI-estimate
+  // step then SUCCEEDED (not blocking) still showed "Miért álltam meg?"
+  // quoting the earlier web-evidence failure — even though the process, as a
+  // whole, did NOT stop; it produced a usable result. Events are already in
+  // pipeline order, so if the LAST event is a success, the process reached a
+  // real terminal outcome and there is nothing to explain — never walk back
+  // past it to resurrect an earlier, since-superseded blocking step.
+  const last = events[events.length - 1];
+  if (!last || last.status === "ok") return undefined;
   for (let i = events.length - 1; i >= 0; i--) if (events[i].blocking) return events[i];
   return undefined;
 }
