@@ -112,7 +112,11 @@ export async function resolveRecipeIngredientsBatch(
       const formCompatible = (candidate: any) => !hasRealSemanticGate || !localFormMismatch(candidate.originalName ?? candidate.name, formEvidence, candidate.match);
       const formCompatibleCanonical = trustedCanonical.filter(formCompatible);
       const canonicalTop = !explicitPreparedState
-        ? formCompatibleCanonical.find((candidate) => /\braw\b/i.test(candidate.originalName ?? candidate.name) && !/\b(cooked|boiled|roasted|fried)\b/i.test(candidate.originalName ?? candidate.name)) ?? formCompatibleCanonical[0]
+        // "roh" is BLS's own raw marker. Recognizing only English "raw" made a
+        // trusted USDA "..., raw" row ALWAYS beat a BLS "... roh" row even
+        // when BLS ranked first (searchFoods' BLS tie-break), silently
+        // bypassing the European-source preference in this one path.
+        ? formCompatibleCanonical.find((candidate) => /\b(raw|roh)\b/i.test(candidate.originalName ?? candidate.name) && !/\b(cooked|boiled|roasted|fried|gekocht|gebraten)\b/i.test(candidate.originalName ?? candidate.name)) ?? formCompatibleCanonical[0]
         : formCompatibleCanonical[0];
       const top = canonicalTop
         ?? sourceCandidates.find((candidate) => isTrustedLocalMatch(candidate.match) && formCompatible(candidate) && (
