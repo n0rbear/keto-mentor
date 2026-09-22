@@ -1,5 +1,6 @@
-import { Prisma, type PrismaClient } from "@prisma/client";
+import { type PrismaClient } from "@prisma/client";
 import { normalizeSearch } from "./normalize.js";
+import { foodCandidateQuery, fuzzyCandidateQuery } from "./food-search-candidates.js";
 
 // Preparation-aware expansion. The base food "tojás"/"egg" must NOT be silently
 // bound to the fried-egg Food. Prepared forms expand to the SAME base food so
@@ -34,7 +35,6 @@ const QUERY_ALIASES: Record<string, readonly string[]> = {
   "gouda": [],
   "szelet gouda": [],
   "csirkemell": ["chicken breast", "hahnchenbrust"],
-  "bacon": ["ham"],
   "100 g bacon": ["bacon"],
   "12 cm kígyóuborka": ["cucumber"],
 };
@@ -204,13 +204,73 @@ export function expandFoodQuery(rawQuery: string) {
   return [...new Set([normalized, ...(QUERY_ALIASES[normalized] ?? [])].map(normalizeSearch).filter((value) => value.length >= 2))];
 }
 
-function scoreFood(food: any, variants: readonly string[], aliasesByFood: ReadonlyMap<string, readonly AliasEntry[]>, fuzzyIds: Set<string>): FoodSearchMatch {
+function wholePhrase(text: string, query: string) {
+  return (` ${text} `).includes(` ${query} `);
+}
+
+// Compound head matches are discovery evidence only, never exact identity.
+// Short fragments (ham/pea/nut) are particularly ambiguous and excluded.
+function compoundHead(text: string, query: string) {
+  return query.length >= 5 && !query.includes(" ") && text.split(" ").some(token =>
+    token.length >= 5 && (token.endsWith(query) || query.endsWith(token)));
+}
+
+const SEARCH_FORMS = [
+  /\b(dried|dehydrated|getrocknet|szaritott)\b/,
+  /\b(cooked|boiled|gekocht|fott)\b/,
+  /\b(roasted|fried|baked|gebraten|gebacken|sult)\b/,
+  /\b(smoked|gerauchert|fustolt)\b/,
+  /\b(canned|konserve|konzerv)\b/,
+];
+// German prepared-food heads are productive suffixes (e.g. Apfelkuchen,
+// Blätterteig), unlike a query fragment. Recognize the preparation category,
+// never special-case a searched ingredient.
+const COMPOUND_FOOD = /\b(with|mit|filled|stuffed|flavored|flavoured|dessert|cake|sauce|soup|bread|pastry|[a-z]*(kuchen|torte|geback|teig|schnitten|sosse|suppe|brot|brotchen))\b/;
+
+function isQueryHeadedHyphenCompound(food: any, query: string) {
+  if (!query || query.includes(" ")) return false;
+  const rawNames = [food.name, food.originalName, ...Object.values((food.names as Record<string, unknown>) ?? {})]
+    .filter((value): value is string => typeof value === "string");
+  return rawNames.some(name => name.split(/[-–—]/).slice(0, -1)
+    .some(segment => normalizeSearch(segment).split(" ").at(-1) === query));
+}
+
+function isModifierPrefixedCompound(food: any, query: string) {
+  if (!query || query.includes(" ")) return false;
+  return foodNameRepresentations(food).some((name) => name.split(" ").some((token) => token !== query && token.endsWith(query)));
+}
+
+function rankingPenalty(food: any, query: string) {
+  const names = foodNameRepresentations(food);
+  const form = SEARCH_FORMS.some(pattern => !pattern.test(query) && names.some(name => pattern.test(name)))
+    || (SEARCH_FORMS.some(pattern => pattern.test(query)) && names.some(name => /\b(raw|fresh|roh|frisch|nyers|friss)\b/.test(name)));
+  // BLS D (pastry/cakes) and X/Y (menu components) are publisher-defined
+  // preparations, not a source preference:
+  // https://blsdb.de/bls ("Das Schlüsselsystem"). An explicitly named dish
+  // keeps its identity; an ingredient query must not silently prefer a recipe.
+  const menuComponent = food.source === "bls" && /^[DXY][A-Z0-9]{6}$/.test(food.sourceId ?? "") && !names.includes(query);
+  const compound = !COMPOUND_FOOD.test(query) && (menuComponent || names.some(name => COMPOUND_FOOD.test(name)) || isQueryHeadedHyphenCompound(food, query));
+  const specializedCompound = isModifierPrefixedCompound(food, query);
+  return (form ? 30 : 0) + (compound ? 40 : 0) + (specializedCompound ? 20 : 0);
+}
+
+function nutritionCompleteness(food: any) {
+  return [food.kcalPer100g, food.proteinPer100g, food.fatPer100g, food.carbsPer100g]
+    .filter(value => value != null && Number.isFinite(Number(value))).length;
+}
+
+function scoreFood(food: any, variants: readonly string[], aliasesByFood: ReadonlyMap<string, readonly AliasEntry[]>, fuzzyIds: Set<string>, rankingQuery: string): FoodSearchMatch {
   const searchable = normalizeSearch(food.searchText || food.name);
   const names = foodNameRepresentations(food);
   const aliasEntries = aliasesByFood.get(food.id) ?? [];
   const aliasStrings = aliasEntries.map((entry) => entry.normalizedAlias);
   let best: FoodSearchMatch = { stage: "partial", score: 0, query: variants[0] ?? "" };
-  for (const variant of variants) {
+  // The user's own wording is the only route to exact/trusted identity.
+  // Reviewed expansions remain useful for discovery, but are deliberately
+  // capped below the trust threshold so they can never displace a stronger
+  // match for what the user actually typed.
+  for (const [variantIndex, variant] of variants.entries()) {
+    const expansion = variantIndex > 0;
     const exact = names.includes(variant);
     const matchingAlias = aliasEntries.find((entry) => entry.normalizedAlias === variant);
     // "dynamic_search" aliases remember ONE prior request's raw phrase,
@@ -243,56 +303,95 @@ function scoreFood(food: any, variants: readonly string[], aliasesByFood: Readon
     const exactAlias = !!matchingAlias && (matchingAlias.kind !== "dynamic_search" || dynamicSearchTrusted);
     const weakDynamicAlias = !!matchingAlias && matchingAlias.kind === "dynamic_search" && !dynamicSearchTrusted;
     const aliasPrefix = aliasStrings.some((alias) => alias.startsWith(`${variant} `));
-    const aliasContains = aliasStrings.some((alias) => alias.includes(variant));
-    const tokenCoverage = variant.split(" ").filter((token) => searchable.includes(token)).length / variant.split(" ").length;
-    const score = exact ? 100 : exactAlias ? 95 : weakDynamicAlias ? 35 : searchable.startsWith(variant) ? 80 : aliasPrefix ? 75 : searchable.includes(variant) ? 70 : aliasContains ? 65 : Math.round(tokenCoverage * 50);
-    if (score > best.score) best = { stage: exact ? "exact" : exactAlias ? "alias" : weakDynamicAlias ? "fuzzy" : "partial", score, query: variant, aliasKind: exactAlias || weakDynamicAlias ? matchingAlias?.kind : undefined };
+    const aliasContains = aliasStrings.some((alias) => wholePhrase(alias, variant));
+    const tokenCoverage = variant.split(" ").filter((token) => wholePhrase(searchable, token)).length / variant.split(" ").length;
+    const prefix = variant.length >= 5 && !variant.includes(" ") && searchable.split(" ").some(token => token.startsWith(variant));
+    const primaryScore = exact ? 100 : exactAlias ? 95 : weakDynamicAlias ? 35 : names.some(name => name.startsWith(`${variant} `)) ? 80 : aliasPrefix ? 75 : wholePhrase(searchable, variant) ? 70 : aliasContains ? 65 : compoundHead(searchable, variant) ? 60 : prefix ? 40 : Math.round(tokenCoverage * 50);
+    const score = expansion ? Math.min(primaryScore, 55) : primaryScore;
+    if (score > best.score) best = {
+      stage: expansion ? "partial" : exact ? "exact" : exactAlias ? "alias" : weakDynamicAlias ? "fuzzy" : "partial",
+      score, query: variant,
+      aliasKind: !expansion && (exactAlias || weakDynamicAlias) ? matchingAlias?.kind : undefined
+    };
   }
-  return best.score === 0 && fuzzyIds.has(food.id) ? { stage: "fuzzy", score: 35, query: variants[0] ?? "" } : best;
+  // Reviewed aliases retain their established trust contract. Ranking penalties
+  // still apply separately, so a reviewed compound does not displace a basic food.
+  if (best.score > 0 && best.stage !== "alias" && best.stage !== "exact") {
+    best.score = Math.max(1, best.score - rankingPenalty(food, rankingQuery));
+  }
+  // Do not resurrect substring-only candidates through the trigram fallback.
+  const substringOnly = searchable.includes(variants[0]) && !wholePhrase(searchable, variants[0]);
+  const expansionOnly = variants.slice(1).some(variant => wholePhrase(searchable, variant));
+  return best.score === 0 && fuzzyIds.has(food.id) && !substringOnly && !expansionOnly ? { stage: "fuzzy", score: 35, query: variants[0] ?? "" } : best;
 }
 
 type CatalogPrisma = Pick<PrismaClient, "food" | "foodAlias"> & Partial<Pick<PrismaClient, "$queryRaw">>;
 
-export async function searchFoods(prisma: CatalogPrisma, rawQuery: string, limit = 20) {
+export function rankFoodCandidates(candidates: any[], variants: readonly string[], aliasesByFood: ReadonlyMap<string, readonly AliasEntry[]>, fuzzyIds: Set<string>, rankingQuery: string) {
+  return candidates
+    .map((food) => ({ ...food, match: scoreFood(food, variants, aliasesByFood, fuzzyIds, rankingQuery) }))
+    .filter((food) => food.match.score > 0)
+    .sort((a, b) => {
+      const rank = (food: typeof a) => food.match.score - (isTrustedLocalMatch(food.match) ? rankingPenalty(food, rankingQuery) : 0);
+      // Stable equivalence classes, not pairwise name-overlap (which is not
+      // transitive and can make sorting depend on input order).
+      const identityKey = (food: typeof a) => isTrustedLocalMatch(food.match) ? food.match.query : normalizeSearch(food.originalName || food.name);
+      const identityOrder = identityKey(a).localeCompare(identityKey(b));
+      return rank(b) - rank(a) || rankingPenalty(a, rankingQuery) - rankingPenalty(b, rankingQuery) || nutritionCompleteness(b) - nutritionCompleteness(a) || identityOrder || Number(b.source === "bls") - Number(a.source === "bls") || a.name.localeCompare(b.name) || a.id.localeCompare(b.id);
+    });
+}
+
+export async function searchFoods(prisma: CatalogPrisma, rawQuery: string, limit = 20, formEvidence?: FormEvidence) {
   const variants = expandFoodQuery(rawQuery);
   if (!variants.length) return [];
   const take = Math.min(Math.max(limit, 1), 30);
+  const rankingQuery = normalizeSearch(formEvidence?.rawIngredient ?? rawQuery);
+  const aliasesByFood = new Map<string, AliasEntry[]>();
+  const fuzzyIds = new Set<string>();
+
+  if (prisma.$queryRaw) {
+    const candidates = await prisma.$queryRaw<any[]>(foodCandidateQuery(variants, rankingQuery, { forms: SEARCH_FORMS, compound: COMPOUND_FOOD }));
+    for (const candidate of candidates) aliasesByFood.set(candidate.id, candidate._aliases ?? []);
+    let ranked = rankFoodCandidates(candidates, variants, aliasesByFood, fuzzyIds, rankingQuery);
+    // Two-character inputs retain exact/token discovery. Trigram similarity for
+    // such short fragments is too weak; it must not resurrect substring noise.
+    if (variants[0].length >= 3 && !ranked.some(food => food.match.score >= 40)) {
+      const fuzzy = await prisma.$queryRaw<any[]>(fuzzyCandidateQuery(variants[0], candidates.map(food => food.id)));
+      for (const food of fuzzy) fuzzyIds.add(food.id);
+      candidates.push(...fuzzy);
+      ranked = rankFoodCandidates(candidates, variants, aliasesByFood, fuzzyIds, rankingQuery);
+    }
+    const winners = ranked.slice(0, take);
+    if (!winners.length) return [];
+    const full = await prisma.food.findMany({
+      where: { id: { in: winners.map(food => food.id) }, createdById: null },
+      include: { servings: { orderBy: [{ isEstimated: "asc" }, { confidence: "desc" }] } },
+      orderBy: { id: "asc" }
+    });
+    const byId = new Map(full.map(food => [food.id, food]));
+    return winners.filter(food => byId.has(food.id)).map(food => ({ ...byId.get(food.id)!, match: food.match }));
+  }
+
+  // Compatibility for the existing non-SQL projected catalog and unit-test
+  // adapters. Real Prisma clients (including transactions) always use the SQL
+  // branch above. This path performs no pagination either.
   const [aliases, candidates] = await Promise.all([
     prisma.foodAlias.findMany({
-      where: { OR: variants.map((normalizedAlias) => ({ normalizedAlias: { contains: normalizedAlias } })) },
+      where: { OR: variants.map(normalizedAlias => ({ normalizedAlias: { contains: normalizedAlias } })) },
       select: { foodId: true, normalizedAlias: true, kind: true, confidence: true },
-      take: 60
+      orderBy: { id: "asc" }, take: 96
     }),
     prisma.food.findMany({
-      where: { createdById: null, OR: variants.map((query) => ({ searchText: { contains: query, mode: "insensitive" as const } })) },
-      include: { servings: { orderBy: [{ isEstimated: "asc" }, { confidence: "desc" }] } },
-      take: 90
+      where: { createdById: null, OR: variants.map(query => ({ searchText: { contains: query, mode: "insensitive" as const } })) },
+      orderBy: { id: "asc" }, take: 96
     })
   ]);
-  const aliasesByFood = new Map<string, AliasEntry[]>();
   for (const alias of aliases) {
-    const values = aliasesByFood.get(alias.foodId) ?? [];
-    values.push({ normalizedAlias: normalizeSearch(alias.normalizedAlias), kind: alias.kind, confidence: alias.confidence });
-    aliasesByFood.set(alias.foodId, values);
+    const entries = aliasesByFood.get(alias.foodId) ?? [];
+    entries.push({ normalizedAlias: normalizeSearch(alias.normalizedAlias), kind: alias.kind, confidence: alias.confidence });
+    aliasesByFood.set(alias.foodId, entries);
   }
-  const fuzzyIds = new Set<string>();
-  if (candidates.length < take && prisma.$queryRaw) {
-    const fuzzy = await prisma.$queryRaw<Array<{ id: string }>>(Prisma.sql`
-      SELECT "id" FROM "ketomentor"."Food"
-      WHERE "createdById" IS NULL AND "searchText" % ${variants[0]}
-      ORDER BY similarity("searchText", ${variants[0]}) DESC
-      LIMIT 60
-    `);
-    fuzzy.forEach(({ id }) => fuzzyIds.add(id));
-  }
-  const relatedIds = [...aliases.map((alias) => alias.foodId), ...fuzzyIds];
-  const missingIds = [...new Set(relatedIds.filter((id) => !candidates.some((food) => food.id === id)))];
-  if (missingIds.length) {
-    candidates.push(...await prisma.food.findMany({ where: { id: { in: missingIds }, createdById: null }, include: { servings: true } }) as any);
-  }
-  return candidates
-    .map((food) => ({ ...food, match: scoreFood(food, variants, aliasesByFood, fuzzyIds) }))
-    .filter((food) => food.match.score > 0)
-    .sort((a, b) => b.match.score - a.match.score || Number(b.source === "bls") - Number(a.source === "bls") || a.name.localeCompare(b.name))
-    .slice(0, take);
+  const missingIds = [...new Set(aliases.map(alias => alias.foodId))].filter(id => !candidates.some(food => food.id === id));
+  if (missingIds.length) candidates.push(...await prisma.food.findMany({ where: { id: { in: missingIds }, createdById: null }, orderBy: { id: "asc" }, take: 96 }));
+  return rankFoodCandidates(candidates, variants, aliasesByFood, fuzzyIds, rankingQuery).slice(0, take);
 }
