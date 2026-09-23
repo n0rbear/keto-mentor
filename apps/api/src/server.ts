@@ -53,6 +53,9 @@ import { configuredAiNutritionEstimationProvider } from "./catalog/ai-nutrition-
 import { AiEstimateRateLimiter } from "./catalog/ai-estimate-rate-limit.js";
 import { editPrivateFood } from "./catalog/edit-private-food.js";
 import { publishProgress, subscribeProgress, closeProgress } from "./meal-input/progress-bus.js";
+import { configuredTranscriptionProvider } from "./ai/transcription-gateway.js";
+import { TranscriptionProviderError } from "./ai/transcription-provider.js";
+import { VOICE_TRANSCRIBE_RATE_LIMIT, voiceTranscribeRateLimitKey } from "./meal-input/voice-rate-limit.js";
 
 const logger = createLogger(env.NODE_ENV === "production" ? "info" : "debug");
 const app = express();
@@ -140,6 +143,11 @@ const webEvidenceFallback = { searchProvider: webKnowledgeSearchProvider, extrac
 const aiNutritionEstimationProvider = configuredAiNutritionEstimationProvider(env);
 const aiEstimateRateLimiter = new AiEstimateRateLimiter();
 const aiEstimation = { provider: aiNutritionEstimationProvider, rateLimiter: aiEstimateRateLimiter };
+// Voice food entry (2026-09-23): reuses OPENAI_API_KEY — no new secret.
+// Degrades to a Disabled provider (voice input unavailable, text entry
+// completely unaffected) whenever that key isn't configured for this
+// deployment — see ai/transcription-gateway.ts.
+const transcriptionProvider = configuredTranscriptionProvider(env);
 
 // The authenticated user's own persisted locale (from requireAuth's DB read)
 // is the single trusted source of UI language for server-side localization —
@@ -171,6 +179,14 @@ const externalFoodLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: externalFoodRateLimitKey
+});
+// Voice transcription incurs a real external cost per call — see
+// meal-input/voice-rate-limit.ts.
+const voiceTranscribeLimiter = rateLimit({
+  ...VOICE_TRANSCRIBE_RATE_LIMIT,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: voiceTranscribeRateLimitKey
 });
 const externalFoodConfirmLimiter = rateLimit({ ...EXTERNAL_FOOD_CONFIRM_RATE_LIMIT, standardHeaders: true, legacyHeaders: false, keyGenerator: externalFoodRateLimitKey });
 
@@ -341,6 +357,49 @@ app.get("/foods/resolve-barcode", requireAuth, externalFoodLimiter, async (req, 
     if (!validated.ok) return res.status(400).json({ error: validated.reason === "invalid_checksum" ? "invalid_barcode_checksum" : "invalid_barcode_format" });
     res.json(await resolveBarcodeFood(prisma, validated.barcode, openFoodFactsAdapter));
   } catch (error) { next(error); }
+});
+
+// Voice food entry (2026-09-23): produces TEXT ONLY, fed by the client into
+// the exact same POST /meal-input/interpret text pipeline as typed input —
+// this endpoint has no concept of food identity/nutrition and never writes
+// anything. Bounded (short conservative size limit, own rate limiter,
+// bounded upstream timeout inside transcriptionProvider itself) since a real
+// external cost is incurred per call. Raw audio bytes are parsed by a
+// route-scoped express.raw (the app-wide express.json() above only ever
+// parses application/json and leaves a non-matching Content-Type
+// untouched) and are held in memory only for the duration of this one
+// request — never persisted to disk or the database, never logged.
+const VOICE_MAX_AUDIO_BYTES = 5 * 1024 * 1024; // ~a few minutes of compressed speech; food entry, not dictation
+const VOICE_ALLOWED_AUDIO_TYPES = ["audio/webm", "audio/ogg", "audio/mp4", "audio/m4a", "audio/mpeg", "audio/mp3", "audio/wav", "audio/x-wav"];
+app.post(
+  "/meal-input/transcribe",
+  requireAuth,
+  voiceTranscribeLimiter,
+  express.raw({ type: VOICE_ALLOWED_AUDIO_TYPES, limit: VOICE_MAX_AUDIO_BYTES }),
+  async (req, res, next) => {
+    try {
+      const contentType = req.headers["content-type"]?.split(";")[0]?.trim().toLowerCase();
+      if (!Buffer.isBuffer(req.body) || !contentType || !VOICE_ALLOWED_AUDIO_TYPES.includes(contentType)) {
+        return res.status(415).json({ error: "unsupported_audio_format" });
+      }
+      if (!req.body.byteLength) return res.status(400).json({ error: "empty_audio" });
+      const result = await transcriptionProvider.transcribe({ audio: req.body, mimeType: contentType, languageHint: trustedLocale(req.user!) });
+      res.json({ text: result.text, language: result.language ?? null });
+    } catch (error) {
+      if (error instanceof TranscriptionProviderError) {
+        const status = error.code === "timeout" ? 504 : error.code === "empty_audio" ? 400 : error.code === "response_too_large" ? 502 : 502;
+        return res.status(status).json({ error: `transcription_${error.code}` });
+      }
+      next(error);
+    }
+  }
+);
+// A route-scoped handler for express.raw's own payload-too-large rejection
+// (thrown before the route handler above ever runs) — kept as a normal JSON
+// error response rather than Express's default HTML error page.
+app.use("/meal-input/transcribe", (error: any, _req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (error?.type === "entity.too.large") return res.status(413).json({ error: "audio_too_large" });
+  next(error);
 });
 
 // Owner-beta (2026-09-12): a truthful, real-stage progress stream for the UI

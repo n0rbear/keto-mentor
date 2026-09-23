@@ -28,6 +28,13 @@ const envSchema = z.object({
   // deliberately configured ONLY on the staging service for this benchmark.
   OPENAI_API_KEY: z.string().min(1).optional(),
   OPENAI_BASE_URL: z.string().url().max(500).optional(),
+  // Voice food entry (2026-09-23): reuses OPENAI_API_KEY/OPENAI_BASE_URL
+  // above — no new secret. Optional override of the transcription model
+  // (default: gpt-4o-mini-transcribe, see ai/transcription-provider.ts);
+  // voice input is simply unavailable (client keeps the existing text input)
+  // wherever OPENAI_API_KEY itself is unset.
+  OPENAI_TRANSCRIBE_MODEL: z.string().min(1).max(120).optional(),
+
   WEB_SEARCH_PROVIDER: z.enum(["tavily"]).optional(),
   TAVILY_API_KEY: z.string().min(1).optional(),
   TAVILY_BASE_URL: z.string().url().max(500).optional()
