@@ -325,9 +325,14 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
 .scanner-error { display: grid; justify-items: center; gap: .5rem; padding: 1.4rem .8rem; text-align: center; color: rgb(var(--text-muted)); }
 .scanner-privacy { margin: 0; }
 
+.voice-input { display: grid; gap: .4rem; margin-top: .4rem; }
+.voice-recording-row { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.voice-privacy { margin: 0; }
+
 .status { border: 1px solid; border-radius: 10px; padding: .65rem .75rem; font-size: .78rem; font-weight: 700; }
 .status.success { border-color: rgb(var(--success) / .26); color: rgb(var(--success)); background: rgb(var(--success) / .07); }
-.status.error { border-color: rgb(var(--danger) / .3); color: rgb(var(--danger)); background: rgb(var(--danger) / .075); }
+.status.error { border-color: rgb(var(--danger) / .3); color: rgb(var(--danger)); background: rgb(var(--danger) / .075); display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+.status.recording { border-color: rgb(var(--brand-bright) / .3); color: rgb(var(--brand-bright)); background: rgb(var(--brand-bright) / .07); }
 
 .recipe-shell { width: min(1180px, calc(100% - 32px)); margin: 0 auto 2.5rem; box-shadow: none; }
 .recipe-heading, .recipe-actions, .recipe-card-actions { display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap; }

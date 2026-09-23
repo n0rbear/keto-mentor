@@ -177,6 +177,18 @@ export const dict = {
       privacyNotice: "A kamera képét nem töltjük fel; csak a leolvasott vonalkódot használjuk.",
       detected: "Vonalkód beolvasva.", tryAgain: "Próbáld újra", videoLabel: "Élő kameraelőnézet a vonalkód-kereséshez"
     },
+    voice: {
+      micButton: "Mondd hangosan", requestingPermission: "Mikrofon indítása…", recording: "Hallgatlak… érintsd meg a leálláshoz",
+      stopButton: "Leállítás", transcribing: "Felismerés…", cancel: "Mégse",
+      micDenied: "A mikrofon-hozzáférés megtagadva. Írd be kézzel.",
+      micUnavailable: "Nem található mikrofon ezen az eszközön. Írd be kézzel.",
+      recorderUnsupported: "A böngésződ nem támogatja a hangfelismerést. Írd be kézzel.",
+      recorderError: "A felvétel nem sikerült. Írd be kézzel.",
+      emptyAudio: "Nem érkezett hang. Próbáld újra.",
+      transcriptionFailed: "A felismerés nem sikerült. Írd be kézzel.",
+      maxDurationNotice: "Elérted a felvétel maximális hosszát.",
+      privacyNotice: "A hangfelvétel csak a felismeréshez kerül feldolgozásra, nem tároljuk."
+    },
     nav: { today: "Ma", log: "Rögzítés", recipes: "Receptek" },
     pwa: {
       installTitle: "Telepítsd a Keto Mentort", installBody: "Add hozzá a kezdőképernyődhöz a gyorsabb eléréshez.",
@@ -374,6 +386,18 @@ export const dict = {
       privacyNotice: "Das Kamerabild wird nicht hochgeladen; es wird nur der erkannte Barcode verwendet.",
       detected: "Barcode erkannt.", tryAgain: "Erneut versuchen", videoLabel: "Live-Kameravorschau für die Barcode-Suche"
     },
+    voice: {
+      micButton: "Sprich es ein", requestingPermission: "Mikrofon wird gestartet…", recording: "Ich höre zu… zum Beenden antippen",
+      stopButton: "Beenden", transcribing: "Erkennung läuft…", cancel: "Abbrechen",
+      micDenied: "Mikrofonzugriff verweigert. Bitte manuell eingeben.",
+      micUnavailable: "Auf diesem Gerät wurde kein Mikrofon gefunden. Bitte manuell eingeben.",
+      recorderUnsupported: "Dein Browser unterstützt die Spracherkennung nicht. Bitte manuell eingeben.",
+      recorderError: "Die Aufnahme ist fehlgeschlagen. Bitte manuell eingeben.",
+      emptyAudio: "Es wurde kein Ton aufgenommen. Bitte erneut versuchen.",
+      transcriptionFailed: "Die Erkennung ist fehlgeschlagen. Bitte manuell eingeben.",
+      maxDurationNotice: "Die maximale Aufnahmedauer wurde erreicht.",
+      privacyNotice: "Die Aufnahme wird nur zur Erkennung verarbeitet und nicht gespeichert."
+    },
     nav: { today: "Heute", log: "Erfassen", recipes: "Rezepte" },
     pwa: {
       installTitle: "Keto Mentor installieren", installBody: "Zum Startbildschirm hinzufügen für schnelleren Zugriff.",
@@ -570,6 +594,18 @@ export const dict = {
       unsupportedCode: "That's not a supported barcode format. Try again.",
       privacyNotice: "The camera image is never uploaded; only the decoded barcode is used.",
       detected: "Barcode detected.", tryAgain: "Try again", videoLabel: "Live camera preview for barcode scanning"
+    },
+    voice: {
+      micButton: "Say it out loud", requestingPermission: "Starting microphone…", recording: "Listening… tap to stop",
+      stopButton: "Stop", transcribing: "Recognizing…", cancel: "Cancel",
+      micDenied: "Microphone access was denied. Type it instead.",
+      micUnavailable: "No microphone was found on this device. Type it instead.",
+      recorderUnsupported: "Your browser doesn't support voice recognition. Type it instead.",
+      recorderError: "Recording failed. Type it instead.",
+      emptyAudio: "No audio was captured. Try again.",
+      transcriptionFailed: "Recognition failed. Type it instead.",
+      maxDurationNotice: "You've reached the maximum recording length.",
+      privacyNotice: "The recording is processed only for recognition and is not stored."
     },
     nav: { today: "Today", log: "Log", recipes: "Recipes" },
     pwa: {
