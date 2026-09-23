@@ -52,9 +52,15 @@ const offNameAdapter = new OpenFoodFactsNameAdapter();
 const externalFoodAdapters = usdaAdapter ? [usdaAdapter, offNameAdapter] : [offNameAdapter];
 const externalFoodConfirmAdapters = usdaAdapter ? [usdaAdapter, openFoodFactsAdapter] : [openFoodFactsAdapter];
 const searchIntentProvider = configuredSearchIntentProvider(env);
-// See server.ts's identical wiring — same second-chance search-term
-// recovery, only ever consumed by the single-item resolver path below
-// (resolveDynamicFoodFromIdentity), never by resolveManyAuthoritativeFoods.
+// See server.ts's identical wiring. NOT currently consumed by anything in
+// THIS router: both call sites below feed `dynamic` into
+// resolveManyAuthoritativeFoods (dynamic-food-resolution-batch.ts), which
+// has its own independent per-ingredient relevance/gate logic and does not
+// call resolveFromSearchTerm/attemptSemanticRecovery at all (see the
+// 2026-09-23 semantic-recovery audit notes). Included only for structural
+// consistency with server.ts's `dynamic` shape and so the field is already
+// threaded through if the batch resolver is ever extended to use it —
+// harmless, inert, not yet exercised here.
 const semanticRecoveryProvider = configuredSemanticRecoveryProvider(env);
 const candidateLocalizationProvider = configuredCandidateLocalizationProvider(env);
 // Owner-beta blocker #9 (2026-09-11): see server.ts's identical wiring and
