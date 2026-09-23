@@ -332,6 +332,22 @@ export async function confirmAuthoritativeFood(
   }
 }
 
+// Unified food-resolution engine (2026-09-23): the ONE shared "is this
+// gate-approved survivor set safe to auto-persist, or does it need explicit
+// user review" rule. Semantic PLAUSIBILITY (the gate — single or batched —
+// approving a candidate as the same identity) is a different question from
+// whether that candidate's own EVIDENCE is trustworthy enough to skip review
+// entirely (see autoAcceptEligible's own doc on ExternalFoodCandidate, just
+// above). Used identically by the single-item path (resolveAuthoritativeFood,
+// right below) and the batch/recipe-ingredient path
+// (dynamic-food-resolution-batch.ts) so the two can never again silently
+// drift into different acceptance rules for the same evidence shape — this
+// was previously duplicated as near-identical inline logic in both files.
+export function decideSurvivorAcceptance(survivors: readonly ExternalFoodCandidate[]): { persist: ExternalFoodCandidate } | { review: ExternalFoodCandidate[]; reason: "ambiguous" | "weak_match" } {
+  if (survivors.length === 1 && survivors[0].autoAcceptEligible) return { persist: survivors[0] };
+  return { review: [...survivors], reason: survivors.length === 1 ? "weak_match" : "ambiguous" };
+}
+
 export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: string, adapters: readonly StructuredFoodLookupAdapter[], localization?: LocalizationOptions, semanticGate?: SemanticGateOptions): Promise<ResolutionOutcome> {
   const local = await timeStage("local_trusted_search", () => searchFoods(prisma as any, query, 5));
   // "resolved_local" must mean what its name says: a genuinely trusted local
@@ -491,22 +507,23 @@ export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: 
   // eligible for automatic acceptance is now forced past this branch to the
   // ordinary confirmation_required path (reason: "weak_match") a few lines
   // below, same as when no semantic gate exists.
-  if (semanticGate && candidates.length === 1 && top.autoAcceptEligible) {
-    const [localizedTop] = localization ? await localizeCandidateNames(localization.provider, [top], localization.locale) : [top];
-    try {
-      const food = await persistCandidate(prisma, localizedTop);
-      return { status: "resolved_external", food, provenance: top.provenance };
-    } catch (error: any) {
-      if (error?.code === "P2002") {
-        const existing = await prisma.food.findUnique({ where: { source_sourceId: { source: top.source, sourceId: top.sourceId } }, include: { servings: true } });
-        if (existing) return { status: "resolved_local", food: await backfillLocaleName(prisma, existing, localization) };
+  if (semanticGate) {
+    const decision = decideSurvivorAcceptance(candidates);
+    if ("persist" in decision) {
+      const [localizedTop] = localization ? await localizeCandidateNames(localization.provider, [decision.persist], localization.locale) : [decision.persist];
+      try {
+        const food = await persistCandidate(prisma, localizedTop);
+        return { status: "resolved_external", food, provenance: decision.persist.provenance };
+      } catch (error: any) {
+        if (error?.code === "P2002") {
+          const existing = await prisma.food.findUnique({ where: { source_sourceId: { source: decision.persist.source, sourceId: decision.persist.sourceId } }, include: { servings: true } });
+          if (existing) return { status: "resolved_local", food: await backfillLocaleName(prisma, existing, localization) };
+        }
+        throw error;
       }
-      throw error;
     }
-  }
-  if (semanticGate && candidates.length > 1) {
-    const localizedTop5 = localization ? await localizeCandidateNames(localization.provider, candidates.slice(0, 5), localization.locale) : candidates.slice(0, 5);
-    return { status: "confirmation_required", candidates: localizedTop5, reason: "ambiguous" };
+    const localizedReview = localization ? await localizeCandidateNames(localization.provider, decision.review.slice(0, 5), localization.locale) : decision.review.slice(0, 5);
+    return { status: "confirmation_required", candidates: localizedReview, reason: decision.reason };
   }
 
   if (top.matchPolicy !== "exact_normalized_name" || normalizeSearch(query) !== top.normalizedName) {

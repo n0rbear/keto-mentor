@@ -73,7 +73,7 @@ function porkHockCandidate(overrides: Partial<ExternalFoodCandidate> = {}): Exte
     names: { en: "Pork hock" }, kcalPer100g: 280, fatPer100g: 22, proteinPer100g: 20, carbsPer100g: 0, fiberPer100g: 0, nutrients: [],
     provenance: { source: "USDA FoodData Central", sourceId: "172152", sourceUrl: "https://fdc.nal.usda.gov/172152", retrievedAt: "2026-09-09T00:00:00.000Z", valuesPer: "100 g" },
     sourceUrl: "https://fdc.nal.usda.gov/172152", normalizedName: "pork hock", nutrientBasis: "per_100_g",
-    retrievedAt: "2026-09-09T00:00:00.000Z", confidence: 0.97, matchPolicy: "exact_normalized_name", ...overrides
+    retrievedAt: "2026-09-09T00:00:00.000Z", confidence: 0.97, matchPolicy: "exact_normalized_name", autoAcceptEligible: true, ...overrides
   } as ExternalFoodCandidate;
 }
 
@@ -181,7 +181,7 @@ describe("cross-language production-shaped scenario: a different food category a
       names: { en: "Bologna, pork" }, kcalPer100g: 283, fatPer100g: 24, proteinPer100g: 12, carbsPer100g: 3, fiberPer100g: 0, nutrients: [],
       provenance: { source: "USDA FoodData Central", sourceId: "168277", sourceUrl: "https://fdc.nal.usda.gov/168277", retrievedAt: "2026-09-09T00:00:00.000Z", valuesPer: "100 g" },
       sourceUrl: "https://fdc.nal.usda.gov/168277", normalizedName: "bologna pork", nutrientBasis: "per_100_g",
-      retrievedAt: "2026-09-09T00:00:00.000Z", confidence: 0.97, matchPolicy: "exact_normalized_name", ...overrides
+      retrievedAt: "2026-09-09T00:00:00.000Z", confidence: 0.97, matchPolicy: "exact_normalized_name", autoAcceptEligible: true, ...overrides
     } as ExternalFoodCandidate;
   }
 

@@ -4,7 +4,7 @@ process.env.JWT_ACCESS_SECRET = "a".repeat(32);
 process.env.JWT_REFRESH_SECRET = "b".repeat(32);
 
 import { describe, expect, it, vi } from "vitest";
-import { collapseEquivalentCandidates, confirmAuthoritativeFood, externalFoodConfirmationSchema, resolveAuthoritativeFood, resolveBarcodeFood, validateExternalCandidate, type ExternalFoodCandidate } from "./external-food.js";
+import { collapseEquivalentCandidates, confirmAuthoritativeFood, decideSurvivorAcceptance, externalFoodConfirmationSchema, resolveAuthoritativeFood, resolveBarcodeFood, validateExternalCandidate, type ExternalFoodCandidate } from "./external-food.js";
 import { EXTERNAL_FOOD_CONFIRM_RATE_LIMIT, EXTERNAL_FOOD_RATE_LIMIT, externalFoodRateLimitKey } from "./external-food-rate-limit.js";
 import { normalizeOffProduct, normalizeUsdaNutrients, OpenFoodFactsNameAdapter, OpenFoodFactsProductAdapter, UsdaFoodDataCentralLookupAdapter } from "./structured-source-adapters.js";
 
@@ -1265,6 +1265,32 @@ describe("Open Food Facts text-search hits never out-rank reference sources", ()
 // EVIDENCE itself was ever verified beyond a name/brand text match — an
 // OpenFoodFacts name-search hit is always the latter. Guard: the same
 // `top.autoAcceptEligible` check `resolveAuthoritativeFood` now applies.
+describe("decideSurvivorAcceptance: the one shared acceptance rule used by both the single-item and batch/recipe resolvers", () => {
+  function candidateWith(overrides: Partial<ExternalFoodCandidate>): ExternalFoodCandidate {
+    return { source: "usda_fdc", sourceId: "1", originalName: "x", name: "x", names: {}, kcalPer100g: 1, fatPer100g: 1, proteinPer100g: 1, carbsPer100g: 1, fiberPer100g: 1, nutrients: [], provenance: {} as any, sourceUrl: "https://fdc.nal.usda.gov/1", normalizedName: "x", nutrientBasis: "per_100_g", retrievedAt: "2026-01-01T00:00:00.000Z", confidence: 1, matchPolicy: "exact_normalized_name", autoAcceptEligible: true, ...overrides };
+  }
+
+  it("persists the sole survivor when it is autoAcceptEligible", () => {
+    const candidate = candidateWith({ autoAcceptEligible: true });
+    expect(decideSurvivorAcceptance([candidate])).toEqual({ persist: candidate });
+  });
+
+  it("requires review (weak_match) for a sole survivor that is NOT autoAcceptEligible — e.g. an OFF name-search hit", () => {
+    const candidate = candidateWith({ autoAcceptEligible: false, matchPolicy: "review_required" });
+    expect(decideSurvivorAcceptance([candidate])).toEqual({ review: [candidate], reason: "weak_match" });
+  });
+
+  it("requires review (ambiguous) for two or more survivors regardless of autoAcceptEligible", () => {
+    const a = candidateWith({ sourceId: "1", autoAcceptEligible: true });
+    const b = candidateWith({ sourceId: "2", autoAcceptEligible: true });
+    expect(decideSurvivorAcceptance([a, b])).toEqual({ review: [a, b], reason: "ambiguous" });
+  });
+
+  it("never persists when there are zero survivors (defensive — callers already handle the empty case separately)", () => {
+    expect(decideSurvivorAcceptance([])).toEqual({ review: [], reason: "ambiguous" });
+  });
+});
+
 describe("central invariant: review-required evidence never auto-persists merely because it is gate-approved and alone", () => {
   const soleGateApproval = { id: "fixture", checkRelevance: async (_o: unknown, cands: { id: string }[]) => new Map(cands.map((c) => [c.id, "best_match" as const])) };
 

@@ -108,7 +108,7 @@ function candidate(overrides: Partial<ExternalFoodCandidate> = {}): ExternalFood
     names: { en: "Pork hock" }, kcalPer100g: 280, fatPer100g: 22, proteinPer100g: 20, carbsPer100g: 0, fiberPer100g: 0, nutrients: [],
     provenance: { source: "USDA FoodData Central", sourceId: "172152", sourceUrl: "https://fdc.nal.usda.gov/172152", retrievedAt: "2026-09-09T00:00:00.000Z", valuesPer: "100 g" },
     sourceUrl: "https://fdc.nal.usda.gov/172152", normalizedName: "pork hock", nutrientBasis: "per_100_g",
-    retrievedAt: "2026-09-09T00:00:00.000Z", confidence: 0.97, matchPolicy: "exact_normalized_name", language: "en", ...overrides
+    retrievedAt: "2026-09-09T00:00:00.000Z", confidence: 0.97, matchPolicy: "exact_normalized_name", autoAcceptEligible: true, language: "en", ...overrides
   };
 }
 
@@ -118,7 +118,7 @@ function salmonCandidate(overrides: Partial<ExternalFoodCandidate> = {}): Extern
     names: { en: "Salmon" }, kcalPer100g: 142, fatPer100g: 6.3, proteinPer100g: 19.8, carbsPer100g: 0, fiberPer100g: 0, nutrients: [],
     provenance: { source: "USDA FoodData Central", sourceId: "175167", sourceUrl: "https://fdc.nal.usda.gov/175167", retrievedAt: "2026-09-09T00:00:00.000Z", valuesPer: "100 g" },
     sourceUrl: "https://fdc.nal.usda.gov/175167", normalizedName: "salmon", nutrientBasis: "per_100_g",
-    retrievedAt: "2026-09-09T00:00:00.000Z", confidence: 0.97, matchPolicy: "exact_normalized_name", language: "en", ...overrides
+    retrievedAt: "2026-09-09T00:00:00.000Z", confidence: 0.97, matchPolicy: "exact_normalized_name", autoAcceptEligible: true, language: "en", ...overrides
   };
 }
 
@@ -160,7 +160,7 @@ function beefBrothCandidate(overrides: Partial<ExternalFoodCandidate> = {}): Ext
     names: { en: "Beef broth" }, kcalPer100g: 8, fatPer100g: 0.3, proteinPer100g: 1.4, carbsPer100g: 0.2, fiberPer100g: 0, nutrients: [],
     provenance: { source: "USDA FoodData Central", sourceId: "174589", sourceUrl: "https://fdc.nal.usda.gov/174589", retrievedAt: "2026-09-09T00:00:00.000Z", valuesPer: "100 g" },
     sourceUrl: "https://fdc.nal.usda.gov/174589", normalizedName: "beef broth", nutrientBasis: "per_100_g",
-    retrievedAt: "2026-09-09T00:00:00.000Z", confidence: 0.97, matchPolicy: "exact_normalized_name", language: "en", ...overrides
+    retrievedAt: "2026-09-09T00:00:00.000Z", confidence: 0.97, matchPolicy: "exact_normalized_name", autoAcceptEligible: true, language: "en", ...overrides
   };
 }
 
