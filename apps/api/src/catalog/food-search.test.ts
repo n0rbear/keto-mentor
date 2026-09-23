@@ -115,6 +115,26 @@ describe("semantic coverage gate on learned (dynamic_search) aliases", () => {
     expect(result[0]).toMatchObject({ id: "pork-hock", match: { stage: "exact", score: 100 } });
   });
 
+  it("a HIGH-CONFIDENCE (>= trust threshold) dynamic_search alias still does not grant trust when it only partially overlaps a DYNAMICALLY-localized name (the real live staging 'szalonna' case, alias written 2026-09-19 before hasIdentityCoverage existed)", async () => {
+    // Reproduces the exact live-discovered gap: an alias already sitting in
+    // the database at confidence 0.95 ("validated") — written by an OLDER
+    // code path, or any future one that doesn't go through learnSearchAlias
+    // — must not be trusted at READ time either. The food's CURATED name is
+    // English and unrelated; only its DYNAMIC (names.hu) display name
+    // happens to contain the bare query as a minority substring.
+    const bacon = foodWith("bacon-usda", "Pork, cured, bacon, unprepared", "pork cured bacon unprepared hu pacolt szalonna elokeszitetlen");
+    (bacon as any).names = { hu: "pácolt szalonna, előkészítetlen" };
+    const prismaWithHighConfidencePoisonedAlias = {
+      foodAlias: { findMany: async () => [{ foodId: "bacon-usda", normalizedAlias: "szalonna", kind: "dynamic_search", confidence: 0.95 }] },
+      food: { findMany: async ({ where }: any) => where?.id?.in ? [bacon].filter((f) => where.id.in.includes(f.id)) : [bacon] }
+    } as unknown as Pick<PrismaClient, "food" | "foodAlias">;
+
+    const result = await searchFoods(prismaWithHighConfidencePoisonedAlias, "szalonna");
+    expect(result[0]?.id).toBe("bacon-usda");
+    expect(result[0]?.match.stage).not.toBe("alias");
+    expect(isTrustedLocalMatch(result[0]?.match)).toBe(false);
+  });
+
   it("one shared token out of a multi-token dish name is not enough for a dynamic_search alias to auto-resolve (the real Champignoncremesuppe/beech-mushroom case)", async () => {
     const mushroom = foodWith("beech-mushroom", "Mushroom, beech", "mushroom beech");
     // Even a coincidental partial textual echo ("mushroom"-ish) must not be
