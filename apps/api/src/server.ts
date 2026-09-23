@@ -35,6 +35,7 @@ import { configuredFoodAiProvider } from "./ai/food-ai-gateway.js";
 import { FoodNlpUserRateLimiter, rateLimitedFoodNlpProvider } from "./ai/food-nlp-rate-limit.js";
 import { configuredQuantityAiProvider } from "./meal-input/quantity-ai-gateway.js";
 import { configuredSearchIntentProvider } from "./catalog/search-intent-gateway.js";
+import { configuredSemanticRecoveryProvider } from "./catalog/semantic-recovery-gateway.js";
 import { configuredCandidateLocalizationProvider } from "./catalog/candidate-localization-gateway.js";
 import { configuredSemanticCandidateGateProvider } from "./catalog/semantic-candidate-gate-gateway.js";
 import { configuredRecipeSemanticGateProvider } from "./catalog/semantic-candidate-gate-batch-gateway.js";
@@ -71,6 +72,12 @@ const quantityProvider = configuredQuantityAiProvider(env);
 // resolution itself is gated separately below on usdaAdapter (env.USDA_FDC_API_KEY)
 // so a configured LLM alone can never enable it without a real source adapter.
 const searchIntentProvider = configuredSearchIntentProvider(env);
+// Second-chance search-term recovery (2026-09-23), tried only after the
+// ordinary search-intent-driven attempt already failed — see
+// dynamic-food-resolution.ts's attemptSemanticRecovery. Same configured AI
+// gateway again, own narrow schema (semantic-recovery.ts); never itself a
+// nutrition or identity source.
+const semanticRecoveryProvider = configuredSemanticRecoveryProvider(env);
 // Same configured AI gateway again — localizes an already-identified
 // candidate's display name into the user's UI language, never decides
 // identity/nutrition. Independent of USDA_FDC_API_KEY: unused when dynamic
@@ -372,7 +379,7 @@ app.post("/meal-input/interpret", requireAuth, async (req, res, next) => {
     // never adds a request on a local hit. No adapters configured (e.g. no
     // USDA_FDC_API_KEY) means dynamic resolution is simply not offered.
     const dynamic = externalFoodAdapters.length
-      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale: trustedLocale(req.user!), localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider, webEvidenceFallback, aiEstimation }
+      ? { prisma, searchIntentProvider, semanticRecoveryProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale: trustedLocale(req.user!), localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider, webEvidenceFallback, aiEstimation }
       : null;
     // Same deps, but with recipeIngredientDynamicResolutionLimiter in place
     // of dynamicFoodResolutionLimiter — see that limiter's own comment.
@@ -467,7 +474,7 @@ app.post("/meals", requireAuth, async (req, res, next) => {
     // contains a recipe-discovery item, at which point its own explicit
     // recipe_discovery_unavailable check fires instead of resolving anything.
     const recipeDynamic = externalFoodAdapters.length
-      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: recipeIngredientDynamicResolutionLimiter, userId: req.user!.id, locale: trustedLocale(req.user!), localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider, webEvidenceFallback, aiEstimation }
+      ? { prisma, searchIntentProvider, semanticRecoveryProvider, adapters: externalFoodAdapters, rateLimiter: recipeIngredientDynamicResolutionLimiter, userId: req.user!.id, locale: trustedLocale(req.user!), localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider, webEvidenceFallback, aiEstimation }
       : null;
     const meal = await createMeal(prisma, req.user!.id, input, { recipeAiProvider: recipeDiscoveryAiProvider, dynamic: recipeDynamic, recipeIngredientNormalizationProvider, recipeQuantityEstimationProvider });
     res.status(201).json({ meal });
