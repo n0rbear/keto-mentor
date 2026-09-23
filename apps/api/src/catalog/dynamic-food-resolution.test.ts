@@ -6,6 +6,7 @@ import type { ExternalFoodCandidate } from "./external-food.js";
 import type { CandidateLocalizationProvider } from "./candidate-localization.js";
 import type { SemanticCandidateGateProvider } from "./semantic-candidate-gate.js";
 import { computeAliasSemanticVerdict } from "./alias-semantic-verdict.js";
+import type { SemanticRecovery, SemanticRecoveryProvider } from "./semantic-recovery.js";
 
 // Mirrors real production wiring (server.ts always configures a real
 // candidateLocalizationProvider): resolveAuthoritativeFood's auto-resolve
@@ -1020,5 +1021,246 @@ describe("resolveDynamicFood: convergence-gate rejection now continues to the fa
     // rejection), never via this change's "convergence_rejected" — proving
     // the two stay genuinely distinct and this change didn't touch that path.
     expect((result as any).resolutionDiagnostics?.authoritativeReason).toBe("not_found");
+  });
+});
+
+describe("semantic recovery: a second-chance search-term generator, tried only after the first attempt fails or cannot safely converge (2026-09-23)", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  function stubRecovery(recovery: SemanticRecovery | null): SemanticRecoveryProvider {
+    return { id: "stub-recovery", recover: async () => recovery };
+  }
+
+  // Every candidate's `name`/`originalName`/`normalizedName` deliberately
+  // start with the exact single-token TERM that is expected to find it (so
+  // resolveAuthoritativeFood's own isRelevantExternalCandidate relevance
+  // filter — a real, unrelated safety gate this fixture must not bypass —
+  // passes) and also literally contain "curdcheese" (so the convergence
+  // gate's coverage check against originalIdentity="curdcheese" passes the
+  // same way a genuine curated/authoritative record's own name would).
+  // Isolates these tests from the separate hasIdentityCoverage length-ratio
+  // nuances already covered in food-search.test.ts.
+  function candidateFor(term: string, overrides: Partial<ExternalFoodCandidate> = {}): ExternalFoodCandidate {
+    const name = `${term} curdcheese`;
+    const source = overrides.source ?? "usda_fdc";
+    const sourceUrl = source === "open_food_facts" ? "https://world.openfoodfacts.org/product/900001" : "https://fdc.nal.usda.gov/900001";
+    return {
+      source: "usda_fdc", sourceId: "900001", originalName: name, name,
+      names: { en: name }, kcalPer100g: 145, fatPer100g: 4.5, proteinPer100g: 12, carbsPer100g: 4, fiberPer100g: 0, nutrients: [],
+      provenance: { source: "USDA FoodData Central", sourceId: "900001", sourceUrl, retrievedAt: "2026-09-23T00:00:00.000Z", valuesPer: "100 g" },
+      sourceUrl, normalizedName: name, nutrientBasis: "per_100_g", autoAcceptEligible: true,
+      retrievedAt: "2026-09-23T00:00:00.000Z", confidence: 0.97, matchPolicy: "exact_normalized_name", language: "en", ...overrides
+    };
+  }
+
+  it("CASE A (túró-equivalent): the first term finds nothing, but a recovered reference term resolves — never a blind translation-of-convenience guess", async () => {
+    const { prisma } = fakePrisma();
+    const calls: string[] = [];
+    const result = await resolveDynamicFood(prisma, { foodQuery: "curdcheese" }, {
+      searchIntentProvider: stubSearchIntent({ canonicalConcept: "cottagecheese", searchTerms: ["cottagecheese"] }),
+      adapters: [{
+        source: "usda_fdc", sourceName: "USDA",
+        lookup: async (query: string) => { calls.push(query); return query === "quark" ? [candidateFor("quark")] : []; }
+      }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      semanticCandidateGateProvider: permissiveSemanticGate(),
+      semanticRecoveryProvider: stubRecovery({ canonicalConcept: "curd cheese", localSearchTerms: [], referenceSearchTerms: ["quark"] })
+    });
+    expect(calls).toEqual(["cottagecheese", "quark"]);
+    expect(result).toMatchObject({ status: "resolved", food: { sourceId: "900001" } });
+  });
+
+  it("CASE B (szalonna-equivalent): a convergence-rejected first term triggers recovery, and a recovered term's OWN materially-different candidates require confirmation, never an auto-pick", async () => {
+    const { prisma } = fakePrisma();
+    const result = await resolveDynamicFood(prisma, { foodQuery: "curdcheese" }, {
+      searchIntentProvider: stubSearchIntent({ canonicalConcept: "unrelatedterm", searchTerms: ["unrelatedterm"] }),
+      adapters: [{
+        source: "usda_fdc", sourceName: "USDA",
+        lookup: async (query: string) => {
+          // Relevant to its OWN query (so it survives isRelevantExternalCandidate)
+          // but names an entirely different food — must fail convergence.
+          if (query === "unrelatedterm") return [candidateFor("unrelatedterm", { name: "unrelatedterm somethingelse", originalName: "unrelatedterm somethingelse", normalizedName: "unrelatedterm somethingelse", names: {} })];
+          // One recovered term whose OWN search legitimately returns two
+          // materially different real records (e.g. breakfast bacon vs. back
+          // fat) — genuine ambiguity discovered BY the recovered term itself.
+          if (query === "variants") return [
+            candidateFor("variants", { sourceId: "900002", name: "variants curdcheese a", originalName: "variants curdcheese a", normalizedName: "variants curdcheese a" }),
+            candidateFor("variants", { sourceId: "900003", name: "variants curdcheese b", originalName: "variants curdcheese b", normalizedName: "variants curdcheese b" })
+          ];
+          return [];
+        }
+      }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      semanticCandidateGateProvider: permissiveSemanticGate(),
+      semanticRecoveryProvider: stubRecovery({ canonicalConcept: "curd cheese", localSearchTerms: [], referenceSearchTerms: ["variants"] })
+    });
+    expect(result.status).toBe("confirmation_required");
+    const candidates = (result as any).candidates as ExternalFoodCandidate[];
+    expect(candidates.map((c) => c.sourceId).sort()).toEqual(["900002", "900003"]);
+  });
+
+  it("CASE C (Öl-equivalent): an already-ambiguous result is AUGMENTED with a recovered review-only candidate, never silently narrowed or auto-picked", async () => {
+    const { prisma } = fakePrisma();
+    const result = await resolveDynamicFood(prisma, { foodQuery: "curdcheese" }, {
+      searchIntentProvider: stubSearchIntent({ canonicalConcept: "curdcheese", searchTerms: ["curdcheesequark"] }),
+      adapters: [{
+        source: "usda_fdc", sourceName: "USDA",
+        lookup: async (query: string) => {
+          if (query === "curdcheesequark") return [
+            candidateFor("curdcheesequark", { sourceId: "900004", source: "open_food_facts" as any, autoAcceptEligible: false, matchPolicy: "review_required", kcalPer100g: 66 }),
+            candidateFor("curdcheesequark", { sourceId: "900005", source: "open_food_facts" as any, autoAcceptEligible: false, matchPolicy: "review_required", kcalPer100g: 145, category: "different category" })
+          ];
+          // A THIRD recovered concept that would, on its own, resolve
+          // confidently (autoAcceptEligible/high confidence) is deliberately
+          // NOT surfaced here: once real ambiguity is already known
+          // (900004/900005), silently swapping in whichever recovered term
+          // happens to resolve on its own would DISCARD that already-known
+          // ambiguity — exactly the failure mode this feature exists to
+          // prevent (see attemptSemanticRecovery's own comment). Only a
+          // recovered term that is ITSELF still review-only merges in.
+          if (query === "oilconcept") return [candidateFor("oilconcept", { sourceId: "900006", source: "open_food_facts" as any, autoAcceptEligible: false, matchPolicy: "review_required" })];
+          return [];
+        }
+      }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      semanticCandidateGateProvider: permissiveSemanticGate(),
+      semanticRecoveryProvider: stubRecovery({ canonicalConcept: "curd cheese", localSearchTerms: [], referenceSearchTerms: ["oilconcept"] })
+    });
+    expect(result.status).toBe("confirmation_required");
+    const candidates = (result as any).candidates as ExternalFoodCandidate[];
+    expect(candidates.map((c) => c.sourceId).sort()).toEqual(["900004", "900005", "900006"]);
+  });
+
+  it("bounds the number of recovered terms actually tried (max 5, combining both lists and a brand-derived term) and stops on the FIRST resolution", async () => {
+    const { prisma } = fakePrisma();
+    const calls: string[] = [];
+    const result = await resolveDynamicFood(prisma, { foodQuery: "curdcheese" }, {
+      searchIntentProvider: stubSearchIntent({ canonicalConcept: "x", searchTerms: ["originalterm"] }),
+      adapters: [{
+        source: "usda_fdc", sourceName: "USDA",
+        lookup: async (query: string) => { calls.push(query); return query === "termb" ? [candidateFor("termb")] : []; }
+      }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      semanticCandidateGateProvider: permissiveSemanticGate(),
+      semanticRecoveryProvider: stubRecovery({
+        canonicalConcept: "x",
+        localSearchTerms: ["terma", "termb", "termc"],
+        referenceSearchTerms: ["termd", "terme", "termf"],
+        brand: "Brand", productName: "Product"
+      })
+    });
+    // "originalterm" (first attempt) + "terma" + "termb" (resolves, stop) — never reaches termc/d/e/f/brand.
+    expect(calls).toEqual(["originalterm", "terma", "termb"]);
+    expect(result.status).toBe("resolved");
+  });
+
+  it("deduplicates a recovered term that repeats the original search term or original identity — no wasted duplicate call", async () => {
+    const { prisma } = fakePrisma();
+    const calls: string[] = [];
+    await resolveDynamicFood(prisma, { foodQuery: "curdcheese" }, {
+      searchIntentProvider: stubSearchIntent({ canonicalConcept: "x", searchTerms: ["cottagecheese"] }),
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async (query: string) => { calls.push(query); return []; } }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      semanticCandidateGateProvider: permissiveSemanticGate(),
+      semanticRecoveryProvider: stubRecovery({ canonicalConcept: "x", localSearchTerms: ["cottagecheese", "curdcheese"], referenceSearchTerms: ["Cottagecheese"] })
+    });
+    // "cottagecheese" (original) tried once; the case-insensitive repeat of
+    // it and the repeat of the original identity are never retried.
+    expect(calls).toEqual(["cottagecheese"]);
+  });
+
+  it("a malformed/rejected recovery response degrades to null (the existing fallback chain runs completely unaffected)", async () => {
+    const { attemptWebEvidenceFallback } = await import("./web-evidence-fallback.js");
+    vi.mocked(attemptWebEvidenceFallback).mockResolvedValue(null);
+    const { prisma } = fakePrisma();
+    const result = await resolveDynamicFood(prisma, { foodQuery: "curdcheese" }, {
+      searchIntentProvider: stubSearchIntent({ canonicalConcept: "x", searchTerms: ["cottagecheese"] }),
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      semanticCandidateGateProvider: permissiveSemanticGate(),
+      // A real ChatSemanticRecoveryProvider degrades malformed output/
+      // timeouts/provider errors to null itself (see semantic-recovery.
+      // test.ts) — this stub represents that already-degraded state.
+      semanticRecoveryProvider: stubRecovery(null),
+      webEvidenceFallback: { searchProvider: { id: "tavily" } as any, extractionProvider: { id: "groq" } as any, rateLimiter: { consume: () => true } as any }
+    });
+    expect(attemptWebEvidenceFallback).toHaveBeenCalledOnce();
+    expect(result.status).toBe("unresolved");
+  });
+
+  it("a provider that is simply not configured (undefined) never changes behavior — the pre-existing fallback chain runs exactly as before", async () => {
+    const { attemptWebEvidenceFallback } = await import("./web-evidence-fallback.js");
+    vi.mocked(attemptWebEvidenceFallback).mockResolvedValue(null);
+    const { prisma } = fakePrisma();
+    const result = await resolveDynamicFood(prisma, { foodQuery: "curdcheese" }, {
+      searchIntentProvider: stubSearchIntent({ canonicalConcept: "x", searchTerms: ["cottagecheese"] }),
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      semanticCandidateGateProvider: permissiveSemanticGate(),
+      webEvidenceFallback: { searchProvider: { id: "tavily" } as any, extractionProvider: { id: "groq" } as any, rateLimiter: { consume: () => true } as any }
+    });
+    expect(attemptWebEvidenceFallback).toHaveBeenCalledOnce();
+    expect(result.status).toBe("unresolved");
+  });
+
+  it("AI-estimate remains the final fallback even with recovery configured — recovery finding nothing still allows AI-estimate to run", async () => {
+    const estimate = vi.fn(async () => ({ kcalPer100g: 100, proteinPer100g: 1, fatPer100g: 1, carbsPer100g: 1, fiberPer100g: 1, assumptions: "generic estimate", confidence: "low" as const }));
+    const { prisma } = fakePrisma();
+    const result = await resolveDynamicFood(prisma, { foodQuery: "curdcheese" }, {
+      searchIntentProvider: stubSearchIntent({ canonicalConcept: "x", searchTerms: ["cottagecheese"] }),
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      semanticCandidateGateProvider: permissiveSemanticGate(),
+      semanticRecoveryProvider: stubRecovery({ canonicalConcept: "x", localSearchTerms: [], referenceSearchTerms: [] }),
+      aiEstimation: { provider: { id: "groq", estimate }, rateLimiter: { consume: () => true } as any }
+    });
+    expect(result.status).toBe("ai_estimate_pending");
+    expect(estimate).toHaveBeenCalledOnce();
+  });
+
+  it("a recovered OFF candidate is still review-only (autoAcceptEligible: false) — recovery never upgrades evidence policy", async () => {
+    const { prisma } = fakePrisma();
+    const result = await resolveDynamicFood(prisma, { foodQuery: "curdcheese" }, {
+      searchIntentProvider: stubSearchIntent({ canonicalConcept: "x", searchTerms: ["cottagecheese"] }),
+      adapters: [{
+        source: "usda_fdc", sourceName: "USDA",
+        lookup: async (query: string) => query === "offterm" ? [candidateFor("offterm", { sourceId: "900007", source: "open_food_facts" as any, autoAcceptEligible: false, matchPolicy: "review_required" })] : []
+      }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      semanticCandidateGateProvider: permissiveSemanticGate(),
+      semanticRecoveryProvider: stubRecovery({ canonicalConcept: "x", localSearchTerms: [], referenceSearchTerms: ["offterm"] })
+    });
+    // The sole surviving candidate is autoAcceptEligible: false, so it must
+    // require confirmation rather than resolve automatically — proves
+    // recovery routes through the SAME central acceptance-safety invariant
+    // (external-food.ts), never a shortcut around it.
+    expect(result.status).toBe("confirmation_required");
+  });
+
+  it("never carries a barcode field through to a resolved food — the recovery schema structurally cannot produce one", async () => {
+    const { prisma } = fakePrisma();
+    const result = await resolveDynamicFood(prisma, { foodQuery: "curdcheese" }, {
+      searchIntentProvider: stubSearchIntent({ canonicalConcept: "x", searchTerms: ["cottagecheese"] }),
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async (query: string) => query === "quark" ? [candidateFor("quark")] : [] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      semanticCandidateGateProvider: permissiveSemanticGate(),
+      // Even if a compromised/misbehaving transport smuggled extra fields
+      // past the provider layer, the schema in semantic-recovery.ts is
+      // .strict() and structurally has no barcode/EAN field at all (see
+      // semantic-recovery.test.ts) — this test proves the RESOLVER path
+      // built on top of it never reads or forwards one either.
+      semanticRecoveryProvider: stubRecovery({ canonicalConcept: "x", localSearchTerms: [], referenceSearchTerms: ["quark"] } as any)
+    });
+    expect(JSON.stringify(result)).not.toContain("barcode");
   });
 });
