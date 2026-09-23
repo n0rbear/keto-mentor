@@ -61,7 +61,7 @@ export type PendingAuthoritativeResolution = {
 
 export type BatchAuthoritativeOutcome =
   | { status: "resolved"; food: any }
-  | { status: "confirmation_required"; candidates: ExternalFoodCandidate[]; reason: "ambiguous" | "possible_duplicate" }
+  | { status: "confirmation_required"; candidates: ExternalFoodCandidate[]; reason: "ambiguous" | "possible_duplicate" | "weak_match" }
   | { status: "unresolved"; reason: "not_found" | "invalid_external_data" | "external_unavailable" | "no_adapters" | "rate_limited" };
 
 export type BatchAuthoritativeDeps = {
@@ -168,7 +168,7 @@ export async function resolveManyAuthoritativeFoods(
   // best_match) auto-resolves; 2+ survivors is genuine ambiguity; 0 is
   // unresolved. An absent verdict (omitted/hallucinated/malformed pair) is
   // NEVER treated as approval — fail-closed, identical to the single gate.
-  type Decision = { pending: PendingAuthoritativeResolution; toPersist?: ExternalFoodCandidate; toShow?: ExternalFoodCandidate[]; reason?: "ambiguous" | "possible_duplicate" };
+  type Decision = { pending: PendingAuthoritativeResolution; toPersist?: ExternalFoodCandidate; toShow?: ExternalFoodCandidate[]; reason?: "ambiguous" | "possible_duplicate" | "weak_match" };
   const decisions: Decision[] = [];
   for (let ingredientIndex = 0; ingredientIndex < withCandidates.length; ingredientIndex++) {
     const { pending: p, candidates } = withCandidates[ingredientIndex];
@@ -190,8 +190,20 @@ export async function resolveManyAuthoritativeFoods(
       }
       continue;
     }
-    if (survivors.length === 1) decisions.push({ pending: p, toPersist: survivors[0] });
-    else decisions.push({ pending: p, toShow: survivors.slice(0, CONFIRMATION_CANDIDATE_LIMIT), reason: "ambiguous" });
+    // Central acceptance-safety audit (2026-09-23): this is the SAME
+    // invariant already enforced in resolveAuthoritativeFood's own
+    // equivalent branch (external-food.ts) — reused here, not
+    // reimplemented, via the shared `autoAcceptEligible` policy field on
+    // ExternalFoodCandidate. Being the sole gate-approved survivor is
+    // semantic PLAUSIBILITY, not authorization: an OpenFoodFacts name-search
+    // hit (autoAcceptEligible: false) must still fall through to
+    // confirmation_required even when nothing else competes with it — never
+    // auto-persisted, and therefore never reaching the `learnSearchAlias`
+    // call a few lines below either (both live inside the same `toPersist`
+    // branch). A reference-source candidate (USDA; autoAcceptEligible: true)
+    // continues to auto-resolve exactly as before, exact-name or not.
+    if (survivors.length === 1 && survivors[0].autoAcceptEligible) decisions.push({ pending: p, toPersist: survivors[0] });
+    else decisions.push({ pending: p, toShow: survivors.slice(0, CONFIRMATION_CANDIDATE_LIMIT), reason: survivors.length === 1 ? "weak_match" : "ambiguous" });
   }
   if (!decisions.length) return outcomes;
 

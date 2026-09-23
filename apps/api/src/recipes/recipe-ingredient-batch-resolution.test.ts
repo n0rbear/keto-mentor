@@ -48,7 +48,8 @@ function externalCandidate(overrides: Record<string, unknown> = {}) {
     names: { en: "Garlic, raw" }, kcalPer100g: 149, fatPer100g: 0.5, proteinPer100g: 6.4, carbsPer100g: 33, fiberPer100g: 2.1, nutrients: [],
     provenance: { source: "USDA FoodData Central", sourceId: "1", sourceUrl: "https://fdc.nal.usda.gov/1", retrievedAt: "2026-09-13T00:00:00.000Z", valuesPer: "100 g" },
     sourceUrl: "https://fdc.nal.usda.gov/1", normalizedName: "garlic raw", nutrientBasis: "per_100_g",
-    retrievedAt: "2026-09-13T00:00:00.000Z", confidence: 0.6, matchPolicy: "review_required", language: "en", ...overrides
+    retrievedAt: "2026-09-13T00:00:00.000Z", confidence: 0.6, matchPolicy: "review_required", language: "en",
+    autoAcceptEligible: true, ...overrides
   };
 }
 

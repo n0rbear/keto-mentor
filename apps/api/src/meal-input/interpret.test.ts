@@ -1182,7 +1182,7 @@ describe("a weak (non-trusted) local match no longer blocks dynamic resolution (
       names: { en: "Pork, ground" }, kcalPer100g: 263, fatPer100g: 21, proteinPer100g: 17, carbsPer100g: 0, fiberPer100g: 0, nutrients: [],
       provenance: { source: "USDA FoodData Central", sourceId: "1", sourceUrl: "https://fdc.nal.usda.gov/1", retrievedAt: "2026-09-13T00:00:00.000Z", valuesPer: "100 g" },
       sourceUrl: "https://fdc.nal.usda.gov/1", normalizedName: "pork ground", nutrientBasis: "per_100_g" as const,
-      retrievedAt: "2026-09-13T00:00:00.000Z", confidence: 0.6, matchPolicy: "review_required" as const, language: "en"
+      retrievedAt: "2026-09-13T00:00:00.000Z", confidence: 0.6, matchPolicy: "review_required" as const, language: "en", autoAcceptEligible: true
     };
     const permissiveGate = { id: "permissive", checkRelevance: async (_o: unknown, candidates: { id: string }[]) => new Map(candidates.map((c) => [c.id, true])) };
     // A richer prisma double is needed here (unlike the shared read-only
@@ -1234,7 +1234,7 @@ describe("a weak (non-trusted) local match no longer blocks dynamic resolution (
       names: { en: "Unrelated Generic Food" }, kcalPer100g: 50, fatPer100g: 1, proteinPer100g: 2, carbsPer100g: 5, fiberPer100g: 1, nutrients: [],
       provenance: { source: "USDA FoodData Central", sourceId: "2", sourceUrl: "https://fdc.nal.usda.gov/2", retrievedAt: "2026-09-17T00:00:00.000Z", valuesPer: "100 g" },
       sourceUrl: "https://fdc.nal.usda.gov/2", normalizedName: "unrelated generic food", nutrientBasis: "per_100_g" as const,
-      retrievedAt: "2026-09-17T00:00:00.000Z", confidence: 0.9, matchPolicy: "exact_normalized_name" as const, language: "en"
+      retrievedAt: "2026-09-17T00:00:00.000Z", confidence: 0.9, matchPolicy: "exact_normalized_name" as const, language: "en", autoAcceptEligible: true
     };
     const permissiveGate = { id: "permissive", checkRelevance: async (_o: unknown, candidates: { id: string }[]) => new Map(candidates.map((c) => [c.id, true])) };
     let searchCalled = false;

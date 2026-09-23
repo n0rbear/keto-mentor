@@ -26,7 +26,8 @@ function candidate(overrides: Partial<ExternalFoodCandidate> = {}): ExternalFood
     carbsPer100g: 3.6, fiberPer100g: 2.2, nutrients: [],
     provenance: { source: "USDA FoodData Central", sourceId: "123", sourceUrl: "https://fdc.nal.usda.gov/123", retrievedAt: "2026-08-26T00:00:00.000Z", valuesPer: "100 g" },
     sourceUrl: "https://fdc.nal.usda.gov/123", normalizedName: "raw spinach", nutrientBasis: "per_100_g",
-    retrievedAt: "2026-08-26T00:00:00.000Z", confidence: 0.97, matchPolicy: "exact_normalized_name", language: "en", ...overrides
+    retrievedAt: "2026-08-26T00:00:00.000Z", confidence: 0.97, matchPolicy: "exact_normalized_name", language: "en",
+    autoAcceptEligible: true, ...overrides
   };
 }
 
@@ -852,7 +853,8 @@ function offCandidate(overrides: Partial<ExternalFoodCandidate> = {}): ExternalF
     carbsPer100g: 57.5, fiberPer100g: 3.4, nutrients: [],
     provenance: { source: "Open Food Facts", sourceId: barcode, sourceUrl: `https://world.openfoodfacts.org/product/${barcode}`, retrievedAt: "2026-09-07T00:00:00.000Z", valuesPer: "100 g", barcode },
     sourceUrl: `https://world.openfoodfacts.org/product/${barcode}`, normalizedName: "choco spread", nutrientBasis: "per_100_g",
-    retrievedAt: "2026-09-07T00:00:00.000Z", confidence: 1, matchPolicy: "exact_normalized_name", ...overrides
+    retrievedAt: "2026-09-07T00:00:00.000Z", confidence: 1, matchPolicy: "exact_normalized_name",
+    autoAcceptEligible: true, ...overrides
   };
 }
 
@@ -1204,7 +1206,9 @@ describe("full barcode round-trip integration", () => {
 describe("Open Food Facts text-search hits never out-rank reference sources", () => {
   const gateApproving = (names: readonly string[]) => ({ id: "fixture", checkRelevance: async (_o: unknown, cands: { id: string; authoritativeName: string }[]) => new Map(cands.map((c) => [c.id, names.includes(c.authoritativeName) ? "best_match" as const : false])) });
   const usdaTomato = candidate({ source: "usda_fdc", sourceId: "170457", name: "Tomatoes, red, ripe, raw", originalName: "Tomatoes, red, ripe, raw", normalizedName: "tomatoes red ripe raw", confidence: 0.86, matchPolicy: "review_required" });
-  const offTomato = offCandidate({ sourceId: "814553001090", name: "Tomatoes", originalName: "Tomatoes", normalizedName: "tomatoes", brand: undefined, confidence: 0.6, matchPolicy: "review_required" });
+  // autoAcceptEligible: false mirrors real searchByName() output exactly —
+  // a text/brand-matched OFF hit is never a verified single-record lookup.
+  const offTomato = offCandidate({ sourceId: "814553001090", name: "Tomatoes", originalName: "Tomatoes", normalizedName: "tomatoes", brand: undefined, confidence: 0.6, matchPolicy: "review_required", autoAcceptEligible: false });
 
   it("searchByName candidates are ranked below USDA and are never an exact-name match", async () => {
     const hit = { code: "20047559", product_name: "Görög joghurt", brands: ["Milbona"], nutriments: { "energy-kcal_100g": 121, proteins_100g: 4.6, fat_100g: 10, carbohydrates_100g: 3.2, fiber_100g: 0 } };
@@ -1221,11 +1225,20 @@ describe("Open Food Facts text-search hits never out-rank reference sources", ()
     expect((result as any).food.source).toBe("usda_fdc");
   });
 
-  it("an OFF product still survives when it is the ONLY approved evidence (branded product)", async () => {
+  // Central acceptance-safety audit (2026-09-23): this test previously
+  // asserted "resolved_external" here — the exact confirmed P1 (an OFF
+  // name-search hit auto-persisting merely for being gate-approved AND the
+  // sole survivor, bypassing its own review_required/autoAcceptEligible:
+  // false policy). Being the ONLY evidence available does not make it any
+  // more verified; OFF discovery still surfaces the candidate, but only
+  // through the ordinary confirmation_required/review path, never auto-
+  // accepted. See the dedicated "review-only" describe block below for the
+  // focused regression coverage of this exact invariant.
+  it("an OFF product is still SHOWN when it is the ONLY approved evidence, but requires confirmation, not auto-acceptance", async () => {
     const { prisma } = fakePrisma();
     const result = await resolveAuthoritativeFood(prisma, "tomato", [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [usdaTomato] }, { source: "off", sourceName: "OFF", lookup: async () => [offTomato] } as any], undefined, { provider: gateApproving(["Tomatoes"]), originalIdentity: "paradicsom" });
-    expect(result.status).toBe("resolved_external");
-    expect((result as any).food.source).toBe("open_food_facts");
+    expect(result.status).toBe("confirmation_required");
+    expect((result as any).candidates?.[0]?.source).toBe("open_food_facts");
   });
 
   it("a provider that THREW (e.g. OFF budget exhausted) is reported as external_unavailable, not a clean not_found", async () => {
@@ -1240,5 +1253,65 @@ describe("Open Food Facts text-search hits never out-rank reference sources", ()
     const { prisma } = fakePrisma();
     const result = await resolveAuthoritativeFood(prisma, "szalonna", [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [] }]);
     expect(result).toMatchObject({ status: "unresolved", reason: "not_found" });
+  });
+});
+
+// Central acceptance-safety audit (2026-09-23): confirmed P1 — the
+// `semanticGate && candidates.length === 1` auto-resolve branch checked
+// only uniqueness and gate approval, never whether the surviving
+// candidate's OWN evidence policy (autoAcceptEligible) actually permits
+// automatic acceptance. Semantic plausibility ("the gate says this is
+// broadly the right food") is a different question from whether the
+// EVIDENCE itself was ever verified beyond a name/brand text match — an
+// OpenFoodFacts name-search hit is always the latter. Guard: the same
+// `top.autoAcceptEligible` check `resolveAuthoritativeFood` now applies.
+describe("central invariant: review-required evidence never auto-persists merely because it is gate-approved and alone", () => {
+  const soleGateApproval = { id: "fixture", checkRelevance: async (_o: unknown, cands: { id: string }[]) => new Map(cands.map((c) => [c.id, "best_match" as const])) };
+
+  // A. Reproduces the exact discovered P1: an OFF name-search hit (review_
+  // required, autoAcceptEligible: false — real searchByName() output) is
+  // the ONLY candidate, the gate approves it as plausible — it still must
+  // NOT be persisted or returned as automatically resolved.
+  it("A) an OFF name-search candidate does not auto-persist merely for being gate-approved and the sole survivor", async () => {
+    const { prisma, getCreated } = fakePrisma();
+    const offHit = offCandidate({ name: "Tomatoes", originalName: "Tomatoes", normalizedName: "tomatoes", confidence: 0.6, matchPolicy: "review_required", autoAcceptEligible: false });
+    const result = await resolveAuthoritativeFood(prisma, "tomato",
+      [{ source: "off", sourceName: "OFF", lookup: async () => [offHit] } as any],
+      undefined, { provider: soleGateApproval, originalIdentity: "paradicsom" });
+    expect(result.status).toBe("confirmation_required");
+    expect((result as any).reason).toBe("weak_match");
+    expect((result as any).candidates?.[0]?.source).toBe("open_food_facts");
+    // The core assertion: nothing was ever written to the database.
+    expect(getCreated()).toBeNull();
+  });
+
+  // B. Protects against over-fixing: a genuine reference-source candidate
+  // (autoAcceptEligible: true, e.g. USDA Foundation/SR Legacy) that is NOT
+  // an exact textual name match still auto-resolves when the gate approves
+  // it as the sole survivor — the pre-existing, intentional owner-beta
+  // blocker #9 behavior (e.g. "onion" -> "Onions, raw") must keep working.
+  it("B) a reference-source (auto-accept-eligible) candidate still auto-resolves as the sole gate-approved survivor", async () => {
+    const { prisma } = fakePrisma();
+    const usdaHit = candidate({ name: "Onions, raw", originalName: "Onions, raw", normalizedName: "onions raw", matchPolicy: "review_required", confidence: 0.6 });
+    const result = await resolveAuthoritativeFood(prisma, "onion",
+      [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [usdaHit] }],
+      undefined, { provider: soleGateApproval, originalIdentity: "onion" });
+    expect(result.status).toBe("resolved_external");
+    expect((result as any).food.sourceId).toBe(usdaHit.sourceId);
+  });
+
+  // C. Provider-independent: the guard reads a POLICY field
+  // (autoAcceptEligible), never a `source === "open_food_facts"` string
+  // check. A fictitious, non-OFF adapter that legitimately marks its own
+  // evidence as not auto-accept-eligible must be refused exactly the same
+  // way, proving the fix is policy-based, not provider-specific.
+  it("C) a review-required, non-auto-accept-eligible candidate from a hypothetical NON-off source is also refused (policy-based, not provider-based)", async () => {
+    const { prisma, getCreated } = fakePrisma();
+    const genericHit = candidate({ source: "usda_fdc" as any, name: "Generic Database Match", originalName: "Generic Database Match", normalizedName: "generic database match", matchPolicy: "review_required", confidence: 0.6, autoAcceptEligible: false });
+    const result = await resolveAuthoritativeFood(prisma, "generic",
+      [{ source: "usda_fdc", sourceName: "Hypothetical Generic Source", lookup: async () => [genericHit] }],
+      undefined, { provider: soleGateApproval, originalIdentity: "generic" });
+    expect(result.status).toBe("confirmation_required");
+    expect(getCreated()).toBeNull();
   });
 });

@@ -43,6 +43,24 @@ export type ExternalFoodCandidate = ImportFood & {
   confidence: number;
   matchPolicy: "exact_normalized_name" | "review_required";
   language?: string;
+  /**
+   * Central acceptance-safety audit (2026-09-23): `matchPolicy` only records
+   * whether THIS candidate's own name happened to textually equal the query
+   * — it is NOT a trust/provenance signal. A USDA Foundation/SR Legacy
+   * record ("Onions, raw" for query "onion") is legitimately
+   * "review_required" by that definition alone, yet is exactly as
+   * authoritative as an exact-name USDA hit (see the owner-beta blocker #9
+   * gate-approval branch below). An OpenFoodFacts NAME-SEARCH hit is a
+   * different kind of "review_required": a crowd-sourced, brand/text-matched
+   * product whose specific identity was never verified by anything more
+   * than a name/brand string match. Auto-acceptance eligibility is therefore
+   * its OWN policy, set once by the adapter/normalizer that actually knows
+   * what kind of evidence this is — never inferred downstream from
+   * `matchPolicy` or from a `source === "..."` string check. `true` only
+   * for reference-grade lookups (USDA Foundation/SR Legacy; an OFF exact
+   * barcode match); `false` for OFF free-text name search.
+   */
+  autoAcceptEligible: boolean;
 };
 
 export interface StructuredFoodLookupAdapter {
@@ -449,7 +467,31 @@ export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: 
   // never auto-picked. A disabled/unconfigured gate leaves this branch
   // unreached (semanticGate is falsy) and behavior is byte-for-byte
   // unchanged — the strict exact-normalized-name path below still applies.
-  if (semanticGate && candidates.length === 1) {
+  //
+  // Central acceptance-safety audit (2026-09-23): semantic PLAUSIBILITY (the
+  // gate approving a candidate as the same broad identity) is a different
+  // question from whether that candidate's own EVIDENCE is trustworthy
+  // enough to skip a review round-trip at all. `matchPolicy` cannot answer
+  // that here — it only records whether THIS candidate's name happened to
+  // textually equal the query, and a genuine USDA Foundation/SR Legacy
+  // record is routinely "review_required" by that definition alone (see the
+  // "onion" example above) while still being exactly as authoritative as an
+  // exact-name hit. An OpenFoodFacts NAME-SEARCH hit is a different,
+  // strictly weaker kind of "review_required": a crowd-sourced product whose
+  // SPECIFIC identity was never verified beyond a name/brand text match —
+  // see `autoAcceptEligible` on ExternalFoodCandidate. Before this fix, a
+  // sole OFF-name-search survivor reached this branch and was persisted/
+  // returned as "resolved_external" purely because it was gate-approved and
+  // alone, never checking whether its OWN evidence type permits skipping
+  // review at all. The guard below is that policy check — set once, by the
+  // adapter/normalizer that actually knows what kind of evidence this is —
+  // never a `source === "..."` check here. Any reference-source candidate
+  // (USDA, or an OFF exact barcode match) still auto-resolves exactly as
+  // before, exact-name or not; only evidence whose own policy says it isn't
+  // eligible for automatic acceptance is now forced past this branch to the
+  // ordinary confirmation_required path (reason: "weak_match") a few lines
+  // below, same as when no semantic gate exists.
+  if (semanticGate && candidates.length === 1 && top.autoAcceptEligible) {
     const [localizedTop] = localization ? await localizeCandidateNames(localization.provider, [top], localization.locale) : [top];
     try {
       const food = await persistCandidate(prisma, localizedTop);

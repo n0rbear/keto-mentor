@@ -62,7 +62,11 @@ function normalizeUsdaFood(food: any, query?: string): ExternalFoodCandidate | n
     carbsPer100g: amount("carbohydrate")!, fiberPer100g: amount("fiber")!, nutrients,
     provenance: { source: "USDA FoodData Central", sourceId: String(food.fdcId), sourceUrl, retrievedAt, valuesPer: "100 g", dataType: food.dataType },
     sourceUrl, normalizedName: normalizeSearch(name), nutrientBasis: "per_100_g", retrievedAt,
-    confidence: exact ? 0.97 : 0.86, matchPolicy: exact ? "exact_normalized_name" : "review_required", language: "en"
+    confidence: exact ? 0.97 : 0.86, matchPolicy: exact ? "exact_normalized_name" : "review_required", language: "en",
+    // Foundation/SR Legacy is USDA's own curated reference tier (enforced by
+    // the dataType check above) — authoritative regardless of whether this
+    // particular record's name happens to textually equal the query.
+    autoAcceptEligible: true
   };
 }
 
@@ -184,7 +188,11 @@ export function normalizeOffProduct(raw: any, barcode: string): ExternalFoodCand
     nutrients: normalizeOffNutrients(nutriments),
     provenance: { source: "Open Food Facts", sourceId: barcode, sourceUrl, retrievedAt, valuesPer: "100 g", barcode },
     sourceUrl, normalizedName: normalizeSearch(name), nutrientBasis: "per_100_g", retrievedAt,
-    confidence: 1, matchPolicy: "exact_normalized_name"
+    // An exact-barcode match identifies one specific, unambiguous product —
+    // reference-grade by construction. searchByName() below reuses this
+    // builder for its own, much weaker text-matched hits and explicitly
+    // overrides this back to false there; never assume the reverse.
+    confidence: 1, matchPolicy: "exact_normalized_name", autoAcceptEligible: true
   } as ExternalFoodCandidate;
 }
 
@@ -218,23 +226,31 @@ function normalizeOffSearchHit(hit: any): ExternalFoodCandidate | { name?: strin
 }
 
 /**
- * Real Open Food Facts adapter: barcode-only for the ordinary lookup()
- * entry point required by StructuredFoodLookupAdapter — ordinary food-name
- * text search must never silently start hitting Open Food Facts through
- * the existing dynamic-resolution chain, only an explicit barcode lookup
- * may (that routing decision — category-expansion validation, branded-
- * product search — is separate, larger work; see the routing audit's own
- * report). lookupById exists so the existing confirmAuthoritativeFood flow
- * (which re-fetches by ID at confirmation time) works unchanged for
- * barcode-sourced products too, since sourceId is the barcode itself.
+ * Real Open Food Facts adapter. Two genuinely different trust situations:
  *
- * searchByName() is a genuine, separately-tested name/brand text-search
- * capability (Open Food Facts routing audit, 2026-09-19) — intentionally
- * NOT wired into lookup() or any automatic resolution path yet. It has no
- * rate limiter of its own here on purpose: search-a-licious's own request
- * budget is undocumented (unlike the legacy endpoint's published 10 req/
- * min/IP), so any caller that wires this in must give it its own explicit,
- * reviewed budget rather than inherit one implicitly.
+ * - BARCODE lookup (lookupBarcode/lookupById, this class's own `lookup()`
+ *   is a no-op here): an exact, unambiguous single-record match — strong,
+ *   product-specific evidence where explicitly applicable (a scanned or
+ *   confirmed barcode). `autoAcceptEligible: true`, same as USDA.
+ * - NAME search (searchByName(), wired into automatic resolution via the
+ *   separate `OpenFoodFactsNameAdapter` below): a bounded, rate-limited
+ *   DISCOVERY/review mechanism only — a crowd-sourced product whose
+ *   specific identity was matched on name/brand text, never verified any
+ *   other way. Every candidate it returns carries `autoAcceptEligible:
+ *   false` (set explicitly in searchByName() below), which the central
+ *   acceptance-safety invariant (external-food.ts, dynamic-food-
+ *   resolution-batch.ts) treats as authoritative: a semantic gate may
+ *   still approve it as plausible, but semantic plausibility never
+ *   upgrades this authorization — being the sole surviving candidate does
+ *   not either. It can only ever reach resolved/persisted status through
+ *   the ordinary confirmation_required -> explicit user confirmation path
+ *   (confirmAuthoritativeFood), same as any other reviewable candidate.
+ *   The shared `offNameSearchBudget` rate limit below still applies
+ *   regardless of how it is ultimately accepted.
+ *
+ * lookupById exists so the existing confirmAuthoritativeFood flow (which
+ * re-fetches by ID at confirmation time) works unchanged for barcode-
+ * sourced products too, since sourceId is the barcode itself.
  */
 export class OpenFoodFactsProductAdapter implements OpenFoodFactsLookupAdapter, ConfirmableFoodLookupAdapter {
   readonly source = "open_food_facts" as const;
@@ -287,9 +303,16 @@ export class OpenFoodFactsProductAdapter implements OpenFoodFactsLookupAdapter, 
     // confidence 1 these sorted above USDA (0.86-0.97) in both resolvers, and
     // generic "tomato"/"wheat flour" resolved to a packaged OFF product.
     // Ranked below every USDA/BLS candidate and never an exact-name match.
+    //
+    // Central acceptance-safety audit (2026-09-23): also never auto-accept-
+    // eligible, regardless of matchPolicy/confidence or how confidently a
+    // later semantic gate approves the name/identity as plausible — a
+    // text/brand match is never a verified single-record lookup. This is
+    // the one override that actually matters for that invariant; every
+    // other field here is display/ranking metadata.
     return candidates
       .filter((candidate: ReturnType<typeof normalizeOffSearchHit>): candidate is ExternalFoodCandidate => !!candidate && "kcalPer100g" in candidate)
-      .map((candidate: ExternalFoodCandidate) => ({ ...candidate, confidence: OFF_TEXT_SEARCH_CONFIDENCE, matchPolicy: "review_required" as const }));
+      .map((candidate: ExternalFoodCandidate) => ({ ...candidate, confidence: OFF_TEXT_SEARCH_CONFIDENCE, matchPolicy: "review_required" as const, autoAcceptEligible: false }));
   }
 }
 
