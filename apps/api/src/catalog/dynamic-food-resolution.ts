@@ -14,6 +14,7 @@ import { timeStage } from "../request-performance.js";
 import { attemptWebEvidenceFallback, persistWebEvidenceFood, summarizeWebEvidenceOutcome, type WebEvidenceFallbackDeps, type WebEvidenceFallbackDiagnostics, type WebEvidenceOutcomeCategory } from "./web-evidence-fallback.js";
 import type { AiEstimationOutcome, AiNutritionEstimate, AiNutritionEstimationProvider } from "./ai-nutrition-estimation.js";
 import type { AiEstimateRateLimiter } from "./ai-estimate-rate-limit.js";
+import type { SemanticRecovery, SemanticRecoveryProvider } from "./semantic-recovery.js";
 
 type DynamicPrisma = Parameters<typeof resolveAuthoritativeFood>[0];
 
@@ -243,6 +244,13 @@ type ResolveFromSearchTermDeps = {
   // web-evidence ALSO genuinely fails. Optional; a caller that doesn't wire
   // it degrades to the pre-existing "unresolved" outcome.
   aiEstimation?: { provider: AiNutritionEstimationProvider; rateLimiter: AiEstimateRateLimiter };
+  // SEMANTIC RECOVERY (2026-09-23): a second-chance search-term generator,
+  // tried only when the first search-intent-driven attempt already failed to
+  // find or safely converge on authoritative evidence — see
+  // attemptSemanticRecovery below and semantic-recovery.ts's own doc.
+  // Optional; a caller that doesn't wire it degrades to the pre-existing
+  // (pre-recovery) behavior, byte-for-byte unchanged.
+  semanticRecoveryProvider?: SemanticRecoveryProvider;
 };
 
 /**
@@ -411,15 +419,26 @@ export async function attemptFallbackChain(
   };
 }
 
-async function resolveFromSearchTerm(
+// Non-recursing core: run resolveAuthoritativeFood for exactly ONE search
+// term and interpret its outcome (convergence gate, alias learning) — never
+// itself falls through to attemptFallbackChain (web-evidence/AI-estimate).
+// Factored out of resolveFromSearchTerm so the semantic-recovery retry loop
+// below can safely try SEVERAL additional terms without either recursing
+// into the expensive fallback chain per term or duplicating the convergence-
+// gate/alias-learning logic a second time.
+type TermAttempt =
+  | { status: "resolved"; food: any }
+  | { status: "confirmation_required"; candidates: ExternalFoodCandidate[]; reason: "ambiguous" | "possible_duplicate" | "weak_match" }
+  | { status: "unresolved"; reason: "not_found" | "invalid_external_data" | "external_unavailable" | "convergence_rejected"; rawCandidateCount?: number; structurallyValidCount?: number };
+
+async function tryResolveTerm(
   prisma: DynamicPrisma,
   searchTerm: string,
   originalIdentity: string,
-  via: "search_intent" | "raw_query" | "normalized_identity",
   deps: ResolveFromSearchTermDeps,
   aliasLocale: string | undefined,
   semanticContext?: { rawIngredient?: string; recipeTitle?: string; recipeContext?: string; preparation?: string; sourceQuantity?: number; sourceUnit?: string }
-): Promise<DynamicResolutionOutcome> {
+): Promise<TermAttempt> {
   const outcome: ResolutionOutcome = await resolveAuthoritativeFood(prisma, searchTerm, deps.adapters, {
     locale: deps.foodLocale ?? deps.locale ?? "hu",
     provider: deps.localizationProvider ?? new DisabledCandidateLocalizationProvider()
@@ -454,20 +473,8 @@ async function resolveFromSearchTerm(
       // invokes the semantic-candidate-gate at all, see its own doc) is safe
       // to trust here: this check is the one place every dynamic outcome
       // (local or external) converges through before becoming "resolved".
-      //
-      // 2026-09-17 fallback-continuation fix: a rejection here used to mean
-      // an immediate, diagnostics-blind "unresolved" with the fallback chain
-      // never attempted (reproduced live for Vegemite/Marmite/plain
-      // "brokkoli" — none of them brand-specific; search-intent translating
-      // to a generic term that confidently matches an unrelated catalog
-      // entry is a general risk, not a branded-food one). The rejected
-      // candidate is now discarded — never returned, never aliased, exactly
-      // as before — but the ORIGINAL identity is given the same chance at
-      // web-evidence/AI-estimate a genuine "not_found" already had, via the
-      // shared attemptFallbackChain helper (see "convergence_rejected"
-      // above for the safety reasoning).
       if (!hasIdentityCoverage(normalizeSearch(originalIdentity), outcome.food)) {
-        return attemptFallbackChain(prisma, searchTerm, originalIdentity, via, deps, aliasLocale, semanticContext, "convergence_rejected", {});
+        return { status: "unresolved", reason: "convergence_rejected" };
       }
       // P0 semantic identity safety checkpoint (2026-09-16): resolveAuthoritativeFood's
       // "resolved_local" branch (a genuinely trusted LOCAL match) never
@@ -482,20 +489,147 @@ async function resolveFromSearchTerm(
         deps.semanticCandidateGateProvider, originalIdentity, outcome.food, aliasLocale, semanticContext
       );
       await learnSearchAlias(prisma, outcome.food, originalIdentity, aliasLocale, semanticVerdict);
-      logDynamicResolutionOutcome("resolved", via);
-      return { status: "resolved", food: outcome.food, via };
+      return { status: "resolved", food: outcome.food };
     }
     case "confirmation_required":
-      logDynamicResolutionOutcome("confirmation_required", via, outcome.reason);
-      return { status: "confirmation_required", candidates: outcome.candidates, reason: outcome.reason, resolutionDiagnostics: { searchTerm, via, webEvidenceAttempted: false } };
-    case "unresolved": {
-      if (outcome.reason === "not_found" || outcome.reason === "external_unavailable" || outcome.reason === "invalid_external_data") {
-        return attemptFallbackChain(prisma, searchTerm, originalIdentity, via, deps, aliasLocale, semanticContext, outcome.reason, { rawCandidateCount: outcome.rawCandidateCount, structurallyValidCount: outcome.structurallyValidCount });
+      return { status: "confirmation_required", candidates: outcome.candidates, reason: outcome.reason };
+    case "unresolved":
+      return { status: "unresolved", reason: outcome.reason, rawCandidateCount: outcome.rawCandidateCount, structurallyValidCount: outcome.structurallyValidCount };
+  }
+}
+
+// Bounded so an LLM that returns its full allowance across both term lists,
+// plus one brand/product-derived term, can never blow up into unlimited
+// candidate exploration — see semantic-recovery.ts's own schema caps (3 + 3).
+const MAX_RECOVERY_TERMS = 5;
+
+function dedupedRecoveryTerms(recovery: SemanticRecovery, alreadyTried: ReadonlySet<string>): string[] {
+  const brandTerm = [recovery.brand, recovery.productName, recovery.variant].filter(Boolean).join(" ").trim();
+  const candidates = [...recovery.localSearchTerms, ...recovery.referenceSearchTerms, ...(brandTerm ? [brandTerm] : [])];
+  const seen = new Set(alreadyTried);
+  const result: string[] = [];
+  for (const raw of candidates) {
+    const term = raw.trim();
+    if (!term) continue;
+    const key = normalizeSearch(term);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    result.push(term);
+    if (result.length >= MAX_RECOVERY_TERMS) break;
+  }
+  return result;
+}
+
+/**
+ * The recovery tier itself (Part A, 2026-09-23): invoked only when the
+ * ordinary search-intent-driven attempt already failed to find, or could not
+ * safely trust, authoritative evidence. Retries the SAME resolveAuthoritativeFood
+ * path (never a parallel resolver) with LLM-recovered terms — BLS-oriented
+ * local concepts and/or better USDA-oriented reference concepts — stopping
+ * at the first strong resolution and merging any additional confirmation-
+ * required candidates found along the way. An LLM-generated term is never
+ * itself evidence: every attempt still goes through the exact same
+ * structural validation, relevance filter, semantic-candidate-gate, and
+ * convergence-gate as the original term.
+ */
+async function attemptSemanticRecovery(
+  prisma: DynamicPrisma,
+  searchTerm: string,
+  originalIdentity: string,
+  deps: ResolveFromSearchTermDeps,
+  aliasLocale: string | undefined,
+  semanticContext: { rawIngredient?: string; recipeTitle?: string; recipeContext?: string; preparation?: string; sourceQuantity?: number; sourceUnit?: string } | undefined,
+  priorCandidates: readonly ExternalFoodCandidate[]
+): Promise<{ resolved: any } | { candidates: ExternalFoodCandidate[] } | { none: true }> {
+  if (!deps.semanticRecoveryProvider) return { none: true };
+  const recovery = await deps.semanticRecoveryProvider.recover({ foodQuery: originalIdentity, priorSearchTerm: searchTerm, foodLocale: deps.foodLocale });
+  if (!recovery) return { none: true };
+  const terms = dedupedRecoveryTerms(recovery, new Set([normalizeSearch(searchTerm), normalizeSearch(originalIdentity)]));
+  if (!terms.length) return { none: true };
+
+  const mergedCandidates: ExternalFoodCandidate[] = [...priorCandidates];
+  for (const term of terms) {
+    const attempt = await tryResolveTerm(prisma, term, originalIdentity, deps, aliasLocale, semanticContext);
+    console.log(`semantic_recovery_term outcome=${attempt.status}`);
+    if (attempt.status === "resolved") {
+      // Stopping early here is only safe when nothing else is already known
+      // to be ambiguous: resolveAuthoritativeFood persists a confident
+      // single-candidate resolution as a side effect, so once real prior
+      // ambiguity exists (priorCandidates non-empty), silently returning
+      // whichever recovered term happened to resolve first would DISCARD
+      // already-known competing candidates the user must still choose
+      // between (the exact "Öl -> Sonnenblumenöl only, silently dropping
+      // Rapsöl/Olivenöl" failure mode this feature exists to prevent) —
+      // safer to leave this one recovered resolution out of the merge and
+      // keep showing the user everything already known instead.
+      if (!priorCandidates.length) return { resolved: attempt.food };
+      continue;
+    }
+    if (attempt.status === "confirmation_required") {
+      for (const candidate of attempt.candidates) {
+        if (!mergedCandidates.some((existing) => existing.source === candidate.source && existing.sourceId === candidate.sourceId)) mergedCandidates.push(candidate);
       }
-      logDynamicResolutionOutcome("unresolved", via, outcome.reason);
-      return { status: "unresolved", reason: outcome.reason, resolutionDiagnostics: { searchTerm, via, webEvidenceAttempted: false, authoritativeReason: outcome.reason, rawCandidateCount: outcome.rawCandidateCount, structurallyValidCount: outcome.structurallyValidCount } };
     }
   }
+  return mergedCandidates.length ? { candidates: mergedCandidates } : { none: true };
+}
+
+async function resolveFromSearchTerm(
+  prisma: DynamicPrisma,
+  searchTerm: string,
+  originalIdentity: string,
+  via: "search_intent" | "raw_query" | "normalized_identity",
+  deps: ResolveFromSearchTermDeps,
+  aliasLocale: string | undefined,
+  semanticContext?: { rawIngredient?: string; recipeTitle?: string; recipeContext?: string; preparation?: string; sourceQuantity?: number; sourceUnit?: string }
+): Promise<DynamicResolutionOutcome> {
+  const first = await tryResolveTerm(prisma, searchTerm, originalIdentity, deps, aliasLocale, semanticContext);
+
+  if (first.status === "resolved") {
+    logDynamicResolutionOutcome("resolved", via);
+    return { status: "resolved", food: first.food, via };
+  }
+
+  if (first.status === "confirmation_required") {
+    // 2026-09-23 semantic-recovery widening: safe because it can only ever
+    // ADD more real, independently-gated candidates to a state that already
+    // required explicit user confirmation — it never removes candidates,
+    // never auto-picks one, and never falls through to web-evidence/AI-
+    // estimate on its own (that would change this outcome's existing
+    // safety semantics, which this feature deliberately leaves untouched).
+    if (first.reason === "ambiguous") {
+      const recovery = await attemptSemanticRecovery(prisma, searchTerm, originalIdentity, deps, aliasLocale, semanticContext, first.candidates);
+      if ("resolved" in recovery) {
+        logDynamicResolutionOutcome("resolved", via);
+        return { status: "resolved", food: recovery.resolved, via };
+      }
+      if ("candidates" in recovery) {
+        logDynamicResolutionOutcome("confirmation_required", via, "ambiguous");
+        return { status: "confirmation_required", candidates: recovery.candidates, reason: "ambiguous", resolutionDiagnostics: { searchTerm, via, webEvidenceAttempted: false } };
+      }
+    }
+    logDynamicResolutionOutcome("confirmation_required", via, first.reason);
+    return { status: "confirmation_required", candidates: first.candidates, reason: first.reason, resolutionDiagnostics: { searchTerm, via, webEvidenceAttempted: false } };
+  }
+
+  // first.status === "unresolved" (including a fresh "convergence_rejected"
+  // from tryResolveTerm's own gate) — try semantic recovery before spending
+  // a web-evidence/AI-estimate attempt, since a recovered term may still
+  // find real authoritative evidence resolveAuthoritativeFood alone did not.
+  if (first.reason === "not_found" || first.reason === "external_unavailable" || first.reason === "invalid_external_data" || first.reason === "convergence_rejected") {
+    const recovery = await attemptSemanticRecovery(prisma, searchTerm, originalIdentity, deps, aliasLocale, semanticContext, []);
+    if ("resolved" in recovery) {
+      logDynamicResolutionOutcome("resolved", via);
+      return { status: "resolved", food: recovery.resolved, via };
+    }
+    if ("candidates" in recovery) {
+      logDynamicResolutionOutcome("confirmation_required", via, "ambiguous");
+      return { status: "confirmation_required", candidates: recovery.candidates, reason: "ambiguous", resolutionDiagnostics: { searchTerm, via, webEvidenceAttempted: false } };
+    }
+    return attemptFallbackChain(prisma, searchTerm, originalIdentity, via, deps, aliasLocale, semanticContext, first.reason, { rawCandidateCount: first.rawCandidateCount, structurallyValidCount: first.structurallyValidCount });
+  }
+  logDynamicResolutionOutcome("unresolved", via, first.reason);
+  return { status: "unresolved", reason: first.reason, resolutionDiagnostics: { searchTerm, via, webEvidenceAttempted: false, authoritativeReason: first.reason, rawCandidateCount: first.rawCandidateCount, structurallyValidCount: first.structurallyValidCount } };
 }
 
 /**
