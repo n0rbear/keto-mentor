@@ -209,6 +209,45 @@ describe("semantic coverage gate on learned (dynamic_search) aliases", () => {
     expect(result[0]).toMatchObject({ id, match: { stage: "alias", score: 95 } });
   });
 
+  // Regression (2026-09-23, live staging RCA): a weak (confidence 0.7)
+  // dynamic_search alias must be a MINIMUM fallback (35), never a precedence
+  // override — it must not outrank the food's OWN genuine canonical/
+  // searchText evidence. Real production case: "parsley" and "bacon" each
+  // also carry an old dynamic_search alias pointing at their OWN, correct
+  // Food (unlike the poisoned/unrelated-food cases above); the buggy
+  // precedence forced both down to score 35 ("fuzzy") even though the food's
+  // own name already earns 70-80 on natural evidence alone.
+  it.each([
+    ["parsley", "usda-parsley", "Parsley, fresh", "parsley fresh"],
+    ["bacon", "usda-bacon", "Pork, cured, bacon, unprepared", "pork cured bacon unprepared"],
+  ])("a weak dynamic_search alias pointing at the query's OWN correct food does not suppress that food's natural evidence for '%s'", async (alias, id, name, searchText) => {
+    const food = foodWith(id, name, searchText);
+    const prismaWithSelfReferentialWeakAlias = {
+      foodAlias: { findMany: async () => [{ foodId: id, normalizedAlias: alias, kind: "dynamic_search", confidence: 0.7 }] },
+      food: { findMany: async ({ where }: any) => where?.id?.in ? [food].filter((f) => where.id.in.includes(f.id)) : [food] }
+    } as unknown as Pick<PrismaClient, "food" | "foodAlias">;
+
+    const result = await searchFoods(prismaWithSelfReferentialWeakAlias, alias);
+    expect(result[0]?.id).toBe(id);
+    expect(result[0]?.match.stage).not.toBe("fuzzy");
+    expect(result[0]?.match.score).toBeGreaterThan(35);
+  });
+
+  // The flip side of the above: when the food's OWN evidence is weaker than
+  // the alias floor (a bare abbreviation-like name with no natural overlap),
+  // the weak alias still legitimately provides the 35-point fallback signal
+  // — it is a floor, not a no-op.
+  it("a weak dynamic_search alias still provides its 35-point floor when the food has no stronger natural evidence of its own", async () => {
+    const food = foodWith("obscure-sku-9", "SKU-9", "sku 9");
+    const prismaWithWeakAliasNoOverlap = {
+      foodAlias: { findMany: async () => [{ foodId: "obscure-sku-9", normalizedAlias: "parsley", kind: "dynamic_search", confidence: 0.7 }] },
+      food: { findMany: async ({ where }: any) => where?.id?.in ? [food].filter((f) => where.id.in.includes(f.id)) : [food] }
+    } as unknown as Pick<PrismaClient, "food" | "foodAlias">;
+
+    const result = await searchFoods(prismaWithWeakAliasNoOverlap, "parsley");
+    expect(result[0]).toMatchObject({ id: "obscure-sku-9", match: { stage: "fuzzy", score: 35 } });
+  });
+
   // Positive control: legitimate compound-word matches (own recorded name,
   // not a learned alias) are untouched by the dynamic_search confidence gate.
   it.each([

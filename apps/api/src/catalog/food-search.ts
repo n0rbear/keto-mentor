@@ -224,8 +224,12 @@ const SEARCH_FORMS = [
 ];
 // German prepared-food heads are productive suffixes (e.g. Apfelkuchen,
 // Blätterteig), unlike a query fragment. Recognize the preparation category,
-// never special-case a searched ingredient.
-const COMPOUND_FOOD = /\b(with|mit|filled|stuffed|flavored|flavoured|dessert|cake|sauce|soup|bread|pastry|[a-z]*(kuchen|torte|geback|teig|schnitten|sosse|suppe|brot|brotchen))\b/;
+// never special-case a searched ingredient. "pie" added 2026-09-23: an
+// ingredient-alias precedence fix (see weakDynamicAlias in scoreFood) exposed
+// that "apple"/"apple pie" had only ever been kept apart by that same bug —
+// this category was simply missing, the same generic gap the mustár/
+// mustárlevél fix already covers for every OTHER compound keyword here.
+const COMPOUND_FOOD = /\b(with|mit|filled|stuffed|flavored|flavoured|dessert|cake|pie|sauce|soup|bread|pastry|[a-z]*(kuchen|torte|geback|teig|schnitten|sosse|suppe|brot|brotchen))\b/;
 
 function isQueryHeadedHyphenCompound(food: any, query: string) {
   if (!query || query.includes(" ")) return false;
@@ -302,16 +306,43 @@ function scoreFood(food: any, variants: readonly string[], aliasesByFood: Readon
     const dynamicSearchTrusted = matchingAlias?.kind === "dynamic_search" && matchingAlias.confidence >= DYNAMIC_SEARCH_ALIAS_TRUST_THRESHOLD && hasSemanticCoverage(variant, names);
     const exactAlias = !!matchingAlias && (matchingAlias.kind !== "dynamic_search" || dynamicSearchTrusted);
     const weakDynamicAlias = !!matchingAlias && matchingAlias.kind === "dynamic_search" && !dynamicSearchTrusted;
-    const aliasPrefix = aliasStrings.some((alias) => alias.startsWith(`${variant} `));
-    const aliasContains = aliasStrings.some((alias) => wholePhrase(alias, variant));
+    // A weak alias trivially "starts with"/"contains" its OWN text (it IS the
+    // variant) — that circular echo must not count as independent alias
+    // evidence when computing how strong the food's OTHER evidence is,
+    // otherwise the very alias being gated as untrusted would silently
+    // launder itself back in at the aliasPrefix/aliasContains tier.
+    const otherAliasStrings = weakDynamicAlias ? aliasStrings.filter((alias) => alias !== matchingAlias!.normalizedAlias) : aliasStrings;
+    const aliasPrefix = otherAliasStrings.some((alias) => alias.startsWith(`${variant} `));
+    const aliasContains = otherAliasStrings.some((alias) => wholePhrase(alias, variant));
     const tokenCoverage = variant.split(" ").filter((token) => wholePhrase(searchable, token)).length / variant.split(" ").length;
     const prefix = variant.length >= 5 && !variant.includes(" ") && searchable.split(" ").some(token => token.startsWith(variant));
-    const primaryScore = exact ? 100 : exactAlias ? 95 : weakDynamicAlias ? 35 : names.some(name => name.startsWith(`${variant} `)) ? 80 : aliasPrefix ? 75 : wholePhrase(searchable, variant) ? 70 : aliasContains ? 65 : compoundHead(searchable, variant) ? 60 : prefix ? 40 : Math.round(tokenCoverage * 50);
+    // A weak (untrusted) dynamic_search alias is a MINIMUM fallback signal,
+    // never a precedence override: it must not outrank the food's own
+    // genuine canonical/localized/lexical evidence, only fill in when that
+    // evidence is weaker than the alias's own 35-point floor. Real
+    // production case (2026-09-22, live staging RCA): "parsley"/"bacon" each
+    // also carry an old (confidence 0.7) dynamic_search alias for their OWN,
+    // correct Food — the alias used to short-circuit an otherwise 70-80
+    // point canonical/searchText match down to 35 ("fuzzy"), because it was
+    // checked before any natural-evidence tier in this ternary chain. The
+    // poisoned-alias protection this alias tier exists for is unaffected:
+    // an alias learned for an UNRELATED food (e.g. "mustár" -> Mustard
+    // greens) still has zero natural evidence for the query, so it still
+    // floors at exactly 35, never higher.
+    const naturalScore = names.some(name => name.startsWith(`${variant} `)) ? 80
+      : aliasPrefix ? 75
+      : wholePhrase(searchable, variant) ? 70
+      : aliasContains ? 65
+      : compoundHead(searchable, variant) ? 60
+      : prefix ? 40
+      : Math.round(tokenCoverage * 50);
+    const weakDynamicAliasWins = weakDynamicAlias && naturalScore < 35;
+    const primaryScore = exact ? 100 : exactAlias ? 95 : Math.max(naturalScore, weakDynamicAlias ? 35 : 0);
     const score = expansion ? Math.min(primaryScore, 55) : primaryScore;
     if (score > best.score) best = {
-      stage: expansion ? "partial" : exact ? "exact" : exactAlias ? "alias" : weakDynamicAlias ? "fuzzy" : "partial",
+      stage: expansion ? "partial" : exact ? "exact" : exactAlias ? "alias" : weakDynamicAliasWins ? "fuzzy" : "partial",
       score, query: variant,
-      aliasKind: !expansion && (exactAlias || weakDynamicAlias) ? matchingAlias?.kind : undefined
+      aliasKind: !expansion && (exactAlias || weakDynamicAliasWins) ? matchingAlias?.kind : undefined
     };
   }
   // Reviewed aliases retain their established trust contract. Ranking penalties
