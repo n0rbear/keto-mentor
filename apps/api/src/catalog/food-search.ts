@@ -362,7 +362,22 @@ function scoreFood(food: any, variants: readonly string[], aliasesByFood: Readon
     // below the threshold (every alias written before this checkpoint,
     // confidence 0.7) falls to the weak/fuzzy tier here instead — never
     // silently promoted to full trust merely for existing.
-    const dynamicSearchTrusted = matchingAlias?.kind === "dynamic_search" && matchingAlias.confidence >= DYNAMIC_SEARCH_ALIAS_TRUST_THRESHOLD && hasSemanticCoverage(variant, names);
+    //
+    // Live-reproduced gap (2026-09-23, staging re-verification): a
+    // dynamic_search alias ("szalonna", confidence 0.95, "validated") was
+    // written on 2026-09-19 — BEFORE hasIdentityCoverage existed — for a USDA
+    // record whose dynamically-localized Hungarian name merely CONTAINS
+    // "szalonna" as a minority substring (see hasIdentityCoverage's own doc).
+    // learnSearchAlias's write-time gate and the convergence-gate both now
+    // use hasIdentityCoverage and correctly refuse to create or trust a NEW
+    // alias like this — but this READ-time check still used the plain
+    // hasSemanticCoverage, so an alias already written before that fix
+    // existed (or written by any future code path that doesn't go through
+    // learnSearchAlias) kept reaching full local-search trust regardless.
+    // Using hasIdentityCoverage here too closes that gap at its source,
+    // for any dynamic_search alias regardless of when or how it was written
+    // — never retroactively deletes data, but never trusts it either.
+    const dynamicSearchTrusted = matchingAlias?.kind === "dynamic_search" && matchingAlias.confidence >= DYNAMIC_SEARCH_ALIAS_TRUST_THRESHOLD && hasIdentityCoverage(variant, food);
     const exactAlias = !!matchingAlias && (matchingAlias.kind !== "dynamic_search" || dynamicSearchTrusted);
     const weakDynamicAlias = !!matchingAlias && matchingAlias.kind === "dynamic_search" && !dynamicSearchTrusted;
     // A weak alias trivially "starts with"/"contains" its OWN text (it IS the
