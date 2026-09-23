@@ -709,7 +709,7 @@ export function App() {
               if (!serving) return null;
               return <div className="serving-detail"><strong>1 {serving.labels?.[lang] ?? serving.unit} = {serving.grams} g</strong>{serving.isEstimated && <><span>{lang === "hu" ? "Becsült átváltás – módosítható" : lang === "de" ? "Geschätzte Umrechnung – bearbeitbar" : "Estimated conversion – editable"}</span><input className="field" aria-label="Gram equivalent" type="number" min="0.1" max="50000" step="0.1" placeholder={String(serving.grams)} value={gramsOverride} onChange={(event) => setGramsOverride(event.target.value)}/></>}</div>;
             })()}
-            <p className="text-xs text-muted">USDA FoodData Central alapú átlagértékek. Csomagolt termék és barcode import későbbi adapterként jön.</p>
+            <p className="text-xs text-muted">{lang === "hu" ? "USDA FoodData Central alapú átlagértékek. Csomagolt termékhez add meg vagy olvasd be a vonalkódot alább." : lang === "de" ? "Durchschnittswerte auf Basis von USDA FoodData Central. Für verpackte Produkte den Barcode unten eingeben oder scannen." : "Average values based on USDA FoodData Central. For a packaged product, enter or scan its barcode below."}</p>
             {mealStatus && <div className={`status ${mealStatus.kind}`} role={mealStatus.kind === "error" ? "alert" : "status"}>{mealStatus.text}</div>}
             <button className="btn primary w-full" disabled={mealSaving} aria-busy={mealSaving}>{mealSaving ? t.savingMeal : t.addMeal}</button>
           </form>
