@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { PrismaClient } from "@prisma/client";
-import { expandFoodQuery, hasSemanticCoverage, isTrustedLocalMatch, localFormMismatch, searchFoods } from "./food-search.js";
+import { expandFoodQuery, hasIdentityCoverage, hasSemanticCoverage, isTrustedLocalMatch, localFormMismatch, searchFoods } from "./food-search.js";
 import { normalizeSearch } from "./normalize.js";
 
 const records = [
@@ -293,6 +293,37 @@ describe("hasSemanticCoverage: trust threshold (owner-beta blocker #3, 2026-09-1
     ["csulok", ["pork hock cooked", "csulok"]] // trusted exact alias/localized name
   ])("a genuinely matching phrase ('%s') still has full coverage", (query, representations) => {
     expect(hasSemanticCoverage(normalizeSearch(query), representations)).toBe(true);
+  });
+});
+
+describe("hasIdentityCoverage: a bare/generic query must not borrow trust from a dynamically-localized name it only partially overlaps (2026-09-23 staging audit)", () => {
+  it("refuses a bare generic word that is merely embedded (as a minority of the name) inside a food's own DYNAMICALLY-localized name — the live 'szalonna' regression", () => {
+    // Reproduces the real staging Food: a USDA "Pork, cured, bacon,
+    // unprepared" record backfilled with a Hungarian display name that
+    // happens to contain the bare, genuinely ambiguous word "szalonna" as a
+    // minority of its own tokens/length.
+    const food = { name: "Pork, cured, bacon, unprepared", originalName: "Pork, cured, bacon, unprepared", names: { hu: "pácolt szalonna, előkészítetlen" } };
+    expect(hasIdentityCoverage(normalizeSearch("szalonna"), food)).toBe(false);
+  });
+
+  it("still trusts the FULL localized phrase back — 'persist once, reuse forever' is preserved", () => {
+    const food = { name: "Pork, cured, bacon, unprepared", originalName: "Pork, cured, bacon, unprepared", names: { hu: "pácolt szalonna, előkészítetlen" } };
+    expect(hasIdentityCoverage(normalizeSearch("pácolt szalonna, előkészítetlen"), food)).toBe(true);
+  });
+
+  it("still trusts a bare word that accounts for HALF or more of a localized name — 'karfiol' vs 'karfiol, nyers' and the agglutinative 'csülök' vs 'Sertéscsülök'", () => {
+    expect(hasIdentityCoverage(normalizeSearch("karfiol"), { name: "Cauliflower, raw", originalName: "Cauliflower, raw", names: { hu: "Karfiol, nyers" } })).toBe(true);
+    expect(hasIdentityCoverage(normalizeSearch("csülök"), { name: "Pork hock, cooked", originalName: "Pork hock, cooked", names: { hu: "Sertéscsülök" } })).toBe(true);
+  });
+
+  it("trusts a query covered by the food's own CURATED name/originalName regardless of length ratio — curated identity never needed this guard", () => {
+    const food = { name: "Sertéscsülök", originalName: "Sertéscsülök" };
+    expect(hasIdentityCoverage(normalizeSearch("csülök"), food)).toBe(true);
+  });
+
+  it("never throws and returns false when there is no coverage at all", () => {
+    const food = { name: "Cauliflower, raw", originalName: "Cauliflower, raw", names: { hu: "Karfiol, nyers" } };
+    expect(hasIdentityCoverage(normalizeSearch("szalonna"), food)).toBe(false);
   });
 });
 
