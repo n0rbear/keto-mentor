@@ -206,6 +206,8 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
 .natural-input-helper { margin: -.35rem 0 0; color: rgb(var(--text-soft)); font-size: .72rem; font-weight: 500; }
 .natural-input-row { display: grid; gap: .55rem; grid-template-columns: minmax(0, 1fr) auto; }
 .natural-input-row .field { border-color: rgb(var(--brand) / .2); background: rgb(var(--bg) / .72); }
+.natural-input-methods { display: flex; align-items: flex-start; gap: .75rem; flex-wrap: wrap; }
+.natural-input-methods .voice-input, .natural-input-methods .barcode-lookup { flex: 1 1 200px; min-width: 0; }
 .interpretation { display: grid; gap: .5rem; border: 1px solid; border-radius: 12px; padding: .75rem; color: rgb(var(--text-muted)); font-size: .75rem; }
 .interpretation.ready { border-color: rgb(var(--success) / .28); background: rgb(var(--success) / .07); }
 .interpretation.needs-review { border-color: rgb(var(--warning) / .25); background: rgb(var(--warning) / .065); }
