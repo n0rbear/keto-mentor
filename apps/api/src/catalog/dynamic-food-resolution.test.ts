@@ -30,7 +30,11 @@ function pork(overrides: Partial<ExternalFoodCandidate> = {}): ExternalFoodCandi
     names: { en: "Pork hock, cooked", hu: "Sertéscsülök" }, kcalPer100g: 280, fatPer100g: 22, proteinPer100g: 20, carbsPer100g: 0, fiberPer100g: 0, nutrients: [],
     provenance: { source: "USDA FoodData Central", sourceId: "172152", sourceUrl: "https://fdc.nal.usda.gov/172152", retrievedAt: "2026-09-09T00:00:00.000Z", valuesPer: "100 g" },
     sourceUrl: "https://fdc.nal.usda.gov/172152", normalizedName: "pork hock", nutrientBasis: "per_100_g",
-    retrievedAt: "2026-09-09T00:00:00.000Z", confidence: 0.97, matchPolicy: "exact_normalized_name", language: "en", ...overrides
+    // A real USDA Foundation/SR Legacy lookup (structured-source-adapters.ts's
+    // normalizeUsdaFood) always sets this true — see decideSurvivorAcceptance
+    // in external-food.ts, the one shared rule this fixture must satisfy the
+    // same way production USDA candidates do.
+    retrievedAt: "2026-09-09T00:00:00.000Z", confidence: 0.97, matchPolicy: "exact_normalized_name", autoAcceptEligible: true, language: "en", ...overrides
   };
 }
 
@@ -313,7 +317,7 @@ describe("resolveDynamicFood: persist once, reuse forever", () => {
       names: { en: "Cabbage, bok choy, raw" }, kcalPer100g: 13, fatPer100g: 0.2, proteinPer100g: 1.5, carbsPer100g: 2.2, fiberPer100g: 1,
       nutrients: [], provenance: { source: "USDA FoodData Central", sourceId: "999", sourceUrl: "https://fdc.nal.usda.gov/999", retrievedAt: "2026-09-09T00:00:00.000Z", valuesPer: "100 g" },
       sourceUrl: "https://fdc.nal.usda.gov/999", normalizedName: "cabbage bok choy raw", nutrientBasis: "per_100_g",
-      retrievedAt: "2026-09-09T00:00:00.000Z", confidence: 0.97, matchPolicy: "exact_normalized_name", language: "en"
+      retrievedAt: "2026-09-09T00:00:00.000Z", confidence: 0.97, matchPolicy: "exact_normalized_name", autoAcceptEligible: true, language: "en"
     };
     // A mistranslated search-intent term that happens to exact-match this
     // candidate's own name — resolveAuthoritativeFood's existing auto-resolve

@@ -1,6 +1,6 @@
 import {
   validateExternalCandidate, isRelevantExternalCandidate, collapseEquivalentCandidates, preferReferenceSourceSurvivors, findDuplicate, persistCandidate,
-  type ExternalFoodCandidate, type StructuredFoodLookupAdapter, type ResolutionPrisma
+  decideSurvivorAcceptance, type ExternalFoodCandidate, type StructuredFoodLookupAdapter, type ResolutionPrisma
 } from "./external-food.js";
 import { learnSearchAlias } from "./dynamic-food-resolution.js";
 import { hasIdentityCoverage } from "./food-search.js";
@@ -217,20 +217,20 @@ export async function resolveManyAuthoritativeFoods(
       }
       continue;
     }
-    // Central acceptance-safety audit (2026-09-23): this is the SAME
-    // invariant already enforced in resolveAuthoritativeFood's own
-    // equivalent branch (external-food.ts) — reused here, not
-    // reimplemented, via the shared `autoAcceptEligible` policy field on
-    // ExternalFoodCandidate. Being the sole gate-approved survivor is
-    // semantic PLAUSIBILITY, not authorization: an OpenFoodFacts name-search
-    // hit (autoAcceptEligible: false) must still fall through to
+    // Unified food-resolution engine (2026-09-23): decideSurvivorAcceptance
+    // is the exact SAME shared function resolveAuthoritativeFood's own
+    // equivalent branch calls (external-food.ts) — not reimplemented, not
+    // merely mirrored. Being the sole gate-approved survivor is semantic
+    // PLAUSIBILITY, not authorization: an OpenFoodFacts name-search hit
+    // (autoAcceptEligible: false) must still fall through to
     // confirmation_required even when nothing else competes with it — never
     // auto-persisted, and therefore never reaching the `learnSearchAlias`
     // call a few lines below either (both live inside the same `toPersist`
     // branch). A reference-source candidate (USDA; autoAcceptEligible: true)
     // continues to auto-resolve exactly as before, exact-name or not.
-    if (survivors.length === 1 && survivors[0].autoAcceptEligible) decisions.push({ pending: p, toPersist: survivors[0] });
-    else decisions.push({ pending: p, toShow: survivors.slice(0, CONFIRMATION_CANDIDATE_LIMIT), reason: survivors.length === 1 ? "weak_match" : "ambiguous" });
+    const acceptance = decideSurvivorAcceptance(survivors);
+    if ("persist" in acceptance) decisions.push({ pending: p, toPersist: acceptance.persist });
+    else decisions.push({ pending: p, toShow: acceptance.review.slice(0, CONFIRMATION_CANDIDATE_LIMIT), reason: acceptance.reason });
   }
   if (!decisions.length) return outcomes;
 
