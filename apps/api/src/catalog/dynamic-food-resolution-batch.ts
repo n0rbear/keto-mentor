@@ -3,6 +3,8 @@ import {
   decideSurvivorAcceptance, type ExternalFoodCandidate, type StructuredFoodLookupAdapter, type ResolutionPrisma
 } from "./external-food.js";
 import { learnSearchAlias } from "./dynamic-food-resolution.js";
+import { hasIdentityCoverage } from "./food-search.js";
+import { normalizeSearch } from "./normalize.js";
 import { localizeCandidateNames, type CandidateLocalizationProvider, type LocalizationLocale } from "./candidate-localization.js";
 import { checkRelevanceBatchWithRetry, type RecipeSemanticGateProvider, type BatchGateIngredientInput } from "./semantic-candidate-gate-batch.js";
 import type { DynamicFoodResolutionRateLimiter } from "./dynamic-food-rate-limit.js";
@@ -62,7 +64,14 @@ export type PendingAuthoritativeResolution = {
 export type BatchAuthoritativeOutcome =
   | { status: "resolved"; food: any }
   | { status: "confirmation_required"; candidates: ExternalFoodCandidate[]; reason: "ambiguous" | "possible_duplicate" | "weak_match" }
-  | { status: "unresolved"; reason: "not_found" | "invalid_external_data" | "external_unavailable" | "no_adapters" | "rate_limited" };
+  // "convergence_rejected" (2026-09-23, unified food-resolution engine):
+  // mirrors dynamic-food-resolution.ts's own convergence gate — a candidate
+  // the batch semantic gate approved against the NORMALIZED canonicalIdentity
+  // (e.g. a whole-recipe-context-normalized ingredient term) is independently
+  // re-checked against the ingredient's TRUE originalIdentity before being
+  // trusted. Evidentially equivalent to "not_found" for the identity actually
+  // being resolved — see resolveManyAuthoritativeFoods's own doc.
+  | { status: "unresolved"; reason: "not_found" | "invalid_external_data" | "external_unavailable" | "no_adapters" | "rate_limited" | "convergence_rejected" };
 
 export type BatchAuthoritativeDeps = {
   adapters: readonly StructuredFoodLookupAdapter[];
@@ -180,6 +189,19 @@ export async function resolveManyAuthoritativeFoods(
     let survivors = referenceBest.length ? referenceBest : referenceApproved;
     if (!survivors.length) { outcomes.set(p.id, { status: "unresolved", reason: "not_found" }); continue; }
     survivors = collapseEquivalentCandidates(survivors);
+
+    // Convergence gate (2026-09-23, unified food-resolution engine): the
+    // batch semantic gate above approved survivors[0] against
+    // p.canonicalIdentity — a whole-recipe-context NORMALIZED term, not
+    // necessarily what the recipe/user actually wrote. Independently
+    // re-verify against p.originalIdentity before trusting it any further,
+    // exactly like dynamic-food-resolution.ts's own convergence gate does
+    // for the single-item path (same hasIdentityCoverage helper, same
+    // "discard, never leaked, never aliased" treatment on rejection).
+    if (!hasIdentityCoverage(normalizeSearch(p.originalIdentity), survivors[0])) {
+      outcomes.set(p.id, { status: "unresolved", reason: "convergence_rejected" });
+      continue;
+    }
 
     const duplicate = await findDuplicate(prisma, survivors[0]);
     if (duplicate) {

@@ -208,3 +208,50 @@ describe("resolveManyAuthoritativeFoods", () => {
     expect(result.get("b")).toEqual({ status: "unresolved", reason: "not_found" });
   });
 });
+
+describe("unified food-resolution engine: the batch path now shares the single-item path's convergence gate (2026-09-23)", () => {
+  it("SAME regression as the single-item path's szalonna case: a bare recipe-ingredient identity that only partially overlaps a candidate's dynamically-localized name is convergence-rejected, never resolved", async () => {
+    const { prisma, persisted } = fakePrisma();
+    // Mirrors the real live-reproduced Food: a USDA record whose Hungarian
+    // localized name merely CONTAINS the bare ingredient word "szalonna"
+    // among mostly other, unaccounted tokens — must not be trusted as a
+    // confident match for that bare word, in a recipe any more than in
+    // direct entry.
+    // canonicalIdentity ("bacon") differs from originalIdentity ("szalonna")
+    // — mirrors how a whole-recipe-context normalization pass would generate
+    // an English-ish search term for a Hungarian ingredient, exactly what
+    // the convergence gate exists to independently re-check afterward.
+    const pending: PendingAuthoritativeResolution[] = [{ id: "ingredient-1", canonicalIdentity: "bacon", originalIdentity: "szalonna", rawIngredient: "szalonna" }];
+    const adapters = [{
+      source: "usda_fdc" as const, sourceName: "USDA",
+      lookup: async () => [candidate({
+        sourceId: "900001", originalName: "Pork, cured, bacon, unprepared", name: "Pork, cured, bacon, unprepared",
+        names: { hu: "pácolt szalonna, előkészítetlen" }, normalizedName: "pork cured bacon unprepared", matchPolicy: "exact_normalized_name"
+      })]
+    }];
+    const result = await resolveManyAuthoritativeFoods(prisma, pending, baseDeps({ adapters }));
+    expect(result.get("ingredient-1")).toEqual({ status: "unresolved", reason: "convergence_rejected" });
+    expect(persisted).toHaveLength(0);
+  });
+
+  it("still resolves a recipe ingredient whose identity genuinely matches the candidate's own curated/original name (no false regression)", async () => {
+    const { prisma } = fakePrisma();
+    const pending = [pendingFor("ingredient-1", "garlic")];
+    const result = await resolveManyAuthoritativeFoods(prisma, pending, baseDeps());
+    expect(result.get("ingredient-1")).toMatchObject({ status: "resolved" });
+  });
+
+  it("still resolves via the FULL localized phrase — persist once, reuse forever is preserved for recipe ingredients too", async () => {
+    const { prisma } = fakePrisma();
+    const pending: PendingAuthoritativeResolution[] = [{ id: "ingredient-1", canonicalIdentity: "bacon", originalIdentity: "pácolt szalonna, előkészítetlen", rawIngredient: "pácolt szalonna, előkészítetlen" }];
+    const adapters = [{
+      source: "usda_fdc" as const, sourceName: "USDA",
+      lookup: async () => [candidate({
+        sourceId: "900001", originalName: "Pork, cured, bacon, unprepared", name: "Pork, cured, bacon, unprepared",
+        names: { hu: "pácolt szalonna, előkészítetlen" }, normalizedName: "pork cured bacon unprepared", matchPolicy: "exact_normalized_name"
+      })]
+    }];
+    const result = await resolveManyAuthoritativeFoods(prisma, pending, baseDeps({ adapters }));
+    expect(result.get("ingredient-1")).toMatchObject({ status: "resolved" });
+  });
+});
