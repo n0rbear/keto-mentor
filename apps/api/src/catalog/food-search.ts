@@ -84,6 +84,21 @@ export function foodNameRepresentations(food: { name?: unknown; originalName?: u
 }
 
 /**
+ * A food's CURATED identity only — its own `name`/`originalName` exactly as
+ * set when the record was created (the authoritative source's own text, or a
+ * curated import's own text) — deliberately excluding `food.names`, the
+ * per-locale display strings a LATER, unreviewed machine translation can add
+ * (see backfillLocaleName/localizeCandidateNames). Used wherever a bare or
+ * under-specifying query must not borrow trust from a translation that
+ * merely happens to CONTAIN the query as one of several tokens.
+ */
+export function curatedNameRepresentations(food: { name?: unknown; originalName?: unknown }): string[] {
+  return [food.name, food.originalName]
+    .filter((value): value is string => typeof value === "string" && value.length > 0)
+    .map(normalizeSearch);
+}
+
+/**
  * Whether a (normalized) query phrase is actually attested in a food's own
  * name representations, as a fraction of the query's meaningful tokens.
  * Used to gate "dynamic_search" aliases — see the comment on `exactAlias`
@@ -94,6 +109,50 @@ export function hasSemanticCoverage(normalizedQuery: string, representations: re
   if (!tokens.length) return false;
   const matched = tokens.filter((token) => representations.some((rep) => rep.includes(token)));
   return matched.length / tokens.length >= SEMANTIC_TRUST_THRESHOLD;
+}
+
+// Real, live-reproduced gap (2026-09-23 staging audit): a USDA record
+// dynamically resolved for "bacon" was localized to Hungarian "pácolt
+// szalonna, előkészítetlen" (see backfillLocaleName) — a display convenience
+// only, never human-reviewed. hasSemanticCoverage's substring check then let
+// a later, UNRELATED bare "szalonna" query (which genuinely spans several
+// materially different foods — breakfast bacon vs. back fat, a 2.5x energy
+// spread; see everyday-coverage-manifest.ts's own deliberate omission of a
+// bare "szalonna" alias) "cover" against that translation merely because
+// "szalonna" happens to be one of its tokens, and pass both the
+// dynamic_search alias gate and the convergence-gate re-check below as if it
+// were the food's own verified identity — silently reintroducing exactly the
+// ambiguity the curated layer was designed to keep out of local search.
+//
+// The general fix: a MACHINE-TRANSLATED per-locale name (food.names) is
+// always trusted for an EXACT, whole-phrase match (a user later typing the
+// full localized phrase back still gets the "persist once, reuse forever"
+// benefit). For anything less than the full phrase, the existing substring
+// coverage check is still required (unchanged — this is what lets a
+// Hungarian/German AGGLUTINATIVE compound keep matching, e.g. "csülök"
+// legitimately found fused inside "Sertéscsülök" with no space at all), but
+// is no longer sufficient by itself: the query must also account for at
+// least half of the matched name's own length. A translation may add a FEW
+// trailing/leading qualifiers over the query without changing the food's
+// core identity ("csülök" is half of "sertescsulok" by length; "karfiol" is
+// just over half of "karfiol nyers") but must not be trusted merely for
+// containing the query's word among mostly OTHER, unaccounted (possibly
+// identity-changing) modifiers ("szalonna" is barely a quarter of "pácolt
+// szalonna, előkészítetlen"). Deliberately a numeric ratio, not a per-word
+// list — the same style of threshold this file already uses
+// (SEMANTIC_TRUST_THRESHOLD, DYNAMIC_SEARCH_ALIAS_TRUST_THRESHOLD) — so it
+// generalizes to any future case rather than special-casing "szalonna".
+export function hasIdentityCoverage(normalizedQuery: string, food: { name?: unknown; originalName?: unknown; names?: unknown }): boolean {
+  if (hasSemanticCoverage(normalizedQuery, curatedNameRepresentations(food))) return true;
+  if (!normalizedQuery) return false;
+  const dynamicNames = Object.values((food.names as Record<string, unknown>) ?? {})
+    .filter((value): value is string => typeof value === "string" && value.length > 0)
+    .map(normalizeSearch);
+  return dynamicNames.some((name) => {
+    if (name === normalizedQuery) return true;
+    if (!hasSemanticCoverage(normalizedQuery, [name])) return false;
+    return normalizedQuery.length / name.length >= 0.5;
+  });
 }
 
 // P0 semantic identity safety checkpoint (2026-09-16) — real, reproduced bug:

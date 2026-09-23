@@ -5,7 +5,7 @@ import type { SearchIntentProvider } from "./search-intent.js";
 import { DisabledCandidateLocalizationProvider, type CandidateLocalizationProvider } from "./candidate-localization.js";
 import type { DynamicFoodResolutionRateLimiter } from "./dynamic-food-rate-limit.js";
 import { normalizeSearch } from "./normalize.js";
-import { foodNameRepresentations, hasSemanticCoverage } from "./food-search.js";
+import { hasIdentityCoverage } from "./food-search.js";
 import { foodLocaleFor, type FoodLocale } from "./food-locale.js";
 import { DisabledSemanticCandidateGateProvider, type SemanticCandidateGateProvider } from "./semantic-candidate-gate.js";
 import type { AliasSemanticVerdict } from "./alias-semantic-verdict.js";
@@ -82,7 +82,7 @@ export async function findUserPrivateFood(prisma: DynamicPrisma, userId: string,
 export async function learnSearchAlias(prisma: DynamicPrisma, food: { id: string; name?: unknown; originalName?: unknown; names?: unknown }, rawQuery: string, locale: string | undefined, semanticVerdict: AliasSemanticVerdict = "unknown") {
   const normalizedAlias = normalizeSearch(rawQuery);
   if (!normalizedAlias || normalizedAlias.length < 2) return;
-  if (!hasSemanticCoverage(normalizedAlias, foodNameRepresentations(food))) return;
+  if (!hasIdentityCoverage(normalizedAlias, food)) return;
   if (semanticVerdict === "rejected") return;
   const confidence = semanticVerdict === "validated" ? 0.95 : 0.7;
   const foodId = food.id;
@@ -466,7 +466,7 @@ async function resolveFromSearchTerm(
       // web-evidence/AI-estimate a genuine "not_found" already had, via the
       // shared attemptFallbackChain helper (see "convergence_rejected"
       // above for the safety reasoning).
-      if (!hasSemanticCoverage(normalizeSearch(originalIdentity), foodNameRepresentations(outcome.food))) {
+      if (!hasIdentityCoverage(normalizeSearch(originalIdentity), outcome.food)) {
         return attemptFallbackChain(prisma, searchTerm, originalIdentity, via, deps, aliasLocale, semanticContext, "convergence_rejected", {});
       }
       // P0 semantic identity safety checkpoint (2026-09-16): resolveAuthoritativeFood's

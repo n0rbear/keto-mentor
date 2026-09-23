@@ -1,4 +1,4 @@
-import { searchFoods, isTrustedLocalMatch, foodNameRepresentations, hasSemanticCoverage, localFormMismatch } from "../catalog/food-search.js";
+import { searchFoods, isTrustedLocalMatch, hasIdentityCoverage, localFormMismatch } from "../catalog/food-search.js";
 import { resolveManyAuthoritativeFoods, type PendingAuthoritativeResolution } from "../catalog/dynamic-food-resolution-batch.js";
 import { DisabledRecipeSemanticGateProvider } from "../catalog/semantic-candidate-gate-batch.js";
 import { resolveQuantity, type DynamicResolutionDeps } from "../meal-input/interpret.js";
@@ -120,7 +120,7 @@ export async function resolveRecipeIngredientsBatch(
         : formCompatibleCanonical[0];
       const top = canonicalTop
         ?? sourceCandidates.find((candidate) => isTrustedLocalMatch(candidate.match) && formCompatible(candidate) && (
-          hasSemanticCoverage(identityQuery, foodNameRepresentations(candidate))
+          hasIdentityCoverage(identityQuery, candidate)
           // A persisted manufacturer/national-database Food reached this
           // exact strong source-phrase alias only after authoritative
           // identity validation. Reuse that learned alias without forcing
