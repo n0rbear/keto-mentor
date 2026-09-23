@@ -155,6 +155,12 @@ export async function resolveRecipeIngredientsBatch(
       adapters: dynamic.adapters, rateLimiter: dynamic.rateLimiter, userId: dynamic.userId,
       locale: dynamic.locale, foodLocale: dynamic.foodLocale, localizationProvider: dynamic.localizationProvider,
       semanticGateProvider: dynamic.recipeSemanticGateProvider ?? new DisabledRecipeSemanticGateProvider(),
+      // Unified food-resolution engine (2026-09-23): the SAME single-item
+      // gate and semantic-recovery provider the direct-entry path uses —
+      // see BatchAuthoritativeDeps's own doc for why the single-item-shaped
+      // gate is needed here (only for the bounded recovery retries, never
+      // for the main batched decision above, which keeps using the batch gate).
+      semanticCandidateGateProvider: dynamic.semanticCandidateGateProvider, semanticRecoveryProvider: dynamic.semanticRecoveryProvider,
       recipeTitle: input.title, recipeContext: input.context
     });
     for (const draft of drafts) {
@@ -162,13 +168,13 @@ export async function resolveRecipeIngredientsBatch(
       if (!outcome) continue; // this draft resolved locally — never sent to the batch resolver
       if (outcome.status === "resolved") { draft.selectedFood = outcome.food; draft.resolution = "resolved"; draft.candidates = [outcome.food]; }
       else if (outcome.status === "confirmation_required") { draft.resolution = "confirmation_required"; draft.externalCandidates = outcome.candidates; draft.externalCandidatesReason = outcome.reason; }
-      else if (outcome.status === "unresolved" && ["not_found", "invalid_external_data", "external_unavailable"].includes(outcome.reason)
+      else if (outcome.status === "unresolved" && ["not_found", "invalid_external_data", "external_unavailable", "convergence_rejected"].includes(outcome.reason)
         && (dynamic.webEvidenceFallback || dynamic.aiEstimation)) {
         // Authoritative batch already exhausted this identity. Reuse the
         // shared last-resort chain without repeating structured lookups.
         const fallback = await attemptFallbackChain(dynamic.prisma, draft.identityQuery, draft.identityQuery,
           "normalized_identity", dynamic, dynamic.locale, { rawIngredient: draft.line.raw, recipeTitle: input.title },
-          outcome.reason as "not_found" | "invalid_external_data" | "external_unavailable", {});
+          outcome.reason as "not_found" | "invalid_external_data" | "external_unavailable" | "convergence_rejected", {});
         if (fallback.status === "resolved") {
           draft.selectedFood = fallback.food; draft.resolution = "resolved"; draft.candidates = [fallback.food];
         } else if (fallback.status === "ai_estimate_pending") {

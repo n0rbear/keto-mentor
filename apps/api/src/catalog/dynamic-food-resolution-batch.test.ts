@@ -4,6 +4,8 @@ import { DynamicFoodResolutionRateLimiter } from "./dynamic-food-rate-limit.js";
 import type { RecipeSemanticGateProvider } from "./semantic-candidate-gate-batch.js";
 import type { CandidateLocalizationProvider } from "./candidate-localization.js";
 import type { ExternalFoodCandidate } from "./external-food.js";
+import type { SemanticCandidateGateProvider } from "./semantic-candidate-gate.js";
+import type { SemanticRecovery, SemanticRecoveryProvider } from "./semantic-recovery.js";
 
 function fakePrisma() {
   const persisted: any[] = [];
@@ -253,5 +255,86 @@ describe("unified food-resolution engine: the batch path now shares the single-i
     }];
     const result = await resolveManyAuthoritativeFoods(prisma, pending, baseDeps({ adapters }));
     expect(result.get("ingredient-1")).toMatchObject({ status: "resolved" });
+  });
+});
+
+describe("unified food-resolution engine: bounded semantic recovery in the batch/recipe path (2026-09-23)", () => {
+  function permissiveSingleGate(): SemanticCandidateGateProvider {
+    return { id: "permissive-fixture", checkRelevance: async (_original, candidates) => new Map(candidates.map((c) => [c.id, true])) };
+  }
+  function stubRecovery(recovery: SemanticRecovery | null): SemanticRecoveryProvider {
+    return { id: "stub-recovery", recover: async () => recovery };
+  }
+
+  it("resolves a recipe ingredient via bounded recovery when the deterministic batch pass alone found nothing (túró/Öl-equivalent, recipe context)", async () => {
+    const { prisma } = fakePrisma();
+    const calls: string[] = [];
+    // Nothing in the deterministic pass matches "curdcheese" at all —
+    // mirrors túró finding no BLS/USDA evidence via its own bare identity.
+    const pending = [pendingFor("ingredient-1", "curdcheese")];
+    const adapters = [{
+      source: "usda_fdc" as const, sourceName: "USDA",
+      lookup: async (q: string) => { calls.push(q); return q === "quark" ? [candidate({ sourceId: "900001", originalName: "quark curdcheese", name: "quark curdcheese", normalizedName: "quark curdcheese" })] : []; }
+    }];
+    const result = await resolveManyAuthoritativeFoods(prisma, pending, baseDeps({
+      adapters,
+      semanticCandidateGateProvider: permissiveSingleGate(),
+      semanticRecoveryProvider: stubRecovery({ canonicalConcept: "curd cheese", localSearchTerms: [], referenceSearchTerms: ["quark"] })
+    }));
+    // "curdcheese" is retried once more inside the shared engine before it
+    // tries the recovered "quark" term — a small, known, accepted
+    // inefficiency (one extra deterministic external lookup, not an LLM
+    // call) from reusing resolveFoodConcept as-is rather than special-casing
+    // "skip the first attempt" for batch callers. See STEP 5's own comment.
+    expect(calls).toEqual(["curdcheese", "curdcheese", "quark"]);
+    expect(result.get("ingredient-1")).toMatchObject({ status: "resolved" });
+  });
+
+  it("caps recovery attempts at the hard budget even when many recipe ingredients are unresolved", async () => {
+    const { prisma } = fakePrisma();
+    const recoverCalls: string[] = [];
+    const recovery: SemanticRecoveryProvider = { id: "stub", recover: async (input) => { recoverCalls.push(input.foodQuery); return null; } };
+    const pending = Array.from({ length: 6 }, (_, i) => pendingFor(`item-${i}`, `unknownfood${i}`));
+    const adapters = [{ source: "usda_fdc" as const, sourceName: "USDA", lookup: async () => [] }];
+    const result = await resolveManyAuthoritativeFoods(prisma, pending, baseDeps({
+      adapters, semanticCandidateGateProvider: permissiveSingleGate(), semanticRecoveryProvider: recovery
+    }));
+    // All 6 ingredients missed deterministically, but only the hard-capped
+    // budget's worth ever triggers an LLM recovery call.
+    expect(recoverCalls).toHaveLength(3);
+    expect(pending.every((p) => result.get(p.id)?.status === "unresolved")).toBe(true);
+  });
+
+  it("a semantic recovery provider failure (returns null) is safe — the deterministic 'unresolved' outcome stands unchanged, never crashes the batch", async () => {
+    const { prisma } = fakePrisma();
+    const pending = [pendingFor("ingredient-1", "unknownfood"), pendingFor("ingredient-2", "garlic")];
+    const adapters = [{ source: "usda_fdc" as const, sourceName: "USDA", lookup: async (q: string) => (q === "garlic" ? [candidate()] : []) }];
+    const result = await resolveManyAuthoritativeFoods(prisma, pending, baseDeps({
+      adapters, semanticCandidateGateProvider: permissiveSingleGate(), semanticRecoveryProvider: stubRecovery(null)
+    }));
+    expect(result.get("ingredient-1")).toEqual({ status: "unresolved", reason: "not_found" });
+    expect(result.get("ingredient-2")).toMatchObject({ status: "resolved" });
+  });
+
+  it("never attempts recovery for an item that is already resolved or already confirmation_required for a reason recovery doesn't apply to (weak_match/possible_duplicate)", async () => {
+    const { prisma } = fakePrisma();
+    const recoverCalls: string[] = [];
+    const recovery: SemanticRecoveryProvider = { id: "stub", recover: async (input) => { recoverCalls.push(input.foodQuery); return null; } };
+    // A single OFF-shaped (not autoAcceptEligible) survivor -> weak_match,
+    // not one of recovery's trigger reasons (not_found/invalid_external_data/
+    // external_unavailable/convergence_rejected).
+    const pending = [pendingFor("ingredient-1", "garlic")];
+    const adapters = [{ source: "usda_fdc" as const, sourceName: "USDA", lookup: async () => [candidate({ autoAcceptEligible: false, matchPolicy: "review_required" })] }];
+    const result = await resolveManyAuthoritativeFoods(prisma, pending, baseDeps({ adapters, semanticRecoveryProvider: recovery }));
+    expect(result.get("ingredient-1")).toMatchObject({ status: "confirmation_required", reason: "weak_match" });
+    expect(recoverCalls).toHaveLength(0);
+  });
+
+  it("without a configured semanticRecoveryProvider, behavior is byte-for-byte unchanged (backward compatible)", async () => {
+    const { prisma } = fakePrisma();
+    const pending = [pendingFor("ingredient-1", "unknownfood")];
+    const adapters = [{ source: "usda_fdc" as const, sourceName: "USDA", lookup: async () => [] }];
+    const result = await resolveManyAuthoritativeFoods(prisma, pending, baseDeps({ adapters }));
+    expect(result.get("ingredient-1")).toEqual({ status: "unresolved", reason: "not_found" });
   });
 });
