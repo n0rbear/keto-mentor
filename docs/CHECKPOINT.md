@@ -6,7 +6,7 @@ Compact continuity state for the Master/worker workflow. Git, tests and this fil
 - **Checkpoint branch:** `claude/pensive-hamilton-ocsygi` (checkpoint-only; no product code)
 - **main HEAD:** `3ed31a3` (merge of PR #55)
 - **Production:** `keto-mentor-api` / `keto-mentor-web` at `3ed31a3` (auto-deploy from `main`)
-- **Staging:** `keto-mentor-api-staging` / `-web-staging` track `feat/authoritative-external-evidence-fallback` = `bd9a120` (includes voice + semantic recovery). Owner decision 2026-09-24: repoint staging to `fix/web-evidence-production-effectiveness` (PR #56) and delete the `keto-mentor-*-pr56` services (API crashes: no `DATABASE_URL`). Render MCP cannot change branch/delete services — owner does this in the dashboard.
+- **Staging:** `keto-mentor-api-staging` → `fix/web-evidence-production-effectiveness` (live `9209632`). `keto-mentor-web-staging` still on `feat/authoritative-external-evidence-fallback` (`bd9a120`) — owner to repoint. `keto-mentor-*-pr56` services deleted 2026-09-24.
 
 ## Open PRs
 - **#56** `fix/web-evidence-production-effectiveness` @ `9209632` — draft, mergeable. Food-resolution hardening, `autoAcceptEligible` evidence policy, HMAC-bound AI-estimate acceptance, recipe-first prepared dishes, localized diagnostics.
@@ -26,7 +26,7 @@ PR #56 review done (7 findings). Findings 1–3 fixed on local branch `pr56-revi
 ## Known issues / blockers
 - `render.yaml` production start command runs migrate + seed on every boot (pre-existing, out of scope).
 - `docs/PRODUCT_ROADMAP.md` does not yet list AI fallback, voice input or dinner recommendation.
-- Telegram reporting unavailable: only the bot id was supplied, not a full `id:secret` token.
+- Telegram: owner allowed `api.telegram.org` in the environment network policy; takes effect only in a new session. Token is supplied by the owner at runtime, never stored in the repo.
 
 ## Locked decisions (do not reinterpret)
 Authoritative catalog data first; AI nutrition is a labelled, user-confirmable estimate and never enters the catalog; OFF name-search is review-only; prepared dishes use main ingredients; human quantities with visible uncertainty; HU/DE/EN parity; human-readable failure diagnostics; dinner recommendation = premium, uses the day's intake to stay within the keto carb target; voice = cheap OpenAI transcribe on web/PWA, on-device later on native; free core stays free.
