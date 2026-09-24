@@ -340,6 +340,79 @@ describe("attachRecipeDiscoveryFallback: bounded candidate fallback (1-16)", () 
     expect(withDiscovery.recipeDiscovery?.candidate?.nutritionCalculable).not.toBe(true);
   });
 
+  // 2026-09-24 candidate-isolation checkpoint — live staging RCA: "gulyásleves"
+  // hit previewRecipeImport's own "import_failed" catch-all (an unclassified
+  // internal error, in that live case caused by a real bug in
+  // persistCandidate — see external-food.ts, same date), which this file used
+  // to treat as SYSTEMIC and abort the whole search. That assumption was
+  // proven false: the underlying cause was specific to ONE ingredient's
+  // identity, nothing to do with the page/network/database layer, and had no
+  // reason to repeat for a different candidate. The tests below reproduce the
+  // REAL failure layer from the live incident — a raw
+  // (non-RecipeImportError) exception thrown deep inside candidate #1's own
+  // ingredient PERSISTENCE (resolveRecipeIngredientsBatch -> persistCandidate,
+  // exactly BUG A's own call path), not merely an AI-provider error (which
+  // recipe-import.ts's own extractRecipeWithAi already reclassifies into a
+  // well-known code before it ever reaches attemptCandidate).
+  const salmonHtml = `<html><script type="application/ld+json">${JSON.stringify({ "@type": "Recipe", name: "Salmon bowl", recipeYield: "2 servings", recipeIngredient: ["100 g salmon"], recipeInstructions: ["Cook."] })}</script></html>`;
+  const salmonCandidateForDynamic: ExternalFoodCandidate = {
+    source: "usda_fdc", sourceId: "175167", originalName: "Salmon", name: "Salmon",
+    names: { en: "Salmon" }, kcalPer100g: 142, fatPer100g: 6.3, proteinPer100g: 19.8, carbsPer100g: 0, fiberPer100g: 0, nutrients: [],
+    provenance: { source: "USDA FoodData Central", sourceId: "175167", sourceUrl: "https://fdc.nal.usda.gov/175167", retrievedAt: "2026-09-09T00:00:00.000Z", valuesPer: "100 g" },
+    sourceUrl: "https://fdc.nal.usda.gov/175167", normalizedName: "salmon", nutrientBasis: "per_100_g",
+    retrievedAt: "2026-09-09T00:00:00.000Z", confidence: 0.97, matchPolicy: "exact_normalized_name", autoAcceptEligible: true, language: "en"
+  };
+  function salmonDynamicDeps(prisma: any): DynamicResolutionDeps {
+    return {
+      prisma,
+      searchIntentProvider: { id: "stub", generate: async () => ({ canonicalConcept: "salmon", searchTerms: ["salmon"], sourceLanguage: "en" }) },
+      adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [salmonCandidateForDynamic] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1", locale: "hu",
+      localizationProvider: { id: "fixture", localize: async (items: { id: string }[]) => new Map(items.map((i) => [i.id, "Salmon"])) },
+      semanticCandidateGateProvider: { id: "permissive", checkRelevance: async (_o: unknown, candidates: { id: string }[]) => new Map(candidates.map((c) => [c.id, true])) }
+    } as DynamicResolutionDeps;
+  }
+  // Local search always misses "salmon" (forcing dynamic external resolution
+  // and its own persistCandidate write) but still finds the seeded cabbage —
+  // lets candidate #2 (cabbage-based) resolve WITHOUT ever touching the
+  // throwing food.create below.
+  function combinedThrowingPrisma(createError: unknown) {
+    const prisma: any = {
+      food: {
+        findUnique: async () => null,
+        findMany: async ({ where }: any) => where.OR.some((c: any) => "cabbage".includes(c.searchText?.contains ?? "")) ? [cabbageFood] : [],
+        create: async () => { throw createError; }
+      },
+      foodAlias: { findFirst: async () => null, findMany: async () => [] },
+      nutrient: { upsert: async ({ create }: any) => ({ id: `nutrient-${create.key}`, ...create }) },
+      foodNutrient: { create: async () => ({}) },
+      $transaction: async (fn: any) => fn(prisma)
+    };
+    return prisma;
+  }
+
+  it("2026-09-24 — every candidate hitting an unclassified error still ends in a safe unresolved result, never a crash, never a fabricated recipe", async () => {
+    const prisma = combinedThrowingPrisma(new Error("simulated DB write failure, not a RecipeImportError"));
+    const fetchDependencies = multiCandidateFetch({ "one.example.com": { html: salmonHtml }, "two.example.com": { html: salmonHtml }, "three.example.com": { html: salmonHtml } });
+    const { withDiscovery } = await runDiscovery(candidates3, { prisma, dynamic: salmonDynamicDeps(prisma), fetchDependencies });
+    expect(withDiscovery.recipeDiscovery).toMatchObject({ status: "unresolved", candidatesAttempted: 3, reason: "systemic_error" });
+    expect(withDiscovery.recipeDiscovery?.candidate).toBeUndefined();
+  });
+
+  it("2026-09-24 — candidate #1's persistence hits the SAME unclassified error, but candidate #2 (which never needs a fresh write) still succeeds", async () => {
+    const prisma = combinedThrowingPrisma(new Error("simulated DB write failure, not a RecipeImportError"));
+    const fetchDependencies = multiCandidateFetch({ "one.example.com": { html: salmonHtml }, "two.example.com": { html: goodSchemaOrgHtml() } });
+    const { withDiscovery } = await runDiscovery(candidates3, { prisma, dynamic: salmonDynamicDeps(prisma), fetchDependencies });
+    expect(withDiscovery.recipeDiscovery).toMatchObject({ status: "confirmation_required", candidatesAttempted: 2, candidate: { domain: "two.example.com" } });
+  });
+
+  it("2026-09-24 — genuine cancellation (AbortError) still propagates instead of being swallowed as a skippable candidate failure", async () => {
+    const prisma = combinedThrowingPrisma(Object.assign(new Error("The operation was aborted"), { name: "AbortError" }));
+    const fetchDependencies = multiCandidateFetch({ "one.example.com": { html: salmonHtml }, "two.example.com": { html: goodSchemaOrgHtml() } });
+    await expect(runDiscovery(candidates3, { prisma, dynamic: salmonDynamicDeps(prisma), fetchDependencies })).rejects.toThrow(/aborted/i);
+  });
+
   it("7 — the maximum candidate-attempt bound is enforced even when more relevant candidates are available", async () => {
     const fourCandidates = [...candidates3, { url: "https://four.example.com/r", title: "Töltött káposzta recept", domain: "four.example.com" }];
     const fetchDependencies = multiCandidateFetch({

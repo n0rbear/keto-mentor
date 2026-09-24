@@ -136,9 +136,18 @@ export function toIngredientReview(ingredient: ReviewableIngredient): RecipeIngr
   const resolvedFood = status === "resolved" && ingredient.selectedFood ? toTrustedFoodSummary(ingredient.selectedFood) : null;
 
   const hasExternalCandidates = status === "confirmation_required" && !!ingredient.externalCandidates?.length;
+  // Live staging RCA (2026-09-24): `ingredient.candidates` is not guaranteed
+  // populated on every ReviewableIngredient shape that can reach this branch
+  // (status confirmation_required, a selectedFood preview, no external
+  // candidates) — an undefined value here used to throw a raw TypeError
+  // (`Cannot read properties of undefined (reading 'filter')`), which,
+  // uncaught, could abort an entire recipe-discovery search over ONE
+  // candidate's ONE ingredient (see recipe-discovery-fallback.ts's own
+  // candidate-isolation fix, same date, for the defense-in-depth half of
+  // this).
   const localCandidates =
     status === "confirmation_required" && !hasExternalCandidates && ingredient.selectedFood
-      ? [ingredient.selectedFood, ...ingredient.candidates.filter((c) => c.id !== ingredient.selectedFood!.id)].slice(0, 5).map(toLocalCandidateSummary)
+      ? [ingredient.selectedFood, ...(ingredient.candidates ?? []).filter((c) => c.id !== ingredient.selectedFood!.id)].slice(0, 5).map(toLocalCandidateSummary)
       : undefined;
 
   return {

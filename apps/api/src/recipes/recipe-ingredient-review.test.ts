@@ -57,6 +57,25 @@ describe("toIngredientReview: the trusted-nutrition fix (owner-beta blocker #6)"
     expect(review.trustedNutritionReady).toBe(false);
   });
 
+  // Live staging RCA (2026-09-24): the real call site (recipe-discovery-
+  // fallback.ts's attemptCandidate) reaches this function via an UNSAFE cast
+  // (`ingredient as unknown as ReviewableIngredient`) on whatever shape the
+  // real dynamic-resolution pipeline actually produced — `candidates` being
+  // absent there is not something the type system actually guarantees can't
+  // happen at runtime, only something this TYPE claims. Before this fix, an
+  // ingredient reaching confirmation_required with a selectedFood preview but
+  // no populated `candidates` (and no external candidates) threw a raw
+  // TypeError instead of returning a review — exactly the class of exception
+  // that (uncaught further up) could abort an entire recipe-discovery search
+  // over ONE candidate's ONE ingredient.
+  it("a confirmation_required ingredient with a selectedFood preview but no populated candidates array never throws", () => {
+    const malformed = { originalText: "x", parsedFoodQuery: "x", resolution: "confirmation_required", selectedFood: egg, candidates: undefined, quantity: null } as unknown as ReviewableIngredient;
+    expect(() => toIngredientReview(malformed)).not.toThrow();
+    const review = toIngredientReview(malformed);
+    expect(review.status).toBe("confirmation_required");
+    expect(review.localCandidates).toEqual([{ id: "egg", name: "Egg", source: "open_database" }]);
+  });
+
   it("1 — a genuinely resolved identity with resolved grams IS trusted", () => {
     const review = toIngredientReview(ingredient({
       resolution: "resolved", selectedFood: cabbage, candidates: [cabbage],

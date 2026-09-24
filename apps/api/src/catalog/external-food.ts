@@ -270,7 +270,15 @@ async function backfillLocaleName(prisma: ResolutionPrisma, food: any, localizat
 }
 
 export async function persistCandidate(prisma: ResolutionPrisma, candidate: ExternalFoodCandidate) {
-  const { nutrients, confidence: _confidence, matchPolicy: _matchPolicy, language: _language, normalizedName: _normalizedName, nutrientBasis: _basis, retrievedAt: _retrievedAt, sourceUrl: _sourceUrl, ...foodData } = candidate;
+  // Live staging RCA (2026-09-24): `autoAcceptEligible` is a decision-time-only
+  // flag on ExternalFoodCandidate (see its own doc above) — the Food model
+  // (schema.prisma) has no such column. It was never added to this exclusion
+  // list when it was introduced, so it leaked into `foodData` below and every
+  // real Prisma client rejected the `tx.food.create` call outright for any
+  // BRAND-NEW auto-accepted candidate (a repeat/local/confirmation_required
+  // candidate never reaches this function, which is why this went unnoticed:
+  // see the "brand-new auto-accepted candidate" regression test).
+  const { nutrients, confidence: _confidence, matchPolicy: _matchPolicy, language: _language, normalizedName: _normalizedName, nutrientBasis: _basis, retrievedAt: _retrievedAt, sourceUrl: _sourceUrl, autoAcceptEligible: _autoAcceptEligible, ...foodData } = candidate;
   return prisma.$transaction(async (tx) => {
     const saved = await tx.food.create({ data: { ...foodData, searchText: buildSearchText(foodData), createdById: null } });
     const aliases = [...new Set([candidate.name, candidate.originalName, ...Object.values(candidate.names ?? {})].map(normalizeSearch).filter(Boolean))];

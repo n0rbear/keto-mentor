@@ -267,6 +267,13 @@ export async function previewRecipeImport(
   } catch (error) {
     if (error instanceof RecipeImportError) throw error;
     if (error instanceof SafeFetchError) throw new RecipeImportError(error.publicCode, error.publicCode === "fetch_timeout" ? 504 : 400);
+    // 2026-09-24 candidate-isolation checkpoint: genuine cancellation must
+    // stay distinguishable all the way up to recipe-discovery-fallback.ts's
+    // own candidate loop (see its isAbortError) — wrapping it into an
+    // ordinary RecipeImportError here would make an aborted request
+    // indistinguishable from any other candidate-local failure and get it
+    // silently retried against the next candidate instead of stopping.
+    if (error instanceof Error && error.name === "AbortError") throw error;
     throw new RecipeImportError("import_failed", 502);
   }
 }
