@@ -312,7 +312,9 @@ function rankingPenalty(food: any, query: string) {
   // https://blsdb.de/bls ("Das Schlüsselsystem"). An explicitly named dish
   // keeps its identity; an ingredient query must not silently prefer a recipe.
   const menuComponent = food.source === "bls" && /^[DXY][A-Z0-9]{6}$/.test(food.sourceId ?? "") && !names.includes(query);
-  const compound = !COMPOUND_FOOD.test(query) && (menuComponent || names.some(name => COMPOUND_FOOD.test(name)) || isQueryHeadedHyphenCompound(food, query));
+  // Like menuComponent: a food the query names exactly keeps its identity even
+  // if another locale's name for it carries a compound keyword ("Apple pie").
+  const compound = !COMPOUND_FOOD.test(query) && !names.includes(query) && (menuComponent || names.some(name => COMPOUND_FOOD.test(name)) || isQueryHeadedHyphenCompound(food, query));
   const specializedCompound = isModifierPrefixedCompound(food, query);
   return (form ? 30 : 0) + (compound ? 40 : 0) + (specializedCompound ? 20 : 0);
 }

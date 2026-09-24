@@ -131,7 +131,7 @@ export function foodCandidateQuery(variants: readonly string[], rankingQuery: st
         (CASE WHEN (${formPenalty}) OR (${requestedForm} AND EXISTS (
           SELECT 1 FROM unnest(n.names) nm WHERE nm ~ ${"\\y(raw|fresh|roh|frisch|nyers|friss)\\y"}
         )) THEN 30 ELSE 0 END
-        + CASE WHEN ${rankingQuery} !~ ${compoundPattern} AND (
+        + CASE WHEN ${rankingQuery} !~ ${compoundPattern} AND NOT (${rankingQuery} = ANY(n.names)) AND (
           (n.source::text = 'bls' AND n."sourceId" ~ '^[DXY][A-Z0-9]{6}$' AND NOT (${rankingQuery} = ANY(n.names))) OR
           EXISTS (SELECT 1 FROM unnest(n.names) nm WHERE nm ~ ${compoundPattern}) OR
           EXISTS (SELECT 1 FROM unnest(n.raw_names) nm WHERE

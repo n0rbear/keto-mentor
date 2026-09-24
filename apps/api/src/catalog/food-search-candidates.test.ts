@@ -57,6 +57,13 @@ describe("bounded DB candidate discovery", () => {
     expect(sql.text).not.toContain("'ch'");
   });
 
+  it("mirrors the TS exact-name exemption from the compound penalty in SQL", async () => {
+    const db = database([]);
+    await searchFoods(db, "almás pite");
+    const sql = db.$queryRaw.mock.calls[0][0];
+    expect(sql.text).toMatch(/!~ \$\d+ AND NOT \(\$\d+ = ANY\(n\.names\)\) AND \(/);
+  });
+
   describe("bounded broad-match architecture (2026-09-22)", () => {
     it("reserves a documented budget for the broad alias/food prefilter, distinct from the final output budgets", async () => {
       const db = database([]);

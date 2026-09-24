@@ -139,6 +139,21 @@ describe("general catalog ranking regressions", () => {
     const rows = [food("raw", "Parsley fresh", { names: { en: "Parsley" } }), food("dried", "Parsley dried", { names: { en: "Parsley" } })];
     expect((await searchFoods(catalog(rows), "parsley", 20, { rawIngredient: "1 g dried parsley" }))[0].id).toBe("dried");
   });
+  // The compound penalty exists to keep an ingredient query off prepared
+  // dishes; it must not demote the dish the query names exactly just because
+  // another locale's name for it ("Apple pie") contains a compound keyword.
+  it.each([
+    ["almás pite", "Almás pite fahéjjal"],
+    ["apple pie", "Apple pie filling"],
+    ["Apfelkuchen", "Apfelkuchen vom Blech"],
+  ])("ranks the exact dish '%s' above a partial match", async (query, partialName) => {
+    const exact = food("exact", "Almás pite", { names: { hu: "Almás pite", en: "Apple pie", de: "Apfelkuchen" }, searchText: "almas pite apple pie apfelkuchen" });
+    const partial = food("partial", partialName);
+    for (const db of [catalog([partial, exact]), rankedCatalog([partial, exact])]) {
+      const result = await searchFoods(db, query);
+      expect(result[0]).toMatchObject({ id: "exact", match: { stage: "exact" } });
+    }
+  });
   it("preserves explicitly requested compounds", async () => {
     expect((await searchFoods(catalog([food("plain", "Yogurt"), food("jam", "Yogurt with jam")]), "yogurt with jam"))[0].id).toBe("jam");
   });
