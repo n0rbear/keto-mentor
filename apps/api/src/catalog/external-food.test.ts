@@ -88,6 +88,16 @@ describe("authoritative food resolution", () => {
     expect(getCreated()).toBeNull();
   });
 
+  it("does not auto-resolve a review-only (non-eligible) candidate via an existing same-source row", async () => {
+    const existing = { id: "existing", source: "open_food_facts", sourceId: "4008400404127", servings: [] };
+    const { prisma, getCreated } = fakePrisma({ sourceDuplicate: existing });
+    const offHit = offCandidate({ matchPolicy: "review_required", confidence: 0.6, autoAcceptEligible: false });
+    const result = await resolveAuthoritativeFood(prisma, "choco spread", [{ source: "open_food_facts", sourceName: "OFF", lookup: async () => [offHit] } as any]);
+    expect(result).toMatchObject({ status: "confirmation_required", reason: "weak_match" });
+    expect((result as any).candidates?.[0]).toMatchObject({ source: "open_food_facts", sourceId: "4008400404127" });
+    expect(getCreated()).toBeNull();
+  });
+
   it("persists one unambiguous high-confidence candidate with provenance", async () => {
     const { prisma, getCreated } = fakePrisma();
     const result = await resolveAuthoritativeFood(prisma, "raw spinach", [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [candidate()] }]);

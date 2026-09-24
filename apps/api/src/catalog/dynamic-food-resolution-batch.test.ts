@@ -150,6 +150,18 @@ describe("resolveManyAuthoritativeFoods", () => {
     expect(result.get("a")).toEqual({ status: "resolved", food: existing });
   });
 
+  it("an OFF name-search (non-eligible) candidate matching an EXISTING Food by source+sourceId still requires confirmation and learns no alias", async () => {
+    const { prisma } = fakePrisma();
+    const offHit = candidate({ source: "open_food_facts" as any, sourceId: "814553001090", sourceUrl: "https://world.openfoodfacts.org/product/814553001090", name: "Tomatoes", originalName: "Tomatoes", normalizedName: "tomatoes", confidence: 0.6, matchPolicy: "review_required", autoAcceptEligible: false });
+    const existing = { id: "existing-off", source: "open_food_facts", sourceId: "814553001090", name: "Tomatoes", originalName: "Tomatoes", servings: [] };
+    prisma.food.findUnique = async ({ where }: any) => where.source_sourceId.sourceId === "814553001090" ? existing : null;
+    const result = await resolveManyAuthoritativeFoods(prisma, [pendingFor("a", "tomato")],
+      baseDeps({ adapters: [{ source: "open_food_facts", sourceName: "OFF", lookup: async () => [offHit] }] }));
+    expect(result.get("a")).toMatchObject({ status: "confirmation_required", reason: "weak_match" });
+    expect((result.get("a") as any).candidates?.[0]?.sourceId).toBe("814553001090");
+    expect(prisma.foodAlias.upsert).not.toHaveBeenCalled();
+  });
+
   it("a candidate matching an existing Food by NAME (different source) is possible_duplicate, not auto-resolved", async () => {
     const { prisma } = fakePrisma();
     const existingByName = { id: "existing-by-name", source: "user_input", sourceId: "other", name: "Garlic, raw", originalName: "Garlic, raw", servings: [] };

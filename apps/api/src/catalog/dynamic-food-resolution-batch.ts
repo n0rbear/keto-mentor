@@ -205,8 +205,13 @@ export async function resolveManyAuthoritativeFoods(
 
     const duplicate = await findDuplicate(prisma, survivors[0]);
     if (duplicate) {
-      if (duplicate.source === survivors[0].source && duplicate.sourceId === survivors[0].sourceId) {
+      const sameSource = duplicate.source === survivors[0].source && duplicate.sourceId === survivors[0].sourceId;
+      if (sameSource && survivors[0].autoAcceptEligible) {
         outcomes.set(p.id, { status: "resolved", food: duplicate });
+      } else if (sameSource) {
+        // Review-only evidence (OFF name search) never auto-resolves via an
+        // earlier persisted copy — same rule as the non-duplicate branch below.
+        decisions.push({ pending: p, toShow: survivors.slice(0, CONFIRMATION_CANDIDATE_LIMIT), reason: survivors.length === 1 ? "weak_match" : "ambiguous" });
       } else {
         decisions.push({ pending: p, toShow: survivors.slice(0, CONFIRMATION_CANDIDATE_LIMIT), reason: "possible_duplicate" });
       }

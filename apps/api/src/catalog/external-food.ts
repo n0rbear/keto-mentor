@@ -450,9 +450,14 @@ export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: 
 
   const duplicate = await findDuplicate(prisma, candidates[0]);
   if (duplicate) {
-    if (duplicate.source === candidates[0].source && duplicate.sourceId === candidates[0].sourceId) return { status: "resolved_local", food: await backfillLocaleName(prisma, duplicate, localization) };
+    const sameSource = duplicate.source === candidates[0].source && duplicate.sourceId === candidates[0].sourceId;
+    // Review-only evidence (autoAcceptEligible: false, e.g. an OFF name-search
+    // hit) must never auto-resolve just because the same source record was
+    // persisted earlier — that would bypass the review gate below and let the
+    // caller learn a dynamic_search alias. Same reason the batch path reports.
+    if (sameSource && candidates[0].autoAcceptEligible) return { status: "resolved_local", food: await backfillLocaleName(prisma, duplicate, localization) };
     const localizedTop5 = localization ? await localizeCandidateNames(localization.provider, candidates.slice(0, 5), localization.locale) : candidates.slice(0, 5);
-    return { status: "confirmation_required", candidates: localizedTop5, reason: "possible_duplicate" };
+    return { status: "confirmation_required", candidates: localizedTop5, reason: sameSource ? (candidates.length > 1 ? "ambiguous" : "weak_match") : "possible_duplicate" };
   }
   const top = candidates[0];
   const second = candidates[1];

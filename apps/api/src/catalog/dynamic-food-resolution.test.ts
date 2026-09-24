@@ -94,6 +94,36 @@ function permissiveSemanticGate(): SemanticCandidateGateProvider {
   return { id: "permissive-fixture", checkRelevance: async (_original, candidates) => new Map(candidates.map((c) => [c.id, true])) };
 }
 
+describe("resolveDynamicFood: same-source duplicate respects autoAcceptEligible", () => {
+  // A previously persisted copy of the SAME source record (e.g. a user once
+  // confirmed this OFF product) must not let review-only evidence skip the
+  // confirmation gate or learn a dynamic_search alias.
+  const seeded = (source: string, sourceId: string) => ({ id: "existing", source, sourceId, name: "Pork hock, cooked", originalName: "Pork hock, cooked", names: { en: "Pork hock, cooked", hu: "Sertéscsülök" }, searchText: "unindexed" });
+  const run = async (candidate: ExternalFoodCandidate) => {
+    const { prisma, aliases } = fakePrisma({ seedFoods: [seeded(candidate.source, candidate.sourceId)] });
+    const result = await resolveDynamicFood(prisma, { foodQuery: "csülök" }, {
+      searchIntentProvider: stubSearchIntent({ canonicalConcept: "pork hock", searchTerms: ["pork hock"] }),
+      adapters: [{ source: candidate.source as any, sourceName: "fixture", lookup: async () => [candidate] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      semanticCandidateGateProvider: permissiveSemanticGate()
+    });
+    return { result, aliases };
+  };
+
+  it("an OFF name-search (non-eligible) duplicate goes to confirmation and learns no alias", async () => {
+    const { result, aliases } = await run(pork({ source: "open_food_facts" as any, sourceId: "4000000000001", sourceUrl: "https://world.openfoodfacts.org/product/4000000000001", provenance: { source: "Open Food Facts", sourceId: "4000000000001", sourceUrl: "https://world.openfoodfacts.org/product/4000000000001", retrievedAt: "2026-09-09T00:00:00.000Z", valuesPer: "100 g" }, matchPolicy: "review_required", confidence: 0.6, autoAcceptEligible: false }));
+    expect(result).toMatchObject({ status: "confirmation_required", reason: "weak_match" });
+    expect((result as any).candidates?.[0]?.sourceId).toBe("4000000000001");
+    expect(aliases).toHaveLength(0);
+  });
+
+  it("an eligible (USDA) duplicate still resolves to the existing row", async () => {
+    const { result } = await run(pork({ autoAcceptEligible: true }));
+    expect(result).toMatchObject({ status: "resolved", food: { id: "existing" } });
+  });
+});
+
 describe("resolveDynamicFood: bounded local-miss fallback", () => {
   it("no adapters configured -> unresolved(no_adapters), never calls search-intent or rate limiter", async () => {
     const { prisma } = fakePrisma();
