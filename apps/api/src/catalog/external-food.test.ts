@@ -95,6 +95,69 @@ describe("authoritative food resolution", () => {
     expect(getCreated()).toMatchObject({ source: "usda_fdc", sourceId: "123", provenance: expect.objectContaining({ source: "USDA FoodData Central" }) });
   });
 
+  // Live staging RCA (2026-09-24) — real, reproduced defect: a genuinely NEW
+  // (never-before-persisted) authoritative candidate for bare "túró" crashed
+  // the whole resolution pipeline with a non-AiProviderError exception
+  // (interpret.ts's outer catch logged reason=unknown) even though every AI
+  // stage (search-intent, semantic-candidate-gate, localization) had already
+  // succeeded. Root cause: `autoAcceptEligible` (added to ExternalFoodCandidate
+  // by the "enforce evidence policy before food auto-accept" checkpoint) was
+  // never excluded from persistCandidate's `...foodData` projection, so it
+  // leaks into the real `tx.food.create({ data })` call — but the Food model
+  // (schema.prisma) has no such column. A real Prisma client rejects unknown
+  // `data` keys at runtime with PrismaClientValidationError; this fixture's
+  // OTHER fakePrisma() instances silently accept any key via `{ id, ...data }`
+  // and so never caught this. This is why "Öl" and "Milbona Speisequark 40%"
+  // never reproduced it live: both either matched an ALREADY-EXISTING local
+  // Food (no persistCandidate call at all) or landed in confirmation_required
+  // (candidates shown for the user to pick, never auto-persisted) — only a
+  // brand-new candidate reaching the single-survivor AUTO-ACCEPT branch ever
+  // calls persistCandidate, exactly what a first-time "túró" resolution does.
+  it("a brand-new auto-accepted candidate is never persisted with a field the Food model doesn't have (real-Prisma-shaped strict create)", async () => {
+    // Mirrors schema.prisma's actual Food columns — throws exactly like a
+    // real Prisma client does on an unknown `data` key, unlike the permissive
+    // fakePrisma() above which accepts anything.
+    const KNOWN_FOOD_FIELDS = new Set([
+      "name", "names", "synonyms", "brand", "barcode", "source", "sourceId", "originalName",
+      "category", "searchText", "provenance", "servingUnit", "servingGrams",
+      "kcalPer100g", "fatPer100g", "proteinPer100g", "carbsPer100g", "fiberPer100g", "createdById"
+    ]);
+    const strictPrisma: any = {
+      foodAlias: { findMany: async () => [], findFirst: async () => null, createMany: async () => ({ count: 1 }) },
+      food: {
+        findUnique: async () => null,
+        findMany: async () => [],
+        create: async ({ data }: any) => {
+          const unknown = Object.keys(data).filter((key) => !KNOWN_FOOD_FIELDS.has(key));
+          if (unknown.length) throw new Error(`Unknown argument(s) \`${unknown.join("`, `")}\`. Available options are marked with ?.`);
+          return { id: "new-food", ...data };
+        }
+      },
+      nutrient: { upsert: async ({ create }: any) => ({ id: `nutrient-${create.key}`, ...create }) },
+      foodNutrient: { create: async () => ({}) },
+      $transaction: async (fn: any) => fn(strictPrisma)
+    };
+    await expect(resolveAuthoritativeFood(strictPrisma, "turo", [{ source: "usda_fdc", sourceName: "USDA", lookup: async () => [candidate({ sourceId: "999", name: "Quark", originalName: "Quark", normalizedName: "turo" })] }]))
+      .resolves.toMatchObject({ status: "resolved_external" });
+  });
+
+  // The fix above only stops the crash — it must never change WHICH outcome
+  // ("persist" vs "review") the pipeline picks. Several genuinely competing
+  // quark/cottage-cheese-shaped candidates for bare "túró" (no single
+  // decisive winner) must still require confirmation, exactly like any other
+  // ambiguous query — the crash fix does not make this MORE permissive.
+  it("several competing quark/cottage-cheese candidates for 'túró' still require confirmation, never auto-picked", async () => {
+    const { prisma, getCreated } = fakePrisma();
+    const result = await resolveAuthoritativeFood(prisma, "turo", [{
+      source: "usda_fdc", sourceName: "USDA", lookup: async () => [
+        candidate({ sourceId: "1", name: "Cottage cheese, lowfat, 2% milkfat", originalName: "Cottage cheese, lowfat, 2% milkfat", normalizedName: "turo", confidence: 0.96 }),
+        candidate({ sourceId: "2", name: "Cottage cheese, nonfat, uncreamed", originalName: "Cottage cheese, nonfat, uncreamed", normalizedName: "turo", confidence: 0.93 })
+      ]
+    }]);
+    expect(result).toMatchObject({ status: "confirmation_required", reason: "ambiguous" });
+    expect(getCreated()).toBeNull();
+  });
+
   it("requires confirmation for ambiguous candidates", async () => {
     const { prisma } = fakePrisma();
     // Both candidates are genuinely relevant to the query (share every

@@ -48,36 +48,43 @@ type ExtractedPreview = Awaited<ReturnType<typeof previewRecipeImport>>;
 // own without reaching into the discovery service's internals.
 const MAX_CANDIDATE_ATTEMPTS = 3;
 
-/**
- * RecipeImportError publicCodes that describe a property of ONE candidate
- * PAGE/URL — too big, wrong/missing shape, no usable recipe, that one
- * server didn't respond, or that one URL happened to resolve somewhere
- * unsafe. None of these say anything about the search/provider/database
- * layer, so trying the NEXT independently-sourced, independently-SSRF-
- * validated candidate from the same bounded set is safe and never weakens
- * any trust/security invariant — including the blocked-URL codes: the
- * unsafe URL is never fetched (safe-url-fetcher already refused it before
- * any network attempt), only skipped in favor of a different URL.
- */
-const RECOVERABLE_CANDIDATE_CODES = new Set([
-  "response_too_large", "recipe_content_too_large", "too_many_ingredients",
-  "recipe_page_not_found", "malformed_json_ld", "recipe_ingredients_missing",
-  "recipe_ai_unavailable", "recipe_ai_timeout", "recipe_ai_invalid_output",
-  "unsupported_content_type",
-  "blocked_url", "invalid_url", "dns_failure", "redirect_limit", "fetch_timeout", "fetch_failed"
-]);
-// Everything else — notably previewRecipeImport's own "import_failed"
-// catch-all for a genuinely unexpected/unclassified error (e.g. a database
-// failure inside its per-ingredient interpretMealInput calls) — says
-// nothing about the one candidate page and would fail identically for the
-// next one. Treated as SYSTEMIC: abort the whole attempt loop immediately
-// rather than spend two more fetches repeating a real infrastructure error.
+// Live staging RCA (2026-09-24): "gulyásleves" hit previewRecipeImport's own
+// "import_failed" catch-all — which this file used to treat as SYSTEMIC
+// (abort the whole search), on the theory that an unclassified internal
+// error "says nothing about the one candidate page and would fail
+// identically for the next one" (the same reasoning that already, correctly,
+// applies to the well-understood page-level codes previewRecipeImport can
+// throw: response_too_large, recipe_content_too_large, too_many_ingredients,
+// recipe_page_not_found, malformed_json_ld, recipe_ingredients_missing,
+// recipe_ai_unavailable, recipe_ai_timeout, recipe_ai_invalid_output,
+// unsupported_content_type, blocked_url, invalid_url, dns_failure,
+// redirect_limit, fetch_timeout, fetch_failed — none of these say anything
+// about the search/provider/database layer, so trying the NEXT
+// independently-sourced, independently-SSRF-validated candidate is safe and
+// never weakens any trust/security invariant, including the blocked-URL
+// codes: the unsafe URL is never fetched at all). The "systemic" assumption
+// for the UNCLASSIFIED catch-all specifically turned out to be FALSE in the
+// observed case: previewRecipeImport's per-ingredient resolution
+// (resolveRecipeIngredientsBatch -> persistCandidate) had a genuine bug (see
+// external-food.ts's persistCandidate fix, same date) that could throw for
+// ONE specific new ingredient identity — nothing to do with the page,
+// network, or database layer, and no reason to expect the NEXT candidate (a
+// different recipe, different ingredients, different URL) to fail the same
+// way. An unclassified error is therefore no longer trusted as evidence the
+// whole operation cannot succeed; every RecipeImportError code, known or
+// not, is now candidate-local (see attemptCandidate) — the only thing still
+// allowed to abort the entire search is genuine cancellation (isAbortError
+// below), since continuing to burn more candidates after the caller has
+// already given up cannot possibly help.
+function isAbortError(error: unknown): boolean {
+  return error instanceof Error && error.name === "AbortError";
+}
 
 function logCandidateSetOutcome(candidateCount: number) {
   console.log(`recipe_discovery candidates=${candidateCount}`);
 }
 
-function logCandidateAttempt(index: number, domain: string, outcome: "unusable" | "fully_resolved" | "reviewable" | "systemic_error", detail: { fetch: "ok" | "failed"; extraction?: "ok" | "failed"; ingredients?: number; resolved?: number; confirmationRequired?: number; unresolved?: number; reason?: string; url?: string }) {
+function logCandidateAttempt(index: number, domain: string, outcome: "unusable" | "fully_resolved" | "reviewable", detail: { fetch: "ok" | "failed"; extraction?: "ok" | "failed"; ingredients?: number; resolved?: number; confirmationRequired?: number; unresolved?: number; reason?: string; url?: string }) {
   console.log(
     `candidate_attempt index=${index} domain=${domain} fetch=${detail.fetch}` +
     (detail.url ? ` url=${detail.url}` : "") +
@@ -123,8 +130,7 @@ function toCandidateShape(extracted: ExtractedPreview, reviews: readonly RecipeI
 type AttemptResult =
   | { outcome: "fully_resolved"; candidate: NonNullable<RecipeDiscoveryPreview["candidate"]> }
   | { outcome: "reviewable"; candidate: NonNullable<RecipeDiscoveryPreview["candidate"]>; summary: RecipeReviewSummary }
-  | { outcome: "unusable" }
-  | { outcome: "systemic_error" };
+  | { outcome: "unusable"; reason: string };
 
 /**
  * One candidate's full suitability pipeline: safe fetch -> extraction ->
@@ -138,9 +144,14 @@ type AttemptResult =
  *    none has resolved yet; the source recipe remains useful for review —
  *    the caller remembers it but keeps trying the remaining bounded
  *    candidates in case a fully_resolved one turns up;
- *  - "unusable" when extraction failed for a page-level reason or contains
- *    no ingredient rows — try the next candidate exactly as
- *    before (owner-beta blocker #5).
+ *  - "unusable" for EVERY OTHER failure — a page-level extraction problem,
+ *    no ingredient rows, or (2026-09-24 candidate-isolation checkpoint) any
+ *    exception at all from this candidate's own post-extraction review/
+ *    classification — try the next candidate exactly as before (owner-beta
+ *    blocker #5). Nothing about ONE candidate's own failure, of any kind,
+ *    is evidence the next, independently-sourced candidate would fail the
+ *    same way (see the RCA comment on isAbortError above) — only a genuine
+ *    cancellation propagates out of this function instead of returning.
  * A candidate is never discarded merely because some ingredients are
  * confirmation_required (owner-beta blocker #6) — that was the prior
  * checkpoint's over-eager "skip" behavior, now replaced.
@@ -150,46 +161,57 @@ async function attemptCandidate(index: number, candidate: RecipeDiscoveryCandida
   try {
     extracted = await previewRecipeImport(deps.prisma, candidate.url, deps.fetchDependencies ?? {}, deps.recipeAiProvider, deps.dynamic ?? null, deps.recipeIngredientNormalizationProvider, deps.recipeQuantityEstimationProvider);
   } catch (error) {
-    const code = error instanceof RecipeImportError ? error.publicCode : "unknown";
-    if (error instanceof RecipeImportError && RECOVERABLE_CANDIDATE_CODES.has(code)) {
-      logCandidateAttempt(index, candidate.domain, "unusable", { fetch: "failed", reason: code, url: candidate.url });
-      return { outcome: "unusable" };
-    }
-    logCandidateAttempt(index, candidate.domain, "systemic_error", { fetch: "failed", reason: code, url: candidate.url });
-    return { outcome: "systemic_error" };
+    if (isAbortError(error)) throw error;
+    const code = error instanceof RecipeImportError ? error.publicCode : "unexpected_error";
+    logCandidateAttempt(index, candidate.domain, "unusable", { fetch: "failed", reason: code, url: candidate.url });
+    return { outcome: "unusable", reason: code };
   }
 
-  // selectedFood at runtime is always a real Food row (macros included) —
-  // ResolvedFood's own TS type is intentionally looser (see interpret.ts),
-  // matching the same safe-cast pattern the prior checkpoint's
-  // computePreviewNutrition already used here.
-  const reviews = extracted.ingredients.map((ingredient) => toIngredientReview(ingredient as unknown as ReviewableIngredient));
-  const summary = classifyRecipeReview(reviews);
+  // 2026-09-24 candidate-isolation checkpoint: post-extraction review/
+  // classification used to run unguarded here — a bug in it (or a future
+  // one) would propagate straight out of this function, uncaught, aborting
+  // every remaining candidate. Its own failure is exactly as candidate-local
+  // as an extraction failure above: it says something went wrong turning
+  // THIS candidate's own extracted ingredients into a reviewable shape,
+  // nothing about whether the next, independently-sourced candidate can
+  // succeed.
+  try {
+    // selectedFood at runtime is always a real Food row (macros included) —
+    // ResolvedFood's own TS type is intentionally looser (see interpret.ts),
+    // matching the same safe-cast pattern the prior checkpoint's
+    // computePreviewNutrition already used here.
+    const reviews = extracted.ingredients.map((ingredient) => toIngredientReview(ingredient as unknown as ReviewableIngredient));
+    const summary = classifyRecipeReview(reviews);
 
-  if (!reviews.length) {
-    logCandidateAttempt(index, candidate.domain, "unusable", {
+    if (!reviews.length) {
+      logCandidateAttempt(index, candidate.domain, "unusable", {
+        fetch: "ok", extraction: "ok", ingredients: reviews.length,
+        resolved: summary.resolvedCount, confirmationRequired: summary.confirmationRequiredCount, unresolved: summary.unresolvedCount,
+        reason: "no_usable_ingredients",
+        url: candidate.url
+      });
+      return { outcome: "unusable", reason: "no_usable_ingredients" };
+    }
+
+    const importProof = createRecipeImportProof(deps.userId, extracted.sourceUrl, extracted.extractionMethod);
+    const shaped = toCandidateShape(extracted, reviews, summary, importProof);
+
+    if (summary.state === "fully_resolved") {
+      logCandidateAttempt(index, candidate.domain, "fully_resolved", { fetch: "ok", extraction: "ok", ingredients: reviews.length, resolved: summary.resolvedCount, url: candidate.url });
+      return { outcome: "fully_resolved", candidate: shaped };
+    }
+
+    logCandidateAttempt(index, candidate.domain, "reviewable", {
       fetch: "ok", extraction: "ok", ingredients: reviews.length,
       resolved: summary.resolvedCount, confirmationRequired: summary.confirmationRequiredCount, unresolved: summary.unresolvedCount,
-      reason: !reviews.length ? "no_usable_ingredients" : "no_meaningful_candidates",
       url: candidate.url
     });
-    return { outcome: "unusable" };
+    return { outcome: "reviewable", candidate: shaped, summary };
+  } catch (error) {
+    if (isAbortError(error)) throw error;
+    logCandidateAttempt(index, candidate.domain, "unusable", { fetch: "ok", extraction: "ok", reason: "review_failed", url: candidate.url });
+    return { outcome: "unusable", reason: "review_failed" };
   }
-
-  const importProof = createRecipeImportProof(deps.userId, extracted.sourceUrl, extracted.extractionMethod);
-  const shaped = toCandidateShape(extracted, reviews, summary, importProof);
-
-  if (summary.state === "fully_resolved") {
-    logCandidateAttempt(index, candidate.domain, "fully_resolved", { fetch: "ok", extraction: "ok", ingredients: reviews.length, resolved: summary.resolvedCount, url: candidate.url });
-    return { outcome: "fully_resolved", candidate: shaped };
-  }
-
-  logCandidateAttempt(index, candidate.domain, "reviewable", {
-    fetch: "ok", extraction: "ok", ingredients: reviews.length,
-    resolved: summary.resolvedCount, confirmationRequired: summary.confirmationRequiredCount, unresolved: summary.unresolvedCount,
-    url: candidate.url
-  });
-  return { outcome: "reviewable", candidate: shaped, summary };
 }
 
 /**
@@ -362,7 +384,13 @@ async function runRecipeDiscovery(dishName: string, deps: RecipeDiscoveryFallbac
   logCandidateSetOutcome(discovery.candidates.length);
   const attempted = discovery.candidates.slice(0, MAX_CANDIDATE_ATTEMPTS);
   let attemptsMade = 0;
-  let sawSystemicError = false;
+  // Diagnostic only (2026-09-24 candidate-isolation checkpoint) — no longer
+  // controls whether the loop keeps going. An unexpected per-candidate error
+  // is still worth surfacing to the user as "systemic_error" (rather than the
+  // more generic "no candidate was fully verifiable") when NONE of the
+  // bounded attempts panned out, but it never stops a later, independently-
+  // sourced candidate from being tried.
+  let sawUnexpectedError = false;
   let bestReviewable: { candidate: NonNullable<RecipeDiscoveryPreview["candidate"]>; summary: RecipeReviewSummary } | null = null;
   for (const candidate of attempted) {
     attemptsMade += 1;
@@ -384,7 +412,20 @@ async function runRecipeDiscovery(dishName: string, deps: RecipeDiscoveryFallbac
     // page is strongly reviewable, trying lower-ranked pages repeats the full
     // ingredient AI pipeline without a proportionate correctness benefit.
     if (attempt.outcome === "reviewable" && isSufficientReviewable(attempt.summary)) break;
-    if (attempt.outcome === "systemic_error") { sawSystemicError = true; break; } // stop trying — see RECOVERABLE_CANDIDATE_CODES comment above
+    // Only the genuinely UNCLASSIFIED reasons count as "unexpected" for
+    // diagnostics — "import_failed" (previewRecipeImport's own catch-all for
+    // an error it couldn't attribute to a specific known page-level cause)
+    // and "unexpected_error"/"review_failed" (this file's own equivalents,
+    // see attemptCandidate) — a well-understood, page-specific reason
+    // (blocked_url, fetch_timeout, no_usable_ingredients, ...) is exactly the
+    // ordinary "this candidate didn't pan out" case and must not be conflated
+    // with it.
+    if (attempt.outcome === "unusable" && (attempt.reason === "import_failed" || attempt.reason === "unexpected_error" || attempt.reason === "review_failed")) sawUnexpectedError = true;
+    // No break here (2026-09-24 candidate-isolation checkpoint, see
+    // isAbortError's own doc): a candidate-local failure, of any kind, is
+    // never treated as evidence the next candidate can't succeed — continue
+    // to the next bounded attempt exactly like the "unusable" cases above
+    // already did.
   }
 
   // No candidate reached fully_resolved within the bounded attempts — surface
@@ -409,7 +450,7 @@ async function runRecipeDiscovery(dishName: string, deps: RecipeDiscoveryFallbac
     resultCount: discovery.resultCount,
     candidatesAfterRelevanceFilter: discovery.candidatesAfterRelevanceFilter,
     candidatesAttempted: attemptsMade,
-    reason: sawSystemicError ? "systemic_error" : "no_fully_resolvable_candidate"
+    reason: sawUnexpectedError ? "systemic_error" : "no_fully_resolvable_candidate"
   };
 }
 
