@@ -19,7 +19,9 @@ Compact continuity state for the Master/worker workflow. Git, tests and this fil
 API 1941/1941, web 324/324, API + web `tsc --noEmit` clean. No GitHub Actions CI in repo.
 
 ## Current task
-Independent read-only review of PR #56 against locked invariants.
+PR #56 review done (7 findings). Findings 1–3 fixed on local branch `pr56-review-fixes` (21d4316, cb4edbd, 07f11ba; API 1953/1953, tsc clean), Master-reviewed; awaiting owner OK to push onto the PR #56 branch.
+- Owner decision pending (finding 4): DB cleanup of removed `szalonna`/`túró` aliases (overlay only upserts) + whether DE/EN `Quark` → Magerquark gets the same treatment.
+- Deferred minors: (5) recipe discovery keeps looping on shared/systemic failures; (6) global OFF name-search budget mislabels not_found as external_unavailable; (7) private AI-estimate ingredient in public recipe → generic 404.
 
 ## Known issues / blockers
 - `render.yaml` production start command runs migrate + seed on every boot (pre-existing, out of scope).
