@@ -200,7 +200,24 @@ function labeledValue(text: string, label: RegExp, unit: "g" | "kcal"): { value:
   return Number.isFinite(value) && value >= 0 ? { value, quote: match[0] } : null;
 }
 
-function buildVisibleTableEvidence(table: string, basisQuote: string, sourceFoodName: string): ExtractedNutritionEvidence | null {
+// A second gram/portion basis in the table header ("pro Portion (30 g)",
+// "per serving", "adag") means a multi-column table: the first value in a row
+// may be the per-portion column, not per 100 g.
+const SECOND_BASIS_PATTERN = /\b(?:portion\w*|servings?|adag\w*)\b|\(\s*\d+(?:[.,]\d+)?\s*g\s*\)/iu;
+
+// True when another value of the same kind immediately follows a matched row
+// value ("Fett 3 g 10 g", "108 kcal 1500 kJ / 360 kcal") — a second column.
+function rowHasSecondValue(table: string, quote: string, unit: "g" | "kcal"): boolean {
+  const index = table.indexOf(quote);
+  if (index < 0) return false;
+  const rest = table.slice(index + quote.length);
+  const next = unit === "g"
+    ? /^\s*[/|]?\s*[<~]?\s*\d+(?:[.,]\d+)?\s*g\b/iu
+    : /^\s*[/|]?\s*(?:\d+(?:[.,]\d+)?\s*kJ\s*[/|]?\s*)?\d+(?:[.,]\d+)?\s*kcal\b/iu;
+  return next.test(rest);
+}
+
+function buildVisibleTableEvidence(table: string, basisQuote: string, sourceFoodName: string, precedingHeader = ""): ExtractedNutritionEvidence | null {
   const energyMatch = table.match(/(?:energy|energia|energie)[^0-9]{0,30}(?:\d+(?:[.,]\d+)?\s*kJ\s*(?:\/|\|)?\s*)?(\d+(?:[.,]\d+)?)\s*kcal\b/iu);
   const kcal = energyMatch ? { value: Number(energyMatch[1].replace(",", ".")), quote: energyMatch[0] } : labeledValue(table, /calories?/iu, "kcal");
   const fat = labeledValue(table, /(?:total\s+)?fat|zsír|fett/iu, "g");
@@ -208,6 +225,11 @@ function buildVisibleTableEvidence(table: string, basisQuote: string, sourceFood
   const fiber = labeledValue(table, /dietary\s+fiber|fibre|fiber|rost|ballaststoff/iu, "g");
   const protein = labeledValue(table, /protein|fehérje|eiweiß/iu, "g");
   if (!kcal || !fat || !carbs || !fiber || !protein || !Number.isFinite(kcal.value)) return null;
+  // Fail closed on multi-column (per-portion + per-100 g) tables; the LLM
+  // extraction fallback handles them instead of guessing the column here.
+  const header = precedingHeader + table.slice(0, Math.max(0, table.indexOf(kcal.quote)));
+  if (SECOND_BASIS_PATTERN.test(header)) return null;
+  if (rowHasSecondValue(table, kcal.quote, "kcal") || [fat, carbs, fiber, protein].some((row) => rowHasSecondValue(table, row.quote, "g"))) return null;
   return {
     sourceFoodName,
     basis: { amountGrams: 100, quote: basisQuote }, kcal, protein, fat, carbs, fiber,
@@ -257,7 +279,7 @@ export function extractVisibleTextNutrition(pageText: string, sourceFoodName: st
     if (seenBuckets.has(bucket)) continue;
     seenBuckets.add(bucket);
     const tableEnd = Math.min(pageText.length, start + 2_500);
-    const evidence = buildVisibleTableEvidence(pageText.slice(start, tableEnd), basisMatch[0], sourceFoodName);
+    const evidence = buildVisibleTableEvidence(pageText.slice(start, tableEnd), basisMatch[0], sourceFoodName, pageText.slice(Math.max(0, start - 60), start));
     if (!evidence) continue;
     // Identity context is deliberately a MUCH smaller, dedicated window than
     // the 2,500-char value-extraction window above — a real product heading

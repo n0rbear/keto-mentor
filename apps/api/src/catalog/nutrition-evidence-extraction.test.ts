@@ -83,6 +83,30 @@ describe("extractJsonLdNutrition — deterministic extraction, no AI call", () =
     expect(extractJsonLdNutrition(both)?.sourceFoodName).toBe("Specific Nutrition Label Name");
   });
 
+  describe("dual-column (per-portion + per-100 g) tables fail closed", () => {
+    it("DE: 'pro Portion (30 g) pro 100 g' never returns the per-portion column as per-100 g evidence", () => {
+      const page = "Nährwerte pro Portion (30 g) pro 100 g Energie 450 kJ / 108 kcal 1500 kJ / 360 kcal Fett 3 g 10 g Kohlenhydrate 18 g 60 g Ballaststoffe 2,4 g 8 g Eiweiß 4,5 g 15 g";
+      expect(extractVisibleTextNutrition(page, "Müsli")).toBeNull();
+    });
+
+    it("EN: 'per serving (30 g) per 100 g' never returns the per-serving column as per-100 g evidence", () => {
+      const page = "Nutrition per serving (30 g) per 100 g Energy 450kJ / 108kcal 1500kJ / 360kcal Fat 3g 10g Carbohydrate 18g 60g Fibre 2.4g 8g Protein 4.5g 15g";
+      expect(extractVisibleTextNutrition(page, "Granola")).toBeNull();
+    });
+
+    it("a row carrying two values fails closed even without a portion header", () => {
+      const page = "Nutrition Per 100g Energy 1500kJ / 360kcal Fat 3g 10g Carbohydrate 18g 60g Fibre 2.4g 8g Protein 4.5g 15g";
+      expect(extractVisibleTextNutrition(page, "Granola")).toBeNull();
+    });
+
+    it("control: a single-column DE per-100 g table (kcal before kJ) still parses", () => {
+      const page = "Nährwerte pro 100 g Energie 360 kcal / 1500 kJ Fett 10 g davon gesättigte Fettsäuren 2 g Kohlenhydrate 60 g Ballaststoffe 8 g Eiweiß 15 g";
+      expect(extractVisibleTextNutrition(page, "Müsli")).toMatchObject({
+        basis: { amountGrams: 100 }, kcal: { value: 360 }, fat: { value: 10 }, carbs: { value: 60 }, fiber: { value: 8 }, protein: { value: 15 }
+      });
+    });
+  });
+
   describe("Phase 27 multi-variant hardening", () => {
     // Two distinct, fully-valid NutritionInformation blocks in ONE JSON-LD
     // graph (a real comparison/listing-page shape) — Original has 42 kcal,
