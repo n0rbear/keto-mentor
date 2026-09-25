@@ -66,6 +66,20 @@ model User {
   meals        Meal[]
   entitlements Entitlement[]
   recipes      Recipe[]
+  plates       UserPlate[]
+}
+
+// The user's own measured plates for plate-photo portion estimation. Only
+// the outer rim diameter is kept; photos are never stored.
+model UserPlate {
+  id         String   @id @default(cuid())
+  userId     String
+  name       String
+  diameterMm Float
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Session {

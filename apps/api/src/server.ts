@@ -55,6 +55,8 @@ import { editPrivateFood } from "./catalog/edit-private-food.js";
 import { publishProgress, subscribeProgress, closeProgress } from "./meal-input/progress-bus.js";
 import { configuredTranscriptionProvider } from "./ai/transcription-gateway.js";
 import { TranscriptionProviderError } from "./ai/transcription-provider.js";
+import { configuredPortionVisionProvider } from "./ai/portion-vision-provider.js";
+import { portionPhotoRouter } from "./meal-input/portion-photo.js";
 import { VOICE_TRANSCRIBE_RATE_LIMIT, voiceTranscribeRateLimitKey } from "./meal-input/voice-rate-limit.js";
 
 const logger = createLogger(env.NODE_ENV === "production" ? "info" : "debug");
@@ -148,6 +150,9 @@ const aiEstimation = { provider: aiNutritionEstimationProvider, rateLimiter: aiE
 // completely unaffected) whenever that key isn't configured for this
 // deployment — see ai/transcription-gateway.ts.
 const transcriptionProvider = configuredTranscriptionProvider(env);
+// Plate-photo portion estimation (2026-09-25): same OPENAI_API_KEY; disabled
+// (503 portion_photo_unavailable) when the key is unset.
+const portionVisionProvider = configuredPortionVisionProvider(env);
 
 // The authenticated user's own persisted locale (from requireAuth's DB read)
 // is the single trusted source of UI language for server-side localization —
@@ -400,6 +405,7 @@ app.post(
 // A route-scoped handler for express.raw's own payload-too-large rejection
 // (thrown before the route handler above ever runs) — kept as a normal JSON
 // error response rather than Express's default HTML error page.
+app.use(portionPhotoRouter(prisma, portionVisionProvider, requireAuth));
 app.use("/meal-input/transcribe", (error: any, _req: express.Request, res: express.Response, next: express.NextFunction) => {
   if (error?.type === "entity.too.large") return res.status(413).json({ error: "audio_too_large" });
   next(error);
