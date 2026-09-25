@@ -2,7 +2,7 @@
 
 Compact continuity state for the Master/worker workflow. Git, tests and this file are the source of truth — not chat history. Never store secrets here.
 
-- **Date:** 2026-09-25 (updated after PR #57)
+- **Date:** 2026-09-25 (updated after PR #57; Telegram channel live)
 - **Checkpoint branch:** `claude/pensive-hamilton-ocsygi` (checkpoint-only; no product code)
 - **main HEAD:** `3ed31a3` (merge of PR #55)
 - **Production:** `keto-mentor-api` / `keto-mentor-web` at `3ed31a3` (auto-deploy from `main`)
@@ -34,8 +34,8 @@ PR #56 review done (7 findings); 1–3 fixed and pushed (`07f11ba`), Master-revi
 ## Known issues / blockers
 - `render.yaml` production start command runs migrate + seed on every boot (pre-existing, out of scope).
 - `docs/PRODUCT_ROADMAP.md` does not yet list AI fallback, voice input or dinner recommendation.
-- **Network (2026-09-25):** `*.onrender.com` WORKS (the earlier "unreachable" was the free-tier cold start exceeding a 15 s curl timeout, not a policy block; use ≥60 s timeouts). `api.telegram.org` is still denied by the proxy (403) even though the owner added it; check the exact domain entry and open a new session after saving. Only environment: `Default` (`env_013hU4aQmmFSCBJzuEpHH3Y6`). Fix: session title bar → environment → Edit → Network access → broader level or add `*.onrender.com` + `api.telegram.org`; then open a new session. Render MCP works regardless (workspace `tea-d4233phr0fns738t559g`, owner-authorized): service status, deploys, logs, read-only Postgres. No browser control available to the agent.
-- Telegram token is supplied by the owner at runtime, never stored in the repo.
+- **Network (2026-09-25):** `*.onrender.com` WORKS (the earlier "unreachable" was the free-tier cold start exceeding a 15 s curl timeout, not a policy block; use ≥60 s timeouts). `api.telegram.org` WORKS (verified 2026-09-25 in session `session_0172uYuX4jbSN5KPBmSGfRua`: getMe/getUpdates/sendMessage OK). Only environment: `Default` (`env_013hU4aQmmFSCBJzuEpHH3Y6`). Render MCP works (workspace `tea-d4233phr0fns738t559g`, owner-authorized): service status, deploys, logs, read-only Postgres. No browser control available to the agent.
+- **Telegram channel (2026-09-25):** bot `@norbapp_bot` ("NorbApp - fejlesztés") reachable; owner's private chat found via getUpdates (`/start`) and answered. `TELEGRAM_BOT_TOKEN` is supplied by the owner as an environment variable at runtime, never stored in the repo or printed. Chat ID and last processed `update_id` are kept only in the session scratchpad (`telegram_state.env`) and the Routine prompt, not in the repo. Routine `Telegram inbox check` (`trig_01E8YGtGFAbjw2R1Kkn99ULJ`) fires hourly at :29 UTC into that session: reads new messages from the owner's chat, acts/replies on Telegram, acks via offset; silent when nothing new.
 
 ## Locked decisions (do not reinterpret)
 Authoritative catalog data first; AI nutrition is a labelled, user-confirmable estimate and never enters the catalog; OFF name-search is review-only; prepared dishes use main ingredients; human quantities with visible uncertainty; HU/DE/EN parity; human-readable failure diagnostics; dinner recommendation = premium, uses the day's intake to stay within the keto carb target; voice = cheap OpenAI transcribe on web/PWA, on-device later on native; free core stays free.
