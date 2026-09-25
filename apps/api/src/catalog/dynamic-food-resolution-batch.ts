@@ -1,12 +1,14 @@
 import {
   validateExternalCandidate, isRelevantExternalCandidate, collapseEquivalentCandidates, preferReferenceSourceSurvivors, findDuplicate, persistCandidate,
-  type ExternalFoodCandidate, type StructuredFoodLookupAdapter, type ResolutionPrisma
+  decideSurvivorAcceptance, type ExternalFoodCandidate, type StructuredFoodLookupAdapter, type ResolutionPrisma
 } from "./external-food.js";
-import { learnSearchAlias } from "./dynamic-food-resolution.js";
+import { learnSearchAlias, resolveFoodConcept, type ResolveFromSearchTermDeps } from "./dynamic-food-resolution.js";
 import { hasIdentityCoverage } from "./food-search.js";
 import { normalizeSearch } from "./normalize.js";
 import { localizeCandidateNames, type CandidateLocalizationProvider, type LocalizationLocale } from "./candidate-localization.js";
 import { checkRelevanceBatchWithRetry, type RecipeSemanticGateProvider, type BatchGateIngredientInput } from "./semantic-candidate-gate-batch.js";
+import { DisabledSemanticCandidateGateProvider, type SemanticCandidateGateProvider } from "./semantic-candidate-gate.js";
+import type { SemanticRecoveryProvider } from "./semantic-recovery.js";
 import type { DynamicFoodResolutionRateLimiter } from "./dynamic-food-rate-limit.js";
 import { mapWithConcurrency, DEFAULT_CONCURRENCY } from "../request-performance.js";
 import type { FoodLocale } from "./food-locale.js";
@@ -50,6 +52,17 @@ const CONFIRMATION_CANDIDATE_LIMIT = 5;
 // candidates into groups of that size rather than widening that file's
 // contract, which has its own dedicated, unmodified test coverage.
 const LOCALIZATION_CHUNK_SIZE = 10;
+// COST SAFETY (2026-09-23): semantic recovery is an LLM call PER unresolved
+// concept it runs for — a 10-ingredient prepared-dish recipe where every
+// ingredient happens to miss must never trigger 10 recovery calls. Hard cap,
+// independent of recipe size: at most this many of the recipe's UNRESOLVED
+// concepts get a recovery attempt per resolveManyAuthoritativeFoods call;
+// the rest keep their deterministic outcome (not_found/ambiguous/etc.)
+// unchanged, exactly as before this feature existed. A practical beta value:
+// most real recipes have 0-2 genuinely unresolvable ingredients (BLS/USDA
+// coverage is already broad), so this ceiling is rarely hit in practice
+// while still bounding the pathological worst case explicitly.
+const MAX_BATCH_RECOVERY_ITEMS = 3;
 
 export type PendingAuthoritativeResolution = {
   id: string;
@@ -83,6 +96,17 @@ export type BatchAuthoritativeDeps = {
   semanticGateProvider: RecipeSemanticGateProvider;
   recipeTitle?: string;
   recipeContext?: string;
+  // Bounded semantic recovery (2026-09-23, unified food-resolution engine):
+  // both optional — a caller that doesn't wire them degrades to the
+  // pre-existing (pre-recovery) behavior, byte-for-byte unchanged. When
+  // present, reuses the SAME shared engine (resolveFoodConcept,
+  // dynamic-food-resolution.ts) the single-item path uses — never a second,
+  // independently-implemented recovery policy. semanticCandidateGateProvider
+  // here is the single-item-shaped gate (not the batch gate above), needed
+  // only for the few individual recovery retries below; a real deployment
+  // wires the SAME instance already used by the single-item path.
+  semanticCandidateGateProvider?: SemanticCandidateGateProvider;
+  semanticRecoveryProvider?: SemanticRecoveryProvider;
 };
 
 async function localizeInChunks(provider: CandidateLocalizationProvider, candidates: readonly ExternalFoodCandidate[], locale: LocalizationLocale): Promise<ExternalFoodCandidate[]> {
@@ -158,114 +182,157 @@ export async function resolveManyAuthoritativeFoods(
     return { pending: p, candidates: relevant.slice(0, 20) };
   });
   const withCandidates = searched.filter((s) => s.candidates.length);
-  if (!withCandidates.length) return outcomes;
+  if (withCandidates.length) {
+    // STEP 2 — ONE (or a small bounded number of) batch semantic-gate call(s)
+    // covering every surviving candidate for every ingredient at once.
+    const gateIngredients: BatchGateIngredientInput[] = withCandidates.map((s, ingredientIndex) => ({
+      index: ingredientIndex, identity: s.pending.canonicalIdentity, rawIngredient: s.pending.rawIngredient,
+      preparation: s.pending.preparation, sourceQuantity: s.pending.sourceQuantity, sourceUnit: s.pending.sourceUnit,
+      candidates: s.candidates.map((c, candidateIndex) => ({ index: candidateIndex, authoritativeName: c.originalName || c.name }))
+    }));
+    const gateResults = await checkRelevanceBatchWithRetry(deps.semanticGateProvider, {
+      recipeTitle: deps.recipeTitle, recipeContext: deps.recipeContext, locale: deps.foodLocale ?? deps.locale, ingredients: gateIngredients
+    });
 
-  // STEP 2 — ONE (or a small bounded number of) batch semantic-gate call(s)
-  // covering every surviving candidate for every ingredient at once.
-  const gateIngredients: BatchGateIngredientInput[] = withCandidates.map((s, ingredientIndex) => ({
-    index: ingredientIndex, identity: s.pending.canonicalIdentity, rawIngredient: s.pending.rawIngredient,
-    preparation: s.pending.preparation, sourceQuantity: s.pending.sourceQuantity, sourceUnit: s.pending.sourceUnit,
-    candidates: s.candidates.map((c, candidateIndex) => ({ index: candidateIndex, authoritativeName: c.originalName || c.name }))
-  }));
-  const gateResults = await checkRelevanceBatchWithRetry(deps.semanticGateProvider, {
-    recipeTitle: deps.recipeTitle, recipeContext: deps.recipeContext, locale: deps.foodLocale ?? deps.locale, ingredients: gateIngredients
-  });
+    // STEP 3 — per-ingredient decision from the batched gate verdicts. Byte-
+    // for-byte the same rule as resolveAuthoritativeFood's own post-gate logic:
+    // exactly one same_identity+compatible survivor (preferring any marked
+    // best_match) auto-resolves; 2+ survivors is genuine ambiguity; 0 is
+    // unresolved. An absent verdict (omitted/hallucinated/malformed pair) is
+    // NEVER treated as approval — fail-closed, identical to the single gate.
+    type Decision = { pending: PendingAuthoritativeResolution; toPersist?: ExternalFoodCandidate; toShow?: ExternalFoodCandidate[]; reason?: "ambiguous" | "possible_duplicate" | "weak_match" };
+    const decisions: Decision[] = [];
+    for (let ingredientIndex = 0; ingredientIndex < withCandidates.length; ingredientIndex++) {
+      const { pending: p, candidates } = withCandidates[ingredientIndex];
+      const verdictOf = (candidateIndex: number) => gateResults.get(`${ingredientIndex}:${candidateIndex}`);
+      const approved = candidates.filter((_, ci) => { const v = verdictOf(ci); return v?.relationship === "same_identity" && v.formCompatibility === "compatible"; });
+      const best = candidates.filter((_, ci) => { const v = verdictOf(ci); return v?.relationship === "same_identity" && v.formCompatibility === "compatible" && v.contextualFit === "best_match"; });
+      const referenceApproved = preferReferenceSourceSurvivors(approved);
+      const referenceBest = best.filter((c) => referenceApproved.includes(c));
+      let survivors = referenceBest.length ? referenceBest : referenceApproved;
+      if (!survivors.length) { outcomes.set(p.id, { status: "unresolved", reason: "not_found" }); continue; }
+      survivors = collapseEquivalentCandidates(survivors);
 
-  // STEP 3 — per-ingredient decision from the batched gate verdicts. Byte-
-  // for-byte the same rule as resolveAuthoritativeFood's own post-gate logic:
-  // exactly one same_identity+compatible survivor (preferring any marked
-  // best_match) auto-resolves; 2+ survivors is genuine ambiguity; 0 is
-  // unresolved. An absent verdict (omitted/hallucinated/malformed pair) is
-  // NEVER treated as approval — fail-closed, identical to the single gate.
-  type Decision = { pending: PendingAuthoritativeResolution; toPersist?: ExternalFoodCandidate; toShow?: ExternalFoodCandidate[]; reason?: "ambiguous" | "possible_duplicate" | "weak_match" };
-  const decisions: Decision[] = [];
-  for (let ingredientIndex = 0; ingredientIndex < withCandidates.length; ingredientIndex++) {
-    const { pending: p, candidates } = withCandidates[ingredientIndex];
-    const verdictOf = (candidateIndex: number) => gateResults.get(`${ingredientIndex}:${candidateIndex}`);
-    const approved = candidates.filter((_, ci) => { const v = verdictOf(ci); return v?.relationship === "same_identity" && v.formCompatibility === "compatible"; });
-    const best = candidates.filter((_, ci) => { const v = verdictOf(ci); return v?.relationship === "same_identity" && v.formCompatibility === "compatible" && v.contextualFit === "best_match"; });
-    const referenceApproved = preferReferenceSourceSurvivors(approved);
-    const referenceBest = best.filter((c) => referenceApproved.includes(c));
-    let survivors = referenceBest.length ? referenceBest : referenceApproved;
-    if (!survivors.length) { outcomes.set(p.id, { status: "unresolved", reason: "not_found" }); continue; }
-    survivors = collapseEquivalentCandidates(survivors);
-
-    // Convergence gate (2026-09-23, unified food-resolution engine): the
-    // batch semantic gate above approved survivors[0] against
-    // p.canonicalIdentity — a whole-recipe-context NORMALIZED term, not
-    // necessarily what the recipe/user actually wrote. Independently
-    // re-verify against p.originalIdentity before trusting it any further,
-    // exactly like dynamic-food-resolution.ts's own convergence gate does
-    // for the single-item path (same hasIdentityCoverage helper, same
-    // "discard, never leaked, never aliased" treatment on rejection).
-    if (!hasIdentityCoverage(normalizeSearch(p.originalIdentity), survivors[0])) {
-      outcomes.set(p.id, { status: "unresolved", reason: "convergence_rejected" });
-      continue;
-    }
-
-    const duplicate = await findDuplicate(prisma, survivors[0]);
-    if (duplicate) {
-      const sameSource = duplicate.source === survivors[0].source && duplicate.sourceId === survivors[0].sourceId;
-      if (sameSource && survivors[0].autoAcceptEligible) {
-        outcomes.set(p.id, { status: "resolved", food: duplicate });
-      } else if (sameSource) {
-        // Review-only evidence (OFF name search) never auto-resolves via an
-        // earlier persisted copy — same rule as the non-duplicate branch below.
-        decisions.push({ pending: p, toShow: survivors.slice(0, CONFIRMATION_CANDIDATE_LIMIT), reason: survivors.length === 1 ? "weak_match" : "ambiguous" });
-      } else {
-        decisions.push({ pending: p, toShow: survivors.slice(0, CONFIRMATION_CANDIDATE_LIMIT), reason: "possible_duplicate" });
+      // Convergence gate (2026-09-23, unified food-resolution engine): the
+      // batch semantic gate above approved survivors[0] against
+      // p.canonicalIdentity — a whole-recipe-context NORMALIZED term, not
+      // necessarily what the recipe/user actually wrote. Independently
+      // re-verify against p.originalIdentity before trusting it any further,
+      // exactly like dynamic-food-resolution.ts's own convergence gate does
+      // for the single-item path (same hasIdentityCoverage helper, same
+      // "discard, never leaked, never aliased" treatment on rejection).
+      if (!hasIdentityCoverage(normalizeSearch(p.originalIdentity), survivors[0])) {
+        outcomes.set(p.id, { status: "unresolved", reason: "convergence_rejected" });
+        continue;
       }
-      continue;
-    }
-    // Central acceptance-safety audit (2026-09-23): this is the SAME
-    // invariant already enforced in resolveAuthoritativeFood's own
-    // equivalent branch (external-food.ts) — reused here, not
-    // reimplemented, via the shared `autoAcceptEligible` policy field on
-    // ExternalFoodCandidate. Being the sole gate-approved survivor is
-    // semantic PLAUSIBILITY, not authorization: an OpenFoodFacts name-search
-    // hit (autoAcceptEligible: false) must still fall through to
-    // confirmation_required even when nothing else competes with it — never
-    // auto-persisted, and therefore never reaching the `learnSearchAlias`
-    // call a few lines below either (both live inside the same `toPersist`
-    // branch). A reference-source candidate (USDA; autoAcceptEligible: true)
-    // continues to auto-resolve exactly as before, exact-name or not.
-    if (survivors.length === 1 && survivors[0].autoAcceptEligible) decisions.push({ pending: p, toPersist: survivors[0] });
-    else decisions.push({ pending: p, toShow: survivors.slice(0, CONFIRMATION_CANDIDATE_LIMIT), reason: survivors.length === 1 ? "weak_match" : "ambiguous" });
-  }
-  if (!decisions.length) return outcomes;
 
-  // STEP 4 — ONE accumulated, chunked localization pass across every
-  // candidate that will actually be persisted or shown (never the full raw
-  // candidate set — rejected candidates were already dropped in step 3,
-  // exactly like resolveAuthoritativeFood's own existing order).
-  const toLocalize: ExternalFoodCandidate[] = [];
-  for (const d of decisions) { if (d.toPersist) toLocalize.push(d.toPersist); if (d.toShow) toLocalize.push(...d.toShow); }
-  const targetLocale: LocalizationLocale = deps.foodLocale ?? (deps.locale as LocalizationLocale) ?? "hu";
-  const localized = deps.localizationProvider && toLocalize.length
-    ? await localizeInChunks(deps.localizationProvider, toLocalize, targetLocale)
-    : toLocalize;
-
-  let cursor = 0;
-  for (const d of decisions) {
-    if (d.toPersist) {
-      const localizedCandidate = localized[cursor] ?? d.toPersist;
-      cursor += 1;
-      try {
-        const food = await persistCandidate(prisma, localizedCandidate);
-        outcomes.set(d.pending.id, { status: "resolved", food });
-        await learnSearchAlias(prisma, food, d.pending.originalIdentity, deps.foodLocale ?? deps.locale);
-      } catch (error: any) {
-        if (error?.code === "P2002") {
-          const raced = await findDuplicate(prisma, localizedCandidate);
-          if (raced) { outcomes.set(d.pending.id, { status: "resolved", food: raced }); continue; }
+      const duplicate = await findDuplicate(prisma, survivors[0]);
+      if (duplicate) {
+        const sameSource = duplicate.source === survivors[0].source && duplicate.sourceId === survivors[0].sourceId;
+        if (sameSource && survivors[0].autoAcceptEligible) {
+          outcomes.set(p.id, { status: "resolved", food: duplicate });
+        } else if (sameSource) {
+          // Review-only evidence (OFF name search) never auto-resolves via an
+          // earlier persisted copy — same rule as the non-duplicate branch below.
+          decisions.push({ pending: p, toShow: survivors.slice(0, CONFIRMATION_CANDIDATE_LIMIT), reason: survivors.length === 1 ? "weak_match" : "ambiguous" });
+        } else {
+          decisions.push({ pending: p, toShow: survivors.slice(0, CONFIRMATION_CANDIDATE_LIMIT), reason: "possible_duplicate" });
         }
-        throw error;
+        continue;
       }
-    } else if (d.toShow) {
-      const localizedShown = localized.slice(cursor, cursor + d.toShow.length);
-      cursor += d.toShow.length;
-      outcomes.set(d.pending.id, { status: "confirmation_required", candidates: localizedShown.length ? localizedShown : d.toShow, reason: d.reason! });
+      // Unified food-resolution engine (2026-09-23): decideSurvivorAcceptance
+      // is the exact SAME shared function resolveAuthoritativeFood's own
+      // equivalent branch calls (external-food.ts) — not reimplemented, not
+      // merely mirrored. Being the sole gate-approved survivor is semantic
+      // PLAUSIBILITY, not authorization: an OpenFoodFacts name-search hit
+      // (autoAcceptEligible: false) must still fall through to
+      // confirmation_required even when nothing else competes with it — never
+      // auto-persisted, and therefore never reaching the `learnSearchAlias`
+      // call a few lines below either (both live inside the same `toPersist`
+      // branch). A reference-source candidate (USDA; autoAcceptEligible: true)
+      // continues to auto-resolve exactly as before, exact-name or not.
+      const acceptance = decideSurvivorAcceptance(survivors);
+      if ("persist" in acceptance) decisions.push({ pending: p, toPersist: acceptance.persist });
+      else decisions.push({ pending: p, toShow: acceptance.review.slice(0, CONFIRMATION_CANDIDATE_LIMIT), reason: acceptance.reason });
+    }
+
+    if (decisions.length) {
+      // STEP 4 — ONE accumulated, chunked localization pass across every
+      // candidate that will actually be persisted or shown (never the full raw
+      // candidate set — rejected candidates were already dropped in step 3,
+      // exactly like resolveAuthoritativeFood's own existing order).
+      const toLocalize: ExternalFoodCandidate[] = [];
+      for (const d of decisions) { if (d.toPersist) toLocalize.push(d.toPersist); if (d.toShow) toLocalize.push(...d.toShow); }
+      const targetLocale: LocalizationLocale = deps.foodLocale ?? (deps.locale as LocalizationLocale) ?? "hu";
+      const localized = deps.localizationProvider && toLocalize.length
+        ? await localizeInChunks(deps.localizationProvider, toLocalize, targetLocale)
+        : toLocalize;
+
+      let cursor = 0;
+      for (const d of decisions) {
+        if (d.toPersist) {
+          const localizedCandidate = localized[cursor] ?? d.toPersist;
+          cursor += 1;
+          try {
+            const food = await persistCandidate(prisma, localizedCandidate);
+            outcomes.set(d.pending.id, { status: "resolved", food });
+            await learnSearchAlias(prisma, food, d.pending.originalIdentity, deps.foodLocale ?? deps.locale);
+          } catch (error: any) {
+            if (error?.code === "P2002") {
+              const raced = await findDuplicate(prisma, localizedCandidate);
+              if (raced) { outcomes.set(d.pending.id, { status: "resolved", food: raced }); continue; }
+            }
+            throw error;
+          }
+        } else if (d.toShow) {
+          const localizedShown = localized.slice(cursor, cursor + d.toShow.length);
+          cursor += d.toShow.length;
+          outcomes.set(d.pending.id, { status: "confirmation_required", candidates: localizedShown.length ? localizedShown : d.toShow, reason: d.reason! });
+        }
+      }
+    }
+  } // end: if (withCandidates.length) — STEPS 2-4
+
+  // STEP 5 — bounded semantic recovery (2026-09-23, unified food-resolution
+  // engine). Only reached for concepts the fully-deterministic steps above
+  // could not resolve at all (a genuine miss or a rejected convergence
+  // check) — an already-ambiguous or already-resolved outcome is never
+  // reopened here. Reuses the EXACT SAME shared engine the single-item path
+  // uses (resolveFoodConcept) — never a second recovery policy — so a
+  // recipe ingredient gets the identical evidence/authority treatment a
+  // directly-typed identical word would. Hard-capped at
+  // MAX_BATCH_RECOVERY_ITEMS regardless of how many ingredients missed.
+  if (deps.semanticRecoveryProvider) {
+    const recoverable = pending.filter((p) => {
+      const outcome = outcomes.get(p.id);
+      return outcome?.status === "unresolved"
+        && (outcome.reason === "not_found" || outcome.reason === "invalid_external_data" || outcome.reason === "external_unavailable" || outcome.reason === "convergence_rejected");
+    }).slice(0, MAX_BATCH_RECOVERY_ITEMS);
+
+    for (const p of recoverable) {
+      const engineDeps: ResolveFromSearchTermDeps = {
+        adapters: deps.adapters, rateLimiter: deps.rateLimiter, userId: deps.userId, locale: deps.locale as any, foodLocale: deps.foodLocale,
+        localizationProvider: deps.localizationProvider,
+        semanticCandidateGateProvider: deps.semanticCandidateGateProvider ?? new DisabledSemanticCandidateGateProvider(),
+        semanticRecoveryProvider: deps.semanticRecoveryProvider
+      };
+      const semanticContext = { rawIngredient: p.rawIngredient, recipeTitle: deps.recipeTitle, recipeContext: deps.recipeContext, preparation: p.preparation, sourceQuantity: p.sourceQuantity, sourceUnit: p.sourceUnit };
+      // Known, accepted inefficiency: resolveFoodConcept always retries
+      // p.canonicalIdentity itself first (its own contract, matching the
+      // single-item path exactly) before trying any recovered term — for an
+      // item that reaches this step, that first retry is guaranteed to
+      // repeat work STEP 1 already did. This is one extra DETERMINISTIC
+      // external lookup (not an LLM call, no added cost budget), bounded to
+      // at most MAX_BATCH_RECOVERY_ITEMS occurrences total — accepted in
+      // exchange for reusing the shared engine completely unmodified rather
+      // than adding a "skip the first attempt" special case for batch callers.
+      const attempt = await resolveFoodConcept(prisma, p.canonicalIdentity, p.originalIdentity, engineDeps, deps.foodLocale ?? deps.locale, semanticContext);
+      if (attempt.status === "resolved") outcomes.set(p.id, { status: "resolved", food: attempt.food });
+      else if (attempt.status === "confirmation_required") outcomes.set(p.id, { status: "confirmation_required", candidates: attempt.candidates.slice(0, CONFIRMATION_CANDIDATE_LIMIT), reason: attempt.reason });
+      // else: still unresolved after recovery — the deterministic-pass
+      // outcome already set above stands unchanged.
     }
   }
+
   return outcomes;
 }

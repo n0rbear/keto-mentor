@@ -16,6 +16,7 @@ import { FoodUnderstandingPreview, type ExternalCandidate, type RecipeDiscoveryP
 import { pickDisplayName } from "./food-display-name";
 import { QuantityClarification } from "./QuantityClarification";
 import { BarcodeLookup } from "./BarcodeLookup";
+import { VoiceInput } from "./VoiceInput";
 import { MobileNav } from "./MobileNav";
 import { InstallPrompt } from "./InstallPrompt";
 import { UpdateBanner } from "./UpdateBanner";
@@ -690,13 +691,17 @@ export function App() {
               <label htmlFor="natural-meal-input">{lang === "hu" ? "Mondd el, mit ettél" : lang === "de" ? "Beschreibe, was du gegessen hast" : "Describe what you ate"}</label>
               <p className="natural-input-helper">{lang === "hu" ? "Írj természetesen — az ellenőrzött tápértékeket mindig a katalógus adja." : lang === "de" ? "Natürlich formulieren — geprüfte Nährwerte kommen immer aus dem Katalog." : "Use natural language — verified nutrition always comes from the catalog."}</p>
               <div className="natural-input-row"><input id="natural-meal-input" className="field" value={naturalInput} onChange={(event) => { setNaturalInput(event.target.value); setInterpretation(null); setSelectedFood(null); setMealQuantity("1"); setMealMeasure("g"); setGramsOverride(""); }} placeholder={lang === "hu" ? "Például: 5 tojás" : lang === "de" ? "Zum Beispiel: 3 Scheiben Gouda" : "For example: 5 eggs"}/><button type="button" className="btn primary" disabled={interpreting || naturalInput.trim().length < 2} onClick={interpretNaturalInput}>{interpreting ? "…" : lang === "hu" ? "Értelmezés" : lang === "de" ? "Verstehen" : "Interpret"}</button></div>
+              <div className="natural-input-methods">
+                <VoiceInput lang={lang} state={state} onTranscribed={(text) => { setNaturalInput(text); setInterpretation(null); setSelectedFood(null); setMealQuantity("1"); setMealMeasure("g"); setGramsOverride(""); }}/>
+                <BarcodeLookup lang={lang} state={state} onFoodConfirmed={(food) => { setSelectedFood(food); setMealMeasure("g"); setGramsOverride(""); }}/>
+              </div>
               {interpreting && progressStage && <p className="natural-input-progress" role="status" aria-live="polite">{t.progress[progressStage] ?? t.progress.finalizing}</p>}
               {interpretation && <FoodUnderstandingPreview value={interpretation} lang={lang} labels={t.foodUnderstanding} busy={mealSaving || interpreting || !!confirmingExternalId || confirmingRecipe || confirmingAiEstimate} onConfirmAll={confirmMultiMeal} onConfirmExternal={confirmExternalCandidate} confirmingExternalId={confirmingExternalId} onConfirmRecipe={confirmRecipe} onAcceptAiEstimate={(estimate, quantityGrams) => acceptAiEstimate(estimate, quantityGrams)} onOverrideAiEstimate={(payload) => overrideAiEstimate(payload)} onSelectCandidate={selectCandidate}/>}
               {interpretation?.diagnostics && <DiagnosticsPanel events={interpretation.diagnostics} lang={lang}/>}
               {interpretation?.clarification && (() => { const row = (interpretation.items ?? [interpretation])[interpretation.clarification!.itemIndex]; return <QuantityClarification key={`${interpretation.input}:${interpretation.clarification.itemIndex}`} value={interpretation.clarification} foodName={pickDisplayName(row?.selectedFood, lang)} quantity={row?.parsed.quantity} unit={row?.parsed.unit} lang={lang} onResolve={resolveClarification}/>; })()}
             </div>
             <input className="field" name="title" placeholder={t.mealName} required/>
-            <FoodCombobox lang={lang} state={state} selected={selectedFood} onSelect={(food) => { setSelectedFood(food); setMealMeasure("g"); setGramsOverride(""); }} labels={t.foodSearch} resetVersion={foodResetVersion}/>
+            <FoodCombobox lang={lang} state={state} selected={selectedFood} onSelect={(food) => { setSelectedFood(food); setMealMeasure("g"); setGramsOverride(""); }} labels={t.foodSearch} resetVersion={foodResetVersion} showBarcodeLookup={false}/>
             <div className="grid grid-cols-[1fr_120px] gap-3">
               <label htmlFor="meal-quantity">{t.quantity}<input id="meal-quantity" className="field" name="quantity" value={mealQuantity} onChange={(event) => setMealQuantity(event.target.value)} type="number" min="0.1" max="5000" step="0.1" required/></label>
               <label htmlFor="meal-unit">{t.unit}<select id="meal-unit" className="field" value={mealMeasure} onChange={(event) => { setMealMeasure(event.target.value); setGramsOverride(""); }}>
@@ -709,7 +714,7 @@ export function App() {
               if (!serving) return null;
               return <div className="serving-detail"><strong>1 {serving.labels?.[lang] ?? serving.unit} = {serving.grams} g</strong>{serving.isEstimated && <><span>{lang === "hu" ? "Becsült átváltás – módosítható" : lang === "de" ? "Geschätzte Umrechnung – bearbeitbar" : "Estimated conversion – editable"}</span><input className="field" aria-label="Gram equivalent" type="number" min="0.1" max="50000" step="0.1" placeholder={String(serving.grams)} value={gramsOverride} onChange={(event) => setGramsOverride(event.target.value)}/></>}</div>;
             })()}
-            <p className="text-xs text-muted">USDA FoodData Central alapú átlagértékek. Csomagolt termék és barcode import későbbi adapterként jön.</p>
+            <p className="text-xs text-muted">{lang === "hu" ? "USDA FoodData Central alapú átlagértékek. Csomagolt termékhez add meg vagy olvasd be a vonalkódot alább." : lang === "de" ? "Durchschnittswerte auf Basis von USDA FoodData Central. Für verpackte Produkte den Barcode unten eingeben oder scannen." : "Average values based on USDA FoodData Central. For a packaged product, enter or scan its barcode below."}</p>
             {mealStatus && <div className={`status ${mealStatus.kind}`} role={mealStatus.kind === "error" ? "alert" : "status"}>{mealStatus.text}</div>}
             <button className="btn primary w-full" disabled={mealSaving} aria-busy={mealSaving}>{mealSaving ? t.savingMeal : t.addMeal}</button>
           </form>
@@ -804,7 +809,7 @@ export function externalConfirmationSuccessText(lang: Lang, status: "confirmed" 
   return lang === "hu" ? "Meglévő katalóguselem található, és ki lett választva." : lang === "de" ? "Ein vorhandener Katalogeintrag wurde gefunden und ausgewählt." : "An existing catalog item was found and selected.";
 }
 
-export function FoodCombobox({ lang, state, selected, onSelect, labels, resetVersion, idPrefix = "food" }: { lang: Lang; state: ApiState; selected: Food | null; onSelect: (food: Food | null) => void; labels: SearchLabels; resetVersion: number; idPrefix?: string }) {
+export function FoodCombobox({ lang, state, selected, onSelect, labels, resetVersion, idPrefix = "food", showBarcodeLookup = true }: { lang: Lang; state: ApiState; selected: Food | null; onSelect: (food: Food | null) => void; labels: SearchLabels; resetVersion: number; idPrefix?: string; showBarcodeLookup?: boolean }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Food[]>([]);
   const [loading, setLoading] = useState(false);
@@ -895,7 +900,7 @@ export function FoodCombobox({ lang, state, selected, onSelect, labels, resetVer
           {confirmingSourceId === candidate.sourceId ? "…" : lang === "hu" ? "Hozzáadás az adatbázishoz" : lang === "de" ? "Zur Datenbank hinzufügen" : "Add to catalog"}
         </button>
       </li>)}</ul>}
-      {!selected && <BarcodeLookup lang={lang} state={state} onFoodConfirmed={choose}/>}
+      {showBarcodeLookup && !selected && <BarcodeLookup lang={lang} state={state} onFoodConfirmed={choose}/>}
     </div>
   );
 }

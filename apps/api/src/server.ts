@@ -35,6 +35,7 @@ import { configuredFoodAiProvider } from "./ai/food-ai-gateway.js";
 import { FoodNlpUserRateLimiter, rateLimitedFoodNlpProvider } from "./ai/food-nlp-rate-limit.js";
 import { configuredQuantityAiProvider } from "./meal-input/quantity-ai-gateway.js";
 import { configuredSearchIntentProvider } from "./catalog/search-intent-gateway.js";
+import { configuredSemanticRecoveryProvider } from "./catalog/semantic-recovery-gateway.js";
 import { configuredCandidateLocalizationProvider } from "./catalog/candidate-localization-gateway.js";
 import { configuredSemanticCandidateGateProvider } from "./catalog/semantic-candidate-gate-gateway.js";
 import { configuredRecipeSemanticGateProvider } from "./catalog/semantic-candidate-gate-batch-gateway.js";
@@ -52,6 +53,9 @@ import { configuredAiNutritionEstimationProvider } from "./catalog/ai-nutrition-
 import { AiEstimateRateLimiter } from "./catalog/ai-estimate-rate-limit.js";
 import { editPrivateFood } from "./catalog/edit-private-food.js";
 import { publishProgress, subscribeProgress, closeProgress } from "./meal-input/progress-bus.js";
+import { configuredTranscriptionProvider } from "./ai/transcription-gateway.js";
+import { TranscriptionProviderError } from "./ai/transcription-provider.js";
+import { VOICE_TRANSCRIBE_RATE_LIMIT, voiceTranscribeRateLimitKey } from "./meal-input/voice-rate-limit.js";
 
 const logger = createLogger(env.NODE_ENV === "production" ? "info" : "debug");
 const app = express();
@@ -71,6 +75,12 @@ const quantityProvider = configuredQuantityAiProvider(env);
 // resolution itself is gated separately below on usdaAdapter (env.USDA_FDC_API_KEY)
 // so a configured LLM alone can never enable it without a real source adapter.
 const searchIntentProvider = configuredSearchIntentProvider(env);
+// Second-chance search-term recovery (2026-09-23), tried only after the
+// ordinary search-intent-driven attempt already failed — see
+// dynamic-food-resolution.ts's attemptSemanticRecovery. Same configured AI
+// gateway again, own narrow schema (semantic-recovery.ts); never itself a
+// nutrition or identity source.
+const semanticRecoveryProvider = configuredSemanticRecoveryProvider(env);
 // Same configured AI gateway again — localizes an already-identified
 // candidate's display name into the user's UI language, never decides
 // identity/nutrition. Independent of USDA_FDC_API_KEY: unused when dynamic
@@ -133,6 +143,11 @@ const webEvidenceFallback = { searchProvider: webKnowledgeSearchProvider, extrac
 const aiNutritionEstimationProvider = configuredAiNutritionEstimationProvider(env);
 const aiEstimateRateLimiter = new AiEstimateRateLimiter();
 const aiEstimation = { provider: aiNutritionEstimationProvider, rateLimiter: aiEstimateRateLimiter };
+// Voice food entry (2026-09-23): reuses OPENAI_API_KEY — no new secret.
+// Degrades to a Disabled provider (voice input unavailable, text entry
+// completely unaffected) whenever that key isn't configured for this
+// deployment — see ai/transcription-gateway.ts.
+const transcriptionProvider = configuredTranscriptionProvider(env);
 
 // The authenticated user's own persisted locale (from requireAuth's DB read)
 // is the single trusted source of UI language for server-side localization —
@@ -164,6 +179,14 @@ const externalFoodLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: externalFoodRateLimitKey
+});
+// Voice transcription incurs a real external cost per call — see
+// meal-input/voice-rate-limit.ts.
+const voiceTranscribeLimiter = rateLimit({
+  ...VOICE_TRANSCRIBE_RATE_LIMIT,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: voiceTranscribeRateLimitKey
 });
 const externalFoodConfirmLimiter = rateLimit({ ...EXTERNAL_FOOD_CONFIRM_RATE_LIMIT, standardHeaders: true, legacyHeaders: false, keyGenerator: externalFoodRateLimitKey });
 
@@ -336,6 +359,49 @@ app.get("/foods/resolve-barcode", requireAuth, externalFoodLimiter, async (req, 
   } catch (error) { next(error); }
 });
 
+// Voice food entry (2026-09-23): produces TEXT ONLY, fed by the client into
+// the exact same POST /meal-input/interpret text pipeline as typed input —
+// this endpoint has no concept of food identity/nutrition and never writes
+// anything. Bounded (short conservative size limit, own rate limiter,
+// bounded upstream timeout inside transcriptionProvider itself) since a real
+// external cost is incurred per call. Raw audio bytes are parsed by a
+// route-scoped express.raw (the app-wide express.json() above only ever
+// parses application/json and leaves a non-matching Content-Type
+// untouched) and are held in memory only for the duration of this one
+// request — never persisted to disk or the database, never logged.
+const VOICE_MAX_AUDIO_BYTES = 5 * 1024 * 1024; // ~a few minutes of compressed speech; food entry, not dictation
+const VOICE_ALLOWED_AUDIO_TYPES = ["audio/webm", "audio/ogg", "audio/mp4", "audio/m4a", "audio/mpeg", "audio/mp3", "audio/wav", "audio/x-wav"];
+app.post(
+  "/meal-input/transcribe",
+  requireAuth,
+  voiceTranscribeLimiter,
+  express.raw({ type: VOICE_ALLOWED_AUDIO_TYPES, limit: VOICE_MAX_AUDIO_BYTES }),
+  async (req, res, next) => {
+    try {
+      const contentType = req.headers["content-type"]?.split(";")[0]?.trim().toLowerCase();
+      if (!Buffer.isBuffer(req.body) || !contentType || !VOICE_ALLOWED_AUDIO_TYPES.includes(contentType)) {
+        return res.status(415).json({ error: "unsupported_audio_format" });
+      }
+      if (!req.body.byteLength) return res.status(400).json({ error: "empty_audio" });
+      const result = await transcriptionProvider.transcribe({ audio: req.body, mimeType: contentType, languageHint: trustedLocale(req.user!) });
+      res.json({ text: result.text, language: result.language ?? null });
+    } catch (error) {
+      if (error instanceof TranscriptionProviderError) {
+        const status = error.code === "timeout" ? 504 : error.code === "empty_audio" ? 400 : error.code === "response_too_large" ? 502 : 502;
+        return res.status(status).json({ error: `transcription_${error.code}` });
+      }
+      next(error);
+    }
+  }
+);
+// A route-scoped handler for express.raw's own payload-too-large rejection
+// (thrown before the route handler above ever runs) — kept as a normal JSON
+// error response rather than Express's default HTML error page.
+app.use("/meal-input/transcribe", (error: any, _req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (error?.type === "entity.too.large") return res.status(413).json({ error: "audio_too_large" });
+  next(error);
+});
+
 // Owner-beta (2026-09-12): a truthful, real-stage progress stream for the UI
 // during long interpretation operations — see meal-input/progress-bus.ts.
 // operationId is client-generated and validated by mealInterpretationSchema;
@@ -372,7 +438,7 @@ app.post("/meal-input/interpret", requireAuth, async (req, res, next) => {
     // never adds a request on a local hit. No adapters configured (e.g. no
     // USDA_FDC_API_KEY) means dynamic resolution is simply not offered.
     const dynamic = externalFoodAdapters.length
-      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale: trustedLocale(req.user!), localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider, webEvidenceFallback, aiEstimation }
+      ? { prisma, searchIntentProvider, semanticRecoveryProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale: trustedLocale(req.user!), localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider, webEvidenceFallback, aiEstimation }
       : null;
     // Same deps, but with recipeIngredientDynamicResolutionLimiter in place
     // of dynamicFoodResolutionLimiter — see that limiter's own comment.
@@ -467,7 +533,7 @@ app.post("/meals", requireAuth, async (req, res, next) => {
     // contains a recipe-discovery item, at which point its own explicit
     // recipe_discovery_unavailable check fires instead of resolving anything.
     const recipeDynamic = externalFoodAdapters.length
-      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: recipeIngredientDynamicResolutionLimiter, userId: req.user!.id, locale: trustedLocale(req.user!), localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider, webEvidenceFallback, aiEstimation }
+      ? { prisma, searchIntentProvider, semanticRecoveryProvider, adapters: externalFoodAdapters, rateLimiter: recipeIngredientDynamicResolutionLimiter, userId: req.user!.id, locale: trustedLocale(req.user!), localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider, webEvidenceFallback, aiEstimation }
       : null;
     const meal = await createMeal(prisma, req.user!.id, input, { recipeAiProvider: recipeDiscoveryAiProvider, dynamic: recipeDynamic, recipeIngredientNormalizationProvider, recipeQuantityEstimationProvider });
     res.status(201).json({ meal });

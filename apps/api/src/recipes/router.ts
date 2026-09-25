@@ -13,6 +13,7 @@ import { confirmRecipeIngredients, recipeIngredientConfirmationRequestSchema } f
 import { UsdaFoodDataCentralLookupAdapter, OpenFoodFactsProductAdapter, OpenFoodFactsNameAdapter } from "../catalog/structured-source-adapters.js";
 import { acceptIngredientEstimate } from "./accept-ingredient-estimate.js";
 import { configuredSearchIntentProvider } from "../catalog/search-intent-gateway.js";
+import { configuredSemanticRecoveryProvider } from "../catalog/semantic-recovery-gateway.js";
 import { configuredCandidateLocalizationProvider } from "../catalog/candidate-localization-gateway.js";
 import { configuredSemanticCandidateGateProvider } from "../catalog/semantic-candidate-gate-gateway.js";
 import { configuredRecipeSemanticGateProvider } from "../catalog/semantic-candidate-gate-batch-gateway.js";
@@ -51,6 +52,16 @@ const offNameAdapter = new OpenFoodFactsNameAdapter();
 const externalFoodAdapters = usdaAdapter ? [usdaAdapter, offNameAdapter] : [offNameAdapter];
 const externalFoodConfirmAdapters = usdaAdapter ? [usdaAdapter, openFoodFactsAdapter] : [openFoodFactsAdapter];
 const searchIntentProvider = configuredSearchIntentProvider(env);
+// See server.ts's identical wiring. NOT currently consumed by anything in
+// THIS router: both call sites below feed `dynamic` into
+// resolveManyAuthoritativeFoods (dynamic-food-resolution-batch.ts), which
+// has its own independent per-ingredient relevance/gate logic and does not
+// call resolveFromSearchTerm/attemptSemanticRecovery at all (see the
+// 2026-09-23 semantic-recovery audit notes). Included only for structural
+// consistency with server.ts's `dynamic` shape and so the field is already
+// threaded through if the batch resolver is ever extended to use it —
+// harmless, inert, not yet exercised here.
+const semanticRecoveryProvider = configuredSemanticRecoveryProvider(env);
 const candidateLocalizationProvider = configuredCandidateLocalizationProvider(env);
 // Owner-beta blocker #9 (2026-09-11): see server.ts's identical wiring and
 // catalog/semantic-candidate-gate.ts — re-validates every external candidate
@@ -104,7 +115,7 @@ recipeRouter.post("/import-url/preview", importPreviewLimiter, async (req, res, 
     const locale = trustedLocale(req.user!);
     const foodLocale = foodLocaleFor(locale);
     const dynamic = externalFoodAdapters.length
-      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale, foodLocale, localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider, webEvidenceFallback, aiEstimation }
+      ? { prisma, searchIntentProvider, semanticRecoveryProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale, foodLocale, localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider, webEvidenceFallback, aiEstimation }
       : null;
     const preview = await previewRecipeImport(prisma, url, {}, recipeAiProvider, dynamic, recipeIngredientNormalizationProvider, recipeQuantityEstimationProvider);
     res.json({ preview: { ...preview, importProof: createRecipeImportProof(req.user!.id, preview.sourceUrl, preview.extractionMethod) } });
@@ -121,7 +132,7 @@ recipeRouter.post("/import-url/preview/confirm-ingredients", confirmIngredientsL
     // why this is a safe default rather than a finer-grained region pick).
     const foodLocale = foodLocaleFor(locale);
     const dynamic = externalFoodAdapters.length
-      ? { prisma, searchIntentProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale, foodLocale, localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider, webEvidenceFallback, aiEstimation }
+      ? { prisma, searchIntentProvider, semanticRecoveryProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale, foodLocale, localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider, webEvidenceFallback, aiEstimation }
       : null;
     const result = await confirmRecipeIngredients(prisma, req.user!.id, input, {
       recipeAiProvider, dynamic, confirmAdapters: externalFoodConfirmAdapters,

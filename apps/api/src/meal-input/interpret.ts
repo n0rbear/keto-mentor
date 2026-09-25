@@ -14,6 +14,7 @@ import type { CandidateLocalizationProvider } from "../catalog/candidate-localiz
 import type { DynamicFoodResolutionRateLimiter } from "../catalog/dynamic-food-rate-limit.js";
 import type { FoodLocale } from "../catalog/food-locale.js";
 import type { SemanticCandidateGateProvider } from "../catalog/semantic-candidate-gate.js";
+import type { SemanticRecoveryProvider } from "../catalog/semantic-recovery.js";
 import type { RecipeSemanticGateProvider } from "../catalog/semantic-candidate-gate-batch.js";
 import { DEFAULT_CONCURRENCY, mapWithConcurrency, timeStage } from "../request-performance.js";
 import type { ProgressStage } from "./progress-bus.js";
@@ -91,6 +92,17 @@ export type DynamicResolutionDeps = {
   // provider to DisabledSemanticCandidateGateProvider, which FAILS CLOSED
   // (rejects every candidate), never silently skips the check.
   semanticCandidateGateProvider?: SemanticCandidateGateProvider;
+  // Unified food-resolution engine (2026-09-23): second-chance search-term
+  // recovery, tried only when the shared engine's first attempt already
+  // failed or could not safely converge — see dynamic-food-resolution.ts's
+  // resolveFoodConcept. Was already threaded through at runtime via each
+  // caller's own `dynamic` object literal (server.ts/recipes/router.ts);
+  // declared here explicitly so both the single-item path (resolveDynamicFood)
+  // and, via this same deps shape, the recipe/batch path
+  // (recipe-ingredient-batch-resolution.ts forwarding it into
+  // BatchAuthoritativeDeps) are properly typed rather than relying on
+  // structural "riding along".
+  semanticRecoveryProvider?: SemanticRecoveryProvider;
   // Owner-beta checkpoint (2026-09-15): cold-path performance. Only consumed
   // by resolveRecipeIngredientsBatch's batched dynamic resolution
   // (catalog/dynamic-food-resolution-batch.ts) — interpretOne's own
