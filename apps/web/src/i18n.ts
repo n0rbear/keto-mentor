@@ -83,7 +83,7 @@ export const dict = {
           quantity_missing: "Nincs megadva, mennyi kell belőle."
         },
         fixExclude: "Kihagyom", fixUndo: "Visszavonom", fixGrams: "Mennyiség (g)", fixFood: "Étel választása", fixFoodPlaceholder: "— válassz —",
-        fixExcluded: "Kihagyva a számításból", fixReady: "Kézzel javítva", fixPending: "Még javításra vár", fixExternalFailed: "Ezt az ételt most nem sikerült ellenőrizni — válassz mást, vagy add meg kézzel."
+        fixExcluded: "Kihagyva a számításból", fixReady: "Kézzel javítva", fixPending: "Még javításra vár", fixExternalFailed: "Ezt az ételt most nem sikerült ellenőrizni — válassz mást, vagy add meg kézzel.", fixUseEstimate: "AI-becslés elfogadása", fixSearch: "Keresés a katalógusban…", fixChosen: "Kiválasztva", fixNeedsGrams: "Add meg a mennyiséget grammban"
       },
       aiEstimate: {
         badge: "AI-becslés", disclaimer: "AI-becslés — nem hiteles tápérték-forrás",
@@ -302,7 +302,7 @@ export const dict = {
           quantity_missing: "Keine Mengenangabe."
         },
         fixExclude: "Weglassen", fixUndo: "Rückgängig", fixGrams: "Menge (g)", fixFood: "Lebensmittel wählen", fixFoodPlaceholder: "— bitte wählen —",
-        fixExcluded: "Aus der Berechnung entfernt", fixReady: "Manuell korrigiert", fixPending: "Noch zu korrigieren", fixExternalFailed: "Dieses Lebensmittel konnte gerade nicht geprüft werden — bitte ein anderes wählen oder manuell eingeben."
+        fixExcluded: "Aus der Berechnung entfernt", fixReady: "Manuell korrigiert", fixPending: "Noch zu korrigieren", fixExternalFailed: "Dieses Lebensmittel konnte gerade nicht geprüft werden — bitte ein anderes wählen oder manuell eingeben.", fixUseEstimate: "KI-Schätzung übernehmen", fixSearch: "Im Katalog suchen…", fixChosen: "Ausgewählt", fixNeedsGrams: "Bitte die Menge in Gramm angeben"
       },
       aiEstimate: {
         badge: "KI-Schätzung", disclaimer: "KI-Schätzung — keine verlässliche Nährwertquelle",
@@ -521,7 +521,7 @@ export const dict = {
           quantity_missing: "No amount given."
         },
         fixExclude: "Leave out", fixUndo: "Undo", fixGrams: "Amount (g)", fixFood: "Choose food", fixFoodPlaceholder: "— choose —",
-        fixExcluded: "Left out of the calculation", fixReady: "Fixed manually", fixPending: "Still needs a fix", fixExternalFailed: "This food could not be verified right now — choose another or enter it manually."
+        fixExcluded: "Left out of the calculation", fixReady: "Fixed manually", fixPending: "Still needs a fix", fixExternalFailed: "This food could not be verified right now — choose another or enter it manually.", fixUseEstimate: "Use AI estimate", fixSearch: "Search the catalog…", fixChosen: "Chosen", fixNeedsGrams: "Enter the amount in grams"
       },
       aiEstimate: {
         badge: "AI estimate", disclaimer: "AI estimate — not an authoritative nutrition source",

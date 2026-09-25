@@ -377,6 +377,9 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
 .blocked-ingredient-reason { color: rgb(var(--warning)); }
 .blocked-ingredient-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; }
 .blocked-ingredient-controls .field { flex: 1 1 120px; min-width: 0; }
+.blocked-ingredient-results { display: grid; gap: .3rem; flex: 1 1 100%; margin: 0; padding: 0; list-style: none; }
+.blocked-ingredient-results .btn { width: 100%; justify-content: flex-start; text-align: left; }
+.blocked-ingredient-chosen { flex: 1 1 100%; color: rgb(var(--success)); }
 .blocked-ingredient-status { color: rgb(var(--text-muted)); }
 .blocked-ingredient-status.ready { color: rgb(var(--success)); }
 
@@ -432,7 +435,7 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
   .natural-input { padding: .7rem; }
   .interpretation { padding: .6rem; font-size: .8rem; }
   .blocked-ingredients { padding: .55rem; }
-  .blocked-ingredient-controls .btn, .blocked-ingredient-controls select.field { flex: 1 1 100%; min-height: 44px; }
+  .blocked-ingredient-controls .btn, .blocked-ingredient-controls select.field, .blocked-ingredient-controls input[type=search] { flex: 1 1 100%; min-height: 44px; }
   .meal { align-items: flex-start; }
   .meal-macros { white-space: normal; text-align: right; }
   .recipe-heading { align-items: stretch; }

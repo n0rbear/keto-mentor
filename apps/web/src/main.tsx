@@ -343,6 +343,25 @@ export function App() {
     }
   }
 
+  // Recipe ingredient fix: accept an ingredient's AI estimate as the user's
+  // own private food (server re-verifies the signed proof), and free search.
+  async function acceptIngredientEstimateForRecipe(estimate: AiEstimateValue, grams: number) {
+    try {
+      const result = await api<{ food: Food }>("/recipes/ingredients/accept-estimate", { method: "POST", body: JSON.stringify({
+        aiEstimateProof: estimate.proof, requestedIdentity: estimate.requestedIdentity, canonicalFoodName: estimate.canonicalFoodName,
+        kcalPer100g: estimate.kcalPer100g, proteinPer100g: estimate.proteinPer100g, fatPer100g: estimate.fatPer100g,
+        carbsPer100g: estimate.carbsPer100g, fiberPer100g: estimate.fiberPer100g, quantityGrams: grams
+      }) }, state);
+      return result.food ? { id: result.food.id, name: result.food.name } : null;
+    } catch {
+      return null;
+    }
+  }
+  async function searchFoodsForRecipe(query: string) {
+    const result = await api<{ foods: Food[] }>(`/foods?q=${encodeURIComponent(query)}`, {}, state);
+    return result.foods.map((food) => ({ id: food.id, name: pickDisplayName(food, lang) || food.name }));
+  }
+
   // Owner-beta PR #52 final review (2026-09-13) — Gate 2/3: confirms a
   // JUST-DISCOVERED web recipe (never one the user already owns — that's
   // RecipeDetail's own addToMeal) straight into a real meal, at whatever
@@ -711,7 +730,7 @@ export function App() {
                 <BarcodeLookup lang={lang} state={state} onFoodConfirmed={(food) => { setSelectedFood(food); setMealMeasure("g"); setGramsOverride(""); }}/>
               </div>
               {interpreting && progressStage && <p className="natural-input-progress" role="status" aria-live="polite">{t.progress[progressStage] ?? t.progress.finalizing}</p>}
-              {interpretation && <FoodUnderstandingPreview value={interpretation} lang={lang} labels={t.foodUnderstanding} busy={mealSaving || interpreting || !!confirmingExternalId || confirmingRecipe || confirmingAiEstimate} onConfirmAll={confirmMultiMeal} onConfirmExternal={confirmExternalCandidate} confirmingExternalId={confirmingExternalId} onConfirmRecipe={confirmRecipe} onAcceptAiEstimate={(estimate, quantityGrams) => acceptAiEstimate(estimate, quantityGrams)} onOverrideAiEstimate={(payload) => overrideAiEstimate(payload)} onSelectCandidate={selectCandidate} onResolveExternalFood={resolveExternalForRecipe}/>}
+              {interpretation && <FoodUnderstandingPreview value={interpretation} lang={lang} labels={t.foodUnderstanding} busy={mealSaving || interpreting || !!confirmingExternalId || confirmingRecipe || confirmingAiEstimate} onConfirmAll={confirmMultiMeal} onConfirmExternal={confirmExternalCandidate} confirmingExternalId={confirmingExternalId} onConfirmRecipe={confirmRecipe} onAcceptAiEstimate={(estimate, quantityGrams) => acceptAiEstimate(estimate, quantityGrams)} onOverrideAiEstimate={(payload) => overrideAiEstimate(payload)} onSelectCandidate={selectCandidate} recipeFixServices={{ resolveExternal: resolveExternalForRecipe, acceptEstimate: acceptIngredientEstimateForRecipe, searchFoods: searchFoodsForRecipe }}/>}
               {interpretation?.diagnostics && <DiagnosticsPanel events={interpretation.diagnostics} lang={lang}/>}
               {interpretation?.clarification && (() => { const row = (interpretation.items ?? [interpretation])[interpretation.clarification!.itemIndex]; return <QuantityClarification key={`${interpretation.input}:${interpretation.clarification.itemIndex}`} value={interpretation.clarification} foodName={pickDisplayName(row?.selectedFood, lang)} quantity={row?.parsed.quantity} unit={row?.parsed.unit} lang={lang} onResolve={resolveClarification}/>; })()}
             </div>

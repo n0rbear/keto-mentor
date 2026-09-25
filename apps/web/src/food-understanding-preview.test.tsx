@@ -292,13 +292,39 @@ describe("recipe-discovery candidate confirmation UI (Gate 2)", () => {
       ] };
       const onConfirm = vi.fn();
       const onResolve = vi.fn(async () => ({ id: "food-liver", name: "Chicken, liver, raw" }));
-      render(<FoodUnderstandingPreview value={singleValue(withExternal)} lang="en" labels={dict.en.foodUnderstanding} busy={false} onConfirmAll={vi.fn()} onConfirmRecipe={onConfirm} onResolveExternalFood={onResolve}/>);
+      render(<FoodUnderstandingPreview value={singleValue(withExternal)} lang="en" labels={dict.en.foodUnderstanding} busy={false} onConfirmAll={vi.fn()} onConfirmRecipe={onConfirm} recipeFixServices={{ resolveExternal: onResolve }}/>);
       const labels = dict.en.foodUnderstanding.recipeDiscovery;
       fireEvent.change(screen.getByLabelText(`${labels.fixFood}: 30 dkg csirkemáj`), { target: { value: "ext:usda_fdc:171060" } });
       await waitFor(() => expect(screen.getByText(labels.confirmAdd)).toBeTruthy());
       expect(onResolve).toHaveBeenCalledWith(withExternal.ingredients![1].externalCandidates![0]);
       fireEvent.click(screen.getByText(labels.confirmAdd));
       expect(onConfirm).toHaveBeenCalledWith(withExternal, 1, "serving", [{ ingredientIndex: 1, action: "food", foodId: "food-liver" }]);
+    });
+
+    it("an ingredient with only an AI estimate can accept it, and any blocked ingredient can be matched by catalog search", async () => {
+      const estimate = { canonicalFoodName: "Rice, white, cooked", localizedFoodName: "Főtt rizs", basisGrams: 100, kcalPer100g: 130, proteinPer100g: 2.7, fatPer100g: 0.3, carbsPer100g: 28, fiberPer100g: 0.4,
+        confidence: "medium", assumptions: "", identityConfidence: "high", requestedIdentity: "rizs", canonicalIdentity: "rice", proof: "p" } as AiEstimateValue;
+      const candidate: RecipeDiscoveryCandidateValue = { ...blockedCandidate, ingredients: [
+        blockedCandidate.ingredients![0],
+        { originalText: "10 dkg rizs", parsedFoodQuery: "rice", status: "unresolved", quantityGrams: 100, resolvedFood: null, trustedNutritionReady: false, blockingReason: "ai_estimate_only", aiEstimate: estimate },
+        { originalText: "1 fej fokhagyma", parsedFoodQuery: "garlic", status: "unresolved", resolvedFood: null, trustedNutritionReady: false, blockingReason: "food_not_found" }
+      ] };
+      const onConfirm = vi.fn();
+      const acceptEstimate = vi.fn(async () => ({ id: "own-rice", name: "Főtt rizs" }));
+      const searchFoods = vi.fn(async () => [{ id: "garlic-raw", name: "Garlic, raw" }]);
+      render(<FoodUnderstandingPreview value={singleValue(candidate)} lang="en" labels={dict.en.foodUnderstanding} busy={false} onConfirmAll={vi.fn()} onConfirmRecipe={onConfirm} recipeFixServices={{ acceptEstimate, searchFoods }}/>);
+      const labels = dict.en.foodUnderstanding.recipeDiscovery;
+      fireEvent.change(screen.getByLabelText(`${labels.fixFood}: 10 dkg rizs`), { target: { value: "ai" } });
+      await waitFor(() => expect(acceptEstimate).toHaveBeenCalledWith(estimate, 100));
+      fireEvent.change(screen.getByLabelText(`${labels.fixSearch}: 1 fej fokhagyma`), { target: { value: "fokhagyma" } });
+      fireEvent.click(await screen.findByRole("button", { name: "Garlic, raw" }));
+      expect(screen.getByText(labels.fixNeedsGrams)).toBeTruthy();
+      fireEvent.change(screen.getByLabelText(`${labels.fixGrams}: 1 fej fokhagyma`), { target: { value: "40" } });
+      fireEvent.click(await screen.findByText(labels.confirmAdd));
+      expect(onConfirm).toHaveBeenCalledWith(candidate, 1, "serving", [
+        { ingredientIndex: 1, action: "food", foodId: "own-rice" },
+        { ingredientIndex: 2, action: "food", foodId: "garlic-raw", grams: 40 }
+      ]);
     });
 
     it("a dish recognized as several items still gets the fix and confirm controls for its discovered recipe", () => {
