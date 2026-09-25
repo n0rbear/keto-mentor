@@ -2,15 +2,15 @@
 
 Compact continuity state for the Master/worker workflow. Git, tests and this file are the source of truth — not chat history. Never store secrets here.
 
-- **Date:** 2026-09-25 (updated after #62 → main / production deploy; Telegram channel live)
+- **Date:** 2026-09-25 (updated after #63 → main / production deploy; Telegram channel live)
 - **Checkpoint branch:** `claude/pensive-hamilton-ocsygi` (checkpoint-only; no product code)
-- **main HEAD:** `3dcc93b` (merge of PR #62)
-- **Production:** `keto-mentor-api` / `keto-mentor-web` at `3dcc93b` (live 2026-09-25 15:25 UTC, migration `20260925180000_user_plates` applied, `/health` 200, `/me/plates` 401 unauth). Not yet verified live: a real plate-photo vision call (if gpt-5.4-mini rejects images, set `PORTION_VISION_MODEL`).
+- **main HEAD:** `7271c32` (merge of PR #63)
+- **Production:** `keto-mentor-api` / `keto-mentor-web` at `7271c32` (live 2026-09-25 21:35 UTC, no error/warn logs, `/health` 200). Still not verified live: a real plate-photo vision call.
 - **Staging:** `keto-mentor-api-staging` + `keto-mentor-web-staging` → `fix/web-evidence-production-effectiveness` (now merged/stale — repoint staging to the next feature branch or `main`), live `07f11ba` (API), verified via Render MCP 2026-09-25; no error/warn logs since deploy. Staging start command does NOT run migrations (production does: migrate + seed on every boot). `keto-mentor-*-pr56` services deleted 2026-09-24.
 
 ## Open PRs
 - **#53** docs-only community-contribution backlog — idle since 2026-09-15.
-- MERGED 2026-09-25: #57 → #56 (`31b087c`); #56 → `main` (`d2bacc6`); #58 voice + semantic recovery → `main` (`a825703`); #59 unforced voice language + HU/DE seasoning + manual ingredient fixes (`blockingReason`, `ingredientOverrides`) → `main` (`6c47917`, owner "#59 mehet"); #60 page-language voice + recipe fix controls everywhere (AI-estimate accept, catalog search, USDA pick) + phone layout → `main` (`f8f24bf`, owner "Mehet"); #61 round-trip identity check for recipe ingredient candidates (user-language name must still name the source word, e.g. "tejföl" no longer offered cheeses) → `main` (`7178c63`, owner "#61 mehet"); #62 plate-photo portion estimate (coin or saved own plate; `UserPlate` table, `POST /meal-input/portion-photo`, `/me/plates`; optional `PORTION_VISION_MODEL`, default gpt-5.4-mini) + "to taste" estimates + "for serving" lines → `main` (`3dcc93b`, owner "Mehet").
+- MERGED 2026-09-25: #57 → #56 (`31b087c`); #56 → `main` (`d2bacc6`); #58 voice + semantic recovery → `main` (`a825703`); #59 unforced voice language + HU/DE seasoning + manual ingredient fixes (`blockingReason`, `ingredientOverrides`) → `main` (`6c47917`, owner "#59 mehet"); #60 page-language voice + recipe fix controls everywhere (AI-estimate accept, catalog search, USDA pick) + phone layout → `main` (`f8f24bf`, owner "Mehet"); #61 round-trip identity check for recipe ingredient candidates (user-language name must still name the source word, e.g. "tejföl" no longer offered cheeses) → `main` (`7178c63`, owner "#61 mehet"); #62 plate-photo portion estimate (coin or saved own plate; `UserPlate` table, `POST /meal-input/portion-photo`, `/me/plates`; optional `PORTION_VISION_MODEL`, default gpt-5.4-mini) + "to taste" estimates + "for serving" lines → `main` (`3dcc93b`, owner "Mehet"); #63 recipe ingredient foods shown in the user language (display-only batched localization) + duplicate same-identity foods on one line merged → `main` (`7271c32`, owner "Go").
 
 ## Test status (PR #56 head `07f11ba`, 2026-09-24; PR #57 head `240b908`: API 1957/1957, web 324/324, 2026-09-25)
 API 1953/1953, web 324/324, API + web `tsc --noEmit` clean. No GitHub Actions CI in repo.
@@ -49,7 +49,6 @@ Authoritative catalog data first; AI nutrition is a labelled, user-confirmable e
 - PLANNED: dinner recommendation (no code yet); Phase 6B native apps; Phase 7 beta/release.
 
 ## Next tasks
-0. **Open owner ideas (2026-09-25):** show resolved recipe foods in the user language (BLS/USDA names appear in DE/EN); "őrölt kömény+egész kömény" splits into two caraway items.
 0. **Owner follow-up (2026-09-25):** blocking recipe ingredients should later be resolved automatically (today: manual fix UI). Live cases: "resztelt máj" (nosalty.hu, 1/10 blocked), "töltött káposzta" (budapestcookingclass.com, 4/17 blocked). Owner confirmed voice works after #59.
 1. Owner reviews PR #57 migration → merge into #56 branch (staging needs a manual `prisma migrate deploy`; production runs it automatically once on `main`).
 2. PR #56 staging verification done (see Current task); remaining: test `almás pite` exact-match on a DB that has that food, and decide on the túró/szalonna candidate follow-ups.
