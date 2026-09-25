@@ -23,6 +23,9 @@ export type RecipeIngredientBlockingReason = "food_not_found" | "food_needs_conf
 
 export type TrustedFoodSummary = {
   sourceId?: string | null;
+  // Per-locale display names when known (catalog or localized for display);
+  // never used for identity or nutrition.
+  names?: Record<string, string>;
   id: string;
   name: string;
   source: string;
@@ -121,7 +124,8 @@ export type ReviewableIngredient = {
 };
 
 function toTrustedFoodSummary(food: NonNullable<ReviewableIngredient["selectedFood"]>): TrustedFoodSummary {
-  return { id: food.id, name: food.name, source: food.source, ...(food.sourceId ? { sourceId: food.sourceId } : {}), kcalPer100g: food.kcalPer100g, fatPer100g: food.fatPer100g, proteinPer100g: food.proteinPer100g, carbsPer100g: food.carbsPer100g, fiberPer100g: food.fiberPer100g };
+  const names = (food as { names?: unknown }).names;
+  return { id: food.id, name: food.name, source: food.source, ...(food.sourceId ? { sourceId: food.sourceId } : {}), ...(names && typeof names === "object" && !Array.isArray(names) ? { names: names as Record<string, string> } : {}), kcalPer100g: food.kcalPer100g, fatPer100g: food.fatPer100g, proteinPer100g: food.proteinPer100g, carbsPer100g: food.carbsPer100g, fiberPer100g: food.fiberPer100g };
 }
 
 function toLocalCandidateSummary(food: { id: string; name: string; source: string }): LocalCandidateSummary {
@@ -320,4 +324,32 @@ export function computeTrustedNutrition(ingredients: readonly RecipeIngredientRe
     weightGrams: weightGrams || null,
     perServing: calculable && servings && servings > 0 ? scaleMacroTotals(totals, 1 / servings) : null
   };
+}
+
+/**
+ * Display-only: gives every resolved ingredient food a name in the user's
+ * language (owner report, 2026-09-25: recipe rows showed BLS German and USDA
+ * English names such as "Sauerkraut abgetropft, roh"). One batched
+ * localization call for the foods still missing that locale; the result is
+ * never persisted and never used for matching. Any failure leaves the
+ * authoritative names as they were.
+ */
+export async function localizeResolvedFoodNames(
+  reviews: readonly RecipeIngredientReview[],
+  provider: { localize(items: { id: string; authoritativeName: string }[], locale: any): Promise<Map<string, string>> } | undefined,
+  locale: string
+): Promise<RecipeIngredientReview[]> {
+  const missing = reviews.map((review, index) => ({ review, index })).filter(({ review }) => review.resolvedFood && !review.resolvedFood.names?.[locale]);
+  if (!provider || !missing.length) return [...reviews];
+  let localized: Map<string, string>;
+  try {
+    localized = await provider.localize(missing.map(({ review, index }) => ({ id: String(index), authoritativeName: review.resolvedFood!.name })), locale);
+  } catch {
+    return [...reviews];
+  }
+  return reviews.map((review, index) => {
+    const name = localized.get(String(index));
+    if (!name || !review.resolvedFood) return review;
+    return { ...review, resolvedFood: { ...review.resolvedFood, names: { ...(review.resolvedFood.names ?? {}), [locale]: name } } };
+  });
 }

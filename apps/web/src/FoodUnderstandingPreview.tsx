@@ -91,7 +91,7 @@ export type AiEstimateOverridePayload = {
 export type RecipeBlockingReason = "food_not_found" | "food_needs_confirmation" | "ai_estimate_only" | "quantity_missing";
 export type RecipeIngredientValue = {
   originalText: string; parsedFoodQuery: string; status: string; quantityGrams?: number; aiEstimate?: AiEstimateValue;
-  resolvedFood: { id?: string; name: string; source: string; sourceId?: string | null } | null;
+  resolvedFood: { id?: string; name: string; source: string; sourceId?: string | null; names?: Record<string, string> } | null;
   localCandidates?: { id: string; name: string; source: string }[];
   externalCandidates?: ExternalCandidate[];
   trustedNutritionReady?: boolean;
@@ -397,7 +397,7 @@ function DiscoveredRecipe({ candidate, lang, labels }: { candidate: RecipeDiscov
     <a href={candidate.sourceUrl} target="_blank" rel="noopener noreferrer">{candidate.domain}</a>
     {candidate.servings != null && <p>{candidate.servings} ×</p>}
     <ul>{candidate.ingredients?.map((ingredient, index) => <li key={index}>
-      <strong>{ingredient.originalText}</strong> → {ingredient.resolvedFood?.name ?? ingredient.parsedFoodQuery}
+      <strong>{ingredient.originalText}</strong> → {ingredient.resolvedFood ? pickDisplayName(ingredient.resolvedFood, lang) : ingredient.parsedFoodQuery}
       {ingredient.quantityGrams != null && <> · {ingredient.quantityGrams} g</>}
       {/* Readable state instead of raw status/source codes ("confirmation_required", "bls"). */}
       {labels
