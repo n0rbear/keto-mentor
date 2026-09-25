@@ -21,7 +21,7 @@ describe("PortionPhoto", () => {
     const onEstimate = vi.fn();
     render(<PortionPhoto lang="hu" state={state} dish="húsos káposzta" onEstimate={onEstimate}/>);
     fireEvent.click(screen.getByText("Adag becslése fotóból"));
-    await waitFor(() => expect((screen.getByLabelText("Otthon, új saját tányér (érmével, megjegyzem)", { exact: false }) as HTMLInputElement).checked).toBe(true));
+    await waitFor(() => expect((screen.getByLabelText("Otthon, új saját tányér (érmével vagy kártyával, megjegyzem)", { exact: false }) as HTMLInputElement).checked).toBe(true));
     fireEvent.change(screen.getByLabelText("A tányér neve (pl. mély tányér)"), { target: { value: "Mély tányér" } });
     fireEvent.change(screen.getByLabelText("Fotó készítése"), { target: { files: [new File(["img"], "plate.jpg", { type: "image/jpeg" })] } });
     fireEvent.click(await screen.findByText("Ezt használom"));
@@ -40,7 +40,7 @@ describe("PortionPhoto", () => {
     render(<PortionPhoto lang="en" state={state} dish="goulash" onEstimate={vi.fn()}/>);
     fireEvent.click(screen.getByText("Estimate portion from a photo"));
     await screen.findByText(/At home: Mély tányér/);
-    expect(screen.queryByText("Coin next to the plate")).toBeNull();
+    expect(screen.queryByText("Size reference next to the plate")).toBeNull();
     fireEvent.change(screen.getByLabelText("Take photo"), { target: { files: [new File(["img"], "p.jpg", { type: "image/jpeg" })] } });
     await screen.findByText("Use this");
     const upload = seen.find((u) => u.pathname === "/meal-input/portion-photo")!;
@@ -56,9 +56,26 @@ describe("PortionPhoto", () => {
     });
     render(<PortionPhoto lang="en" state={state} dish="pizza" onEstimate={vi.fn()}/>);
     fireEvent.click(screen.getByText("Estimate portion from a photo"));
-    fireEvent.click(await screen.findByLabelText("Restaurant / as a guest (with a coin)", { exact: false }));
+    fireEvent.click(await screen.findByLabelText("Restaurant / as a guest (with a coin or card)", { exact: false }));
     fireEvent.change(screen.getByLabelText("Take photo"), { target: { files: [new File(["img"], "p.jpg", { type: "image/jpeg" })] } });
-    expect(await screen.findByText("Couldn't see the coin or the plate rim. Please try again.")).toBeTruthy();
+    expect(await screen.findByText("Couldn't see the coin/card or the plate rim. Please try again.")).toBeTruthy();
     expect(upload!.searchParams.get("savePlate")).toBeNull();
+  });
+
+  it("wallet card reference warns about personal data and sends reference=card", async () => {
+    let upload: URL | undefined;
+    stubFetch((url) => {
+      if (url.pathname === "/me/plates") return new Response(JSON.stringify({ plates: [] }), { status: 200 });
+      upload = url;
+      return new Response(JSON.stringify({ status: "estimated", grams: 300, confidence: 0.5, notes: "" }), { status: 200 });
+    });
+    render(<PortionPhoto lang="hu" state={state} dish="gulyás" onEstimate={vi.fn()}/>);
+    fireEvent.click(screen.getByText("Adag becslése fotóból"));
+    fireEvent.click(await screen.findByLabelText("Étterem / vendégség", { exact: false }));
+    fireEvent.change(screen.getByLabelText("Méretarány a tányér mellett"), { target: { value: "card" } });
+    expect(screen.getByRole("alert").textContent).toContain("nem látszik személyes adat");
+    fireEvent.change(screen.getByLabelText("Fotó készítése"), { target: { files: [new File(["img"], "p.jpg", { type: "image/jpeg" })] } });
+    await screen.findByText("Ezt használom");
+    expect(Object.fromEntries(upload!.searchParams)).toEqual({ dish: "gulyás", reference: "card" });
   });
 });

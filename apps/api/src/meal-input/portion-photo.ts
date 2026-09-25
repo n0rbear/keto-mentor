@@ -19,7 +19,7 @@ const MAX_PLATES_PER_USER = 10;
 
 const querySchema = z.object({
   dish: z.string().trim().min(1).max(200),
-  reference: z.enum(["coin", "plate"]),
+  reference: z.enum(["coin", "card", "plate"]),
   coin: z.enum(["eur1", "huf100"]).optional(),
   plateId: z.string().trim().min(1).max(64).optional(),
   savePlate: z.enum(["1", "0"]).optional(),
@@ -67,14 +67,16 @@ export function portionPhotoRouter(prisma: PrismaClient, provider: PortionVision
         if (query.reference === "coin") {
           if (!query.coin) throw apiError("coin_required");
           reference = { kind: "coin", coin: query.coin };
+        } else if (query.reference === "card") {
+          reference = { kind: "card" };
         } else {
           if (!query.plateId) throw apiError("plate_required");
           const plate = await prisma.userPlate.findFirst({ where: { id: query.plateId, userId: req.user!.id } });
           if (!plate) throw apiError("plate_not_found", 404);
           reference = { kind: "plate", diameterMm: plate.diameterMm };
         }
-        // Only the user's own plate measured with a coin is ever saved.
-        const savePlate = query.savePlate === "1" && reference.kind === "coin";
+        // Only the user's own plate measured with a coin or card is ever saved.
+        const savePlate = query.savePlate === "1" && reference.kind !== "plate";
 
         const estimate = await provider.estimate({ image: req.body, mimeType: contentType, dish: query.dish, reference, measurePlate: savePlate });
         if (!estimate.referenceFound) return res.json({ status: "reference_not_found", notes: estimate.notes });

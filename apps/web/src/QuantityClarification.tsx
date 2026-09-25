@@ -32,6 +32,7 @@ export function QuantityClarification({ value, foodName, quantity, unit, lang, o
     {!editing ? <div className="quantity-actions">
       <button type="button" className="btn primary" disabled={!value.suggestedGrams || value.suggestedGrams > 5000} onClick={() => onResolve(value.suggestedGrams!, false)}>{labels.accept}</button>
       <button type="button" className="btn secondary" onClick={() => setEditing(true)}>{labels.change}</button>
+      {apiState && <PortionPhoto lang={lang} state={apiState} dish={foodName} onEstimate={(g) => { setGrams(String(g)); setEditing(true); }}/>}
     </div> : <div className="quantity-actions">
       <label>{labels.grams}<input className="field" aria-label={labels.grams} type="number" min="0.1" max="5000" step="any" value={grams} onChange={(event) => setGrams(event.target.value)}/></label>
       <button type="button" className="btn primary" disabled={!valid} onClick={() => onResolve(Number(grams), true)}>{labels.accept}</button>

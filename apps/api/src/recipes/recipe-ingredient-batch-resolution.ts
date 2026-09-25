@@ -190,9 +190,12 @@ export async function resolveRecipeIngredientsBatch(
       semanticCandidateGateProvider: dynamic.semanticCandidateGateProvider, semanticRecoveryProvider: dynamic.semanticRecoveryProvider,
       recipeTitle: input.title, recipeContext: input.context
     });
-    for (const draft of drafts) {
+    // Each draft's fallback (web evidence / AI estimate) is independent, so
+    // they run in parallel instead of one after another (live logs,
+    // 2026-09-25: a single recipe took ~44 s, largely sequential waits).
+    await Promise.all(drafts.map(async (draft) => {
       const outcome = outcomes.get(String(draft.resultIndex));
-      if (!outcome) continue; // this draft resolved locally — never sent to the batch resolver
+      if (!outcome) return; // this draft resolved locally — never sent to the batch resolver
       if (outcome.status === "resolved") { draft.selectedFood = outcome.food; draft.resolution = "resolved"; draft.candidates = [outcome.food]; }
       else if (outcome.status === "confirmation_required") { draft.resolution = "confirmation_required"; draft.externalCandidates = outcome.candidates; draft.externalCandidatesReason = outcome.reason; }
       else if (outcome.status === "unresolved" && ["not_found", "invalid_external_data", "external_unavailable", "convergence_rejected"].includes(outcome.reason)
@@ -209,7 +212,7 @@ export async function resolveRecipeIngredientsBatch(
             proof: createAiEstimateProof(dynamic.userId, { ...fallback.estimate, requestedIdentity: fallback.requestedIdentity }) };
         }
       }
-    }
+    }));
   }
 
   for (const draft of drafts) {

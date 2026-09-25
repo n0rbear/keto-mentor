@@ -312,7 +312,11 @@ export async function resolveManyAuthoritativeFoods(
         && (outcome.reason === "not_found" || outcome.reason === "invalid_external_data" || outcome.reason === "external_unavailable" || outcome.reason === "convergence_rejected");
     }).slice(0, MAX_BATCH_RECOVERY_ITEMS);
 
-    for (const p of recoverable) {
+    // Recoverable ingredients are independent, so they run in parallel (live
+    // recipe logs, 2026-09-25: sequential recovery was ~8-12 s of the wait).
+    // Within one ingredient the recovered terms still run in order, because
+    // the first confident resolution is persisted and aliased.
+    await Promise.all(recoverable.map(async (p) => {
       const engineDeps: ResolveFromSearchTermDeps = {
         adapters: deps.adapters, rateLimiter: deps.rateLimiter, userId: deps.userId, locale: deps.locale as any, foodLocale: deps.foodLocale,
         localizationProvider: deps.localizationProvider,
@@ -334,7 +338,7 @@ export async function resolveManyAuthoritativeFoods(
       else if (attempt.status === "confirmation_required") outcomes.set(p.id, { status: "confirmation_required", candidates: attempt.candidates.slice(0, CONFIRMATION_CANDIDATE_LIMIT), reason: attempt.reason });
       // else: still unresolved after recovery — the deterministic-pass
       // outcome already set above stands unchanged.
-    }
+    }));
   }
 
   // STEP 6 — round-trip identity check (owner report, 2026-09-25: "tejföl"

@@ -341,6 +341,7 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
 .portion-photo-result { display: grid; gap: .35rem; }
 .portion-photo-saved { color: rgb(var(--success)); }
 .portion-photo-error { color: rgb(var(--warning)); }
+.portion-photo-warning { color: rgb(var(--warning)); font-size: .9rem; }
 .voice-mic-button { display: inline-flex; align-items: center; justify-content: center; gap: .45rem; min-height: 44px; font-weight: 750; }
 .voice-stop-button { display: inline-flex; align-items: center; gap: .4rem; min-height: 44px; padding-inline: 1rem; font-weight: 750; }
 .voice-privacy { margin: 0; }
