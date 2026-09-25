@@ -33,7 +33,10 @@ export function VoiceInput({ lang, state, onTranscribed }: { lang: Lang; state: 
     setVoiceState("transcribing");
     try {
       const result = await api<{ text: string; language: string | null }>(
-        "/meal-input/transcribe",
+        // The page's CURRENT language, not the profile locale: speech is
+        // transcribed in the language the user is looking at (owner request,
+        // 2026-09-25 — a Hungarian page must transcribe Hungarian).
+        `/meal-input/transcribe?lang=${encodeURIComponent(lang)}`,
         { method: "POST", body: audio, headers: { "Content-Type": mimeType } },
         state
       );
@@ -78,8 +81,8 @@ export function VoiceInput({ lang, state, onTranscribed }: { lang: Lang; state: 
   return (
     <div className="voice-input">
       {voiceState === "idle" && (
-        <button type="button" className="btn secondary icon-button" aria-label={t.micButton} title={t.micButton} onClick={start}>
-          <Mic size={16}/>
+        <button type="button" className="btn secondary voice-mic-button" onClick={start}>
+          <Mic aria-hidden="true" size={16}/> {t.micButton}
         </button>
       )}
       {(voiceState === "requesting_permission" || voiceState === "recording") && (
@@ -88,8 +91,8 @@ export function VoiceInput({ lang, state, onTranscribed }: { lang: Lang; state: 
             {voiceState === "requesting_permission" ? t.requestingPermission : t.recording}
           </span>
           {voiceState === "recording" && (
-            <button type="button" className="btn secondary icon-button" aria-label={t.stopButton} onClick={stopAndTranscribe}>
-              <Square size={14}/>
+            <button type="button" className="btn primary voice-stop-button" onClick={stopAndTranscribe}>
+              <Square aria-hidden="true" size={14} fill="currentColor"/> {t.stopButton}
             </button>
           )}
           <button type="button" className="btn secondary" onClick={cancel}>{t.cancel}</button>

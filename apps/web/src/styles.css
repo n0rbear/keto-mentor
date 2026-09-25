@@ -329,6 +329,8 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
 
 .voice-input { display: grid; gap: .4rem; margin-top: .4rem; }
 .voice-recording-row { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.voice-mic-button { display: inline-flex; align-items: center; justify-content: center; gap: .45rem; min-height: 44px; font-weight: 750; }
+.voice-stop-button { display: inline-flex; align-items: center; gap: .4rem; min-height: 44px; padding-inline: 1rem; font-weight: 750; }
 .voice-privacy { margin: 0; }
 
 .status { border: 1px solid; border-radius: 10px; padding: .65rem .75rem; font-size: .78rem; font-weight: 700; }
@@ -367,6 +369,7 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
 .recipe-card summary { cursor: pointer; color: rgb(var(--brand-bright)); font-weight: 800; }
 .recipe-detail-list { margin: .5rem 0; padding-left: 1.2rem; color: rgb(var(--text-muted)); font-size: .86rem; }
 .recipe-meal-controls { display: grid; grid-template-columns: 95px 90px minmax(0, 1fr); gap: .45rem; }
+.recipe-ingredient-pending { color: rgb(var(--warning)); font-weight: 750; }
 .blocked-ingredients { display: grid; gap: .5rem; margin: .6rem 0; padding: .65rem; border: 1px solid rgb(var(--warning) / .35); border-radius: 10px; background: rgb(var(--warning) / .06); }
 .blocked-ingredients ul { display: grid; gap: .6rem; margin: 0; padding: 0; list-style: none; }
 .blocked-ingredient { display: grid; gap: .3rem; min-width: 0; }
@@ -374,6 +377,9 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
 .blocked-ingredient-reason { color: rgb(var(--warning)); }
 .blocked-ingredient-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; }
 .blocked-ingredient-controls .field { flex: 1 1 120px; min-width: 0; }
+.blocked-ingredient-results { display: grid; gap: .3rem; flex: 1 1 100%; margin: 0; padding: 0; list-style: none; }
+.blocked-ingredient-results .btn { width: 100%; justify-content: flex-start; text-align: left; }
+.blocked-ingredient-chosen { flex: 1 1 100%; color: rgb(var(--success)); }
 .blocked-ingredient-status { color: rgb(var(--text-muted)); }
 .blocked-ingredient-status.ready { color: rgb(var(--success)); }
 
@@ -414,7 +420,22 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
   .card { border-radius: 15px; }
   .natural-input-row { grid-template-columns: 1fr; }
   .natural-input-row .btn { width: 100%; }
-  .macro-grid { margin-right: -12px; }
+  /* Phone: the daily tiles wrapped into a half-hidden horizontal strip with
+     the meal count orphaned on a second row. A plain 3-column grid shows
+     every number without sideways scrolling. */
+  .macro-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; overflow: visible; margin-right: 0; padding-bottom: 0; }
+  .metric-tile { padding: .65rem .6rem; border-radius: 12px; }
+  .metric-label { font-size: .6rem; letter-spacing: .06em; }
+  .metric-value { font-size: 1.35rem; }
+  .metric-goal { font-size: .68rem; }
+  .card { padding: 1rem; }
+  .voice-input .btn.voice-mic-button { width: 100%; }
+  /* Three nested boxes (card > natural input > interpretation > fix list)
+     ate most of a phone's width in padding. */
+  .natural-input { padding: .7rem; }
+  .interpretation { padding: .6rem; font-size: .8rem; }
+  .blocked-ingredients { padding: .55rem; }
+  .blocked-ingredient-controls .btn, .blocked-ingredient-controls select.field, .blocked-ingredient-controls input[type=search] { flex: 1 1 100%; min-height: 44px; }
   .meal { align-items: flex-start; }
   .meal-macros { white-space: normal; text-align: right; }
   .recipe-heading { align-items: stretch; }
@@ -437,7 +458,6 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
   .product-lockup-copy strong { max-width: 120px; }
   .compact { min-width: 57px; }
   .hero-copy::after { display: none; }
-  .macro-grid { grid-template-columns: repeat(5, minmax(108px, 1fr)); }
   .week-strip { grid-template-columns: repeat(7, minmax(72px, 1fr)); }
   .meal { flex-direction: column; }
   .meal-macros { text-align: left; }

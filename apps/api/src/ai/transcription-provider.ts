@@ -22,7 +22,7 @@ export class TranscriptionProviderError extends Error {
 
 export interface TranscriptionProvider {
   readonly id: string;
-  transcribe(input: { audio: Buffer; mimeType: string; languageHint?: string }, signal?: AbortSignal): Promise<TranscriptionResult>;
+  transcribe(input: { audio: Buffer; mimeType: string; language?: string }, signal?: AbortSignal): Promise<TranscriptionResult>;
 }
 
 export class DisabledTranscriptionProvider implements TranscriptionProvider {
@@ -84,27 +84,24 @@ function transcriptionUrl(baseUrl: string): string {
   return new URL("v1/audio/transcriptions", parsed).toString();
 }
 
-// Short domain context in the three supported languages: biases spelling of
-// food words and units without forcing a language. The user's own locale
-// goes first because the model weights the start of the prompt most.
+// Short food-log context in the transcription language: biases spelling of
+// food words and units. Without a language, all three are listed.
 const TRANSCRIPTION_PROMPTS: Record<string, string> = {
   hu: "Ételnapló, magyarul: 2 tojás, 100 g túró, egy tányér gulyásleves, só ízlés szerint.",
   de: "Essenstagebuch, auf Deutsch: 2 Eier, 100 g Quark, ein Teller Gulaschsuppe, Salz nach Geschmack.",
   en: "Food log, in English: 2 eggs, 100 g cottage cheese, a bowl of goulash soup, salt to taste."
 };
-export function transcriptionPrompt(languageHint?: string): string {
-  const first = languageHint && TRANSCRIPTION_PROMPTS[languageHint] ? [languageHint] : [];
-  return [...first, ...Object.keys(TRANSCRIPTION_PROMPTS).filter((key) => key !== languageHint)].map((key) => TRANSCRIPTION_PROMPTS[key]).join(" ");
+export function transcriptionPrompt(language?: string): string {
+  if (language && TRANSCRIPTION_PROMPTS[language]) return TRANSCRIPTION_PROMPTS[language];
+  return Object.values(TRANSCRIPTION_PROMPTS).join(" ");
 }
 
 /**
  * OpenAI speech-to-text. Audio always flows browser -> this backend ->
  * OpenAI, using the server's own OPENAI_API_KEY (same env var the existing
  * OpenAI food-AI benchmark provider already reads, see ai/openai-provider.ts
- * and config.ts) — the key never reaches the browser. `languageHint` only
- * orders the multilingual prompt (see transcriptionPrompt); OpenAI's
- * `language` field is never sent because it forces the language, so the
- * model always auto-detects.
+ * and config.ts) — the key never reaches the browser. `language` (the
+ * page's UI language) is sent as OpenAI's binding `language` field.
  */
 export class OpenAiTranscriptionProvider implements TranscriptionProvider {
   readonly id = "openai";
@@ -125,7 +122,7 @@ export class OpenAiTranscriptionProvider implements TranscriptionProvider {
     this.fetchImpl = options.fetchImpl ?? fetch;
   }
 
-  async transcribe(input: { audio: Buffer; mimeType: string; languageHint?: string }, signal?: AbortSignal): Promise<TranscriptionResult> {
+  async transcribe(input: { audio: Buffer; mimeType: string; language?: string }, signal?: AbortSignal): Promise<TranscriptionResult> {
     if (!input.audio.byteLength) throw new TranscriptionProviderError("empty_audio");
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), this.timeoutMs);
@@ -137,12 +134,12 @@ export class OpenAiTranscriptionProvider implements TranscriptionProvider {
       // Category-only, never the transcript itself — see this file's own
       // doc for why raw audio/transcript content is never logged.
       form.append("file", new Blob([new Uint8Array(input.audio)], { type: input.mimeType }), audioFileName(input.mimeType));
-      // OpenAI's `language` field FORCES the transcription language, it is
-      // not a hint: a Hungarian utterance from a user whose profile locale
-      // is German came back as German-sounding garbage (live production
-      // report, 2026-09-25). The profile locale only orders a short
-      // multilingual food-log prompt; the model auto-detects the language.
-      form.append("prompt", transcriptionPrompt(input.languageHint));
+      // The page's current UI language is FORCED (owner decision,
+      // 2026-09-25): OpenAI's `language` field is binding, so a Hungarian
+      // page always transcribes Hungarian. Auto-detection misread short
+      // Hungarian food phrases. The prompt is in the same language.
+      if (input.language) form.append("language", input.language);
+      form.append("prompt", transcriptionPrompt(input.language));
       const response = await this.fetchImpl(this.url, {
         method: "POST",
         headers: { authorization: `Bearer ${this.apiKey}` },
