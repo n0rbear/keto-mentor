@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { DisabledTranscriptionProvider, OpenAiTranscriptionProvider, TranscriptionProviderError } from "./transcription-provider.js";
+import { DisabledTranscriptionProvider, OpenAiTranscriptionProvider, transcriptionPrompt, TranscriptionProviderError } from "./transcription-provider.js";
 
 function jsonResponse(body: unknown, init: { status?: number; headers?: Record<string, string> } = {}) {
   const text = JSON.stringify(body);
@@ -41,7 +41,7 @@ describe("OpenAiTranscriptionProvider", () => {
     expect(fetchImpl).not.toHaveBeenCalled();
   });
 
-  it("posts multipart form data with model/file/language, never leaking the API key into the body", async () => {
+  it("posts multipart form data with model/file/prompt, never forcing a language or leaking the API key into the body", async () => {
     let capturedInit: any;
     const fetchImpl = vi.fn(async (_url: string, init: any) => { capturedInit = init; return jsonResponse({ text: "200 gramm csirkemell", language: "hu" }); });
     const provider = new OpenAiTranscriptionProvider({ apiKey: "sk-test", fetchImpl: fetchImpl as any });
@@ -50,7 +50,10 @@ describe("OpenAiTranscriptionProvider", () => {
     expect(capturedInit.headers.authorization).toBe("Bearer sk-test");
     expect(capturedInit.body).toBeInstanceOf(FormData);
     expect(capturedInit.body.get("model")).toBe("gpt-4o-mini-transcribe");
-    expect(capturedInit.body.get("language")).toBe("hu");
+    // A German-profile user speaking Hungarian must still be auto-detected:
+    // OpenAI's `language` field forces the language, so it is never sent.
+    expect(capturedInit.body.has("language")).toBe(false);
+    expect(capturedInit.body.get("prompt")).toMatch(/^Ételnapló/);
     expect(capturedInit.body.get("file")).toBeInstanceOf(Blob);
   });
 
@@ -60,6 +63,17 @@ describe("OpenAiTranscriptionProvider", () => {
     const provider = new OpenAiTranscriptionProvider({ apiKey: "sk-test", fetchImpl: fetchImpl as any });
     await provider.transcribe({ audio: Buffer.from("fake-audio-bytes"), mimeType: "audio/webm" });
     expect(capturedInit.body.has("language")).toBe(false);
+    expect(capturedInit.body.get("prompt")).toContain("Essenstagebuch");
+  });
+
+  it("orders the multilingual prompt by the profile locale but always covers hu, de and en", () => {
+    for (const hint of ["hu", "de", "en", undefined, "fr"]) {
+      const prompt = transcriptionPrompt(hint);
+      expect(prompt).toContain("Ételnapló");
+      expect(prompt).toContain("Essenstagebuch");
+      expect(prompt).toContain("Food log");
+    }
+    expect(transcriptionPrompt("de")).toMatch(/^Essenstagebuch/);
   });
 
   it("uses gpt-4o-mini-transcribe by default and an override model when given", async () => {
