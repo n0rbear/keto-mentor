@@ -247,6 +247,16 @@ describe("recipe-discovery candidate confirmation UI (Gate 2)", () => {
 
   // Owner request (2026-09-25): a blocking ingredient shows its exact reason
   // and can be fixed by hand; the fixes travel with the save request.
+  it("recipe rows show the resolved food's name in the page language when known", () => {
+    const candidate: RecipeDiscoveryCandidateValue = { ...fullyResolvedCandidate, ingredients: [
+      { originalText: "800 g savanyú káposzta", parsedFoodQuery: "sauerkraut", status: "resolved", quantityGrams: 800, trustedNutritionReady: true,
+        resolvedFood: { id: "k", name: "Sauerkraut abgetropft, roh", source: "bls", names: { hu: "Savanyú káposzta, lecsepegtetve" } } }
+    ] };
+    render(<FoodUnderstandingPreview value={singleValue(candidate)} lang="hu" labels={dict.hu.foodUnderstanding} busy={false} onConfirmAll={vi.fn()}/>);
+    expect(screen.getByText(/Savanyú káposzta, lecsepegtetve/)).toBeTruthy();
+    expect(screen.queryByText(/Sauerkraut abgetropft/)).toBeNull();
+  });
+
   describe("manual fixes for blocking ingredients", () => {
     const blockedCandidate: RecipeDiscoveryCandidateValue = {
       ...fullyResolvedCandidate, nutritionCalculable: false,

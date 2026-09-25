@@ -8,7 +8,7 @@ import type { RecipeExtractionProvider } from "../recipes/recipe-extraction-prov
 import { RecipeDiscoveryService, type RecipeDiscoveryCandidate, type RecipeDiscoveryPreview } from "../recipes/recipe-discovery.js";
 import { domainOf } from "../web-knowledge/web-knowledge-search-provider.js";
 import type { SafeFetcherDependencies } from "../recipes/safe-url-fetcher.js";
-import { classifyRecipeReview, computeTrustedNutrition, toIngredientReview, type RecipeIngredientReview, type RecipeReviewSummary, type ReviewableIngredient } from "../recipes/recipe-ingredient-review.js";
+import { classifyRecipeReview, computeTrustedNutrition, toIngredientReview, localizeResolvedFoodNames, type RecipeIngredientReview, type RecipeReviewSummary, type ReviewableIngredient } from "../recipes/recipe-ingredient-review.js";
 import { findTrustedLocalRecipe } from "./local-recipe-lookup.js";
 import type { ProgressStage } from "./progress-bus.js";
 import type { RecipeIngredientNormalizationProvider } from "../recipes/recipe-ingredient-normalization.js";
@@ -194,7 +194,8 @@ async function attemptCandidate(index: number, candidate: RecipeDiscoveryCandida
     }
 
     const importProof = createRecipeImportProof(deps.userId, extracted.sourceUrl, extracted.extractionMethod);
-    const shaped = toCandidateShape(extracted, reviews, summary, importProof);
+    const displayReviews = await localizeResolvedFoodNames(reviews, deps.dynamic?.localizationProvider, deps.locale);
+    const shaped = toCandidateShape(extracted, displayReviews, summary, importProof);
 
     if (summary.state === "fully_resolved") {
       logCandidateAttempt(index, candidate.domain, "fully_resolved", { fetch: "ok", extraction: "ok", ingredients: reviews.length, resolved: summary.resolvedCount, url: candidate.url });

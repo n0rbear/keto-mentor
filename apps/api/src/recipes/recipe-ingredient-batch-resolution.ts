@@ -87,7 +87,11 @@ export async function resolveRecipeIngredientsBatch(
   const pending: PendingAuthoritativeResolution[] = [];
 
   for (const line of input.lines) {
-    const foods = byIndex.get(line.index)?.foods ?? [];
+    // One line naming the same food twice ("őrölt kömény+egész kömény",
+    // live case 2026-09-25) must not become two identical ingredients: the
+    // normalizer returns both with one canonical identity, so keep the first.
+    const foods = (byIndex.get(line.index)?.foods ?? []).filter((food, index, all) =>
+      all.findIndex((other) => normalizeSearch(other.canonicalIdentity) === normalizeSearch(food.canonicalIdentity)) === index);
     if (!foods.length) {
       const mass = explicitMass(line.parsed);
       results.push({ originalText: line.raw, parsedQuantity: line.parsed.quantity, parsedUnit: line.parsed.unit, parsedFoodQuery: line.parsed.foodQuery, resolution: "unresolved", selectedFood: null, candidates: [], quantity: mass == null ? null : { status: "resolved", grams: mass }, quantitySource: mass == null ? "unknown" : "explicit", quantityGrams: mass ?? undefined, canConfirm: false });

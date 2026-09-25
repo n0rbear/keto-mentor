@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { classifyRecipeReview, computeTrustedNutrition, toIngredientReview, type ReviewableIngredient } from "./recipe-ingredient-review.js";
+import { classifyRecipeReview, computeTrustedNutrition, localizeResolvedFoodNames, toIngredientReview, type ReviewableIngredient } from "./recipe-ingredient-review.js";
 
 const cabbage = { id: "cabbage", name: "Cabbage", source: "bls", kcalPer100g: 25, fatPer100g: 0.1, proteinPer100g: 1.3, carbsPer100g: 5.8, fiberPer100g: 2.5 };
 const egg = { id: "egg", name: "Egg", source: "open_database", kcalPer100g: 155, fatPer100g: 11, proteinPer100g: 13, carbsPer100g: 1.1, fiberPer100g: 0 };
@@ -355,5 +355,29 @@ describe("toIngredientReview: blockingReason", () => {
     [{ ...base, resolution: "resolved", selectedFood: food, candidates: [food], quantity: { status: "resolved", grams: 100 } }, undefined]
   ] as const)("%# -> %s", (ingredient, reason) => {
     expect(toIngredientReview(ingredient as ReviewableIngredient).blockingReason).toBe(reason);
+  });
+});
+
+// Owner report (2026-09-25): recipe rows showed BLS German / USDA English names.
+describe("localizeResolvedFoodNames", () => {
+  const food = (name: string, names?: Record<string, string>) => ({ id: name, name, source: "bls", kcalPer100g: 20, fatPer100g: 0, proteinPer100g: 1, carbsPer100g: 4, fiberPer100g: 2, ...(names ? { names } : {}) });
+  const review = (resolvedFood: any) => ({ ...toIngredientReview({ originalText: "x", parsedFoodQuery: "x", resolution: "resolved", selectedFood: resolvedFood, candidates: [resolvedFood], quantity: { status: "resolved", grams: 100 } }) });
+
+  it("adds a display name in the user's language only for foods missing it, in one call", async () => {
+    const calls: any[] = [];
+    const provider = { localize: async (items: any[]) => { calls.push(items); return new Map(items.map((i) => [i.id, i.authoritativeName === "Sauerkraut abgetropft, roh" ? "Savanyú káposzta, lecsepegtetve" : "?"])); } };
+    const reviews = [review(food("Sauerkraut abgetropft, roh")), review(food("Gouda", { hu: "Gouda sajt" }))];
+    const out = await localizeResolvedFoodNames(reviews, provider, "hu");
+    expect(calls).toHaveLength(1);
+    expect(calls[0]).toHaveLength(1);
+    expect(out[0].resolvedFood!.names!.hu).toBe("Savanyú káposzta, lecsepegtetve");
+    expect(out[0].resolvedFood!.name).toBe("Sauerkraut abgetropft, roh");
+    expect(out[1].resolvedFood!.names!.hu).toBe("Gouda sajt");
+  });
+
+  it("a failing localization leaves the names untouched", async () => {
+    const reviews = [review(food("Knoblauch roh"))];
+    const out = await localizeResolvedFoodNames(reviews, { localize: async () => { throw new Error("down"); } }, "hu");
+    expect(out[0].resolvedFood!.names).toBeUndefined();
   });
 });

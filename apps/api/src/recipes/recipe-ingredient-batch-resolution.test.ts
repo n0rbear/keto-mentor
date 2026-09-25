@@ -290,6 +290,17 @@ describe("resolveRecipeIngredientsBatch", () => {
     expect(chicken.excludeFromNutrition).toBe(false);
   });
 
+  // Live case (2026-09-25): "őrölt kömény+egész kömény" became two identical caraway rows.
+  it("one line naming the same food twice yields one ingredient", async () => {
+    const { prisma } = fakePrisma();
+    const result = await resolveRecipeIngredientsBatch(prisma,
+      normalizationProvider({ ingredients: [{ index: 0, foods: [{ canonicalIdentity: "caraway seed", localName: "őrölt kömény" }, { canonicalIdentity: "Caraway seed", localName: "egész kömény" }] }] }),
+      { lines: [{ index: 0, raw: "ízlés szerint őrölt kömény+egész kömény", parsed: parseNaturalFoodQuery("ízlés szerint őrölt kömény+egész kömény") }] },
+      dynamicDeps(prisma, async () => []));
+    expect(result).toHaveLength(1);
+    expect(result![0].parsedFoodQuery).toBe("caraway seed");
+  });
+
   it("an ingredient line the model returned no foods for (defensive) is treated as unresolved, never thrown", async () => {
     const { prisma } = fakePrisma();
     const result = await resolveRecipeIngredientsBatch(
