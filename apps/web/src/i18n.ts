@@ -74,7 +74,16 @@ export const dict = {
         webDisabled: "A recept-keresés jelenleg nincs bekapcsolva.",
         webRateLimited: "Túl sok recept-keresés volt mostanában — próbáld később.",
         confirmAdd: "Hozzáadás étkezéshez", confirmAdding: "…",
-        confirmQuantity: "Mennyiség", confirmUnit: "Egység", confirmServingUnit: "adag"
+        confirmQuantity: "Mennyiség", confirmUnit: "Egység", confirmServingUnit: "adag",
+        blockedHeading: "Ezek az összetevők akasztják meg a mentést — javítsd kézzel:",
+        blockingReasons: {
+          food_not_found: "Nem találtuk az adatbázisban.",
+          food_needs_confirmation: "Nem biztos, melyik étel ez — válassz egyet.",
+          ai_estimate_only: "Csak AI-becslés van rá, hiteles adat nincs.",
+          quantity_missing: "Nincs megadva, mennyi kell belőle."
+        },
+        fixExclude: "Kihagyom", fixUndo: "Visszavonom", fixGrams: "Mennyiség (g)", fixFood: "Étel választása", fixFoodPlaceholder: "— válassz —",
+        fixExcluded: "Kihagyva a számításból", fixReady: "Kézzel javítva", fixPending: "Még javításra vár"
       },
       aiEstimate: {
         badge: "AI-becslés", disclaimer: "AI-becslés — nem hiteles tápérték-forrás",
@@ -126,6 +135,7 @@ export const dict = {
       recipe_nutrition_not_calculable: "Ennek a receptnek a tápértéke még nem számolható ki megbízhatóan.",
       recipe_sibling_overlap: "Ez az alapanyag már szerepel egy másik, ugyanebben az étkezésben hozzáadott recept összetevői között.",
       recipe_not_fully_resolved: "A recept összetevői között van még nem ellenőrzött — így nem adható hozzá.",
+      invalid_ingredient_override: "Az egyik kézi javítás már nem érvényes (a recept vagy a választott étel megváltozott). Nézd át újra.",
       recipe_source_changed: "A recept forrása megváltozott azóta. Nézd át újra, mielőtt hozzáadod.",
       recipe_discovery_unavailable: "A recept-felismerés jelenleg nem érhető el.",
       validation_error: "Ellenőrizd a recept adatait.", network_error: "Az API nem érhető el. Ellenőrizd a kapcsolatot.",
@@ -283,7 +293,16 @@ export const dict = {
         webDisabled: "Die Rezeptsuche ist derzeit nicht aktiviert.",
         webRateLimited: "Zu viele Rezeptsuchen zuletzt — bitte später erneut versuchen.",
         confirmAdd: "Zur Mahlzeit hinzufügen", confirmAdding: "…",
-        confirmQuantity: "Menge", confirmUnit: "Einheit", confirmServingUnit: "Portion"
+        confirmQuantity: "Menge", confirmUnit: "Einheit", confirmServingUnit: "Portion",
+        blockedHeading: "Diese Zutaten blockieren das Speichern — bitte manuell korrigieren:",
+        blockingReasons: {
+          food_not_found: "Nicht in der Datenbank gefunden.",
+          food_needs_confirmation: "Unklar, welches Lebensmittel gemeint ist — bitte eines wählen.",
+          ai_estimate_only: "Nur eine KI-Schätzung, keine verlässlichen Daten.",
+          quantity_missing: "Keine Mengenangabe."
+        },
+        fixExclude: "Weglassen", fixUndo: "Rückgängig", fixGrams: "Menge (g)", fixFood: "Lebensmittel wählen", fixFoodPlaceholder: "— bitte wählen —",
+        fixExcluded: "Aus der Berechnung entfernt", fixReady: "Manuell korrigiert", fixPending: "Noch zu korrigieren"
       },
       aiEstimate: {
         badge: "KI-Schätzung", disclaimer: "KI-Schätzung — keine verlässliche Nährwertquelle",
@@ -335,6 +354,7 @@ export const dict = {
       recipe_nutrition_not_calculable: "Die Nährwerte dieses Rezepts können noch nicht verlässlich berechnet werden.",
       recipe_sibling_overlap: "Diese Zutat gehört bereits zu einem anderen, in dieser Mahlzeit hinzugefügten Rezept.",
       recipe_not_fully_resolved: "Eine Zutat dieses Rezepts ist noch nicht geprüft — es kann so nicht hinzugefügt werden.",
+      invalid_ingredient_override: "Eine manuelle Korrektur ist nicht mehr gültig (Rezept oder gewähltes Lebensmittel hat sich geändert). Bitte erneut prüfen.",
       recipe_source_changed: "Die Rezeptquelle hat sich seitdem geändert. Bitte vor dem Hinzufügen erneut prüfen.",
       recipe_discovery_unavailable: "Die Rezepterkennung ist derzeit nicht verfügbar.",
       validation_error: "Bitte die Rezeptangaben prüfen.", network_error: "Die API ist nicht erreichbar. Bitte die Verbindung prüfen.",
@@ -492,7 +512,16 @@ export const dict = {
         webDisabled: "Recipe search is not currently enabled.",
         webRateLimited: "Too many recipe searches recently — try again later.",
         confirmAdd: "Add to meal", confirmAdding: "…",
-        confirmQuantity: "Quantity", confirmUnit: "Unit", confirmServingUnit: "serving"
+        confirmQuantity: "Quantity", confirmUnit: "Unit", confirmServingUnit: "serving",
+        blockedHeading: "These ingredients are blocking the save — fix them manually:",
+        blockingReasons: {
+          food_not_found: "Not found in the database.",
+          food_needs_confirmation: "Unclear which food this is — choose one.",
+          ai_estimate_only: "Only an AI estimate, no authoritative data.",
+          quantity_missing: "No amount given."
+        },
+        fixExclude: "Leave out", fixUndo: "Undo", fixGrams: "Amount (g)", fixFood: "Choose food", fixFoodPlaceholder: "— choose —",
+        fixExcluded: "Left out of the calculation", fixReady: "Fixed manually", fixPending: "Still needs a fix"
       },
       aiEstimate: {
         badge: "AI estimate", disclaimer: "AI estimate — not an authoritative nutrition source",
@@ -544,6 +573,7 @@ export const dict = {
       recipe_nutrition_not_calculable: "This recipe's nutrition can't be reliably calculated yet.",
       recipe_sibling_overlap: "This ingredient is already part of another recipe added to this meal.",
       recipe_not_fully_resolved: "One of this recipe's ingredients isn't verified yet — it can't be added like this.",
+      invalid_ingredient_override: "One of the manual fixes is no longer valid (the recipe or the chosen food changed). Please review again.",
       recipe_source_changed: "The recipe's source has changed since. Please review it again before adding.",
       recipe_discovery_unavailable: "Recipe discovery is currently unavailable.",
       validation_error: "Check the recipe details.", network_error: "The API is unreachable. Check your connection.",

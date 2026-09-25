@@ -4,6 +4,7 @@ import { DisabledRecipeSemanticGateProvider } from "../catalog/semantic-candidat
 import { resolveQuantity, type DynamicResolutionDeps } from "../meal-input/interpret.js";
 import { DisabledQuantityEstimationProvider } from "../meal-input/quantity-estimation.js";
 import type { ParsedNaturalFoodQuery } from "../catalog/natural-food-query.js";
+import { normalizeSearch } from "../catalog/normalize.js";
 import type { RecipeIngredientNormalizationProvider } from "./recipe-ingredient-normalization.js";
 import { DisabledRecipeQuantityEstimationProvider, type RecipeQuantityEstimationProvider } from "./recipe-quantity-estimation.js";
 import type { ReviewableIngredient } from "./recipe-ingredient-review.js";
@@ -13,8 +14,24 @@ import { createAiEstimateProof } from "../catalog/ai-estimate-proof.js";
 type SearchablePrisma = Parameters<typeof searchFoods>[0];
 export type BatchResolvedIngredient = ReviewableIngredient & { canConfirm: boolean };
 
-const UNQUANTIFIED_SEASONING_IDENTITIES = new Set(["salt", "pepper", "black pepper"]);
-const isUnquantifiedSeasoning = (parsed: ParsedNaturalFoodQuery, identity: string) => parsed.quantity == null && UNQUANTIFIED_SEASONING_IDENTITIES.has(identity.trim().toLowerCase());
+// Salt/pepper with no stated amount carry no meaningful nutrition, so they are
+// excluded instead of blocking the recipe on a quantity nobody wrote down.
+// Live production case (2026-09-25): "só ízlés szerint" reached this check as
+// a Hungarian or "... to taste" identity, missed the English-only set, and
+// left the whole discovered recipe waiting on a salt confirmation. Matched in
+// HU/DE/EN, with "to taste" phrasing stripped, against the normalized
+// identity and the line's own parsed food words.
+const UNQUANTIFIED_SEASONING_IDENTITIES = new Set([
+  "salt", "pepper", "black pepper", "white pepper", "ground pepper", "ground black pepper", "salt and pepper", "salt pepper", "sea salt", "table salt",
+  "so", "bors", "feketebors", "fekete bors", "orolt bors", "orolt feketebors", "orolt fekete bors", "so es bors", "so bors", "tengeri so",
+  "salz", "pfeffer", "schwarzer pfeffer", "salz und pfeffer", "salz pfeffer", "meersalz"
+]);
+const TO_TASTE_PHRASES = /\b(?:izles szerint|tetszes szerint|igeny szerint|to taste|as needed|nach geschmack|nach belieben|optional|opcionalis)\b/g;
+const seasoningKey = (value: string) => normalizeSearch(value).replace(/[(),]/g, " ").replace(TO_TASTE_PHRASES, " ").replace(/\s+/g, " ").trim();
+// The line's own food words only count for a single-food line: on "só, 500 g
+// hús" the line-level foodQuery is "só", which must never mark the meat as salt.
+const isUnquantifiedSeasoning = (parsed: ParsedNaturalFoodQuery, identity: string, singleFoodLine: boolean) =>
+  parsed.quantity == null && [identity, singleFoodLine ? parsed.foodQuery : undefined].some((value) => !!value && UNQUANTIFIED_SEASONING_IDENTITIES.has(seasoningKey(value)));
 function explicitMass(parsed: ParsedNaturalFoodQuery) {
   if (parsed.quantity == null) return null;
   if (parsed.unit === "g") return parsed.quantity;
@@ -191,7 +208,7 @@ export async function resolveRecipeIngredientsBatch(
     let quantity: ReviewableIngredient["quantity"] = mass == null ? null : { status: "resolved", grams: mass };
     let quantitySource: ReviewableIngredient["quantitySource"] = mass == null ? "unknown" : "explicit";
     let excludeFromNutrition = false;
-    if (isUnquantifiedSeasoning(line.parsed, identityQuery)) {
+    if (isUnquantifiedSeasoning(line.parsed, identityQuery, singleFoodLine)) {
       quantitySource = "unquantified_seasoning";
       excludeFromNutrition = true;
     } else if (singleFoodLine && mass == null && line.parsed.quantity != null && selectedFood && resolution === "resolved") {

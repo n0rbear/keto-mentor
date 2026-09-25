@@ -342,3 +342,18 @@ describe("PHASE 18 — incomplete recipe matrix: five blockers vs two non-blocke
     expect(computeTrustedNutrition([trustedOne(), bread]).calculable).toBe(true);
   });
 });
+
+// Owner request (2026-09-25): each blocking ingredient names its exact reason.
+describe("toIngredientReview: blockingReason", () => {
+  const food = { id: "f1", name: "Cabbage", source: "bls", kcalPer100g: 25, fatPer100g: 0.1, proteinPer100g: 1.3, carbsPer100g: 5.8, fiberPer100g: 2.5 };
+  const base: ReviewableIngredient = { originalText: "x", parsedFoodQuery: "x", resolution: "unresolved", selectedFood: null, candidates: [], quantity: null };
+  it.each([
+    [{ ...base }, "food_not_found"],
+    [{ ...base, aiEstimate: { canonicalFoodName: "x" } as any }, "ai_estimate_only"],
+    [{ ...base, resolution: "confirmation_required", selectedFood: food, candidates: [food] }, "food_needs_confirmation"],
+    [{ ...base, resolution: "resolved", selectedFood: food, candidates: [food] }, "quantity_missing"],
+    [{ ...base, resolution: "resolved", selectedFood: food, candidates: [food], quantity: { status: "resolved", grams: 100 } }, undefined]
+  ] as const)("%# -> %s", (ingredient, reason) => {
+    expect(toIngredientReview(ingredient as ReviewableIngredient).blockingReason).toBe(reason);
+  });
+});

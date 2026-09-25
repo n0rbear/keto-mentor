@@ -254,6 +254,42 @@ describe("resolveRecipeIngredientsBatch", () => {
     expect(result!.every((r) => r.quantitySource === "unquantified_seasoning" && r.excludeFromNutrition === true)).toBe(true);
   });
 
+  // Live production case (2026-09-25): "só ízlés szerint" blocked a whole
+  // discovered recipe because the seasoning check only knew English "salt".
+  it.each([
+    ["só ízlés szerint", "salt to taste"],
+    ["só ízlés szerint", "só ízlés szerint"],
+    ["Salz nach Geschmack", "Salz"],
+    ["frisch gemahlener Pfeffer nach Belieben", "pfeffer"],
+    ["fekete bors", "fekete bors"]
+  ])("an unquantified seasoning line (%s -> identity %s) is excluded from nutrition instead of blocking", async (raw, identity) => {
+    const { prisma } = fakePrisma();
+    const result = await resolveRecipeIngredientsBatch(
+      prisma, normalizationProvider({ ingredients: [{ index: 0, foods: [{ canonicalIdentity: identity }] }] }),
+      { lines: [{ index: 0, raw, parsed: parseNaturalFoodQuery(raw) }] },
+      dynamicDeps(prisma, async () => [])
+    );
+    expect(result![0]).toMatchObject({ quantitySource: "unquantified_seasoning", excludeFromNutrition: true });
+  });
+
+  it("a quantified salt line and a non-seasoning food sharing a line with salt are never excluded", async () => {
+    const { prisma } = fakePrisma();
+    const result = await resolveRecipeIngredientsBatch(
+      prisma, normalizationProvider({ ingredients: [
+        { index: 0, foods: [{ canonicalIdentity: "salt" }] },
+        { index: 1, foods: [{ canonicalIdentity: "salt" }, { canonicalIdentity: "chicken breast" }] }
+      ] }),
+      { lines: [
+        { index: 0, raw: "1 tk só", parsed: parseNaturalFoodQuery("1 tk só") },
+        { index: 1, raw: "só, csirkemell", parsed: parseNaturalFoodQuery("só, csirkemell") }
+      ] },
+      dynamicDeps(prisma, async () => [])
+    );
+    expect(result![0].excludeFromNutrition).toBe(false);
+    const chicken = result!.find((r) => r.parsedFoodQuery === "chicken breast")!;
+    expect(chicken.excludeFromNutrition).toBe(false);
+  });
+
   it("an ingredient line the model returned no foods for (defensive) is treated as unresolved, never thrown", async () => {
     const { prisma } = fakePrisma();
     const result = await resolveRecipeIngredientsBatch(

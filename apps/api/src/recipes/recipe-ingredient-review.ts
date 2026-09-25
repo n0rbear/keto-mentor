@@ -14,7 +14,12 @@ import type { InterpretResult } from "../meal-input/interpret.js";
  * only ever carry already-trusted catalog Food rows.
  */
 export type RecipeIngredientReviewStatus = "resolved" | "confirmation_required" | "unresolved";
-export type RecipeQuantitySource = "explicit" | "authoritative_conversion" | "estimated" | "unquantified_seasoning" | "unknown";
+export type RecipeQuantitySource = "explicit" | "authoritative_conversion" | "estimated" | "unquantified_seasoning" | "user_input" | "unknown";
+
+// Why an ingredient keeps a recipe from being logged (owner request,
+// 2026-09-25: show the exact reason and let the user fix it by hand).
+// Absent whenever trustedNutritionReady is true.
+export type RecipeIngredientBlockingReason = "food_not_found" | "food_needs_confirmation" | "ai_estimate_only" | "quantity_missing";
 
 export type TrustedFoodSummary = {
   sourceId?: string | null;
@@ -76,7 +81,17 @@ export type RecipeIngredientReview = {
   // exists so the review UI has something to show, never so it can be
   // silently treated as trusted.
   trustedNutritionReady: boolean;
+  blockingReason?: RecipeIngredientBlockingReason;
+  // True once a manual override (see applyIngredientOverrides) changed this ingredient.
+  userAdjusted?: boolean;
 };
+
+function blockingReasonOf(review: Pick<RecipeIngredientReview, "trustedNutritionReady" | "status" | "aiEstimate" | "resolvedFood">): RecipeIngredientBlockingReason | undefined {
+  if (review.trustedNutritionReady) return undefined;
+  if (review.status === "unresolved") return review.aiEstimate ? "ai_estimate_only" : "food_not_found";
+  if (review.status === "confirmation_required" || !review.resolvedFood) return "food_needs_confirmation";
+  return "quantity_missing";
+}
 
 // The minimal shape this module needs from a previewRecipeImport ingredient
 // result — avoids a circular import on recipe-import.ts's own richer type.
@@ -173,8 +188,52 @@ export function toIngredientReview(ingredient: ReviewableIngredient): RecipeIngr
     optional: ingredient.optional ?? false,
     includedInBaseNutrition,
     roleEvidence: ingredient.evidence ?? "default_core",
-    trustedNutritionReady
+    trustedNutritionReady,
+    blockingReason: blockingReasonOf({ trustedNutritionReady, status, aiEstimate: ingredient.aiEstimate, resolvedFood })
   };
+}
+
+export type RecipeIngredientOverrideInput =
+  | { ingredientIndex: number; action: "exclude" }
+  | { ingredientIndex: number; action: "grams"; grams: number }
+  | { ingredientIndex: number; action: "food"; foodId: string; grams?: number };
+
+/**
+ * Applies the user's manual fixes to the server's OWN freshly re-derived
+ * ingredient reviews (never to anything the client sent back). `foods` must
+ * hold only foods the caller already checked this user may use (catalog or
+ * their own). An override that points at a missing ingredient or an
+ * unavailable food is refused outright, never silently skipped.
+ */
+export function applyIngredientOverrides(
+  reviews: readonly RecipeIngredientReview[],
+  overrides: readonly RecipeIngredientOverrideInput[],
+  foods: ReadonlyMap<string, TrustedFoodSummary>
+): RecipeIngredientReview[] {
+  const next = reviews.map((review) => ({ ...review }));
+  for (const override of overrides) {
+    const current = next[override.ingredientIndex];
+    if (!current) throw Object.assign(new Error("invalid_ingredient_override"), { status: 400, publicCode: "invalid_ingredient_override" });
+    let updated: RecipeIngredientReview;
+    if (override.action === "exclude") {
+      updated = { ...current, excludeFromNutrition: true, includedInBaseNutrition: false };
+    } else if (override.action === "grams") {
+      updated = { ...current, quantityGrams: override.grams, quantityStatus: "resolved", quantitySource: "user_input" };
+    } else {
+      const food = foods.get(override.foodId);
+      if (!food) throw Object.assign(new Error("invalid_ingredient_override"), { status: 400, publicCode: "invalid_ingredient_override" });
+      const grams = override.grams ?? current.quantityGrams;
+      updated = {
+        ...current, status: "resolved", resolvedFood: food, aiEstimate: undefined, externalCandidates: undefined, externalCandidatesReason: undefined, localCandidates: undefined,
+        excludeFromNutrition: false, includedInBaseNutrition: true,
+        ...(grams != null ? { quantityGrams: grams, quantityStatus: "resolved" as const, quantitySource: override.grams != null ? "user_input" as const : current.quantitySource } : {})
+      };
+    }
+    const excluded = updated.excludeFromNutrition || !updated.includedInBaseNutrition;
+    const trustedNutritionReady = excluded || (updated.status === "resolved" && updated.quantityStatus === "resolved" && !!updated.resolvedFood);
+    next[override.ingredientIndex] = { ...updated, trustedNutritionReady, blockingReason: blockingReasonOf({ ...updated, trustedNutritionReady }), userAdjusted: true };
+  }
+  return next;
 }
 
 export type RecipeReviewState = "fully_resolved" | "reviewable" | "unusable";
