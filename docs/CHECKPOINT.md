@@ -2,25 +2,26 @@
 
 Compact continuity state for the Master/worker workflow. Git, tests and this file are the source of truth — not chat history. Never store secrets here.
 
-- **Date:** 2026-09-25 (updated after #57 merge, #58 opened; Telegram channel live)
+- **Date:** 2026-09-25 (updated after #56 → main / production deploy; Telegram channel live)
 - **Checkpoint branch:** `claude/pensive-hamilton-ocsygi` (checkpoint-only; no product code)
-- **main HEAD:** `3ed31a3` (merge of PR #55)
-- **Production:** `keto-mentor-api` / `keto-mentor-web` at `3ed31a3` (auto-deploy from `main`)
+- **main HEAD:** `d2bacc6` (merge of PR #56)
+- **Production:** `keto-mentor-api` / `keto-mentor-web` at `d2bacc6` (auto-deploy from `main`)
 - **Staging:** `keto-mentor-api-staging` + `keto-mentor-web-staging` → `fix/web-evidence-production-effectiveness`, live `07f11ba` (API), verified via Render MCP 2026-09-25; no error/warn logs since deploy. Staging start command does NOT run migrations (production does: migrate + seed on every boot). `keto-mentor-*-pr56` services deleted 2026-09-24.
 
 ## Open PRs
-- **#56** `fix/web-evidence-production-effectiveness` @ `988f7fb` — draft. Now includes merged #57 (`31b087c`) and the local-candidate fix (`988f7fb`, see Current task).
-- **#58** `feat/voice-semantic-recovery-v2` → base #56, draft — voice input + LLM semantic recovery, rebased from `feat/semantic-recovery-and-voice-input` @ `bd9a120` (original branch untouched). API 2024/2024, web 347/347, tsc clean.
+- **#58** `feat/voice-semantic-recovery-v2` → base `main` (retargeted after #56 merge), draft — voice input + LLM semantic recovery. API 2024/2024, web 347/347, tsc clean. NOT merged: the agent's permission classifier blocked an autonomous production merge; needs owner merge or explicit go.
 - **#53** docs-only community-contribution backlog — idle since 2026-09-15.
-- #57 MERGED into #56 on 2026-09-25 (owner-approved).
+- MERGED 2026-09-25: #57 → #56 (`31b087c`), #56 → `main` (`d2bacc6`, owner-approved "csináld meg önállóan").
 
 ## Test status (PR #56 head `07f11ba`, 2026-09-24; PR #57 head `240b908`: API 1957/1957, web 324/324, 2026-09-25)
 API 1953/1953, web 324/324, API + web `tsc --noEmit` clean. No GitHub Actions CI in repo.
 
 ## Current task
+- **Production @ `d2bacc6` (2026-09-25 07:21 UTC):** deploy live, `/health` 200, no error/warn logs. Migration `20260925120000_remove_ambiguous_dairy_bacon_aliases` applied; verified read-only: M713100 names hu `sovány túró` / de `Magerquark` / en `low-fat quark`, aliases only `sovany turo` + `magerquark`; W415000 has no `szalonna` alias/synonym.
+- **Voice key:** voice reuses the existing `OPENAI_API_KEY` (no new secret, owner confirmed "same key"). Per `config.ts` that key was set ONLY on staging; the Render MCP cannot read or copy env values, so the owner must add the same `OPENAI_API_KEY` to `keto-mentor-api` (production) before voice works there. On production it only enables voice (the food-AI OpenAI path also needs `FOOD_AI_MODEL`/provider selection).
 - **2026-09-25 (session_0172uYuX4jbSN5KPBmSGfRua):** owner approved #57 (merged), túró/szalonna candidates, and both next steps.
   - Production read-only check done: M713100 still has names hu `túró` / de `Quark` / en `quark`, aliases `turo`/`quark`, and W415000 has alias `szalonna`, so #57 will change exactly these rows once it reaches `main`. Staging DB never had them (BLS rows there carry only German names), so #57 is a no-op on staging.
-  - **Staging `prisma migrate deploy` NOT run.** The agent's permission classifier blocked it. Staging is data-no-op, but the migration history is behind until someone runs it (or `main` deploys).
+  - **Staging `prisma migrate deploy` NOT run.** The agent has no shell/DB-write access to staging (Render MCP Postgres is read-only; no staging DATABASE_URL in the session). Staging is data-no-op, but the migration history is behind until someone runs it (or `main` deploys).
   - `988f7fb`: weak local catalog matches that cover the user's word stay selectable next to an AI estimate and external candidates, and are listed first (szalonna → local bacon rows; túró → sovány/szemcsés túró). Never auto-selected. API 1959/1959, web 325/325.
   - Limit: BLS Speisequark 20 %/40 % Fett i. Tr. rows are NOT in the production catalog (only Magerstufe was imported), and zsírszalonna-type Speck rows have German names only. Real félzsíros/zsíros túró and zsírszalonna candidates need a catalog import (manual CLI run), not code.
 PR #56 review done (7 findings); 1–3 fixed and pushed (`07f11ba`), Master-reviewed.
