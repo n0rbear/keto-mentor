@@ -245,6 +245,55 @@ describe("recipe-discovery candidate confirmation UI (Gate 2)", () => {
     expect(screen.queryByText(dict.en.foodUnderstanding.recipeDiscovery.confirmAdd)).toBeNull();
   });
 
+  // Owner request (2026-09-25): a blocking ingredient shows its exact reason
+  // and can be fixed by hand; the fixes travel with the save request.
+  describe("manual fixes for blocking ingredients", () => {
+    const blockedCandidate: RecipeDiscoveryCandidateValue = {
+      ...fullyResolvedCandidate, nutritionCalculable: false,
+      ingredients: [
+        { originalText: "1 kg ponty", parsedFoodQuery: "carp", status: "resolved", quantityGrams: 1000, resolvedFood: { id: "carp", name: "Carp", source: "usda_fdc" }, trustedNutritionReady: true },
+        { originalText: "só ízlés szerint", parsedFoodQuery: "salt to taste", status: "unresolved", resolvedFood: null, trustedNutritionReady: false, blockingReason: "food_not_found" },
+        { originalText: "2 fej hagyma", parsedFoodQuery: "onion", status: "confirmation_required", resolvedFood: null, trustedNutritionReady: false, blockingReason: "food_needs_confirmation",
+          localCandidates: [{ id: "onion-raw", name: "Onion, raw", source: "bls" }] }
+      ]
+    };
+
+    it.each(["hu", "de", "en"] as const)("names the exact blocking reason per ingredient (%s)", (lang) => {
+      render(<FoodUnderstandingPreview value={singleValue(blockedCandidate)} lang={lang} labels={dict[lang].foodUnderstanding} busy={false} onConfirmAll={vi.fn()} onConfirmRecipe={vi.fn()}/>);
+      const labels = dict[lang].foodUnderstanding.recipeDiscovery;
+      expect(screen.getByText(labels.blockedHeading)).toBeTruthy();
+      expect(screen.getByText(labels.blockingReasons.food_not_found)).toBeTruthy();
+      expect(screen.getByText(labels.blockingReasons.food_needs_confirmation)).toBeTruthy();
+      expect(screen.queryByText(labels.confirmAdd)).toBeNull();
+    });
+
+    it("offers the save only once every blocking ingredient is fixed, and sends the fixes as overrides", () => {
+      const onConfirm = vi.fn();
+      render(<FoodUnderstandingPreview value={singleValue(blockedCandidate)} lang="en" labels={dict.en.foodUnderstanding} busy={false} onConfirmAll={vi.fn()} onConfirmRecipe={onConfirm}/>);
+      const labels = dict.en.foodUnderstanding.recipeDiscovery;
+      fireEvent.click(screen.getAllByText(labels.fixExclude)[0]);
+      expect(screen.getByText(labels.fixExcluded)).toBeTruthy();
+      expect(screen.queryByText(labels.confirmAdd)).toBeNull();
+      fireEvent.change(screen.getByLabelText(`${labels.fixFood}: 2 fej hagyma`), { target: { value: "onion-raw" } });
+      expect(screen.queryByText(labels.confirmAdd)).toBeNull(); // food chosen, amount still missing
+      fireEvent.change(screen.getByLabelText(`${labels.fixGrams}: 2 fej hagyma`), { target: { value: "220" } });
+      fireEvent.click(screen.getByText(labels.confirmAdd));
+      expect(onConfirm).toHaveBeenCalledWith(blockedCandidate, 1, "serving", [
+        { ingredientIndex: 1, action: "exclude" },
+        { ingredientIndex: 2, action: "food", foodId: "onion-raw", grams: 220 }
+      ]);
+    });
+
+    it("undoing a 'leave out' brings the ingredient back to pending", () => {
+      render(<FoodUnderstandingPreview value={singleValue(blockedCandidate)} lang="en" labels={dict.en.foodUnderstanding} busy={false} onConfirmAll={vi.fn()} onConfirmRecipe={vi.fn()}/>);
+      const labels = dict.en.foodUnderstanding.recipeDiscovery;
+      fireEvent.click(screen.getAllByText(labels.fixExclude)[0]);
+      fireEvent.click(screen.getByText(labels.fixUndo));
+      expect(screen.queryByText(labels.fixExcluded)).toBeNull();
+      expect(screen.getAllByText(labels.fixPending)).toHaveLength(2);
+    });
+  });
+
   it("no confirm controls render at all when the caller doesn't pass onConfirmRecipe (display-only preview, e.g. an older client)", () => {
     render(<FoodUnderstandingPreview value={singleValue(fullyResolvedCandidate)} lang="en" labels={dict.en.foodUnderstanding} busy={false} onConfirmAll={vi.fn()}/>);
     expect(screen.queryByText(dict.en.foodUnderstanding.recipeDiscovery.confirmAdd)).toBeNull();

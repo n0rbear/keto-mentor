@@ -14,7 +14,9 @@ function fakePrisma(options: { existingRecipe?: any; foods?: any[] } = {}) {
   const foods = options.foods ?? [cabbageFood];
   const client: any = {
     foodAlias: { findMany: async () => [] },
-    food: { findMany: async ({ where }: any) => foods.filter((f) => where.OR?.some((c: any) => f.searchText.includes(c.searchText?.contains ?? " "))) },
+    food: { findMany: async ({ where }: any) => where.id?.in
+      ? foods.filter((f) => where.id.in.includes(f.id) && where.OR.some((c: any) => (f.createdById ?? null) === c.createdById))
+      : foods.filter((f) => where.OR?.some((c: any) => f.searchText.includes(c.searchText?.contains ?? " "))) },
     recipe: {
       findFirst: async () => options.existingRecipe ?? null,
       create: async ({ data }: any) => {
@@ -211,5 +213,59 @@ describe("prepareRecipeDiscoveryItem / persistPreparedRecipe / computeRecipeMeal
     await expect(prepareRecipeDiscoveryItem(fake.client, "user-1", validItem({ importProof: proof, extractionMethod: "ai_structured" }), deps()))
       .rejects.toMatchObject({ publicCode: "recipe_source_changed" });
     expect(fake.created).toHaveLength(0);
+  });
+});
+
+// Owner request (2026-09-25): an ingredient that blocks a discovered recipe
+// can be fixed by hand. The server applies the fixes to its OWN re-derived
+// ingredient list and only accepts foods the user may use.
+describe("prepareRecipeDiscoveryItem: manual ingredient overrides", () => {
+  const twoIngredientDeps = () => deps({
+    fetchDependencies: { resolve: async () => [{ address: "93.184.216.34", family: 4 }], request: async () => ({ status: 200, headers: { "content-type": "text/html" }, body: Buffer.from(html(["1000 g cabbage", "1 marék titokzatos fűszerkeverék"], "2 servings")) }) }
+  });
+
+  it("without overrides the blocking ingredient still refuses the recipe", async () => {
+    const fake = fakePrisma();
+    await expect(prepareRecipeDiscoveryItem(fake.client, "user-1", validItem(), twoIngredientDeps())).rejects.toMatchObject({ publicCode: "recipe_not_fully_resolved" });
+  });
+
+  it("excluding the blocking ingredient saves the recipe from the rest, marked as user-adjusted", async () => {
+    const fake = fakePrisma();
+    const item = validItem({ ingredientOverrides: [{ ingredientIndex: 1, action: "exclude" }] });
+    const { mealItemData } = await prepareComputeAndPersist(fake.client, "user-1", item, twoIngredientDeps());
+    expect(mealItemData.snapshotKcal).toBeCloseTo(25, 5); // 100 g of the 1000 g cabbage-only recipe
+    expect(fake.created[0].provenance).toMatchObject({ trust: "source_verified_user_adjusted", userAdjustedIngredients: [1] });
+    expect(fake.created[0].ingredients[1]).toMatchObject({ foodId: null, includedInBaseNutrition: false });
+  });
+
+  it("choosing a catalog food with grams for the blocking ingredient resolves it", async () => {
+    const fake = fakePrisma();
+    const item = validItem({ ingredientOverrides: [{ ingredientIndex: 1, action: "food", foodId: "cabbage", grams: 1000 }] });
+    const { mealItemData } = await prepareComputeAndPersist(fake.client, "user-1", item, twoIngredientDeps());
+    expect(mealItemData.snapshotKcal).toBeCloseTo(25, 5);
+    expect(fake.created[0].ingredients[1]).toMatchObject({ foodId: "cabbage", quantityGrams: 1000 });
+  });
+
+  it("grams alone cannot fix an ingredient whose food is still unknown", async () => {
+    const fake = fakePrisma();
+    const item = validItem({ ingredientOverrides: [{ ingredientIndex: 1, action: "grams", grams: 20 }] });
+    await expect(prepareRecipeDiscoveryItem(fake.client, "user-1", item, twoIngredientDeps())).rejects.toMatchObject({ publicCode: "recipe_not_fully_resolved" });
+  });
+
+  it("another user's private food or an out-of-range ingredient index is refused, never skipped", async () => {
+    const foreign = { ...cabbageFood, id: "foreign", createdById: "user-2" };
+    const fake = fakePrisma({ foods: [cabbageFood, foreign] });
+    await expect(prepareRecipeDiscoveryItem(fake.client, "user-1", validItem({ ingredientOverrides: [{ ingredientIndex: 1, action: "food", foodId: "foreign", grams: 10 }] }), twoIngredientDeps()))
+      .rejects.toMatchObject({ publicCode: "invalid_ingredient_override" });
+    await expect(prepareRecipeDiscoveryItem(fake.client, "user-1", validItem({ ingredientOverrides: [{ ingredientIndex: 7, action: "exclude" }] }), twoIngredientDeps()))
+      .rejects.toMatchObject({ publicCode: "invalid_ingredient_override" });
+    expect(fake.created).toHaveLength(0);
+  });
+
+  it("an adjusted recipe is never swapped for an earlier import of the same URL", async () => {
+    const fake = fakePrisma({ existingRecipe: { id: "existing-recipe", ingredients: [] } });
+    const item = validItem({ ingredientOverrides: [{ ingredientIndex: 1, action: "exclude" }] });
+    const prepared = await prepareRecipeDiscoveryItem(fake.client, "user-1", item, twoIngredientDeps());
+    expect(prepared.kind).toBe("pending");
   });
 });

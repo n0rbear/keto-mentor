@@ -91,12 +91,23 @@ export const catalogMealItemSchema = z.object({
 // the authenticated user legitimately went through discovery/preview for
 // this exact URL, nothing more. `quantity`/`unit` mirror recipeMealSchema's
 // existing portion contract exactly (addRecipeToMeal).
+// Manual fixes for recipe ingredients that blocked a discovered recipe
+// (owner request, 2026-09-25). Applied by the server to its OWN re-derived
+// ingredient list, by index; never trusted as nutrition data. A chosen food
+// must be a catalog food or the user's own (checked server-side).
+export const recipeIngredientOverrideSchema = z.discriminatedUnion("action", [
+  z.object({ ingredientIndex: z.number().int().min(0).max(99), action: z.literal("exclude") }).strict(),
+  z.object({ ingredientIndex: z.number().int().min(0).max(99), action: z.literal("grams"), grams: z.number().positive().max(5000) }).strict(),
+  z.object({ ingredientIndex: z.number().int().min(0).max(99), action: z.literal("food"), foodId: z.string().trim().min(1).max(64), grams: z.number().positive().max(5000).optional() }).strict()
+]);
+
 export const recipeDiscoveryMealItemSchema = z.object({
   sourceUrl: safeRecipeSourceUrlSchema,
   importProof: z.string().max(4_000),
   extractionMethod: z.enum(["schema_org_json_ld", "ai_structured"]),
   quantity: z.number().positive().max(5000),
-  unit: z.enum(["g", "serving"])
+  unit: z.enum(["g", "serving"]),
+  ingredientOverrides: z.array(recipeIngredientOverrideSchema).max(100).optional()
 }).strict();
 
 // FINAL FALLBACK: AI-ESTIMATED NUTRITION (2026-09-16) — accepts a
@@ -345,3 +356,4 @@ export type LocaleUpdateInput = z.infer<typeof localeUpdateSchema>;
 export type CreateMealInput = z.infer<typeof createMealSchema>;
 export type EditPrivateFoodInput = z.infer<typeof editPrivateFoodSchema>;
 export type RecipeDiscoveryMealItemInput = z.infer<typeof recipeDiscoveryMealItemSchema>;
+export type RecipeIngredientOverride = z.infer<typeof recipeIngredientOverrideSchema>;

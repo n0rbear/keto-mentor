@@ -12,7 +12,7 @@ import { RecipeBuilder } from "./RecipeBuilder";
 import { MealEditDialog, DeleteMealDialog, RepeatMealDialog, type MealDetail } from "./MealActions";
 import { WeekOverviewCard, type WeekOverviewData } from "./WeekOverview";
 import { AuthForm } from "./AuthForm";
-import { FoodUnderstandingPreview, type ExternalCandidate, type RecipeDiscoveryPreviewValue, type RecipeDiscoveryCandidateValue, type AiEstimateValue, type AiEstimateOverridePayload, type CandidateFood } from "./FoodUnderstandingPreview";
+import { FoodUnderstandingPreview, type ExternalCandidate, type RecipeDiscoveryPreviewValue, type RecipeDiscoveryCandidateValue, type AiEstimateValue, type AiEstimateOverridePayload, type CandidateFood, type RecipeIngredientOverride } from "./FoodUnderstandingPreview";
 import { pickDisplayName } from "./food-display-name";
 import { QuantityClarification } from "./QuantityClarification";
 import { BarcodeLookup } from "./BarcodeLookup";
@@ -344,7 +344,7 @@ export function App() {
   // and a sibling item already covering the same ingredient is refused
   // (recipe_sibling_overlap) — this function only ever surfaces whatever the
   // server actually decided, never overrides it client-side.
-  async function confirmRecipe(candidate: RecipeDiscoveryCandidateValue, quantity: number, unit: "g" | "serving") {
+  async function confirmRecipe(candidate: RecipeDiscoveryCandidateValue, quantity: number, unit: "g" | "serving", ingredientOverrides?: RecipeIngredientOverride[]) {
     if (confirmingRecipe || mealSaving) return;
     setConfirmingRecipe(true);
     setMealStatus(null);
@@ -353,7 +353,7 @@ export function App() {
         method: "POST",
         body: JSON.stringify({
           title: interpretation?.semantic?.dishName || candidate.title,
-          items: [{ sourceUrl: candidate.sourceUrl, importProof: candidate.importProof, extractionMethod: candidate.extractionMethod, quantity, unit }]
+          items: [{ sourceUrl: candidate.sourceUrl, importProof: candidate.importProof, extractionMethod: candidate.extractionMethod, quantity, unit, ...(ingredientOverrides?.length ? { ingredientOverrides } : {}) }]
         })
       }, state);
       setInterpretation(null);

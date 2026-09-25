@@ -367,6 +367,15 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
 .recipe-card summary { cursor: pointer; color: rgb(var(--brand-bright)); font-weight: 800; }
 .recipe-detail-list { margin: .5rem 0; padding-left: 1.2rem; color: rgb(var(--text-muted)); font-size: .86rem; }
 .recipe-meal-controls { display: grid; grid-template-columns: 95px 90px minmax(0, 1fr); gap: .45rem; }
+.blocked-ingredients { display: grid; gap: .5rem; margin: .6rem 0; padding: .65rem; border: 1px solid rgb(var(--warning) / .35); border-radius: 10px; background: rgb(var(--warning) / .06); }
+.blocked-ingredients ul { display: grid; gap: .6rem; margin: 0; padding: 0; list-style: none; }
+.blocked-ingredient { display: grid; gap: .3rem; min-width: 0; }
+.blocked-ingredient strong { overflow-wrap: anywhere; }
+.blocked-ingredient-reason { color: rgb(var(--warning)); }
+.blocked-ingredient-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; }
+.blocked-ingredient-controls .field { flex: 1 1 120px; min-width: 0; }
+.blocked-ingredient-status { color: rgb(var(--text-muted)); }
+.blocked-ingredient-status.ready { color: rgb(var(--success)); }
 
 .app-footer { border-top: 1px solid rgb(var(--border) / .1); background: rgb(var(--bg) / .74); }
 .footer-inner { display: flex; width: min(1180px, calc(100% - 32px)); margin: 0 auto; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.2rem 0; color: rgb(var(--text-soft)); font-size: .78rem; }

@@ -4,7 +4,7 @@ import type { DynamicResolutionDeps } from "../meal-input/interpret.js";
 import type { RecipeExtractionProvider } from "../recipes/recipe-extraction-provider.js";
 import { previewRecipeImport } from "../recipes/recipe-import.js";
 import { verifyRecipeImportProof } from "../recipes/import-proof.js";
-import { toIngredientReview, classifyRecipeReview, computeTrustedNutrition, type ReviewableIngredient, type TrustedFoodSummary } from "../recipes/recipe-ingredient-review.js";
+import { toIngredientReview, classifyRecipeReview, computeTrustedNutrition, applyIngredientOverrides, type ReviewableIngredient, type TrustedFoodSummary } from "../recipes/recipe-ingredient-review.js";
 import { calculateRecipeNutrition, scaleRecipeSnapshot, type RecipeWithIngredients } from "../recipes/nutrition.js";
 import type { SafeFetcherDependencies } from "../recipes/safe-url-fetcher.js";
 import { DisabledRecipeIngredientNormalizationProvider, type RecipeIngredientNormalizationProvider } from "../recipes/recipe-ingredient-normalization.js";
@@ -84,7 +84,10 @@ export async function prepareRecipeDiscoveryItem(
 ): Promise<PreparedRecipeDiscoveryItem> {
   verifyRecipeImportProof(item.importProof, userId, item.sourceUrl, item.extractionMethod);
 
-  const existing = await prisma.recipe.findFirst({ where: { userId, sourceUrl: item.sourceUrl, deletedAt: null }, include: recipeInclude });
+  const overrides = item.ingredientOverrides ?? [];
+  // A manually adjusted recipe is the user's own variant of the page, so it
+  // is never swapped for an earlier import of the same URL.
+  const existing = overrides.length ? null : await prisma.recipe.findFirst({ where: { userId, sourceUrl: item.sourceUrl, deletedAt: null }, include: recipeInclude });
   if (existing) return { kind: "existing", recipeId: existing.id, sourceUrl: item.sourceUrl, recipe: existing as unknown as RecipeWithIngredients };
 
   const extracted = await previewRecipeImport(
@@ -98,7 +101,16 @@ export async function prepareRecipeDiscoveryItem(
   // whatever comes back now.
   if (extracted.extractionMethod !== item.extractionMethod) throw recipeDiscoveryMealItemError("recipe_source_changed");
 
-  const reviews = extracted.ingredients.map((ingredient) => toIngredientReview(ingredient as unknown as ReviewableIngredient));
+  const derivedReviews = extracted.ingredients.map((ingredient) => toIngredientReview(ingredient as unknown as ReviewableIngredient));
+  const overrideFoodIds = [...new Set(overrides.flatMap((override) => override.action === "food" ? [override.foodId] : []))];
+  const overrideFoods = overrideFoodIds.length ? await prisma.food.findMany({
+    // Catalog foods or the user's own private foods only, never another user's.
+    where: { id: { in: overrideFoodIds }, OR: [{ createdById: null }, { createdById: userId }] },
+    select: { id: true, name: true, source: true, sourceId: true, kcalPer100g: true, fatPer100g: true, proteinPer100g: true, carbsPer100g: true, fiberPer100g: true }
+  }) : [];
+  const reviews = overrides.length
+    ? applyIngredientOverrides(derivedReviews, overrides, new Map(overrideFoods.map((food) => [food.id, food as TrustedFoodSummary])))
+    : derivedReviews;
   const summary = classifyRecipeReview(reviews);
   if (summary.state !== "fully_resolved") throw recipeDiscoveryMealItemError("recipe_not_fully_resolved");
   const trusted = computeTrustedNutrition(reviews, extracted.servings);
@@ -129,7 +141,11 @@ export async function prepareRecipeDiscoveryItem(
       visibility: "private",
       sourceType: extracted.extractionMethod === "schema_org_json_ld" ? "schema_org" : "ai_structured",
       sourceUrl: extracted.sourceUrl,
-      provenance: { importedAt: new Date().toISOString(), extractionMethod: extracted.extractionMethod, sourceUrl: extracted.sourceUrl, trust: "source_verified" },
+      provenance: {
+        importedAt: new Date().toISOString(), extractionMethod: extracted.extractionMethod, sourceUrl: extracted.sourceUrl,
+        trust: overrides.length ? "source_verified_user_adjusted" : "source_verified",
+        ...(overrides.length ? { userAdjustedIngredients: [...new Set(overrides.map((override) => override.ingredientIndex))] } : {})
+      },
       ingredients: {
         create: virtualIngredients.map((ingredient, index) => ({
           foodId: ingredient.foodId, quantityGrams: ingredient.quantityGrams, originalText: ingredient.originalText, preparation: ingredient.preparation,

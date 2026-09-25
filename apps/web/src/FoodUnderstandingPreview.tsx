@@ -86,10 +86,25 @@ export type AiEstimateOverridePayload = {
 // arbitrary webpage content or AI-invented nutrition: nutritionPer100g is
 // only ever the value the server itself already computed from trusted
 // ingredient Food records × quantities.
+export type RecipeBlockingReason = "food_not_found" | "food_needs_confirmation" | "ai_estimate_only" | "quantity_missing";
+export type RecipeIngredientValue = {
+  originalText: string; parsedFoodQuery: string; status: string; quantityGrams?: number; aiEstimate?: AiEstimateValue;
+  resolvedFood: { id?: string; name: string; source: string; sourceId?: string | null } | null;
+  localCandidates?: { id: string; name: string; source: string }[];
+  trustedNutritionReady?: boolean;
+  blockingReason?: RecipeBlockingReason;
+};
+// Mirrors @keto-mentor/shared's recipeIngredientOverrideSchema; the server
+// applies these to its own re-derived ingredient list when saving.
+export type RecipeIngredientOverride =
+  | { ingredientIndex: number; action: "exclude" }
+  | { ingredientIndex: number; action: "grams"; grams: number }
+  | { ingredientIndex: number; action: "food"; foodId: string; grams?: number };
+
 export type RecipeDiscoveryCandidateValue = {
   title: string;
   instructions?: string[];
-  ingredients?: { originalText: string; parsedFoodQuery: string; status: string; quantityGrams?: number; aiEstimate?: AiEstimateValue; resolvedFood: { name: string; source: string; sourceId?: string | null } | null }[];
+  ingredients?: RecipeIngredientValue[];
   domain: string;
   sourceUrl: string;
   servings?: number;
@@ -207,6 +222,16 @@ export type FoodUnderstandingLabels = {
     confirmQuantity: string;
     confirmUnit: string;
     confirmServingUnit: string;
+    blockedHeading: string;
+    blockingReasons: Record<RecipeBlockingReason, string>;
+    fixExclude: string;
+    fixUndo: string;
+    fixGrams: string;
+    fixFood: string;
+    fixFoodPlaceholder: string;
+    fixExcluded: string;
+    fixReady: string;
+    fixPending: string;
   };
   aiEstimate: {
     badge: string;
@@ -374,13 +399,84 @@ function DiscoveredRecipe({ candidate, lang }: { candidate: RecipeDiscoveryCandi
   </section>;
 }
 
+// Owner request (2026-09-25): one ingredient must never silently stall a
+// whole discovered recipe. Each blocking ingredient shows its exact reason
+// and can be fixed by hand: left out, given an amount, or matched to a
+// catalog food the backend already offered. Nothing here is trusted as
+// nutrition: the fixes travel with the save request and the server applies
+// them to its own fresh re-derivation (see meals/recipe-discovery-meal-item.ts).
+type IngredientFix = { exclude?: boolean; grams?: string; foodId?: string };
+
+function fixToOverrides(index: number, fix: IngredientFix | undefined): RecipeIngredientOverride[] {
+  if (!fix) return [];
+  if (fix.exclude) return [{ ingredientIndex: index, action: "exclude" }];
+  const grams = Number(fix.grams);
+  const hasGrams = !!fix.grams && Number.isFinite(grams) && grams > 0;
+  if (fix.foodId) return [{ ingredientIndex: index, action: "food", foodId: fix.foodId, ...(hasGrams ? { grams } : {}) }];
+  return hasGrams ? [{ ingredientIndex: index, action: "grams", grams }] : [];
+}
+
+// Client-side mirror of the server's readiness rule, only used to decide
+// whether to offer the save button; the server re-checks everything.
+function fixResolves(ingredient: RecipeIngredientValue, fix: IngredientFix | undefined): boolean {
+  if (!fix) return false;
+  if (fix.exclude) return true;
+  const hasGrams = !!fix.grams && Number(fix.grams) > 0;
+  const hasFood = !!fix.foodId || (ingredient.status === "resolved" && !!ingredient.resolvedFood);
+  return hasFood && (hasGrams || ingredient.quantityGrams != null);
+}
+
+function BlockedIngredientFix({ ingredient, fix, labels, busy, onChange }: {
+  ingredient: RecipeIngredientValue; fix: IngredientFix | undefined; labels: FoodUnderstandingLabels["recipeDiscovery"]; busy: boolean;
+  onChange: (fix: IngredientFix | undefined) => void;
+}) {
+  const reason = ingredient.blockingReason ?? (ingredient.status === "resolved" ? "quantity_missing" : ingredient.status === "confirmation_required" ? "food_needs_confirmation" : "food_not_found");
+  const needsFood = reason !== "quantity_missing";
+  const resolved = fixResolves(ingredient, fix);
+  return <li className="blocked-ingredient">
+    <strong>{ingredient.originalText}</strong>
+    <small className="blocked-ingredient-reason">{labels.blockingReasons[reason]}</small>
+    {fix?.exclude
+      ? <div className="blocked-ingredient-controls"><small>{labels.fixExcluded}</small><button type="button" className="btn secondary" disabled={busy} onClick={() => onChange(undefined)}>{labels.fixUndo}</button></div>
+      : <div className="blocked-ingredient-controls">
+        {needsFood && !!ingredient.localCandidates?.length && <select aria-label={`${labels.fixFood}: ${ingredient.originalText}`} className="field" disabled={busy} value={fix?.foodId ?? ""} onChange={(event) => onChange({ ...fix, foodId: event.target.value || undefined })}>
+          <option value="">{labels.fixFoodPlaceholder}</option>
+          {ingredient.localCandidates.map((candidate) => <option key={candidate.id} value={candidate.id}>{candidate.name}</option>)}
+        </select>}
+        <input aria-label={`${labels.fixGrams}: ${ingredient.originalText}`} className="field" type="number" min="1" step="1" inputMode="decimal" placeholder={labels.fixGrams} disabled={busy} value={fix?.grams ?? ""} onChange={(event) => onChange({ ...fix, grams: event.target.value })}/>
+        <button type="button" className="btn secondary" disabled={busy} onClick={() => onChange({ exclude: true })}>{labels.fixExclude}</button>
+      </div>}
+    {!fix?.exclude && <small className={resolved ? "blocked-ingredient-status ready" : "blocked-ingredient-status"}>{resolved ? labels.fixReady : labels.fixPending}</small>}
+  </li>;
+}
+
+function RecipeCandidateReview({ candidate, lang, labels, busy, onConfirm }: {
+  candidate: RecipeDiscoveryCandidateValue; lang: Lang; labels: FoodUnderstandingLabels; busy: boolean;
+  onConfirm?: (candidate: RecipeDiscoveryCandidateValue, quantity: number, unit: "g" | "serving", overrides?: RecipeIngredientOverride[]) => void;
+}) {
+  const [fixes, setFixes] = useState<Record<number, IngredientFix>>({});
+  const ingredients = candidate.ingredients ?? [];
+  const blocked = ingredients.map((ingredient, index) => ({ ingredient, index })).filter(({ ingredient }) => ingredient.trustedNutritionReady === false);
+  const allFixed = blocked.length > 0 && blocked.every(({ ingredient, index }) => fixResolves(ingredient, fixes[index]));
+  const overrides = blocked.flatMap(({ index }) => fixToOverrides(index, fixes[index]));
+  return <>
+    <DiscoveredRecipe candidate={candidate} lang={lang}/>
+    {!candidate.nutritionCalculable && !!blocked.length && onConfirm && <section className="blocked-ingredients">
+      <strong>{labels.recipeDiscovery.blockedHeading}</strong>
+      <ul>{blocked.map(({ ingredient, index }) => <BlockedIngredientFix key={index} ingredient={ingredient} fix={fixes[index]} labels={labels.recipeDiscovery} busy={busy}
+        onChange={(fix) => setFixes((current) => { const next = { ...current }; if (fix) next[index] = fix; else delete next[index]; return next; })}/>)}</ul>
+    </section>}
+    {onConfirm && (candidate.nutritionCalculable || allFixed) && <RecipeConfirmControls candidate={candidate} lang={lang} labels={labels} busy={busy}
+      onConfirm={(c, quantity, unit) => candidate.nutritionCalculable ? onConfirm(c, quantity, unit) : onConfirm(c, quantity, unit, overrides)}/>}
+  </>;
+}
+
 function RecipeConfirmControls({ candidate, lang, labels, busy, onConfirm }: {
   candidate: RecipeDiscoveryCandidateValue; lang: Lang; labels: FoodUnderstandingLabels; busy: boolean;
   onConfirm: (candidate: RecipeDiscoveryCandidateValue, quantity: number, unit: "g" | "serving") => void;
 }) {
   const [unit, setUnit] = useState<"g" | "serving">(candidate.servings ? "serving" : "g");
   const [quantity, setQuantity] = useState(candidate.servings ? 1 : 100);
-  if (!candidate.nutritionCalculable) return null;
   return <div className="recipe-meal-controls">
     <input aria-label={labels.recipeDiscovery.confirmQuantity} className="field" type="number" min="0.1" step="0.1" value={quantity} onChange={(event) => setQuantity(Number(event.target.value))}/>
     <select aria-label={labels.recipeDiscovery.confirmUnit} className="field" value={unit} onChange={(event) => setUnit(event.target.value as "g" | "serving")}>
@@ -474,7 +570,7 @@ function AiEstimateCard({ estimate, labels, busy, onAccept, onOverride, onDeclin
 function PreviewRow({ item, lang, labels, busy, confirmingId, onConfirmExternal, onConfirmRecipe, onAcceptAiEstimate, onOverrideAiEstimate, onSelectCandidate }: {
   item: PreviewItem; lang: Lang; labels: FoodUnderstandingLabels; busy: boolean; confirmingId: string | null;
   onConfirmExternal?: (candidate: ExternalCandidate) => void;
-  onConfirmRecipe?: (candidate: RecipeDiscoveryCandidateValue, quantity: number, unit: "g" | "serving") => void;
+  onConfirmRecipe?: (candidate: RecipeDiscoveryCandidateValue, quantity: number, unit: "g" | "serving", overrides?: RecipeIngredientOverride[]) => void;
   onAcceptAiEstimate?: (estimate: AiEstimateValue, quantityGrams: number) => void;
   onOverrideAiEstimate?: (payload: AiEstimateOverridePayload) => void;
   onSelectCandidate?: (candidate: CandidateFood) => void;
@@ -507,8 +603,7 @@ function PreviewRow({ item, lang, labels, busy, confirmingId, onConfirmExternal,
     {!isAiEstimatePending && <small className="understanding-resolution">{isTrusted ? <CheckCircle2 aria-hidden="true" size={13}/> : <CircleDashed aria-hidden="true" size={13}/>} {isTrusted ? labels.trusted : labels.unresolved}</small>}
     {item.quantity?.status === "resolved" && <small>{item.quantity.estimated ? "≈" : "="} {Math.round((item.quantity.grams ?? 0) * 10) / 10} g</small>}
     {item.recipeDiscovery && <small className="recipe-discovery-note">{recipeDiscoveryText(item.recipeDiscovery, labels)}</small>}
-    {item.recipeDiscovery?.candidate && <DiscoveredRecipe candidate={item.recipeDiscovery.candidate} lang={lang}/>}
-    {item.recipeDiscovery?.candidate && onConfirmRecipe && <RecipeConfirmControls candidate={item.recipeDiscovery.candidate} lang={lang} labels={labels} busy={busy} onConfirm={onConfirmRecipe}/>}
+    {item.recipeDiscovery?.candidate && <RecipeCandidateReview candidate={item.recipeDiscovery.candidate} lang={lang} labels={labels} busy={busy} onConfirm={onConfirmRecipe}/>}
     {hasCatalogCandidates && onSelectCandidate && <CatalogCandidateList candidates={item.candidates!} lang={lang} labels={labels} busy={busy} onSelect={onSelectCandidate}/>}
     {!!item.externalCandidates?.length && onConfirmExternal && <ExternalCandidateList candidates={item.externalCandidates} lang={lang} labels={labels} busy={busy} confirmingId={confirmingId} onConfirm={onConfirmExternal}/>}
     {isAiEstimatePending && onAcceptAiEstimate && onOverrideAiEstimate && <AiEstimateCard estimate={item.aiEstimate!} labels={labels.aiEstimate} busy={busy} onAccept={(quantityGrams) => onAcceptAiEstimate(item.aiEstimate!, quantityGrams)} onOverride={onOverrideAiEstimate} onDecline={() => setAiEstimateDeclined(true)}/>}
@@ -523,7 +618,7 @@ export function FoodUnderstandingPreview({ value, lang, labels, busy, onConfirmA
   onConfirmAll: () => void;
   onConfirmExternal?: (candidate: ExternalCandidate, itemIndex?: number) => void;
   confirmingExternalId?: string | null;
-  onConfirmRecipe?: (candidate: RecipeDiscoveryCandidateValue, quantity: number, unit: "g" | "serving") => void;
+  onConfirmRecipe?: (candidate: RecipeDiscoveryCandidateValue, quantity: number, unit: "g" | "serving", overrides?: RecipeIngredientOverride[]) => void;
   onAcceptAiEstimate?: (estimate: AiEstimateValue, quantityGrams: number, itemIndex?: number) => void;
   onOverrideAiEstimate?: (payload: AiEstimateOverridePayload, itemIndex?: number) => void;
   onSelectCandidate?: (candidate: CandidateFood, itemIndex?: number) => void;
