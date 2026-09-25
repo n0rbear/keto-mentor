@@ -2,16 +2,15 @@
 
 Compact continuity state for the Master/worker workflow. Git, tests and this file are the source of truth — not chat history. Never store secrets here.
 
-- **Date:** 2026-09-25 (updated after #59 → main / production deploy; Telegram channel live)
+- **Date:** 2026-09-25 (updated after #60 → main / production deploy; Telegram channel live)
 - **Checkpoint branch:** `claude/pensive-hamilton-ocsygi` (checkpoint-only; no product code)
-- **main HEAD:** `6c47917` (merge of PR #59)
-- **Production:** `keto-mentor-api` / `keto-mentor-web` at `6c47917` (live 2026-09-25 11:05 UTC, no error/warn logs, `/health` 200). Owner still to verify: Hungarian voice with a real recording, and the manual-fix UI on a blocked recipe.
+- **main HEAD:** `f8f24bf` (merge of PR #60)
+- **Production:** `keto-mentor-api` / `keto-mentor-web` at `f8f24bf` (live 2026-09-25 13:02 UTC, no error/warn logs, `/health` 200). Owner to verify: forced page-language voice (HU worked already on #59) and the recipe fix UI on a real blocked recipe.
 - **Staging:** `keto-mentor-api-staging` + `keto-mentor-web-staging` → `fix/web-evidence-production-effectiveness` (now merged/stale — repoint staging to the next feature branch or `main`), live `07f11ba` (API), verified via Render MCP 2026-09-25; no error/warn logs since deploy. Staging start command does NOT run migrations (production does: migrate + seed on every boot). `keto-mentor-*-pr56` services deleted 2026-09-24.
 
 ## Open PRs
-- **#60** `claude/telegram-bot-messages-qjsiwm` → `main` @ `e2e318c` — voice in the page's UI language (forced `language`, `?lang=`), labelled stop button; recipe fix+confirm controls also for multi-item dishes; fix UI can pick local/USDA candidates, accept an ingredient's AI estimate (private food via `/recipes/ingredients/accept-estimate`), or search the catalog; phone layout (3×2 tiles, no horizontal scroll, Enter interprets). API 2042/2042, web 355/355. Awaiting owner "#60 mehet".
 - **#53** docs-only community-contribution backlog — idle since 2026-09-15.
-- MERGED 2026-09-25: #57 → #56 (`31b087c`); #56 → `main` (`d2bacc6`); #58 voice + semantic recovery → `main` (`a825703`); #59 unforced voice language + HU/DE seasoning + manual ingredient fixes (`blockingReason`, `ingredientOverrides`) → `main` (`6c47917`, owner "#59 mehet").
+- MERGED 2026-09-25: #57 → #56 (`31b087c`); #56 → `main` (`d2bacc6`); #58 voice + semantic recovery → `main` (`a825703`); #59 unforced voice language + HU/DE seasoning + manual ingredient fixes (`blockingReason`, `ingredientOverrides`) → `main` (`6c47917`, owner "#59 mehet"); #60 page-language voice + recipe fix controls everywhere (AI-estimate accept, catalog search, USDA pick) + phone layout → `main` (`f8f24bf`, owner "Mehet").
 
 ## Test status (PR #56 head `07f11ba`, 2026-09-24; PR #57 head `240b908`: API 1957/1957, web 324/324, 2026-09-25)
 API 1953/1953, web 324/324, API + web `tsc --noEmit` clean. No GitHub Actions CI in repo.
