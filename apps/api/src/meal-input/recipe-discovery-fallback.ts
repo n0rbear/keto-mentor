@@ -229,7 +229,11 @@ function isBetterReviewable(a: RecipeReviewSummary, b: RecipeReviewSummary): boo
 
 function isSufficientReviewable(summary: RecipeReviewSummary): boolean {
   const total = summary.resolvedCount + summary.confirmationRequiredCount + summary.unresolvedCount;
-  return total > 0 && summary.trustedNutritionReadyCount / total >= 0.7 && summary.unresolvedCount <= 2;
+  // Loosened 2026-09-25: blocked ingredients can now be fixed by hand in the
+  // UI, so a mostly-trusted recipe is worth showing at once instead of
+  // spending another ~30 s on the next page (live: 14/18 trusted, 3
+  // unresolved still triggered a second full attempt).
+  return total > 0 && summary.trustedNutritionReadyCount / total >= 0.7 && summary.unresolvedCount <= 4;
 }
 
 type DiscoveryTarget = { location: "result" } | { location: "item"; index: number };

@@ -5,7 +5,7 @@ import type { Lang } from "./i18n";
 
 // Plate-photo portion estimation (owner request, 2026-09-25). Offered only
 // where an amount is missing. Home: the user's own plate is measured once
-// with a coin next to it and remembered; later home photos need no coin.
+// with a coin or any wallet card next to it and remembered; later home photos need no coin.
 // Restaurant or guest plates always need a coin and are never saved. The
 // photo only estimates the total weight on the plate; it is never stored.
 
@@ -14,30 +14,30 @@ type Result = { status: "estimated" | "reference_not_found" | "food_not_measurab
 
 const texts = {
   hu: {
-    open: "Adag becslése fotóból", where: "Hol eszel?", homeSaved: "Otthon", homeNew: "Otthon, új saját tányér (érmével, megjegyzem)", away: "Étterem / vendégség (érmével)",
-    coin: "Érme a tányér mellett", eur1: "1 €", huf100: "100 Ft", plateName: "A tányér neve (pl. mély tányér)", take: "Fotó készítése",
+    open: "Adag becslése fotóból", where: "Hol eszel?", homeSaved: "Otthon", homeNew: "Otthon, új saját tányér (érmével vagy kártyával, megjegyzem)", away: "Étterem / vendégség (érmével vagy kártyával)",
+    coin: "Méretarány a tányér mellett", card: "Kártya a tárcádból", cardWarning: "Fontos: olyan kártyát használj, amin nem látszik személyes adat (pl. törzsvásárlói kártya). Ha van rajta név vagy szám, fotózás előtt takard le! A kártyát csak a méretéhez használjuk.", cardHint: "Tegyél egy bankkártya méretű kártyát a tárcádból a tányér mellé, és felülről fotózd le, hogy a tányér pereme is látsszon.", eur1: "1 €", huf100: "100 Ft", plateName: "A tányér neve (pl. mély tányér)", take: "Fotó készítése",
     coinHint: "Tegyél egy 1 €-s vagy 100 Ft-os érmét a tányér mellé, és felülről fotózd le, hogy a tányér pereme is látsszon.",
     plateHint: "Felülről fotózd le, hogy a tányér teljes pereme látsszon.",
     working: "Becslés…", result: "Becsült adag", use: "Ezt használom", saved: "Megjegyeztem a tányért",
-    noReference: "Nem láttam az érmét vagy a tányér peremét. Próbáld újra.", notMeasurable: "Ebből a képből nem tudtam megbecsülni az adagot.",
+    noReference: "Nem láttam az érmét/kártyát vagy a tányér peremét. Próbáld újra.", notMeasurable: "Ebből a képből nem tudtam megbecsülni az adagot.",
     failed: "A becslés most nem sikerült. Add meg kézzel.", cancel: "Mégse"
   },
   de: {
-    open: "Portion per Foto schätzen", where: "Wo isst du?", homeSaved: "Zuhause", homeNew: "Zuhause, neuer eigener Teller (mit Münze, wird gespeichert)", away: "Restaurant / zu Gast (mit Münze)",
-    coin: "Münze neben dem Teller", eur1: "1 €", huf100: "100 Ft", plateName: "Name des Tellers (z. B. tiefer Teller)", take: "Foto aufnehmen",
+    open: "Portion per Foto schätzen", where: "Wo isst du?", homeSaved: "Zuhause", homeNew: "Zuhause, neuer eigener Teller (mit Münze oder Karte, wird gespeichert)", away: "Restaurant / zu Gast (mit Münze oder Karte)",
+    coin: "Größenvergleich neben dem Teller", card: "Karte aus dem Geldbeutel", cardWarning: "Wichtig: Nimm eine Karte ohne persönliche Daten (z. B. eine Kundenkarte). Stehen Name oder Nummern darauf, decke sie vor dem Foto ab! Die Karte dient nur als Größenmaßstab.", cardHint: "Lege eine Karte im Scheckkartenformat aus deinem Geldbeutel neben den Teller und fotografiere von oben, sodass der Tellerrand sichtbar ist.", eur1: "1 €", huf100: "100 Ft", plateName: "Name des Tellers (z. B. tiefer Teller)", take: "Foto aufnehmen",
     coinHint: "Lege eine 1-€- oder 100-Ft-Münze neben den Teller und fotografiere von oben, sodass der Tellerrand sichtbar ist.",
     plateHint: "Von oben fotografieren, sodass der ganze Tellerrand sichtbar ist.",
     working: "Schätzung…", result: "Geschätzte Portion", use: "Übernehmen", saved: "Teller gespeichert",
-    noReference: "Münze oder Tellerrand nicht erkannt. Bitte erneut versuchen.", notMeasurable: "Aus diesem Foto ließ sich die Portion nicht schätzen.",
+    noReference: "Münze/Karte oder Tellerrand nicht erkannt. Bitte erneut versuchen.", notMeasurable: "Aus diesem Foto ließ sich die Portion nicht schätzen.",
     failed: "Die Schätzung ist fehlgeschlagen. Bitte manuell eingeben.", cancel: "Abbrechen"
   },
   en: {
-    open: "Estimate portion from a photo", where: "Where are you eating?", homeSaved: "At home", homeNew: "At home, new own plate (with a coin, remembered)", away: "Restaurant / as a guest (with a coin)",
-    coin: "Coin next to the plate", eur1: "€1", huf100: "100 Ft", plateName: "Plate name (e.g. deep plate)", take: "Take photo",
+    open: "Estimate portion from a photo", where: "Where are you eating?", homeSaved: "At home", homeNew: "At home, new own plate (with a coin or card, remembered)", away: "Restaurant / as a guest (with a coin or card)",
+    coin: "Size reference next to the plate", card: "Card from your wallet", cardWarning: "Important: use a card that shows no personal data (e.g. a loyalty card). If it shows a name or number, cover it before taking the photo! The card is only used for its size.", cardHint: "Put a bank-card-sized card from your wallet next to the plate and shoot from above so the plate rim is visible.", eur1: "€1", huf100: "100 Ft", plateName: "Plate name (e.g. deep plate)", take: "Take photo",
     coinHint: "Put a €1 or 100 Ft coin next to the plate and shoot from above so the plate rim is visible.",
     plateHint: "Shoot from above so the whole plate rim is visible.",
     working: "Estimating…", result: "Estimated portion", use: "Use this", saved: "Plate remembered",
-    noReference: "Couldn't see the coin or the plate rim. Please try again.", notMeasurable: "Couldn't estimate the portion from this photo.",
+    noReference: "Couldn't see the coin/card or the plate rim. Please try again.", notMeasurable: "Couldn't estimate the portion from this photo.",
     failed: "Estimation failed right now. Enter it manually.", cancel: "Cancel"
   }
 } as const;
@@ -63,7 +63,7 @@ export function PortionPhoto({ lang, state, dish, onEstimate }: { lang: Lang; st
   const [open, setOpen] = useState(false);
   const [plates, setPlates] = useState<Plate[] | null>(null);
   const [mode, setMode] = useState<string>("away");
-  const [coin, setCoin] = useState<"eur1" | "huf100">("huf100");
+  const [coin, setCoin] = useState<"eur1" | "huf100" | "card">("huf100");
   const [plateName, setPlateName] = useState("");
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
@@ -88,7 +88,7 @@ export function PortionPhoto({ lang, state, dish, onEstimate }: { lang: Lang; st
       const params = new URLSearchParams({ dish });
       if (mode.startsWith("plate:")) { params.set("reference", "plate"); params.set("plateId", mode.slice(6)); }
       else {
-        params.set("reference", "coin"); params.set("coin", coin);
+        if (coin === "card") params.set("reference", "card"); else { params.set("reference", "coin"); params.set("coin", coin); }
         if (mode === "new") { params.set("savePlate", "1"); if (plateName.trim()) params.set("plateName", plateName.trim()); }
       }
       const body = await downscale(file);
@@ -114,10 +114,11 @@ export function PortionPhoto({ lang, state, dish, onEstimate }: { lang: Lang; st
       <label><input type="radio" name="portion-mode" checked={mode === "away"} onChange={() => setMode("away")}/> {t.away}</label>
     </div>
     {usesCoin && <label className="portion-photo-coin">{t.coin}
-      <select className="field" value={coin} onChange={(event) => setCoin(event.target.value as "eur1" | "huf100")}><option value="huf100">{t.huf100}</option><option value="eur1">{t.eur1}</option></select>
+      <select className="field" value={coin} onChange={(event) => setCoin(event.target.value as "eur1" | "huf100" | "card")}><option value="huf100">{t.huf100}</option><option value="eur1">{t.eur1}</option><option value="card">{t.card}</option></select>
     </label>}
+    {usesCoin && coin === "card" && <strong className="portion-photo-warning" role="alert">{t.cardWarning}</strong>}
     {mode === "new" && <input className="field" aria-label={t.plateName} placeholder={t.plateName} value={plateName} onChange={(event) => setPlateName(event.target.value)}/>}
-    <small>{usesCoin ? t.coinHint : t.plateHint}</small>
+    <small>{!usesCoin ? t.plateHint : coin === "card" ? t.cardHint : t.coinHint}</small>
     <input ref={fileRef} className="portion-photo-file" type="file" accept="image/*" capture="environment" aria-label={t.take} onChange={(event) => { const file = event.target.files?.[0]; if (file) void upload(file); event.target.value = ""; }}/>
     <div className="portion-photo-actions">
       <button type="button" className="btn primary" disabled={busy} onClick={() => fileRef.current?.click()}><Camera aria-hidden="true" size={16}/> {busy ? t.working : t.take}</button>

@@ -75,6 +75,18 @@ describe("plate-photo portion estimation", () => {
     expect(await (await post(base, "dish=leves&reference=coin&coin=eur1")).json()).toMatchObject({ status: "reference_not_found" });
   });
 
+  it("a bank card can be the scale (and calibrate a home plate); the prompt forbids reading the card", async () => {
+    const { prisma, plates } = fakePrisma();
+    const seen: any[] = [];
+    const base = await start(prisma, provider({ plateDiameterMm: 255 }, seen));
+    expect(await (await post(base, "dish=gul%C3%A1s&reference=card&savePlate=1")).json()).toMatchObject({ status: "estimated", savedPlate: { diameterMm: 255 } });
+    expect(seen[0]).toMatchObject({ reference: { kind: "card" }, measurePlate: true });
+    expect(plates).toHaveLength(1);
+    const instruction = portionInstruction({ dish: "x", reference: { kind: "card" }, measurePlate: true });
+    expect(instruction).toContain("85.6 x 53.98 mm");
+    expect(instruction).toContain("Never read");
+  });
+
   it("an absurd plate diameter or portion is not trusted", async () => {
     const { prisma, plates } = fakePrisma();
     const base = await start(prisma, provider({ grams: 9000, plateDiameterMm: 900 }));

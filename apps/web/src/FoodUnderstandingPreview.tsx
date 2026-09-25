@@ -542,13 +542,17 @@ function RecipeCandidateReview({ candidate, lang, labels, busy, onConfirm, servi
       <ul>{blocked.map(({ ingredient, index }) => <BlockedIngredientFix key={index} ingredient={ingredient} fix={fixes[index]} lang={lang} labels={labels.recipeDiscovery} busy={busy} services={services}
         onChange={(fix) => setFixes((current) => { const next = { ...current }; if (fix) next[index] = fix; else delete next[index]; return next; })}/>)}</ul>
     </section>}
-    {onConfirm && (candidate.nutritionCalculable || allFixed) && <RecipeConfirmControls candidate={candidate} lang={lang} labels={labels} busy={busy} portionState={services?.portionState}
+    {onConfirm && <RecipeConfirmControls candidate={candidate} lang={lang} labels={labels} busy={busy} portionState={services?.portionState}
+      ready={candidate.nutritionCalculable || allFixed}
       onConfirm={(c, quantity, unit) => candidate.nutritionCalculable ? onConfirm(c, quantity, unit) : onConfirm(c, quantity, unit, overrides)}/>}
   </>;
 }
 
-function RecipeConfirmControls({ candidate, lang, labels, busy, onConfirm, portionState }: {
-  candidate: RecipeDiscoveryCandidateValue; lang: Lang; labels: FoodUnderstandingLabels; busy: boolean;
+// The portion photo stays reachable while blocked ingredients are still being
+// fixed (owner report 2026-09-25); the add button appears only once every
+// blocking ingredient is fixed, so partial nutrition is never saved.
+function RecipeConfirmControls({ candidate, lang, labels, busy, ready, onConfirm, portionState }: {
+  candidate: RecipeDiscoveryCandidateValue; lang: Lang; labels: FoodUnderstandingLabels; busy: boolean; ready: boolean;
   onConfirm: (candidate: RecipeDiscoveryCandidateValue, quantity: number, unit: "g" | "serving") => void;
   portionState?: ApiState;
 }) {
@@ -560,9 +564,9 @@ function RecipeConfirmControls({ candidate, lang, labels, busy, onConfirm, porti
       <option value="g">g</option>
       {candidate.servings && <option value="serving">{labels.recipeDiscovery.confirmServingUnit}</option>}
     </select>
-    <button type="button" className="btn primary" disabled={busy} aria-busy={busy} onClick={() => onConfirm(candidate, quantity, unit)}>
+    {ready && <button type="button" className="btn primary" disabled={busy} aria-busy={busy} onClick={() => onConfirm(candidate, quantity, unit)}>
       {busy ? labels.recipeDiscovery.confirmAdding : labels.recipeDiscovery.confirmAdd}
-    </button>
+    </button>}
     {portionState && <div className="recipe-portion-photo"><PortionPhoto lang={lang} state={portionState} dish={candidate.title} onEstimate={(grams) => { setUnit("g"); setQuantity(grams); }}/></div>}
   </div>;
 }
