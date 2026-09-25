@@ -34,6 +34,9 @@ const envSchema = z.object({
   // voice input is simply unavailable (client keeps the existing text input)
   // wherever OPENAI_API_KEY itself is unset.
   OPENAI_TRANSCRIBE_MODEL: z.string().min(1).max(120).optional(),
+  // Plate-photo portion estimation (2026-09-25): reuses OPENAI_API_KEY;
+  // optional vision model override (default gpt-5.4-mini).
+  PORTION_VISION_MODEL: z.string().min(1).max(120).optional(),
 
   WEB_SEARCH_PROVIDER: z.enum(["tavily"]).optional(),
   TAVILY_API_KEY: z.string().min(1).optional(),

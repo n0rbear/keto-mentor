@@ -27,6 +27,7 @@ const UNQUANTIFIED_SEASONING_IDENTITIES = new Set([
   "salz", "pfeffer", "schwarzer pfeffer", "salz und pfeffer", "salz pfeffer", "meersalz"
 ]);
 const TO_TASTE_PHRASES = /\b(?:izles szerint|tetszes szerint|igeny szerint|to taste|as needed|nach geschmack|nach belieben|optional|opcionalis)\b/g;
+const TO_TASTE_LINE = /\b(?:izles szerint|tetszes szerint|igeny szerint|to taste|nach geschmack|nach belieben)\b/;
 const seasoningKey = (value: string) => normalizeSearch(value).replace(/[(),]/g, " ").replace(TO_TASTE_PHRASES, " ").replace(/\s+/g, " ").trim();
 // The line's own food words only count for a single-food line: on "só, 500 g
 // hús" the line-level foodQuery is "só", which must never mark the meat as salt.
@@ -41,7 +42,9 @@ function explicitMass(parsed: ParsedNaturalFoodQuery) {
 
 function maxEstimatedGrams(item: Parameters<RecipeQuantityEstimationProvider["estimate"]>[0]["items"][number]) {
   const count = item.quantityUpper ?? item.quantity;
-  const perUnit: Partial<Record<string, number>> = { pinch: 25, tsp: 100, tbsp: 250, clove: 250, bunch: 5_000, stalk: 10_000, piece: 10_000, head: 10_000, cup: 5_000, handful: 2_000 };
+  // to_taste: the whole recipe's "ízlés szerint" amount, which is small by
+  // nature; a hard cap keeps a bad estimate from dominating the dish.
+  const perUnit: Partial<Record<string, number>> = { pinch: 25, tsp: 100, tbsp: 250, clove: 250, bunch: 5_000, stalk: 10_000, piece: 10_000, head: 10_000, cup: 5_000, handful: 2_000, to_taste: 60 };
   return Math.min(50_000, count * (perUnit[item.unit] ?? 50_000));
 }
 
@@ -222,7 +225,14 @@ export async function resolveRecipeIngredientsBatch(
       }
     }
 
-    if (singleFoodLine && !quantity && line.parsed.quantity != null && line.parsed.unit) estimationItems.push({ index: draft.resultIndex, sourceIndex: line.index, raw: line.raw, identity: identityQuery, preparation: food.preparation ?? line.parsed.preparation, quantity: line.parsed.quantity, quantityUpper: line.parsed.quantityUpper, unit: line.parsed.unit });
+    // Live case (2026-09-25, cookpad "Húsos káposzta"): "ízlés szerint édes
+    // fűszerpaprika", "... kömény" had a resolved food but no amount, and
+    // nothing ever estimated one, so each blocked the recipe. A "to taste"
+    // line (not already excluded as salt/pepper) now asks the estimator for
+    // the typical total amount used in this recipe.
+    const toTaste = !quantity && !excludeFromNutrition && line.parsed.quantity == null && TO_TASTE_LINE.test(normalizeSearch(line.raw));
+    if (toTaste) estimationItems.push({ index: draft.resultIndex, sourceIndex: line.index, raw: line.raw, identity: identityQuery, preparation: food.preparation ?? line.parsed.preparation, quantity: 1, unit: "to_taste" });
+    else if (singleFoodLine && !quantity && line.parsed.quantity != null && line.parsed.unit) estimationItems.push({ index: draft.resultIndex, sourceIndex: line.index, raw: line.raw, identity: identityQuery, preparation: food.preparation ?? line.parsed.preparation, quantity: line.parsed.quantity, quantityUpper: line.parsed.quantityUpper, unit: line.parsed.unit });
 
     results[draft.resultIndex] = {
       originalText: line.raw, parsedQuantity: singleFoodLine ? line.parsed.quantity : undefined, parsedUnit: singleFoodLine ? line.parsed.unit : undefined,

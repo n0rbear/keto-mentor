@@ -16,6 +16,9 @@ export function classifyIngredientRole(sourceGroup?: string, ingredientText = ""
   const group = sourceGroup?.trim();
   const combined = `${group ?? ""} ${ingredientText}`;
   if (SERVING.test(group ?? "")) return { sourceGroup: group, role: "serving_accompaniment", optional: OPTIONAL.test(combined), includedInBaseNutrition: false, evidence: "source_group" };
+  // The ingredient line itself can say it is for serving ("tejföl a
+  // tálaláshoz"), not only a group heading. Same treatment as the heading case.
+  if (!GARNISH.test(group ?? "") && SERVING.test(ingredientText)) return { sourceGroup: group, role: "serving_accompaniment", optional: OPTIONAL.test(combined), includedInBaseNutrition: false, evidence: "ingredient_wording" };
   if (GARNISH.test(group ?? "")) return { sourceGroup: group, role: "garnish", optional: OPTIONAL.test(combined), includedInBaseNutrition: !OPTIONAL.test(combined), evidence: "source_group" };
   return { sourceGroup: group, role: "core", optional: OPTIONAL.test(combined), includedInBaseNutrition: true, evidence: group ? "source_group" : "default_core" };
 }

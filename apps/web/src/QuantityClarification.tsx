@@ -1,6 +1,8 @@
 import { useState } from "react";
 import type { QuantityClarification as Clarification } from "@keto-mentor/shared";
 import { quantityLabels, type Lang } from "./i18n";
+import type { ApiState } from "./api";
+import { PortionPhoto } from "./PortionPhoto";
 
 const unitNames: Record<Lang, Record<string, string>> = {
   hu: { piece: "darab", slice: "szelet", portion: "adag", plate: "tányér", bowl: "tál", ladle: "merőkanál", tbsp: "evőkanál", tsp: "teáskanál", cup: "csésze", handful: "marék", half: "fél", quarter: "negyed" },
@@ -8,8 +10,10 @@ const unitNames: Record<Lang, Record<string, string>> = {
   en: { piece: "piece", slice: "slice", portion: "portion", plate: "plate", bowl: "bowl", ladle: "ladle", tbsp: "tablespoon", tsp: "teaspoon", cup: "cup", handful: "handful", half: "half", quarter: "quarter" }
 };
 
-export function QuantityClarification({ value, foodName, quantity, unit, lang, onResolve }: {
+export function QuantityClarification({ value, foodName, quantity, unit, lang, onResolve, apiState }: {
   value: Clarification; foodName: string; lang: Lang;
+  // When given, a missing amount can be estimated from a plate photo.
+  apiState?: ApiState;
   quantity?: number; unit?: string;
   onResolve: (grams: number, corrected: boolean) => void;
 }) {
@@ -31,6 +35,7 @@ export function QuantityClarification({ value, foodName, quantity, unit, lang, o
     </div> : <div className="quantity-actions">
       <label>{labels.grams}<input className="field" aria-label={labels.grams} type="number" min="0.1" max="5000" step="any" value={grams} onChange={(event) => setGrams(event.target.value)}/></label>
       <button type="button" className="btn primary" disabled={!valid} onClick={() => onResolve(Number(grams), true)}>{labels.accept}</button>
+      {apiState && <PortionPhoto lang={lang} state={apiState} dish={foodName} onEstimate={(g) => setGrams(String(g))}/>}
     </div>}
   </div>;
 }

@@ -2,6 +2,8 @@ import { useState } from "react";
 import type { Lang } from "./i18n";
 import { CheckCircle2, CircleDashed, Sparkles } from "lucide-react";
 import { pickDisplayName } from "./food-display-name";
+import type { ApiState } from "./api";
+import { PortionPhoto } from "./PortionPhoto";
 
 export type ExternalCandidate = {
   source: "usda_fdc" | "open_food_facts";
@@ -445,6 +447,8 @@ export type RecipeFixServices = {
   resolveExternal?: ResolveExternalFood;
   acceptEstimate?: (estimate: AiEstimateValue, grams: number) => Promise<{ id: string; name: string } | null>;
   searchFoods?: (query: string) => Promise<{ id: string; name: string }[]>;
+  // Enables the plate-photo portion estimate next to the recipe amount.
+  portionState?: ApiState;
 };
 
 function BlockedIngredientFix({ ingredient, fix, lang, labels, busy, onChange, services }: {
@@ -538,14 +542,15 @@ function RecipeCandidateReview({ candidate, lang, labels, busy, onConfirm, servi
       <ul>{blocked.map(({ ingredient, index }) => <BlockedIngredientFix key={index} ingredient={ingredient} fix={fixes[index]} lang={lang} labels={labels.recipeDiscovery} busy={busy} services={services}
         onChange={(fix) => setFixes((current) => { const next = { ...current }; if (fix) next[index] = fix; else delete next[index]; return next; })}/>)}</ul>
     </section>}
-    {onConfirm && (candidate.nutritionCalculable || allFixed) && <RecipeConfirmControls candidate={candidate} lang={lang} labels={labels} busy={busy}
+    {onConfirm && (candidate.nutritionCalculable || allFixed) && <RecipeConfirmControls candidate={candidate} lang={lang} labels={labels} busy={busy} portionState={services?.portionState}
       onConfirm={(c, quantity, unit) => candidate.nutritionCalculable ? onConfirm(c, quantity, unit) : onConfirm(c, quantity, unit, overrides)}/>}
   </>;
 }
 
-function RecipeConfirmControls({ candidate, lang, labels, busy, onConfirm }: {
+function RecipeConfirmControls({ candidate, lang, labels, busy, onConfirm, portionState }: {
   candidate: RecipeDiscoveryCandidateValue; lang: Lang; labels: FoodUnderstandingLabels; busy: boolean;
   onConfirm: (candidate: RecipeDiscoveryCandidateValue, quantity: number, unit: "g" | "serving") => void;
+  portionState?: ApiState;
 }) {
   const [unit, setUnit] = useState<"g" | "serving">(candidate.servings ? "serving" : "g");
   const [quantity, setQuantity] = useState(candidate.servings ? 1 : 100);
@@ -558,6 +563,7 @@ function RecipeConfirmControls({ candidate, lang, labels, busy, onConfirm }: {
     <button type="button" className="btn primary" disabled={busy} aria-busy={busy} onClick={() => onConfirm(candidate, quantity, unit)}>
       {busy ? labels.recipeDiscovery.confirmAdding : labels.recipeDiscovery.confirmAdd}
     </button>
+    {portionState && <div className="recipe-portion-photo"><PortionPhoto lang={lang} state={portionState} dish={candidate.title} onEstimate={(grams) => { setUnit("g"); setQuantity(grams); }}/></div>}
   </div>;
 }
 
