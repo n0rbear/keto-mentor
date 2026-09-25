@@ -2,26 +2,27 @@
 
 Compact continuity state for the Master/worker workflow. Git, tests and this file are the source of truth — not chat history. Never store secrets here.
 
-- **Date:** 2026-09-24
+- **Date:** 2026-09-25
 - **Checkpoint branch:** `claude/pensive-hamilton-ocsygi` (checkpoint-only; no product code)
 - **main HEAD:** `3ed31a3` (merge of PR #55)
 - **Production:** `keto-mentor-api` / `keto-mentor-web` at `3ed31a3` (auto-deploy from `main`)
-- **Staging:** `keto-mentor-api-staging` → `fix/web-evidence-production-effectiveness` (live `9209632`). `keto-mentor-web-staging` still on `feat/authoritative-external-evidence-fallback` (`bd9a120`) — owner to repoint. `keto-mentor-*-pr56` services deleted 2026-09-24.
+- **Staging:** `keto-mentor-api-staging` + `keto-mentor-web-staging` → `fix/web-evidence-production-effectiveness`, live `07f11ba` (API). `keto-mentor-*-pr56` services deleted 2026-09-24.
 
 ## Open PRs
-- **#56** `fix/web-evidence-production-effectiveness` @ `9209632` — draft, mergeable. Food-resolution hardening, `autoAcceptEligible` evidence policy, HMAC-bound AI-estimate acceptance, recipe-first prepared dishes, localized diagnostics.
+- **#56** `fix/web-evidence-production-effectiveness` @ `9209632` — draft, mergeable, head `07f11ba` (PR #56 + review fixes 1–3). Food-resolution hardening, `autoAcceptEligible` evidence policy, HMAC-bound AI-estimate acceptance, recipe-first prepared dishes, localized diagnostics.
 - **#53** docs-only community-contribution backlog — idle since 2026-09-15.
 
 ## Unmerged work without PR
 - `feat/semantic-recovery-and-voice-input` (= `feat/authoritative-external-evidence-fallback`) @ `bd9a120`: 13 commits on top of the PR #56 fork point `f54f740` — voice input (`gpt-4o-mini-transcribe`), LLM semantic recovery, `decideSurvivorAcceptance` / `resolveFoodConcept` shared engine. Owner decision: ship as a **separate PR after #56**, rebased onto it.
 
-## Test status (PR #56 head, 2026-09-24)
-API 1941/1941, web 324/324, API + web `tsc --noEmit` clean. No GitHub Actions CI in repo.
+## Test status (PR #56 head `07f11ba`, 2026-09-24)
+API 1953/1953, web 324/324, API + web `tsc --noEmit` clean. No GitHub Actions CI in repo.
 
 ## Current task
-PR #56 review done (7 findings). Findings 1–3 fixed (21d4316, cb4edbd, 07f11ba; API 1953/1953, tsc clean), Master-reviewed, pushed to PR #56 branch with owner OK (head `07f11ba`). Next: staging live check.
-- Finding 4 — owner chose option (a) but asked for impact before approving a migration that deletes rows in production: DB cleanup of removed `szalonna`/`túró` aliases (overlay only upserts) + whether DE/EN `Quark` → Magerquark gets the same treatment.
-- Deferred minors: (5) recipe discovery keeps looping on shared/systemic failures; (6) global OFF name-search budget mislabels not_found as external_unavailable; (7) private AI-estimate ingredient in public recipe → generic 404.
+PR #56 review done (7 findings); 1–3 fixed and pushed (`07f11ba`), Master-reviewed.
+- **Staging live verification of PR #56 still open.** This cloud session cannot reach `*.onrender.com` or `api.telegram.org` (network policy). Owner chose: Master creates its own staging test user and tests — needs a session where `onrender.com` is allowed. Checks: `50 g Nutella` (OFF candidates behind confirmation, nothing auto-saved), `almás pite` (exact match first), `egy tányér gulyásleves` (recipe-first), `100 g gouda`, `túró`/`szalonna` (no silent pick).
+- **Alias cleanup — owner APPROVED (2026-09-25):** delete bare `szalonna`, `túró`, `turo`, `Quark`, `quark` overlay aliases from existing DBs (incl. production on next deploy) and remove bare `Quark`/`quark` from `everyday-coverage-manifest.ts`; keep qualified aliases (`sovány túró`, `Magerquark`, `szemcsés túró`, `bacon`, `Frühstücksspeck`). Overlay only upserts, so a tightly scoped forward-only migration is needed. Blocked in this session by the auto-mode safety classifier (classified as production deploy) — owner must allow it in permission settings, then run it as a worker on a local branch; show migration to owner before merge.
+- Deferred minors: (5) recipe discovery keeps looping on shared/systemic failures; (6) global OFF name-search budget mislabels not_found as external_unavailable; (7) private AI-estimate ingredient in public recipe → generic 404. Follow-up idea: authoritative túró variants (félzsíros/zsíros).
 
 ## Known issues / blockers
 - `render.yaml` production start command runs migrate + seed on every boot (pre-existing, out of scope).
