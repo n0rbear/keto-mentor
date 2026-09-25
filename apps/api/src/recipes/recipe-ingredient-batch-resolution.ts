@@ -160,6 +160,9 @@ export async function resolveRecipeIngredientsBatch(
       if (!selectedFood && dynamic) {
         pending.push({
           id: String(resultIndex), canonicalIdentity: identityQuery, originalIdentity: identityQuery, rawIngredient: line.raw,
+          // The user's own word for the round-trip check: the normalizer's
+          // local name, or the line's food phrase when it names one food.
+          sourceIdentity: (food as { localName?: string }).localName ?? (singleFoodLine ? line.parsed.foodQuery : undefined),
           preparation: food.preparation ?? line.parsed.preparation ?? "as supplied; no pre-cooked state stated",
           sourceQuantity: line.parsed.quantity, sourceUnit: line.parsed.unit
         });

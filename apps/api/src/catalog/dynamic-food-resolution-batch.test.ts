@@ -350,3 +350,46 @@ describe("unified food-resolution engine: bounded semantic recovery in the batch
     expect(result.get("ingredient-1")).toEqual({ status: "unresolved", reason: "not_found" });
   });
 });
+
+// Owner report (2026-09-25): "tejföl" was searched as "sour cream" and two
+// cheeses were offered. Shown candidates must still name the user's own word
+// once localized back into their language.
+describe("round-trip identity check on shown candidates", () => {
+  const huNames: Record<string, string> = {
+    "Sour cream, cultured": "Tejföl, kultúrás",
+    "Sour cream, reduced fat": "Tejföl, csökkentett zsírtartalmú",
+    "Cheese, cream": "Krémsajt",
+    "Cheese, cottage, creamed": "Túró, krémes (cottage cheese)",
+    "Onions, raw": "Hagyma, nyers",
+    "Onions, sweet, raw": "Hagyma, édes, nyers",
+    "Milk, whole": "Tej, teljes"
+  };
+  const huLocalization: CandidateLocalizationProvider = { id: "fixture", localize: async (items) => new Map(items.map((i) => [i.id, huNames[i.authoritativeName] ?? i.authoritativeName])) };
+  const named = (name: string, sourceId: string) => candidate({ sourceId, name, originalName: name, names: { en: name }, normalizedName: name.toLowerCase() });
+  const run = (names: string[], sourceIdentity: string, canonical: string) => {
+    const { prisma, persisted } = fakePrisma();
+    const adapters = [{ source: "usda_fdc" as const, sourceName: "USDA", lookup: async () => names.map((n, i) => named(n, String(i + 1))) }];
+    const pending: PendingAuthoritativeResolution = { ...pendingFor("a", canonical), sourceIdentity };
+    return { persisted, result: resolveManyAuthoritativeFoods(prisma, [pending], baseDeps({ adapters, locale: "hu", localizationProvider: huLocalization })) };
+  };
+
+  it("drops cheeses offered for 'tejföl' and keeps the real sour creams", async () => {
+    const { result, persisted } = run(["Sour cream, cultured", "Sour cream, reduced fat", "Cheese, cream", "Cheese, cottage, creamed"], "tejföl", "sour cream");
+    const outcome = (await result).get("a") as any;
+    expect(outcome.status).toBe("confirmation_required");
+    expect(outcome.candidates.map((c: any) => c.names.hu)).toEqual(["Tejföl, kultúrás", "Tejföl, csökkentett zsírtartalmú"]);
+    expect(persisted).toHaveLength(0);
+  });
+
+  it("when only wrong foods were offered, the ingredient becomes not found instead of showing them", async () => {
+    const { result } = run(["Cheese, cream", "Milk, whole"], "tejföl", "sour cream");
+    expect((await result).get("a")).toEqual({ status: "unresolved", reason: "not_found" });
+  });
+
+  it("a Hungarian compound word keeps its plain localized match ('vöröshagyma' -> 'Hagyma, nyers')", async () => {
+    const { result } = run(["Onions, raw", "Onions, sweet, raw"], "vöröshagyma", "onion");
+    const outcome = (await result).get("a") as any;
+    expect(outcome.status).toBe("confirmation_required");
+    expect(outcome.candidates).toHaveLength(2);
+  });
+});
