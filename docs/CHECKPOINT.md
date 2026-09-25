@@ -9,6 +9,7 @@ Compact continuity state for the Master/worker workflow. Git, tests and this fil
 - **Staging:** `keto-mentor-api-staging` + `keto-mentor-web-staging` → `fix/web-evidence-production-effectiveness` (now merged/stale — repoint staging to the next feature branch or `main`), live `07f11ba` (API), verified via Render MCP 2026-09-25; no error/warn logs since deploy. Staging start command does NOT run migrations (production does: migrate + seed on every boot). `keto-mentor-*-pr56` services deleted 2026-09-24.
 
 ## Open PRs
+- **#60** `claude/telegram-bot-messages-qjsiwm` → `main` @ `e2e318c` — voice in the page's UI language (forced `language`, `?lang=`), labelled stop button; recipe fix+confirm controls also for multi-item dishes; fix UI can pick local/USDA candidates, accept an ingredient's AI estimate (private food via `/recipes/ingredients/accept-estimate`), or search the catalog; phone layout (3×2 tiles, no horizontal scroll, Enter interprets). API 2042/2042, web 355/355. Awaiting owner "#60 mehet".
 - **#53** docs-only community-contribution backlog — idle since 2026-09-15.
 - MERGED 2026-09-25: #57 → #56 (`31b087c`); #56 → `main` (`d2bacc6`); #58 voice + semantic recovery → `main` (`a825703`); #59 unforced voice language + HU/DE seasoning + manual ingredient fixes (`blockingReason`, `ingredientOverrides`) → `main` (`6c47917`, owner "#59 mehet").
 
@@ -49,6 +50,7 @@ Authoritative catalog data first; AI nutrition is a labelled, user-confirmable e
 - PLANNED: dinner recommendation (no code yet); Phase 6B native apps; Phase 7 beta/release.
 
 ## Next tasks
+0. **Owner follow-up (2026-09-25):** blocking recipe ingredients should later be resolved automatically (today: manual fix UI). Live cases: "resztelt máj" (nosalty.hu, 1/10 blocked), "töltött káposzta" (budapestcookingclass.com, 4/17 blocked). Owner confirmed voice works after #59.
 1. Owner reviews PR #57 migration → merge into #56 branch (staging needs a manual `prisma migrate deploy`; production runs it automatically once on `main`).
 2. PR #56 staging verification done (see Current task); remaining: test `almás pite` exact-match on a DB that has that food, and decide on the túró/szalonna candidate follow-ups.
 3. Open separate PR for voice + semantic recovery, rebased on #56.
