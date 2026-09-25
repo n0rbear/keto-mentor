@@ -2,24 +2,27 @@
 
 Compact continuity state for the Master/worker workflow. Git, tests and this file are the source of truth — not chat history. Never store secrets here.
 
-- **Date:** 2026-09-25 (updated after PR #57; Telegram channel live)
+- **Date:** 2026-09-25 (updated after #57 merge, #58 opened; Telegram channel live)
 - **Checkpoint branch:** `claude/pensive-hamilton-ocsygi` (checkpoint-only; no product code)
 - **main HEAD:** `3ed31a3` (merge of PR #55)
 - **Production:** `keto-mentor-api` / `keto-mentor-web` at `3ed31a3` (auto-deploy from `main`)
 - **Staging:** `keto-mentor-api-staging` + `keto-mentor-web-staging` → `fix/web-evidence-production-effectiveness`, live `07f11ba` (API), verified via Render MCP 2026-09-25; no error/warn logs since deploy. Staging start command does NOT run migrations (production does: migrate + seed on every boot). `keto-mentor-*-pr56` services deleted 2026-09-24.
 
 ## Open PRs
-- **#56** `fix/web-evidence-production-effectiveness` @ `9209632` — draft, mergeable, head `07f11ba` (PR #56 + review fixes 1–3). Food-resolution hardening, `autoAcceptEligible` evidence policy, HMAC-bound AI-estimate acceptance, recipe-first prepared dishes, localized diagnostics.
-- **#57** `claude/checkpoint-docs-review-nww6jw` @ `240b908` → base `fix/web-evidence-production-effectiveness` (stacked on #56), draft — owner-approved alias cleanup: forward-only migration `20260925120000_remove_ambiguous_dairy_bacon_aliases` + manifest changes. Awaiting owner review of the migration before merge.
+- **#56** `fix/web-evidence-production-effectiveness` @ `988f7fb` — draft. Now includes merged #57 (`31b087c`) and the local-candidate fix (`988f7fb`, see Current task).
+- **#58** `feat/voice-semantic-recovery-v2` → base #56, draft — voice input + LLM semantic recovery, rebased from `feat/semantic-recovery-and-voice-input` @ `bd9a120` (original branch untouched). API 2024/2024, web 347/347, tsc clean.
 - **#53** docs-only community-contribution backlog — idle since 2026-09-15.
-
-## Unmerged work without PR
-- `feat/semantic-recovery-and-voice-input` (= `feat/authoritative-external-evidence-fallback`) @ `bd9a120`: 13 commits on top of the PR #56 fork point `f54f740` — voice input (`gpt-4o-mini-transcribe`), LLM semantic recovery, `decideSurvivorAcceptance` / `resolveFoodConcept` shared engine. Owner decision: ship as a **separate PR after #56**, rebased onto it.
+- #57 MERGED into #56 on 2026-09-25 (owner-approved).
 
 ## Test status (PR #56 head `07f11ba`, 2026-09-24; PR #57 head `240b908`: API 1957/1957, web 324/324, 2026-09-25)
 API 1953/1953, web 324/324, API + web `tsc --noEmit` clean. No GitHub Actions CI in repo.
 
 ## Current task
+- **2026-09-25 (session_0172uYuX4jbSN5KPBmSGfRua):** owner approved #57 (merged), túró/szalonna candidates, and both next steps.
+  - Production read-only check done: M713100 still has names hu `túró` / de `Quark` / en `quark`, aliases `turo`/`quark`, and W415000 has alias `szalonna`, so #57 will change exactly these rows once it reaches `main`. Staging DB never had them (BLS rows there carry only German names), so #57 is a no-op on staging.
+  - **Staging `prisma migrate deploy` NOT run.** The agent's permission classifier blocked it. Staging is data-no-op, but the migration history is behind until someone runs it (or `main` deploys).
+  - `988f7fb`: weak local catalog matches that cover the user's word stay selectable next to an AI estimate and external candidates, and are listed first (szalonna → local bacon rows; túró → sovány/szemcsés túró). Never auto-selected. API 1959/1959, web 325/325.
+  - Limit: BLS Speisequark 20 %/40 % Fett i. Tr. rows are NOT in the production catalog (only Magerstufe was imported), and zsírszalonna-type Speck rows have German names only. Real félzsíros/zsíros túró and zsírszalonna candidates need a catalog import (manual CLI run), not code.
 PR #56 review done (7 findings); 1–3 fixed and pushed (`07f11ba`), Master-reviewed.
 - **Staging live verification of PR #56 — DONE 2026-09-25** on `07f11ba`, test user `master_qa_09250517` (password kept only in the session scratchpad, not in the repo), via `POST /meal-input/interpret`:
   - `50 g Nutella` ✅ `confirmation_required`, 5 OFF candidates all `review_required` / `autoAcceptEligible:false`, `canConfirm:false`; `/meals/today` empty (nothing saved).
