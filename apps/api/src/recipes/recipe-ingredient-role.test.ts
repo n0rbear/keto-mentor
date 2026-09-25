@@ -2,6 +2,13 @@ import { describe, expect, it } from "vitest";
 import { classifyIngredientRole, recoverIngredientRolesFromHtml } from "./recipe-ingredient-role.js";
 
 describe("recipe ingredient roles", () => {
+  it.each(["tejföl a tálaláshoz", "sour cream, to serve", "Schmand zum Servieren"])("an ingredient line that says it is for serving (%s) is a serving accompaniment even under a plain heading", (line) => {
+    expect(classifyIngredientRole("Hozzávalók", line)).toMatchObject({ role: "serving_accompaniment", includedInBaseNutrition: false, evidence: "ingredient_wording" });
+    expect(classifyIngredientRole(undefined, line)).toMatchObject({ role: "serving_accompaniment", includedInBaseNutrition: false });
+  });
+  it("a core ingredient line without serving wording stays core", () => {
+    expect(classifyIngredientRole("Hozzávalók", "200 g tejföl")).toMatchObject({ role: "core", includedInBaseNutrition: true });
+  });
   it.each(["A tálaláshoz", "For serving", "Zum Servieren"])("classifies %s as a visible base-recipe exclusion", (heading) => {
     expect(classifyIngredientRole(heading, "fresh bread")).toMatchObject({ role: "serving_accompaniment", includedInBaseNutrition: false });
   });

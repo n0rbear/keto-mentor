@@ -324,6 +324,28 @@ describe("resolveRecipeIngredientsBatch", () => {
     expect(result!.every((i) => i.resolution === "unresolved" && i.canConfirm === false)).toBe(true);
   });
 
+  // Live case (2026-09-25, cookpad "Húsos káposzta"): "ízlés szerint" spices
+  // had a food but no amount and nothing estimated one.
+  it("asks the estimator for 'to taste' lines, capped small, and never for excluded salt/pepper", async () => {
+    const { prisma } = fakePrisma();
+    let seen: any[] = [];
+    const quantityProvider: any = { id: "fixture", estimate: async (input: any) => { seen = input.items; return { estimates: [{ index: 0, grams: 6, confidence: .6 }, { index: 1, grams: 500, confidence: .6 }] }; } };
+    const result = await resolveRecipeIngredientsBatch(prisma, normalizationProvider({ ingredients: [
+      { index: 0, foods: [{ canonicalIdentity: "paprika", localName: "édes fűszerpaprika" }] },
+      { index: 1, foods: [{ canonicalIdentity: "caraway seed", localName: "kömény" }] },
+      { index: 2, foods: [{ canonicalIdentity: "salt", localName: "só" }] }
+    ] }), { title: "Húsos káposzta", lines: [
+      { index: 0, raw: "ízlés szerint édes fűszerpaprika", parsed: parseNaturalFoodQuery("ízlés szerint édes fűszerpaprika") },
+      { index: 1, raw: "ízlés szerint kömény", parsed: parseNaturalFoodQuery("ízlés szerint kömény") },
+      { index: 2, raw: "ízlés szerint só", parsed: parseNaturalFoodQuery("ízlés szerint só") }
+    ] }, null, quantityProvider);
+    expect(seen.map((i) => [i.identity, i.unit, i.quantity])).toEqual([["paprika", "to_taste", 1], ["caraway seed", "to_taste", 1]]);
+    expect(result![0]).toMatchObject({ quantityGrams: 6, quantitySource: "estimated" });
+    // 500 g of caraway "to taste" is absurd and exceeds the to_taste cap: rejected, not trusted.
+    expect(result![1]).toMatchObject({ quantitySource: "unknown" });
+    expect(result![2]).toMatchObject({ quantitySource: "unquantified_seasoning", excludeFromNutrition: true });
+  });
+
   it("rejects a contextually absurd estimate without losing the identity result", async () => {
     const { prisma } = fakePrisma();
     const result = await resolveRecipeIngredientsBatch(prisma, normalizationProvider({ ingredients: [{ index: 0, foods: [{ canonicalIdentity: "garlic" }] }] }), { lines: [{ index: 0, raw: "2 gerezd fokhagyma", parsed: parseNaturalFoodQuery("2 gerezd fokhagyma") }] }, null, { id: "fixture", estimate: async () => ({ estimates: [{ index: 0, grams: 40_000, confidence: .9 }] }) });
