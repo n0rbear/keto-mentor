@@ -1,4 +1,4 @@
-import { searchFoods, isTrustedLocalMatch, foodNameRepresentations, hasSemanticCoverage, localFormMismatch } from "../catalog/food-search.js";
+import { searchFoods, isTrustedLocalMatch, hasIdentityCoverage, localFormMismatch } from "../catalog/food-search.js";
 import { resolveManyAuthoritativeFoods, type PendingAuthoritativeResolution } from "../catalog/dynamic-food-resolution-batch.js";
 import { DisabledRecipeSemanticGateProvider } from "../catalog/semantic-candidate-gate-batch.js";
 import { resolveQuantity, type DynamicResolutionDeps } from "../meal-input/interpret.js";
@@ -7,6 +7,8 @@ import type { ParsedNaturalFoodQuery } from "../catalog/natural-food-query.js";
 import type { RecipeIngredientNormalizationProvider } from "./recipe-ingredient-normalization.js";
 import { DisabledRecipeQuantityEstimationProvider, type RecipeQuantityEstimationProvider } from "./recipe-quantity-estimation.js";
 import type { ReviewableIngredient } from "./recipe-ingredient-review.js";
+import { attemptFallbackChain } from "../catalog/dynamic-food-resolution.js";
+import { createAiEstimateProof } from "../catalog/ai-estimate-proof.js";
 
 type SearchablePrisma = Parameters<typeof searchFoods>[0];
 export type BatchResolvedIngredient = ReviewableIngredient & { canConfirm: boolean };
@@ -59,6 +61,7 @@ export async function resolveRecipeIngredientsBatch(
     food: { canonicalIdentity: string; preparation?: string }; singleFoodLine: boolean; identityQuery: string;
     selectedFood: any; resolution: ReviewableIngredient["resolution"]; candidates: ReviewableIngredient["candidates"];
     externalCandidates?: ReviewableIngredient["externalCandidates"]; externalCandidatesReason?: ReviewableIngredient["externalCandidatesReason"];
+    aiEstimate?: ReviewableIngredient["aiEstimate"];
   };
   const drafts: Draft[] = [];
   const pending: PendingAuthoritativeResolution[] = [];
@@ -85,7 +88,7 @@ export async function resolveRecipeIngredientsBatch(
       // still never part of catalog search. Fall back to canonical identity.
       const sourceIdentity = line.parsed.foodQuery.trim();
       const sourceCandidates = sourceIdentity && sourceIdentity !== identityQuery ? (await searchFoods(prisma, sourceIdentity, 8)) as any[] : [];
-      const canonicalCandidates = (await searchFoods(prisma, identityQuery, 20)) as any[];
+      const canonicalCandidates = (await searchFoods(prisma, identityQuery, 20, { rawIngredient: line.raw })) as any[];
       // Canonical normalization is the stronger identity evidence. A broad
       // source phrase ("mustár", or a split "só, bors" line) must not let
       // an exact lexical hit for a DIFFERENT canonical food outrank it.
@@ -109,11 +112,15 @@ export async function resolveRecipeIngredientsBatch(
       const formCompatible = (candidate: any) => !hasRealSemanticGate || !localFormMismatch(candidate.originalName ?? candidate.name, formEvidence, candidate.match);
       const formCompatibleCanonical = trustedCanonical.filter(formCompatible);
       const canonicalTop = !explicitPreparedState
-        ? formCompatibleCanonical.find((candidate) => /\braw\b/i.test(candidate.originalName ?? candidate.name) && !/\b(cooked|boiled|roasted|fried)\b/i.test(candidate.originalName ?? candidate.name)) ?? formCompatibleCanonical[0]
+        // "roh" is BLS's own raw marker. Recognizing only English "raw" made a
+        // trusted USDA "..., raw" row ALWAYS beat a BLS "... roh" row even
+        // when BLS ranked first (searchFoods' BLS tie-break), silently
+        // bypassing the European-source preference in this one path.
+        ? formCompatibleCanonical.find((candidate) => /\b(raw|roh)\b/i.test(candidate.originalName ?? candidate.name) && !/\b(cooked|boiled|roasted|fried|gekocht|gebraten)\b/i.test(candidate.originalName ?? candidate.name)) ?? formCompatibleCanonical[0]
         : formCompatibleCanonical[0];
       const top = canonicalTop
         ?? sourceCandidates.find((candidate) => isTrustedLocalMatch(candidate.match) && formCompatible(candidate) && (
-          hasSemanticCoverage(identityQuery, foodNameRepresentations(candidate))
+          hasIdentityCoverage(identityQuery, candidate)
           // A persisted manufacturer/national-database Food reached this
           // exact strong source-phrase alias only after authoritative
           // identity validation. Reuse that learned alias without forcing
@@ -155,7 +162,20 @@ export async function resolveRecipeIngredientsBatch(
       if (!outcome) continue; // this draft resolved locally — never sent to the batch resolver
       if (outcome.status === "resolved") { draft.selectedFood = outcome.food; draft.resolution = "resolved"; draft.candidates = [outcome.food]; }
       else if (outcome.status === "confirmation_required") { draft.resolution = "confirmation_required"; draft.externalCandidates = outcome.candidates; draft.externalCandidatesReason = outcome.reason; }
-      // "unresolved" leaves the draft's initial unresolved state untouched.
+      else if (outcome.status === "unresolved" && ["not_found", "invalid_external_data", "external_unavailable"].includes(outcome.reason)
+        && (dynamic.webEvidenceFallback || dynamic.aiEstimation)) {
+        // Authoritative batch already exhausted this identity. Reuse the
+        // shared last-resort chain without repeating structured lookups.
+        const fallback = await attemptFallbackChain(dynamic.prisma, draft.identityQuery, draft.identityQuery,
+          "normalized_identity", dynamic, dynamic.locale, { rawIngredient: draft.line.raw, recipeTitle: input.title },
+          outcome.reason as "not_found" | "invalid_external_data" | "external_unavailable", {});
+        if (fallback.status === "resolved") {
+          draft.selectedFood = fallback.food; draft.resolution = "resolved"; draft.candidates = [fallback.food];
+        } else if (fallback.status === "ai_estimate_pending") {
+          draft.aiEstimate = { ...fallback.estimate, requestedIdentity: fallback.requestedIdentity, canonicalIdentity: fallback.canonicalIdentity,
+            proof: createAiEstimateProof(dynamic.userId, { ...fallback.estimate, requestedIdentity: fallback.requestedIdentity }) };
+        }
+      }
     }
   }
 
@@ -181,7 +201,7 @@ export async function resolveRecipeIngredientsBatch(
     results[draft.resultIndex] = {
       originalText: line.raw, parsedQuantity: singleFoodLine ? line.parsed.quantity : undefined, parsedUnit: singleFoodLine ? line.parsed.unit : undefined,
       parsedFoodQuery: identityQuery, preparation: food.preparation ?? line.parsed.preparation,
-      resolution, selectedFood, candidates, quantity, quantitySource,
+      resolution, selectedFood, candidates, quantity, quantitySource, aiEstimate: draft.aiEstimate,
       quantityGrams: quantity?.status === "resolved" ? quantity.grams : undefined,
       quantityRange: singleFoodLine && line.parsed.quantityUpper != null ? { min: line.parsed.quantity!, max: line.parsed.quantityUpper, unit: line.parsed.unit } : undefined,
       excludeFromNutrition, canConfirm: resolution === "resolved" && (!!quantity || excludeFromNutrition), externalCandidates, externalCandidatesReason

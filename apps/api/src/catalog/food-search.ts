@@ -1,5 +1,6 @@
-import { Prisma, type PrismaClient } from "@prisma/client";
+import { type PrismaClient } from "@prisma/client";
 import { normalizeSearch } from "./normalize.js";
+import { foodCandidateQuery, fuzzyCandidateQuery } from "./food-search-candidates.js";
 
 // Preparation-aware expansion. The base food "tojás"/"egg" must NOT be silently
 // bound to the fried-egg Food. Prepared forms expand to the SAME base food so
@@ -34,7 +35,6 @@ const QUERY_ALIASES: Record<string, readonly string[]> = {
   "gouda": [],
   "szelet gouda": [],
   "csirkemell": ["chicken breast", "hahnchenbrust"],
-  "bacon": ["ham"],
   "100 g bacon": ["bacon"],
   "12 cm kígyóuborka": ["cucumber"],
 };
@@ -84,6 +84,21 @@ export function foodNameRepresentations(food: { name?: unknown; originalName?: u
 }
 
 /**
+ * A food's CURATED identity only — its own `name`/`originalName` exactly as
+ * set when the record was created (the authoritative source's own text, or a
+ * curated import's own text) — deliberately excluding `food.names`, the
+ * per-locale display strings a LATER, unreviewed machine translation can add
+ * (see backfillLocaleName/localizeCandidateNames). Used wherever a bare or
+ * under-specifying query must not borrow trust from a translation that
+ * merely happens to CONTAIN the query as one of several tokens.
+ */
+export function curatedNameRepresentations(food: { name?: unknown; originalName?: unknown }): string[] {
+  return [food.name, food.originalName]
+    .filter((value): value is string => typeof value === "string" && value.length > 0)
+    .map(normalizeSearch);
+}
+
+/**
  * Whether a (normalized) query phrase is actually attested in a food's own
  * name representations, as a fraction of the query's meaningful tokens.
  * Used to gate "dynamic_search" aliases — see the comment on `exactAlias`
@@ -94,6 +109,50 @@ export function hasSemanticCoverage(normalizedQuery: string, representations: re
   if (!tokens.length) return false;
   const matched = tokens.filter((token) => representations.some((rep) => rep.includes(token)));
   return matched.length / tokens.length >= SEMANTIC_TRUST_THRESHOLD;
+}
+
+// Real, live-reproduced gap (2026-09-23 staging audit): a USDA record
+// dynamically resolved for "bacon" was localized to Hungarian "pácolt
+// szalonna, előkészítetlen" (see backfillLocaleName) — a display convenience
+// only, never human-reviewed. hasSemanticCoverage's substring check then let
+// a later, UNRELATED bare "szalonna" query (which genuinely spans several
+// materially different foods — breakfast bacon vs. back fat, a 2.5x energy
+// spread; see everyday-coverage-manifest.ts's own deliberate omission of a
+// bare "szalonna" alias) "cover" against that translation merely because
+// "szalonna" happens to be one of its tokens, and pass both the
+// dynamic_search alias gate and the convergence-gate re-check below as if it
+// were the food's own verified identity — silently reintroducing exactly the
+// ambiguity the curated layer was designed to keep out of local search.
+//
+// The general fix: a MACHINE-TRANSLATED per-locale name (food.names) is
+// always trusted for an EXACT, whole-phrase match (a user later typing the
+// full localized phrase back still gets the "persist once, reuse forever"
+// benefit). For anything less than the full phrase, the existing substring
+// coverage check is still required (unchanged — this is what lets a
+// Hungarian/German AGGLUTINATIVE compound keep matching, e.g. "csülök"
+// legitimately found fused inside "Sertéscsülök" with no space at all), but
+// is no longer sufficient by itself: the query must also account for at
+// least half of the matched name's own length. A translation may add a FEW
+// trailing/leading qualifiers over the query without changing the food's
+// core identity ("csülök" is half of "sertescsulok" by length; "karfiol" is
+// just over half of "karfiol nyers") but must not be trusted merely for
+// containing the query's word among mostly OTHER, unaccounted (possibly
+// identity-changing) modifiers ("szalonna" is barely a quarter of "pácolt
+// szalonna, előkészítetlen"). Deliberately a numeric ratio, not a per-word
+// list — the same style of threshold this file already uses
+// (SEMANTIC_TRUST_THRESHOLD, DYNAMIC_SEARCH_ALIAS_TRUST_THRESHOLD) — so it
+// generalizes to any future case rather than special-casing "szalonna".
+export function hasIdentityCoverage(normalizedQuery: string, food: { name?: unknown; originalName?: unknown; names?: unknown }): boolean {
+  if (hasSemanticCoverage(normalizedQuery, curatedNameRepresentations(food))) return true;
+  if (!normalizedQuery) return false;
+  const dynamicNames = Object.values((food.names as Record<string, unknown>) ?? {})
+    .filter((value): value is string => typeof value === "string" && value.length > 0)
+    .map(normalizeSearch);
+  return dynamicNames.some((name) => {
+    if (name === normalizedQuery) return true;
+    if (!hasSemanticCoverage(normalizedQuery, [name])) return false;
+    return normalizedQuery.length / name.length >= 0.5;
+  });
 }
 
 // P0 semantic identity safety checkpoint (2026-09-16) — real, reproduced bug:
@@ -204,13 +263,79 @@ export function expandFoodQuery(rawQuery: string) {
   return [...new Set([normalized, ...(QUERY_ALIASES[normalized] ?? [])].map(normalizeSearch).filter((value) => value.length >= 2))];
 }
 
-function scoreFood(food: any, variants: readonly string[], aliasesByFood: ReadonlyMap<string, readonly AliasEntry[]>, fuzzyIds: Set<string>): FoodSearchMatch {
+function wholePhrase(text: string, query: string) {
+  return (` ${text} `).includes(` ${query} `);
+}
+
+// Compound head matches are discovery evidence only, never exact identity.
+// Short fragments (ham/pea/nut) are particularly ambiguous and excluded.
+function compoundHead(text: string, query: string) {
+  return query.length >= 5 && !query.includes(" ") && text.split(" ").some(token =>
+    token.length >= 5 && (token.endsWith(query) || query.endsWith(token)));
+}
+
+const SEARCH_FORMS = [
+  /\b(dried|dehydrated|getrocknet|szaritott)\b/,
+  /\b(cooked|boiled|gekocht|fott)\b/,
+  /\b(roasted|fried|baked|gebraten|gebacken|sult)\b/,
+  /\b(smoked|gerauchert|fustolt)\b/,
+  /\b(canned|konserve|konzerv)\b/,
+];
+// German prepared-food heads are productive suffixes (e.g. Apfelkuchen,
+// Blätterteig), unlike a query fragment. Recognize the preparation category,
+// never special-case a searched ingredient. "pie" added 2026-09-23: an
+// ingredient-alias precedence fix (see weakDynamicAlias in scoreFood) exposed
+// that "apple"/"apple pie" had only ever been kept apart by that same bug —
+// this category was simply missing, the same generic gap the mustár/
+// mustárlevél fix already covers for every OTHER compound keyword here.
+const COMPOUND_FOOD = /\b(with|mit|filled|stuffed|flavored|flavoured|dessert|cake|pie|sauce|soup|bread|pastry|[a-z]*(kuchen|torte|geback|teig|schnitten|sosse|suppe|brot|brotchen))\b/;
+
+function isQueryHeadedHyphenCompound(food: any, query: string) {
+  if (!query || query.includes(" ")) return false;
+  const rawNames = [food.name, food.originalName, ...Object.values((food.names as Record<string, unknown>) ?? {})]
+    .filter((value): value is string => typeof value === "string");
+  return rawNames.some(name => name.split(/[-–—]/).slice(0, -1)
+    .some(segment => normalizeSearch(segment).split(" ").at(-1) === query));
+}
+
+function isModifierPrefixedCompound(food: any, query: string) {
+  if (!query || query.includes(" ")) return false;
+  return foodNameRepresentations(food).some((name) => name.split(" ").some((token) => token !== query && token.endsWith(query)));
+}
+
+function rankingPenalty(food: any, query: string) {
+  const names = foodNameRepresentations(food);
+  const form = SEARCH_FORMS.some(pattern => !pattern.test(query) && names.some(name => pattern.test(name)))
+    || (SEARCH_FORMS.some(pattern => pattern.test(query)) && names.some(name => /\b(raw|fresh|roh|frisch|nyers|friss)\b/.test(name)));
+  // BLS D (pastry/cakes) and X/Y (menu components) are publisher-defined
+  // preparations, not a source preference:
+  // https://blsdb.de/bls ("Das Schlüsselsystem"). An explicitly named dish
+  // keeps its identity; an ingredient query must not silently prefer a recipe.
+  const menuComponent = food.source === "bls" && /^[DXY][A-Z0-9]{6}$/.test(food.sourceId ?? "") && !names.includes(query);
+  // Like menuComponent: a food the query names exactly keeps its identity even
+  // if another locale's name for it carries a compound keyword ("Apple pie").
+  const compound = !COMPOUND_FOOD.test(query) && !names.includes(query) && (menuComponent || names.some(name => COMPOUND_FOOD.test(name)) || isQueryHeadedHyphenCompound(food, query));
+  const specializedCompound = isModifierPrefixedCompound(food, query);
+  return (form ? 30 : 0) + (compound ? 40 : 0) + (specializedCompound ? 20 : 0);
+}
+
+function nutritionCompleteness(food: any) {
+  return [food.kcalPer100g, food.proteinPer100g, food.fatPer100g, food.carbsPer100g]
+    .filter(value => value != null && Number.isFinite(Number(value))).length;
+}
+
+function scoreFood(food: any, variants: readonly string[], aliasesByFood: ReadonlyMap<string, readonly AliasEntry[]>, fuzzyIds: Set<string>, rankingQuery: string): FoodSearchMatch {
   const searchable = normalizeSearch(food.searchText || food.name);
   const names = foodNameRepresentations(food);
   const aliasEntries = aliasesByFood.get(food.id) ?? [];
   const aliasStrings = aliasEntries.map((entry) => entry.normalizedAlias);
   let best: FoodSearchMatch = { stage: "partial", score: 0, query: variants[0] ?? "" };
-  for (const variant of variants) {
+  // The user's own wording is the only route to exact/trusted identity.
+  // Reviewed expansions remain useful for discovery, but are deliberately
+  // capped below the trust threshold so they can never displace a stronger
+  // match for what the user actually typed.
+  for (const [variantIndex, variant] of variants.entries()) {
+    const expansion = variantIndex > 0;
     const exact = names.includes(variant);
     const matchingAlias = aliasEntries.find((entry) => entry.normalizedAlias === variant);
     // "dynamic_search" aliases remember ONE prior request's raw phrase,
@@ -239,60 +364,141 @@ function scoreFood(food: any, variants: readonly string[], aliasesByFood: Readon
     // below the threshold (every alias written before this checkpoint,
     // confidence 0.7) falls to the weak/fuzzy tier here instead — never
     // silently promoted to full trust merely for existing.
-    const dynamicSearchTrusted = matchingAlias?.kind === "dynamic_search" && matchingAlias.confidence >= DYNAMIC_SEARCH_ALIAS_TRUST_THRESHOLD && hasSemanticCoverage(variant, names);
+    //
+    // Live-reproduced gap (2026-09-23, staging re-verification): a
+    // dynamic_search alias ("szalonna", confidence 0.95, "validated") was
+    // written on 2026-09-19 — BEFORE hasIdentityCoverage existed — for a USDA
+    // record whose dynamically-localized Hungarian name merely CONTAINS
+    // "szalonna" as a minority substring (see hasIdentityCoverage's own doc).
+    // learnSearchAlias's write-time gate and the convergence-gate both now
+    // use hasIdentityCoverage and correctly refuse to create or trust a NEW
+    // alias like this — but this READ-time check still used the plain
+    // hasSemanticCoverage, so an alias already written before that fix
+    // existed (or written by any future code path that doesn't go through
+    // learnSearchAlias) kept reaching full local-search trust regardless.
+    // Using hasIdentityCoverage here too closes that gap at its source,
+    // for any dynamic_search alias regardless of when or how it was written
+    // — never retroactively deletes data, but never trusts it either.
+    const dynamicSearchTrusted = matchingAlias?.kind === "dynamic_search" && matchingAlias.confidence >= DYNAMIC_SEARCH_ALIAS_TRUST_THRESHOLD && hasIdentityCoverage(variant, food);
     const exactAlias = !!matchingAlias && (matchingAlias.kind !== "dynamic_search" || dynamicSearchTrusted);
     const weakDynamicAlias = !!matchingAlias && matchingAlias.kind === "dynamic_search" && !dynamicSearchTrusted;
-    const aliasPrefix = aliasStrings.some((alias) => alias.startsWith(`${variant} `));
-    const aliasContains = aliasStrings.some((alias) => alias.includes(variant));
-    const tokenCoverage = variant.split(" ").filter((token) => searchable.includes(token)).length / variant.split(" ").length;
-    const score = exact ? 100 : exactAlias ? 95 : weakDynamicAlias ? 35 : searchable.startsWith(variant) ? 80 : aliasPrefix ? 75 : searchable.includes(variant) ? 70 : aliasContains ? 65 : Math.round(tokenCoverage * 50);
-    if (score > best.score) best = { stage: exact ? "exact" : exactAlias ? "alias" : weakDynamicAlias ? "fuzzy" : "partial", score, query: variant, aliasKind: exactAlias || weakDynamicAlias ? matchingAlias?.kind : undefined };
+    // A weak alias trivially "starts with"/"contains" its OWN text (it IS the
+    // variant) — that circular echo must not count as independent alias
+    // evidence when computing how strong the food's OTHER evidence is,
+    // otherwise the very alias being gated as untrusted would silently
+    // launder itself back in at the aliasPrefix/aliasContains tier.
+    const otherAliasStrings = weakDynamicAlias ? aliasStrings.filter((alias) => alias !== matchingAlias!.normalizedAlias) : aliasStrings;
+    const aliasPrefix = otherAliasStrings.some((alias) => alias.startsWith(`${variant} `));
+    const aliasContains = otherAliasStrings.some((alias) => wholePhrase(alias, variant));
+    const tokenCoverage = variant.split(" ").filter((token) => wholePhrase(searchable, token)).length / variant.split(" ").length;
+    const prefix = variant.length >= 5 && !variant.includes(" ") && searchable.split(" ").some(token => token.startsWith(variant));
+    // A weak (untrusted) dynamic_search alias is a MINIMUM fallback signal,
+    // never a precedence override: it must not outrank the food's own
+    // genuine canonical/localized/lexical evidence, only fill in when that
+    // evidence is weaker than the alias's own 35-point floor. Real
+    // production case (2026-09-22, live staging RCA): "parsley"/"bacon" each
+    // also carry an old (confidence 0.7) dynamic_search alias for their OWN,
+    // correct Food — the alias used to short-circuit an otherwise 70-80
+    // point canonical/searchText match down to 35 ("fuzzy"), because it was
+    // checked before any natural-evidence tier in this ternary chain. The
+    // poisoned-alias protection this alias tier exists for is unaffected:
+    // an alias learned for an UNRELATED food (e.g. "mustár" -> Mustard
+    // greens) still has zero natural evidence for the query, so it still
+    // floors at exactly 35, never higher.
+    const naturalScore = names.some(name => name.startsWith(`${variant} `)) ? 80
+      : aliasPrefix ? 75
+      : wholePhrase(searchable, variant) ? 70
+      : aliasContains ? 65
+      : compoundHead(searchable, variant) ? 60
+      : prefix ? 40
+      : Math.round(tokenCoverage * 50);
+    const weakDynamicAliasWins = weakDynamicAlias && naturalScore < 35;
+    const primaryScore = exact ? 100 : exactAlias ? 95 : Math.max(naturalScore, weakDynamicAlias ? 35 : 0);
+    const score = expansion ? Math.min(primaryScore, 55) : primaryScore;
+    if (score > best.score) best = {
+      stage: expansion ? "partial" : exact ? "exact" : exactAlias ? "alias" : weakDynamicAliasWins ? "fuzzy" : "partial",
+      score, query: variant,
+      aliasKind: !expansion && (exactAlias || weakDynamicAliasWins) ? matchingAlias?.kind : undefined
+    };
   }
-  return best.score === 0 && fuzzyIds.has(food.id) ? { stage: "fuzzy", score: 35, query: variants[0] ?? "" } : best;
+  // Reviewed aliases retain their established trust contract. Ranking penalties
+  // still apply separately, so a reviewed compound does not displace a basic food.
+  if (best.score > 0 && best.stage !== "alias" && best.stage !== "exact") {
+    best.score = Math.max(1, best.score - rankingPenalty(food, rankingQuery));
+  }
+  // Do not resurrect substring-only candidates through the trigram fallback.
+  const substringOnly = searchable.includes(variants[0]) && !wholePhrase(searchable, variants[0]);
+  const expansionOnly = variants.slice(1).some(variant => wholePhrase(searchable, variant));
+  return best.score === 0 && fuzzyIds.has(food.id) && !substringOnly && !expansionOnly ? { stage: "fuzzy", score: 35, query: variants[0] ?? "" } : best;
 }
 
 type CatalogPrisma = Pick<PrismaClient, "food" | "foodAlias"> & Partial<Pick<PrismaClient, "$queryRaw">>;
 
-export async function searchFoods(prisma: CatalogPrisma, rawQuery: string, limit = 20) {
+export function rankFoodCandidates(candidates: any[], variants: readonly string[], aliasesByFood: ReadonlyMap<string, readonly AliasEntry[]>, fuzzyIds: Set<string>, rankingQuery: string) {
+  return candidates
+    .map((food) => ({ ...food, match: scoreFood(food, variants, aliasesByFood, fuzzyIds, rankingQuery) }))
+    .filter((food) => food.match.score > 0)
+    .sort((a, b) => {
+      const rank = (food: typeof a) => food.match.score - (isTrustedLocalMatch(food.match) ? rankingPenalty(food, rankingQuery) : 0);
+      // Stable equivalence classes, not pairwise name-overlap (which is not
+      // transitive and can make sorting depend on input order).
+      const identityKey = (food: typeof a) => isTrustedLocalMatch(food.match) ? food.match.query : normalizeSearch(food.originalName || food.name);
+      const identityOrder = identityKey(a).localeCompare(identityKey(b));
+      return rank(b) - rank(a) || rankingPenalty(a, rankingQuery) - rankingPenalty(b, rankingQuery) || nutritionCompleteness(b) - nutritionCompleteness(a) || identityOrder || Number(b.source === "bls") - Number(a.source === "bls") || a.name.localeCompare(b.name) || a.id.localeCompare(b.id);
+    });
+}
+
+export async function searchFoods(prisma: CatalogPrisma, rawQuery: string, limit = 20, formEvidence?: FormEvidence) {
   const variants = expandFoodQuery(rawQuery);
   if (!variants.length) return [];
   const take = Math.min(Math.max(limit, 1), 30);
+  const rankingQuery = normalizeSearch(formEvidence?.rawIngredient ?? rawQuery);
+  const aliasesByFood = new Map<string, AliasEntry[]>();
+  const fuzzyIds = new Set<string>();
+
+  if (prisma.$queryRaw) {
+    const candidates = await prisma.$queryRaw<any[]>(foodCandidateQuery(variants, rankingQuery, { forms: SEARCH_FORMS, compound: COMPOUND_FOOD }));
+    for (const candidate of candidates) aliasesByFood.set(candidate.id, candidate._aliases ?? []);
+    let ranked = rankFoodCandidates(candidates, variants, aliasesByFood, fuzzyIds, rankingQuery);
+    // Two-character inputs retain exact/token discovery. Trigram similarity for
+    // such short fragments is too weak; it must not resurrect substring noise.
+    if (variants[0].length >= 3 && !ranked.some(food => food.match.score >= 40)) {
+      const fuzzy = await prisma.$queryRaw<any[]>(fuzzyCandidateQuery(variants[0], candidates.map(food => food.id)));
+      for (const food of fuzzy) fuzzyIds.add(food.id);
+      candidates.push(...fuzzy);
+      ranked = rankFoodCandidates(candidates, variants, aliasesByFood, fuzzyIds, rankingQuery);
+    }
+    const winners = ranked.slice(0, take);
+    if (!winners.length) return [];
+    const full = await prisma.food.findMany({
+      where: { id: { in: winners.map(food => food.id) }, createdById: null },
+      include: { servings: { orderBy: [{ isEstimated: "asc" }, { confidence: "desc" }] } },
+      orderBy: { id: "asc" }
+    });
+    const byId = new Map(full.map(food => [food.id, food]));
+    return winners.filter(food => byId.has(food.id)).map(food => ({ ...byId.get(food.id)!, match: food.match }));
+  }
+
+  // Compatibility for the existing non-SQL projected catalog and unit-test
+  // adapters. Real Prisma clients (including transactions) always use the SQL
+  // branch above. This path performs no pagination either.
   const [aliases, candidates] = await Promise.all([
     prisma.foodAlias.findMany({
-      where: { OR: variants.map((normalizedAlias) => ({ normalizedAlias: { contains: normalizedAlias } })) },
+      where: { OR: variants.map(normalizedAlias => ({ normalizedAlias: { contains: normalizedAlias } })) },
       select: { foodId: true, normalizedAlias: true, kind: true, confidence: true },
-      take: 60
+      orderBy: { id: "asc" }, take: 96
     }),
     prisma.food.findMany({
-      where: { createdById: null, OR: variants.map((query) => ({ searchText: { contains: query, mode: "insensitive" as const } })) },
-      include: { servings: { orderBy: [{ isEstimated: "asc" }, { confidence: "desc" }] } },
-      take: 90
+      where: { createdById: null, OR: variants.map(query => ({ searchText: { contains: query, mode: "insensitive" as const } })) },
+      orderBy: { id: "asc" }, take: 96
     })
   ]);
-  const aliasesByFood = new Map<string, AliasEntry[]>();
   for (const alias of aliases) {
-    const values = aliasesByFood.get(alias.foodId) ?? [];
-    values.push({ normalizedAlias: normalizeSearch(alias.normalizedAlias), kind: alias.kind, confidence: alias.confidence });
-    aliasesByFood.set(alias.foodId, values);
+    const entries = aliasesByFood.get(alias.foodId) ?? [];
+    entries.push({ normalizedAlias: normalizeSearch(alias.normalizedAlias), kind: alias.kind, confidence: alias.confidence });
+    aliasesByFood.set(alias.foodId, entries);
   }
-  const fuzzyIds = new Set<string>();
-  if (candidates.length < take && prisma.$queryRaw) {
-    const fuzzy = await prisma.$queryRaw<Array<{ id: string }>>(Prisma.sql`
-      SELECT "id" FROM "ketomentor"."Food"
-      WHERE "createdById" IS NULL AND "searchText" % ${variants[0]}
-      ORDER BY similarity("searchText", ${variants[0]}) DESC
-      LIMIT 60
-    `);
-    fuzzy.forEach(({ id }) => fuzzyIds.add(id));
-  }
-  const relatedIds = [...aliases.map((alias) => alias.foodId), ...fuzzyIds];
-  const missingIds = [...new Set(relatedIds.filter((id) => !candidates.some((food) => food.id === id)))];
-  if (missingIds.length) {
-    candidates.push(...await prisma.food.findMany({ where: { id: { in: missingIds }, createdById: null }, include: { servings: true } }) as any);
-  }
-  return candidates
-    .map((food) => ({ ...food, match: scoreFood(food, variants, aliasesByFood, fuzzyIds) }))
-    .filter((food) => food.match.score > 0)
-    .sort((a, b) => b.match.score - a.match.score || a.name.localeCompare(b.name))
-    .slice(0, take);
+  const missingIds = [...new Set(aliases.map(alias => alias.foodId))].filter(id => !candidates.some(food => food.id === id));
+  if (missingIds.length) candidates.push(...await prisma.food.findMany({ where: { id: { in: missingIds }, createdById: null }, orderBy: { id: "asc" }, take: 96 }));
+  return rankFoodCandidates(candidates, variants, aliasesByFood, fuzzyIds, rankingQuery).slice(0, take);
 }

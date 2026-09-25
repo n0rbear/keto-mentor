@@ -65,7 +65,12 @@ export const EVERYDAY_COVERAGE_V2: readonly EverydayCoverageEntry[] = [
   add("beef-roast", "meat", "bls", "U171100", ["rind", "bratenfleisch", "bug", "roh"], words(["marhasült hús", "marhasult hus"], ["Rinderbraten", "Rinderbratenfleisch"], ["beef roast", "roast beef"])),
   add("veal", "meat", "bls", "U401000", ["kalb", "muskelfleisch", "roh"], words(["borjúhús", "borjuhus"], ["Kalbfleisch"], ["veal"])),
   add("lamb", "meat", "bls", "U807000", ["lamm", "muskelfleisch", "roh"], words(["bárányhús", "baranyhus"], ["Lammfleisch"], ["lamb"])),
-  reuse("bacon", "meat", words(["bacon", "szalonna"], ["Frühstücksspeck"], ["bacon"])),
+  // Bare "szalonna" is deliberately NOT an alias: it can mean smoked
+  // breakfast bacon (BLS W415000, 304 kcal), raw/smoked back fat (BLS W412000
+  // 746 kcal / W411000 699 kcal), belly bacon (W411300) or zsírszalonna — a
+  // 2.5x energy spread. Verified against the real BLS 4.0 workbook. It must
+  // resolve through clarification, never a confident exact match.
+  reuse("bacon", "meat", words(["bacon"], ["Frühstücksspeck"], ["bacon"])),
   add("ham", "meat", "bls", "W424000", ["schwein", "kochschinken", "kochpokelware"], words(["főtt sonka", "sonka"], ["Kochschinken"], ["cooked ham", "ham"])),
 
   reuse("salmon", "fish", words(["lazac"], ["Lachs"], ["salmon"])),
@@ -83,7 +88,13 @@ export const EVERYDAY_COVERAGE_V2: readonly EverydayCoverageEntry[] = [
   add("greek-yogurt", "dairy", "usda_sr_legacy", "171304", ["yogurt", "greek", "plain", "whole", "milk"], words(["görög joghurt", "gorog joghurt"], ["griechischer Joghurt"], ["Greek yogurt", "plain Greek yogurt"])),
   reuse("yogurt", "dairy", words(["natúr joghurt", "natur joghurt"], ["Naturjoghurt"], ["natural yogurt", "plain yogurt"])),
   reuse("cottage-cheese", "dairy", words(["szemcsés túró", "szemcses turo", "cottage cheese"], ["Hüttenkäse", "Körniger Frischkäse"], ["cottage cheese"])),
-  reuse("quark", "dairy", words(["túró", "turo", "sovány túró"], ["Quark", "Magerquark"], ["quark"])),
+  // BLS M713100 is Speisequark MAGERSTUFE (< 10 % Fett i. Tr., 66 kcal, 0.18 g
+  // fat). Only the explicitly low-fat Hungarian phrase may alias it; bare
+  // "túró" (typically full/half-fat, roughly double the energy) must not
+  // silently become the fat-free record. Bare German "Quark" / English
+  // "quark" are equally unqualified (Speisequark also comes as 20 % / 40 %
+  // Fett i. Tr.), so only the explicitly low-fat names alias it.
+  reuse("quark", "dairy", words(["sovány túró", "sovany turo"], ["Magerquark"], ["low-fat quark"])),
   reuse("mozzarella", "dairy", words(["mozzarella"], ["Mozzarella"], ["mozzarella"])),
   reuse("feta", "dairy", words(["feta", "feta sajt"], ["Feta"], ["feta", "feta cheese"])),
   reuse("parmesan", "dairy", words(["parmezán", "parmezan"], ["Parmesan"], ["parmesan"])),

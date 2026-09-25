@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ChatNutritionEvidenceExtractionProvider, DisabledNutritionEvidenceExtractionProvider, extractJsonLdNutrition, type NutritionEvidenceExtractionTransport } from "./nutrition-evidence-extraction.js";
+import { ChatNutritionEvidenceExtractionProvider, DisabledNutritionEvidenceExtractionProvider, extractJsonLdNutrition, extractVisibleTextNutrition, selectNutritionEvidenceText, type NutritionEvidenceExtractionTransport } from "./nutrition-evidence-extraction.js";
 
 // Fixture A: an official-style page with clean schema.org JSON-LD NutritionInformation.
 const JSON_LD_PAGE = `<html><head>
@@ -82,6 +82,82 @@ describe("extractJsonLdNutrition — deterministic extraction, no AI call", () =
     const both = `<script type="application/ld+json">{"@type":"Product","name":"Product Wrapper Name","nutrition":{"@type":"NutritionInformation","name":"Specific Nutrition Label Name","servingSize":"100 g","calories":"100","proteinContent":"5 g","fatContent":"2 g","carbohydrateContent":"10 g","fiberContent":"1 g"}}</script>`;
     expect(extractJsonLdNutrition(both)?.sourceFoodName).toBe("Specific Nutrition Label Name");
   });
+
+  describe("dual-column (per-portion + per-100 g) tables fail closed", () => {
+    it("DE: 'pro Portion (30 g) pro 100 g' never returns the per-portion column as per-100 g evidence", () => {
+      const page = "Nährwerte pro Portion (30 g) pro 100 g Energie 450 kJ / 108 kcal 1500 kJ / 360 kcal Fett 3 g 10 g Kohlenhydrate 18 g 60 g Ballaststoffe 2,4 g 8 g Eiweiß 4,5 g 15 g";
+      expect(extractVisibleTextNutrition(page, "Müsli")).toBeNull();
+    });
+
+    it("EN: 'per serving (30 g) per 100 g' never returns the per-serving column as per-100 g evidence", () => {
+      const page = "Nutrition per serving (30 g) per 100 g Energy 450kJ / 108kcal 1500kJ / 360kcal Fat 3g 10g Carbohydrate 18g 60g Fibre 2.4g 8g Protein 4.5g 15g";
+      expect(extractVisibleTextNutrition(page, "Granola")).toBeNull();
+    });
+
+    it("a row carrying two values fails closed even without a portion header", () => {
+      const page = "Nutrition Per 100g Energy 1500kJ / 360kcal Fat 3g 10g Carbohydrate 18g 60g Fibre 2.4g 8g Protein 4.5g 15g";
+      expect(extractVisibleTextNutrition(page, "Granola")).toBeNull();
+    });
+
+    it("control: a single-column DE per-100 g table (kcal before kJ) still parses", () => {
+      const page = "Nährwerte pro 100 g Energie 360 kcal / 1500 kJ Fett 10 g davon gesättigte Fettsäuren 2 g Kohlenhydrate 60 g Ballaststoffe 8 g Eiweiß 15 g";
+      expect(extractVisibleTextNutrition(page, "Müsli")).toMatchObject({
+        basis: { amountGrams: 100 }, kcal: { value: 360 }, fat: { value: 10 }, carbs: { value: 60 }, fiber: { value: 8 }, protein: { value: 15 }
+      });
+    });
+  });
+
+  describe("Phase 27 multi-variant hardening", () => {
+    // Two distinct, fully-valid NutritionInformation blocks in ONE JSON-LD
+    // graph (a real comparison/listing-page shape) — Original has 42 kcal,
+    // Zero has 0 kcal. Taking the first (array order) would silently bind
+    // Original's macros to a "Zero" request.
+    const MULTI_VARIANT_JSON_LD = `<script type="application/ld+json">
+[
+  {"@type":"Product","name":"Coca-Cola Original Taste","nutrition":{"@type":"NutritionInformation","servingSize":"100 g","calories":"42","proteinContent":"0 g","fatContent":"0 g","carbohydrateContent":"10.6 g","fiberContent":"0 g"}},
+  {"@type":"Product","name":"Coca-Cola Zero Sugar","nutrition":{"@type":"NutritionInformation","servingSize":"100 g","calories":"0.3","proteinContent":"0 g","fatContent":"0 g","carbohydrateContent":"0 g","fiberContent":"0 g"}}
+]
+</script>`;
+
+    it("does NOT blindly accept the first block when no grounded identity is supplied — fails closed", () => {
+      expect(extractJsonLdNutrition(MULTI_VARIANT_JSON_LD)).toBeNull();
+    });
+
+    it("does NOT blindly accept the first block when the grounded identity does not confidently tie to either candidate", () => {
+      expect(extractJsonLdNutrition(MULTI_VARIANT_JSON_LD, "Some Unrelated Snack Bar")).toBeNull();
+    });
+
+    it("selects the SECOND (non-first) block when the grounded page identity confidently ties to it — array order never wins", () => {
+      const result = extractJsonLdNutrition(MULTI_VARIANT_JSON_LD, "Coca-Cola Zero Sugar | Coca-Cola GB");
+      expect(result).toMatchObject({ sourceFoodName: "Coca-Cola Zero Sugar", kcal: { value: 0.3 } });
+    });
+
+    it("selects the FIRST block when the grounded page identity ties to it instead — proves selection is identity-driven, not position-driven", () => {
+      const result = extractJsonLdNutrition(MULTI_VARIANT_JSON_LD, "Coca-Cola Original Taste | Coca-Cola GB");
+      expect(result).toMatchObject({ sourceFoodName: "Coca-Cola Original Taste", kcal: { value: 42 } });
+    });
+
+    it("returns null when the grounded identity ambiguously matches BOTH candidates (e.g. a generic brand-only title)", () => {
+      const result = extractJsonLdNutrition(MULTI_VARIANT_JSON_LD, "Coca-Cola");
+      expect(result).toBeNull();
+    });
+
+    it("multiple nodes claiming the SAME identity are NOT ambiguous — redundant/duplicate markup uses the first without needing a grounded identity", () => {
+      const duplicate = `<script type="application/ld+json">
+[
+  {"@type":"Product","name":"Cauliflower, raw","nutrition":{"@type":"NutritionInformation","servingSize":"100 g","calories":"25","proteinContent":"1.9 g","fatContent":"0.3 g","carbohydrateContent":"5 g","fiberContent":"2 g"}},
+  {"@type":"Product","name":"Cauliflower, raw","nutrition":{"@type":"NutritionInformation","servingSize":"100 g","calories":"25","proteinContent":"1.9 g","fatContent":"0.3 g","carbohydrateContent":"5 g","fiberContent":"2 g"}}
+]
+</script>`;
+      expect(extractJsonLdNutrition(duplicate)).toMatchObject({ sourceFoodName: "Cauliflower, raw", kcal: { value: 25 } });
+    });
+
+    it("each candidate's quote is bound to ITS OWN raw value, never borrowed from the other variant's identical-key occurrence", () => {
+      const result = extractJsonLdNutrition(MULTI_VARIANT_JSON_LD, "Coca-Cola Zero Sugar | Coca-Cola GB");
+      expect(result?.kcal.quote).toContain("0.3");
+      expect(result?.kcal.quote).not.toContain('"calories":"42"');
+    });
+  });
 });
 
 describe("DisabledNutritionEvidenceExtractionProvider", () => {
@@ -138,5 +214,80 @@ describe("ChatNutritionEvidenceExtractionProvider — LLM-grounded extraction (f
     const provider = new ChatNutritionEvidenceExtractionProvider(fakeTransport({ ...goodResponse, fiber: null }));
     const result = await provider.extract({ requestedIdentity: "x", canonicalIdentity: "x", sourceDomain: "x", sourceTitle: "x", pageText: "some text" });
     expect(result?.fiber).toBeNull();
+  });
+
+  it("selects a verbatim nutrition window when a long manufacturer page places the table after the old 6000-character cutoff", () => {
+    const prefix = "marketing navigation ".repeat(500);
+    const table = "Nutrition Information per 100 g Energy 379 kcal Fat 9 g Carbohydrate 56 g Fibre 8 g Protein 15 g";
+    const selected = selectNutritionEvidenceText(`${prefix}${table}`);
+    expect(selected.length).toBeLessThanOrEqual(6_000);
+    expect(selected).toContain(table);
+    expect(selected).not.toContain("379 kcal Fat 8 g");
+  });
+
+  it("keeps the deterministic bound even when a page contains many nutrition markers", () => {
+    expect(selectNutritionEvidenceText("Nutrition protein fat carbohydrate fibre ".repeat(2_000)).length).toBeLessThanOrEqual(6_000);
+  });
+
+  it("ranks a late numeric nutrition table above earlier navigation/script labels", () => {
+    const navigation = "Nutrition protein fat carbohydrate fibre menu without values ".repeat(180);
+    const filler = "brand story ".repeat(500);
+    const table = "Nutrition Information Per 100g Energy 1596kJ / 379kcal Fat 9g Carbohydrate 56g Fibre 8.0g Protein 15g";
+    const selected = selectNutritionEvidenceText(`${navigation}${filler}${table}`);
+    expect(selected).toContain(table);
+  });
+});
+
+describe("deterministic visible nutrition table extraction", () => {
+  it("extracts a complete explicit per-100g manufacturer table without AI", () => {
+    const result = extractVisibleTextNutrition("Nutrition Information Per 100g Energy 1596kJ / 379kcal Fat 9g Saturates 2.7g Carbohydrate 56g Sugars 26g Fibre 8.0g Protein 15g", "CLIF BAR Chocolate Chip");
+    expect(result).toMatchObject({
+      sourceFoodName: "CLIF BAR Chocolate Chip", extractionMethod: "html_table", basis: { amountGrams: 100 },
+      kcal: { value: 379 }, fat: { value: 9 }, carbs: { value: 56 }, fiber: { value: 8 }, protein: { value: 15 }
+    });
+  });
+
+  it("rejects a serving table without an explicit gram-normalizable per-100g basis", () => {
+    expect(extractVisibleTextNutrition("Serving size 1 cup Calories 90 Total Fat 1g Carbohydrate 15g Dietary Fiber 2g Protein 4g", "Soup")).toBeNull();
+  });
+
+  it("rejects an otherwise complete per-100g table when fiber is missing", () => {
+    expect(extractVisibleTextNutrition("Per 100g Energy 379kcal Fat 9g Carbohydrate 56g Protein 15g", "Bar")).toBeNull();
+  });
+
+  describe("Phase 27 multi-variant hardening", () => {
+    // A realistic comparison page: two independently-labeled products, each
+    // with its own complete per-100 g table and clearly different macros.
+    // Variant B's heading sits immediately before its own table — close
+    // enough for the proximity check, far enough from Variant A's table that
+    // taking the "first" table in the page would silently return A's numbers.
+    function multiVariantPage(requestedHeading: string) {
+      const variantA = "Acme Original Crisps Nutrition Per 100g Energy 550kcal Fat 35g Carbohydrate 45g Fibre 3g Protein 6g";
+      const filler = "Related products you may also like. ".repeat(40);
+      const variantB = `${requestedHeading} Nutrition Per 100g Energy 480kcal Fat 28g Carbohydrate 40g Fibre 5g Protein 7g`;
+      return `${variantA} ${filler} ${variantB}`;
+    }
+
+    it("does NOT silently accept the first table's macros when a second, different table exists and no identity association is given", () => {
+      const result = extractVisibleTextNutrition(multiVariantPage("Acme Reduced Fat Crisps"), "Some Unrelated Product");
+      expect(result).toBeNull();
+    });
+
+    it("selects the SECOND (non-first) table when the grounded identity confidently ties to its nearby heading — never defaults to the first", () => {
+      const result = extractVisibleTextNutrition(multiVariantPage("Acme Reduced Fat Crisps"), "Acme Reduced Fat Crisps");
+      expect(result).toMatchObject({ kcal: { value: 480 }, fat: { value: 28 } });
+      // Explicitly proves Variant A's (first, wrong) macros were never returned.
+      expect(result?.kcal.value).not.toBe(550);
+    });
+
+    it("ambiguous structure (identity matches neither, or is absent) returns null and falls through safely — never guesses", () => {
+      expect(extractVisibleTextNutrition(multiVariantPage("Acme Reduced Fat Crisps"), "")).toBeNull();
+    });
+
+    it("two per-100g tables stating the IDENTICAL macros are not treated as ambiguous (duplicate rendering, not a second variant)", () => {
+      const table = "Nutrition Per 100g Energy 379kcal Fat 9g Carbohydrate 56g Fibre 8g Protein 15g";
+      const page = `${table} ${"padding text ".repeat(50)} ${table}`;
+      expect(extractVisibleTextNutrition(page, "Unrelated Identity")).toMatchObject({ kcal: { value: 379 } });
+    });
   });
 });

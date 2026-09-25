@@ -40,9 +40,12 @@ export function serializeRecipeSummary(recipe: RecipeSummaryRow) {
   return { ...recipe, nutrition: calculateRecipeNutrition(recipe as unknown as RecipeWithIngredients) };
 }
 
-async function ensureFoodsExist(prisma: PrismaClient, input: RecipeInput) {
+async function ensureFoodsExist(prisma: PrismaClient, userId: string, input: RecipeInput) {
   const ids = [...new Set(input.ingredients.map((ingredient) => ingredient.foodId))];
-  const count = await prisma.food.count({ where: { id: { in: ids } } });
+  const count = await prisma.food.count({ where: { id: { in: ids },
+    // A private ingredient may only be used by its owner in a private recipe.
+    ...(input.visibility === "public" ? { createdById: null } : { OR: [{ createdById: null }, { createdById: userId }] })
+  } });
   if (count !== ids.length) throw Object.assign(new Error("food_not_found"), { status: 404, publicCode: "food_not_found" });
 }
 
@@ -61,7 +64,7 @@ export async function createRecipe(prisma: PrismaClient, userId: string, input: 
   // input.sourceType (the router only verifies when they correspond) —
   // sourceType is never overridden, just required to have a matching proof.
   if (TRUSTED_SOURCE_TYPES.has(input.sourceType) !== !!trustedImport) throw invalidImportProof();
-  await ensureFoodsExist(prisma, input);
+  await ensureFoodsExist(prisma, userId, input);
   const recipe = await prisma.recipe.create({
     data: {
       userId,
@@ -121,7 +124,7 @@ export async function updateRecipe(prisma: PrismaClient, userId: string, recipeI
   const existing = await getOwnedRecipe(prisma, userId, recipeId);
   const preserveTrustedSource = hasTrustedSourceProvenance(existing);
   if (!preserveTrustedSource && TRUSTED_SOURCE_TYPES.has(input.sourceType)) throw invalidImportProof();
-  await ensureFoodsExist(prisma, input);
+  await ensureFoodsExist(prisma, userId, input);
   const recipe = await prisma.$transaction(async (tx) => {
     await tx.recipeIngredient.deleteMany({ where: { recipeId } });
     return tx.recipe.update({

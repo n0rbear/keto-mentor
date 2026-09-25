@@ -45,6 +45,23 @@ describe("attemptWebEvidenceFallback — end-to-end orchestration", () => {
     expect(result!.diagnostics.identityVerdict).toBe("approved");
   });
 
+  it("uses the fetched page h1 as identity evidence for a deterministic visible per-100g table", async () => {
+    const extraction = vi.fn(async () => null);
+    let gatedName = "";
+    const result = await attemptWebEvidenceFallback("clif bar chocolate chip", "CLIF BAR Chocolate Chip", baseDeps({
+      searchProvider: searchProvider([{ url: "https://clifbar.com/products/chocolate-chip", title: "Products | CLIF", snippet: "", domain: "clifbar.com" }]),
+      extractionProvider: { id: "fixture", extract: extraction },
+      semanticGateProvider: { id: "real", checkRelevance: async (_input, candidates) => { gatedName = candidates[0].authoritativeName; return new Map([["evidence", true]]); } },
+      fetchHtml: async () => ({
+        html: "<html><title>CLIF BAR Chocolate Chip | CLIF BAR</title><h1>Chocolate Chip</h1><body>Nutrition Information Per 100g Energy 1596kJ / 379kcal Fat 9g Carbohydrate 56g Fibre 8g Protein 15g</body></html>",
+        finalUrl: "https://clifbar.com/products/chocolate-chip"
+      })
+    }));
+    expect(gatedName).toBe("CLIF BAR Chocolate Chip | CLIF BAR");
+    expect(result?.evidence).toMatchObject({ sourceFoodName: "CLIF BAR Chocolate Chip | CLIF BAR", extractionMethod: "html_table", kcalPer100g: 379 });
+    expect(extraction).not.toHaveBeenCalled();
+  });
+
   // P0 effectiveness review (2026-09-16): a real bug found via live staging
   // investigation — the search query previously used the RAW, untranslated
   // originalIdentity (e.g. Hungarian "kárász") instead of the already-
@@ -215,6 +232,44 @@ describe("attemptWebEvidenceFallback — diagnostics instrumentation", () => {
     await attemptWebEvidenceFallback("mustard", "mustár", baseDeps({ semanticGateProvider: identityGate(false), onDiagnostics: (d) => diagnosticsCalls.push(d) } as any));
     const d = diagnosticsCalls[0];
     expect(d.candidates[0]).toMatchObject({ extractionVerdict: "grounded", identityVerdict: "rejected" });
+  });
+
+  it("distinguishes a completed negative semantic verdict from an unavailable gate", async () => {
+    const diagnosticsCalls: any[] = [];
+    const semanticGateProvider: SemanticCandidateGateProvider = {
+      id: "real",
+      checkRelevance: async () => new Map([["evidence", false]]),
+      checkRelevanceDetailed: async () => ({
+        verdicts: new Map([["evidence", false]]),
+        diagnostic: {
+          status: "completed",
+          reasonCode: "verdict_returned",
+          decisions: new Map([["evidence", { relationship: "different_prepared_food", formCompatibility: "incompatible", contextualFit: "acceptable_alternative" }]])
+        }
+      })
+    };
+    await attemptWebEvidenceFallback("mustard", "mustár", baseDeps({ semanticGateProvider, onDiagnostics: (d) => diagnosticsCalls.push(d) } as any));
+    expect(diagnosticsCalls[0].candidates[0]).toMatchObject({
+      semanticGateAttempted: true,
+      semanticGateStatus: "completed",
+      semanticGateVerdict: "negative",
+      semanticGateReasonCode: "verdict_returned",
+      requestedIdentity: "mustár",
+      sourceFoodName: "Cauliflower, raw"
+    });
+  });
+
+  it("reports provider failure as unavailable rather than a semantic negative, without retrying the gate", async () => {
+    const diagnosticsCalls: any[] = [];
+    const detailed = vi.fn(async () => ({
+      verdicts: new Map<string, boolean>(),
+      diagnostic: { status: "provider_failure" as const, reasonCode: "provider_error" as const, providerFailureClass: "transport" as const, decisions: new Map() }
+    }));
+    const semanticGateProvider: SemanticCandidateGateProvider = { id: "real", checkRelevance: vi.fn(), checkRelevanceDetailed: detailed };
+    await attemptWebEvidenceFallback("product", "product", baseDeps({ semanticGateProvider, onDiagnostics: (d) => diagnosticsCalls.push(d) } as any));
+    expect(detailed).toHaveBeenCalledTimes(1);
+    expect(semanticGateProvider.checkRelevance).not.toHaveBeenCalled();
+    expect(diagnosticsCalls[0].candidates[0]).toMatchObject({ semanticGateStatus: "provider_failure", semanticGateVerdict: "unavailable", semanticGateReasonCode: "provider_error", providerFailureClass: "transport" });
   });
 });
 

@@ -1,8 +1,10 @@
 import {
-  validateExternalCandidate, isRelevantExternalCandidate, collapseEquivalentCandidates, findDuplicate, persistCandidate,
+  validateExternalCandidate, isRelevantExternalCandidate, collapseEquivalentCandidates, preferReferenceSourceSurvivors, findDuplicate, persistCandidate,
   type ExternalFoodCandidate, type StructuredFoodLookupAdapter, type ResolutionPrisma
 } from "./external-food.js";
 import { learnSearchAlias } from "./dynamic-food-resolution.js";
+import { hasIdentityCoverage } from "./food-search.js";
+import { normalizeSearch } from "./normalize.js";
 import { localizeCandidateNames, type CandidateLocalizationProvider, type LocalizationLocale } from "./candidate-localization.js";
 import { checkRelevanceBatchWithRetry, type RecipeSemanticGateProvider, type BatchGateIngredientInput } from "./semantic-candidate-gate-batch.js";
 import type { DynamicFoodResolutionRateLimiter } from "./dynamic-food-rate-limit.js";
@@ -61,8 +63,15 @@ export type PendingAuthoritativeResolution = {
 
 export type BatchAuthoritativeOutcome =
   | { status: "resolved"; food: any }
-  | { status: "confirmation_required"; candidates: ExternalFoodCandidate[]; reason: "ambiguous" | "possible_duplicate" }
-  | { status: "unresolved"; reason: "not_found" | "invalid_external_data" | "external_unavailable" | "no_adapters" | "rate_limited" };
+  | { status: "confirmation_required"; candidates: ExternalFoodCandidate[]; reason: "ambiguous" | "possible_duplicate" | "weak_match" }
+  // "convergence_rejected" (2026-09-23, unified food-resolution engine):
+  // mirrors dynamic-food-resolution.ts's own convergence gate — a candidate
+  // the batch semantic gate approved against the NORMALIZED canonicalIdentity
+  // (e.g. a whole-recipe-context-normalized ingredient term) is independently
+  // re-checked against the ingredient's TRUE originalIdentity before being
+  // trusted. Evidentially equivalent to "not_found" for the identity actually
+  // being resolved — see resolveManyAuthoritativeFoods's own doc.
+  | { status: "unresolved"; reason: "not_found" | "invalid_external_data" | "external_unavailable" | "no_adapters" | "rate_limited" | "convergence_rejected" };
 
 export type BatchAuthoritativeDeps = {
   adapters: readonly StructuredFoodLookupAdapter[];
@@ -121,15 +130,16 @@ export async function resolveManyAuthoritativeFoods(
   const searched = await mapWithConcurrency(allowed, SEARCH_CONCURRENCY, async (p): Promise<Searched> => {
     const raw: unknown[] = [];
     let successfulProviders = 0;
+    let failedProviders = 0;
     for (const adapter of deps.adapters) {
       try {
         const result = await adapter.lookup(p.canonicalIdentity);
         successfulProviders += 1;
         raw.push(...result.slice(0, 20));
-      } catch { /* try the next adapter */ }
+      } catch { failedProviders += 1; /* try the next adapter */ }
     }
     if (!raw.length) {
-      outcomes.set(p.id, { status: "unresolved", reason: successfulProviders > 0 ? "not_found" : "external_unavailable" });
+      outcomes.set(p.id, { status: "unresolved", reason: successfulProviders > 0 && failedProviders === 0 ? "not_found" : "external_unavailable" });
       return { pending: p, candidates: [] };
     }
     const structurallyValid = raw.map(validateExternalCandidate).filter((c): c is ExternalFoodCandidate => Boolean(c));
@@ -167,28 +177,60 @@ export async function resolveManyAuthoritativeFoods(
   // best_match) auto-resolves; 2+ survivors is genuine ambiguity; 0 is
   // unresolved. An absent verdict (omitted/hallucinated/malformed pair) is
   // NEVER treated as approval — fail-closed, identical to the single gate.
-  type Decision = { pending: PendingAuthoritativeResolution; toPersist?: ExternalFoodCandidate; toShow?: ExternalFoodCandidate[]; reason?: "ambiguous" | "possible_duplicate" };
+  type Decision = { pending: PendingAuthoritativeResolution; toPersist?: ExternalFoodCandidate; toShow?: ExternalFoodCandidate[]; reason?: "ambiguous" | "possible_duplicate" | "weak_match" };
   const decisions: Decision[] = [];
   for (let ingredientIndex = 0; ingredientIndex < withCandidates.length; ingredientIndex++) {
     const { pending: p, candidates } = withCandidates[ingredientIndex];
     const verdictOf = (candidateIndex: number) => gateResults.get(`${ingredientIndex}:${candidateIndex}`);
     const approved = candidates.filter((_, ci) => { const v = verdictOf(ci); return v?.relationship === "same_identity" && v.formCompatibility === "compatible"; });
     const best = candidates.filter((_, ci) => { const v = verdictOf(ci); return v?.relationship === "same_identity" && v.formCompatibility === "compatible" && v.contextualFit === "best_match"; });
-    let survivors = best.length ? best : approved;
+    const referenceApproved = preferReferenceSourceSurvivors(approved);
+    const referenceBest = best.filter((c) => referenceApproved.includes(c));
+    let survivors = referenceBest.length ? referenceBest : referenceApproved;
     if (!survivors.length) { outcomes.set(p.id, { status: "unresolved", reason: "not_found" }); continue; }
     survivors = collapseEquivalentCandidates(survivors);
 
+    // Convergence gate (2026-09-23, unified food-resolution engine): the
+    // batch semantic gate above approved survivors[0] against
+    // p.canonicalIdentity — a whole-recipe-context NORMALIZED term, not
+    // necessarily what the recipe/user actually wrote. Independently
+    // re-verify against p.originalIdentity before trusting it any further,
+    // exactly like dynamic-food-resolution.ts's own convergence gate does
+    // for the single-item path (same hasIdentityCoverage helper, same
+    // "discard, never leaked, never aliased" treatment on rejection).
+    if (!hasIdentityCoverage(normalizeSearch(p.originalIdentity), survivors[0])) {
+      outcomes.set(p.id, { status: "unresolved", reason: "convergence_rejected" });
+      continue;
+    }
+
     const duplicate = await findDuplicate(prisma, survivors[0]);
     if (duplicate) {
-      if (duplicate.source === survivors[0].source && duplicate.sourceId === survivors[0].sourceId) {
+      const sameSource = duplicate.source === survivors[0].source && duplicate.sourceId === survivors[0].sourceId;
+      if (sameSource && survivors[0].autoAcceptEligible) {
         outcomes.set(p.id, { status: "resolved", food: duplicate });
+      } else if (sameSource) {
+        // Review-only evidence (OFF name search) never auto-resolves via an
+        // earlier persisted copy — same rule as the non-duplicate branch below.
+        decisions.push({ pending: p, toShow: survivors.slice(0, CONFIRMATION_CANDIDATE_LIMIT), reason: survivors.length === 1 ? "weak_match" : "ambiguous" });
       } else {
         decisions.push({ pending: p, toShow: survivors.slice(0, CONFIRMATION_CANDIDATE_LIMIT), reason: "possible_duplicate" });
       }
       continue;
     }
-    if (survivors.length === 1) decisions.push({ pending: p, toPersist: survivors[0] });
-    else decisions.push({ pending: p, toShow: survivors.slice(0, CONFIRMATION_CANDIDATE_LIMIT), reason: "ambiguous" });
+    // Central acceptance-safety audit (2026-09-23): this is the SAME
+    // invariant already enforced in resolveAuthoritativeFood's own
+    // equivalent branch (external-food.ts) — reused here, not
+    // reimplemented, via the shared `autoAcceptEligible` policy field on
+    // ExternalFoodCandidate. Being the sole gate-approved survivor is
+    // semantic PLAUSIBILITY, not authorization: an OpenFoodFacts name-search
+    // hit (autoAcceptEligible: false) must still fall through to
+    // confirmation_required even when nothing else competes with it — never
+    // auto-persisted, and therefore never reaching the `learnSearchAlias`
+    // call a few lines below either (both live inside the same `toPersist`
+    // branch). A reference-source candidate (USDA; autoAcceptEligible: true)
+    // continues to auto-resolve exactly as before, exact-name or not.
+    if (survivors.length === 1 && survivors[0].autoAcceptEligible) decisions.push({ pending: p, toPersist: survivors[0] });
+    else decisions.push({ pending: p, toShow: survivors.slice(0, CONFIRMATION_CANDIDATE_LIMIT), reason: survivors.length === 1 ? "weak_match" : "ambiguous" });
   }
   if (!decisions.length) return outcomes;
 

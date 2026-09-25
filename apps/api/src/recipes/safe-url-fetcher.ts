@@ -3,7 +3,7 @@ import http from "node:http";
 import https from "node:https";
 import net from "node:net";
 
-export const RECIPE_PAGE_MAX_BYTES = 1_000_000;
+export const RECIPE_PAGE_MAX_BYTES = 2_000_000;
 export const RECIPE_FETCH_TIMEOUT_MS = 8_000;
 export const RECIPE_MAX_REDIRECTS = 3;
 
@@ -186,6 +186,8 @@ export async function fetchPublicHtml(rawUrl: string, dependencies: SafeFetcherD
 
   try {
    for (let redirect = 0; redirect <= RECIPE_MAX_REDIRECTS; redirect += 1) {
+    // Fragments are browser-only state, not part of the fetched source.
+    current.hash = "";
     const remaining = deadlineAt - now();
     if (remaining <= 0 || controller.signal.aborted) throw new SafeFetchError("fetch_timeout");
     if (!["http:", "https:"].includes(current.protocol) || current.username || current.password) throw new SafeFetchError("invalid_url");

@@ -12,7 +12,7 @@ import { RecipeBuilder } from "./RecipeBuilder";
 import { MealEditDialog, DeleteMealDialog, RepeatMealDialog, type MealDetail } from "./MealActions";
 import { WeekOverviewCard, type WeekOverviewData } from "./WeekOverview";
 import { AuthForm } from "./AuthForm";
-import { FoodUnderstandingPreview, type ExternalCandidate, type RecipeDiscoveryPreviewValue, type RecipeDiscoveryCandidateValue } from "./FoodUnderstandingPreview";
+import { FoodUnderstandingPreview, type ExternalCandidate, type RecipeDiscoveryPreviewValue, type RecipeDiscoveryCandidateValue, type AiEstimateValue, type AiEstimateOverridePayload, type CandidateFood } from "./FoodUnderstandingPreview";
 import { pickDisplayName } from "./food-display-name";
 import { QuantityClarification } from "./QuantityClarification";
 import { BarcodeLookup } from "./BarcodeLookup";
@@ -34,7 +34,7 @@ type MealInterpretation = {
   quantityConfirmation?: { method: "estimated" | "ai_estimated" | "user_corrected"; accepted: true; grams: number };
   input?: string;
   parsed: { quantity?: number; unit?: string; size?: string; foodQuery: string; preparation?: string };
-  foodResolution: "resolved" | "preview" | "confirmation_required" | "unresolved" | "multi" | "compound";
+  foodResolution: "resolved" | "preview" | "confirmation_required" | "unresolved" | "multi" | "compound" | "ai_estimate_pending";
   selectedFood: Food | null;
   candidates: Food[];
   quantity: null | { status: "resolved" | "unresolved"; grams?: number; servingId?: string; method?: string; confidence?: number; estimated: boolean; requiresConfirmation: boolean; reason?: string; rangeGrams?: { min: number; max: number } };
@@ -42,6 +42,11 @@ type MealInterpretation = {
   confidence?: number;
   preparation?: string;
   items?: MealInterpretation[];
+  // FINAL FALLBACK: AI-ESTIMATED NUTRITION — present only when foodResolution
+  // is "ai_estimate_pending" (see apps/api/src/meal-input/interpret.ts's own
+  // InterpretResult.aiEstimate doc). `proof` is opaque here — only ever
+  // echoed back verbatim to POST /meals; never mutated client-side.
+  aiEstimate?: AiEstimateValue;
   interpretationSource?: "deterministic" | "ai_assisted";
   semantic?: { language: Lang | "unknown"; kind: "single_food" | "multiple_foods" | "compound_dish"; dishName?: string; clarificationNeeded: boolean; clarificationReason?: string };
   semanticItem?: { canonicalName: string; evidence: "explicit" | "inferred_common"; modifiers?: string[]; excludedModifiers?: string[] };
@@ -84,6 +89,7 @@ export function App() {
   const [progressStage, setProgressStage] = useState<ProgressStage | null>(null);
   const [confirmingExternalId, setConfirmingExternalId] = useState<string | null>(null);
   const [confirmingRecipe, setConfirmingRecipe] = useState(false);
+  const [confirmingAiEstimate, setConfirmingAiEstimate] = useState(false);
   const t = dict[lang];
   const state = useMemo(() => ({ token, setToken }), [token]);
 
@@ -305,14 +311,15 @@ export function App() {
   // input text: the food is now locally trusted, so this becomes a normal
   // local hit (no further external calls) and the usual quantity flow
   // (trusted serving / volume-aware estimate / manual grams) takes over.
-  async function confirmExternalCandidate(candidate: ExternalCandidate) {
+  async function confirmExternalCandidate(candidate: ExternalCandidate, itemIndex?: number) {
     if (confirmingExternalId) return;
     const id = `${candidate.source}:${candidate.sourceId}`;
     setConfirmingExternalId(id);
     try {
-      const result = await api<{ status: string }>("/foods/resolve-external/confirm", { method: "POST", body: JSON.stringify({ source: candidate.source, sourceId: candidate.sourceId }) }, state);
+      const result = await api<{ status: string; food?: Food }>("/foods/resolve-external/confirm", { method: "POST", body: JSON.stringify({ source: candidate.source, sourceId: candidate.sourceId }) }, state);
       if (result.status === "confirmed" || result.status === "existing") {
-        await interpretNaturalInput();
+        if (result.food) selectCandidate(result.food, itemIndex);
+        else await interpretNaturalInput();
       } else {
         setMealStatus({ kind: "error", text: t.foodUnderstanding.externalConfirmFailed });
       }
@@ -357,6 +364,118 @@ export function App() {
     } finally {
       setConfirmingRecipe(false);
     }
+  }
+
+  // FINAL FALLBACK: AI-ESTIMATED NUTRITION — accept flow (2026-09-18). Echoes
+  // back exactly the numbers + proof the server generated (see
+  // apps/api/src/catalog/ai-estimate-proof.ts) — nothing here is ever
+  // recomputed or re-signed client-side; the server independently re-verifies
+  // every field before persisting anything. Mirrors confirmRecipe's own
+  // pattern: one accepted item becomes its own immediately-logged meal,
+  // closing the whole interpretation, since the backend has no "stage this
+  // for later, log everything together" option for either kind of item.
+  async function acceptAiEstimate(estimate: AiEstimateValue, quantityGrams: number) {
+    if (confirmingAiEstimate || mealSaving) return;
+    setConfirmingAiEstimate(true);
+    setMealStatus(null);
+    try {
+      await api("/meals", {
+        method: "POST",
+        body: JSON.stringify({
+          title: estimate.localizedFoodName || estimate.canonicalFoodName,
+          items: [{
+            aiEstimateProof: estimate.proof, requestedIdentity: estimate.requestedIdentity, canonicalFoodName: estimate.canonicalFoodName,
+            kcalPer100g: estimate.kcalPer100g, proteinPer100g: estimate.proteinPer100g, fatPer100g: estimate.fatPer100g,
+            carbsPer100g: estimate.carbsPer100g, fiberPer100g: estimate.fiberPer100g, quantityGrams
+          }]
+        })
+      }, state);
+      setInterpretation(null);
+      setNaturalInput("");
+      await handleMealLogged();
+      setMealStatus({ kind: "success", text: t.mealSaved });
+    } catch (error) {
+      setMealStatus({ kind: "error", text: mealErrorText(error, t.mealErrors) });
+    } finally {
+      setConfirmingAiEstimate(false);
+    }
+  }
+
+  // FINAL FALLBACK: AI-ESTIMATED NUTRITION — override flow (2026-09-18). The
+  // signed proof covers the ORIGINAL numbers only (see ai-estimate-proof.ts's
+  // own doc: editing any macro invalidates it by construction) — so an edit
+  // never tries to resubmit it. Instead this goes through the pre-existing,
+  // already-trusted manual-entry contract (source: "user_input", no proof
+  // required), exactly as interpret.ts's own doc describes: "enter their own
+  // values instead (the existing manual-fallback item, source: user_input)".
+  async function overrideAiEstimate(payload: AiEstimateOverridePayload) {
+    if (confirmingAiEstimate || mealSaving) return;
+    setConfirmingAiEstimate(true);
+    setMealStatus(null);
+    try {
+      await api("/meals", {
+        method: "POST",
+        body: JSON.stringify({
+          title: payload.foodName,
+          items: [{
+            foodName: payload.foodName, quantityGrams: payload.quantityGrams, source: "user_input",
+            kcalPer100g: payload.kcalPer100g, proteinPer100g: payload.proteinPer100g, fatPer100g: payload.fatPer100g,
+            carbsPer100g: payload.carbsPer100g, fiberPer100g: payload.fiberPer100g
+          }]
+        })
+      }, state);
+      setInterpretation(null);
+      setNaturalInput("");
+      await handleMealLogged();
+      setMealStatus({ kind: "success", text: t.mealSaved });
+    } catch (error) {
+      setMealStatus({ kind: "error", text: mealErrorText(error, t.mealErrors) });
+    } finally {
+      setConfirmingAiEstimate(false);
+    }
+  }
+
+  // Owner-reported UX bug fix (2026-09-19): a "preview"/"confirmation_required"
+  // result's own `candidates[]` are already real, persisted Food rows — the
+  // exact same shape FoodCombobox's own search results are — so picking one
+  // needs no dedicated persistence call. Update the exact interpretation
+  // row, then require a usable mass; selection itself never logs a meal.
+  function selectCandidate(candidate: CandidateFood, itemIndex?: number) {
+    if (!interpretation) return;
+    const next = structuredClone(interpretation);
+    const rows = next.items ?? [next];
+    const index = next.items ? itemIndex : 0;
+    if (index == null || !rows[index]) return;
+    const item = rows[index];
+    item.selectedFood = candidate as Food;
+    item.candidates = [candidate as Food];
+    item.foodResolution = "resolved";
+    item.nutritionEligible = true;
+    item.externalCandidates = undefined;
+    item.externalCandidatesReason = undefined;
+    item.aiEstimate = undefined;
+    item.quantityConfirmation = undefined;
+    // Only explicit mass survives a change of food. A serving/AI conversion
+    // belongs to the previous candidate and must be reviewed again.
+    const mass = item.parsed.quantity && (item.parsed.unit === "g" || item.parsed.unit === "kg")
+      ? item.parsed.quantity * (item.parsed.unit === "kg" ? 1000 : 1) : undefined;
+    item.quantity = mass ? { status: "resolved", grams: mass, estimated: false, requiresConfirmation: false }
+      : { status: "unresolved", estimated: false, requiresConfirmation: true, reason: "quantity_missing" };
+    item.canConfirm = !!mass;
+    next.canConfirm = rows.every((row) => row.canConfirm);
+    const pendingIndex = rows.findIndex((row) => row.foodResolution === "resolved" && !row.canConfirm);
+    next.clarification = pendingIndex < 0 ? undefined : { type: "grams_required", itemIndex: pendingIndex, allowCustomGrams: true };
+    next.diagnostics = undefined;
+    setInterpretation(next);
+    // Structurally the same runtime shape as Food (same Food row from the
+    // catalog) — cast needed only because CandidateFood's `names` is
+    // Partial<Record<Lang,string>> (a food need not have every locale's
+    // translation) while Food's own field type doesn't express that.
+    if (next.items) return;
+    setSelectedFood(candidate as Food);
+    setMealQuantity(mass ? String(mass) : "");
+    setMealMeasure("g");
+    setGramsOverride("");
   }
 
   async function confirmMultiMeal() {
@@ -572,7 +691,7 @@ export function App() {
               <p className="natural-input-helper">{lang === "hu" ? "Írj természetesen — az ellenőrzött tápértékeket mindig a katalógus adja." : lang === "de" ? "Natürlich formulieren — geprüfte Nährwerte kommen immer aus dem Katalog." : "Use natural language — verified nutrition always comes from the catalog."}</p>
               <div className="natural-input-row"><input id="natural-meal-input" className="field" value={naturalInput} onChange={(event) => { setNaturalInput(event.target.value); setInterpretation(null); setSelectedFood(null); setMealQuantity("1"); setMealMeasure("g"); setGramsOverride(""); }} placeholder={lang === "hu" ? "Például: 5 tojás" : lang === "de" ? "Zum Beispiel: 3 Scheiben Gouda" : "For example: 5 eggs"}/><button type="button" className="btn primary" disabled={interpreting || naturalInput.trim().length < 2} onClick={interpretNaturalInput}>{interpreting ? "…" : lang === "hu" ? "Értelmezés" : lang === "de" ? "Verstehen" : "Interpret"}</button></div>
               {interpreting && progressStage && <p className="natural-input-progress" role="status" aria-live="polite">{t.progress[progressStage] ?? t.progress.finalizing}</p>}
-              {interpretation && <FoodUnderstandingPreview value={interpretation} lang={lang} labels={t.foodUnderstanding} busy={mealSaving || interpreting || !!confirmingExternalId || confirmingRecipe} onConfirmAll={confirmMultiMeal} onConfirmExternal={confirmExternalCandidate} confirmingExternalId={confirmingExternalId} onConfirmRecipe={confirmRecipe}/>}
+              {interpretation && <FoodUnderstandingPreview value={interpretation} lang={lang} labels={t.foodUnderstanding} busy={mealSaving || interpreting || !!confirmingExternalId || confirmingRecipe || confirmingAiEstimate} onConfirmAll={confirmMultiMeal} onConfirmExternal={confirmExternalCandidate} confirmingExternalId={confirmingExternalId} onConfirmRecipe={confirmRecipe} onAcceptAiEstimate={(estimate, quantityGrams) => acceptAiEstimate(estimate, quantityGrams)} onOverrideAiEstimate={(payload) => overrideAiEstimate(payload)} onSelectCandidate={selectCandidate}/>}
               {interpretation?.diagnostics && <DiagnosticsPanel events={interpretation.diagnostics} lang={lang}/>}
               {interpretation?.clarification && (() => { const row = (interpretation.items ?? [interpretation])[interpretation.clarification!.itemIndex]; return <QuantityClarification key={`${interpretation.input}:${interpretation.clarification.itemIndex}`} value={interpretation.clarification} foodName={pickDisplayName(row?.selectedFood, lang)} quantity={row?.parsed.quantity} unit={row?.parsed.unit} lang={lang} onResolve={resolveClarification}/>; })()}
             </div>

@@ -43,6 +43,24 @@ export type ExternalFoodCandidate = ImportFood & {
   confidence: number;
   matchPolicy: "exact_normalized_name" | "review_required";
   language?: string;
+  /**
+   * Central acceptance-safety audit (2026-09-23): `matchPolicy` only records
+   * whether THIS candidate's own name happened to textually equal the query
+   * — it is NOT a trust/provenance signal. A USDA Foundation/SR Legacy
+   * record ("Onions, raw" for query "onion") is legitimately
+   * "review_required" by that definition alone, yet is exactly as
+   * authoritative as an exact-name USDA hit (see the owner-beta blocker #9
+   * gate-approval branch below). An OpenFoodFacts NAME-SEARCH hit is a
+   * different kind of "review_required": a crowd-sourced, brand/text-matched
+   * product whose specific identity was never verified by anything more
+   * than a name/brand string match. Auto-acceptance eligibility is therefore
+   * its OWN policy, set once by the adapter/normalizer that actually knows
+   * what kind of evidence this is — never inferred downstream from
+   * `matchPolicy` or from a `source === "..."` string check. `true` only
+   * for reference-grade lookups (USDA Foundation/SR Legacy; an OFF exact
+   * barcode match); `false` for OFF free-text name search.
+   */
+  autoAcceptEligible: boolean;
 };
 
 export interface StructuredFoodLookupAdapter {
@@ -67,7 +85,14 @@ export type ResolutionOutcome =
   | { status: "resolved_local"; food: any }
   | { status: "resolved_external"; food: any; provenance: ExternalFoodCandidate["provenance"] }
   | { status: "confirmation_required"; candidates: ExternalFoodCandidate[]; reason: "ambiguous" | "possible_duplicate" | "weak_match" }
-  | { status: "unresolved"; candidates: []; reason: "not_found" | "invalid_external_data" | "external_unavailable" };
+  // rawCandidateCount/structurallyValidCount (2026-09-17, production
+  // web-evidence effectiveness RCA): purely diagnostic — how many candidates
+  // adapters actually returned vs how many survived validateExternalCandidate
+  // — lets a caller distinguish "adapters found genuinely nothing" from
+  // "adapters found candidates but every one was structurally incomplete"
+  // without changing what reason means or how any caller behaves. Always
+  // present on "unresolved" (0 when never reached that stage).
+  | { status: "unresolved"; candidates: []; reason: "not_found" | "invalid_external_data" | "external_unavailable"; rawCandidateCount: number; structurallyValidCount: number };
 
 const REQUIRED_MACROS = ["kcalPer100g", "fatPer100g", "proteinPer100g", "carbsPer100g"] as const;
 // Every trusted external source must resolve to exactly this hostname in its
@@ -117,6 +142,18 @@ function nearlyEqual(a: number, b: number, absolute: number, relative: number) {
  * analytical tolerances. Materially different same-name records remain
  * separate and therefore confirmation-required.
  */
+/**
+ * Open Food Facts text-search hits are crowd-sourced PACKAGED products, not
+ * reference composition data. When the semantic gate approved at least one
+ * reference-source candidate (USDA / BLS / ...) for the same identity, an
+ * approved OFF product must never compete with it — it only survives when it
+ * is the sole approved evidence (e.g. a branded "Milbona görög joghurt").
+ */
+export function preferReferenceSourceSurvivors<T extends { source: string }>(survivors: readonly T[]): T[] {
+  const reference = survivors.filter((candidate) => candidate.source !== "open_food_facts");
+  return reference.length ? reference : [...survivors];
+}
+
 export function collapseEquivalentCandidates(candidates: readonly ExternalFoodCandidate[]): ExternalFoodCandidate[] {
   const dataType = (item: ExternalFoodCandidate) => item.provenance && typeof item.provenance === "object" && !Array.isArray(item.provenance)
     ? String((item.provenance as Record<string, unknown>).dataType ?? "") : "";
@@ -233,7 +270,15 @@ async function backfillLocaleName(prisma: ResolutionPrisma, food: any, localizat
 }
 
 export async function persistCandidate(prisma: ResolutionPrisma, candidate: ExternalFoodCandidate) {
-  const { nutrients, confidence: _confidence, matchPolicy: _matchPolicy, language: _language, normalizedName: _normalizedName, nutrientBasis: _basis, retrievedAt: _retrievedAt, sourceUrl: _sourceUrl, ...foodData } = candidate;
+  // Live staging RCA (2026-09-24): `autoAcceptEligible` is a decision-time-only
+  // flag on ExternalFoodCandidate (see its own doc above) — the Food model
+  // (schema.prisma) has no such column. It was never added to this exclusion
+  // list when it was introduced, so it leaked into `foodData` below and every
+  // real Prisma client rejected the `tx.food.create` call outright for any
+  // BRAND-NEW auto-accepted candidate (a repeat/local/confirmation_required
+  // candidate never reaches this function, which is why this went unnoticed:
+  // see the "brand-new auto-accepted candidate" regression test).
+  const { nutrients, confidence: _confidence, matchPolicy: _matchPolicy, language: _language, normalizedName: _normalizedName, nutrientBasis: _basis, retrievedAt: _retrievedAt, sourceUrl: _sourceUrl, autoAcceptEligible: _autoAcceptEligible, ...foodData } = candidate;
   return prisma.$transaction(async (tx) => {
     const saved = await tx.food.create({ data: { ...foodData, searchText: buildSearchText(foodData), createdById: null } });
     const aliases = [...new Set([candidate.name, candidate.originalName, ...Object.values(candidate.names ?? {})].map(normalizeSearch).filter(Boolean))];
@@ -332,10 +377,11 @@ export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: 
     ? trustedLocal.find((food) => !localFormMismatch(food.originalName ?? food.name, formEvidence, food.match)) ?? (adapters.length === 0 ? trustedLocal[0] : undefined)
     : trustedLocal[0];
   if (localMatch) return { status: "resolved_local", food: localMatch };
-  if (!adapters.length) return { status: "unresolved", candidates: [], reason: "external_unavailable" };
+  if (!adapters.length) return { status: "unresolved", candidates: [], reason: "external_unavailable", rawCandidateCount: 0, structurallyValidCount: 0 };
 
   let rawCandidates: unknown[] = [];
   let successfulProviders = 0;
+  let failedProviders = 0;
   await timeStage("external_lookup", async () => {
     for (const adapter of adapters) {
       try {
@@ -343,16 +389,19 @@ export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: 
         successfulProviders += 1;
         rawCandidates.push(...result.slice(0, 20));
       } catch {
+        failedProviders += 1;
         continue;
       }
     }
   });
-  if (!rawCandidates.length) return { status: "unresolved", candidates: [], reason: successfulProviders > 0 ? "not_found" : "external_unavailable" };
+  // A provider that THREW (rate limit / outage) is not evidence of absence:
+  // with no candidates from the others, report unavailable, never a clean "not_found".
+  if (!rawCandidates.length) return { status: "unresolved", candidates: [], reason: successfulProviders > 0 && failedProviders === 0 ? "not_found" : "external_unavailable", rawCandidateCount: 0, structurallyValidCount: 0 };
   const structurallyValid = rawCandidates.map(validateExternalCandidate).filter((candidate): candidate is ExternalFoodCandidate => Boolean(candidate));
-  if (!structurallyValid.length) return { status: "unresolved", candidates: [], reason: "invalid_external_data" };
+  if (!structurallyValid.length) return { status: "unresolved", candidates: [], reason: "invalid_external_data", rawCandidateCount: rawCandidates.length, structurallyValidCount: 0 };
   // Structurally valid is not the same as relevant — see isRelevantExternalCandidate.
   let candidates = structurallyValid.filter((candidate) => isRelevantExternalCandidate(query, candidate.normalizedName)).sort((a, b) => b.confidence - a.confidence);
-  if (!candidates.length) return { status: "unresolved", candidates: [], reason: "not_found" };
+  if (!candidates.length) return { status: "unresolved", candidates: [], reason: "not_found", rawCandidateCount: rawCandidates.length, structurallyValidCount: structurallyValid.length };
 
   // Owner-beta blocker #9 (2026-09-11): isRelevantExternalCandidate above
   // only validates a candidate against the SEARCH TERM actually sent — never
@@ -389,16 +438,26 @@ export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: 
       return decision === true || decision === "best_match" || decision === "acceptable_alternative";
     });
     const best = reviewCandidates.filter((_, index) => relevance.get(String(index)) === "best_match");
-    candidates = best.length ? best : approved;
-    if (!candidates.length) return { status: "unresolved", candidates: [], reason: "not_found" };
+    // Applied to the approved set BEFORE the best_match narrowing: an OFF
+    // product the gate merely name-matched as "best" must not displace an
+    // approved reference-source candidate.
+    const referenceApproved = preferReferenceSourceSurvivors(approved);
+    const referenceBest = best.filter((candidate) => referenceApproved.includes(candidate));
+    candidates = referenceBest.length ? referenceBest : referenceApproved;
+    if (!candidates.length) return { status: "unresolved", candidates: [], reason: "not_found", rawCandidateCount: rawCandidates.length, structurallyValidCount: structurallyValid.length };
     candidates = collapseEquivalentCandidates(candidates);
   }
 
   const duplicate = await findDuplicate(prisma, candidates[0]);
   if (duplicate) {
-    if (duplicate.source === candidates[0].source && duplicate.sourceId === candidates[0].sourceId) return { status: "resolved_local", food: await backfillLocaleName(prisma, duplicate, localization) };
+    const sameSource = duplicate.source === candidates[0].source && duplicate.sourceId === candidates[0].sourceId;
+    // Review-only evidence (autoAcceptEligible: false, e.g. an OFF name-search
+    // hit) must never auto-resolve just because the same source record was
+    // persisted earlier — that would bypass the review gate below and let the
+    // caller learn a dynamic_search alias. Same reason the batch path reports.
+    if (sameSource && candidates[0].autoAcceptEligible) return { status: "resolved_local", food: await backfillLocaleName(prisma, duplicate, localization) };
     const localizedTop5 = localization ? await localizeCandidateNames(localization.provider, candidates.slice(0, 5), localization.locale) : candidates.slice(0, 5);
-    return { status: "confirmation_required", candidates: localizedTop5, reason: "possible_duplicate" };
+    return { status: "confirmation_required", candidates: localizedTop5, reason: sameSource ? (candidates.length > 1 ? "ambiguous" : "weak_match") : "possible_duplicate" };
   }
   const top = candidates[0];
   const second = candidates[1];
@@ -421,7 +480,31 @@ export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: 
   // never auto-picked. A disabled/unconfigured gate leaves this branch
   // unreached (semanticGate is falsy) and behavior is byte-for-byte
   // unchanged — the strict exact-normalized-name path below still applies.
-  if (semanticGate && candidates.length === 1) {
+  //
+  // Central acceptance-safety audit (2026-09-23): semantic PLAUSIBILITY (the
+  // gate approving a candidate as the same broad identity) is a different
+  // question from whether that candidate's own EVIDENCE is trustworthy
+  // enough to skip a review round-trip at all. `matchPolicy` cannot answer
+  // that here — it only records whether THIS candidate's name happened to
+  // textually equal the query, and a genuine USDA Foundation/SR Legacy
+  // record is routinely "review_required" by that definition alone (see the
+  // "onion" example above) while still being exactly as authoritative as an
+  // exact-name hit. An OpenFoodFacts NAME-SEARCH hit is a different,
+  // strictly weaker kind of "review_required": a crowd-sourced product whose
+  // SPECIFIC identity was never verified beyond a name/brand text match —
+  // see `autoAcceptEligible` on ExternalFoodCandidate. Before this fix, a
+  // sole OFF-name-search survivor reached this branch and was persisted/
+  // returned as "resolved_external" purely because it was gate-approved and
+  // alone, never checking whether its OWN evidence type permits skipping
+  // review at all. The guard below is that policy check — set once, by the
+  // adapter/normalizer that actually knows what kind of evidence this is —
+  // never a `source === "..."` check here. Any reference-source candidate
+  // (USDA, or an OFF exact barcode match) still auto-resolves exactly as
+  // before, exact-name or not; only evidence whose own policy says it isn't
+  // eligible for automatic acceptance is now forced past this branch to the
+  // ordinary confirmation_required path (reason: "weak_match") a few lines
+  // below, same as when no semantic gate exists.
+  if (semanticGate && candidates.length === 1 && top.autoAcceptEligible) {
     const [localizedTop] = localization ? await localizeCandidateNames(localization.provider, [top], localization.locale) : [top];
     try {
       const food = await persistCandidate(prisma, localizedTop);

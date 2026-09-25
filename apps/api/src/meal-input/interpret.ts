@@ -1,7 +1,7 @@
 import type { PrismaClient } from "@prisma/client";
 import type { FoodUnderstanding, FoodUnderstandingItem, Locale, QuantityClarification } from "@keto-mentor/shared";
 import { isBarePreparationToken, parseNaturalFoodQuery, type ParsedNaturalFoodQuery } from "../catalog/natural-food-query.js";
-import { foodNameRepresentations, hasSemanticCoverage, isTrustedLocalMatch, localFormMismatch, searchFoods } from "../catalog/food-search.js";
+import { hasSemanticCoverage, isTrustedLocalMatch, localFormMismatch, searchFoods } from "../catalog/food-search.js";
 import type { RecipeDiscoveryPreview } from "../recipes/recipe-discovery.js";
 import { DisabledQuantityEstimationProvider, type EstimateMethod, type QuantityEstimationClass, type QuantityEstimationMethodClass, type QuantityEstimationProvider, type VolumeQuantityModel, validateQuantityEstimate } from "./quantity-estimation.js";
 import { normalizeSearch } from "../catalog/normalize.js";
@@ -20,6 +20,7 @@ import type { ProgressStage } from "./progress-bus.js";
 import type { AiNutritionEstimate } from "../catalog/ai-nutrition-estimation.js";
 import { createAiEstimateProof } from "../catalog/ai-estimate-proof.js";
 import type { WebEvidenceFallbackDiagnostics } from "../catalog/web-evidence-fallback.js";
+import type { DecisionTrace, DynamicResolutionDiagnostics } from "../catalog/dynamic-food-resolution.js";
 
 type SearchablePrisma = Pick<PrismaClient, "food" | "foodAlias"> & Partial<Pick<PrismaClient, "$queryRaw">>;
 type Serving = { id: string; key: string; unit: string; labels: unknown; grams: number; isEstimated: boolean; confidence: number; provenance: unknown };
@@ -99,6 +100,8 @@ export type DynamicResolutionDeps = {
   // provider degrades to DisabledRecipeSemanticGateProvider inside the
   // recipe-batch resolver, which also fails CLOSED.
   recipeSemanticGateProvider?: RecipeSemanticGateProvider;
+  webEvidenceFallback?: Parameters<typeof resolveDynamicFood>[2]["webEvidenceFallback"];
+  aiEstimation?: Parameters<typeof resolveDynamicFood>[2]["aiEstimation"];
 } | null;
 
 export type InterpretResult = {
@@ -171,14 +174,31 @@ export type InterpretResult = {
   // in transit.
   aiEstimate?: AiNutritionEstimate & { requestedIdentity: string; canonicalIdentity: string; proof: string };
   // P0 effectiveness-investigation instrumentation (2026-09-16) — see
-  // debugWebEvidenceDiagnostics's own doc. Never present in production.
+  // debugResolutionDiagnostics's own doc. Never present in production.
   webEvidenceDiagnostics?: WebEvidenceFallbackDiagnostics;
+  // Production web-evidence effectiveness RCA (2026-09-17) — see
+  // debugResolutionDiagnostics's own doc. Never present in production.
+  resolutionDiagnostics?: DynamicResolutionDiagnostics;
+  // Decision-transparency audit (2026-09-19) — deliberately NOT gated by
+  // isProductionDeployment() like webEvidenceDiagnostics/resolutionDiagnostics
+  // above: DecisionTrace carries only small, closed, already-safe outcome
+  // CATEGORIES (never a domain, URL, search term, or provider message — see
+  // its own doc in dynamic-food-resolution.ts), so it is always present when
+  // known, in every environment, and is what diagnostics.ts turns into the
+  // "Mi történt?" panel's web-evidence/AI-estimation lines.
+  decisionTrace?: DecisionTrace;
 };
 
 function aiEstimatePendingResult(
   input: string, parsed: ParsedNaturalFoodQuery,
   outcome: Extract<Awaited<ReturnType<typeof resolveDynamicFood>>, { status: "ai_estimate_pending" }>,
-  userId: string
+  userId: string,
+  // Authoritative catalog data first (owner decision, 2026-09-25): weak local
+  // catalog matches the dynamic chain ran past (e.g. "szalonna" -> BLS
+  // Frühstücksspeck / USDA cured bacon) stay selectable next to the estimate
+  // instead of being silently dropped. Never auto-selected: the item stays
+  // canConfirm:false, the user picks a catalog food or accepts the estimate.
+  localCandidates: ResolvedFood[] = []
 ): InterpretResult {
   const proof = createAiEstimateProof(userId, {
     requestedIdentity: outcome.requestedIdentity, canonicalFoodName: outcome.estimate.canonicalFoodName,
@@ -186,20 +206,21 @@ function aiEstimatePendingResult(
     fatPer100g: outcome.estimate.fatPer100g, carbsPer100g: outcome.estimate.carbsPer100g, fiberPer100g: outcome.estimate.fiberPer100g
   });
   return {
-    input, parsed, foodResolution: "ai_estimate_pending", selectedFood: null, candidates: [], quantity: null,
+    input, parsed, foodResolution: "ai_estimate_pending", selectedFood: null, candidates: localCandidates, quantity: null,
     canConfirm: false, confidence: 0, preparation: parsed.preparation, interpretationSource: "deterministic",
     aiEstimate: { ...outcome.estimate, requestedIdentity: outcome.requestedIdentity, canonicalIdentity: outcome.canonicalIdentity, proof },
-    ...debugWebEvidenceDiagnostics(outcome.webEvidenceDiagnostics)
+    ...(outcome.decisionTrace ? { decisionTrace: outcome.decisionTrace } : {}),
+    ...debugResolutionDiagnostics(outcome.webEvidenceDiagnostics, outcome.resolutionDiagnostics)
   };
 }
 
-// P0 effectiveness-investigation instrumentation (2026-09-16): the full
-// web-evidence funnel trace is ALWAYS computed cheaply (see
-// dynamic-food-resolution.ts) but only ever surfaced to an API caller
-// outside production — never "noisy permanent production logging", an
-// explicit opt-in for verification. No secrets/PII in this object (see
-// WebEvidenceFallbackDiagnostics's own doc — domains, tiers, rejection
-// stages only).
+// P0 effectiveness-investigation instrumentation (2026-09-16, extended
+// 2026-09-17 with resolutionDiagnostics): both diagnostic traces are ALWAYS
+// computed cheaply (see dynamic-food-resolution.ts) but only ever surfaced
+// to an API caller outside production — never "noisy permanent production
+// logging", an explicit opt-in for verification. No secrets/PII in either
+// object (see each type's own doc — domains, tiers, search terms, rejection
+// stages only, never page content or provider credentials).
 // Staging deliberately runs with NODE_ENV=production (see server.ts's own
 // deploymentEnvironment/build-info logic — NODE_ENV alone cannot tell
 // staging apart from real production). RENDER_SERVICE_NAME can: Render sets
@@ -213,16 +234,20 @@ function isProductionDeployment(): boolean {
   return process.env.NODE_ENV === "production";
 }
 
-function debugWebEvidenceDiagnostics(diagnostics: InterpretResult["webEvidenceDiagnostics"]) {
-  if (!diagnostics || isProductionDeployment()) return {};
-  return { webEvidenceDiagnostics: diagnostics };
+function debugResolutionDiagnostics(webEvidenceDiagnostics?: InterpretResult["webEvidenceDiagnostics"], resolutionDiagnostics?: InterpretResult["resolutionDiagnostics"]) {
+  if (isProductionDeployment()) return {};
+  return {
+    ...(webEvidenceDiagnostics ? { webEvidenceDiagnostics } : {}),
+    ...(resolutionDiagnostics ? { resolutionDiagnostics } : {})
+  };
 }
 
-function unresolvedResult(input: string, parsed: ParsedNaturalFoodQuery, webEvidenceDiagnostics?: InterpretResult["webEvidenceDiagnostics"]): InterpretResult {
+function unresolvedResult(input: string, parsed: ParsedNaturalFoodQuery, webEvidenceDiagnostics?: InterpretResult["webEvidenceDiagnostics"], resolutionDiagnostics?: InterpretResult["resolutionDiagnostics"], decisionTrace?: InterpretResult["decisionTrace"]): InterpretResult {
   return {
     input, parsed, foodResolution: "unresolved", selectedFood: null, candidates: [], quantity: null,
     canConfirm: false, confidence: 0, preparation: parsed.preparation, interpretationSource: "deterministic",
-    ...debugWebEvidenceDiagnostics(webEvidenceDiagnostics)
+    ...(decisionTrace ? { decisionTrace } : {}),
+    ...debugResolutionDiagnostics(webEvidenceDiagnostics, resolutionDiagnostics)
   };
 }
 
@@ -362,6 +387,16 @@ function servingPriority(serving: Serving) {
   return method === "authoritative" ? 0 : method === "curated" ? 1 : 2;
 }
 
+// Weak local matches shown NEXT TO external candidates or an AI estimate
+// must actually be about the food the user named: a partial match can be
+// unrelated ("csülök" -> "Cheese scone"), and listing it beside real options
+// only adds noise. Same substring-coverage rule the prepared-form shortcut
+// above uses, over the candidate's full vocabulary (names + synonyms).
+function coveredLocalCandidates(foodQuery: string, candidates: ResolvedFood[]): ResolvedFood[] {
+  const normalizedQuery = normalizeSearch(foodQuery);
+  return candidates.filter((food) => hasSemanticCoverage(normalizedQuery, [normalizeSearch(food.searchText || food.name)]));
+}
+
 async function interpretOne(
   prisma: SearchablePrisma,
   input: string,
@@ -425,23 +460,21 @@ async function interpretOne(
       if (outcome.status === "resolved") {
         const resolvedFood = outcome.food as ResolvedFood;
         // Convergence gate (defense-in-depth, owner-beta blocker #3,
-        // 2026-09-10): a "resolved" outcome here means an UPSTREAM function
-        // (resolveAuthoritativeFood) decided this Food was trustworthy — but
-        // that decision was made against the AI-translated search-intent
-        // term, never against what the user actually typed. Search intent is
-        // a query generator, not identity evidence: a mistranslation
-        // ("tojásleves" -> "tofu soup") can satisfy every upstream check and
-        // still be the wrong food. Re-verify against the ORIGINAL phrase
-        // before granting full trust here, at the one place every dynamic
-        // outcome (local or external) converges into "resolved"/confidence 1.
-        if (!hasSemanticCoverage(normalizeSearch(parsed.foodQuery), foodNameRepresentations(resolvedFood))) {
-          return { input, parsed, foodResolution: "unresolved", selectedFood: null, candidates: [], quantity: null, canConfirm: false, confidence: 0, preparation: parsed.preparation, interpretationSource: "deterministic" };
-        }
+        // 2026-09-10; CENTRALIZED into resolveFromSearchTerm 2026-09-17 —
+        // see dynamic-food-resolution.ts's own doc): a "resolved" outcome
+        // here has ALREADY been re-verified against the ORIGINAL identity
+        // (parsed.foodQuery) inside resolveDynamicFood itself — a rejected
+        // candidate now falls through to the same web-evidence/AI-estimate
+        // chain a genuine miss gets, rather than reaching here at all. No
+        // separate re-check is needed (or safe to duplicate: re-deriving it
+        // here would silently diverge from the centralized one again,
+        // exactly the bug this centralization fixes).
         const quantity = await timeStage("quantity_resolution", () => resolveQuantity(parsed, resolvedFood, provider));
         return {
           input, parsed, foodResolution: "resolved", selectedFood: resolvedFood, candidates: [resolvedFood], quantity,
           canConfirm: quantity.status === "resolved" && !quantity.requiresConfirmation,
-          confidence: 1, preparation: parsed.preparation, interpretationSource: "deterministic"
+          confidence: 1, preparation: parsed.preparation, interpretationSource: "deterministic",
+          ...debugResolutionDiagnostics(undefined, outcome.resolutionDiagnostics)
         };
       }
       if (outcome.status === "confirmation_required") {
@@ -455,7 +488,7 @@ async function interpretOne(
         return aiEstimatePendingResult(input, parsed, outcome, dynamic.userId);
       }
       if (outcome.status === "unresolved") {
-        return unresolvedResult(input, parsed, outcome.webEvidenceDiagnostics);
+        return unresolvedResult(input, parsed, outcome.webEvidenceDiagnostics, outcome.resolutionDiagnostics, outcome.decisionTrace);
       }
     }
     return unresolvedResult(input, parsed);
@@ -519,32 +552,49 @@ async function interpretOne(
   // plain weak-match case — prepUnavailable/ambiguous keep their own
   // pre-existing, unrelated handling below, untouched.
   if (!locallyTrusted && !prepUnavailable && !ambiguous && dynamic && parsed.foodQuery) {
+    let fallbackDiagnostics: ReturnType<typeof debugResolutionDiagnostics> = {};
+    let weakMatchDecisionTrace: InterpretResult["decisionTrace"];
     const outcome = await timeStage("dynamic_resolution", () => resolveDynamicFood(dynamic.prisma, { foodQuery: parsed.foodQuery, preparation: parsed.preparation }, dynamic));
     if (outcome.status === "resolved") {
+      // Convergence gate now CENTRALIZED into resolveDynamicFood itself (see
+      // dynamic-food-resolution.ts's own doc) — a "resolved" outcome here
+      // has already been re-verified against the user's original phrase,
+      // and a rejected candidate has already been given its own chance at
+      // web-evidence/AI-estimate before ever falling through to "unresolved"
+      // below. No separate re-check needed here.
       const resolvedFood = outcome.food as ResolvedFood;
-      // Same convergence-gate re-verification as the `!top` branch above —
-      // a dynamic "resolved" outcome must still be checked against what the
-      // user actually typed before it is trusted here.
-      if (hasSemanticCoverage(normalizeSearch(parsed.foodQuery), foodNameRepresentations(resolvedFood))) {
-        const quantity = await timeStage("quantity_resolution", () => resolveQuantity(parsed, resolvedFood, provider));
-        return {
-          input, parsed, foodResolution: "resolved", selectedFood: resolvedFood, candidates: [resolvedFood], quantity,
-          canConfirm: quantity.status === "resolved" && !quantity.requiresConfirmation,
-          confidence: 1, preparation: parsed.preparation, interpretationSource: "deterministic"
-        };
-      }
+      const quantity = await timeStage("quantity_resolution", () => resolveQuantity(parsed, resolvedFood, provider));
+      return {
+        input, parsed, foodResolution: "resolved", selectedFood: resolvedFood, candidates: [resolvedFood], quantity,
+        canConfirm: quantity.status === "resolved" && !quantity.requiresConfirmation,
+        confidence: 1, preparation: parsed.preparation, interpretationSource: "deterministic",
+        ...debugResolutionDiagnostics(undefined, outcome.resolutionDiagnostics)
+      };
     } else if (outcome.status === "confirmation_required") {
       return {
-        input, parsed, foodResolution: "confirmation_required", selectedFood: null, candidates, quantity: null,
+        input, parsed, foodResolution: "confirmation_required", selectedFood: null, candidates: coveredLocalCandidates(parsed.foodQuery, candidates), quantity: null,
         canConfirm: false, confidence: score / 100, preparation: parsed.preparation, interpretationSource: "deterministic",
         externalCandidates: outcome.candidates, externalCandidatesReason: outcome.reason
       };
     } else if (outcome.status === "ai_estimate_pending") {
-      return aiEstimatePendingResult(input, parsed, outcome, dynamic.userId);
+      return aiEstimatePendingResult(input, parsed, outcome, dynamic.userId, coveredLocalCandidates(parsed.foodQuery, candidates));
+    } else {
+      fallbackDiagnostics = debugResolutionDiagnostics(outcome.webEvidenceDiagnostics, outcome.resolutionDiagnostics);
+      weakMatchDecisionTrace = outcome.decisionTrace;
     }
-    // "unresolved" (or a resolved candidate that failed the convergence
-    // gate) falls through to the existing weak-local-match handling below —
-    // the local candidate remains the best available evidence.
+    // "unresolved" (now only ever a GENUINE miss — local, USDA/OFF,
+    // web-evidence, AND AI-estimate all tried) falls through to the
+    // existing weak-local-match handling below — the local candidate
+    // remains the best available evidence.
+    if (Object.keys(fallbackDiagnostics).length || weakMatchDecisionTrace) {
+      const quantity = await timeStage("quantity_resolution", () => resolveQuantity(parsed, top, new DisabledQuantityEstimationProvider()));
+      return {
+        input, parsed, foodResolution: score >= 80 ? "preview" : "confirmation_required", selectedFood: top, candidates, quantity,
+        canConfirm: false, confidence: score / 100, preparation: parsed.preparation, interpretationSource: "deterministic",
+        ...(weakMatchDecisionTrace ? { decisionTrace: weakMatchDecisionTrace } : {}),
+        ...fallbackDiagnostics
+      };
+    }
   }
 
   let foodResolution: FoodResolutionStatus;
@@ -631,6 +681,25 @@ function hasStrongExternalCandidateSignal(result: InterpretResult): boolean {
   return !!result.items?.some((item) => item.externalCandidates?.length && isStrong(item.externalCandidatesReason));
 }
 
+// FINAL FALLBACK: AI-ESTIMATED NUTRITION duplicate-resolution fix
+// (2026-09-19) — real Render staging logs proved a valid ai_estimate_pending
+// result was being silently discarded: local+authoritative+web-evidence all
+// missed, ai_nutrition_estimation succeeded, dynamic_food_resolution logged
+// status=ai_estimate_pending — and THEN this function ran anyway (because an
+// ai_estimate_pending result has selectedFood:null and confidence:0, which
+// the old logic read as "still needs understanding"), triggering a second,
+// redundant food-understanding pass whose own re-run of interpretOne could
+// invoke the ENTIRE dynamic-resolution chain again for the same food,
+// burning a second AI_ESTIMATE_RATE_LIMIT token (of only 3 per 15 minutes)
+// and sometimes replacing the perfectly good estimate with "unresolved" when
+// that second attempt failed. A successful ai_estimate_pending is already
+// the terminal outcome for this tier (every earlier source already ran) and
+// must be treated exactly like an already-resolved trusted match below —
+// never as a "needs more understanding" signal.
+function isSettledAiEstimate(item: InterpretResult): boolean {
+  return item.foodResolution === "ai_estimate_pending";
+}
+
 function shouldUseAiFallback(result: InterpretResult, aiProvider: AiProvider) {
   if (!aiProvider.supports("food_nlp")) return false;
   if (result.ambiguous) return false;
@@ -639,11 +708,79 @@ function shouldUseAiFallback(result: InterpretResult, aiProvider: AiProvider) {
   // silently discard it and start over. See hasStrongExternalCandidateSignal
   // for why a mere weak_match does NOT count as that outcome.
   if (hasStrongExternalCandidateSignal(result)) return false;
+  // Prepared-dish routing audit (2026-09-19): the single-item terminal case
+  // used to short-circuit here unconditionally (see isSettledAiEstimate's
+  // own doc for why that guard exists — a real, separate bug about wasted
+  // re-resolution). But that also meant a bare single-word phrase like
+  // "gulyásleves" could NEVER reach food-understanding at all once its own
+  // deterministic per-item resolution (interpretOne -> resolveDynamicFood)
+  // happened to reach AI-estimation first — live-proven root cause of ALL
+  // SIX tested prepared dishes silently skipping recipe discovery entirely
+  // (findEligibleDiscoveryTarget requires semantic.kind === "compound_dish",
+  // which only food-understanding AI ever sets). Falling through here now
+  // lets food-understanding run for that case too, purely to give a genuine
+  // compound-dish classification a chance — interpretAiUnderstanding below
+  // REUSES the already-settled deterministic result instead of re-resolving
+  // it (see its own doc), so this costs exactly one extra food_nlp call
+  // (25/15min budget) and NEVER a second AI-estimate/search/web-evidence
+  // call. The multi-item branch immediately below is unaffected: a genuine
+  // multi-item deterministic result's top-level foodResolution is always
+  // "multi", never "ai_estimate_pending", so isSettledAiEstimate(result)
+  // here only ever applied to the true single-item case anyway.
   if (result.items?.length) {
-    return !result.items.every((item) => item.selectedFood && item.confidence >= 0.8 && !item.preparationUnavailable);
+    // A multi-item child that already reached its own terminal
+    // ai_estimate_pending counts as settled too — same reasoning as the
+    // single-item case above, extended per-item. A MIXED result (one
+    // settled ai_estimate_pending child alongside another item that
+    // genuinely still needs understanding) still returns true here, since
+    // `every` fails on the unsettled sibling — interpretMealInput's own
+    // post-processing (preserveAiEstimatePendingChildren) is what protects
+    // the already-settled child from being overwritten by that necessary
+    // re-run, rather than suppressing the re-run itself.
+    return !result.items.every((item) => (item.selectedFood && item.confidence >= 0.8 && !item.preparationUnavailable) || isSettledAiEstimate(item));
   }
   if (result.selectedFood && result.confidence >= 0.95 && !result.preparationUnavailable) return false;
   return result.foodResolution === "unresolved" || result.confidence < 0.95 || !!result.preparationUnavailable;
+}
+
+// Guards the MIXED multi-item case identified above: when the deterministic
+// pass already settled one or more child items as a valid ai_estimate_pending
+// (each carrying its own already-spent AI_ESTIMATE_RATE_LIMIT token and
+// signed proof) but another sibling genuinely needed the food-understanding
+// AI re-run, that re-run re-derives its OWN items from scratch via a fresh
+// AI classification of the whole phrase — it has no knowledge of which food
+// was already settled, so it can (and in the reproduced bug, did) re-attempt
+// dynamic resolution for that same food and overwrite a good estimate with a
+// worse one (or unresolved). This restores any deterministic
+// ai_estimate_pending child, matched to the AI-assisted result's own items by
+// normalized identity text, whenever the AI-assisted pass produced a
+// DIFFERENT (non-ai_estimate_pending) outcome for that same food — i.e. only
+// ever recovers a result that would otherwise have been silently downgraded,
+// never overrides a re-run that itself also reached (or improved on)
+// ai_estimate_pending. Deliberately narrow: an ambiguous match (two
+// deterministic pending items normalizing to the same key, or no
+// corresponding item found at all — e.g. the AI regrouped/merged items
+// differently) is left unmerged rather than guessed at.
+function preserveAiEstimatePendingChildren(deterministic: InterpretResult, aiAssisted: InterpretResult): InterpretResult {
+  if (!deterministic.items?.length || !aiAssisted.items?.length) return aiAssisted;
+  const pendingByKey = new Map<string, InterpretResult | null>();
+  for (const item of deterministic.items) {
+    if (!isSettledAiEstimate(item)) continue;
+    const key = normalizeSearch(item.parsed.foodQuery);
+    pendingByKey.set(key, pendingByKey.has(key) ? null : item);
+  }
+  if (!pendingByKey.size) return aiAssisted;
+  let changed = false;
+  const mergedItems = aiAssisted.items.map((newItem) => {
+    const key = normalizeSearch(newItem.semanticItem?.originalText ?? newItem.parsed.foodQuery);
+    const original = pendingByKey.get(key);
+    if (original && !isSettledAiEstimate(newItem)) {
+      changed = true;
+      return original;
+    }
+    return newItem;
+  });
+  return changed ? { ...aiAssisted, items: mergedItems } : aiAssisted;
 }
 
 function semanticParsed(item: FoodUnderstandingItem): ParsedNaturalFoodQuery {
@@ -678,7 +815,15 @@ async function interpretAiUnderstanding(
   understanding: FoodUnderstanding,
   quantityProvider: QuantityEstimationProvider,
   aiProvider: AiProvider,
-  dynamic: DynamicResolutionDeps = null
+  dynamic: DynamicResolutionDeps = null,
+  // Prepared-dish routing audit (2026-09-19): only ever passed when
+  // shouldUseAiFallback let a SETTLED single-item ai_estimate_pending
+  // deterministic result through (see that function's own doc) — i.e. this
+  // is the exact InterpretResult whose own resolveDynamicFood chain already
+  // spent an AI_ESTIMATE_RATE_LIMIT token. Used below to detect the one
+  // semantic item that names the SAME identity, so it can be reused as-is
+  // instead of re-resolved — never to change classification/routing itself.
+  settledDeterministic: InterpretResult | undefined = undefined
 ): Promise<InterpretResult> {
   // Some providers occasionally label "a plate/bowl of X + Y" as a flat
   // multi-food list even though the primary plated/bowled item is clearly a
@@ -727,8 +872,32 @@ async function interpretAiUnderstanding(
   // with several ingredients each needing their own resolution). Same
   // DEFAULT_CONCURRENCY cap as the deterministic multi-item path, so the two
   // paths cannot drift into different burst-risk behavior.
+  // Prepared-dish routing audit (2026-09-19): the ONE semantic item (if any)
+  // naming the exact same identity the deterministic pass already settled
+  // via a real AI nutrition estimate — reusing it below means the AI_ESTIMATE_
+  // RATE_LIMIT token it already spent is never spent again just to let
+  // classification see the phrase. Only single-item settled results ever
+  // reach here (see shouldUseAiFallback/interpretMealInput's call site) — a
+  // multi-item deterministic result's top-level foodResolution is always
+  // "multi", never "ai_estimate_pending".
+  const settledKey = settledDeterministic && !settledDeterministic.items?.length && isSettledAiEstimate(settledDeterministic)
+    ? normalizeSearch(settledDeterministic.parsed.foodQuery) : undefined;
   const items = await mapWithConcurrency(semanticItems, DEFAULT_CONCURRENCY, async (item) => {
     if (item.evidence !== "explicit") return unresolvedSemanticItem(text, item);
+    // A named prepared dish is resolved by the recipe layer. Never send its
+    // whole identity through food nutrition estimation, even on a cache miss.
+    if (effectiveKind === "compound_dish" && !understanding.dishIsComposition
+      && normalizeSearch(item.canonicalName) === dishNormalized && dynamic) {
+      return unresolvedSemanticItem(text, item);
+    }
+    if (settledKey && normalizeSearch(item.canonicalName) === settledKey) {
+      return {
+        ...settledDeterministic!,
+        interpretationSource: "ai_assisted" as const,
+        semanticItem: item,
+        nutritionEligible: false
+      };
+    }
     const resolved = await interpretOne(prisma, item.originalText, semanticParsed(item), quantityProvider, dynamic);
     return {
       ...resolved,
@@ -804,13 +973,18 @@ export async function interpretMealInput(
   // Resolve food semantics before allowing any external weight estimation.
   const disabled = new DisabledQuantityEstimationProvider();
   onProgress?.("local_food_search");
-  const deterministic = await timeStage("deterministic_pass", () => interpretDeterministically(prisma, text, disabled, dynamic));
+  // Classify unknown input before a dynamic resolver can estimate nutrition.
+  // Trusted simple local foods keep their zero-AI fast path. Ingredient import
+  // uses a disabled understanding provider and retains its existing resolver.
+  const classifyFirst = !!dynamic && aiProvider.supports("food_nlp");
+  const deterministic = await timeStage("deterministic_pass", () => interpretDeterministically(prisma, text, disabled, classifyFirst ? null : dynamic));
   let result = deterministic;
   if (shouldUseAiFallback(deterministic, aiProvider)) {
     try {
       onProgress?.("food_understanding");
       const understanding = await timeStage("food_understanding_ai", () => understandFood(aiProvider, { text }));
-      result = await timeStage("ai_assisted_items", () => interpretAiUnderstanding(prisma, text, understanding, disabled, aiProvider, dynamic));
+      result = await timeStage("ai_assisted_items", () => interpretAiUnderstanding(prisma, text, understanding, disabled, aiProvider, dynamic, deterministic));
+      result = preserveAiEstimatePendingChildren(deterministic, result);
     } catch (error) {
       // Owner-beta (2026-09-12): previously silent — indistinguishable from
       // "the AI genuinely classified this as simple/already-resolved". Both

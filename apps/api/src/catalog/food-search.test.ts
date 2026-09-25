@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { PrismaClient } from "@prisma/client";
-import { expandFoodQuery, hasSemanticCoverage, isTrustedLocalMatch, localFormMismatch, searchFoods } from "./food-search.js";
+import { expandFoodQuery, hasIdentityCoverage, hasSemanticCoverage, isTrustedLocalMatch, localFormMismatch, searchFoods } from "./food-search.js";
 import { normalizeSearch } from "./normalize.js";
 
 const records = [
@@ -18,6 +18,15 @@ const prisma = {
 } as unknown as Pick<PrismaClient, "food" | "foodAlias">;
 
 describe("food search resolver", () => {
+  it("prefers BLS over USDA only when identity scores tie", async () => {
+    const base = { name: "Butter", originalName: "Butter", searchText: "butter", servings: [] };
+    const fake = { foodAlias: { findMany: async () => [] }, food: { findMany: async () => [
+      { ...base, id: "usda", source: "usda_fdc" }, { ...base, id: "bls", source: "bls" },
+      { ...base, id: "bls-other", source: "bls", name: "Butter flavored sauce", originalName: "Butter flavored sauce", searchText: "butter flavored sauce" }
+    ] } } as any;
+    const result = await searchFoods(fake, "butter");
+    expect(result.map((row) => row.id)).toEqual(["bls", "usda", "bls-other"]);
+  });
   it.each([
     ["csirkemell", "chicken"], ["Hähnchenbrust", "chicken"], ["chicken breast", "chicken"],
     ["tukortojas", "egg"], ["sült tojás", "egg"], ["kígyóuborka", "cucumber"], ["uborka", "cucumber"]
@@ -104,6 +113,26 @@ describe("semantic coverage gate on learned (dynamic_search) aliases", () => {
 
     const result = await searchFoods(prismaWithLegitAlias, "csülök");
     expect(result[0]).toMatchObject({ id: "pork-hock", match: { stage: "exact", score: 100 } });
+  });
+
+  it("a HIGH-CONFIDENCE (>= trust threshold) dynamic_search alias still does not grant trust when it only partially overlaps a DYNAMICALLY-localized name (the real live staging 'szalonna' case, alias written 2026-09-19 before hasIdentityCoverage existed)", async () => {
+    // Reproduces the exact live-discovered gap: an alias already sitting in
+    // the database at confidence 0.95 ("validated") — written by an OLDER
+    // code path, or any future one that doesn't go through learnSearchAlias
+    // — must not be trusted at READ time either. The food's CURATED name is
+    // English and unrelated; only its DYNAMIC (names.hu) display name
+    // happens to contain the bare query as a minority substring.
+    const bacon = foodWith("bacon-usda", "Pork, cured, bacon, unprepared", "pork cured bacon unprepared hu pacolt szalonna elokeszitetlen");
+    (bacon as any).names = { hu: "pácolt szalonna, előkészítetlen" };
+    const prismaWithHighConfidencePoisonedAlias = {
+      foodAlias: { findMany: async () => [{ foodId: "bacon-usda", normalizedAlias: "szalonna", kind: "dynamic_search", confidence: 0.95 }] },
+      food: { findMany: async ({ where }: any) => where?.id?.in ? [bacon].filter((f) => where.id.in.includes(f.id)) : [bacon] }
+    } as unknown as Pick<PrismaClient, "food" | "foodAlias">;
+
+    const result = await searchFoods(prismaWithHighConfidencePoisonedAlias, "szalonna");
+    expect(result[0]?.id).toBe("bacon-usda");
+    expect(result[0]?.match.stage).not.toBe("alias");
+    expect(isTrustedLocalMatch(result[0]?.match)).toBe(false);
   });
 
   it("one shared token out of a multi-token dish name is not enough for a dynamic_search alias to auto-resolve (the real Champignoncremesuppe/beech-mushroom case)", async () => {
@@ -200,6 +229,45 @@ describe("semantic coverage gate on learned (dynamic_search) aliases", () => {
     expect(result[0]).toMatchObject({ id, match: { stage: "alias", score: 95 } });
   });
 
+  // Regression (2026-09-23, live staging RCA): a weak (confidence 0.7)
+  // dynamic_search alias must be a MINIMUM fallback (35), never a precedence
+  // override — it must not outrank the food's OWN genuine canonical/
+  // searchText evidence. Real production case: "parsley" and "bacon" each
+  // also carry an old dynamic_search alias pointing at their OWN, correct
+  // Food (unlike the poisoned/unrelated-food cases above); the buggy
+  // precedence forced both down to score 35 ("fuzzy") even though the food's
+  // own name already earns 70-80 on natural evidence alone.
+  it.each([
+    ["parsley", "usda-parsley", "Parsley, fresh", "parsley fresh"],
+    ["bacon", "usda-bacon", "Pork, cured, bacon, unprepared", "pork cured bacon unprepared"],
+  ])("a weak dynamic_search alias pointing at the query's OWN correct food does not suppress that food's natural evidence for '%s'", async (alias, id, name, searchText) => {
+    const food = foodWith(id, name, searchText);
+    const prismaWithSelfReferentialWeakAlias = {
+      foodAlias: { findMany: async () => [{ foodId: id, normalizedAlias: alias, kind: "dynamic_search", confidence: 0.7 }] },
+      food: { findMany: async ({ where }: any) => where?.id?.in ? [food].filter((f) => where.id.in.includes(f.id)) : [food] }
+    } as unknown as Pick<PrismaClient, "food" | "foodAlias">;
+
+    const result = await searchFoods(prismaWithSelfReferentialWeakAlias, alias);
+    expect(result[0]?.id).toBe(id);
+    expect(result[0]?.match.stage).not.toBe("fuzzy");
+    expect(result[0]?.match.score).toBeGreaterThan(35);
+  });
+
+  // The flip side of the above: when the food's OWN evidence is weaker than
+  // the alias floor (a bare abbreviation-like name with no natural overlap),
+  // the weak alias still legitimately provides the 35-point fallback signal
+  // — it is a floor, not a no-op.
+  it("a weak dynamic_search alias still provides its 35-point floor when the food has no stronger natural evidence of its own", async () => {
+    const food = foodWith("obscure-sku-9", "SKU-9", "sku 9");
+    const prismaWithWeakAliasNoOverlap = {
+      foodAlias: { findMany: async () => [{ foodId: "obscure-sku-9", normalizedAlias: "parsley", kind: "dynamic_search", confidence: 0.7 }] },
+      food: { findMany: async ({ where }: any) => where?.id?.in ? [food].filter((f) => where.id.in.includes(f.id)) : [food] }
+    } as unknown as Pick<PrismaClient, "food" | "foodAlias">;
+
+    const result = await searchFoods(prismaWithWeakAliasNoOverlap, "parsley");
+    expect(result[0]).toMatchObject({ id: "obscure-sku-9", match: { stage: "fuzzy", score: 35 } });
+  });
+
   // Positive control: legitimate compound-word matches (own recorded name,
   // not a learned alias) are untouched by the dynamic_search confidence gate.
   it.each([
@@ -245,6 +313,37 @@ describe("hasSemanticCoverage: trust threshold (owner-beta blocker #3, 2026-09-1
     ["csulok", ["pork hock cooked", "csulok"]] // trusted exact alias/localized name
   ])("a genuinely matching phrase ('%s') still has full coverage", (query, representations) => {
     expect(hasSemanticCoverage(normalizeSearch(query), representations)).toBe(true);
+  });
+});
+
+describe("hasIdentityCoverage: a bare/generic query must not borrow trust from a dynamically-localized name it only partially overlaps (2026-09-23 staging audit)", () => {
+  it("refuses a bare generic word that is merely embedded (as a minority of the name) inside a food's own DYNAMICALLY-localized name — the live 'szalonna' regression", () => {
+    // Reproduces the real staging Food: a USDA "Pork, cured, bacon,
+    // unprepared" record backfilled with a Hungarian display name that
+    // happens to contain the bare, genuinely ambiguous word "szalonna" as a
+    // minority of its own tokens/length.
+    const food = { name: "Pork, cured, bacon, unprepared", originalName: "Pork, cured, bacon, unprepared", names: { hu: "pácolt szalonna, előkészítetlen" } };
+    expect(hasIdentityCoverage(normalizeSearch("szalonna"), food)).toBe(false);
+  });
+
+  it("still trusts the FULL localized phrase back — 'persist once, reuse forever' is preserved", () => {
+    const food = { name: "Pork, cured, bacon, unprepared", originalName: "Pork, cured, bacon, unprepared", names: { hu: "pácolt szalonna, előkészítetlen" } };
+    expect(hasIdentityCoverage(normalizeSearch("pácolt szalonna, előkészítetlen"), food)).toBe(true);
+  });
+
+  it("still trusts a bare word that accounts for HALF or more of a localized name — 'karfiol' vs 'karfiol, nyers' and the agglutinative 'csülök' vs 'Sertéscsülök'", () => {
+    expect(hasIdentityCoverage(normalizeSearch("karfiol"), { name: "Cauliflower, raw", originalName: "Cauliflower, raw", names: { hu: "Karfiol, nyers" } })).toBe(true);
+    expect(hasIdentityCoverage(normalizeSearch("csülök"), { name: "Pork hock, cooked", originalName: "Pork hock, cooked", names: { hu: "Sertéscsülök" } })).toBe(true);
+  });
+
+  it("trusts a query covered by the food's own CURATED name/originalName regardless of length ratio — curated identity never needed this guard", () => {
+    const food = { name: "Sertéscsülök", originalName: "Sertéscsülök" };
+    expect(hasIdentityCoverage(normalizeSearch("csülök"), food)).toBe(true);
+  });
+
+  it("never throws and returns false when there is no coverage at all", () => {
+    const food = { name: "Cauliflower, raw", originalName: "Cauliflower, raw", names: { hu: "Karfiol, nyers" } };
+    expect(hasIdentityCoverage(normalizeSearch("szalonna"), food)).toBe(false);
   });
 });
 

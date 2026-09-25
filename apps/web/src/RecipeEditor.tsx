@@ -5,9 +5,10 @@ import { dict, type Lang } from "./i18n";
 import { pickDisplayName } from "./food-display-name";
 import { FoodCombobox, type Food, type Totals } from "./main";
 import type { RecipeDetailData } from "./RecipeDetail";
+import type { AiEstimateValue } from "./FoodUnderstandingPreview";
 
 export type Ingredient = { id?: string; foodId: string; quantityGrams: number; originalText?: string; preparation?: string; sortOrder?: number; food: Food };
-export type ImportIngredientRow = { originalText: string; omitted?: boolean; parsedQuantity?: number; parsedUnit?: string; parsedFoodQuery: string; preparation?: string; resolution: string; selectedFood: Food | null; candidates: Food[]; quantity: { status: string; grams?: number; requiresConfirmation: boolean } | null; canConfirm: boolean };
+export type ImportIngredientRow = { aiEstimate?: AiEstimateValue; originalText: string; omitted?: boolean; parsedQuantity?: number; parsedUnit?: string; parsedFoodQuery: string; preparation?: string; resolution: string; selectedFood: (Food & { source?: string; sourceId?: string }) | null; candidates: Food[]; quantity: { status: string; grams?: number; requiresConfirmation: boolean } | null; canConfirm: boolean };
 type ImportIngredient = ImportIngredientRow;
 type ImportPreview = { title: string; sourceUrl: string; servings?: number; instructions: string[]; extractionMethod: string; importProof: string; ingredients: ImportIngredient[] };
 
@@ -61,9 +62,35 @@ export function RecipeEditor({ lang, state, editing, onSaved, onCancel }: {
   const [importing, setImporting] = useState(false);
   const [importPreview, setImportPreview] = useState<ImportPreview | null>(null);
   const [reviewIndex, setReviewIndex] = useState<number | null>(null);
+  const [acceptingEstimate, setAcceptingEstimate] = useState(false);
+
+  async function acceptEstimate(index: number) {
+    const row = importPreview?.ingredients[index];
+    const estimate = row?.aiEstimate;
+    if (!estimate || acceptingEstimate) return;
+    setAcceptingEstimate(true);
+    try {
+      const { food } = await api<{ food: Food }>("/recipes/ingredients/accept-estimate", { method: "POST", body: JSON.stringify({
+        aiEstimateProof: estimate.proof, requestedIdentity: estimate.requestedIdentity, canonicalFoodName: estimate.canonicalFoodName,
+        kcalPer100g: estimate.kcalPer100g, proteinPer100g: estimate.proteinPer100g, fatPer100g: estimate.fatPer100g,
+        carbsPer100g: estimate.carbsPer100g, fiberPer100g: estimate.fiberPer100g, quantityGrams: 100
+      }) }, state);
+      setImportPreview((preview) => preview ? { ...preview, ingredients: preview.ingredients.map((item, i) => i === index
+        ? { ...item, aiEstimate: undefined, selectedFood: food, candidates: [food], resolution: "resolved", canConfirm: item.quantity?.status === "resolved" && !!item.quantity.grams }
+        : item) } : preview);
+    } catch (error) { setStatus(recipeErrorText(error, t.recipeErrors)); }
+    finally { setAcceptingEstimate(false); }
+  }
 
   const allIngredients = useMemo(() => combineRecipeIngredients(importPreview?.ingredients ?? [], ingredients), [importPreview, ingredients]);
   const importBlocked = !!importPreview && importPreview.ingredients.some((item) => !item.omitted && (!item.canConfirm || !item.selectedFood || item.quantity?.status !== "resolved" || !item.quantity.grams));
+  // A row only counts toward nutrition once fully resolved (same predicate as
+  // ingredientsFromImport / importBlocked). While any required row is not,
+  // `live` is a SUBTOTAL of the resolved rows only — never the whole recipe —
+  // so it must not be labeled, or scaled per serving / per 100 g, as complete.
+  const requiredRows = (importPreview?.ingredients ?? []).filter((item) => !item.omitted);
+  const unresolvedCount = requiredRows.filter((item) => !(item.canConfirm && item.selectedFood && item.quantity?.status === "resolved" && item.quantity.grams)).length;
+  const partialNutrition = !!importPreview && unresolvedCount > 0;
   const live = useMemo(() => allIngredients.reduce((sum, ingredient) => {
     const factor = ingredient.quantityGrams / 100;
     sum.kcal += ingredient.food.kcalPer100g * factor; sum.fat += ingredient.food.fatPer100g * factor; sum.protein += ingredient.food.proteinPer100g * factor; sum.carbs += ingredient.food.carbsPer100g * factor; sum.fiber += ingredient.food.fiberPer100g * factor; sum.netCarbs = Math.max(0, sum.carbs - sum.fiber);
@@ -110,6 +137,17 @@ export function RecipeEditor({ lang, state, editing, onSaved, onCancel }: {
     {status && <div className="status error" role="alert">{status}</div>}
     {!editing && <section className="rounded-xl border border-borderSoft p-4" aria-label={imp.heading}><h3>{imp.heading}</h3><div className="recipe-search"><input aria-label={imp.url} className="field" type="url" value={importUrl} onChange={(e) => { setImportUrl(e.target.value); setImportPreview(null); setReviewIndex(null); setIngredients([]); }} placeholder="https://example.com/recipe"/><button type="button" className="btn secondary" disabled={importing || !importUrl.trim()} onClick={() => previewImport()}>{importing ? imp.loading : imp.preview}</button></div></section>}
     {importPreview && <section className="rounded-xl border border-borderSoft p-4" aria-label={imp.preview}><h3>{importPreview.title}</h3>{importPreview.extractionMethod === "ai_structured" && <p className="status success" role="status">{t.recipes.aiExtractedNotice}</p>}{importPreview.servings && <p>{importPreview.servings} {imp.servingsUnit}</p>}<ul className="recipe-detail-list">{importPreview.ingredients.map((item, index) => { const valid = !item.omitted && item.canConfirm && item.selectedFood && item.quantity?.status === "resolved" && item.quantity.grams; return <li key={`${item.originalText}-${index}`}><strong>{item.originalText}</strong> — {item.omitted ? imp.omit : valid ? `${pickDisplayName(item.selectedFood, lang)}, ${Math.round(item.quantity!.grams! * 10) / 10} g · ${imp.resolved}` : item.selectedFood ? imp.review : imp.unresolved}{!item.omitted && !valid && <button type="button" className="btn secondary ml-2" onClick={() => { setReviewIndex(index); setCandidate(item.selectedFood); setCandidateGrams(item.quantity?.grams ? String(item.quantity.grams) : ""); }}>{imp.resolve}</button>}<button type="button" className="btn secondary ml-2" onClick={() => setImportPreview((preview) => preview ? { ...preview, ingredients: preview.ingredients.map((row, rowIndex) => rowIndex === index ? { ...row, omitted: !row.omitted } : row) } : preview)}>{item.omitted ? imp.restore : imp.omit}</button></li>; })}</ul>{instructions.length > 0 && <ol className="recipe-detail-list">{instructions.map((instruction, index) => <li key={index}>{instruction}</li>)}</ol>}{importBlocked && <p className="text-sm text-muted" role="alert">{imp.blocked}</p>}</section>}
+    {importPreview && <section aria-label={lang === "hu" ? "Összetevők forrásai" : lang === "de" ? "Zutatenquellen" : "Ingredient sources"}>
+      <a href={importPreview.sourceUrl} target="_blank" rel="noopener noreferrer">{new URL(importPreview.sourceUrl).hostname}</a>
+      <ul>{importPreview.ingredients.map((item, index) => <li key={index}>
+        {index + 1}. {item.selectedFood ? `${pickDisplayName(item.selectedFood, lang)} · ${item.selectedFood.source ?? "catalog"}${item.selectedFood.sourceId ? ` · ${item.selectedFood.sourceId}` : ""}` : item.parsedFoodQuery}
+        {item.aiEstimate && <div>
+          <strong>{lang === "hu" ? "AI összetevőbecslés" : lang === "de" ? "KI-Zutatenschätzung" : "AI ingredient estimate"}</strong>
+          <p>{item.aiEstimate.kcalPer100g} kcal / 100 g · P {item.aiEstimate.proteinPer100g} g · F {item.aiEstimate.fatPer100g} g · C {item.aiEstimate.carbsPer100g} g · fiber {item.aiEstimate.fiberPer100g} g · {item.aiEstimate.confidence} · {item.aiEstimate.assumptions}</p>
+          <button type="button" className="btn secondary" disabled={acceptingEstimate} onClick={() => acceptEstimate(index)}>{lang === "hu" ? "Becslés elfogadása" : lang === "de" ? "Schätzung akzeptieren" : "Accept estimate"}</button>
+        </div>}
+      </li>)}</ul>
+    </section>}
     <div className="grid gap-3 md:grid-cols-2">
       <label>{t.recipes.titleLabel}<input className="field" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={120}/></label>
       <label>{t.recipes.descriptionLabel}<input className="field" value={description} onChange={(e) => setDescription(e.target.value)} maxLength={2000}/></label>
@@ -120,11 +158,15 @@ export function RecipeEditor({ lang, state, editing, onSaved, onCancel }: {
     <fieldset className="visibility-toggle"><legend>{t.recipes.visibilityLegend}</legend><label><input type="radio" checked={visibility === "private"} onChange={() => setVisibility("private")}/> {t.recipes.visibilityPrivateOption}</label><label><input type="radio" checked={visibility === "public"} onChange={() => setVisibility("public")}/> {t.recipes.visibilityPublicOption}</label></fieldset>
     <div className="ingredient-adder"><FoodCombobox idPrefix="recipe-food" lang={lang} state={state} selected={candidate} onSelect={setCandidate} resetVersion={resetVersion} labels={{ label: reviewIndex == null ? t.recipes.ingredientLabel : imp.resolve, placeholder: t.foodSearch.placeholder, loading: t.foodSearch.loading, noResults: t.foodSearch.noResults, hint: t.foodSearch.hint, selected: t.foodSearch.selected }}/><label>{t.recipes.gramsFieldLabel}<input className="field" type="number" min="0.1" step="0.1" value={candidateGrams} onChange={(e) => setCandidateGrams(e.target.value)}/></label><button type="button" className="btn secondary" onClick={addIngredient}><Plus size={16}/>{t.recipes.addIngredient}</button></div>
     <div className="ingredient-list">{ingredients.map((ingredient, index) => { const ingredientName = pickDisplayName(ingredient.food, lang); return <div className="ingredient-row" key={`${ingredient.foodId}-${index}`}><strong>{ingredientName}</strong><input aria-label={`${ingredientName} ${t.recipes.gramsFieldLabel}`} className="field" type="number" min="0.1" step="0.1" value={ingredient.quantityGrams} onChange={(e) => setIngredients((items) => items.map((item, i) => i === index ? { ...item, quantityGrams: Number(e.target.value) } : item))}/><span>g</span><button className="icon-button" aria-label={t.recipes.removeIngredient} onClick={() => setIngredients((items) => items.filter((_, i) => i !== index))}><Trash2 size={17}/></button></div>; })}</div>
-    <NutritionSummary title={t.recipes.totalNutrition} totals={live}/>
-    <div className="recipe-nutrition-grid">
+    <NutritionSummary title={partialNutrition ? t.recipes.partialNutrition : t.recipes.totalNutrition} totals={live}/>
+    {partialNutrition && <div className="status error" role="status" data-testid="partial-nutrition-status">
+      <div>{t.recipes.ingredientsProgress.replace("{resolved}", String(requiredRows.length - unresolvedCount)).replace("{total}", String(requiredRows.length))}</div>
+      <div>{t.recipes.ingredientsNeedReview.replace("{n}", String(unresolvedCount))}</div>
+    </div>}
+    {!partialNutrition && <div className="recipe-nutrition-grid">
       {Number(servings) > 0 && <NutritionSummary title={t.recipes.perServing} totals={scale(live, 1 / Number(servings))}/>}
       {Number(finishedWeight) > 0 && <NutritionSummary title={t.recipes.per100g} totals={scale(live, 100 / Number(finishedWeight))}/>}
-    </div>
+    </div>}
     <div className="recipe-actions"><button className="btn secondary" onClick={onCancel} disabled={saving}>{t.diary.cancel}</button><button className="btn primary" disabled={importBlocked || saving} aria-busy={saving} onClick={saveRecipe}><Save size={17}/>{t.save}</button></div>
   </div>;
 }

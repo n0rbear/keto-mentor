@@ -65,6 +65,7 @@ export type RecipeDiscoveryPreview = {
   };
   candidate?: {
     title: string;
+    instructions?: string[];
     sourceUrl: string;
     domain: string;
     servings?: number;

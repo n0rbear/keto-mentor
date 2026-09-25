@@ -18,7 +18,7 @@ import { prisma } from "./db.js";
 import { searchFoods } from "./catalog/food-search.js";
 import { confirmAuthoritativeFood, externalFoodConfirmationSchema, resolveAuthoritativeFood, resolveBarcodeFood } from "./catalog/external-food.js";
 import { EXTERNAL_FOOD_CONFIRM_RATE_LIMIT, EXTERNAL_FOOD_RATE_LIMIT, RECIPE_INGREDIENT_DYNAMIC_RATE_LIMIT, externalFoodRateLimitKey } from "./catalog/external-food-rate-limit.js";
-import { UsdaFoodDataCentralLookupAdapter, OpenFoodFactsProductAdapter } from "./catalog/structured-source-adapters.js";
+import { UsdaFoodDataCentralLookupAdapter, OpenFoodFactsProductAdapter, OpenFoodFactsNameAdapter } from "./catalog/structured-source-adapters.js";
 import { validateBarcode } from "./catalog/barcode.js";
 import { parseNaturalFoodQuery } from "./catalog/natural-food-query.js";
 import { createMeal } from "./meals/create-meal.js";
@@ -58,12 +58,10 @@ const app = express();
 const usdaAdapter = env.USDA_FDC_API_KEY ? new UsdaFoodDataCentralLookupAdapter(env.USDA_FDC_API_KEY) : null;
 // Open Food Facts needs no API key/config, so it's always constructed.
 const openFoodFactsAdapter = new OpenFoodFactsProductAdapter();
-// Ordinary text search (resolveAuthoritativeFood) intentionally never
-// includes Open Food Facts — its own lookup() is a no-op anyway, but it is
-// also kept out of this array so a text search can never even attempt the
-// external call. Barcode lookup and confirmation use openFoodFactsAdapter
-// directly/via externalFoodConfirmAdapters instead.
-const externalFoodAdapters = usdaAdapter ? [usdaAdapter] : [];
+// Text search uses the separately budgeted OFF adapter. Barcode lookup and
+// confirmation still re-fetch the exact product through the barcode adapter.
+const offNameAdapter = new OpenFoodFactsNameAdapter();
+const externalFoodAdapters = usdaAdapter ? [usdaAdapter, offNameAdapter] : [offNameAdapter];
 const externalFoodConfirmAdapters = usdaAdapter ? [usdaAdapter, openFoodFactsAdapter] : [openFoodFactsAdapter];
 const foodNlpProvider = configuredFoodAiProvider(env);
 const foodNlpLimiter = new FoodNlpUserRateLimiter();
@@ -400,7 +398,7 @@ app.post("/meal-input/interpret", requireAuth, async (req, res, next) => {
     // the already-computed, already-response-bound result above — see
     // diagnostics.ts. Never a second AI/network call, never data the client
     // couldn't already see elsewhere in this same JSON body.
-    res.json({ ...withDiscovery, diagnostics: buildDiagnostics(withDiscovery) });
+    res.json({ ...withDiscovery, diagnostics: buildDiagnostics(withDiscovery, trustedLocale(req.user!)) });
   } catch (error) {
     next(error);
   } finally {

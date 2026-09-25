@@ -19,9 +19,13 @@ type AiEstimateProofPayload = {
   v: 1; userId: string; requestedIdentity: string; canonicalFoodName: string;
   kcalPer100g: number; proteinPer100g: number; fatPer100g: number; carbsPer100g: number; fiberPer100g: number;
   exp: number;
+  confidence?: "low" | "medium";
+  assumptions?: string;
 };
 
 export type AiEstimateProofInput = {
+  confidence?: "low" | "medium";
+  assumptions?: string;
   requestedIdentity: string; canonicalFoodName: string;
   kcalPer100g: number; proteinPer100g: number; fatPer100g: number; carbsPer100g: number; fiberPer100g: number;
 };
@@ -53,7 +57,9 @@ export function createAiEstimateProof(userId: string, estimate: AiEstimateProofI
   const payload: AiEstimateProofPayload = {
     v: 1, userId, requestedIdentity: estimate.requestedIdentity, canonicalFoodName: estimate.canonicalFoodName,
     kcalPer100g: estimate.kcalPer100g, proteinPer100g: estimate.proteinPer100g, fatPer100g: estimate.fatPer100g,
-    carbsPer100g: estimate.carbsPer100g, fiberPer100g: estimate.fiberPer100g, exp: now + TTL_MS
+    carbsPer100g: estimate.carbsPer100g, fiberPer100g: estimate.fiberPer100g, exp: now + TTL_MS,
+    ...(estimate.confidence ? { confidence: estimate.confidence } : {}),
+    ...(estimate.assumptions ? { assumptions: estimate.assumptions } : {})
   };
   const encoded = Buffer.from(JSON.stringify(payload)).toString("base64url");
   return `${encoded}.${sign(encoded, secret)}`;
@@ -76,15 +82,19 @@ export function verifyAiEstimateProof(proof: string, userId: string, estimate: A
   if (payload.requestedIdentity !== estimate.requestedIdentity || payload.canonicalFoodName !== estimate.canonicalFoodName) throw invalidProof();
   if (payload.kcalPer100g !== estimate.kcalPer100g || payload.proteinPer100g !== estimate.proteinPer100g
     || payload.fatPer100g !== estimate.fatPer100g || payload.carbsPer100g !== estimate.carbsPer100g || payload.fiberPer100g !== estimate.fiberPer100g) throw invalidProof();
-  return { requestedIdentity: payload.requestedIdentity, canonicalFoodName: payload.canonicalFoodName } as const;
+  return { requestedIdentity: payload.requestedIdentity, canonicalFoodName: payload.canonicalFoodName,
+    ...(payload.confidence ? { confidence: payload.confidence } : {}),
+    ...(payload.assumptions ? { assumptions: payload.assumptions } : {}) } as const;
 }
 
 function isAiEstimateProofPayload(value: unknown): value is AiEstimateProofPayload {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
   const payload = value as Record<string, unknown>;
-  const allowedKeys = ["v", "userId", "requestedIdentity", "canonicalFoodName", "kcalPer100g", "proteinPer100g", "fatPer100g", "carbsPer100g", "fiberPer100g", "exp"];
+  const allowedKeys = ["v", "userId", "requestedIdentity", "canonicalFoodName", "kcalPer100g", "proteinPer100g", "fatPer100g", "carbsPer100g", "fiberPer100g", "exp", "confidence", "assumptions"];
   return Object.keys(payload).every((key) => allowedKeys.includes(key))
     && payload.v === 1
+    && (payload.confidence === undefined || payload.confidence === "low" || payload.confidence === "medium")
+    && (payload.assumptions === undefined || (typeof payload.assumptions === "string" && payload.assumptions.length <= 2000))
     && typeof payload.userId === "string" && payload.userId.length > 0
     && typeof payload.requestedIdentity === "string" && payload.requestedIdentity.length > 0
     && typeof payload.canonicalFoodName === "string" && payload.canonicalFoodName.length > 0

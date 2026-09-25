@@ -3,6 +3,7 @@ import { normalizeSearch } from "./normalize.js";
 import type { ConfirmableFoodLookupAdapter, ExternalFoodCandidate, StructuredFoodLookupAdapter } from "./external-food.js";
 import { mapNutrient, OFF_NUTRIENT_MAP, USDA_NUTRIENT_MAP } from "../importers/nutrient-mapping.js";
 import type { ImportNutrient } from "../importers/types.js";
+import { DynamicFoodResolutionRateLimiter } from "./dynamic-food-rate-limit.js";
 
 type FetchLike = typeof fetch;
 const MAX_USDA_RESPONSE_BYTES = 1_000_000;
@@ -61,7 +62,11 @@ function normalizeUsdaFood(food: any, query?: string): ExternalFoodCandidate | n
     carbsPer100g: amount("carbohydrate")!, fiberPer100g: amount("fiber")!, nutrients,
     provenance: { source: "USDA FoodData Central", sourceId: String(food.fdcId), sourceUrl, retrievedAt, valuesPer: "100 g", dataType: food.dataType },
     sourceUrl, normalizedName: normalizeSearch(name), nutrientBasis: "per_100_g", retrievedAt,
-    confidence: exact ? 0.97 : 0.86, matchPolicy: exact ? "exact_normalized_name" : "review_required", language: "en"
+    confidence: exact ? 0.97 : 0.86, matchPolicy: exact ? "exact_normalized_name" : "review_required", language: "en",
+    // Foundation/SR Legacy is USDA's own curated reference tier (enforced by
+    // the dataType check above) — authoritative regardless of whether this
+    // particular record's name happens to textually equal the query.
+    autoAcceptEligible: true
   };
 }
 
@@ -93,6 +98,10 @@ export class UsdaFoodDataCentralLookupAdapter implements ConfirmableFoodLookupAd
 export interface OpenFoodFactsLookupAdapter extends StructuredFoodLookupAdapter {
   readonly source: Extract<FoodSource, "open_food_facts">;
   lookupBarcode(barcode: string): Promise<unknown[]>;
+  // Optional (mirrors the existing estimateDetailed/checkRelevanceDetailed
+  // pattern elsewhere in this codebase): present on the real adapter, absent
+  // on lighter test doubles that only need barcode lookups.
+  searchByName?(query: string, opts?: { locale?: string; limit?: number }): Promise<unknown[]>;
 }
 
 const OFF_MAX = { kcal: 1000, fat: 200, protein: 200, carbs: 200, fiber: 100 } as const;
@@ -179,20 +188,69 @@ export function normalizeOffProduct(raw: any, barcode: string): ExternalFoodCand
     nutrients: normalizeOffNutrients(nutriments),
     provenance: { source: "Open Food Facts", sourceId: barcode, sourceUrl, retrievedAt, valuesPer: "100 g", barcode },
     sourceUrl, normalizedName: normalizeSearch(name), nutrientBasis: "per_100_g", retrievedAt,
-    confidence: 1, matchPolicy: "exact_normalized_name"
+    // An exact-barcode match identifies one specific, unambiguous product —
+    // reference-grade by construction. searchByName() below reuses this
+    // builder for its own, much weaker text-matched hits and explicitly
+    // overrides this back to false there; never assume the reverse.
+    confidence: 1, matchPolicy: "exact_normalized_name", autoAcceptEligible: true
   } as ExternalFoodCandidate;
 }
 
 const OFF_PRODUCT_FIELDS = "product_name,product_name_en,generic_name,brands,categories,nutriments,code";
 
+// Routing audit (2026-09-19): search.openfoodfacts.org's "search-a-licious"
+// service is OFF's current recommended text-search API (the legacy
+// /cgi/search.pl endpoint is explicitly documented as unsuited for new
+// integrations, and OFF's v2/v3 product API has no free-text search at
+// all). Verified live against the real endpoint: `GET /search?q=...&langs=
+// ..&page_size=..&fields=..` returns `{ count, hits: [...] }`, where each
+// hit is already a FLAT object (code/product_name/brands[]/nutriments/
+// categories/lang) — a different shape from the nested `{status,
+// product:{...}}` the by-barcode endpoint returns, so it's reshaped into
+// that same nested shape before reuse of the existing normalizeOffProduct
+// (keeps exactly one nutrition-sanity/name-sanitization code path for both
+// entry points, never a second parallel one that could silently drift).
+export const OFF_TEXT_SEARCH_CONFIDENCE = 0.6;
+const OFF_SEARCH_DEFAULT_LIMIT = 5;
+const OFF_SEARCH_MAX_LIMIT = 10;
+const OFF_SEARCH_FIELDS = "code,product_name,product_name_en,generic_name,brands,categories,nutriments,lang";
+
+function normalizeOffSearchHit(hit: any): ExternalFoodCandidate | { name?: string; brand?: string } | null {
+  if (!hit || typeof hit !== "object" || !hit.code) return null;
+  const product = {
+    product_name: hit.product_name, product_name_en: hit.product_name_en, generic_name: hit.generic_name,
+    brands: Array.isArray(hit.brands) ? hit.brands.join(", ") : hit.brands,
+    categories: Array.isArray(hit.categories) ? hit.categories.join(", ") : hit.categories, nutriments: hit.nutriments
+  };
+  return normalizeOffProduct({ status: 1, product }, String(hit.code));
+}
+
 /**
- * Real Open Food Facts adapter: barcode-only. lookup() (the generic
- * text-search entry point required by StructuredFoodLookupAdapter) is
- * intentionally a no-op — ordinary food-name text search must never hit
- * Open Food Facts, only an explicit barcode lookup may. lookupById exists
- * so the existing confirmAuthoritativeFood flow (which re-fetches by ID
- * at confirmation time) works unchanged for barcode-sourced products too,
- * since sourceId is the barcode itself.
+ * Real Open Food Facts adapter. Two genuinely different trust situations:
+ *
+ * - BARCODE lookup (lookupBarcode/lookupById, this class's own `lookup()`
+ *   is a no-op here): an exact, unambiguous single-record match — strong,
+ *   product-specific evidence where explicitly applicable (a scanned or
+ *   confirmed barcode). `autoAcceptEligible: true`, same as USDA.
+ * - NAME search (searchByName(), wired into automatic resolution via the
+ *   separate `OpenFoodFactsNameAdapter` below): a bounded, rate-limited
+ *   DISCOVERY/review mechanism only — a crowd-sourced product whose
+ *   specific identity was matched on name/brand text, never verified any
+ *   other way. Every candidate it returns carries `autoAcceptEligible:
+ *   false` (set explicitly in searchByName() below), which the central
+ *   acceptance-safety invariant (external-food.ts, dynamic-food-
+ *   resolution-batch.ts) treats as authoritative: a semantic gate may
+ *   still approve it as plausible, but semantic plausibility never
+ *   upgrades this authorization — being the sole surviving candidate does
+ *   not either. It can only ever reach resolved/persisted status through
+ *   the ordinary confirmation_required -> explicit user confirmation path
+ *   (confirmAuthoritativeFood), same as any other reviewable candidate.
+ *   The shared `offNameSearchBudget` rate limit below still applies
+ *   regardless of how it is ultimately accepted.
+ *
+ * lookupById exists so the existing confirmAuthoritativeFood flow (which
+ * re-fetches by ID at confirmation time) works unchanged for barcode-
+ * sourced products too, since sourceId is the barcode itself.
  */
 export class OpenFoodFactsProductAdapter implements OpenFoodFactsLookupAdapter, ConfirmableFoodLookupAdapter {
   readonly source = "open_food_facts" as const;
@@ -216,5 +274,56 @@ export class OpenFoodFactsProductAdapter implements OpenFoodFactsLookupAdapter, 
   async lookupById(sourceId: string) {
     const [first] = await this.lookupBarcode(sourceId);
     return first ?? null;
+  }
+
+  // Bounded, sanity-checked name/brand search. Returns only fully-usable
+  // candidates (real macros within OFF_MAX's sanity bounds) — a hit whose
+  // nutrition is missing/implausible is dropped here rather than surfaced
+  // as a `{name, brand}`-only partial (that shape exists for a single
+  // confirmed barcode's "found but incomplete" notice, not for a noisy
+  // multi-result search list where a partial entry can't be told apart
+  // from a good one). Never auto-confirms anything — the caller still owns
+  // the "review required" decision this list is offered into.
+  async searchByName(query: string, opts: { locale?: string; limit?: number } = {}): Promise<ExternalFoodCandidate[]> {
+    const trimmed = query.trim();
+    if (!trimmed) return [];
+    const limit = Math.min(Math.max(Math.trunc(opts.limit ?? OFF_SEARCH_DEFAULT_LIMIT), 1), OFF_SEARCH_MAX_LIMIT);
+    const params = new URLSearchParams({ q: trimmed, page_size: String(limit), fields: OFF_SEARCH_FIELDS });
+    if (opts.locale) params.set("langs", opts.locale);
+    const response = await this.fetcher(`https://search.openfoodfacts.org/search?${params.toString()}`, {
+      headers: { Accept: "application/json", "User-Agent": OFF_USER_AGENT },
+      signal: AbortSignal.timeout(OFF_FETCH_TIMEOUT_MS)
+    });
+    const payload = await readBoundedOffJson(response);
+    const hits = Array.isArray(payload?.hits) ? payload.hits.slice(0, OFF_SEARCH_MAX_LIMIT) : [];
+    const candidates = hits.map((hit: unknown) => normalizeOffSearchHit(hit));
+    // normalizeOffProduct's confidence 1 / exact_normalized_name is correct for
+    // an exact BARCODE hit, but a free-text hit is a crowd-sourced packaged
+    // product whose name merely matched words. Live finding (2026-09-19): at
+    // confidence 1 these sorted above USDA (0.86-0.97) in both resolvers, and
+    // generic "tomato"/"wheat flour" resolved to a packaged OFF product.
+    // Ranked below every USDA/BLS candidate and never an exact-name match.
+    //
+    // Central acceptance-safety audit (2026-09-23): also never auto-accept-
+    // eligible, regardless of matchPolicy/confidence or how confidently a
+    // later semantic gate approves the name/identity as plausible — a
+    // text/brand match is never a verified single-record lookup. This is
+    // the one override that actually matters for that invariant; every
+    // other field here is display/ranking metadata.
+    return candidates
+      .filter((candidate: ReturnType<typeof normalizeOffSearchHit>): candidate is ExternalFoodCandidate => !!candidate && "kcalPer100g" in candidate)
+      .map((candidate: ExternalFoodCandidate) => ({ ...candidate, confidence: OFF_TEXT_SEARCH_CONFIDENCE, matchPolicy: "review_required" as const, autoAcceptEligible: false }));
+  }
+}
+
+/** Shared process budget: at most ten text searches per minute across users.
+ * Products still pass the resolver's structural and semantic identity gates.
+ */
+const offNameSearchBudget = new DynamicFoodResolutionRateLimiter(Date.now, { windowMs: 60_000, limit: 10 });
+export class OpenFoodFactsNameAdapter extends OpenFoodFactsProductAdapter {
+  async lookup(query = ""): Promise<ExternalFoodCandidate[]> {
+    if (!query.trim()) return [];
+    if (!offNameSearchBudget.consume("off-name-search")) throw new Error("Open Food Facts name search budget exhausted");
+    return this.searchByName(query, { limit: 10 });
   }
 }
