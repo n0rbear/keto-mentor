@@ -3,7 +3,7 @@ import {
   decideSurvivorAcceptance, type ExternalFoodCandidate, type StructuredFoodLookupAdapter, type ResolutionPrisma
 } from "./external-food.js";
 import { learnSearchAlias, resolveFoodConcept, type ResolveFromSearchTermDeps } from "./dynamic-food-resolution.js";
-import { hasIdentityCoverage } from "./food-search.js";
+import { hasIdentityCoverage, hasSemanticCoverage } from "./food-search.js";
 import { normalizeSearch } from "./normalize.js";
 import { localizeCandidateNames, type CandidateLocalizationProvider, type LocalizationLocale } from "./candidate-localization.js";
 import { checkRelevanceBatchWithRetry, type RecipeSemanticGateProvider, type BatchGateIngredientInput } from "./semantic-candidate-gate-batch.js";
@@ -68,6 +68,9 @@ export type PendingAuthoritativeResolution = {
   id: string;
   canonicalIdentity: string;
   originalIdentity: string;
+  // The ingredient as the recipe/user actually wrote it, in their language
+  // (e.g. "tejföl"), when known. Used for the round-trip check below.
+  sourceIdentity?: string;
   rawIngredient?: string;
   preparation?: string;
   sourceQuantity?: number;
@@ -334,5 +337,48 @@ export async function resolveManyAuthoritativeFoods(
     }
   }
 
+  // STEP 6 — round-trip identity check (owner report, 2026-09-25: "tejföl"
+  // was searched as "sour cream" and two CHEESES were offered). Everything
+  // above judged candidates against the English canonical term only. Before
+  // a candidate list reaches the user, its name in the user's language must
+  // still name what they actually wrote; anything else is dropped. When no
+  // candidate survives, the ingredient is treated as not found, so the
+  // caller's normal fallback (web evidence / AI estimate) runs instead.
+  const verifyLocale: LocalizationLocale = deps.foodLocale ?? (deps.locale as LocalizationLocale) ?? "hu";
+  for (const p of pending) {
+    const outcome = outcomes.get(p.id);
+    if (outcome?.status !== "confirmation_required" || !p.sourceIdentity) continue;
+    const kept = outcome.candidates.filter((candidate) => roundTripMatches(candidate, p.sourceIdentity!, p.canonicalIdentity, verifyLocale));
+    if (kept.length === outcome.candidates.length) continue;
+    console.log(`round_trip_identity dropped=${outcome.candidates.length - kept.length} kept=${kept.length}`);
+    outcomes.set(p.id, kept.length ? { ...outcome, candidates: kept } : { status: "unresolved", reason: "not_found" });
+  }
+
   return outcomes;
+}
+
+/**
+ * True when a candidate shown for `sourceIdentity` (the user's own word)
+ * still means that word once named in the user's language. Candidates are
+ * localized in STEP 4; a candidate with no localized name can only pass on
+ * the forward check (its authoritative name covers the canonical term), and
+ * an English-locale user is checked against the source word directly.
+ */
+export function roundTripMatches(candidate: ExternalFoodCandidate, sourceIdentity: string, canonicalIdentity: string, locale: string): boolean {
+  const source = normalizeSearch(sourceIdentity);
+  if (!source) return true;
+  const localizedName = (candidate.names as Record<string, string> | undefined)?.[locale];
+  if (localizedName) return namesSameFood(source, normalizeSearch(localizedName));
+  if (locale === "en") return namesSameFood(source, normalizeSearch(candidate.originalName || candidate.name));
+  return hasSemanticCoverage(normalizeSearch(canonicalIdentity), [normalizeSearch(candidate.originalName || candidate.name)]);
+}
+
+// Either the localized name contains the user's word ("tejföl" in "Tejföl,
+// 20 %"), or the user's compound word contains a substantial token of the
+// localized name ("hagyma" in "vöröshagyma"). Tokens under 5 letters never
+// count on the reverse side, so "tej" (milk) cannot stand in for "tejföl".
+function namesSameFood(source: string, localized: string): boolean {
+  if (hasSemanticCoverage(source, [localized])) return true;
+  const sourceWords = source.split(" ").filter(Boolean);
+  return localized.split(" ").some((token) => token.length >= 5 && sourceWords.some((word) => word.includes(token)));
 }
