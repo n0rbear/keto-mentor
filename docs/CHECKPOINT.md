@@ -9,6 +9,7 @@ Compact continuity state for the Master/worker workflow. Git, tests and this fil
 - **Staging:** `keto-mentor-api-staging` + `keto-mentor-web-staging` → `fix/web-evidence-production-effectiveness` (now merged/stale — repoint staging to the next feature branch or `main`), live `07f11ba` (API), verified via Render MCP 2026-09-25; no error/warn logs since deploy. Staging start command does NOT run migrations (production does: migrate + seed on every boot). `keto-mentor-*-pr56` services deleted 2026-09-24.
 
 ## Open PRs
+- **#59** `claude/telegram-bot-messages-qjsiwm` → `main` @ `3cbaeac` — (1) voice: stop forcing OpenAI `language` (profile locale was forced; HU speech on a DE profile came back as garbage), HU/DE/EN prompt instead; (2) HU/DE/EN unquantified salt/pepper + "ízlés szerint"/"nach Geschmack" no longer blocks recipes (live case: "só ízlés szerint", logs showed interpret 200 in 12 s with 1 of 6 ingredients confirmation_required); (3) per-ingredient `blockingReason` + manual `ingredientOverrides` (exclude / grams / catalog food) applied server-side on re-derivation. API 2042/2042, web 352/352, tsc clean. Awaiting owner go-ahead to merge (production).
 - **#53** docs-only community-contribution backlog — idle since 2026-09-15.
 - MERGED 2026-09-25: #57 → #56 (`31b087c`); #56 → `main` (`d2bacc6`); #58 voice + semantic recovery → `main` (`a825703`, owner "#58 mehet").
 
