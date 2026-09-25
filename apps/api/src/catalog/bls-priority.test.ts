@@ -10,6 +10,7 @@ import { resolveRecipeIngredientsBatch } from "../recipes/recipe-ingredient-batc
 import { parseNaturalFoodQuery } from "./natural-food-query.js";
 import { aliasesForCoverageEntry } from "../importers/everyday-alias-overlay.js";
 import { EVERYDAY_COVERAGE_V2 } from "../importers/everyday-coverage-manifest.js";
+import { EUROPEAN_ESSENTIALS } from "../importers/european-essentials-manifest.js";
 
 type Fx = { id: string; source: string; name: string; names?: Record<string, string>; synonyms?: Record<string, string[]> };
 function catalog(rows: Fx[]) {
@@ -68,6 +69,12 @@ describe("C/E — túró and szalonna: no unsafe confident alias", () => {
     const entry = EVERYDAY_COVERAGE_V2.find((e) => e.key === "quark")!;
     expect(entry.sourceId).toBe("M713100");
     expect(aliasesForCoverageEntry(entry).some((a) => a.normalizedAlias === "turo")).toBe(false);
+  });
+
+  it("C. bare German 'Quark' / English 'quark' are not aliases of Magerquark either (20 % / 40 % Speisequark exists)", () => {
+    const entry = EVERYDAY_COVERAGE_V2.find((e) => e.key === "quark")!;
+    expect(aliasesForCoverageEntry(entry).some((a) => a.normalizedAlias === "quark")).toBe(false);
+    expect(EUROPEAN_ESSENTIALS.find((e) => e.key === "quark")!.synonyms.map(normalizeSearch)).not.toContain("quark");
   });
 
   it("C. bare 'túró' cannot become a trusted local match to cottage cheese / quark / cream cheese", async () => {
