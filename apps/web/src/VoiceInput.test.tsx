@@ -42,14 +42,17 @@ describe("VoiceInput", () => {
     fireEvent.click(screen.getByRole("button", { name: "Say it out loud" }));
     await waitFor(() => expect(startMock).toHaveBeenCalled());
     lastHandlers.current.onRecording();
-    expect(await screen.findByText("Listening… tap to stop")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Stop" }));
+    expect(await screen.findByText("Listening… tap Done when you are finished")).toBeTruthy();
+    // A clearly labelled button, not a bare square icon (owner report, 2026-09-25).
+    fireEvent.click(screen.getByRole("button", { name: "Done, recognize" }));
     expect(stopAndFinalizeMock).toHaveBeenCalledTimes(1);
   });
 
   it("transcribes the recorded audio and hands the TEXT to onTranscribed — never auto-submitted, only populates the caller's field", async () => {
     stubFetch((url, init) => {
       expect(url.pathname).toBe("/meal-input/transcribe");
+      // The page's current language is sent, so a Hungarian page transcribes Hungarian.
+      expect(url.searchParams.get("lang")).toBe("en");
       expect(init?.method).toBe("POST");
       expect((init?.headers as any)["Content-Type"]).toBe("audio/webm");
       return new Response(JSON.stringify({ text: "200 grams chicken breast", language: "en" }), { status: 200 });

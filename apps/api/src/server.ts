@@ -383,7 +383,10 @@ app.post(
         return res.status(415).json({ error: "unsupported_audio_format" });
       }
       if (!req.body.byteLength) return res.status(400).json({ error: "empty_audio" });
-      const result = await transcriptionProvider.transcribe({ audio: req.body, mimeType: contentType, languageHint: trustedLocale(req.user!) });
+      // The client sends the page's current UI language; only a supported
+      // locale is accepted, otherwise the profile locale is used.
+      const requestedLang = typeof req.query.lang === "string" && (locales as readonly string[]).includes(req.query.lang) ? req.query.lang as Locale : undefined;
+      const result = await transcriptionProvider.transcribe({ audio: req.body, mimeType: contentType, language: requestedLang ?? trustedLocale(req.user!) });
       res.json({ text: result.text, language: result.language ?? null });
     } catch (error) {
       if (error instanceof TranscriptionProviderError) {

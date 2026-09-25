@@ -331,6 +331,18 @@ export function App() {
     }
   }
 
+  // Recipe ingredient fix (2026-09-25): turns a USDA/OFF candidate into a
+  // catalog food through the same server-verified confirm endpoint, so the
+  // recipe save can reference it by id. Does not touch the interpretation.
+  async function resolveExternalForRecipe(candidate: ExternalCandidate) {
+    try {
+      const result = await api<{ status: string; food?: Food }>("/foods/resolve-external/confirm", { method: "POST", body: JSON.stringify({ source: candidate.source, sourceId: candidate.sourceId }) }, state);
+      return (result.status === "confirmed" || result.status === "existing") && result.food ? { id: result.food.id, name: result.food.name } : null;
+    } catch {
+      return null;
+    }
+  }
+
   // Owner-beta PR #52 final review (2026-09-13) — Gate 2/3: confirms a
   // JUST-DISCOVERED web recipe (never one the user already owns — that's
   // RecipeDetail's own addToMeal) straight into a real meal, at whatever
@@ -690,13 +702,16 @@ export function App() {
             <div className="natural-input">
               <label htmlFor="natural-meal-input">{lang === "hu" ? "Mondd el, mit ettél" : lang === "de" ? "Beschreibe, was du gegessen hast" : "Describe what you ate"}</label>
               <p className="natural-input-helper">{lang === "hu" ? "Írj természetesen — az ellenőrzött tápértékeket mindig a katalógus adja." : lang === "de" ? "Natürlich formulieren — geprüfte Nährwerte kommen immer aus dem Katalog." : "Use natural language — verified nutrition always comes from the catalog."}</p>
-              <div className="natural-input-row"><input id="natural-meal-input" className="field" value={naturalInput} onChange={(event) => { setNaturalInput(event.target.value); setInterpretation(null); setSelectedFood(null); setMealQuantity("1"); setMealMeasure("g"); setGramsOverride(""); }} placeholder={lang === "hu" ? "Például: 5 tojás" : lang === "de" ? "Zum Beispiel: 3 Scheiben Gouda" : "For example: 5 eggs"}/><button type="button" className="btn primary" disabled={interpreting || naturalInput.trim().length < 2} onClick={interpretNaturalInput}>{interpreting ? "…" : lang === "hu" ? "Értelmezés" : lang === "de" ? "Verstehen" : "Interpret"}</button></div>
+              <div className="natural-input-row"><input id="natural-meal-input" className="field" enterKeyHint="go" value={naturalInput} onKeyDown={(event) => {
+                // Enter here means "interpret", never submitting the manual meal form around it (it only raised "fill out this field" on phones).
+                if (event.key === "Enter") { event.preventDefault(); if (!interpreting && naturalInput.trim().length >= 2) void interpretNaturalInput(); }
+              }} onChange={(event) => { setNaturalInput(event.target.value); setInterpretation(null); setSelectedFood(null); setMealQuantity("1"); setMealMeasure("g"); setGramsOverride(""); }} placeholder={lang === "hu" ? "Például: 5 tojás" : lang === "de" ? "Zum Beispiel: 3 Scheiben Gouda" : "For example: 5 eggs"}/><button type="button" className="btn primary" disabled={interpreting || naturalInput.trim().length < 2} onClick={interpretNaturalInput}>{interpreting ? "…" : lang === "hu" ? "Értelmezés" : lang === "de" ? "Verstehen" : "Interpret"}</button></div>
               <div className="natural-input-methods">
                 <VoiceInput lang={lang} state={state} onTranscribed={(text) => { setNaturalInput(text); setInterpretation(null); setSelectedFood(null); setMealQuantity("1"); setMealMeasure("g"); setGramsOverride(""); }}/>
                 <BarcodeLookup lang={lang} state={state} onFoodConfirmed={(food) => { setSelectedFood(food); setMealMeasure("g"); setGramsOverride(""); }}/>
               </div>
               {interpreting && progressStage && <p className="natural-input-progress" role="status" aria-live="polite">{t.progress[progressStage] ?? t.progress.finalizing}</p>}
-              {interpretation && <FoodUnderstandingPreview value={interpretation} lang={lang} labels={t.foodUnderstanding} busy={mealSaving || interpreting || !!confirmingExternalId || confirmingRecipe || confirmingAiEstimate} onConfirmAll={confirmMultiMeal} onConfirmExternal={confirmExternalCandidate} confirmingExternalId={confirmingExternalId} onConfirmRecipe={confirmRecipe} onAcceptAiEstimate={(estimate, quantityGrams) => acceptAiEstimate(estimate, quantityGrams)} onOverrideAiEstimate={(payload) => overrideAiEstimate(payload)} onSelectCandidate={selectCandidate}/>}
+              {interpretation && <FoodUnderstandingPreview value={interpretation} lang={lang} labels={t.foodUnderstanding} busy={mealSaving || interpreting || !!confirmingExternalId || confirmingRecipe || confirmingAiEstimate} onConfirmAll={confirmMultiMeal} onConfirmExternal={confirmExternalCandidate} confirmingExternalId={confirmingExternalId} onConfirmRecipe={confirmRecipe} onAcceptAiEstimate={(estimate, quantityGrams) => acceptAiEstimate(estimate, quantityGrams)} onOverrideAiEstimate={(payload) => overrideAiEstimate(payload)} onSelectCandidate={selectCandidate} onResolveExternalFood={resolveExternalForRecipe}/>}
               {interpretation?.diagnostics && <DiagnosticsPanel events={interpretation.diagnostics} lang={lang}/>}
               {interpretation?.clarification && (() => { const row = (interpretation.items ?? [interpretation])[interpretation.clarification!.itemIndex]; return <QuantityClarification key={`${interpretation.input}:${interpretation.clarification.itemIndex}`} value={interpretation.clarification} foodName={pickDisplayName(row?.selectedFood, lang)} quantity={row?.parsed.quantity} unit={row?.parsed.unit} lang={lang} onResolve={resolveClarification}/>; })()}
             </div>

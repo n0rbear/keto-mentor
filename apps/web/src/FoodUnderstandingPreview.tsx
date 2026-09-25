@@ -91,6 +91,7 @@ export type RecipeIngredientValue = {
   originalText: string; parsedFoodQuery: string; status: string; quantityGrams?: number; aiEstimate?: AiEstimateValue;
   resolvedFood: { id?: string; name: string; source: string; sourceId?: string | null } | null;
   localCandidates?: { id: string; name: string; source: string }[];
+  externalCandidates?: ExternalCandidate[];
   trustedNutritionReady?: boolean;
   blockingReason?: RecipeBlockingReason;
 };
@@ -232,6 +233,7 @@ export type FoodUnderstandingLabels = {
     fixExcluded: string;
     fixReady: string;
     fixPending: string;
+    fixExternalFailed: string;
   };
   aiEstimate: {
     badge: string;
@@ -383,7 +385,7 @@ function CatalogCandidateList({ candidates, lang, labels, busy, onSelect }: {
 // recipe actually states a servings count; picking it without one is
 // rejected server-side (recipe_servings_required) as a defense-in-depth
 // backstop, but the option is never even shown here in that case.
-function DiscoveredRecipe({ candidate, lang }: { candidate: RecipeDiscoveryCandidateValue; lang: Lang }) {
+function DiscoveredRecipe({ candidate, lang, labels }: { candidate: RecipeDiscoveryCandidateValue; lang: Lang; labels?: FoodUnderstandingLabels["recipeDiscovery"] }) {
   return <section className="recipe-discovery-preview" aria-label={candidate.title}>
     <h4>{candidate.title}</h4>
     <a href={candidate.sourceUrl} target="_blank" rel="noopener noreferrer">{candidate.domain}</a>
@@ -391,8 +393,10 @@ function DiscoveredRecipe({ candidate, lang }: { candidate: RecipeDiscoveryCandi
     <ul>{candidate.ingredients?.map((ingredient, index) => <li key={index}>
       <strong>{ingredient.originalText}</strong> → {ingredient.resolvedFood?.name ?? ingredient.parsedFoodQuery}
       {ingredient.quantityGrams != null && <> · {ingredient.quantityGrams} g</>}
-      {" · "}{ingredient.resolvedFood?.source ?? ingredient.status}
-      {ingredient.resolvedFood?.sourceId && <> · {ingredient.resolvedFood.sourceId}</>}
+      {/* Readable state instead of raw status/source codes ("confirmation_required", "bls"). */}
+      {labels
+        ? ingredient.trustedNutritionReady === false && <> · <span className="recipe-ingredient-pending">{labels.fixPending}</span></>
+        : <>{" · "}{ingredient.resolvedFood?.source ?? ingredient.status}{ingredient.resolvedFood?.sourceId && <> · {ingredient.resolvedFood.sourceId}</>}</>}
       {ingredient.aiEstimate && <p>{lang === "hu" ? "AI-becslés, még nincs elfogadva" : lang === "de" ? "KI-Schätzung, noch nicht akzeptiert" : "AI estimate, not yet accepted"}: {ingredient.aiEstimate.kcalPer100g} kcal / 100 g · {ingredient.aiEstimate.confidence} · {ingredient.aiEstimate.assumptions}</p>}
     </li>)}</ul>
     {!!candidate.instructions?.length && <ol>{candidate.instructions.map((step, index) => <li key={index}>{step}</li>)}</ol>}
@@ -405,7 +409,7 @@ function DiscoveredRecipe({ candidate, lang }: { candidate: RecipeDiscoveryCandi
 // catalog food the backend already offered. Nothing here is trusted as
 // nutrition: the fixes travel with the save request and the server applies
 // them to its own fresh re-derivation (see meals/recipe-discovery-meal-item.ts).
-type IngredientFix = { exclude?: boolean; grams?: string; foodId?: string };
+type IngredientFix = { exclude?: boolean; grams?: string; foodId?: string; choice?: string };
 
 function fixToOverrides(index: number, fix: IngredientFix | undefined): RecipeIngredientOverride[] {
   if (!fix) return [];
@@ -426,33 +430,63 @@ function fixResolves(ingredient: RecipeIngredientValue, fix: IngredientFix | und
   return hasFood && (hasGrams || ingredient.quantityGrams != null);
 }
 
-function BlockedIngredientFix({ ingredient, fix, labels, busy, onChange }: {
-  ingredient: RecipeIngredientValue; fix: IngredientFix | undefined; labels: FoodUnderstandingLabels["recipeDiscovery"]; busy: boolean;
+// Resolves a USDA/OFF candidate into a catalog food through the existing,
+// server-verified POST /foods/resolve-external/confirm flow; returns the
+// catalog food id to use as a "food" override, or null on failure.
+export type ResolveExternalFood = (candidate: ExternalCandidate) => Promise<{ id: string; name: string } | null>;
+
+function BlockedIngredientFix({ ingredient, fix, lang, labels, busy, onChange, onResolveExternal }: {
+  ingredient: RecipeIngredientValue; fix: IngredientFix | undefined; lang: Lang; labels: FoodUnderstandingLabels["recipeDiscovery"]; busy: boolean;
   onChange: (fix: IngredientFix | undefined) => void;
+  onResolveExternal?: ResolveExternalFood;
 }) {
+  const [resolving, setResolving] = useState(false);
+  const [resolveFailed, setResolveFailed] = useState(false);
   const reason = ingredient.blockingReason ?? (ingredient.status === "resolved" ? "quantity_missing" : ingredient.status === "confirmation_required" ? "food_needs_confirmation" : "food_not_found");
   const needsFood = reason !== "quantity_missing";
+  const external = onResolveExternal ? ingredient.externalCandidates ?? [] : [];
+  const hasChoices = !!ingredient.localCandidates?.length || !!external.length;
   const resolved = fixResolves(ingredient, fix);
+
+  async function choose(value: string) {
+    setResolveFailed(false);
+    if (!value) return onChange({ ...fix, foodId: undefined, choice: undefined });
+    if (value.startsWith("local:")) return onChange({ ...fix, foodId: value.slice(6), choice: value });
+    const candidate = external.find((c) => `ext:${c.source}:${c.sourceId}` === value);
+    if (!candidate || !onResolveExternal) return;
+    setResolving(true);
+    try {
+      const food = await onResolveExternal(candidate);
+      if (food) onChange({ ...fix, foodId: food.id, choice: value });
+      else setResolveFailed(true);
+    } finally {
+      setResolving(false);
+    }
+  }
+
   return <li className="blocked-ingredient">
     <strong>{ingredient.originalText}</strong>
     <small className="blocked-ingredient-reason">{labels.blockingReasons[reason]}</small>
     {fix?.exclude
       ? <div className="blocked-ingredient-controls"><small>{labels.fixExcluded}</small><button type="button" className="btn secondary" disabled={busy} onClick={() => onChange(undefined)}>{labels.fixUndo}</button></div>
       : <div className="blocked-ingredient-controls">
-        {needsFood && !!ingredient.localCandidates?.length && <select aria-label={`${labels.fixFood}: ${ingredient.originalText}`} className="field" disabled={busy} value={fix?.foodId ?? ""} onChange={(event) => onChange({ ...fix, foodId: event.target.value || undefined })}>
-          <option value="">{labels.fixFoodPlaceholder}</option>
-          {ingredient.localCandidates.map((candidate) => <option key={candidate.id} value={candidate.id}>{candidate.name}</option>)}
+        {needsFood && hasChoices && <select aria-label={`${labels.fixFood}: ${ingredient.originalText}`} className="field" disabled={busy || resolving} value={fix?.choice ?? ""} onChange={(event) => { void choose(event.target.value); }}>
+          <option value="">{resolving ? "…" : labels.fixFoodPlaceholder}</option>
+          {ingredient.localCandidates?.map((candidate) => <option key={candidate.id} value={`local:${candidate.id}`}>{candidate.name}</option>)}
+          {external.map((candidate) => <option key={`${candidate.source}:${candidate.sourceId}`} value={`ext:${candidate.source}:${candidate.sourceId}`}>{pickDisplayName(candidate, lang)}</option>)}
         </select>}
         <input aria-label={`${labels.fixGrams}: ${ingredient.originalText}`} className="field" type="number" min="1" step="1" inputMode="decimal" placeholder={labels.fixGrams} disabled={busy} value={fix?.grams ?? ""} onChange={(event) => onChange({ ...fix, grams: event.target.value })}/>
         <button type="button" className="btn secondary" disabled={busy} onClick={() => onChange({ exclude: true })}>{labels.fixExclude}</button>
       </div>}
+    {resolveFailed && <small className="blocked-ingredient-reason">{labels.fixExternalFailed}</small>}
     {!fix?.exclude && <small className={resolved ? "blocked-ingredient-status ready" : "blocked-ingredient-status"}>{resolved ? labels.fixReady : labels.fixPending}</small>}
   </li>;
 }
 
-function RecipeCandidateReview({ candidate, lang, labels, busy, onConfirm }: {
+function RecipeCandidateReview({ candidate, lang, labels, busy, onConfirm, onResolveExternal }: {
   candidate: RecipeDiscoveryCandidateValue; lang: Lang; labels: FoodUnderstandingLabels; busy: boolean;
   onConfirm?: (candidate: RecipeDiscoveryCandidateValue, quantity: number, unit: "g" | "serving", overrides?: RecipeIngredientOverride[]) => void;
+  onResolveExternal?: ResolveExternalFood;
 }) {
   const [fixes, setFixes] = useState<Record<number, IngredientFix>>({});
   const ingredients = candidate.ingredients ?? [];
@@ -460,10 +494,10 @@ function RecipeCandidateReview({ candidate, lang, labels, busy, onConfirm }: {
   const allFixed = blocked.length > 0 && blocked.every(({ ingredient, index }) => fixResolves(ingredient, fixes[index]));
   const overrides = blocked.flatMap(({ index }) => fixToOverrides(index, fixes[index]));
   return <>
-    <DiscoveredRecipe candidate={candidate} lang={lang}/>
+    <DiscoveredRecipe candidate={candidate} lang={lang} labels={labels.recipeDiscovery}/>
     {!candidate.nutritionCalculable && !!blocked.length && onConfirm && <section className="blocked-ingredients">
       <strong>{labels.recipeDiscovery.blockedHeading}</strong>
-      <ul>{blocked.map(({ ingredient, index }) => <BlockedIngredientFix key={index} ingredient={ingredient} fix={fixes[index]} labels={labels.recipeDiscovery} busy={busy}
+      <ul>{blocked.map(({ ingredient, index }) => <BlockedIngredientFix key={index} ingredient={ingredient} fix={fixes[index]} lang={lang} labels={labels.recipeDiscovery} busy={busy} onResolveExternal={onResolveExternal}
         onChange={(fix) => setFixes((current) => { const next = { ...current }; if (fix) next[index] = fix; else delete next[index]; return next; })}/>)}</ul>
     </section>}
     {onConfirm && (candidate.nutritionCalculable || allFixed) && <RecipeConfirmControls candidate={candidate} lang={lang} labels={labels} busy={busy}
@@ -567,13 +601,14 @@ function AiEstimateCard({ estimate, labels, busy, onAccept, onOverride, onDeclin
   </div>;
 }
 
-function PreviewRow({ item, lang, labels, busy, confirmingId, onConfirmExternal, onConfirmRecipe, onAcceptAiEstimate, onOverrideAiEstimate, onSelectCandidate }: {
+function PreviewRow({ item, lang, labels, busy, confirmingId, onConfirmExternal, onConfirmRecipe, onAcceptAiEstimate, onOverrideAiEstimate, onSelectCandidate, onResolveExternalFood }: {
   item: PreviewItem; lang: Lang; labels: FoodUnderstandingLabels; busy: boolean; confirmingId: string | null;
   onConfirmExternal?: (candidate: ExternalCandidate) => void;
   onConfirmRecipe?: (candidate: RecipeDiscoveryCandidateValue, quantity: number, unit: "g" | "serving", overrides?: RecipeIngredientOverride[]) => void;
   onAcceptAiEstimate?: (estimate: AiEstimateValue, quantityGrams: number) => void;
   onOverrideAiEstimate?: (payload: AiEstimateOverridePayload) => void;
   onSelectCandidate?: (candidate: CandidateFood) => void;
+  onResolveExternalFood?: ResolveExternalFood;
 }) {
   const quantity = quantityText(item.parsed.quantity, item.parsed.unit, labels);
   // Owned here (not inside AiEstimateCard) so declining correctly brings
@@ -603,14 +638,14 @@ function PreviewRow({ item, lang, labels, busy, confirmingId, onConfirmExternal,
     {!isAiEstimatePending && <small className="understanding-resolution">{isTrusted ? <CheckCircle2 aria-hidden="true" size={13}/> : <CircleDashed aria-hidden="true" size={13}/>} {isTrusted ? labels.trusted : labels.unresolved}</small>}
     {item.quantity?.status === "resolved" && <small>{item.quantity.estimated ? "≈" : "="} {Math.round((item.quantity.grams ?? 0) * 10) / 10} g</small>}
     {item.recipeDiscovery && <small className="recipe-discovery-note">{recipeDiscoveryText(item.recipeDiscovery, labels)}</small>}
-    {item.recipeDiscovery?.candidate && <RecipeCandidateReview candidate={item.recipeDiscovery.candidate} lang={lang} labels={labels} busy={busy} onConfirm={onConfirmRecipe}/>}
+    {item.recipeDiscovery?.candidate && <RecipeCandidateReview candidate={item.recipeDiscovery.candidate} lang={lang} labels={labels} busy={busy} onConfirm={onConfirmRecipe} onResolveExternal={onResolveExternalFood}/>}
     {hasCatalogCandidates && onSelectCandidate && <CatalogCandidateList candidates={item.candidates!} lang={lang} labels={labels} busy={busy} onSelect={onSelectCandidate}/>}
     {!!item.externalCandidates?.length && onConfirmExternal && <ExternalCandidateList candidates={item.externalCandidates} lang={lang} labels={labels} busy={busy} confirmingId={confirmingId} onConfirm={onConfirmExternal}/>}
     {isAiEstimatePending && onAcceptAiEstimate && onOverrideAiEstimate && <AiEstimateCard estimate={item.aiEstimate!} labels={labels.aiEstimate} busy={busy} onAccept={(quantityGrams) => onAcceptAiEstimate(item.aiEstimate!, quantityGrams)} onOverride={onOverrideAiEstimate} onDecline={() => setAiEstimateDeclined(true)}/>}
   </li>;
 }
 
-export function FoodUnderstandingPreview({ value, lang, labels, busy, onConfirmAll, onConfirmExternal, confirmingExternalId, onConfirmRecipe, onAcceptAiEstimate, onOverrideAiEstimate, onSelectCandidate }: {
+export function FoodUnderstandingPreview({ value, lang, labels, busy, onConfirmAll, onConfirmExternal, confirmingExternalId, onConfirmRecipe, onAcceptAiEstimate, onOverrideAiEstimate, onSelectCandidate, onResolveExternalFood }: {
   value: FoodUnderstandingPreviewValue;
   lang: Lang;
   labels: FoodUnderstandingLabels;
@@ -622,6 +657,7 @@ export function FoodUnderstandingPreview({ value, lang, labels, busy, onConfirmA
   onAcceptAiEstimate?: (estimate: AiEstimateValue, quantityGrams: number, itemIndex?: number) => void;
   onOverrideAiEstimate?: (payload: AiEstimateOverridePayload, itemIndex?: number) => void;
   onSelectCandidate?: (candidate: CandidateFood, itemIndex?: number) => void;
+  onResolveExternalFood?: ResolveExternalFood;
 }) {
   const rows = value.items?.length ? value.items : [value];
   const singleReady = !value.items?.length && value.canConfirm && value.selectedFood && value.quantity;
@@ -648,9 +684,12 @@ export function FoodUnderstandingPreview({ value, lang, labels, busy, onConfirmA
       {value.interpretationSource === "ai_assisted" && <span className="ai-assisted-badge"><Sparkles aria-hidden="true" size={11}/>{labels.aiAssisted}</span>}
     </div>
     {value.semantic?.dishName && <div><strong>{labels.dish}:</strong> {value.semantic.dishName}</div>}
-    {!!value.items?.length && value.recipeDiscovery?.candidate && <DiscoveredRecipe candidate={value.recipeDiscovery.candidate} lang={lang}/>}
+    {/* Live report (2026-09-25): a dish recognized as several items kept its
+        discovered recipe here as display only, so "needs confirmation" had
+        no button at all. It now gets the same fix + confirm controls. */}
+    {!!value.items?.length && value.recipeDiscovery?.candidate && <RecipeCandidateReview candidate={value.recipeDiscovery.candidate} lang={lang} labels={labels} busy={busy} onConfirm={onConfirmRecipe} onResolveExternal={onResolveExternalFood}/>}
     {(value.items?.length || value.interpretationSource === "ai_assisted" || isSingleAiEstimatePending) && <ul className="multi-preview-list">
-      {rows.map((item, index) => <PreviewRow key={index} item={item} lang={lang} labels={labels} busy={busy} confirmingId={confirmingExternalId ?? null} onConfirmExternal={onConfirmExternal ? (candidate) => onConfirmExternal(candidate, value.items?.length ? index : undefined) : undefined} onConfirmRecipe={onConfirmRecipe} onAcceptAiEstimate={onAcceptAiEstimate ? (estimate, quantityGrams) => onAcceptAiEstimate(estimate, quantityGrams, value.items?.length ? index : undefined) : undefined} onOverrideAiEstimate={onOverrideAiEstimate ? (payload) => onOverrideAiEstimate(payload, value.items?.length ? index : undefined) : undefined} onSelectCandidate={onSelectCandidate ? (candidate) => onSelectCandidate(candidate, value.items?.length ? index : undefined) : undefined}/>) }
+      {rows.map((item, index) => <PreviewRow key={index} item={item} lang={lang} labels={labels} busy={busy} confirmingId={confirmingExternalId ?? null} onConfirmExternal={onConfirmExternal ? (candidate) => onConfirmExternal(candidate, value.items?.length ? index : undefined) : undefined} onConfirmRecipe={onConfirmRecipe} onAcceptAiEstimate={onAcceptAiEstimate ? (estimate, quantityGrams) => onAcceptAiEstimate(estimate, quantityGrams, value.items?.length ? index : undefined) : undefined} onOverrideAiEstimate={onOverrideAiEstimate ? (payload) => onOverrideAiEstimate(payload, value.items?.length ? index : undefined) : undefined} onSelectCandidate={onSelectCandidate ? (candidate) => onSelectCandidate(candidate, value.items?.length ? index : undefined) : undefined} onResolveExternalFood={onResolveExternalFood}/>) }
     </ul>}
     {singleReady && <div>
       <strong>{itemName(value, lang)}</strong>

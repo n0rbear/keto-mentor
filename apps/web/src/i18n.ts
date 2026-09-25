@@ -83,7 +83,7 @@ export const dict = {
           quantity_missing: "Nincs megadva, mennyi kell belőle."
         },
         fixExclude: "Kihagyom", fixUndo: "Visszavonom", fixGrams: "Mennyiség (g)", fixFood: "Étel választása", fixFoodPlaceholder: "— válassz —",
-        fixExcluded: "Kihagyva a számításból", fixReady: "Kézzel javítva", fixPending: "Még javításra vár"
+        fixExcluded: "Kihagyva a számításból", fixReady: "Kézzel javítva", fixPending: "Még javításra vár", fixExternalFailed: "Ezt az ételt most nem sikerült ellenőrizni — válassz mást, vagy add meg kézzel."
       },
       aiEstimate: {
         badge: "AI-becslés", disclaimer: "AI-becslés — nem hiteles tápérték-forrás",
@@ -188,8 +188,8 @@ export const dict = {
       detected: "Vonalkód beolvasva.", tryAgain: "Próbáld újra", videoLabel: "Élő kameraelőnézet a vonalkód-kereséshez"
     },
     voice: {
-      micButton: "Mondd hangosan", requestingPermission: "Mikrofon indítása…", recording: "Hallgatlak… érintsd meg a leálláshoz",
-      stopButton: "Leállítás", transcribing: "Felismerés…", cancel: "Mégse",
+      micButton: "Mondd hangosan", requestingPermission: "Mikrofon indítása…", recording: "Hallgatlak… ha végeztél, nyomd meg a Kész gombot",
+      stopButton: "Kész, felismerés", transcribing: "Felismerés…", cancel: "Mégse",
       micDenied: "A mikrofon-hozzáférés megtagadva. Írd be kézzel.",
       micUnavailable: "Nem található mikrofon ezen az eszközön. Írd be kézzel.",
       recorderUnsupported: "A böngésződ nem támogatja a hangfelismerést. Írd be kézzel.",
@@ -302,7 +302,7 @@ export const dict = {
           quantity_missing: "Keine Mengenangabe."
         },
         fixExclude: "Weglassen", fixUndo: "Rückgängig", fixGrams: "Menge (g)", fixFood: "Lebensmittel wählen", fixFoodPlaceholder: "— bitte wählen —",
-        fixExcluded: "Aus der Berechnung entfernt", fixReady: "Manuell korrigiert", fixPending: "Noch zu korrigieren"
+        fixExcluded: "Aus der Berechnung entfernt", fixReady: "Manuell korrigiert", fixPending: "Noch zu korrigieren", fixExternalFailed: "Dieses Lebensmittel konnte gerade nicht geprüft werden — bitte ein anderes wählen oder manuell eingeben."
       },
       aiEstimate: {
         badge: "KI-Schätzung", disclaimer: "KI-Schätzung — keine verlässliche Nährwertquelle",
@@ -407,8 +407,8 @@ export const dict = {
       detected: "Barcode erkannt.", tryAgain: "Erneut versuchen", videoLabel: "Live-Kameravorschau für die Barcode-Suche"
     },
     voice: {
-      micButton: "Sprich es ein", requestingPermission: "Mikrofon wird gestartet…", recording: "Ich höre zu… zum Beenden antippen",
-      stopButton: "Beenden", transcribing: "Erkennung läuft…", cancel: "Abbrechen",
+      micButton: "Sprich es ein", requestingPermission: "Mikrofon wird gestartet…", recording: "Ich höre zu… wenn du fertig bist, tippe auf Fertig",
+      stopButton: "Fertig, erkennen", transcribing: "Erkennung läuft…", cancel: "Abbrechen",
       micDenied: "Mikrofonzugriff verweigert. Bitte manuell eingeben.",
       micUnavailable: "Auf diesem Gerät wurde kein Mikrofon gefunden. Bitte manuell eingeben.",
       recorderUnsupported: "Dein Browser unterstützt die Spracherkennung nicht. Bitte manuell eingeben.",
@@ -521,7 +521,7 @@ export const dict = {
           quantity_missing: "No amount given."
         },
         fixExclude: "Leave out", fixUndo: "Undo", fixGrams: "Amount (g)", fixFood: "Choose food", fixFoodPlaceholder: "— choose —",
-        fixExcluded: "Left out of the calculation", fixReady: "Fixed manually", fixPending: "Still needs a fix"
+        fixExcluded: "Left out of the calculation", fixReady: "Fixed manually", fixPending: "Still needs a fix", fixExternalFailed: "This food could not be verified right now — choose another or enter it manually."
       },
       aiEstimate: {
         badge: "AI estimate", disclaimer: "AI estimate — not an authoritative nutrition source",
@@ -626,8 +626,8 @@ export const dict = {
       detected: "Barcode detected.", tryAgain: "Try again", videoLabel: "Live camera preview for barcode scanning"
     },
     voice: {
-      micButton: "Say it out loud", requestingPermission: "Starting microphone…", recording: "Listening… tap to stop",
-      stopButton: "Stop", transcribing: "Recognizing…", cancel: "Cancel",
+      micButton: "Say it out loud", requestingPermission: "Starting microphone…", recording: "Listening… tap Done when you are finished",
+      stopButton: "Done, recognize", transcribing: "Recognizing…", cancel: "Cancel",
       micDenied: "Microphone access was denied. Type it instead.",
       micUnavailable: "No microphone was found on this device. Type it instead.",
       recorderUnsupported: "Your browser doesn't support voice recognition. Type it instead.",
