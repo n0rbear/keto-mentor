@@ -89,7 +89,7 @@ export const EUROPEAN_ESSENTIALS: readonly EuropeanEssential[] = [
 
   essential("whole-milk", "Vollmilch", "M111300", ["vollmilch", "3,5", "pasteurisiert"], ["Vollmilch"]),
   essential("yogurt", "Naturjoghurt", "M141300", ["joghurt", "3,5", "fett"], ["Naturjoghurt", "Joghurt"]),
-  essential("quark", "Magerquark", "M713100", ["speisequark", "magerstufe", "magerquark"], ["Magerquark", "Quark"]),
+  essential("quark", "Magerquark", "M713100", ["speisequark", "magerstufe", "magerquark"], ["Magerquark"]),
   essential("cottage-cheese", "Hüttenkäse", "M711100", ["korniger", "frischkase"], ["Hüttenkäse", "Körniger Frischkäse"], "huttenkase"),
   essential("cream-cheese", "Frischkäse", "M710800", ["frischkasezubereitung", "natur"], ["Frischkäse"], "frischkase"),
   essential("gouda", "Gouda", "M402600", ["gouda", "48", "fett"], ["Gouda", "Käse"], "kase"),

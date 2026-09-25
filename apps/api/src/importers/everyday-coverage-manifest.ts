@@ -91,8 +91,10 @@ export const EVERYDAY_COVERAGE_V2: readonly EverydayCoverageEntry[] = [
   // BLS M713100 is Speisequark MAGERSTUFE (< 10 % Fett i. Tr., 66 kcal, 0.18 g
   // fat). Only the explicitly low-fat Hungarian phrase may alias it; bare
   // "túró" (typically full/half-fat, roughly double the energy) must not
-  // silently become the fat-free record.
-  reuse("quark", "dairy", words(["sovány túró", "sovany turo"], ["Quark", "Magerquark"], ["quark"])),
+  // silently become the fat-free record. Bare German "Quark" / English
+  // "quark" are equally unqualified (Speisequark also comes as 20 % / 40 %
+  // Fett i. Tr.), so only the explicitly low-fat names alias it.
+  reuse("quark", "dairy", words(["sovány túró", "sovany turo"], ["Magerquark"], ["low-fat quark"])),
   reuse("mozzarella", "dairy", words(["mozzarella"], ["Mozzarella"], ["mozzarella"])),
   reuse("feta", "dairy", words(["feta", "feta sajt"], ["Feta"], ["feta", "feta cheese"])),
   reuse("parmesan", "dairy", words(["parmezán", "parmezan"], ["Parmesan"], ["parmesan"])),
