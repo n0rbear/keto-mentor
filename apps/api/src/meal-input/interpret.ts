@@ -192,7 +192,13 @@ export type InterpretResult = {
 function aiEstimatePendingResult(
   input: string, parsed: ParsedNaturalFoodQuery,
   outcome: Extract<Awaited<ReturnType<typeof resolveDynamicFood>>, { status: "ai_estimate_pending" }>,
-  userId: string
+  userId: string,
+  // Authoritative catalog data first (owner decision, 2026-09-25): weak local
+  // catalog matches the dynamic chain ran past (e.g. "szalonna" -> BLS
+  // Frühstücksspeck / USDA cured bacon) stay selectable next to the estimate
+  // instead of being silently dropped. Never auto-selected: the item stays
+  // canConfirm:false, the user picks a catalog food or accepts the estimate.
+  localCandidates: ResolvedFood[] = []
 ): InterpretResult {
   const proof = createAiEstimateProof(userId, {
     requestedIdentity: outcome.requestedIdentity, canonicalFoodName: outcome.estimate.canonicalFoodName,
@@ -200,7 +206,7 @@ function aiEstimatePendingResult(
     fatPer100g: outcome.estimate.fatPer100g, carbsPer100g: outcome.estimate.carbsPer100g, fiberPer100g: outcome.estimate.fiberPer100g
   });
   return {
-    input, parsed, foodResolution: "ai_estimate_pending", selectedFood: null, candidates: [], quantity: null,
+    input, parsed, foodResolution: "ai_estimate_pending", selectedFood: null, candidates: localCandidates, quantity: null,
     canConfirm: false, confidence: 0, preparation: parsed.preparation, interpretationSource: "deterministic",
     aiEstimate: { ...outcome.estimate, requestedIdentity: outcome.requestedIdentity, canonicalIdentity: outcome.canonicalIdentity, proof },
     ...(outcome.decisionTrace ? { decisionTrace: outcome.decisionTrace } : {}),
@@ -381,6 +387,16 @@ function servingPriority(serving: Serving) {
   return method === "authoritative" ? 0 : method === "curated" ? 1 : 2;
 }
 
+// Weak local matches shown NEXT TO external candidates or an AI estimate
+// must actually be about the food the user named: a partial match can be
+// unrelated ("csülök" -> "Cheese scone"), and listing it beside real options
+// only adds noise. Same substring-coverage rule the prepared-form shortcut
+// above uses, over the candidate's full vocabulary (names + synonyms).
+function coveredLocalCandidates(foodQuery: string, candidates: ResolvedFood[]): ResolvedFood[] {
+  const normalizedQuery = normalizeSearch(foodQuery);
+  return candidates.filter((food) => hasSemanticCoverage(normalizedQuery, [normalizeSearch(food.searchText || food.name)]));
+}
+
 async function interpretOne(
   prisma: SearchablePrisma,
   input: string,
@@ -556,12 +572,12 @@ async function interpretOne(
       };
     } else if (outcome.status === "confirmation_required") {
       return {
-        input, parsed, foodResolution: "confirmation_required", selectedFood: null, candidates, quantity: null,
+        input, parsed, foodResolution: "confirmation_required", selectedFood: null, candidates: coveredLocalCandidates(parsed.foodQuery, candidates), quantity: null,
         canConfirm: false, confidence: score / 100, preparation: parsed.preparation, interpretationSource: "deterministic",
         externalCandidates: outcome.candidates, externalCandidatesReason: outcome.reason
       };
     } else if (outcome.status === "ai_estimate_pending") {
-      return aiEstimatePendingResult(input, parsed, outcome, dynamic.userId);
+      return aiEstimatePendingResult(input, parsed, outcome, dynamic.userId, coveredLocalCandidates(parsed.foodQuery, candidates));
     } else {
       fallbackDiagnostics = debugResolutionDiagnostics(outcome.webEvidenceDiagnostics, outcome.resolutionDiagnostics);
       weakMatchDecisionTrace = outcome.decisionTrace;

@@ -300,6 +300,17 @@ describe("AI nutrition estimate confirmation UI", () => {
     };
   }
 
+  it("lists covered local catalog candidates before the AI estimate, and keeps them after the estimate is declined", () => {
+    const bacon = { id: "bls-w415000", source: "bls", sourceId: "W415000", name: "Schwein Frühstücksspeck", originalName: "Schwein Frühstücksspeck", names: { en: "bacon" }, kcalPer100g: 304, proteinPer100g: 15, fatPer100g: 27, carbsPer100g: 0, fiberPer100g: 0 };
+    const onSelect = vi.fn();
+    const { container } = render(<FoodUnderstandingPreview value={singleAiEstimateValue({ candidates: [bacon] })} lang="en" labels={dict.en.foodUnderstanding} busy={false} onConfirmAll={vi.fn()} onAcceptAiEstimate={vi.fn()} onOverrideAiEstimate={vi.fn()} onSelectCandidate={onSelect}/>);
+    const list = container.querySelector(".catalog-candidates")!;
+    const card = container.querySelector(".ai-estimate-card")!;
+    expect(list.compareDocumentPosition(card) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    fireEvent.click(list.querySelector("button")!);
+    expect(onSelect).toHaveBeenCalledExactlyOnceWith(bacon, undefined);
+  });
+
   it.each(["hu", "de", "en"] as const)("renders the AI-estimate badge, macros, confidence and assumptions, distinctly from trusted data (%s)", (lang: Lang) => {
     const { container } = render(<FoodUnderstandingPreview value={singleAiEstimateValue()} lang={lang} labels={dict[lang].foodUnderstanding} busy={false} onConfirmAll={vi.fn()} onAcceptAiEstimate={vi.fn()} onOverrideAiEstimate={vi.fn()}/>);
     const labels = dict[lang].foodUnderstanding.aiEstimate;
@@ -504,16 +515,23 @@ describe("local-catalog candidate selection UI (preview / confirmation_required)
     expect((screen.getByRole("button", { name: dict.en.foodUnderstanding.logAll }) as HTMLButtonElement).disabled).toBe(true);
   });
 
-  it("never renders the candidate list when externalCandidates are what the backend actually returned (mutually exclusive lists)", () => {
+  // Authoritative catalog data first (owner decision, 2026-09-25): the API
+  // only sends local candidates here that cover the user's word, so they are
+  // listed BEFORE the external ones instead of being hidden by them.
+  it("renders local catalog candidates before external candidates when the backend returns both", () => {
     const value: FoodUnderstandingPreviewValue = {
       parsed: { foodQuery: "csülök" }, selectedFood: null, quantity: null, canConfirm: false,
       foodResolution: "confirmation_required", interpretationSource: "deterministic",
       externalCandidates: [{ source: "usda_fdc", sourceId: "172152", name: "Pork hock, cooked", originalName: "Pork hock, cooked", confidence: 0.96 }],
       candidates: [sconeCandidate]
     };
-    render(<FoodUnderstandingPreview value={value} lang="en" labels={dict.en.foodUnderstanding} busy={false} onConfirmAll={vi.fn()} onConfirmExternal={vi.fn()} onSelectCandidate={vi.fn()}/>);
+    const onSelect = vi.fn();
+    const { container } = render(<FoodUnderstandingPreview value={value} lang="en" labels={dict.en.foodUnderstanding} busy={false} onConfirmAll={vi.fn()} onConfirmExternal={vi.fn()} onSelectCandidate={onSelect}/>);
     expect(screen.getByText(dict.en.foodUnderstanding.externalSingleHeading)).toBeTruthy();
-    expect(screen.queryByText(dict.en.foodUnderstanding.candidatesHeading)).toBeNull();
-    expect(screen.queryByText("Cheese scone")).toBeNull();
+    const catalogHeading = screen.getByText(dict.en.foodUnderstanding.candidatesHeading);
+    const externalHeading = screen.getByText(dict.en.foodUnderstanding.externalSingleHeading);
+    expect(catalogHeading.compareDocumentPosition(externalHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    fireEvent.click(container.querySelector(".catalog-candidate button")!);
+    expect(onSelect).toHaveBeenCalledExactlyOnceWith(sconeCandidate);
   });
 });

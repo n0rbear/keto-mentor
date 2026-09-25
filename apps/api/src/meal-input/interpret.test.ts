@@ -1386,6 +1386,44 @@ describe("interpretMealInput: AI-estimate-pending propagation", () => {
     })).toThrowError(expect.objectContaining({ publicCode: "invalid_ai_estimate_proof" }));
   });
 
+  // Authoritative catalog data first (owner decision, 2026-09-25): a weak
+  // local catalog match the dynamic chain ran past must stay selectable next
+  // to the estimate, never silently dropped (live case: "szalonna" hid the
+  // local cured-bacon rows behind a 541 kcal AI estimate).
+  it("keeps weak local catalog matches as selectable candidates next to the AI estimate, never auto-selected", async () => {
+    const { dynamicPrisma, persistedFoods } = dynamicPrismaFixture();
+    const dynamic = {
+      prisma: dynamicPrisma,
+      searchIntentProvider: { id: "fixture", generate: async () => ({ canonicalConcept: "pork", searchTerms: ["pork"] }) },
+      adapters: [{ source: "usda_fdc" as const, sourceName: "USDA", lookup: async () => [] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      aiEstimation: { provider: { id: "groq", estimate: async () => goodEstimate }, rateLimiter: { consume: () => true } }
+    };
+    const result = await interpretMealInput(prisma, "100 g pork", undefined, undefined, dynamic as any);
+    expect(result.foodResolution).toBe("ai_estimate_pending");
+    expect(result.aiEstimate).toBeDefined();
+    expect(result.candidates.map((c) => c.name)).toContain("Pork sausage");
+    expect(result.selectedFood).toBeNull();
+    expect(result.canConfirm).toBe(false);
+    expect(persistedFoods).toHaveLength(0);
+  });
+
+  it("a genuine local miss still carries no catalog candidates next to the AI estimate", async () => {
+    const { dynamicPrisma } = dynamicPrismaFixture();
+    const dynamic = {
+      prisma: dynamicPrisma,
+      searchIntentProvider: { id: "fixture", generate: async () => ({ canonicalConcept: "crucian carp", searchTerms: ["crucian carp"] }) },
+      adapters: [{ source: "usda_fdc" as const, sourceName: "USDA", lookup: async () => [] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      aiEstimation: { provider: { id: "groq", estimate: async () => goodEstimate }, rateLimiter: { consume: () => true } }
+    };
+    const result = await interpretMealInput(prisma, "kárász", undefined, undefined, dynamic as any);
+    expect(result.foodResolution).toBe("ai_estimate_pending");
+    expect(result.candidates).toEqual([]);
+  });
+
   it("without aiEstimation wired, an otherwise-identical genuine miss remains the pre-existing unresolved outcome (no regression)", async () => {
     const { dynamicPrisma } = dynamicPrismaFixture();
     const dynamic = {
