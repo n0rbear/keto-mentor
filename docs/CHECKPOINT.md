@@ -2,10 +2,10 @@
 
 Compact continuity state for the Master/worker workflow. Git, tests and this file are the source of truth — not chat history. Never store secrets here.
 
-- **Date:** 2026-09-25 (updated after #63 → main / production deploy; Telegram channel live)
+- **Date:** 2026-09-25 (updated after #64 → main / production deploy; Telegram channel live)
 - **Checkpoint branch:** `claude/pensive-hamilton-ocsygi` (checkpoint-only; no product code)
 - **main HEAD:** `7271c32` (merge of PR #63)
-- **Production:** `keto-mentor-api` / `keto-mentor-web` at `7271c32` (live 2026-09-25 21:35 UTC, no error/warn logs, `/health` 200). Still not verified live: a real plate-photo vision call.
+- **Production:** `keto-mentor-api` / `keto-mentor-web` at `7faf71d` (#64, live 2026-09-25 22:24 UTC, no error/warn logs). #64: parallel gate chunks / STEP 5 recovery / per-ingredient fallbacks, first recipe candidate reviewable with ≤ 4 unresolved; `catalog/regional-food-notes.ts` (paprikakrém = chili paste, not sült paprikakrém/ajvar; tejföl; túró) in search-intent, normalization and both gates; portion photo accepts any ID-1 wallet card (`reference=card`, UI warns: no personal data or cover it) and is shown in the ≈ g confirmation and on blocked recipes (add button only once all fixed). Not yet verified live: real plate-photo call, real speed gain, paprikakrém result.
 - **Staging:** `keto-mentor-api-staging` + `keto-mentor-web-staging` → `fix/web-evidence-production-effectiveness` (now merged/stale — repoint staging to the next feature branch or `main`), live `07f11ba` (API), verified via Render MCP 2026-09-25; no error/warn logs since deploy. Staging start command does NOT run migrations (production does: migrate + seed on every boot). `keto-mentor-*-pr56` services deleted 2026-09-24.
 
 ## Open PRs
