@@ -2,7 +2,7 @@
 import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { UnifiedFoodSearch, isBarcodeInput } from "./UnifiedFoodSearch";
+import { UnifiedFoodSearch, isBarcodeInput, wantsMeaningSearch } from "./UnifiedFoodSearch";
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 const state = { token: "token", setToken: vi.fn() };
@@ -54,10 +54,23 @@ describe("one search field (roadmap G2)", () => {
       : ok({ kind: "results", query: "virsli", meaning: { tried: false, terms: [] }, items: [] }));
     const onPickFood = vi.fn();
     render(<UnifiedFoodSearch lang="hu" state={state} value="virsli" onPickFood={onPickFood} onPickRecipe={vi.fn()}/>);
-    expect(await screen.findByText(/jelentés szerint/)).toBeTruthy();
+    expect(await screen.findByText(/jelentés szerint/, {}, { timeout: 3000 })).toBeTruthy();
     fireEvent.click(screen.getByText("virsli"));
     expect(onPickFood).toHaveBeenCalledWith(expect.objectContaining({ id: "w1" }), undefined);
     expect(urls.filter((u) => u.searchParams.get("meaning") === "1")).toHaveLength(1);
+  });
+
+  it("spends the meaning search only on a finished-looking word, and not while still typing", async () => {
+    expect(wantsMeaningSearch("1 t")).toBe(false);
+    expect(wantsMeaningSearch("1 tá")).toBe(false);
+    expect(wantsMeaningSearch("Rántotta 3")).toBe(false);
+    expect(wantsMeaningSearch("1 tányér")).toBe(true);
+    const urls = stub(() => ok({ kind: "results", query: "", meaning: { tried: false, terms: [] }, items: [] }));
+    const view = render(<UnifiedFoodSearch lang="hu" state={state} value="virs" onPickFood={vi.fn()} onPickRecipe={vi.fn()}/>);
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    view.rerender(<UnifiedFoodSearch lang="hu" state={state} value="virsli" onPickFood={vi.fn()} onPickRecipe={vi.fn()}/>);
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    expect(urls.filter((u) => u.searchParams.get("meaning") === "1").map((u) => u.searchParams.get("q"))).toEqual(["virsli"]);
   });
 
   it("never searches for a barcode or while interpreting", async () => {

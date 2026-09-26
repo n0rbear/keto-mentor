@@ -27,6 +27,10 @@ describe("food search resolver", () => {
     const result = await searchFoods(fake, "butter");
     expect(result.map((row) => row.id)).toEqual(["bls", "usda", "bls-other"]);
   });
+  it("returns nothing for input without a two-letter word instead of building an empty SQL filter", async () => {
+    const fake = { $queryRaw: async () => { throw new Error("must not query"); }, foodAlias: { findMany: async () => [] }, food: { findMany: async () => [] } } as any;
+    expect(await searchFoods(fake, "1 t")).toEqual([]);
+  });
   it.each([
     ["csirkemell", "chicken"], ["Hähnchenbrust", "chicken"], ["chicken breast", "chicken"],
     ["tukortojas", "egg"], ["sült tojás", "egg"], ["kígyóuborka", "cucumber"], ["uborka", "cucumber"]

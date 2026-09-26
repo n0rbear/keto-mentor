@@ -23,13 +23,20 @@ export const GENERIC_SLICE_WEIGHTS: readonly SliceWeight[] = [
   { key: "bread", grams: 35, keywords: ["kenyer", "bread", "brot", "rozskenyer", "vollkornbrot", "graham", "cipo"] }
 ];
 
-const SLICE_UNITS = new Set(["slice"]);
+// "Rántotta 3 tojásból" (live 2026-09-26): the count is eggs, and an egg
+// dish without its own egg serving still weighs about one egg per egg.
+export const GENERIC_PIECE_WEIGHTS: readonly SliceWeight[] = [
+  { key: "egg", grams: 50, keywords: ["tojas", "rantotta", "omlett", "egg", "eggs", "scrambled", "omelet", "omelette", "ei", "eier", "ruhrei", "spiegelei"] }
+];
+
+const TABLES: Record<string, readonly SliceWeight[]> = { slice: GENERIC_SLICE_WEIGHTS, piece: GENERIC_PIECE_WEIGHTS };
 
 export function genericUnitWeight(unit: string, food: { name: string; searchText?: string; names?: Record<string, string> }): SliceWeight | null {
-  if (!SLICE_UNITS.has(unit)) return null;
+  const table = TABLES[unit];
+  if (!table) return null;
   const words = ` ${normalizeSearch([food.name, food.searchText ?? "", ...Object.values(food.names ?? {})].join(" "))} `;
   // Short keywords must be whole words ("ham" never matches "hamburger");
   // longer ones may carry a suffix ("sonkát", "szalámis").
   const mentions = (keyword: string) => { const key = normalizeSearch(keyword); return words.includes(key.length <= 4 ? ` ${key} ` : ` ${key}`); };
-  return GENERIC_SLICE_WEIGHTS.find((entry) => entry.keywords.some(mentions)) ?? null;
+  return table.find((entry) => entry.keywords.some(mentions)) ?? null;
 }
