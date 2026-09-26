@@ -2,6 +2,7 @@ import ExcelJS from "exceljs";
 import type { ImportFood, ImportRow } from "./types.js";
 import { BLS_NUTRIENT_MAP, mapNutrient } from "./nutrient-mapping.js";
 import { balancedPilot } from "./pilot.js";
+import { CARB_BASIS_TOTAL_FROM_AVAILABLE, totalCarbsFromAvailable, withTotalCarbohydrate } from "../catalog/carb-basis.js";
 
 type BlsRow = { row: number; values: Record<string, unknown> };
 const CATEGORIES: Record<string, string> = { B: "Bread and baked goods", C: "Cereals", E: "Eggs", F: "Fruit", G: "Vegetables", H: "Legumes", K: "Potatoes", M: "Dairy", N: "Nuts and seeds", Q: "Fish", R: "Meat", S: "Poultry", U: "Oils and fats" };
@@ -32,9 +33,13 @@ export class BlsAdapter {
       const amount = (key: string) => nutrients.find((nutrient) => nutrient.key === key)?.amountPer100g;
       const required = [amount("energy_kcal"), amount("protein"), amount("total_fat"), amount("carbohydrate")];
       if (!code || !originalName || required.some((value) => value === undefined)) { yield { row: item.row, sourceId: code, error: "missing identity, name, or required macro" }; continue; }
+      // BLS CHO is available carbohydrate (fiber excluded); stored as total.
+      const fiber = amount("fiber") ?? 0;
+      const carbs = totalCarbsFromAvailable(required[3]!, fiber);
       const food: ImportFood = { source: this.source, sourceId: code, originalName, name: originalName, names: { de: originalName }, category: CATEGORIES[code[0]] ?? `BLS group ${code[0]}`,
-        kcalPer100g: required[0]!, proteinPer100g: required[1]!, fatPer100g: required[2]!, carbsPer100g: required[3]!, fiberPer100g: amount("fiber") ?? 0,
-        provenance: { source: this.sourceName, version: this.version, sourceUrl: "https://blsdb.de/download", license: "CC-BY-4.0", attribution: "Max Rubner-Institut (2025): Bundeslebensmittelschlüssel (BLS), Version 4.0 - Deutsche Nährstoffdatenbank.", valuesPer: "100 g" }, nutrients };
+        kcalPer100g: required[0]!, proteinPer100g: required[1]!, fatPer100g: required[2]!, carbsPer100g: carbs, fiberPer100g: fiber,
+        provenance: { source: this.sourceName, version: this.version, sourceUrl: "https://blsdb.de/download", license: "CC-BY-4.0", attribution: "Max Rubner-Institut (2025): Bundeslebensmittelschlüssel (BLS), Version 4.0 - Deutsche Nährstoffdatenbank.", valuesPer: "100 g", carbohydrateBasis: CARB_BASIS_TOTAL_FROM_AVAILABLE },
+        nutrients: withTotalCarbohydrate(nutrients, carbs) };
       yield { food, row: item.row };
     }
   }
