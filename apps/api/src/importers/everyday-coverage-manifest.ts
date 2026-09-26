@@ -84,7 +84,10 @@ export const EVERYDAY_COVERAGE_V2: readonly EverydayCoverageEntry[] = [
 
   reuse("egg", "dairy", words(["tojás", "tojas"], ["Hühnerei", "Ei", "Eier"], ["egg", "eggs"]), starterTarget("catalog-egg")),
   reuse("cream", "dairy", words(["tejszín", "tejszin"], ["Schlagsahne"], ["cream", "whipping cream"])),
-  reuse("sour-cream", "dairy", words(["tejföl", "tejfol"], ["Saure Sahne", "Sauerrahm"], ["sour cream"])),
+  // BLS M172500 is Sauerrahm mind. 10 % Fett. Hungarian tejföl is usually
+  // 20 %, so bare "tejföl" belongs to a full-fat record (reviewed migration
+  // 20260926130000), and this one only answers to the qualified name.
+  reuse("sour-cream", "dairy", words(["tejföl 10%", "tejfol 10%"], ["Saure Sahne", "Sauerrahm"], ["sour cream"])),
   add("greek-yogurt", "dairy", "usda_sr_legacy", "171304", ["yogurt", "greek", "plain", "whole", "milk"], words(["görög joghurt", "gorog joghurt"], ["griechischer Joghurt"], ["Greek yogurt", "plain Greek yogurt"])),
   reuse("yogurt", "dairy", words(["natúr joghurt", "natur joghurt"], ["Naturjoghurt"], ["natural yogurt", "plain yogurt"])),
   reuse("cottage-cheese", "dairy", words(["szemcsés túró", "szemcses turo", "cottage cheese"], ["Hüttenkäse", "Körniger Frischkäse"], ["cottage cheese"])),
