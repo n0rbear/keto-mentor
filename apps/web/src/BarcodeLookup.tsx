@@ -4,6 +4,7 @@ import { api, ApiError, type ApiState } from "./api";
 import { dict, type Lang } from "./i18n";
 import type { Food } from "./main";
 import { BarcodeScanner } from "./BarcodeScanner";
+import { preloadScanner } from "./barcode-scanner";
 
 type BarcodeCandidate = { source: "open_food_facts"; sourceId: string; name: string; brand?: string; kcalPer100g: number; fatPer100g: number; proteinPer100g: number; carbsPer100g: number; fiberPer100g: number };
 type BarcodeResolution =
@@ -40,6 +41,8 @@ export function BarcodeLookup({ lang, state, onFoodConfirmed, compact = false, r
   const [confirming, setConfirming] = useState(false);
   const [success, setSuccess] = useState(false);
   const [scanning, setScanning] = useState(false);
+
+  useEffect(() => { void preloadScanner().catch(() => undefined); }, []);
 
   useEffect(() => {
     if (!request?.barcode) return;

@@ -16,7 +16,9 @@
 const SCAN_FORMATS_NATIVE = ["ean_13", "ean_8", "upc_a", "upc_e"] as const;
 const ZXING_FORMAT_NAMES = ["EAN_13", "EAN_8", "UPC_A", "UPC_E"] as const;
 
-const NATIVE_SCAN_INTERVAL_MS = 300; // a few detection attempts per second
+// Owner report 2026-09-26: scanning felt slow on iPhone (Safari has no
+// native BarcodeDetector, so zxing runs). ~8 attempts per second instead of 3.
+const SCAN_INTERVAL_MS = 120;
 const UNSUPPORTED_REPORT_THROTTLE_MS = 1500;
 const BARCODE_LENGTHS = new Set([8, 12, 13, 14]);
 
@@ -71,6 +73,24 @@ export async function detectBackend(): Promise<ScannerBackend | "unsupported"> {
   return "zxing";
 }
 
+let zxingModules: Promise<[typeof import("@zxing/browser"), typeof import("@zxing/library")]> | null = null;
+
+function loadZxing() {
+  zxingModules ??= Promise.all([import("@zxing/browser"), import("@zxing/library")]);
+  zxingModules.catch(() => { zxingModules = null; });
+  return zxingModules;
+}
+
+/**
+ * Warms the zxing chunk while the user is still looking at the form, so the
+ * camera opens straight into decoding instead of first downloading the
+ * decoder. No camera permission is requested here.
+ */
+export async function preloadScanner(): Promise<void> {
+  if (await detectBackend() !== "zxing") return;
+  await loadZxing().then(() => undefined, () => undefined);
+}
+
 function classifyCameraError(error: unknown): ScannerErrorKind {
   const name = error instanceof Error ? error.name : "";
   if (name === "NotAllowedError" || name === "PermissionDeniedError" || name === "SecurityError") return "camera_denied";
@@ -78,7 +98,9 @@ function classifyCameraError(error: unknown): ScannerErrorKind {
   return "scanner_error";
 }
 
-const CAMERA_CONSTRAINTS: MediaStreamConstraints = { video: { facingMode: { ideal: "environment" } }, audio: false };
+// Safari's default 640x480 leaves too few pixels per EAN bar; a 720p frame
+// decodes from a normal holding distance.
+export const CAMERA_CONSTRAINTS: MediaStreamConstraints = { video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false };
 
 type ZxingControls = { stop: () => void };
 
@@ -174,14 +196,14 @@ export class ScannerController {
       } finally {
         this.nativeBusy = false;
       }
-    }, NATIVE_SCAN_INTERVAL_MS);
+    }, SCAN_INTERVAL_MS);
   }
 
   private async startZxing(video: HTMLVideoElement, handlers: ScannerHandlers): Promise<void> {
     let browserMod: typeof import("@zxing/browser");
     let libraryMod: typeof import("@zxing/library");
     try {
-      [browserMod, libraryMod] = await Promise.all([import("@zxing/browser"), import("@zxing/library")]);
+      [browserMod, libraryMod] = await loadZxing();
     } catch (error) {
       handlers.onError("scanner_error", error);
       return;
@@ -192,7 +214,7 @@ export class ScannerController {
     const { DecodeHintType, BarcodeFormat } = libraryMod;
     const hints = new Map();
     hints.set(DecodeHintType.POSSIBLE_FORMATS, ZXING_FORMAT_NAMES.map((name) => BarcodeFormat[name]));
-    const reader = new BrowserMultiFormatOneDReader(hints, { delayBetweenScanAttempts: NATIVE_SCAN_INTERVAL_MS, delayBetweenScanSuccess: 500 });
+    const reader = new BrowserMultiFormatOneDReader(hints, { delayBetweenScanAttempts: SCAN_INTERVAL_MS, delayBetweenScanSuccess: 500 });
 
     let controls: ZxingControls;
     try {

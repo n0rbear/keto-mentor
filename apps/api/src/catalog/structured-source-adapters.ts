@@ -169,7 +169,13 @@ export function normalizeOffProduct(raw: any, barcode: string): ExternalFoodCand
   const fat = toFiniteNumber(nutriments?.fat_100g);
   const protein = toFiniteNumber(nutriments?.proteins_100g);
   const carbs = toFiniteNumber(nutriments?.carbohydrates_100g);
-  const fiber = toFiniteNumber(nutriments?.fiber_100g);
+  // Fiber is voluntary on EU labels (Reg. 1169/2011, Annex XIII), so drinks,
+  // yogurts etc. routinely omit it (owner report 2026-09-26: Red Bull,
+  // Almighurt came back "no nutrition data"). The label's carbohydrate is
+  // already the available (net) figure, so an undeclared fiber counts as 0:
+  // net carbs then equal the label exactly and are never under-stated.
+  const fiberDeclared = toFiniteNumber(nutriments?.fiber_100g);
+  const fiber = fiberDeclared ?? 0;
   const macros = { kcal, fat, protein, carbs, fiber };
   const macrosUsable = Object.values(macros).every((value) => value != null)
     && kcal! >= 0 && kcal! <= OFF_MAX.kcal
@@ -192,7 +198,7 @@ export function normalizeOffProduct(raw: any, barcode: string): ExternalFoodCand
     brand, barcode, category: sanitizeShortText(product.categories, 200) || undefined,
     kcalPer100g: kcal!, proteinPer100g: protein!, fatPer100g: fat!, carbsPer100g: totalCarbs, fiberPer100g: fiber!,
     nutrients: withTotalCarbohydrate(normalizeOffNutrients(nutriments), totalCarbs),
-    provenance: { source: "Open Food Facts", sourceId: barcode, sourceUrl, retrievedAt, valuesPer: "100 g", barcode, carbohydrateBasis: CARB_BASIS_TOTAL_FROM_AVAILABLE },
+    provenance: { source: "Open Food Facts", sourceId: barcode, sourceUrl, retrievedAt, valuesPer: "100 g", barcode, carbohydrateBasis: CARB_BASIS_TOTAL_FROM_AVAILABLE, ...(fiberDeclared == null ? { fiberBasis: "not_declared_assumed_zero" } : {}) },
     sourceUrl, normalizedName: normalizeSearch(name), nutrientBasis: "per_100_g", retrievedAt,
     // An exact-barcode match identifies one specific, unambiguous product —
     // reference-grade by construction. searchByName() below reuses this
