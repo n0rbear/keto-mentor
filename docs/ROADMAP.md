@@ -1,6 +1,6 @@
 # Keto Mentor – ütemterv (navigációs lista)
 
-Utolsó frissítés: 2026-09-26 (A csomag elkezdve). Minden lépés után ezt a fájlt frissítem, így mindig látszik, mi van kész és mi nincs.
+Utolsó frissítés: 2026-09-26 (A élesben; B + C1 a #66-ban). Minden lépés után ezt a fájlt frissítem, így mindig látszik, mi van kész és mi nincs.
 
 Jelölések:
 - ✅ kész
@@ -25,27 +25,27 @@ Ezek minden ételre hatnak, nem csak a 10 referenciaételre.
 
 | # | Hiba | Mit csinálunk vele | Állapot |
 |---|---|---|---|
-| A1 | **Nettó szénhidrát: a rost kétszer vonódik le a német (BLS) rekordoknál.** A BLS szénhidrátértéke már rost nélküli, az app mégis kivonja belőle a rostot. 555 BLS-rekord, ebből 295-ben van rost, és 56 rekord nettó szénhidrátja most hibásan 0 (pl. sárgarépa 3,6 g a helyes 6,5 g helyett). | Javaslat: a meglévő BLS-rekordokat egy migrációval egységes „teljes szénhidrát” alakra hozzuk (szénhidrát + rost), és az importer is így tölt be. Így az egész app marad a `carbs − fiber` szabálynál, és nem kell mindenhol forrást vizsgálni. Ugyanezt ellenőrizni kell az Open Food Facts rekordoknál is (EU-s adatoknál szintén rost nélküli az érték). | 🔄 Kód + migráció kész, PR-ben, élesítésre vár. Az importer és az OFF adapter teljes szénhidrátot tárol; a `20260926120000_carbs_total_basis` migráció a meglévő 555 BLS- és 3 OFF-rekordot váltja át. Helyi Postgresen kétszer lefuttatva ellenőrizve. |
-| A1b | A **korábban elmentett étkezések** a hibás értékkel lettek elmentve (a tápérték mentéskor rögzül). | Döntés kell: (a) újraszámoljuk a régi tételeket, vagy (b) csak az újakra hat a javítás. Ehhez meg kell számolnom az érintett tételeket, ami felhasználói adat olvasása, ezért engedély kell hozzá. | 🔄 Megszámolva: az összes 31 tételből 3 közvetlen BLS/OFF-tétel (élőben számolódik, a migráció kijavítja) és 1 rögzített recepttétel (krumplis tészta, kb. +6,9 g nettó CH). Ezt a migráció pontosan korrigálja. PR-ben. |
-| A2 | **Hibás magyar nevek:** a kömény rekordja „Körömfűmag”. A „fehérrépa” tarlórépára mutat, pedig a konyhanyelvben petrezselyemgyökér. A „tejföl” egy 10%-os rekordra mutat, a magyar alap viszont a 20%-os. | Migráció: kömény → „kömény”; a tarlórépa magyar neve „tarlórépa”, a „fehérrépa” pedig a petrezselyemgyökér szinonimája lesz (A3 után). A tejföl alapértelmezése 20% legyen (a 12% / 10% külön választható). Mind a 140 magyar nevet átnéztem, más durva hibát nem találtam. | 🔄 Migráció kész (`20260926130000_hungarian_catalog_names`) + manifest (a „tejföl 10%” minősített név), PR-ben. |
+| A1 | **Nettó szénhidrát: a rost kétszer vonódik le a német (BLS) rekordoknál.** A BLS szénhidrátértéke már rost nélküli, az app mégis kivonja belőle a rostot. 555 BLS-rekord, ebből 295-ben van rost, és 56 rekord nettó szénhidrátja most hibásan 0 (pl. sárgarépa 3,6 g a helyes 6,5 g helyett). | Javaslat: a meglévő BLS-rekordokat egy migrációval egységes „teljes szénhidrát” alakra hozzuk (szénhidrát + rost), és az importer is így tölt be. Így az egész app marad a `carbs − fiber` szabálynál, és nem kell mindenhol forrást vizsgálni. Ugyanezt ellenőrizni kell az Open Food Facts rekordoknál is (EU-s adatoknál szintén rost nélküli az érték). | ✅ Élesben (#65, 2026-09-26 05:54 UTC). Ellenőrizve: 0 átváltatlan BLS/OFF rekord maradt, a sárgarépa 9,371 g teljes / 6,471 g nettó szénhidrát. |
+| A1b | A **korábban elmentett étkezések** a hibás értékkel lettek elmentve (a tápérték mentéskor rögzül). | Döntés kell: (a) újraszámoljuk a régi tételeket, vagy (b) csak az újakra hat a javítás. Ehhez meg kell számolnom az érintett tételeket, ami felhasználói adat olvasása, ezért engedély kell hozzá. | ✅ Élesben (#65). A krumplis tészta tétel 96,52 → 102,86 g nettó szénhidrát. A többi érintett tétel élőben számolódik, így az is javult. |
+| A2 | **Hibás magyar nevek:** a kömény rekordja „Körömfűmag”. A „fehérrépa” tarlórépára mutat, pedig a konyhanyelvben petrezselyemgyökér. A „tejföl” egy 10%-os rekordra mutat, a magyar alap viszont a 20%-os. | Migráció: kömény → „kömény”; a tarlórépa magyar neve „tarlórépa”, a „fehérrépa” pedig a petrezselyemgyökér szinonimája lesz (A3 után). A tejföl alapértelmezése 20% legyen (a 12% / 10% külön választható). Mind a 140 magyar nevet átnéztem, más durva hibát nem találtam. | ✅ Élesben (#65): kömény, nyers tarlórépa, tejföl (10%) / tejföl (20%). |
 | A3 | **Hiányzó alapanyagok:** petrezselyemgyökér, zsemlemorzsa, igazi magyar füstölt kolbász (most egy általános „Pork sausage”), a babérlevél magyar neve. | A meglévő importerrel, hivatalos forrásból (BLS / USDA) felvesszük őket, magyar névvel. | ⏸️ Engedélyezve, de technikailag még blokkolt: a környezet hálózati beállításában kell felvenni a blsdb.de, fdc.nal.usda.gov és api.nal.usda.gov domaineket. |
 | A4 | ~~A fokhagymánál fel van cserélve a szénhidrát és a rost.~~ | **Visszavonva:** nem hiba. Az energiaérték kijön belőle, mert a BLS a fokhagyma fruktánjait rostként számolja. | ❌ |
-| A5 | **Gyakori magyar szavak nem találják a meglévő rekordot:** a „virsli” nem találja a „Wiener Würstchen”-t, a „babérlevél” helyett bab és alma jött. | Az alapanyag-kulcsok (`food_keys`) magyar/német/angol nevei a katalógusba kerülnek, ellenőrzött szinonimaként. | 🔄 Ugyanabban a migrációban, PR-ben. |
+| A5 | **Gyakori magyar szavak nem találják a meglévő rekordot:** a „virsli” nem találja a „Wiener Würstchen”-t, a „babérlevél” helyett bab és alma jött. | Az alapanyag-kulcsok (`food_keys`) magyar/német/angol nevei a katalógusba kerülnek, ellenőrzött szinonimaként. | ✅ Élesben (#65): virsli és a többi név. |
 
 ## B. Referenciaételek bekötése
 
 | # | Lépés | Állapot |
 |---|---|---|
-| B1 | Adatszerkezet az appban. Javaslat: a meglévő recept-rendszert használjuk, egy „rendszer” tulajdonos alatt, nyilvános, ellenőrzött receptként. Így a tápérték-számítás és a „saját változat” ingyen jön. | ⬜ |
-| B2 | Betöltő, ami a `hu-pilot.json`-t az A-lépések után beolvassa | ⬜ |
-| B3 | Keresési sorrend: saját receptek → referenciaételek → webes keresés. Ami egyikben sincs benne, ugyanúgy megy, mint most. | ⬜ |
-| B4 | Köret kezelése: ha nincs megmondva, rákérdez („rántott hús” → burgonya vagy rizs?) | ⬜ |
+| B1 | Adatszerkezet az appban. Javaslat: a meglévő recept-rendszert használjuk, egy „rendszer” tulajdonos alatt, nyilvános, ellenőrzött receptként. Így a tápérték-számítás és a „saját változat” ingyen jön. | 🔄 PR-ben: rendszerfiók (`system:keto-mentor`) nyilvános receptjei, változatonként pontosan 1 szokásos adag. |
+| B2 | Betöltő, ami a `hu-pilot.json`-t az A-lépések után beolvassa | 🔄 PR-ben: a generátor TS-adatot ír, a seed minden indításkor betölti (csak új adatverziónál ír). Hiányzó katalógusrekord esetén a változat kimarad (most: gulyásleves, marhahúsleves és a 3 rántott hús változat, amíg A3 nincs kész; a többi 11 változat élesben is betöltődik). |
+| B3 | Keresési sorrend: saját receptek → referenciaételek → webes keresés. Ami egyikben sincs benne, ugyanúgy megy, mint most. | 🔄 PR-ben: saját receptek → referenciaételek → web. |
+| B4 | Köret kezelése: ha nincs megmondva, rákérdez („rántott hús” → burgonya vagy rizs?) | 🔄 PR-ben: nyitott köretnél választási lista (pl. rántott hús → magában / petrezselymes burgonyával / párolt rizzsel). |
 
 ## C. Saját receptek
 
 | # | Lépés | Állapot |
 |---|---|---|
-| C1 | Megtalálja a mentett receptet ahhoz is, amit mondasz („paprikás krumpli”), nem csak a pontos címhez („A legfinomabb paprikás krumpli”) | ⬜ |
+| C1 | Megtalálja a mentett receptet ahhoz is, amit mondasz („paprikás krumpli”), nem csak a pontos címhez („A legfinomabb paprikás krumpli”) | 🔄 PR-ben: a cím lényegi szavai alapján is talál (A legfinomabb paprikás krumpli = paprikás krumpli). Közben kiderült: a talált saját receptet a felület eddig hozzá sem engedte adni, és választani sem lehetett – ez is javítva. |
 | C2 | Kézi javítás után ne jöjjön létre minden alkalommal új példány; a javított változatot használja újra | ⬜ |
 | C3 | Az elfogadás („Hozzáadás”) ne futtassa újra a teljes feldolgozást (most kb. +8 s) | ⬜ |
 | C4 | Megosztás a közösségi receptek között. A háttér már tudja; kell hozzá felület, és a közösségi recept csak javaslatként jelenhet meg. | ⬜ |

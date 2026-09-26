@@ -129,9 +129,13 @@ export type RecipeDiscoveryPreviewValue = {
   status: "confirmation_required" | "unresolved" | "local_match";
   reason?: "disabled" | "rate_limited" | "provider_error" | "no_relevant_results" | "no_fully_resolvable_candidate" | "systemic_error" | "ambiguous_local_matches";
   candidate?: RecipeDiscoveryCandidateValue;
-  localMatch?: { recipeId: string; title: string };
-  localAlternatives?: { recipeId: string; title: string }[];
+  localMatch?: LocalRecipeOption;
+  localAlternatives?: LocalRecipeOption[];
 };
+
+// A saved recipe the dish matched without any web search: the user's own
+// ("own") or a curated Keto Mentor reference dish ("reference").
+export type LocalRecipeOption = { recipeId: string; title: string; source?: "own" | "reference"; servings?: number | null; servingGrams?: number | null };
 
 type PreviewItem = {
   parsed: { quantity?: number; unit?: string; foodQuery: string; preparation?: string };
@@ -214,7 +218,12 @@ export type FoodUnderstandingLabels = {
   candidateSelect: string;
   recipeDiscovery: {
     localMatch: string;
+    referenceMatch: string;
     ambiguousLocal: string;
+    ambiguousReference: string;
+    sourceOwn: string;
+    sourceReference: string;
+    servingApprox: string;
     webFound: string;
     webUnresolvedNoResults: string;
     webUnresolvedNoCandidate: string;
@@ -264,9 +273,9 @@ export type FoodUnderstandingLabels = {
 };
 
 function recipeDiscoveryText(discovery: RecipeDiscoveryPreviewValue, labels: FoodUnderstandingLabels): string | null {
-  if (discovery.status === "local_match") return `${labels.recipeDiscovery.localMatch} ${discovery.localMatch?.title ?? ""}`.trim();
+  if (discovery.status === "local_match") return `${discovery.localMatch?.source === "reference" ? labels.recipeDiscovery.referenceMatch : labels.recipeDiscovery.localMatch} ${discovery.localMatch?.title ?? ""}`.trim();
   if (discovery.status === "confirmation_required") {
-    if (discovery.reason === "ambiguous_local_matches") return labels.recipeDiscovery.ambiguousLocal;
+    if (discovery.reason === "ambiguous_local_matches") return discovery.localAlternatives?.some((option) => option.source === "reference") ? labels.recipeDiscovery.ambiguousReference : labels.recipeDiscovery.ambiguousLocal;
     return `${labels.recipeDiscovery.webFound} ${discovery.candidate?.title ?? ""}`.trim();
   }
   switch (discovery.reason) {
@@ -649,8 +658,41 @@ function AiEstimateCard({ estimate, labels, busy, onAccept, onOverride, onDeclin
   </div>;
 }
 
-function PreviewRow({ item, lang, labels, busy, confirmingId, onConfirmExternal, onConfirmRecipe, onAcceptAiEstimate, onOverrideAiEstimate, onSelectCandidate, recipeFixServices }: {
+// Owner report (2026-09-26): a dish found among saved recipes only showed a
+// note, with no way to add it or to pick between several matches. One
+// option: amount + add. Several (e.g. a reference dish with an open side):
+// pick first, then add.
+function LocalRecipePicker({ discovery, labels, busy, onConfirm }: {
+  discovery: RecipeDiscoveryPreviewValue; labels: FoodUnderstandingLabels["recipeDiscovery"]; busy: boolean;
+  onConfirm: (option: LocalRecipeOption, quantity: number, unit: "g" | "serving") => void;
+}) {
+  const options = discovery.status === "local_match" && discovery.localMatch ? [discovery.localMatch] : discovery.localAlternatives ?? [];
+  const [picked, setPicked] = useState<LocalRecipeOption | null>(options.length === 1 ? options[0] : null);
+  const [quantity, setQuantity] = useState(picked && !picked.servings ? 100 : 1);
+  const [unit, setUnit] = useState<"g" | "serving">(picked?.servings ? "serving" : "g");
+  if (!options.length) return null;
+  const pick = (option: LocalRecipeOption) => { setPicked(option); setUnit(option.servings ? "serving" : "g"); setQuantity(option.servings ? 1 : 100); };
+  return <div className="local-recipe-picker">
+    {options.length > 1 && <div className="local-recipe-options" role="radiogroup">
+      {options.map((option) => <label key={option.recipeId}><input type="radio" name="local-recipe" checked={picked?.recipeId === option.recipeId} onChange={() => pick(option)}/> {option.title}</label>)}
+    </div>}
+    {picked && <>
+      <small>{picked.source === "reference" ? labels.sourceReference : labels.sourceOwn}{picked.servingGrams ? ` · ${labels.servingApprox.replace("{g}", String(Math.round(picked.servingGrams)))}` : ""}</small>
+      <div className="recipe-meal-controls">
+        <input aria-label={labels.confirmQuantity} className="field" type="number" min="0.1" step="0.1" value={quantity} onChange={(event) => setQuantity(Number(event.target.value))}/>
+        <select aria-label={labels.confirmUnit} className="field" value={unit} onChange={(event) => setUnit(event.target.value as "g" | "serving")}>
+          <option value="g">g</option>
+          {picked.servings && <option value="serving">{labels.confirmServingUnit}</option>}
+        </select>
+        <button type="button" className="btn primary" disabled={busy || !(quantity > 0)} aria-busy={busy} onClick={() => onConfirm(picked, quantity, unit)}>{busy ? labels.confirmAdding : labels.confirmAdd}</button>
+      </div>
+    </>}
+  </div>;
+}
+
+function PreviewRow({ item, lang, labels, busy, confirmingId, onConfirmExternal, onConfirmRecipe, onConfirmLocalRecipe, onAcceptAiEstimate, onOverrideAiEstimate, onSelectCandidate, recipeFixServices }: {
   item: PreviewItem; lang: Lang; labels: FoodUnderstandingLabels; busy: boolean; confirmingId: string | null;
+  onConfirmLocalRecipe?: (option: LocalRecipeOption, quantity: number, unit: "g" | "serving") => void;
   onConfirmExternal?: (candidate: ExternalCandidate) => void;
   onConfirmRecipe?: (candidate: RecipeDiscoveryCandidateValue, quantity: number, unit: "g" | "serving", overrides?: RecipeIngredientOverride[]) => void;
   onAcceptAiEstimate?: (estimate: AiEstimateValue, quantityGrams: number) => void;
@@ -687,13 +729,14 @@ function PreviewRow({ item, lang, labels, busy, confirmingId, onConfirmExternal,
     {item.quantity?.status === "resolved" && <small>{item.quantity.estimated ? "≈" : "="} {Math.round((item.quantity.grams ?? 0) * 10) / 10} g</small>}
     {item.recipeDiscovery && <small className="recipe-discovery-note">{recipeDiscoveryText(item.recipeDiscovery, labels)}</small>}
     {item.recipeDiscovery?.candidate && <RecipeCandidateReview candidate={item.recipeDiscovery.candidate} lang={lang} labels={labels} busy={busy} onConfirm={onConfirmRecipe} services={recipeFixServices}/>}
+    {item.recipeDiscovery && onConfirmLocalRecipe && (item.recipeDiscovery.status === "local_match" || item.recipeDiscovery.reason === "ambiguous_local_matches") && <LocalRecipePicker discovery={item.recipeDiscovery} labels={labels.recipeDiscovery} busy={busy} onConfirm={onConfirmLocalRecipe}/>}
     {hasCatalogCandidates && onSelectCandidate && <CatalogCandidateList candidates={item.candidates!} lang={lang} labels={labels} busy={busy} onSelect={onSelectCandidate}/>}
     {!!item.externalCandidates?.length && onConfirmExternal && <ExternalCandidateList candidates={item.externalCandidates} lang={lang} labels={labels} busy={busy} confirmingId={confirmingId} onConfirm={onConfirmExternal}/>}
     {isAiEstimatePending && onAcceptAiEstimate && onOverrideAiEstimate && <AiEstimateCard estimate={item.aiEstimate!} labels={labels.aiEstimate} busy={busy} onAccept={(quantityGrams) => onAcceptAiEstimate(item.aiEstimate!, quantityGrams)} onOverride={onOverrideAiEstimate} onDecline={() => setAiEstimateDeclined(true)}/>}
   </li>;
 }
 
-export function FoodUnderstandingPreview({ value, lang, labels, busy, onConfirmAll, onConfirmExternal, confirmingExternalId, onConfirmRecipe, onAcceptAiEstimate, onOverrideAiEstimate, onSelectCandidate, recipeFixServices }: {
+export function FoodUnderstandingPreview({ value, lang, labels, busy, onConfirmAll, onConfirmExternal, confirmingExternalId, onConfirmRecipe, onConfirmLocalRecipe, onAcceptAiEstimate, onOverrideAiEstimate, onSelectCandidate, recipeFixServices }: {
   value: FoodUnderstandingPreviewValue;
   lang: Lang;
   labels: FoodUnderstandingLabels;
@@ -702,6 +745,7 @@ export function FoodUnderstandingPreview({ value, lang, labels, busy, onConfirmA
   onConfirmExternal?: (candidate: ExternalCandidate, itemIndex?: number) => void;
   confirmingExternalId?: string | null;
   onConfirmRecipe?: (candidate: RecipeDiscoveryCandidateValue, quantity: number, unit: "g" | "serving", overrides?: RecipeIngredientOverride[]) => void;
+  onConfirmLocalRecipe?: (option: LocalRecipeOption, quantity: number, unit: "g" | "serving") => void;
   onAcceptAiEstimate?: (estimate: AiEstimateValue, quantityGrams: number, itemIndex?: number) => void;
   onOverrideAiEstimate?: (payload: AiEstimateOverridePayload, itemIndex?: number) => void;
   onSelectCandidate?: (candidate: CandidateFood, itemIndex?: number) => void;
@@ -737,7 +781,7 @@ export function FoodUnderstandingPreview({ value, lang, labels, busy, onConfirmA
         no button at all. It now gets the same fix + confirm controls. */}
     {!!value.items?.length && value.recipeDiscovery?.candidate && <RecipeCandidateReview candidate={value.recipeDiscovery.candidate} lang={lang} labels={labels} busy={busy} onConfirm={onConfirmRecipe} services={recipeFixServices}/>}
     {(value.items?.length || value.interpretationSource === "ai_assisted" || isSingleAiEstimatePending) && <ul className="multi-preview-list">
-      {rows.map((item, index) => <PreviewRow key={index} item={item} lang={lang} labels={labels} busy={busy} confirmingId={confirmingExternalId ?? null} onConfirmExternal={onConfirmExternal ? (candidate) => onConfirmExternal(candidate, value.items?.length ? index : undefined) : undefined} onConfirmRecipe={onConfirmRecipe} onAcceptAiEstimate={onAcceptAiEstimate ? (estimate, quantityGrams) => onAcceptAiEstimate(estimate, quantityGrams, value.items?.length ? index : undefined) : undefined} onOverrideAiEstimate={onOverrideAiEstimate ? (payload) => onOverrideAiEstimate(payload, value.items?.length ? index : undefined) : undefined} onSelectCandidate={onSelectCandidate ? (candidate) => onSelectCandidate(candidate, value.items?.length ? index : undefined) : undefined} recipeFixServices={recipeFixServices}/>) }
+      {rows.map((item, index) => <PreviewRow key={index} item={item} lang={lang} labels={labels} busy={busy} confirmingId={confirmingExternalId ?? null} onConfirmExternal={onConfirmExternal ? (candidate) => onConfirmExternal(candidate, value.items?.length ? index : undefined) : undefined} onConfirmRecipe={onConfirmRecipe} onConfirmLocalRecipe={onConfirmLocalRecipe} onAcceptAiEstimate={onAcceptAiEstimate ? (estimate, quantityGrams) => onAcceptAiEstimate(estimate, quantityGrams, value.items?.length ? index : undefined) : undefined} onOverrideAiEstimate={onOverrideAiEstimate ? (payload) => onOverrideAiEstimate(payload, value.items?.length ? index : undefined) : undefined} onSelectCandidate={onSelectCandidate ? (candidate) => onSelectCandidate(candidate, value.items?.length ? index : undefined) : undefined} recipeFixServices={recipeFixServices}/>) }
     </ul>}
     {singleReady && <div>
       <strong>{itemName(value, lang)}</strong>

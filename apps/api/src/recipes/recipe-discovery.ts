@@ -47,14 +47,16 @@ export type RecipeDiscoveryPreview = {
   // Present only when `reason === "ambiguous_local_matches"` — two or more
   // of the user's own saved recipes matched the dish name equally well.
   // Never silently resolved; the client must ask the user to pick one.
-  localAlternatives?: { recipeId: string; title: string }[];
+  localAlternatives?: { recipeId: string; title: string; source: "own" | "reference"; servings: number | null; servingGrams: number | null }[];
   // Present only when status === "local_match". Already fully trusted and
   // persisted — no import step, no importProof, just the existing recipeId
   // a meal can reference directly (MealItem.recipeId).
   localMatch?: {
     recipeId: string;
     title: string;
+    source: "own" | "reference";
     servings: number | null;
+    servingGrams: number | null;
     ingredientCount: number;
     nutritionPer100g: MacroTotals | null;
     // A saved Recipe's per100g (calculateRecipeNutrition) is only ever

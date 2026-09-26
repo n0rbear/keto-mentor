@@ -9,7 +9,7 @@ import { RecipeDiscoveryService, type RecipeDiscoveryCandidate, type RecipeDisco
 import { domainOf } from "../web-knowledge/web-knowledge-search-provider.js";
 import type { SafeFetcherDependencies } from "../recipes/safe-url-fetcher.js";
 import { classifyRecipeReview, computeTrustedNutrition, toIngredientReview, localizeResolvedFoodNames, type RecipeIngredientReview, type RecipeReviewSummary, type ReviewableIngredient } from "../recipes/recipe-ingredient-review.js";
-import { findTrustedLocalRecipe } from "./local-recipe-lookup.js";
+import { findReferenceDish, findTrustedLocalRecipe } from "./local-recipe-lookup.js";
 import type { ProgressStage } from "./progress-bus.js";
 import type { RecipeIngredientNormalizationProvider } from "../recipes/recipe-ingredient-normalization.js";
 import type { RecipeQuantityEstimationProvider } from "../recipes/recipe-quantity-estimation.js";
@@ -469,7 +469,8 @@ export async function attachRecipeDiscoveryFallback(result: InterpretResult, dep
   // wins outright, at zero search/fetch/AI cost, before web discovery is
   // ever attempted.
   deps.onProgress?.("local_recipe_search");
-  const local = await findTrustedLocalRecipe(deps.prisma, dishName, deps.userId);
+  const own = await findTrustedLocalRecipe(deps.prisma, dishName, deps.userId);
+  const local = own.status === "not_found" ? await findReferenceDish(deps.prisma, dishName) : own;
   if (local.status === "found") {
     const preview: RecipeDiscoveryPreview = {
       status: "local_match",

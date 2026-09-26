@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { findTrustedLocalRecipe } from "./local-recipe-lookup.js";
+import { dishCoreKey, findReferenceDish, findTrustedLocalRecipe } from "./local-recipe-lookup.js";
+import { referenceVariantIdsFor } from "../reference-dishes/lookup.js";
+import { REFERENCE_USERNAME } from "../reference-dishes/seed.js";
 
 // Owner-beta (2026-09-13): PR #52 pre-merge review found this file — Step B
 // of the prepared-dish resolution order — had ZERO dedicated test coverage
@@ -89,5 +91,51 @@ describe("findTrustedLocalRecipe", () => {
     const prisma = fakePrisma([recipeRow()]);
     const result = await findTrustedLocalRecipe(prisma, "   ", "user-1");
     expect(result).toEqual({ status: "not_found" });
+  });
+});
+
+describe("own recipes by dish words (roadmap C1)", () => {
+  it("a decorated saved title is found for the plain dish name, marked as the user's own", async () => {
+    const prisma = fakePrisma([recipeRow({ title: "A legfinomabb paprikás krumpli" })]);
+    expect(dishCoreKey("A legfinomabb paprikás krumpli")).toBe("paprikas krumpli");
+    expect(await findTrustedLocalRecipe(prisma, "paprikás krumpli", "user-1")).toMatchObject({ status: "found", source: "own", title: "A legfinomabb paprikás krumpli" });
+  });
+
+  it("an exact title wins over decorated look-alikes; different dish words never match", async () => {
+    const prisma = fakePrisma([recipeRow({ id: "a", title: "Paprikás krumpli" }), recipeRow({ id: "b", title: "Klasszikus paprikás krumpli" })]);
+    expect(await findTrustedLocalRecipe(prisma, "paprikás krumpli", "user-1")).toMatchObject({ status: "found", recipeId: "a" });
+    expect(await findTrustedLocalRecipe(prisma, "paprikás krumpli virslivel", "user-1")).toEqual({ status: "not_found" });
+  });
+
+  it("two decorated matches are a choice, never a silent pick", async () => {
+    const prisma = fakePrisma([recipeRow({ id: "a", title: "Klasszikus paprikás krumpli" }), recipeRow({ id: "b", title: "A legfinomabb paprikás krumpli" })]);
+    const result = await findTrustedLocalRecipe(prisma, "paprikás krumpli", "user-1");
+    expect(result.status).toBe("ambiguous");
+  });
+});
+
+describe("reference dishes (roadmap B)", () => {
+  function referencePrisma(variantIds: string[]) {
+    const rows = variantIds.map((id, index) => ({ ...recipeRow({ id: `ref-${index}`, title: id, servings: 1, finishedWeightGrams: 400 }), provenance: { referenceVariantId: id } }));
+    return { recipe: { findMany: async ({ where }: any) => where.user?.username === REFERENCE_USERNAME ? rows : [] } } as any;
+  }
+
+  it("a side-specific phrase is one confident match; an open side is a choice", () => {
+    expect(referenceVariantIdsFor("Pörkölt nokedlivel")).toEqual(["hu_sertesporkolt__nokedli"]);
+    expect(referenceVariantIdsFor("rántott hús")).toEqual(["hu_rantott_hus", "hu_rantott_hus__petrezselymes_burgonya", "hu_rantott_hus__parolt_rizs"]);
+    expect(referenceVariantIdsFor("virslis lecsó")).toEqual(["hu_lecso_virslivel"]);
+    expect(referenceVariantIdsFor("paprikás krumpli")).toEqual([]);
+  });
+
+  it("returns the seeded recipe marked as reference, with its one-serving weight", async () => {
+    const prisma = referencePrisma(["hu_lecso_virslivel"]);
+    expect(await findReferenceDish(prisma, "lecsó virslivel")).toMatchObject({ status: "found", source: "reference", recipeId: "ref-0", servings: 1, servingGrams: 400 });
+  });
+
+  it("offers every seeded variant for an open side, in data order, and skips unseeded ones", async () => {
+    const prisma = referencePrisma(["hu_rantott_hus__parolt_rizs", "hu_rantott_hus"]);
+    const result = await findReferenceDish(prisma, "rántott hús");
+    expect(result.status).toBe("ambiguous");
+    if (result.status === "ambiguous") expect(result.candidates.map((c) => c.title)).toEqual(["hu_rantott_hus", "hu_rantott_hus__parolt_rizs"]);
   });
 });

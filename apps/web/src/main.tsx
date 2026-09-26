@@ -12,7 +12,7 @@ import { RecipeBuilder } from "./RecipeBuilder";
 import { MealEditDialog, DeleteMealDialog, RepeatMealDialog, type MealDetail } from "./MealActions";
 import { WeekOverviewCard, type WeekOverviewData } from "./WeekOverview";
 import { AuthForm } from "./AuthForm";
-import { FoodUnderstandingPreview, type ExternalCandidate, type RecipeDiscoveryPreviewValue, type RecipeDiscoveryCandidateValue, type AiEstimateValue, type AiEstimateOverridePayload, type CandidateFood, type RecipeIngredientOverride } from "./FoodUnderstandingPreview";
+import { FoodUnderstandingPreview, type ExternalCandidate, type RecipeDiscoveryPreviewValue, type RecipeDiscoveryCandidateValue, type AiEstimateValue, type AiEstimateOverridePayload, type CandidateFood, type RecipeIngredientOverride, type LocalRecipeOption } from "./FoodUnderstandingPreview";
 import { pickDisplayName } from "./food-display-name";
 import { QuantityClarification } from "./QuantityClarification";
 import { BarcodeLookup } from "./BarcodeLookup";
@@ -398,6 +398,27 @@ export function App() {
     }
   }
 
+  // A dish matched among saved recipes (own or Keto Mentor reference): logged
+  // through the existing recipe endpoint, which re-computes nutrition from
+  // the stored recipe on the server.
+  async function confirmLocalRecipe(option: LocalRecipeOption, quantity: number, unit: "g" | "serving") {
+    if (confirmingRecipe || mealSaving) return;
+    setConfirmingRecipe(true);
+    setMealStatus(null);
+    try {
+      const title = (interpretation?.semantic?.dishName || option.title).slice(0, 100);
+      await api(`/recipes/${encodeURIComponent(option.recipeId)}/meals`, { method: "POST", body: JSON.stringify({ title: title.length >= 2 ? title : option.title, quantity, unit }) }, state);
+      setInterpretation(null);
+      setNaturalInput("");
+      await handleMealLogged();
+      setMealStatus({ kind: "success", text: t.mealSaved });
+    } catch (error) {
+      setMealStatus({ kind: "error", text: mealErrorText(error, t.recipeErrors) });
+    } finally {
+      setConfirmingRecipe(false);
+    }
+  }
+
   // FINAL FALLBACK: AI-ESTIMATED NUTRITION — accept flow (2026-09-18). Echoes
   // back exactly the numbers + proof the server generated (see
   // apps/api/src/catalog/ai-estimate-proof.ts) — nothing here is ever
@@ -730,7 +751,7 @@ export function App() {
                 <BarcodeLookup lang={lang} state={state} onFoodConfirmed={(food) => { setSelectedFood(food); setMealMeasure("g"); setGramsOverride(""); }}/>
               </div>
               {interpreting && progressStage && <p className="natural-input-progress" role="status" aria-live="polite">{t.progress[progressStage] ?? t.progress.finalizing}</p>}
-              {interpretation && <FoodUnderstandingPreview value={interpretation} lang={lang} labels={t.foodUnderstanding} busy={mealSaving || interpreting || !!confirmingExternalId || confirmingRecipe || confirmingAiEstimate} onConfirmAll={confirmMultiMeal} onConfirmExternal={confirmExternalCandidate} confirmingExternalId={confirmingExternalId} onConfirmRecipe={confirmRecipe} onAcceptAiEstimate={(estimate, quantityGrams) => acceptAiEstimate(estimate, quantityGrams)} onOverrideAiEstimate={(payload) => overrideAiEstimate(payload)} onSelectCandidate={selectCandidate} recipeFixServices={{ resolveExternal: resolveExternalForRecipe, acceptEstimate: acceptIngredientEstimateForRecipe, searchFoods: searchFoodsForRecipe, portionState: state }}/>}
+              {interpretation && <FoodUnderstandingPreview value={interpretation} lang={lang} labels={t.foodUnderstanding} busy={mealSaving || interpreting || !!confirmingExternalId || confirmingRecipe || confirmingAiEstimate} onConfirmAll={confirmMultiMeal} onConfirmExternal={confirmExternalCandidate} confirmingExternalId={confirmingExternalId} onConfirmRecipe={confirmRecipe} onConfirmLocalRecipe={confirmLocalRecipe} onAcceptAiEstimate={(estimate, quantityGrams) => acceptAiEstimate(estimate, quantityGrams)} onOverrideAiEstimate={(payload) => overrideAiEstimate(payload)} onSelectCandidate={selectCandidate} recipeFixServices={{ resolveExternal: resolveExternalForRecipe, acceptEstimate: acceptIngredientEstimateForRecipe, searchFoods: searchFoodsForRecipe, portionState: state }}/>}
               {interpretation?.diagnostics && <DiagnosticsPanel events={interpretation.diagnostics} lang={lang}/>}
               {interpretation?.clarification && (() => { const row = (interpretation.items ?? [interpretation])[interpretation.clarification!.itemIndex]; return <QuantityClarification key={`${interpretation.input}:${interpretation.clarification.itemIndex}`} value={interpretation.clarification} foodName={pickDisplayName(row?.selectedFood, lang)} quantity={row?.parsed.quantity} unit={row?.parsed.unit} lang={lang} onResolve={resolveClarification} apiState={state}/>; })()}
             </div>

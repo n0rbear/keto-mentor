@@ -649,3 +649,44 @@ describe("local-catalog candidate selection UI (preview / confirmation_required)
     expect(onSelect).toHaveBeenCalledExactlyOnceWith(sconeCandidate);
   });
 });
+
+describe("saved-recipe match: add or choose (roadmap B/C1)", () => {
+  const dishValue = (recipeDiscovery: any): FoodUnderstandingPreviewValue => ({
+    parsed: { foodQuery: "lecsó virslivel" }, selectedFood: null, quantity: null, canConfirm: false, foodResolution: "compound", interpretationSource: "ai_assisted",
+    semantic: { dishName: "lecsó virslivel" },
+    items: [{ parsed: { foodQuery: "lecsó virslivel" }, selectedFood: null, quantity: null, recipeDiscovery }]
+  } as any);
+
+  it("a single reference match shows its source and one-serving weight and is added as 1 serving", () => {
+    const onConfirmLocalRecipe = vi.fn();
+    const option = { recipeId: "r1", title: "Lecsó virslivel", source: "reference", servings: 1, servingGrams: 400 };
+    render(<FoodUnderstandingPreview value={dishValue({ status: "local_match", localMatch: option })} lang="hu" labels={dict.hu.foodUnderstanding} busy={false} onConfirmAll={vi.fn()} onConfirmLocalRecipe={onConfirmLocalRecipe}/>);
+    expect(screen.getByText(/Keto Mentor ételadatbázis · 1 adag ≈ 400 g/)).toBeTruthy();
+    fireEvent.click(screen.getByText(dict.hu.foodUnderstanding.recipeDiscovery.confirmAdd));
+    expect(onConfirmLocalRecipe).toHaveBeenCalledWith(option, 1, "serving");
+  });
+
+  it("an open side dish asks which version, and only then offers adding", () => {
+    const onConfirmLocalRecipe = vi.fn();
+    const options = [
+      { recipeId: "a", title: "Rántott hús (sertéskaraj)", source: "reference", servings: 1, servingGrams: 185 },
+      { recipeId: "b", title: "Rántott hús (sertéskaraj) párolt rizzsel", source: "reference", servings: 1, servingGrams: 365 }
+    ];
+    render(<FoodUnderstandingPreview value={dishValue({ status: "confirmation_required", reason: "ambiguous_local_matches", localAlternatives: options })} lang="hu" labels={dict.hu.foodUnderstanding} busy={false} onConfirmAll={vi.fn()} onConfirmLocalRecipe={onConfirmLocalRecipe}/>);
+    expect(screen.getByText(dict.hu.foodUnderstanding.recipeDiscovery.ambiguousReference)).toBeTruthy();
+    expect(screen.queryByText(dict.hu.foodUnderstanding.recipeDiscovery.confirmAdd)).toBeNull();
+    fireEvent.click(screen.getByLabelText(/párolt rizzsel/));
+    fireEvent.click(screen.getByText(dict.hu.foodUnderstanding.recipeDiscovery.confirmAdd));
+    expect(onConfirmLocalRecipe).toHaveBeenCalledWith(options[1], 1, "serving");
+  });
+
+  it("the user's own recipe without servings is added in grams", () => {
+    const onConfirmLocalRecipe = vi.fn();
+    const option = { recipeId: "own1", title: "A legfinomabb paprikás krumpli", source: "own", servings: null, servingGrams: null };
+    render(<FoodUnderstandingPreview value={dishValue({ status: "local_match", localMatch: option })} lang="en" labels={dict.en.foodUnderstanding} busy={false} onConfirmAll={vi.fn()} onConfirmLocalRecipe={onConfirmLocalRecipe}/>);
+    expect(screen.getByText(dict.en.foodUnderstanding.recipeDiscovery.sourceOwn)).toBeTruthy();
+    fireEvent.change(screen.getByLabelText(dict.en.foodUnderstanding.recipeDiscovery.confirmQuantity), { target: { value: "450" } });
+    fireEvent.click(screen.getByText(dict.en.foodUnderstanding.recipeDiscovery.confirmAdd));
+    expect(onConfirmLocalRecipe).toHaveBeenCalledWith(option, 450, "g");
+  });
+});
