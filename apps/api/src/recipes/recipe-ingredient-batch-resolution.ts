@@ -43,9 +43,10 @@ function explicitMass(parsed: ParsedNaturalFoodQuery) {
 
 function maxEstimatedGrams(item: Parameters<RecipeQuantityEstimationProvider["estimate"]>[0]["items"][number]) {
   const count = item.quantityUpper ?? item.quantity;
-  // to_taste: the whole recipe's "ízlés szerint" amount, which is small by
-  // nature; a hard cap keeps a bad estimate from dominating the dish.
-  const perUnit: Partial<Record<string, number>> = { pinch: 25, tsp: 100, tbsp: 250, clove: 250, bunch: 5_000, stalk: 10_000, piece: 10_000, head: 10_000, cup: 5_000, handful: 2_000, to_taste: 60 };
+  // to_taste / unspecified: the whole recipe's "ízlés szerint" or unwritten
+  // amount, which is small by nature; a hard cap keeps a bad estimate from
+  // dominating the dish.
+  const perUnit: Partial<Record<string, number>> = { pinch: 25, tsp: 100, tbsp: 250, clove: 250, bunch: 5_000, stalk: 10_000, piece: 10_000, head: 10_000, cup: 5_000, handful: 2_000, to_taste: 60, unspecified: 150 };
   return Math.min(50_000, count * (perUnit[item.unit] ?? 50_000));
 }
 
@@ -246,7 +247,13 @@ export async function resolveRecipeIngredientsBatch(
     // line (not already excluded as salt/pepper) now asks the estimator for
     // the typical total amount used in this recipe.
     const toTaste = !quantity && !excludeFromNutrition && line.parsed.quantity == null && TO_TASTE_LINE.test(normalizeSearch(line.raw));
-    if (toTaste) estimationItems.push({ index: draft.resultIndex, sourceIndex: line.index, raw: line.raw, identity: identityQuery, preparation: food.preparation ?? line.parsed.preparation, quantity: 1, unit: "to_taste" });
+    // Owner report 2026-09-26: "olaj" (frying oil, flour for dredging, fat
+    // for the pan) is normally written without an amount. Such a bare line
+    // now gets the small amount this recipe actually uses instead of
+    // blocking the recipe.
+    const bare = !toTaste && singleFoodLine && !quantity && !excludeFromNutrition && line.parsed.quantity == null && !line.parsed.unit;
+    if (bare) estimationItems.push({ index: draft.resultIndex, sourceIndex: line.index, raw: line.raw, identity: identityQuery, preparation: food.preparation ?? line.parsed.preparation, quantity: 1, unit: "unspecified" });
+    else if (toTaste) estimationItems.push({ index: draft.resultIndex, sourceIndex: line.index, raw: line.raw, identity: identityQuery, preparation: food.preparation ?? line.parsed.preparation, quantity: 1, unit: "to_taste" });
     else if (singleFoodLine && !quantity && line.parsed.quantity != null && line.parsed.unit) estimationItems.push({ index: draft.resultIndex, sourceIndex: line.index, raw: line.raw, identity: identityQuery, preparation: food.preparation ?? line.parsed.preparation, quantity: line.parsed.quantity, quantityUpper: line.parsed.quantityUpper, unit: line.parsed.unit });
 
     results[draft.resultIndex] = {

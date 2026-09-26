@@ -37,6 +37,17 @@ describe("one search field (roadmap G2)", () => {
     expect(urls.every((u) => u.searchParams.get("meaning") !== "1")).toBe(true);
   });
 
+  it("a spoken amount travels with the picked food ('négy tojás' -> 4 egg servings)", async () => {
+    stub(() => ok({ kind: "results", query: "Tojásrántotta négy tojásból.", meaning: { tried: false, terms: [] }, quantity: { quantity: 4, unit: "piece" }, items: [
+      { type: "food", via: "name", amount: { quantity: 4, servingId: "egg-piece", grams: 200 }, food: { id: "egg", name: "Egg", names: { hu: "Tojás" }, kcalPer100g: 1, fatPer100g: 1, proteinPer100g: 1, carbsPer100g: 1, fiberPer100g: 0, match: { stage: "exact", score: 100 } } }
+    ] }));
+    const onPickFood = vi.fn();
+    render(<UnifiedFoodSearch lang="hu" state={state} value="Tojásrántotta négy tojásból." onPickFood={onPickFood} onPickRecipe={vi.fn()}/>);
+    expect(await screen.findByText(/Alapanyag · 200 g/)).toBeTruthy();
+    fireEvent.click(screen.getByText("Tojás"));
+    expect(onPickFood).toHaveBeenCalledWith(expect.objectContaining({ id: "egg" }), { quantity: 4, servingId: "egg-piece", grams: 200 });
+  });
+
   it("a name miss triggers one meaning-based search and marks what it found", async () => {
     const urls = stub((url) => url.searchParams.get("meaning") === "1"
       ? ok({ kind: "results", query: "virsli", meaning: { tried: true, terms: ["frankfurter"] }, items: [{ type: "food", via: "meaning", food: { id: "w1", name: "Wiener Würstchen", names: { hu: "virsli" }, kcalPer100g: 1, fatPer100g: 1, proteinPer100g: 1, carbsPer100g: 1, fiberPer100g: 0 } }] })
@@ -45,7 +56,7 @@ describe("one search field (roadmap G2)", () => {
     render(<UnifiedFoodSearch lang="hu" state={state} value="virsli" onPickFood={onPickFood} onPickRecipe={vi.fn()}/>);
     expect(await screen.findByText(/jelentés szerint/)).toBeTruthy();
     fireEvent.click(screen.getByText("virsli"));
-    expect(onPickFood).toHaveBeenCalledWith(expect.objectContaining({ id: "w1" }));
+    expect(onPickFood).toHaveBeenCalledWith(expect.objectContaining({ id: "w1" }), undefined);
     expect(urls.filter((u) => u.searchParams.get("meaning") === "1")).toHaveLength(1);
   });
 

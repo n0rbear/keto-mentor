@@ -25,9 +25,37 @@ const TITLE_FILLER_WORDS = new Set([
   "eredeti", "csaladi", "kedvenc", "best", "classic", "easy", "homemade", "klassischer", "klassische", "einfacher", "einfache"
 ]);
 
+// Imported page titles often carry the site name ("Paprikás krumpli |
+// Mindmegette.hu", "... – Nosalty"); that suffix is not part of the dish. A
+// lowercase tail ("Lecsó – nagyi módra") is a subtitle and stays.
+const SITE_SUFFIX = /\s+[|–—]\s+([^|–—]*)$/u;
+
+/** "Paprikás krumpli | Mindmegette.hu" -> "Paprikás krumpli". */
+export function withoutSiteSuffix(title: string): string {
+  const match = title.match(SITE_SUFFIX);
+  if (!match) return title;
+  const tail = match[1].trim();
+  const looksLikeSite = tail.includes(".") || /^\p{Lu}\S*(?:\s\S+)?$/u.test(tail);
+  const stripped = title.slice(0, match.index).trim();
+  return looksLikeSite && stripped ? stripped : title;
+}
+
 /** A title's dish words only: "A legfinomabb paprikás krumpli" -> "paprikas krumpli". */
 export function dishCoreKey(title: string): string {
-  return normalizeSearch(title).split(" ").filter((word) => word && !TITLE_FILLER_WORDS.has(word)).join(" ");
+  return normalizeSearch(withoutSiteSuffix(title)).split(" ").filter((word) => word && !TITLE_FILLER_WORDS.has(word)).join(" ");
+}
+
+/**
+ * Whether a free sentence names this dish: every dish word appears in the
+ * sentence, allowing Hungarian suffixes ("paprikás krumplit ettem" names
+ * "Paprikás krumpli"), and the last typed word may still be unfinished.
+ */
+export function phraseMentionsDish(phrase: string, dishTitle: string): boolean {
+  const dishWords = dishCoreKey(dishTitle).split(" ").filter((word) => word.length >= 3);
+  if (!dishWords.length) return false;
+  const phraseWords = normalizeSearch(phrase).split(" ").filter(Boolean);
+  const last = phraseWords[phraseWords.length - 1];
+  return dishWords.every((dishWord) => phraseWords.some((word) => word.startsWith(dishWord)) || (last != null && last.length >= 3 && dishWord.startsWith(last)));
 }
 
 const recipeLookupInclude = {

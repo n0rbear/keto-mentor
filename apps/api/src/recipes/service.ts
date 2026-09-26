@@ -20,7 +20,7 @@ const recipeInclude = {
 const recipeSummaryInclude = {
   user: { select: { id: true, username: true } },
   ingredients: {
-    select: { quantityGrams: true, includedInBaseNutrition: true, food: { select: { kcalPer100g: true, fatPer100g: true, proteinPer100g: true, carbsPer100g: true, fiberPer100g: true } } }
+    select: { quantityGrams: true, includedInBaseNutrition: true, role: true, food: { select: { kcalPer100g: true, fatPer100g: true, proteinPer100g: true, carbsPer100g: true, fiberPer100g: true } } }
   }
 } satisfies Prisma.RecipeInclude;
 
