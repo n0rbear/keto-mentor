@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const foodsByQuery: Record<string, any[]> = {};
 vi.mock("../catalog/food-search.js", async (importOriginal) => {
@@ -6,7 +6,7 @@ vi.mock("../catalog/food-search.js", async (importOriginal) => {
   return { ...original, searchFoods: vi.fn(async (_prisma: unknown, query: string) => foodsByQuery[query] ?? []) };
 });
 
-const { unifiedSearch } = await import("./unified-search.js");
+const { unifiedSearch, meaningTermsCache } = await import("./unified-search.js");
 const { REFERENCE_USERNAME } = await import("../reference-dishes/seed.js");
 
 function fakePrisma(own: Array<{ id: string; title: string }>, referenceVariants: string[] = []) {
@@ -21,6 +21,7 @@ function fakePrisma(own: Array<{ id: string; title: string }>, referenceVariants
 const deps = (over: any = {}) => ({ userId: "u1", foodLocale: "hu" as any, ...over });
 
 describe("one search field (roadmap G1 + E4)", () => {
+  beforeEach(() => meaningTermsCache.clear());
   it("digits of barcode length are a barcode, never a text search", async () => {
     expect(await unifiedSearch(fakePrisma([]), " 5997 5231 1130 7 ", false, deps())).toEqual({ kind: "barcode", barcode: "5997523111307" });
   });
@@ -76,5 +77,16 @@ describe("one search field (roadmap G1 + E4)", () => {
     const limited = await unifiedSearch(fakePrisma([]), "xyz", true, deps({ searchIntentProvider: provider, meaningLimiter: { consume: () => false } }));
     expect(generate).not.toHaveBeenCalled();
     expect(limited.kind === "results" && limited.meaning.tried).toBe(false);
+  });
+
+  it("asks the AI once per phrase and never for a half-typed word or a bare number", async () => {
+    foodsByQuery["kolbi"] = [];
+    const generate = vi.fn(async () => ({ canonicalConcept: "sausage", searchTerms: ["sausage"] }));
+    const provider = { id: "openai", generate } as any;
+    await unifiedSearch(fakePrisma([]), "1 tá", true, deps({ searchIntentProvider: provider }));
+    await unifiedSearch(fakePrisma([]), "kolbi", true, deps({ searchIntentProvider: provider }));
+    const again = await unifiedSearch(fakePrisma([]), "kolbi", true, deps({ searchIntentProvider: provider }));
+    expect(generate).toHaveBeenCalledTimes(1);
+    expect(again.kind === "results" && again.meaning).toEqual({ tried: true, terms: ["sausage"] });
   });
 });

@@ -450,7 +450,9 @@ export function rankFoodCandidates(candidates: any[], variants: readonly string[
 
 export async function searchFoods(prisma: CatalogPrisma, rawQuery: string, limit = 20, formEvidence?: FormEvidence) {
   const variants = expandFoodQuery(rawQuery);
-  if (!variants.length) return [];
+  // Live 500 (2026-09-26, typing "1 t"): no word of two or more letters
+  // leaves the SQL prefilter empty, which Prisma.join rejects.
+  if (!variants.some((variant) => variant.split(" ").some((token) => token.length >= 2))) return [];
   const take = Math.min(Math.max(limit, 1), 30);
   const rankingQuery = normalizeSearch(formEvidence?.rawIngredient ?? rawQuery);
   const aliasesByFood = new Map<string, AliasEntry[]>();

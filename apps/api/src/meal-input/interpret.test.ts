@@ -166,19 +166,16 @@ describe("meal input interpretation", () => {
     expect(r.canConfirm).toBe(true);
   });
 
-  it("5 tojásból rántotta -> scrambled Egg food resolved, but no trustworthy per-egg conversion exists", async () => {
+  it("5 tojásból rántotta -> scrambled Egg, counted as ~50 g per egg and shown as an estimate", async () => {
     const r = await interpretMealInput(prisma, "5 tojásból rántotta");
     expect(r.selectedFood?.id).toBe("catalog-scrambled-egg");
     expect(r.preparation).toBe("scrambled");
-    // No per-egg FoodServing exists for scrambled egg (USDA 100 g basis is NOT
-    // a per-egg cooked weight), so the FOOD still resolves but the quantity
-    // cannot be converted: it must be unresolved / conversion_missing and no
-    // 500 g value invented.
+    // No per-egg FoodServing exists for scrambled egg. Owner requirement
+    // (2026-09-26): the app must still know what N eggs weigh, so a typical
+    // egg (50 g) is used, flagged as an estimate for the user to confirm —
+    // never the 100 g basis, never 500 g.
     expect(r.foodResolution).toBe("resolved");
-    expect(r.quantity?.status).toBe("unresolved");
-    expect(r.quantity?.reason).toBe("conversion_missing");
-    expect(r.quantity?.grams).toBeUndefined();
-    expect(r.canConfirm).toBe(false);
+    expect(r.quantity).toMatchObject({ status: "resolved", grams: 250, estimated: true, requiresConfirmation: true, provenance: { method: "generic_unit_weight", key: "egg" } });
   });
 
   it("főtt tojás -> does NOT confirm/silently use raw/fried/scrambled nutrition when boiled Food is unavailable", async () => {

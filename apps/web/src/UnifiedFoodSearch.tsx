@@ -25,6 +25,12 @@ const texts = {
 } as const;
 
 const BARCODE = /^\d{8,14}$/;
+const MEANING_DELAY_MS = 900;
+/** Only a finished-looking word is worth a meaning search: at least 3 letters, not a bare number or unit. */
+export const wantsMeaningSearch = (query: string) => {
+  const words = query.trim().split(/\s+/).filter((word) => /\p{L}{3,}/u.test(word));
+  return words.length > 0 && /\p{L}{3,}/u.test(query.trim().split(/\s+/).pop() ?? "");
+};
 export const isBarcodeInput = (value: string) => BARCODE.test(value.replace(/\s+/g, ""));
 
 export function UnifiedFoodSearch({ lang, state, value, disabled, onPickFood, onPickRecipe }: {
@@ -41,23 +47,29 @@ export function UnifiedFoodSearch({ lang, state, value, disabled, onPickFood, on
     const query = value.trim();
     latest.current = query;
     if (query.length < 2 || isBarcodeInput(query) || disabled) { setItems([]); setOpen(false); return; }
+    let meaningTimer: ReturnType<typeof setTimeout> | undefined;
     const timer = setTimeout(async () => {
       try {
         const first = await api<SearchResult>(`/search?q=${encodeURIComponent(query)}`, {}, state);
         if (latest.current !== query || first.kind !== "results") return;
-        let found = first.items;
-        const trusted = found.some((item) => item.type === "recipe" || (item.type === "food" && (item.food.match?.stage === "exact" || item.food.match?.stage === "alias")));
-        if (!trusted && query.length >= 3) {
-          const second = await api<SearchResult>(`/search?q=${encodeURIComponent(query)}&meaning=1`, {}, state);
-          if (latest.current !== query) return;
-          if (second.kind === "results") found = second.items;
-        }
-        setItems(found.slice(0, 10)); setSearched(query); setOpen(true);
+        setItems(first.items.slice(0, 10)); setSearched(query); setOpen(true);
+        const trusted = first.items.some((item) => item.type === "recipe" || (item.type === "food" && (item.food.match?.stage === "exact" || item.food.match?.stage === "alias")));
+        // The meaning search costs an AI call, so it waits until typing has
+        // stopped and the last word looks finished (live 2026-09-26: "1 tá",
+        // "1 tány", "1 tányé"... each spent one).
+        if (trusted || !wantsMeaningSearch(query)) return;
+        meaningTimer = setTimeout(async () => {
+          try {
+            const second = await api<SearchResult>(`/search?q=${encodeURIComponent(query)}&meaning=1`, {}, state);
+            if (latest.current !== query || second.kind !== "results") return;
+            setItems(second.items.slice(0, 10)); setSearched(query); setOpen(true);
+          } catch { /* keep the name results */ }
+        }, MEANING_DELAY_MS);
       } catch {
         if (latest.current === query) { setItems([]); setOpen(false); }
       }
     }, 300);
-    return () => clearTimeout(timer);
+    return () => { clearTimeout(timer); if (meaningTimer) clearTimeout(meaningTimer); };
   }, [value, disabled, state]);
 
   const close = () => { setOpen(false); };

@@ -21,6 +21,12 @@ describe("typical slice weights without AI (owner request 2026-09-26)", () => {
     expect(result).toMatchObject({ status: "resolved", grams: 80, gramsPerUnit: 20, requiresConfirmation: true, provenance: { method: "generic_unit_weight", key: "cheese" } });
   });
 
+  it("counts eggs in an egg dish without its own egg serving ('Rántotta 3 tojásból')", async () => {
+    const result = await resolveQuantity(parseNaturalFoodQuery("Rántotta 3 tojásból"), food("Scrambled eggs", { hu: "Rántotta" }) as any);
+    expect(result).toMatchObject({ status: "resolved", grams: 150, provenance: { method: "generic_unit_weight", key: "egg" } });
+    expect(genericUnitWeight("piece", food("Apple", { hu: "Alma" }))).toBeNull();
+  });
+
   it("prefers the food's own slice serving", async () => {
     const own = { ...food("Gouda"), servings: [{ id: "s1", key: "slice", unit: "slice", labels: {}, grams: 25, isEstimated: false, confidence: 1, provenance: { source: "curated" } }] };
     expect(await resolveQuantity(parseNaturalFoodQuery("3 szelet gouda"), own as any)).toMatchObject({ grams: 75, servingId: "s1" });

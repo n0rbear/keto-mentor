@@ -34,6 +34,26 @@ export type UnifiedSearchDeps = {
 };
 
 const BARCODE = /^\d{8,14}$/;
+
+// The same words mean the same foods for everyone, so a meaning search is
+// asked of the AI once per day per phrase and language, not per keystroke.
+const MEANING_TTL_MS = 24 * 60 * 60 * 1000;
+const MEANING_MAX_ENTRIES = 2000;
+export class MeaningTermsCache {
+  private readonly entries = new Map<string, { terms: string[]; at: number }>();
+  get(key: string, now: number) {
+    const hit = this.entries.get(key);
+    if (!hit) return null;
+    if (now - hit.at > MEANING_TTL_MS) { this.entries.delete(key); return null; }
+    return hit.terms;
+  }
+  set(key: string, terms: string[], now: number) {
+    if (this.entries.size >= MEANING_MAX_ENTRIES) this.entries.delete(this.entries.keys().next().value!);
+    this.entries.set(key, { terms, at: now });
+  }
+  clear() { this.entries.clear(); }
+}
+export const meaningTermsCache = new MeaningTermsCache();
 const MAX_RECIPES = 6;
 const MAX_FOODS = 8;
 
@@ -64,12 +84,19 @@ export async function unifiedSearch(prisma: PrismaClient, rawQuery: string, mean
   // E4: only on request, only after the name found nothing trustworthy.
   const terms: string[] = [];
   let tried = false;
-  if (meaning && deps.searchIntentProvider && deps.searchIntentProvider.id !== "disabled" && !foods.some((food) => food.match && isTrustedLocalMatch(food.match))) {
-    if (!deps.meaningLimiter || deps.meaningLimiter.consume(deps.userId)) {
-      tried = true;
+  const meaningQuery = foodTerm ?? normalized;
+  if (meaning && /\p{L}{3,}/u.test(meaningQuery) && deps.searchIntentProvider && deps.searchIntentProvider.id !== "disabled" && !foods.some((food) => food.match && isTrustedLocalMatch(food.match))) {
+    const cacheKey = `${deps.foodLocale}|${meaningQuery}`;
+    let searchTerms = meaningTermsCache.get(cacheKey, Date.now());
+    if (!searchTerms && (!deps.meaningLimiter || deps.meaningLimiter.consume(deps.userId))) {
       const intent = await deps.searchIntentProvider.generate({ foodQuery: foodTerm ?? query, foodLocale: deps.foodLocale }).catch(() => null);
+      searchTerms = (intent?.searchTerms ?? []).slice(0, 3);
+      if (intent) meaningTermsCache.set(cacheKey, searchTerms, Date.now());
+    }
+    if (searchTerms) {
+      tried = true;
       const seen = new Set(foods.map((food) => food.id));
-      for (const term of (intent?.searchTerms ?? []).slice(0, 3)) {
+      for (const term of searchTerms) {
         terms.push(term);
         for (const food of (await searchFoods(prisma, term, MAX_FOODS)) as any[]) {
           if (seen.has(food.id)) continue;
