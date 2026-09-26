@@ -1,0 +1,97 @@
+part_id,part_name_hu,servings_source,food_key,food_hu,raw_g,role,catalog,finished_weight_g,yield_factor,density_g_per_ml,standard_serving_g
+gulyasleves,Gulyásleves,4,beef_shank,marhalábszár,600,core,usda_fdc:169441,3802,0.905,1.022,450
+gulyasleves,Gulyásleves,4,potato,burgonya,600,core,bls:K110100,3802,0.905,1.022,450
+gulyasleves,Gulyásleves,4,onion,vöröshagyma,250,core,bls:G480100,3802,0.905,1.022,450
+gulyasleves,Gulyásleves,4,carrot,sárgarépa,200,core,bls:G620100,3802,0.905,1.022,450
+gulyasleves,Gulyásleves,4,parsley_root,petrezselyemgyökér,100,core,MISSING,3802,0.905,1.022,450
+gulyasleves,Gulyásleves,4,wax_pepper,TV paprika / zöldpaprika,100,core,usda_fdc:2747660,3802,0.905,1.022,450
+gulyasleves,Gulyásleves,4,tomato,paradicsom,100,core,bls:G561100,3802,0.905,1.022,450
+gulyasleves,Gulyásleves,4,lard,sertészsír,30,fat,usda_fdc:171401,3802,0.905,1.022,450
+gulyasleves,Gulyásleves,4,paprika_ground,őrölt pirospaprika,10,seasoning,usda_fdc:171329,3802,0.905,1.022,450
+gulyasleves,Gulyásleves,4,garlic,fokhagyma,10,seasoning,bls:G490100,3802,0.905,1.022,450
+gulyasleves,Gulyásleves,4,caraway_seed,kömény (egész/őrölt),2,seasoning,usda_fdc:170918,3802,0.905,1.022,450
+gulyasleves,Gulyásleves,4,water,víz,2200,liquid,none,3802,0.905,1.022,450
+halaszle,Halászlé (passzírozott alappal),4,carp,ponty,800,core,bls:T501100,3516,0.796,1.01,500
+halaszle,Halászlé (passzírozott alappal),4,onion,vöröshagyma,300,core,bls:G480100,3516,0.796,1.01,500
+halaszle,Halászlé (passzírozott alappal),4,wax_pepper,TV paprika / zöldpaprika,120,core,usda_fdc:2747660,3516,0.796,1.01,500
+halaszle,Halászlé (passzírozott alappal),4,tomato,paradicsom,150,core,bls:G561100,3516,0.796,1.01,500
+halaszle,Halászlé (passzírozott alappal),4,paprika_ground,őrölt pirospaprika,16,seasoning,usda_fdc:171329,3516,0.796,1.01,500
+halaszle,Halászlé (passzírozott alappal),4,hot_pepper_fresh,cseresznyepaprika (erős),20,seasoning,usda_fdc:2747660,3516,0.796,1.01,500
+halaszle,Halászlé (passzírozott alappal),4,garlic,fokhagyma,10,seasoning,bls:G490100,3516,0.796,1.01,500
+halaszle,Halászlé (passzírozott alappal),4,water,víz,3000,liquid,none,3516,0.796,1.01,500
+toltott_kaposzta,Töltött káposzta,6,sauerkraut,savanyú káposzta,1500,core,bls:G345100,4187,0.944,1.017,450
+toltott_kaposzta,Töltött káposzta,6,pork_minced,darált sertéshús,800,core,bls:U020100,4187,0.944,1.017,450
+toltott_kaposzta,Töltött káposzta,6,rice_white,rizs (nyers),120,core,bls:C352000,4187,0.944,1.017,450
+toltott_kaposzta,Töltött káposzta,6,onion,vöröshagyma,150,core,bls:G480100,4187,0.944,1.017,450
+toltott_kaposzta,Töltött káposzta,6,garlic,fokhagyma,10,seasoning,bls:G490100,4187,0.944,1.017,450
+toltott_kaposzta,Töltött káposzta,6,egg,tojás,50,core,bls:E111100,4187,0.944,1.017,450
+toltott_kaposzta,Töltött káposzta,6,smoked_sausage,füstölt kolbász,200,core,open_database:174584,4187,0.944,1.017,450
+toltott_kaposzta,Töltött káposzta,6,smoked_bacon,füstölt szalonna / bacon,150,core,bls:W415000,4187,0.944,1.017,450
+toltott_kaposzta,Töltött káposzta,6,lard,sertészsír,20,fat,usda_fdc:171401,4187,0.944,1.017,450
+toltott_kaposzta,Töltött káposzta,6,paprika_ground,őrölt pirospaprika,12,seasoning,usda_fdc:171329,4187,0.944,1.017,450
+toltott_kaposzta,Töltött káposzta,6,wheat_flour,búzaliszt (BL55),25,thickener,bls:C214100,4187,0.944,1.017,450
+toltott_kaposzta,Töltött káposzta,6,sour_cream,tejföl (20%),200,thickener,usda_fdc:2346387,4187,0.944,1.017,450
+toltott_kaposzta,Töltött káposzta,6,water,víz,1200,liquid,none,4187,0.944,1.017,450
+paprikas_csirke,Paprikás csirke,4,chicken_thigh_skin,csirke felsőcomb bőrrel,1000,core,bls:V4A5100,1965,0.929,1.024,300
+paprikas_csirke,Paprikás csirke,4,onion,vöröshagyma,200,core,bls:G480100,1965,0.929,1.024,300
+paprikas_csirke,Paprikás csirke,4,sunflower_oil,napraforgóolaj,30,fat,bls:Q320000,1965,0.929,1.024,300
+paprikas_csirke,Paprikás csirke,4,paprika_ground,őrölt pirospaprika,15,seasoning,usda_fdc:171329,1965,0.929,1.024,300
+paprikas_csirke,Paprikás csirke,4,wax_pepper,TV paprika / zöldpaprika,100,core,usda_fdc:2747660,1965,0.929,1.024,300
+paprikas_csirke,Paprikás csirke,4,tomato,paradicsom,100,core,bls:G561100,1965,0.929,1.024,300
+paprikas_csirke,Paprikás csirke,4,water,víz,400,liquid,none,1965,0.929,1.024,300
+paprikas_csirke,Paprikás csirke,4,sour_cream,tejföl (20%),250,thickener,usda_fdc:2346387,1965,0.929,1.024,300
+paprikas_csirke,Paprikás csirke,4,wheat_flour,búzaliszt (BL55),20,thickener,bls:C214100,1965,0.929,1.024,300
+nokedli,Nokedli,4,wheat_flour,búzaliszt (BL55),400,core,bls:C214100,920,1.15,0.75,200
+nokedli,Nokedli,4,egg,tojás,150,core,bls:E111100,920,1.15,0.75,200
+nokedli,Nokedli,4,water,víz,250,liquid,none,920,1.15,0.75,200
+sertesporkolt,Sertéspörkölt,4,pork_shoulder,sertéslapocka,1000,core,usda_fdc:167843,1356,0.693,1.039,300
+sertesporkolt,Sertéspörkölt,4,onion,vöröshagyma,300,core,bls:G480100,1356,0.693,1.039,300
+sertesporkolt,Sertéspörkölt,4,lard,sertészsír,30,fat,usda_fdc:171401,1356,0.693,1.039,300
+sertesporkolt,Sertéspörkölt,4,paprika_ground,őrölt pirospaprika,15,seasoning,usda_fdc:171329,1356,0.693,1.039,300
+sertesporkolt,Sertéspörkölt,4,wax_pepper,TV paprika / zöldpaprika,100,core,usda_fdc:2747660,1356,0.693,1.039,300
+sertesporkolt,Sertéspörkölt,4,tomato,paradicsom,100,core,bls:G561100,1356,0.693,1.039,300
+sertesporkolt,Sertéspörkölt,4,garlic,fokhagyma,10,seasoning,bls:G490100,1356,0.693,1.039,300
+sertesporkolt,Sertéspörkölt,4,caraway_seed,kömény (egész/őrölt),1,seasoning,usda_fdc:170918,1356,0.693,1.039,300
+sertesporkolt,Sertéspörkölt,4,water,víz,400,liquid,none,1356,0.693,1.039,300
+lecso_virslivel,Lecsó virslivel,4,wax_pepper,TV paprika / zöldpaprika,800,core,usda_fdc:2747660,1592,0.888,0.991,400
+lecso_virslivel,Lecsó virslivel,4,tomato,paradicsom,400,core,bls:G561100,1592,0.888,0.991,400
+lecso_virslivel,Lecsó virslivel,4,onion,vöröshagyma,150,core,bls:G480100,1592,0.888,0.991,400
+lecso_virslivel,Lecsó virslivel,4,frankfurter,virsli,400,core,bls:W211200,1592,0.888,0.991,400
+lecso_virslivel,Lecsó virslivel,4,lard,sertészsír,30,fat,usda_fdc:171401,1592,0.888,0.991,400
+lecso_virslivel,Lecsó virslivel,4,paprika_ground,őrölt pirospaprika,6,seasoning,usda_fdc:171329,1592,0.888,0.991,400
+lecso_virslivel,Lecsó virslivel,4,garlic,fokhagyma,6,seasoning,bls:G490100,1592,0.888,0.991,400
+rakott_krumpli,Rakott krumpli,4,potato,burgonya,900,core,bls:K110100,1680,0.923,1.051,400
+rakott_krumpli,Rakott krumpli,4,egg,tojás,300,core,bls:E111100,1680,0.923,1.051,400
+rakott_krumpli,Rakott krumpli,4,smoked_sausage,füstölt kolbász,200,core,open_database:174584,1680,0.923,1.051,400
+rakott_krumpli,Rakott krumpli,4,sour_cream,tejföl (20%),400,core,usda_fdc:2346387,1680,0.923,1.051,400
+rakott_krumpli,Rakott krumpli,4,butter,vaj,20,fat,open_database:173430,1680,0.923,1.051,400
+marhahusleves,"Marhahúsleves (hússal, zöldséggel)",6,beef_shank,marhalábszár,800,core,usda_fdc:169441,4255,0.825,1.016,450
+marhahusleves,"Marhahúsleves (hússal, zöldséggel)",6,carrot,sárgarépa,300,core,bls:G620100,4255,0.825,1.016,450
+marhahusleves,"Marhahúsleves (hússal, zöldséggel)",6,parsley_root,petrezselyemgyökér,200,core,MISSING,4255,0.825,1.016,450
+marhahusleves,"Marhahúsleves (hússal, zöldséggel)",6,celeriac,zellergumó,100,core,bls:G660100,4255,0.825,1.016,450
+marhahusleves,"Marhahúsleves (hússal, zöldséggel)",6,kohlrabi,karalábé,150,core,bls:G331100,4255,0.825,1.016,450
+marhahusleves,"Marhahúsleves (hússal, zöldséggel)",6,onion,vöröshagyma,100,core,bls:G480100,4255,0.825,1.016,450
+marhahusleves,"Marhahúsleves (hússal, zöldséggel)",6,garlic,fokhagyma,5,seasoning,bls:G490100,4255,0.825,1.016,450
+marhahusleves,"Marhahúsleves (hússal, zöldséggel)",6,water,víz,3500,liquid,none,4255,0.825,1.016,450
+rantott_hus,Rántott hús (sertéskaraj),4,pork_loin,sertéskaraj,600,core,bls:U622100,740,0.831,0.85,185
+rantott_hus,Rántott hús (sertéskaraj),4,wheat_flour,búzaliszt (BL55),30,coating,bls:C214100,740,0.831,0.85,185
+rantott_hus,Rántott hús (sertéskaraj),4,egg,tojás,100,coating,bls:E111100,740,0.831,0.85,185
+rantott_hus,Rántott hús (sertéskaraj),4,breadcrumbs,zsemlemorzsa,100,coating,MISSING,740,0.831,0.85,185
+rantott_hus,Rántott hús (sertéskaraj),4,sunflower_oil,napraforgóolaj,60,absorbed_fat,bls:Q320000,740,0.831,0.85,185
+petrezselymes_burgonya,Petrezselymes burgonya,4,potato,burgonya,1000,core,bls:K110100,1030,0.981,0.7,200
+petrezselymes_burgonya,Petrezselymes burgonya,4,butter,vaj,40,fat,open_database:173430,1030,0.981,0.7,200
+petrezselymes_burgonya,Petrezselymes burgonya,4,parsley_leaf,petrezselyemzöld,10,garnish,usda_fdc:170416,1030,0.981,0.7,200
+parolt_rizs,Párolt rizs,4,rice_white,rizs (nyers),250,core,bls:C352000,835,0.933,0.8,180
+parolt_rizs,Párolt rizs,4,sunflower_oil,napraforgóolaj,15,fat,bls:Q320000,835,0.933,0.8,180
+parolt_rizs,Párolt rizs,4,onion,vöröshagyma,30,core,bls:G480100,835,0.933,0.8,180
+parolt_rizs,Párolt rizs,4,water,víz,600,liquid,none,835,0.933,0.8,180
+szekelykaposzta,Székelykáposzta,4,pork_shoulder,sertéslapocka,1000,core,usda_fdc:167843,3207,0.928,1.026,450
+szekelykaposzta,Székelykáposzta,4,sauerkraut,savanyú káposzta,1000,core,bls:G345100,3207,0.928,1.026,450
+szekelykaposzta,Székelykáposzta,4,sour_cream,tejföl (20%),400,thickener,usda_fdc:2346387,3207,0.928,1.026,450
+szekelykaposzta,Székelykáposzta,4,lard,sertészsír,15,fat,usda_fdc:171401,3207,0.928,1.026,450
+szekelykaposzta,Székelykáposzta,4,onion,vöröshagyma,200,core,bls:G480100,3207,0.928,1.026,450
+szekelykaposzta,Székelykáposzta,4,paprika_ground,őrölt pirospaprika,15,seasoning,usda_fdc:171329,3207,0.928,1.026,450
+szekelykaposzta,Székelykáposzta,4,garlic,fokhagyma,6,seasoning,bls:G490100,3207,0.928,1.026,450
+szekelykaposzta,Székelykáposzta,4,caraway_seed,kömény (egész/őrölt),1,seasoning,usda_fdc:170918,3207,0.928,1.026,450
+szekelykaposzta,Székelykáposzta,4,wheat_flour,búzaliszt (BL55),20,thickener,bls:C214100,3207,0.928,1.026,450
+szekelykaposzta,Székelykáposzta,4,water,víz,800,liquid,none,3207,0.928,1.026,450

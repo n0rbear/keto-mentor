@@ -1018,7 +1018,11 @@ describe("Open Food Facts structured lookup adapter", () => {
   it("normalizes a complete product using energy-kcal_100g directly", () => {
     const raw = { status: 1, product: { product_name: "Choco Spread", brands: "ChocoCo, Other", nutriments: { "energy-kcal_100g": 539, proteins_100g: 6.3, fat_100g: 30.9, carbohydrates_100g: 57.5, fiber_100g: 3.4, sugars_100g: 56.3, sodium_100g: 0.107 } } };
     const candidate = normalizeOffProduct(raw, "4008400404127") as ExternalFoodCandidate;
-    expect(candidate).toMatchObject({ source: "open_food_facts", sourceId: "4008400404127", name: "Choco Spread", brand: "ChocoCo", kcalPer100g: 539, fatPer100g: 30.9, proteinPer100g: 6.3, carbsPer100g: 57.5, fiberPer100g: 3.4 });
+    expect(candidate).toMatchObject({ source: "open_food_facts", sourceId: "4008400404127", name: "Choco Spread", brand: "ChocoCo", kcalPer100g: 539, fatPer100g: 30.9, proteinPer100g: 6.3, carbsPer100g: 60.9, fiberPer100g: 3.4 });
+    // EU labels state available carbohydrate; stored as total (57.5 + 3.4)
+    // so net carbs = carbs - fiber = 57.5, not 54.1.
+    expect(candidate.provenance).toMatchObject({ carbohydrateBasis: "total_from_available_plus_fiber" });
+    expect(candidate.nutrients).toEqual(expect.arrayContaining([expect.objectContaining({ key: "carbohydrate", amountPer100g: 60.9 })]));
     expect(candidate.nutrients).toEqual(expect.arrayContaining([expect.objectContaining({ key: "sugar", amountPer100g: 56.3 })]));
     // sodium_100g is grams on the wire; the shared Nutrient definition is mg.
     expect(candidate.nutrients).toEqual(expect.arrayContaining([expect.objectContaining({ key: "sodium", amountPer100g: 107 })]));

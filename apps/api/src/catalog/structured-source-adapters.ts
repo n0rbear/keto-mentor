@@ -2,6 +2,7 @@ import type { FoodSource } from "@prisma/client";
 import { normalizeSearch } from "./normalize.js";
 import type { ConfirmableFoodLookupAdapter, ExternalFoodCandidate, StructuredFoodLookupAdapter } from "./external-food.js";
 import { mapNutrient, OFF_NUTRIENT_MAP, USDA_NUTRIENT_MAP } from "../importers/nutrient-mapping.js";
+import { CARB_BASIS_TOTAL_FROM_AVAILABLE, totalCarbsFromAvailable, withTotalCarbohydrate } from "./carb-basis.js";
 import type { ImportNutrient } from "../importers/types.js";
 import { DynamicFoodResolutionRateLimiter } from "./dynamic-food-rate-limit.js";
 
@@ -181,12 +182,17 @@ export function normalizeOffProduct(raw: any, barcode: string): ExternalFoodCand
 
   const retrievedAt = new Date().toISOString();
   const sourceUrl = `https://world.openfoodfacts.org/product/${encodeURIComponent(barcode)}`;
+  // OFF copies the label; EU labels (the app's users) state available
+  // carbohydrate, fiber excluded. Stored as total so net = carbs - fiber.
+  // For a US label this over-states net carbs by the fiber amount, which is
+  // the safe direction for a keto tracker.
+  const totalCarbs = totalCarbsFromAvailable(carbs!, fiber!);
   return {
     source: "open_food_facts", sourceId: barcode, originalName: name, name, names: { en: name },
     brand, barcode, category: sanitizeShortText(product.categories, 200) || undefined,
-    kcalPer100g: kcal!, proteinPer100g: protein!, fatPer100g: fat!, carbsPer100g: carbs!, fiberPer100g: fiber!,
-    nutrients: normalizeOffNutrients(nutriments),
-    provenance: { source: "Open Food Facts", sourceId: barcode, sourceUrl, retrievedAt, valuesPer: "100 g", barcode },
+    kcalPer100g: kcal!, proteinPer100g: protein!, fatPer100g: fat!, carbsPer100g: totalCarbs, fiberPer100g: fiber!,
+    nutrients: withTotalCarbohydrate(normalizeOffNutrients(nutriments), totalCarbs),
+    provenance: { source: "Open Food Facts", sourceId: barcode, sourceUrl, retrievedAt, valuesPer: "100 g", barcode, carbohydrateBasis: CARB_BASIS_TOTAL_FROM_AVAILABLE },
     sourceUrl, normalizedName: normalizeSearch(name), nutrientBasis: "per_100_g", retrievedAt,
     // An exact-barcode match identifies one specific, unambiguous product —
     // reference-grade by construction. searchByName() below reuses this

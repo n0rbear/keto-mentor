@@ -28,4 +28,17 @@ describe("official source adapters", () => {
     expect(rows[0]).toMatchObject({ food: { source: "bls", sourceId: "E100000", originalName: "Hühnerei roh", names: { de: "Hühnerei roh" }, category: "Eggs" } });
     if ("food" in rows[0]) expect(rows[0].food.nutrients.find((item) => item.key === "copper")?.amountPer100g).toBe(.85);
   });
+
+  it("stores BLS available carbohydrate (CHO) as total carbohydrate, so net carbs = carbs - fiber counts fiber once", async () => {
+    temporary = await mkdtemp(join(tmpdir(), "bls-test-")); const file = join(temporary, "bls.xlsx"); const workbook = new ExcelJS.Workbook(); const sheet = workbook.addWorksheet("BLS_4_0_Daten_2025_DE");
+    sheet.addRow(["BLS Code", "Lebensmittelbezeichnung", "ENERCC Energie (Kilokalorien) [kcal/100g]", "PROT625 Protein [g/100g]", "FAT Fett [g/100g]", "CHO Kohlenhydrate [g/100g]", "FIBT Ballaststoffe [g/100g]"]);
+    sheet.addRow(["G620100", "Karotte/Möhre, roh", 40, 0.84, 0.4, 6.471, 2.9]); await workbook.xlsx.writeFile(file);
+    const rows = []; for await (const row of new BlsAdapter().read(file)) rows.push(row);
+    if (!("food" in rows[0])) throw new Error("expected a food row");
+    const food = rows[0].food;
+    expect(food.carbsPer100g).toBeCloseTo(9.371, 3);
+    expect(food.carbsPer100g - food.fiberPer100g).toBeCloseTo(6.471, 3);
+    expect(food.nutrients.find((item) => item.key === "carbohydrate")?.amountPer100g).toBeCloseTo(9.371, 3);
+    expect(food.provenance).toMatchObject({ carbohydrateBasis: "total_from_available_plus_fiber" });
+  });
 });
