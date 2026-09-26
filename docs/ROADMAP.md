@@ -77,6 +77,7 @@ Ezek minden ételre hatnak, nem csak a 10 referenciaételre.
 | G3 | Egységes mennyiség és hozzáadás (gramm / adag / tányér), automatikus, utólag szerkeszthető étkezésnév | ✅ Élesben (#70): a mennyiség és a hozzáadás csak kiválasztás után jelenik meg; receptnél adag / gramm / tányér; az étkezés neve automatikus (a kiválasztott étel neve), a mező opcionális. |
 | G4 | Vonalkód: rost nélküli EU-címke elfogadása (rost = 0, a nettó szénhidrát = a címke értéke; jelölve a forrásadatban); gyorsabb kamerás felismerés (720p kép, ~8 próba/mp, előtöltött olvasó) | ✅ Élesben (#70). Tulajdonosi jelzés: Almighurt, Red Bull „nincs tápanyagadat”. |
 | G5 | Mondatból is receptet ajánl (toldalékkal, a „| Oldalnév” végződés nélkül); a kimondott mennyiség a kiválasztott ételhez kerül (4 tojás = 200 g); szeletsúlyok AI nélkül (szalámi 8, sonka 15, sajt 20, kenyér 35 g); mennyiség nélküli olaj a receptben becsült kis mennyiség; receptlista 500-as hiba javítva | ✅ Élesben (#71). |
+| G6 | Keresőmező: nincs 500-as hiba rövid bevitelre („1 t”); a jelentés szerinti AI-keresés csak a gépelés végén és befejezett szóra fut, kifejezésenként naponta egyszer; tojásételek tojásonként ~50 g AI nélkül („Rántotta 3 tojásból” = 150 g) | ✅ Élesben (#72). |
 
 ## F. Később
 
