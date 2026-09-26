@@ -56,7 +56,7 @@ FOOD_KEYS = {
     "rice_white":          ("rizs (nyers)", "Reis, poliert (roh)", "white rice, raw", "bls:C352000", "available", 351, 0.62, 7.931, 77.1, 2.5, 1.00, 0.80, None),
     "potato":              ("burgonya", "Kartoffel", "potato", "bls:K110100", "available", 83, 0.1, 1.94, 17.9, 1.42, 1.08, 0.70, "grams = peeled"),
     "onion":               ("vöröshagyma", "Zwiebel", "onion", "bls:G480100", "available", 34, 0.15, 1.156, 6.01, 1.4, 1.00, 0.80, None),
-    "garlic":              ("fokhagyma", "Knoblauch", "garlic", "bls:G490100", "available", 97, 0.42, 6.05, 3.0, 28.297, 1.00, 1.00, "DATA CHECK: catalog carbs 3.0 / fiber 28.3 look swapped (garlic is ~28 g carbs, ~2 g fiber)"),
+    "garlic":              ("fokhagyma", "Knoblauch", "garlic", "bls:G490100", "available", 97, 0.42, 6.05, 3.0, 28.297, 1.00, 1.00, "BLS counts garlic fructans as fiber (3 g available carbs, 28 g fiber); energy is consistent, not a data error"),
     "carrot":              ("sárgarépa", "Möhre/Karotte", "carrot", "bls:G620100", "available", 40, 0.4, 0.84, 6.471, 2.9, 1.03, 0.75, None),
     "parsley_root":        ("petrezselyemgyökér", "Petersilienwurzel", "parsley root", None, None, None, None, None, None, None, 1.03, 0.75, "MISSING in production catalog - import needed (BLS Petersilienwurzel roh). Parsnip is NOT the same food"),
     "celeriac":            ("zellergumó", "Knollensellerie", "celeriac", "bls:G660100", "available", 30, 0.33, 1.55, 2.77, 4.2, 1.03, 0.75, None),

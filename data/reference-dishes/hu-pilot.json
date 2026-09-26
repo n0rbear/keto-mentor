@@ -252,7 +252,7 @@
       "carb_basis": "available",
       "density_intrinsic_g_ml": 1.0,
       "density_bulk_g_ml": 1.0,
-      "note": "DATA CHECK: catalog carbs 3.0 / fiber 28.3 look swapped (garlic is ~28 g carbs, ~2 g fiber)"
+      "note": "BLS counts garlic fructans as fiber (3 g available carbs, 28 g fiber); energy is consistent, not a data error"
     },
     "carrot": {
       "names": {

@@ -53,9 +53,7 @@ Fájlok:
   - zsemlemorzsa (rántott hús).
 
   Addig ezeknél a részeknél a tápérték hiányos.
-- **Hibás katalógusadat:**
-  - a kömény magyar neve „Körömfűmag”;
-  - a fokhagymánál (BLS) a szénhidrát és a rost fel van cserélve.
+- **Hibás katalógusadat:** a kömény magyar neve „Körömfűmag”, a „fehérrépa” tarlórépára mutat. (A fokhagyma BLS-értéke nem hibás: a fruktánok ott rostként szerepelnek.) A teljes lista: `docs/ROADMAP.md`, A szakasz.
 - **Általános hiba a kódban (nem ebben az adatbázisban):**
   - A BLS-rekordok `carbs` mezője már rost nélküli érték.
   - Az app mégis mindenhol `carbs − fiber`-t számol, így a BLS-ételeknél a rost kétszer vonódik le. A nettó szénhidrát emiatt túl alacsony lesz, főleg zöldségeknél.
