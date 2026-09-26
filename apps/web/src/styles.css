@@ -517,3 +517,6 @@ body { padding-left: var(--safe-left); padding-right: var(--safe-right); }
   .mobile-nav-item[aria-current="page"] { color: rgb(var(--brand-bright)); background: rgb(var(--surface-active) / .6); }
   main.min-h-screen { padding-bottom: calc(64px + var(--safe-bottom)); }
 }
+.local-recipe-picker { display: grid; gap: .5rem; margin-top: .5rem; }
+.local-recipe-options { display: grid; gap: .35rem; }
+.local-recipe-options label { display: flex; gap: .5rem; align-items: center; }

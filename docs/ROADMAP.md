@@ -36,16 +36,16 @@ Ezek minden ételre hatnak, nem csak a 10 referenciaételre.
 
 | # | Lépés | Állapot |
 |---|---|---|
-| B1 | Adatszerkezet az appban. Javaslat: a meglévő recept-rendszert használjuk, egy „rendszer” tulajdonos alatt, nyilvános, ellenőrzött receptként. Így a tápérték-számítás és a „saját változat” ingyen jön. | ⬜ |
-| B2 | Betöltő, ami a `hu-pilot.json`-t az A-lépések után beolvassa | ⬜ |
-| B3 | Keresési sorrend: saját receptek → referenciaételek → webes keresés. Ami egyikben sincs benne, ugyanúgy megy, mint most. | ⬜ |
-| B4 | Köret kezelése: ha nincs megmondva, rákérdez („rántott hús” → burgonya vagy rizs?) | ⬜ |
+| B1 | Adatszerkezet az appban. Javaslat: a meglévő recept-rendszert használjuk, egy „rendszer” tulajdonos alatt, nyilvános, ellenőrzött receptként. Így a tápérték-számítás és a „saját változat” ingyen jön. | 🔄 PR-ben: rendszerfiók (`system:keto-mentor`) nyilvános receptjei, változatonként pontosan 1 szokásos adag. |
+| B2 | Betöltő, ami a `hu-pilot.json`-t az A-lépések után beolvassa | 🔄 PR-ben: a generátor TS-adatot ír, a seed minden indításkor betölti (csak új adatverziónál ír). Hiányzó katalógusrekord esetén a változat kimarad (most: gulyásleves, marhahúsleves és a 3 rántott hús változat, amíg A3 nincs kész; a többi 11 változat élesben is betöltődik). |
+| B3 | Keresési sorrend: saját receptek → referenciaételek → webes keresés. Ami egyikben sincs benne, ugyanúgy megy, mint most. | 🔄 PR-ben: saját receptek → referenciaételek → web. |
+| B4 | Köret kezelése: ha nincs megmondva, rákérdez („rántott hús” → burgonya vagy rizs?) | 🔄 PR-ben: nyitott köretnél választási lista (pl. rántott hús → magában / petrezselymes burgonyával / párolt rizzsel). |
 
 ## C. Saját receptek
 
 | # | Lépés | Állapot |
 |---|---|---|
-| C1 | Megtalálja a mentett receptet ahhoz is, amit mondasz („paprikás krumpli”), nem csak a pontos címhez („A legfinomabb paprikás krumpli”) | ⬜ |
+| C1 | Megtalálja a mentett receptet ahhoz is, amit mondasz („paprikás krumpli”), nem csak a pontos címhez („A legfinomabb paprikás krumpli”) | 🔄 PR-ben: a cím lényegi szavai alapján is talál (A legfinomabb paprikás krumpli = paprikás krumpli). Közben kiderült: a talált saját receptet a felület eddig hozzá sem engedte adni, és választani sem lehetett – ez is javítva. |
 | C2 | Kézi javítás után ne jöjjön létre minden alkalommal új példány; a javított változatot használja újra | ⬜ |
 | C3 | Az elfogadás („Hozzáadás”) ne futtassa újra a teljes feldolgozást (most kb. +8 s) | ⬜ |
 | C4 | Megosztás a közösségi receptek között. A háttér már tudja; kell hozzá felület, és a közösségi recept csak javaslatként jelenhet meg. | ⬜ |

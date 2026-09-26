@@ -188,7 +188,7 @@ function portionEvent(item: InterpretResult, locale?: string): DiagnosticEvent |
 function recipeDiscoveryEvents(discovery: NonNullable<InterpretResult["recipeDiscovery"]>, dishLabel: string | undefined): DiagnosticEvent[] {
   const events: DiagnosticEvent[] = [];
   if (discovery.status === "local_match") {
-    events.push({ stage: "local_recipe_search", status: "ok", code: "local_match", blocking: false, itemLabel: dishLabel, params: { title: discovery.localMatch!.title } });
+    events.push({ stage: "local_recipe_search", status: "ok", code: "local_match", blocking: false, itemLabel: dishLabel, params: { title: discovery.localMatch!.title, source: discovery.localMatch!.source } });
     return events;
   }
   events.push({ stage: "local_recipe_search", status: "ok", code: "no_local_match", blocking: false, itemLabel: dishLabel });

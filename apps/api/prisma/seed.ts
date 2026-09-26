@@ -2,6 +2,7 @@ import { PrismaClient, type Prisma } from "@prisma/client";
 import { buildSearchText } from "../src/catalog/normalize.js";
 import { USDA_FOOD_IDENTITIES, USDA_SERVING_PROVENANCE, USDA_SR_LEGACY_SOURCE } from "./seed-provenance.js";
 import { upsertSeedServings, type SeedServing } from "./seed-servings.js";
+import { seedReferenceDishes } from "../src/reference-dishes/seed.js";
 
 const prisma = new PrismaClient();
 
@@ -297,6 +298,13 @@ async function main() {
 
     await upsertSeedServings(prisma.foodServing, id, servingList);
   }
+
+  // Reference dishes (roadmap B): after the catalog, because every variant
+  // needs its reviewed catalog records. Idempotent; writes only on a new
+  // data version. A variant with a missing catalog record is skipped (and
+  // picked up by a later boot once the record exists).
+  const reference = await seedReferenceDishes(prisma);
+  console.log(`reference_dishes seeded=${reference.seeded} unchanged=${reference.unchanged} skipped=${reference.skipped.map((s) => `${s.variant}(${s.missingFoodKeys.join("+")})`).join(",") || "none"}`);
 }
 
 main().finally(() => prisma.$disconnect());
