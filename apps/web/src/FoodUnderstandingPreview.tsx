@@ -662,7 +662,7 @@ function AiEstimateCard({ estimate, labels, busy, onAccept, onOverride, onDeclin
 // note, with no way to add it or to pick between several matches. One
 // option: amount + add. Several (e.g. a reference dish with an open side):
 // pick first, then add.
-function LocalRecipePicker({ discovery, labels, busy, onConfirm, lang, portionState }: {
+export function LocalRecipePicker({ discovery, labels, busy, onConfirm, lang, portionState }: {
   discovery: RecipeDiscoveryPreviewValue; labels: FoodUnderstandingLabels["recipeDiscovery"]; busy: boolean; lang: Lang; portionState?: ApiState;
   onConfirm: (option: LocalRecipeOption, quantity: number, unit: "g" | "serving") => void;
 }) {

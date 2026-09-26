@@ -1036,9 +1036,24 @@ describe("Open Food Facts structured lookup adapter", () => {
   });
 
   it("marks a product incomplete (not a full candidate) when a required macro is missing", () => {
-    const raw = { status: 1, product: { product_name: "No Fiber Data", brands: "Acme", nutriments: { "energy-kcal_100g": 200, proteins_100g: 5, fat_100g: 5, carbohydrates_100g: 20 } } };
+    const raw = { status: 1, product: { product_name: "No Protein Data", brands: "Acme", nutriments: { "energy-kcal_100g": 200, fat_100g: 5, carbohydrates_100g: 20, fiber_100g: 1 } } };
     const result = normalizeOffProduct(raw, "4008400404127");
-    expect(result).toEqual({ name: "No Fiber Data", brand: "Acme" });
+    expect(result).toEqual({ name: "No Protein Data", brand: "Acme" });
+  });
+
+  it("accepts a label without fiber (voluntary in the EU) as fiber 0, keeping net carbs equal to the label", () => {
+    // Real OFF shape of Ehrmann Almighurt (4002971043501): no fiber_100g.
+    const raw = { status: 1, product: { product_name: "Almighurt Schoko Balls", brands: "Ehrmann", nutriments: { "energy-kcal_100g": 117, proteins_100g: 3, fat_100g: 4.8, carbohydrates_100g: 15.5, sugars_100g: 14.5 } } };
+    const candidate = normalizeOffProduct(raw, "4002971043501") as ExternalFoodCandidate;
+    expect(candidate).toMatchObject({ name: "Almighurt Schoko Balls", kcalPer100g: 117, carbsPer100g: 15.5, fiberPer100g: 0 });
+    expect(candidate.provenance).toMatchObject({ fiberBasis: "not_declared_assumed_zero" });
+    expect(validateExternalCandidate(candidate)).not.toBeNull();
+  });
+
+  it("does not mark fiber as assumed when the label declares it", () => {
+    const raw = { status: 1, product: { product_name: "Red Bull Sugarfree", nutriments: { "energy-kcal_100g": 3, proteins_100g: 0, fat_100g: 0, carbohydrates_100g: 0, fiber_100g: 0 } } };
+    const candidate = normalizeOffProduct(raw, "90496707") as ExternalFoodCandidate;
+    expect(candidate.provenance).not.toHaveProperty("fiberBasis");
   });
 
   it("rejects negative nutrition as incomplete rather than persisting it", () => {

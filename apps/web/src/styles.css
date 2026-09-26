@@ -518,3 +518,11 @@ body { padding-left: var(--safe-left); padding-right: var(--safe-right); }
 .local-recipe-picker { display: grid; gap: .5rem; margin-top: .5rem; }
 .local-recipe-options { display: grid; gap: .35rem; }
 .local-recipe-options label { display: flex; gap: .5rem; align-items: center; }
+.unified-search { position: relative; }
+.unified-search-results { list-style: none; margin: .35rem 0 0; padding: .25rem; display: grid; gap: .15rem; border: 1px solid rgb(var(--brand) / .3); border-radius: 12px; background: rgb(var(--surface)); max-height: 22rem; overflow-y: auto; }
+.unified-search-results button { width: 100%; display: grid; grid-template-columns: auto 1fr; column-gap: .45rem; align-items: center; text-align: left; padding: .55rem .6rem; min-height: 44px; border: 0; border-radius: 8px; background: transparent; font: inherit; color: inherit; cursor: pointer; }
+.unified-search-results button:hover, .unified-search-results button:focus-visible { background: rgb(var(--brand) / .1); }
+.unified-search-results button > span { grid-column: 2; }
+.unified-search-results button > small { grid-column: 2; color: rgb(var(--text-muted)); display: inline-flex; align-items: center; gap: .25rem; }
+.unified-search-empty { padding: .55rem .6rem; font-size: .9rem; }
+.selected-food-chip { display: flex; align-items: center; justify-content: space-between; gap: .5rem; padding: .5rem .7rem; border-radius: 10px; background: rgb(var(--brand) / .08); }

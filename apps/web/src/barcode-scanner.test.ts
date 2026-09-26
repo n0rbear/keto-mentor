@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { ScannerController, detectBackend, isCameraCapable, normalizeScannedValue } from "./barcode-scanner";
+import { CAMERA_CONSTRAINTS, ScannerController, detectBackend, isCameraCapable, normalizeScannedValue } from "./barcode-scanner";
 
 const { decodeFromConstraintsMock, readerConstructState } = vi.hoisted(() => ({
   decodeFromConstraintsMock: vi.fn(),
@@ -107,7 +107,7 @@ describe("ScannerController — native backend", () => {
   it("requests the environment camera with no audio only once start() is called", async () => {
     const stream = fakeStream();
     const getUserMedia = vi.fn(async (constraints: MediaStreamConstraints) => {
-      expect(constraints).toEqual({ video: { facingMode: { ideal: "environment" } }, audio: false });
+      expect(constraints).toEqual(CAMERA_CONSTRAINTS);
       return stream;
     });
     Object.defineProperty(navigator, "mediaDevices", { value: { getUserMedia }, configurable: true });
@@ -235,7 +235,7 @@ describe("ScannerController — zxing fallback", () => {
     await controller.start(document.createElement("video"), { onDetected: vi.fn(), onError: vi.fn() });
     expect(decodeFromConstraintsMock).toHaveBeenCalledTimes(1);
     expect(decodeFromConstraintsMock).toHaveBeenCalledWith(
-      { video: { facingMode: { ideal: "environment" } }, audio: false },
+      CAMERA_CONSTRAINTS,
       expect.anything(),
       expect.any(Function)
     );
