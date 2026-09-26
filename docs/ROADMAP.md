@@ -62,10 +62,11 @@ Ezek minden ételre hatnak, nem csak a 10 referenciaételre.
 
 | # | Lépés | Állapot |
 |---|---|---|
-| E1 | A betű alapú visszaellenőrzés helyett az alapanyag-kulcsokra és jelentésre épülő döntés. Most ez dobja el a jó virsli-találatokat. | ⬜ |
-| E2 | Fő összetevőknél (a tömeg nagy része) bizonytalan párosításkor kérdezzen; fűszernél elfogadhatja | ⬜ |
-| E3b | Webes tápérték-bizonyíték (EU-s címkék): a szénhidrát ott is lehet rost nélküli, ezt külön kell kezelni. | ⬜ |
-| E3 | Az AI-becslés korlátja (3 db / 15 perc) felülvizsgálata. A 2. futásban ez hagyta a virslit kézi javításra. | ⬜ |
+| E1 | A betű alapú visszaellenőrzés helyett az alapanyag-kulcsokra és jelentésre épülő döntés. Most ez dobja el a jó virsli-találatokat. | 🔄 PR-ben: ha a lefordított név nem tartalmazza a felhasználó szavát, már nem dobja el automatikusan, hanem az AI-ellenőrző dönt a felhasználó eredeti szavával (virsli ↔ frankfurti: marad; tejföl ↔ sajt: kiesik). Ha nincs AI-ellenőrző, marad a régi, szigorú szabály. |
+| E2 | Fő összetevőknél (a tömeg nagy része) bizonytalan párosításkor kérdezzen; fűszernél elfogadhatja | ✅ Vizsgálat, kód nélkül: az automatikus párosítás már most is szigorú (helyben csak pontos név / ellenőrzött szinonima, külső rekordnál AI „ugyanaz” ítélet + névlefedés + hiteles forrás). A valós hibák a rossz nevekből (A2/A5) és a túl szigorú elvetésből (E1) jöttek. |
+| E3b | Webes tápérték-bizonyíték (EU-s címkék): a szénhidrát ott is lehet rost nélküli, ezt külön kell kezelni. | 🔄 PR-ben: a webes címke szénhidrátjáról az energiaérték dönti el, hogy rosttal együtt vagy nélküle értendő (bizonytalan esetben a címke EU-s eredete). Teljes szénhidrátként tárolja, jelölővel. |
+| E3 | Az AI-becslés korlátja (3 db / 15 perc) felülvizsgálata. A 2. futásban ez hagyta a virslit kézi javításra. | 🔄 PR-ben: AI-becslés és webes tápérték-keresés felhasználónként óránként 30 / naponta 100, receptenként legfeljebb 8. Ugyanarra az összetevőre 24 órán át újrahasznosítja az eredményt: nem hív újra AI-t, és a keretből sem fogy. |
+| E4 | A kézi keresőmező (ételkereső) jelentés szerint is találjon: ha nincs pontos találat, az AI által szabványosított névvel és a szinonimákkal keressen újra (pl. „virsli” → frankfurti / Wiener Würstchen). | ⬜ Javaslat (a tulajdonos kérdésére, 2026-09-26) |
 
 ## F. Később
 

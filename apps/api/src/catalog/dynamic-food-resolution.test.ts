@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { resolveDynamicFood, learnSearchAlias } from "./dynamic-food-resolution.js";
+import { resolveDynamicFood, learnSearchAlias , createFallbackResultCaches } from "./dynamic-food-resolution.js";
 import { DynamicFoodResolutionRateLimiter } from "./dynamic-food-rate-limit.js";
 import { DisabledSearchIntentProvider, type SearchIntent, type SearchIntentProvider } from "./search-intent.js";
 import type { ExternalFoodCandidate } from "./external-food.js";
@@ -759,6 +759,30 @@ describe("resolveDynamicFood: AI-estimation final-fallback hook-in", () => {
       decisionTrace: { webEvidenceOutcome: undefined, aiEstimationOutcome: "internal_rate_limited" }
     });
     expect(estimate).not.toHaveBeenCalled();
+  });
+
+  it("roadmap E3: the same unknown ingredient again reuses the pending estimate — no second AI call, no budget spent", async () => {
+    const { prisma } = fakePrisma();
+    const estimate = vi.fn(async () => goodEstimate);
+    const consume = vi.fn(() => true);
+    const fallbackCaches = createFallbackResultCaches();
+    const deps = () => ({
+      searchIntentProvider: stubSearchIntent({ canonicalConcept: "crucian carp", searchTerms: ["crucian carp"] }),
+      adapters: [{ source: "usda_fdc" as const, sourceName: "USDA", lookup: async () => [] }],
+      rateLimiter: new DynamicFoodResolutionRateLimiter(),
+      userId: "user-1",
+      aiEstimation: aiDeps({ provider: { id: "groq", estimate }, rateLimiter: { consume } }),
+      fallbackCaches
+    });
+    const first = await resolveDynamicFood(prisma, { foodQuery: "kárász" }, deps() as any);
+    const second = await resolveDynamicFood(prisma, { foodQuery: "kárász" }, deps() as any);
+    expect(first.status).toBe("ai_estimate_pending");
+    expect(second).toMatchObject({ status: "ai_estimate_pending", estimate: goodEstimate });
+    expect(estimate).toHaveBeenCalledTimes(1);
+    expect(consume).toHaveBeenCalledTimes(1);
+    const otherUser = await resolveDynamicFood(prisma, { foodQuery: "kárász" }, { ...deps(), userId: "user-2" } as any);
+    expect(otherUser.status).toBe("ai_estimate_pending");
+    expect(estimate).toHaveBeenCalledTimes(2);
   });
 
   it("Phase 24-equivalent regression: AI estimation is never attempted when the ordinary pipeline already resolves the food", async () => {

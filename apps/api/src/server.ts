@@ -1,4 +1,5 @@
 import compression from "compression";
+import { sharedFallbackResultCaches } from "./catalog/dynamic-food-resolution.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
@@ -443,7 +444,7 @@ app.post("/meal-input/interpret", requireAuth, async (req, res, next) => {
     // never adds a request on a local hit. No adapters configured (e.g. no
     // USDA_FDC_API_KEY) means dynamic resolution is simply not offered.
     const dynamic = externalFoodAdapters.length
-      ? { prisma, searchIntentProvider, semanticRecoveryProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale: trustedLocale(req.user!), localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider, webEvidenceFallback, aiEstimation }
+      ? { prisma, searchIntentProvider, semanticRecoveryProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale: trustedLocale(req.user!), localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider, webEvidenceFallback, aiEstimation, fallbackCaches: sharedFallbackResultCaches }
       : null;
     // Same deps, but with recipeIngredientDynamicResolutionLimiter in place
     // of dynamicFoodResolutionLimiter — see that limiter's own comment.
@@ -538,7 +539,7 @@ app.post("/meals", requireAuth, async (req, res, next) => {
     // contains a recipe-discovery item, at which point its own explicit
     // recipe_discovery_unavailable check fires instead of resolving anything.
     const recipeDynamic = externalFoodAdapters.length
-      ? { prisma, searchIntentProvider, semanticRecoveryProvider, adapters: externalFoodAdapters, rateLimiter: recipeIngredientDynamicResolutionLimiter, userId: req.user!.id, locale: trustedLocale(req.user!), localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider, webEvidenceFallback, aiEstimation }
+      ? { prisma, searchIntentProvider, semanticRecoveryProvider, adapters: externalFoodAdapters, rateLimiter: recipeIngredientDynamicResolutionLimiter, userId: req.user!.id, locale: trustedLocale(req.user!), localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider, webEvidenceFallback, aiEstimation, fallbackCaches: sharedFallbackResultCaches }
       : null;
     const meal = await createMeal(prisma, req.user!.id, input, { recipeAiProvider: recipeDiscoveryAiProvider, dynamic: recipeDynamic, recipeIngredientNormalizationProvider, recipeQuantityEstimationProvider });
     res.status(201).json({ meal });

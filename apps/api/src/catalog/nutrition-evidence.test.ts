@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   classifySourceTier, domainMatchesRequestedBrand, isAuthoritativeTier, isEnergyConsistent,
   isGroundedInSource, isNutrientGrounded, validateAndNormalizeEvidence, withinPhysicalBounds, type ExtractedNutritionEvidence
-} from "./nutrition-evidence.js";
+, carbohydrateBasisOf } from "./nutrition-evidence.js";
 
 describe("classifySourceTier", () => {
   it.each([
@@ -266,5 +266,23 @@ describe("validateAndNormalizeEvidence — end-to-end with the hardened groundin
     const text = "1 Tbsp (17g). Calories: 20 kcal. Protein: 0 g. Fat: 0 g. Carbohydrate: 5 g. Dietary fiber: 0 g.";
     const result = validateAndNormalizeEvidence(extracted, text, sourceMeta);
     expect(result).toMatchObject({ basisAmountGrams: 17, proteinPer100g: 0, fatPer100g: 0, fiberPer100g: 0 });
+  });
+});
+
+describe("carbohydrateBasisOf (roadmap E3b)", () => {
+  it("energy decides when fiber is large: an EU-style label (available carbs) is recognized on a .com site", () => {
+    // Wholemeal bread, EU label: 4*9 + 9*3 + 4*41 + 2*7 = 241 kcal
+    expect(carbohydrateBasisOf({ kcal: 241, protein: 9, fat: 3, carbs: 41, fiber: 7 }, "example.com")).toBe("available");
+  });
+
+  it("a US label (total carbs incl. fiber) stays total even on an EU domain", () => {
+    // 4*9 + 9*3 + 4*(48-7) + 2*7 = 241 kcal with carbs 48 incl. fiber
+    expect(carbohydrateBasisOf({ kcal: 241, protein: 9, fat: 3, carbs: 48, fiber: 7 }, "example.de")).toBe("total");
+  });
+
+  it("with little fiber the label's origin decides: EU domain or non-English label is available", () => {
+    expect(carbohydrateBasisOf({ kcal: 100, protein: 3, fat: 1, carbs: 20, fiber: 0.5 }, "tesco.hu")).toBe("available");
+    expect(carbohydrateBasisOf({ kcal: 100, protein: 3, fat: 1, carbs: 20, fiber: 0.5 }, "brand.com", "Szénhidrát 20 g")).toBe("available");
+    expect(carbohydrateBasisOf({ kcal: 100, protein: 3, fat: 1, carbs: 20, fiber: 0.5 }, "brand.com", "Total Carbohydrate 20g")).toBe("total");
   });
 });

@@ -161,6 +161,8 @@ export type NutritionEvidence = {
   proteinPer100g: number;
   fatPer100g: number;
   carbsPer100g: number;
+  // "total_from_available_plus_fiber" when the label stated available carbs.
+  carbohydrateBasis?: "total" | "total_from_available_plus_fiber";
   fiberPer100g: number;
   extractionMethod: "json_ld" | "html_table" | "llm_grounded";
   evidenceExcerpt: string;
@@ -279,6 +281,29 @@ export function isEnergyConsistent(kcal: number, protein: number, fat: number, c
   return Math.abs(derived - kcal) <= tolerance;
 }
 
+// EU/EEA/UK/CH labels (Regulation (EU) 1169/2011) state AVAILABLE
+// carbohydrate, fiber listed separately; US/other labels state TOTAL
+// carbohydrate including fiber. The app stores total carbohydrate (see
+// carb-basis.ts), so an EU label's carbs gain the fiber.
+const EU_LABEL_TLDS = new Set(["at", "be", "bg", "hr", "cy", "cz", "dk", "ee", "fi", "fr", "de", "gr", "hu", "ie", "it", "lv", "lt", "lu", "mt", "nl", "pl", "pt", "ro", "sk", "si", "es", "se", "eu", "uk", "ch", "no", "is", "li"]);
+const NON_ENGLISH_CARB_LABEL = /(szénhidrát|kohlenhydrat|glucides|carboidrati|hidratos|koolhydraten|węglowodany|sacharidy|uhlohydráty|kolhydrater)/i;
+
+/**
+ * Roadmap E3b (2026-09-26): which carbohydrate convention a label used.
+ * Energy decides when fiber is large enough to tell the two apart (the same
+ * check that proved the BLS convention); otherwise the label's origin does.
+ */
+export function carbohydrateBasisOf(values: { kcal: number; protein: number; fat: number; carbs: number; fiber: number }, sourceDomain: string, carbsQuote?: string): "available" | "total" {
+  const euLabel = EU_LABEL_TLDS.has(sourceDomain.toLowerCase().split(".").pop() ?? "") || (!!carbsQuote && NON_ENGLISH_CARB_LABEL.test(carbsQuote));
+  if (values.fiber >= 2) {
+    const base = 4 * values.protein + 9 * values.fat;
+    const availableError = Math.abs(values.kcal - (base + 4 * values.carbs + 2 * values.fiber));
+    const totalError = Math.abs(values.kcal - (base + 4 * Math.max(0, values.carbs - values.fiber) + 2 * values.fiber));
+    if (Math.abs(availableError - totalError) >= Math.max(3, values.kcal * 0.02)) return availableError < totalError ? "available" : "total";
+  }
+  return euLabel ? "available" : "total";
+}
+
 /**
  * Normalizes extracted-but-ungrounded values to null (never silently drops
  * the whole evidence object for one bad field) and basis conversion to
@@ -325,8 +350,10 @@ export function validateAndNormalizeEvidence(
   const kcalPer100g = kcalRaw * factor;
   const proteinPer100g = proteinRaw * factor;
   const fatPer100g = fatRaw * factor;
-  const carbsPer100g = carbsRaw * factor;
   const fiberPer100g = fiberRaw * factor;
+  const labelCarbsPer100g = carbsRaw * factor;
+  const carbohydrateBasis = carbohydrateBasisOf({ kcal: kcalPer100g, protein: proteinPer100g, fat: fatPer100g, carbs: labelCarbsPer100g, fiber: fiberPer100g }, source.sourceDomain, extracted.carbs?.quote);
+  const carbsPer100g = carbohydrateBasis === "available" ? labelCarbsPer100g + fiberPer100g : labelCarbsPer100g;
 
   if (!withinPhysicalBounds({ kcal: kcalPer100g, protein: proteinPer100g, fat: fatPer100g, carbs: carbsPer100g, fiber: fiberPer100g })) return null;
   const energyConsistent = isEnergyConsistent(kcalPer100g, proteinPer100g, fatPer100g, carbsPer100g);
@@ -347,6 +374,7 @@ export function validateAndNormalizeEvidence(
     sourceFoodName: extracted.sourceFoodName,
     basisAmountGrams: extracted.basis.amountGrams,
     kcalPer100g, proteinPer100g, fatPer100g, carbsPer100g, fiberPer100g,
+    carbohydrateBasis: carbohydrateBasis === "available" ? "total_from_available_plus_fiber" : "total",
     extractionMethod: extracted.extractionMethod,
     evidenceExcerpt,
     energyConsistent,

@@ -169,8 +169,8 @@ describe("attemptWebEvidenceFallback — end-to-end orchestration", () => {
     expect(fetchCount).toBeLessThanOrEqual(WEB_EVIDENCE_MAX_CANDIDATE_URLS);
   });
 
-  it("cost bound sanity: the rate limit is tighter than plain dynamic resolution (documents the intended budget)", () => {
-    expect(WEB_EVIDENCE_FALLBACK_RATE_LIMIT.limit).toBeLessThanOrEqual(3);
+  it("cost bound (owner-approved 2026-09-26): 30 per hour and 100 per day per user; recipes add a cap of 8", () => {
+    expect(WEB_EVIDENCE_FALLBACK_RATE_LIMIT.map((w) => [w.windowMs, w.limit])).toEqual([[3_600_000, 30], [86_400_000, 100]]);
   });
 });
 

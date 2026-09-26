@@ -386,6 +386,37 @@ describe("round-trip identity check on shown candidates", () => {
     expect((await result).get("a")).toEqual({ status: "unresolved", reason: "not_found" });
   });
 
+  describe("roadmap E1: a name mismatch is decided by meaning, not spelling", () => {
+    const frankNames: Record<string, string> = { "Frankfurter, beef": "frankfurti, marha", "Frankfurter, chicken": "frankfurti, csirke", "Bologna, beef": "bologna felvágott, marha" };
+    const frankLocalization: CandidateLocalizationProvider = { id: "fixture", localize: async (items) => new Map(items.map((i) => [i.id, frankNames[i.authoritativeName] ?? huNames[i.authoritativeName] ?? i.authoritativeName])) };
+    const sameFood: Record<string, string[]> = { virsli: ["frankfurti, marha", "frankfurti, csirke"], "tejföl": [] };
+    const gateCalls: Array<{ identity: string; names: string[] }> = [];
+    const gate = { id: "fixture-gate", checkRelevance: async (original: any, candidates: any[]) => {
+      gateCalls.push({ identity: original.identity, names: candidates.map((c) => c.authoritativeName) });
+      return new Map(candidates.map((c) => [c.id, (sameFood[original.identity] ?? []).includes(c.authoritativeName)]));
+    } };
+    const runWithGate = (names: string[], sourceIdentity: string, canonical: string) => {
+      const { prisma } = fakePrisma();
+      const adapters = [{ source: "usda_fdc" as const, sourceName: "USDA", lookup: async () => names.map((n, i) => named(n, String(i + 1))) }];
+      const pending: PendingAuthoritativeResolution = { ...pendingFor("a", canonical), sourceIdentity };
+      return resolveManyAuthoritativeFoods(prisma, [pending], baseDeps({ adapters, locale: "hu", localizationProvider: frankLocalization, semanticCandidateGateProvider: gate as any }));
+    };
+
+    it("keeps the frankfurters shown for 'virsli' (the live case dropped all five)", async () => {
+      const outcome = (await runWithGate(["Frankfurter, beef", "Frankfurter, chicken", "Bologna, beef"], "virsli", "frankfurter")).get("a") as any;
+      expect(outcome.status).toBe("confirmation_required");
+      expect(outcome.candidates.map((c: any) => c.names.hu)).toEqual(["frankfurti, marha", "frankfurti, csirke"]);
+      expect(gateCalls.at(-1)).toEqual({ identity: "virsli", names: ["frankfurti, marha", "frankfurti, csirke"] });
+    });
+
+    it("still never shows a cheese for 'tejföl', and correctly named sour creams need no gate call", async () => {
+      const outcome = (await runWithGate(["Sour cream, cultured", "Sour cream, reduced fat", "Cheese, cream"], "tejföl", "sour cream")).get("a") as any;
+      expect(outcome.candidates.map((c: any) => c.names.hu)).toEqual(["Tejföl, kultúrás", "Tejföl, csökkentett zsírtartalmú"]);
+      // Correctly named candidates never cost a gate call.
+      expect(gateCalls.flatMap((call) => call.names)).not.toContain("Tejföl, kultúrás");
+    });
+  });
+
   it("a Hungarian compound word keeps its plain localized match ('vöröshagyma' -> 'Hagyma, nyers')", async () => {
     const { result } = run(["Onions, raw", "Onions, sweet, raw"], "vöröshagyma", "onion");
     const outcome = (await result).get("a") as any;

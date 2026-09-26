@@ -1,4 +1,5 @@
 import type { WebKnowledgeSearchProvider, WebSearchResult } from "../web-knowledge/web-knowledge-search-provider.js";
+import { USER_FALLBACK_WINDOWS, UserUsageBudget, type UsageLimiter } from "./usage-budget.js";
 import type { NutritionEvidenceExtractionProvider } from "./nutrition-evidence-extraction.js";
 import { extractJsonLdNutrition, extractVisibleTextNutrition } from "./nutrition-evidence-extraction.js";
 import type { SemanticCandidateGateProvider, SemanticCandidateGateStatus } from "./semantic-candidate-gate.js";
@@ -36,21 +37,12 @@ import { timeStage } from "../request-performance.js";
 // credit + up to 3 page fetches + up to 3 LLM extraction calls per attempt)
 // so it earns its own, tighter, independent budget — mirrors
 // WebKnowledgeSearchRateLimiter's own justification (web-knowledge-rate-limit.ts).
-export const WEB_EVIDENCE_FALLBACK_RATE_LIMIT = Object.freeze({ windowMs: 15 * 60 * 1000, limit: 3 });
+// Per user: 30 per hour and 100 per day (roadmap E3, owner-approved
+// 2026-09-26); recipes add their own per-recipe cap on top.
+export const WEB_EVIDENCE_FALLBACK_RATE_LIMIT = USER_FALLBACK_WINDOWS;
 
-export class WebEvidenceFallbackRateLimiter {
-  private readonly buckets = new Map<string, { startsAt: number; count: number }>();
-  constructor(private readonly now: () => number = Date.now) {}
-  consume(userId: string) {
-    if (!userId) throw new Error("Authenticated user required before web-evidence fallback rate limiting");
-    const current = this.now();
-    const existing = this.buckets.get(userId);
-    const bucket = !existing || current - existing.startsAt >= WEB_EVIDENCE_FALLBACK_RATE_LIMIT.windowMs ? { startsAt: current, count: 0 } : existing;
-    if (bucket.count >= WEB_EVIDENCE_FALLBACK_RATE_LIMIT.limit) return false;
-    bucket.count += 1;
-    this.buckets.set(userId, bucket);
-    return true;
-  }
+export class WebEvidenceFallbackRateLimiter extends UserUsageBudget {
+  constructor(now: () => number = Date.now) { super(WEB_EVIDENCE_FALLBACK_RATE_LIMIT, now); }
 }
 
 // Cost bound (Phase 20): at most this many candidate pages are ever fetched
@@ -65,7 +57,7 @@ export type WebEvidenceFallbackDeps = {
   searchProvider: WebKnowledgeSearchProvider;
   extractionProvider: NutritionEvidenceExtractionProvider;
   semanticGateProvider: SemanticCandidateGateProvider;
-  rateLimiter: WebEvidenceFallbackRateLimiter;
+  rateLimiter: UsageLimiter;
   userId: string;
   locale?: string;
   // Test seams only — production always uses the real safe fetcher.
@@ -371,6 +363,7 @@ export async function persistWebEvidenceFood(prisma: WebEvidencePersistencePrism
       retrievedAt: evidence.retrievedAt,
       requestedIdentity: evidence.requestedIdentity,
       canonicalIdentity: evidence.canonicalIdentity,
+      ...(evidence.carbohydrateBasis ? { carbohydrateBasis: evidence.carbohydrateBasis } : {}),
       basisAmountGrams: evidence.basisAmountGrams,
       extractionMethod: evidence.extractionMethod,
       evidenceExcerpt: evidence.evidenceExcerpt,

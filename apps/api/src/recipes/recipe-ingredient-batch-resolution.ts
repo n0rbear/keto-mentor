@@ -1,4 +1,5 @@
 import { searchFoods, isTrustedLocalMatch, hasIdentityCoverage, localFormMismatch } from "../catalog/food-search.js";
+import { cappedPerRequest, RECIPE_FALLBACK_CAP } from "../catalog/usage-budget.js";
 import { resolveManyAuthoritativeFoods, type PendingAuthoritativeResolution } from "../catalog/dynamic-food-resolution-batch.js";
 import { DisabledRecipeSemanticGateProvider } from "../catalog/semantic-candidate-gate-batch.js";
 import { resolveQuantity, type DynamicResolutionDeps } from "../meal-input/interpret.js";
@@ -193,6 +194,13 @@ export async function resolveRecipeIngredientsBatch(
     // Each draft's fallback (web evidence / AI estimate) is independent, so
     // they run in parallel instead of one after another (live logs,
     // 2026-09-25: a single recipe took ~44 s, largely sequential waits).
+    // One recipe never spends more than RECIPE_FALLBACK_CAP web lookups or
+    // AI estimates, whatever the user's remaining hourly/daily budget.
+    const fallbackDeps = {
+      ...dynamic,
+      webEvidenceFallback: dynamic.webEvidenceFallback && { ...dynamic.webEvidenceFallback, rateLimiter: cappedPerRequest(dynamic.webEvidenceFallback.rateLimiter, RECIPE_FALLBACK_CAP) },
+      aiEstimation: dynamic.aiEstimation && { ...dynamic.aiEstimation, rateLimiter: cappedPerRequest(dynamic.aiEstimation.rateLimiter, RECIPE_FALLBACK_CAP) }
+    };
     await Promise.all(drafts.map(async (draft) => {
       const outcome = outcomes.get(String(draft.resultIndex));
       if (!outcome) return; // this draft resolved locally — never sent to the batch resolver
@@ -203,7 +211,7 @@ export async function resolveRecipeIngredientsBatch(
         // Authoritative batch already exhausted this identity. Reuse the
         // shared last-resort chain without repeating structured lookups.
         const fallback = await attemptFallbackChain(dynamic.prisma, draft.identityQuery, draft.identityQuery,
-          "normalized_identity", dynamic, dynamic.locale, { rawIngredient: draft.line.raw, recipeTitle: input.title },
+          "normalized_identity", fallbackDeps, dynamic.locale, { rawIngredient: draft.line.raw, recipeTitle: input.title },
           outcome.reason as "not_found" | "invalid_external_data" | "external_unavailable" | "convergence_rejected", {});
         if (fallback.status === "resolved") {
           draft.selectedFood = fallback.food; draft.resolution = "resolved"; draft.candidates = [fallback.food];

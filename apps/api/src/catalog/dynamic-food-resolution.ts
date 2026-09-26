@@ -13,10 +13,21 @@ import { computeAliasSemanticVerdict } from "./alias-semantic-verdict.js";
 import { timeStage } from "../request-performance.js";
 import { attemptWebEvidenceFallback, persistWebEvidenceFood, summarizeWebEvidenceOutcome, type WebEvidenceFallbackDeps, type WebEvidenceFallbackDiagnostics, type WebEvidenceOutcomeCategory } from "./web-evidence-fallback.js";
 import type { AiEstimationOutcome, AiNutritionEstimate, AiNutritionEstimationProvider } from "./ai-nutrition-estimation.js";
-import type { AiEstimateRateLimiter } from "./ai-estimate-rate-limit.js";
+import { UserResultCache, type UsageLimiter } from "./usage-budget.js";
 import type { SemanticRecovery, SemanticRecoveryProvider } from "./semantic-recovery.js";
 
 type DynamicPrisma = Parameters<typeof resolveAuthoritativeFood>[0];
+
+// Roadmap E3 (2026-09-26): per-user memory of the last-resort outcomes for
+// one identity, so repeating a recipe (or a second dish with the same
+// unknown ingredient) neither calls the AI again nor spends budget. An
+// accepted estimate becomes a private Food and is found earlier anyway;
+// this covers the not-yet-accepted estimate and a genuine web miss.
+export type FallbackResultCaches = { aiEstimates: UserResultCache<AiNutritionEstimate>; webEvidenceMisses: UserResultCache<WebEvidenceOutcomeCategory> };
+export const createFallbackResultCaches = (): FallbackResultCaches => ({ aiEstimates: new UserResultCache(), webEvidenceMisses: new UserResultCache() });
+// The one instance production wiring shares between meal input and recipes.
+export const sharedFallbackResultCaches = createFallbackResultCaches();
+const identityKey = (originalIdentity: string, searchTerm: string, locale: string) => `${normalizeSearch(originalIdentity)}|${normalizeSearch(searchTerm)}|${locale}`;
 
 /**
  * FINAL FALLBACK reuse (Part O, 2026-09-16): before spending a fresh AI
@@ -243,7 +254,9 @@ export type ResolveFromSearchTermDeps = {
   // FINAL FALLBACK: AI-ESTIMATED NUTRITION (2026-09-16) — tried only after
   // web-evidence ALSO genuinely fails. Optional; a caller that doesn't wire
   // it degrades to the pre-existing "unresolved" outcome.
-  aiEstimation?: { provider: AiNutritionEstimationProvider; rateLimiter: AiEstimateRateLimiter };
+  aiEstimation?: { provider: AiNutritionEstimationProvider; rateLimiter: UsageLimiter };
+  // Optional per-user memory of last-resort outcomes (roadmap E3); omitted = no caching.
+  fallbackCaches?: FallbackResultCaches;
   // SEMANTIC RECOVERY (2026-09-23): a second-chance search-term generator,
   // tried only when the first search-intent-driven attempt already failed to
   // find or safely converge on authoritative evidence — see
@@ -331,7 +344,12 @@ export async function attemptFallbackChain(
     }
   }
   let webEvidenceOutcome: WebEvidenceOutcomeCategory | undefined;
-  if (deps.webEvidenceFallback) {
+  const cacheKey = identityKey(originalIdentity, searchTerm, String(deps.foodLocale ?? deps.locale));
+  const knownWebMiss = deps.webEvidenceFallback ? deps.fallbackCaches?.webEvidenceMisses.get(deps.userId, cacheKey) : undefined;
+  if (knownWebMiss) {
+    webEvidenceOutcome = knownWebMiss;
+    console.log(`web_evidence_fallback cached_miss outcome=${knownWebMiss}`);
+  } else if (deps.webEvidenceFallback) {
     webEvidenceAttempted = true;
     const fallback = await timeStage("web_evidence_fallback", () => attemptWebEvidenceFallback(searchTerm, originalIdentity, {
       ...deps.webEvidenceFallback!,
@@ -341,6 +359,10 @@ export async function attemptFallbackChain(
       onDiagnostics: (d) => { webEvidenceDiagnostics = d; }
     }));
     webEvidenceOutcome = webEvidenceDiagnostics ? summarizeWebEvidenceOutcome(webEvidenceDiagnostics, !!fallback) : undefined;
+    // Only a genuine miss is remembered; a budget or search outage is retried.
+    if (!fallback && webEvidenceOutcome && ["no_authoritative_source", "nutrition_missing", "identity_mismatch"].includes(webEvidenceOutcome)) {
+      deps.fallbackCaches?.webEvidenceMisses.set(deps.userId, cacheKey, webEvidenceOutcome);
+    }
     if (fallback) {
       const food = await persistWebEvidenceFood(prisma as any, fallback.evidence);
       // Reuses the EXACT same write-path safety net PR #54 built for every
@@ -365,6 +387,16 @@ export async function attemptFallbackChain(
   // reaching here means this user genuinely has no private Food for this
   // identity yet, so a fresh estimate is the only remaining option.
   let aiEstimationOutcome: DecisionTrace["aiEstimationOutcome"];
+  const cachedEstimate = deps.aiEstimation ? deps.fallbackCaches?.aiEstimates.get(deps.userId, cacheKey) : undefined;
+  if (cachedEstimate) {
+    console.log("ai_nutrition_estimation outcome=cached");
+    logDynamicResolutionOutcome("ai_estimate_pending", via);
+    return {
+      status: "ai_estimate_pending", estimate: cachedEstimate, requestedIdentity: originalIdentity, canonicalIdentity: searchTerm, webEvidenceDiagnostics,
+      resolutionDiagnostics: baseDiagnostics(webEvidenceAttempted, "ai_estimate_pending"),
+      decisionTrace: { webEvidenceOutcome, aiEstimationOutcome: "success" }
+    };
+  }
   if (deps.aiEstimation) {
     if (deps.aiEstimation.rateLimiter.consume(deps.userId)) {
       // Defensive: ChatAiNutritionEstimationProvider already fails closed
@@ -386,6 +418,7 @@ export async function attemptFallbackChain(
         }
       } catch { estimate = null; aiEstimationOutcome = "provider_error"; }
       if (estimate) {
+        deps.fallbackCaches?.aiEstimates.set(deps.userId, cacheKey, estimate);
         logDynamicResolutionOutcome("ai_estimate_pending", via);
         return {
           status: "ai_estimate_pending", estimate, requestedIdentity: originalIdentity, canonicalIdentity: searchTerm, webEvidenceDiagnostics,
@@ -396,7 +429,7 @@ export async function attemptFallbackChain(
     } else {
       // Observability (2026-09-19): distinguishes "the estimator call itself
       // failed/returned nothing plausible" from "its own 3-per-15-minute
-      // budget was already exhausted and the call was never attempted at
+      // budget (now 30/hour, 100/day, 8 per recipe) was already exhausted and the call was never attempted at
       // all" — previously both silently fell through to the same generic
       // unresolved log below, a real diagnostic blind spot when investigating
       // live reports. Category-only: no user text, food name, user id, or
