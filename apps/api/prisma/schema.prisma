@@ -71,11 +71,17 @@ model User {
 
 // The user's own measured plates for plate-photo portion estimation. Only
 // the outer rim diameter is kept; photos are never stored.
+/// The user's own plates (owner decision 2026-09-26, roadmap D): measured
+/// once, never photographed. "deep": capacityMl (filled with water to the
+/// brim); "flat": diameterMm (rim to rim). UserPlate_kind_check enforces
+/// that the measure matching the kind is present.
 model UserPlate {
   id         String   @id @default(cuid())
   userId     String
   name       String
-  diameterMm Float
+  kind       String   @default("flat")
+  capacityMl Float?
+  diameterMm Float?
   createdAt  DateTime @default(now())
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 

@@ -54,9 +54,9 @@ Ezek minden ételre hatnak, nem csak a 10 referenciaételre.
 
 | # | Lépés | Állapot |
 |---|---|---|
-| D1 | A fotós / érmés / kártyás becslés eltávolítása | ⬜ |
-| D2 | Saját tányérok: név, típus (mély: ml; lapos: átmérő cm), a meglévő tányérlista átalakítása | ⬜ |
-| D3 | „Egy tányér …” → a mentett tányérok felajánlása, töltöttség (félig / normál / tele, illetve kevés / normál / púpozott), gramm a sűrűségből | ⬜ |
+| D1 | A fotós / érmés / kártyás becslés eltávolítása | 🔄 PR-ben: a fotós / érmés / kártyás becslés teljesen kikerült (felület, API, AI-hívás, beállítás). |
+| D2 | Saját tányérok: név, típus (mély: ml; lapos: átmérő cm), a meglévő tányérlista átalakítása | 🔄 PR-ben: mély tányér ml-ben (vízzel kimérve), lapos tányér átmérővel (cm). Felvétel, szerkesztés, törlés, felhasználónként legfeljebb 10. A régi, fotóval mentett tányér lapos tányérként megmarad; ha pontatlan, törölhető és újra felvehető. |
+| D3 | „Egy tányér …” → a mentett tányérok felajánlása, töltöttség (félig / normál / tele, illetve kevés / normál / púpozott), gramm a sűrűségből | 🔄 PR-ben: „Tányér alapján” gomb a mennyiség mellett. A mentett tányérok azonnal megjelennek, és a töltöttség szerint (félig / normál / tele, illetve kevés / normál / púpozott) grammot számol. Referenciaételnél az étel saját sűrűségével és lapos-tányér paramétereivel számol, egyébként általános becsléssel, amit ki is ír. |
 
 ## E. Összetevő-párosítás
 

@@ -329,19 +329,17 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
 
 .voice-input { display: grid; gap: .4rem; margin-top: .4rem; }
 .voice-recording-row { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
-.portion-photo-open { display: inline-flex; align-items: center; justify-content: center; gap: .45rem; min-height: 44px; }
-.recipe-portion-photo { grid-column: 1 / -1; }
-.portion-photo { display: grid; gap: .5rem; padding: .7rem; border: 1px solid rgb(var(--brand) / .3); border-radius: 12px; background: rgb(var(--surface) / .6); }
-.portion-photo-modes { display: grid; gap: .35rem; }
-.portion-photo-modes label { display: flex; align-items: center; gap: .45rem; min-height: 36px; }
-.portion-photo-coin { display: grid; gap: .3rem; }
-.portion-photo-file { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
-.portion-photo-actions { display: flex; flex-wrap: wrap; gap: .45rem; }
-.portion-photo-actions .btn { flex: 1 1 140px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: .4rem; }
-.portion-photo-result { display: grid; gap: .35rem; }
-.portion-photo-saved { color: rgb(var(--success)); }
-.portion-photo-error { color: rgb(var(--warning)); }
-.portion-photo-warning { color: rgb(var(--warning)); font-size: .9rem; }
+.plate-portion-open { display: inline-flex; align-items: center; justify-content: center; gap: .45rem; min-height: 44px; }
+.recipe-plate-portion { grid-column: 1 / -1; }
+.plate-portion { display: grid; gap: .5rem; padding: .7rem; border: 1px solid rgb(var(--brand) / .3); border-radius: 12px; background: rgb(var(--surface) / .6); }
+.plate-portion-list, .plate-portion-add { display: grid; gap: .4rem; }
+.plate-portion-row { display: flex; align-items: center; justify-content: space-between; gap: .5rem; min-height: 40px; }
+.plate-portion-row label, .plate-portion-fills label { display: flex; align-items: center; gap: .45rem; min-height: 36px; }
+.plate-portion-fills { display: flex; flex-wrap: wrap; gap: .25rem .9rem; }
+.plate-portion-actions { display: flex; flex-wrap: wrap; gap: .45rem; }
+.plate-portion-actions .btn { flex: 1 1 140px; min-height: 44px; }
+.plate-portion-result { display: grid; gap: .35rem; }
+.plate-portion-error { color: rgb(var(--warning)); }
 .voice-mic-button { display: inline-flex; align-items: center; justify-content: center; gap: .45rem; min-height: 44px; font-weight: 750; }
 .voice-stop-button { display: inline-flex; align-items: center; gap: .4rem; min-height: 44px; padding-inline: 1rem; font-weight: 750; }
 .voice-privacy { margin: 0; }
