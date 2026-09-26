@@ -3,7 +3,7 @@ import type { Lang } from "./i18n";
 import { CheckCircle2, CircleDashed, Sparkles } from "lucide-react";
 import { pickDisplayName } from "./food-display-name";
 import type { ApiState } from "./api";
-import { PortionPhoto } from "./PortionPhoto";
+import { PlatePortion } from "./PlatePortion";
 
 export type ExternalCandidate = {
   source: "usda_fdc" | "open_food_facts";
@@ -576,7 +576,7 @@ function RecipeConfirmControls({ candidate, lang, labels, busy, ready, onConfirm
     {ready && <button type="button" className="btn primary" disabled={busy} aria-busy={busy} onClick={() => onConfirm(candidate, quantity, unit)}>
       {busy ? labels.recipeDiscovery.confirmAdding : labels.recipeDiscovery.confirmAdd}
     </button>}
-    {portionState && <div className="recipe-portion-photo"><PortionPhoto lang={lang} state={portionState} dish={candidate.title} onEstimate={(grams) => { setUnit("g"); setQuantity(grams); }}/></div>}
+    {portionState && <div className="recipe-plate-portion"><PlatePortion lang={lang} state={portionState} onEstimate={(grams) => { setUnit("g"); setQuantity(grams); }}/></div>}
   </div>;
 }
 
@@ -662,8 +662,8 @@ function AiEstimateCard({ estimate, labels, busy, onAccept, onOverride, onDeclin
 // note, with no way to add it or to pick between several matches. One
 // option: amount + add. Several (e.g. a reference dish with an open side):
 // pick first, then add.
-function LocalRecipePicker({ discovery, labels, busy, onConfirm }: {
-  discovery: RecipeDiscoveryPreviewValue; labels: FoodUnderstandingLabels["recipeDiscovery"]; busy: boolean;
+function LocalRecipePicker({ discovery, labels, busy, onConfirm, lang, portionState }: {
+  discovery: RecipeDiscoveryPreviewValue; labels: FoodUnderstandingLabels["recipeDiscovery"]; busy: boolean; lang: Lang; portionState?: ApiState;
   onConfirm: (option: LocalRecipeOption, quantity: number, unit: "g" | "serving") => void;
 }) {
   const options = discovery.status === "local_match" && discovery.localMatch ? [discovery.localMatch] : discovery.localAlternatives ?? [];
@@ -685,6 +685,7 @@ function LocalRecipePicker({ discovery, labels, busy, onConfirm }: {
           {picked.servings && <option value="serving">{labels.confirmServingUnit}</option>}
         </select>
         <button type="button" className="btn primary" disabled={busy || !(quantity > 0)} aria-busy={busy} onClick={() => onConfirm(picked, quantity, unit)}>{busy ? labels.confirmAdding : labels.confirmAdd}</button>
+        {portionState && <div className="recipe-plate-portion"><PlatePortion key={picked.recipeId} lang={lang} state={portionState} recipeId={picked.recipeId} onEstimate={(grams) => { setUnit("g"); setQuantity(grams); }}/></div>}
       </div>
     </>}
   </div>;
@@ -729,7 +730,7 @@ function PreviewRow({ item, lang, labels, busy, confirmingId, onConfirmExternal,
     {item.quantity?.status === "resolved" && <small>{item.quantity.estimated ? "≈" : "="} {Math.round((item.quantity.grams ?? 0) * 10) / 10} g</small>}
     {item.recipeDiscovery && <small className="recipe-discovery-note">{recipeDiscoveryText(item.recipeDiscovery, labels)}</small>}
     {item.recipeDiscovery?.candidate && <RecipeCandidateReview candidate={item.recipeDiscovery.candidate} lang={lang} labels={labels} busy={busy} onConfirm={onConfirmRecipe} services={recipeFixServices}/>}
-    {item.recipeDiscovery && onConfirmLocalRecipe && (item.recipeDiscovery.status === "local_match" || item.recipeDiscovery.reason === "ambiguous_local_matches") && <LocalRecipePicker discovery={item.recipeDiscovery} labels={labels.recipeDiscovery} busy={busy} onConfirm={onConfirmLocalRecipe}/>}
+    {item.recipeDiscovery && onConfirmLocalRecipe && (item.recipeDiscovery.status === "local_match" || item.recipeDiscovery.reason === "ambiguous_local_matches") && <LocalRecipePicker discovery={item.recipeDiscovery} labels={labels.recipeDiscovery} busy={busy} onConfirm={onConfirmLocalRecipe} lang={lang} portionState={recipeFixServices?.portionState}/>}
     {hasCatalogCandidates && onSelectCandidate && <CatalogCandidateList candidates={item.candidates!} lang={lang} labels={labels} busy={busy} onSelect={onSelectCandidate}/>}
     {!!item.externalCandidates?.length && onConfirmExternal && <ExternalCandidateList candidates={item.externalCandidates} lang={lang} labels={labels} busy={busy} confirmingId={confirmingId} onConfirm={onConfirmExternal}/>}
     {isAiEstimatePending && onAcceptAiEstimate && onOverrideAiEstimate && <AiEstimateCard estimate={item.aiEstimate!} labels={labels.aiEstimate} busy={busy} onAccept={(quantityGrams) => onAcceptAiEstimate(item.aiEstimate!, quantityGrams)} onOverride={onOverrideAiEstimate} onDecline={() => setAiEstimateDeclined(true)}/>}
