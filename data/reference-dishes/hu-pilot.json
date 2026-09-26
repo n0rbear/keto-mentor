@@ -107,15 +107,15 @@
     },
     "smoked_sausage": {
       "names": {
-        "hu": "füstölt kolbász",
-        "de": "Räucherwurst (ungarisch)",
-        "en": "smoked pork sausage"
+        "hu": "füstölt kolbász (debreceni)",
+        "de": "Debrecziner",
+        "en": "Debrecziner sausage"
       },
-      "catalog": "open_database:174584",
+      "catalog": "bls:W185000",
       "carb_basis": "total",
       "density_intrinsic_g_ml": 1.0,
       "density_bulk_g_ml": 0.8,
-      "note": "REVIEW: generic 'Pork sausage'; a Hungarian smoked kolbász record would be better"
+      "note": "BLS Debrecziner roh (Hungarian-style paprika sausage); imported by migration 20260926170000; carbs stored as total"
     },
     "smoked_bacon": {
       "names": {
@@ -202,11 +202,11 @@
         "de": "Paniermehl",
         "en": "breadcrumbs"
       },
-      "catalog": null,
-      "carb_basis": null,
+      "catalog": "bls:B821000",
+      "carb_basis": "total",
       "density_intrinsic_g_ml": 1.0,
       "density_bulk_g_ml": 1.0,
-      "note": "MISSING in production catalog - import needed (e.g. BLS Paniermehl or USDA 'Bread, crumbs, dry, grated, plain')"
+      "note": "BLS Paniermehl/Semmelbrösel; imported by migration 20260926170000; carbs stored as total"
     },
     "rice_white": {
       "names": {
@@ -268,14 +268,14 @@
     "parsley_root": {
       "names": {
         "hu": "petrezselyemgyökér",
-        "de": "Petersilienwurzel",
+        "de": "Wurzelpetersilie",
         "en": "parsley root"
       },
-      "catalog": null,
-      "carb_basis": null,
+      "catalog": "bls:G670100",
+      "carb_basis": "total",
       "density_intrinsic_g_ml": 1.03,
       "density_bulk_g_ml": 0.75,
-      "note": "MISSING in production catalog - import needed (BLS Petersilienwurzel roh). Parsnip is NOT the same food"
+      "note": "BLS Wurzelpetersilie roh; imported by migration 20260926170000; carbs stored as total. Parsnip is NOT the same food"
     },
     "celeriac": {
       "names": {
@@ -484,14 +484,12 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 47.1,
+          "kcal": 49.1,
           "fat": 1.5,
           "protein": 4.0,
-          "net_carbs": 3.8
+          "net_carbs": 4.2
         },
-        "incomplete_missing_food_keys": [
-          "parsley_root"
-        ]
+        "incomplete_missing_food_keys": []
       }
     },
     "halaszle": {
@@ -680,9 +678,9 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 115.2,
-          "fat": 8.1,
-          "protein": 5.7,
+          "kcal": 116.2,
+          "fat": 8.0,
+          "protein": 6.2,
           "net_carbs": 3.6
         },
         "incomplete_missing_food_keys": []
@@ -1064,10 +1062,10 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 159.8,
-          "fat": 10.3,
-          "protein": 5.6,
-          "net_carbs": 11.1
+          "kcal": 162.3,
+          "fat": 10.0,
+          "protein": 6.9,
+          "net_carbs": 11.0
         },
         "incomplete_missing_food_keys": []
       }
@@ -1150,14 +1148,12 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 29.5,
+          "kcal": 33.1,
           "fat": 0.8,
-          "protein": 4.3,
-          "net_carbs": 0.8
+          "protein": 4.4,
+          "net_carbs": 1.5
         },
-        "incomplete_missing_food_keys": [
-          "parsley_root"
-        ]
+        "incomplete_missing_food_keys": []
       }
     },
     "rantott_hus": {
@@ -1225,14 +1221,12 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 247.2,
-          "fat": 17.5,
-          "protein": 19.2,
-          "net_carbs": 3.0
+          "kcal": 296.4,
+          "fat": 18.1,
+          "protein": 20.8,
+          "net_carbs": 12.1
         },
-        "incomplete_missing_food_keys": [
-          "breadcrumbs"
-        ]
+        "incomplete_missing_food_keys": []
       }
     },
     "petrezselymes_burgonya": {

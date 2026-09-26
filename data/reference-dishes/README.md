@@ -48,17 +48,15 @@ Fájlok:
 
 ## Ismert hiányok és nyitott kérdések
 
-- **Hiányzik a katalógusból** (import kell):
-  - petrezselyemgyökér (gulyásleves, marhahúsleves) – a paszternák NEM ugyanaz;
-  - zsemlemorzsa (rántott hús).
-
-  Addig ezeknél a részeknél a tápérték hiányos.
+- **Korábban hiányzott a katalógusból, most pótolva** (migráció `20260926170000`, hivatalos BLS 4.0):
+  - petrezselyemgyökér (G670100 Wurzelpetersilie roh) – a paszternák NEM ugyanaz;
+  - zsemlemorzsa (B821000 Paniermehl);
+  - füstölt kolbász → debreceni (W185000 Debrecziner roh), az általános „Pork sausage” helyett.
 - **Hibás katalógusadat:** a kömény magyar neve „Körömfűmag”, a „fehérrépa” tarlórépára mutat. (A fokhagyma BLS-értéke nem hibás: a fruktánok ott rostként szerepelnek.) A teljes lista: `docs/ROADMAP.md`, A szakasz.
 - **Általános hiba a kódban (nem ebben az adatbázisban):**
   - A BLS-rekordok `carbs` mezője már rost nélküli érték.
   - Az app mégis mindenhol `carbs − fiber`-t számol, így a BLS-ételeknél a rost kétszer vonódik le. A nettó szénhidrát emiatt túl alacsony lesz, főleg zöldségeknél.
   - Példa: sárgarépa 3,6 g a helyes 6,5 g helyett.
-- **Pontosítandó rekord:** a `smoked_sausage` (füstölt kolbász) most egy általános „Pork sausage”. Egy magyar füstölt kolbász rekord jobb lenne.
 - **Később külön étel legyen:**
   - bajai halászlé;
   - virsli nélküli lecsó;

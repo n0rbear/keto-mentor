@@ -3,7 +3,7 @@ gulyasleves,Gulyásleves,4,beef_shank,marhalábszár,600,core,usda_fdc:169441,38
 gulyasleves,Gulyásleves,4,potato,burgonya,600,core,bls:K110100,3802,0.905,1.022,450
 gulyasleves,Gulyásleves,4,onion,vöröshagyma,250,core,bls:G480100,3802,0.905,1.022,450
 gulyasleves,Gulyásleves,4,carrot,sárgarépa,200,core,bls:G620100,3802,0.905,1.022,450
-gulyasleves,Gulyásleves,4,parsley_root,petrezselyemgyökér,100,core,MISSING,3802,0.905,1.022,450
+gulyasleves,Gulyásleves,4,parsley_root,petrezselyemgyökér,100,core,bls:G670100,3802,0.905,1.022,450
 gulyasleves,Gulyásleves,4,wax_pepper,TV paprika / zöldpaprika,100,core,usda_fdc:2747660,3802,0.905,1.022,450
 gulyasleves,Gulyásleves,4,tomato,paradicsom,100,core,bls:G561100,3802,0.905,1.022,450
 gulyasleves,Gulyásleves,4,lard,sertészsír,30,fat,usda_fdc:171401,3802,0.905,1.022,450
@@ -25,7 +25,7 @@ toltott_kaposzta,Töltött káposzta,6,rice_white,rizs (nyers),120,core,bls:C352
 toltott_kaposzta,Töltött káposzta,6,onion,vöröshagyma,150,core,bls:G480100,4187,0.944,1.017,450
 toltott_kaposzta,Töltött káposzta,6,garlic,fokhagyma,10,seasoning,bls:G490100,4187,0.944,1.017,450
 toltott_kaposzta,Töltött káposzta,6,egg,tojás,50,core,bls:E111100,4187,0.944,1.017,450
-toltott_kaposzta,Töltött káposzta,6,smoked_sausage,füstölt kolbász,200,core,open_database:174584,4187,0.944,1.017,450
+toltott_kaposzta,Töltött káposzta,6,smoked_sausage,füstölt kolbász (debreceni),200,core,bls:W185000,4187,0.944,1.017,450
 toltott_kaposzta,Töltött káposzta,6,smoked_bacon,füstölt szalonna / bacon,150,core,bls:W415000,4187,0.944,1.017,450
 toltott_kaposzta,Töltött káposzta,6,lard,sertészsír,20,fat,usda_fdc:171401,4187,0.944,1.017,450
 toltott_kaposzta,Töltött káposzta,6,paprika_ground,őrölt pirospaprika,12,seasoning,usda_fdc:171329,4187,0.944,1.017,450
@@ -62,12 +62,12 @@ lecso_virslivel,Lecsó virslivel,4,paprika_ground,őrölt pirospaprika,6,seasoni
 lecso_virslivel,Lecsó virslivel,4,garlic,fokhagyma,6,seasoning,bls:G490100,1592,0.888,0.991,400
 rakott_krumpli,Rakott krumpli,4,potato,burgonya,900,core,bls:K110100,1680,0.923,1.051,400
 rakott_krumpli,Rakott krumpli,4,egg,tojás,300,core,bls:E111100,1680,0.923,1.051,400
-rakott_krumpli,Rakott krumpli,4,smoked_sausage,füstölt kolbász,200,core,open_database:174584,1680,0.923,1.051,400
+rakott_krumpli,Rakott krumpli,4,smoked_sausage,füstölt kolbász (debreceni),200,core,bls:W185000,1680,0.923,1.051,400
 rakott_krumpli,Rakott krumpli,4,sour_cream,tejföl (20%),400,core,usda_fdc:2346387,1680,0.923,1.051,400
 rakott_krumpli,Rakott krumpli,4,butter,vaj,20,fat,open_database:173430,1680,0.923,1.051,400
 marhahusleves,"Marhahúsleves (hússal, zöldséggel)",6,beef_shank,marhalábszár,800,core,usda_fdc:169441,4255,0.825,1.016,450
 marhahusleves,"Marhahúsleves (hússal, zöldséggel)",6,carrot,sárgarépa,300,core,bls:G620100,4255,0.825,1.016,450
-marhahusleves,"Marhahúsleves (hússal, zöldséggel)",6,parsley_root,petrezselyemgyökér,200,core,MISSING,4255,0.825,1.016,450
+marhahusleves,"Marhahúsleves (hússal, zöldséggel)",6,parsley_root,petrezselyemgyökér,200,core,bls:G670100,4255,0.825,1.016,450
 marhahusleves,"Marhahúsleves (hússal, zöldséggel)",6,celeriac,zellergumó,100,core,bls:G660100,4255,0.825,1.016,450
 marhahusleves,"Marhahúsleves (hússal, zöldséggel)",6,kohlrabi,karalábé,150,core,bls:G331100,4255,0.825,1.016,450
 marhahusleves,"Marhahúsleves (hússal, zöldséggel)",6,onion,vöröshagyma,100,core,bls:G480100,4255,0.825,1.016,450
@@ -76,7 +76,7 @@ marhahusleves,"Marhahúsleves (hússal, zöldséggel)",6,water,víz,3500,liquid,
 rantott_hus,Rántott hús (sertéskaraj),4,pork_loin,sertéskaraj,600,core,bls:U622100,740,0.831,0.85,185
 rantott_hus,Rántott hús (sertéskaraj),4,wheat_flour,búzaliszt (BL55),30,coating,bls:C214100,740,0.831,0.85,185
 rantott_hus,Rántott hús (sertéskaraj),4,egg,tojás,100,coating,bls:E111100,740,0.831,0.85,185
-rantott_hus,Rántott hús (sertéskaraj),4,breadcrumbs,zsemlemorzsa,100,coating,MISSING,740,0.831,0.85,185
+rantott_hus,Rántott hús (sertéskaraj),4,breadcrumbs,zsemlemorzsa,100,coating,bls:B821000,740,0.831,0.85,185
 rantott_hus,Rántott hús (sertéskaraj),4,sunflower_oil,napraforgóolaj,60,absorbed_fat,bls:Q320000,740,0.831,0.85,185
 petrezselymes_burgonya,Petrezselymes burgonya,4,potato,burgonya,1000,core,bls:K110100,1030,0.981,0.7,200
 petrezselymes_burgonya,Petrezselymes burgonya,4,butter,vaj,40,fat,open_database:173430,1030,0.981,0.7,200
