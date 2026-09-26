@@ -1,6 +1,6 @@
 # Keto Mentor – ütemterv (navigációs lista)
 
-Utolsó frissítés: 2026-09-26 (A, B, C1 élesben; D a #67-ben). Minden lépés után ezt a fájlt frissítem, így mindig látszik, mi van kész és mi nincs.
+Utolsó frissítés: 2026-09-26 (A, B, C1, D élesben; A3 a #68-ban).
 
 Jelölések:
 - ✅ kész
@@ -54,9 +54,9 @@ Ezek minden ételre hatnak, nem csak a 10 referenciaételre.
 
 | # | Lépés | Állapot |
 |---|---|---|
-| D1 | A fotós / érmés / kártyás becslés eltávolítása | 🔄 PR-ben: a fotós / érmés / kártyás becslés teljesen kikerült (felület, API, AI-hívás, beállítás). |
-| D2 | Saját tányérok: név, típus (mély: ml; lapos: átmérő cm), a meglévő tányérlista átalakítása | 🔄 PR-ben: mély tányér ml-ben (vízzel kimérve), lapos tányér átmérővel (cm). Felvétel, szerkesztés, törlés, felhasználónként legfeljebb 10. A régi, fotóval mentett tányér lapos tányérként megmarad; ha pontatlan, törölhető és újra felvehető. |
-| D3 | „Egy tányér …” → a mentett tányérok felajánlása, töltöttség (félig / normál / tele, illetve kevés / normál / púpozott), gramm a sűrűségből | 🔄 PR-ben: „Tányér alapján” gomb a mennyiség mellett. A mentett tányérok azonnal megjelennek, és a töltöttség szerint (félig / normál / tele, illetve kevés / normál / púpozott) grammot számol. Referenciaételnél az étel saját sűrűségével és lapos-tányér paramétereivel számol, egyébként általános becsléssel, amit ki is ír. |
+| D1 | A fotós / érmés / kártyás becslés eltávolítása | ✅ Élesben (#67, 06:20 UTC): a fotós / érmés / kártyás becslés teljesen kikerült (felület, API, AI-hívás, beállítás). |
+| D2 | Saját tányérok: név, típus (mély: ml; lapos: átmérő cm), a meglévő tányérlista átalakítása | ✅ Élesben (#67, 06:20 UTC): mély tányér ml-ben (vízzel kimérve), lapos tányér átmérővel (cm). Felvétel, szerkesztés, törlés, felhasználónként legfeljebb 10. A régi, fotóval mentett tányér lapos tányérként megmarad; ha pontatlan, törölhető és újra felvehető. |
+| D3 | „Egy tányér …” → a mentett tányérok felajánlása, töltöttség (félig / normál / tele, illetve kevés / normál / púpozott), gramm a sűrűségből | ✅ Élesben (#67, 06:20 UTC): „Tányér alapján” gomb a mennyiség mellett. A mentett tányérok azonnal megjelennek, és a töltöttség szerint (félig / normál / tele, illetve kevés / normál / púpozott) grammot számol. Referenciaételnél az étel saját sűrűségével és lapos-tányér paramétereivel számol, egyébként általános becsléssel, amit ki is ír. |
 
 ## E. Összetevő-párosítás
 
