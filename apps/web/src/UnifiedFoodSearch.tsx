@@ -12,7 +12,10 @@ import type { LocalRecipeOption } from "./FoodUnderstandingPreview";
 // (E4). Enter keeps the full natural-language interpretation.
 
 type RecipeItem = { type: "recipe"; recipeId: string; title: string; source: "own" | "reference"; servings: number | null; servingGrams: number | null };
-type FoodItem = { type: "food"; food: Food & { match?: { stage: string; score: number } }; via: "name" | "meaning" };
+// amount: the sentence's quantity in this food's units ("négy tojás" -> 4
+// egg servings), so picking the food keeps what the user already said.
+export type FoodAmount = { quantity: number; servingId?: string; grams: number };
+type FoodItem = { type: "food"; food: Food & { match?: { stage: string; score: number } }; via: "name" | "meaning"; amount?: FoodAmount };
 type SearchResult = { kind: "barcode"; barcode: string } | { kind: "results"; query: string; items: Array<RecipeItem | FoodItem>; meaning: { tried: boolean; terms: string[] } };
 
 const texts = {
@@ -26,7 +29,7 @@ export const isBarcodeInput = (value: string) => BARCODE.test(value.replace(/\s+
 
 export function UnifiedFoodSearch({ lang, state, value, disabled, onPickFood, onPickRecipe }: {
   lang: Lang; state: ApiState; value: string; disabled?: boolean;
-  onPickFood: (food: Food) => void; onPickRecipe: (option: LocalRecipeOption) => void;
+  onPickFood: (food: Food, amount?: FoodAmount) => void; onPickRecipe: (option: LocalRecipeOption) => void;
 }) {
   const t = texts[lang];
   const [items, setItems] = useState<Array<RecipeItem | FoodItem>>([]);
@@ -69,9 +72,9 @@ export function UnifiedFoodSearch({ lang, state, value, disabled, onPickFood, on
           </button>
         </li>
         : <li key={`f-${item.food.id}`} role="option" aria-selected="false">
-          <button type="button" onClick={() => { close(); onPickFood(item.food); }}>
+          <button type="button" onClick={() => { close(); onPickFood(item.food, item.amount); }}>
             <span>{pickDisplayName(item.food, lang) || item.food.name}</span>
-            <small>{t.food}{item.via === "meaning" ? <> · <Sparkles aria-hidden="true" size={12}/> {t.meaning}</> : null}</small>
+            <small>{t.food}{item.amount ? ` · ${Math.round(item.amount.grams)} g` : ""}{item.via === "meaning" ? <> · <Sparkles aria-hidden="true" size={12}/> {t.meaning}</> : null}</small>
           </button>
         </li>)}
     </ul>}

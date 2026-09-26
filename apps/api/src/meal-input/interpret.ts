@@ -4,6 +4,7 @@ import { isBarePreparationToken, parseNaturalFoodQuery, type ParsedNaturalFoodQu
 import { hasSemanticCoverage, isTrustedLocalMatch, localFormMismatch, searchFoods } from "../catalog/food-search.js";
 import type { RecipeDiscoveryPreview } from "../recipes/recipe-discovery.js";
 import { DisabledQuantityEstimationProvider, type EstimateMethod, type QuantityEstimationClass, type QuantityEstimationMethodClass, type QuantityEstimationProvider, type VolumeQuantityModel, validateQuantityEstimate } from "./quantity-estimation.js";
+import { genericUnitWeight } from "./generic-unit-weights.js";
 import { normalizeSearch } from "../catalog/normalize.js";
 import { StubAiProvider, type AiProvider, understandFood } from "../ai/provider.js";
 import { AiProviderError } from "../ai/chat-completions-provider.js";
@@ -320,12 +321,9 @@ function servingMethod(serving: Serving): EstimateMethod {
   return JSON.stringify(serving.provenance).toLowerCase().includes("curated") ? "curated" : "authoritative";
 }
 
-export async function resolveQuantity(
-  parsed: ParsedNaturalFoodQuery,
-  food: ResolvedFood,
-  provider: QuantityEstimationProvider = new DisabledQuantityEstimationProvider()
-): Promise<QuantityResolution> {
-  if (parsed.quantity == null || !parsed.unit) return { status: "unresolved", estimated: false, requiresConfirmation: true, reason: "quantity_missing" };
+/** Grams from the stated mass, the food's own servings or a typical slice weight; never an AI call. Null when none applies. */
+export function resolveQuantityLocally(parsed: ParsedNaturalFoodQuery, food: ResolvedFood): QuantityResolution | null {
+  if (parsed.quantity == null || !parsed.unit) return null;
   if (parsed.unit === "g" || parsed.unit === "kg") {
     const gramsPerUnit = parsed.unit === "kg" ? 1000 : 1;
     return { status: "resolved", grams: parsed.quantity * gramsPerUnit, gramsPerUnit, method: "measured", confidence: 1, estimated: false, requiresConfirmation: false, provenance: { method: "exact_mass", unit: parsed.unit } };
@@ -352,6 +350,26 @@ export async function resolveQuantity(
       requiresConfirmation: serving.isEstimated || serving.confidence < 0.85, provenance
     };
   }
+
+  const generic = genericUnitWeight(parsed.unit, food);
+  if (generic) {
+    return {
+      status: "resolved", grams: parsed.quantity * generic.grams, gramsPerUnit: generic.grams,
+      method: "curated", confidence: 0.8, estimated: true, requiresConfirmation: true,
+      provenance: { method: "generic_unit_weight", key: generic.key, unit: parsed.unit }
+    };
+  }
+  return null;
+}
+
+export async function resolveQuantity(
+  parsed: ParsedNaturalFoodQuery,
+  food: ResolvedFood,
+  provider: QuantityEstimationProvider = new DisabledQuantityEstimationProvider()
+): Promise<QuantityResolution> {
+  if (parsed.quantity == null || !parsed.unit) return { status: "unresolved", estimated: false, requiresConfirmation: true, reason: "quantity_missing" };
+  const local = resolveQuantityLocally(parsed, food);
+  if (local) return local;
 
   if (provider.id === "disabled") {
     logQuantityAiOutcome("not_configured", provider.id);

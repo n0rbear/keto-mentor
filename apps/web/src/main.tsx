@@ -761,7 +761,9 @@ export function App() {
                 if (event.key === "Enter") { event.preventDefault(); if (!interpreting && naturalInput.trim().length >= 2) submitSearchField(); }
               }} onChange={(event) => { setNaturalInput(event.target.value); setInterpretation(null); setSelectedFood(null); setPickedRecipe(null); setMealQuantity("1"); setMealMeasure("g"); setGramsOverride(""); }} placeholder={lang === "hu" ? "Például: 5 tojás" : lang === "de" ? "Zum Beispiel: 3 Scheiben Gouda" : "For example: 5 eggs"}/><button type="button" className="btn primary" disabled={interpreting || naturalInput.trim().length < 2} onClick={submitSearchField}>{interpreting ? "…" : lang === "hu" ? "Értelmezés" : lang === "de" ? "Verstehen" : "Interpret"}</button></div>
               {!interpretation && <UnifiedFoodSearch lang={lang} state={state} value={naturalInput} disabled={interpreting}
-                onPickFood={(food) => { setSelectedFood(food); setPickedRecipe(null); setInterpretation(null); setMealMeasure("g"); setGramsOverride(""); }}
+                onPickFood={(food, amount) => { setSelectedFood(food); setPickedRecipe(null); setInterpretation(null); setGramsOverride("");
+                  setMealMeasure(amount?.servingId ? `serving:${amount.servingId}` : "g");
+                  if (amount) setMealQuantity(String(Math.round(amount.quantity * 10) / 10)); }}
                 onPickRecipe={(option) => { setPickedRecipe(option); setSelectedFood(null); setInterpretation(null); }}/>}
               <div className="natural-input-methods">
                 <VoiceInput lang={lang} state={state} onTranscribed={(text) => { setNaturalInput(text); setInterpretation(null); setSelectedFood(null); setMealQuantity("1"); setMealMeasure("g"); setGramsOverride(""); }}/>

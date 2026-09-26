@@ -357,6 +357,17 @@ describe("resolveRecipeIngredientsBatch", () => {
     expect(result![2]).toMatchObject({ quantitySource: "unquantified_seasoning", excludeFromNutrition: true });
   });
 
+  // Owner report 2026-09-26: "olaj" without an amount blocked the recipe.
+  it("estimates a small recipe-level amount for a bare ingredient line such as frying oil", async () => {
+    const { prisma } = fakePrisma();
+    let seen: any[] = [];
+    const quantityProvider: any = { id: "fixture", estimate: async (input: any) => { seen = input.items; return { estimates: [{ index: 0, grams: 30, confidence: .6 }] }; } };
+    const result = await resolveRecipeIngredientsBatch(prisma, normalizationProvider({ ingredients: [{ index: 0, foods: [{ canonicalIdentity: "sunflower oil", localName: "olaj" }] }] }),
+      { title: "Rántott hús", lines: [{ index: 0, raw: "olaj", parsed: parseNaturalFoodQuery("olaj") }] }, null, quantityProvider);
+    expect(seen.map((i) => [i.identity, i.unit, i.quantity])).toEqual([["sunflower oil", "unspecified", 1]]);
+    expect(result![0]).toMatchObject({ quantityGrams: 30, quantitySource: "estimated" });
+  });
+
   it("rejects a contextually absurd estimate without losing the identity result", async () => {
     const { prisma } = fakePrisma();
     const result = await resolveRecipeIngredientsBatch(prisma, normalizationProvider({ ingredients: [{ index: 0, foods: [{ canonicalIdentity: "garlic" }] }] }), { lines: [{ index: 0, raw: "2 gerezd fokhagyma", parsed: parseNaturalFoodQuery("2 gerezd fokhagyma") }] }, null, { id: "fixture", estimate: async () => ({ estimates: [{ index: 0, grams: 40_000, confidence: .9 }] }) });

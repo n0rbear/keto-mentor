@@ -37,6 +37,22 @@ describe("one search field (roadmap G1 + E4)", () => {
     expect(result.meaning.tried).toBe(false);
   });
 
+  // Owner report 2026-09-26: a dictated sentence only ever offered
+  // ingredients, never the saved "Paprikás krumpli | Mindmegette.hu".
+  it("finds own recipes named inside a sentence, and returns the sentence's amount", async () => {
+    foodsByQuery["tojas"] = [{ id: "egg", name: "Egg", match: { stage: "exact", score: 100 }, servings: [{ id: "egg-piece", key: "egg", unit: "egg", labels: {}, grams: 50, isEstimated: false, confidence: 1, provenance: {} }] }];
+    const prisma = fakePrisma([{ id: "own1", title: "Paprikás krumpli | Mindmegette.hu" }, { id: "own2", title: "Paprikás csirke" }]);
+    const sentence = await unifiedSearch(prisma, "Egy tányér paprikás krumplit ettem a Red Bull mellé.", false, deps());
+    if (sentence.kind !== "results") throw new Error("expected results");
+    expect(sentence.items.filter((i: any) => i.type === "recipe").map((i: any) => i.recipeId)).toEqual(["own1"]);
+
+    const eggs = await unifiedSearch(prisma, "Tojásrántotta négy tojásból.", false, deps());
+    if (eggs.kind !== "results") throw new Error("expected results");
+    expect(eggs.items.map((i: any) => i.food?.id)).toContain("egg");
+    expect(eggs.quantity).toEqual({ quantity: 4, unit: "piece" });
+    expect(eggs.items.find((i: any) => i.food?.id === "egg")).toMatchObject({ amount: { quantity: 4, servingId: "egg-piece", grams: 200 } });
+  });
+
   it("meaning search (E4) runs only when asked and nothing matched by name, and merges what it finds", async () => {
     foodsByQuery["virsli"] = [];
     foodsByQuery["frankfurter"] = [{ id: "w1", name: "Wiener Würstchen", match: { stage: "exact", score: 100 } }];

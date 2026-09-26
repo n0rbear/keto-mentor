@@ -1,3 +1,4 @@
+import { withoutSiteSuffix } from "../meal-input/local-recipe-lookup.js";
 import type { PrismaClient } from "@prisma/client";
 import { interpretMealInput, type DynamicResolutionDeps } from "../meal-input/interpret.js";
 import { parseNaturalFoodQuery } from "../catalog/natural-food-query.js";
@@ -128,7 +129,7 @@ export function extractRecipeJsonLd(html: string, sourceUrl: string) {
     if (recipe) break;
   }
   if (!recipe) throw new RecipeImportError(scripts.length && malformed ? "malformed_json_ld" : "recipe_page_not_found", 422);
-  const title = sanitizeRemoteText(recipe.name ?? recipe.headline, LIMITS.title);
+  const title = withoutSiteSuffix(sanitizeRemoteText(recipe.name ?? recipe.headline, LIMITS.title));
   const rawIngredients = Array.isArray(recipe.recipeIngredient) ? recipe.recipeIngredient.filter((item: unknown): item is string => typeof item === "string") : [];
   if (!title) throw new RecipeImportError("recipe_page_not_found", 422);
   if (!rawIngredients.length) throw new RecipeImportError("recipe_ingredients_missing", 422);
@@ -168,7 +169,7 @@ async function extractRecipeWithAi(aiProvider: RecipeExtractionProvider, html: s
   } catch (error) {
     throw mapRecipeAiError(error);
   }
-  const title = sanitizeRemoteText(result.title, LIMITS.title);
+  const title = withoutSiteSuffix(sanitizeRemoteText(result.title, LIMITS.title));
   const description = result.description ? sanitizeRemoteText(result.description, 2_000) : undefined;
   const ingredients = result.ingredients.map((item) => sanitizeRemoteText(item, LIMITS.ingredient)).filter(Boolean);
   const instructions = result.instructions.map((item) => sanitizeRemoteText(item, LIMITS.instruction)).filter(Boolean);
@@ -277,3 +278,4 @@ export async function previewRecipeImport(
     throw new RecipeImportError("import_failed", 502);
   }
 }
+
