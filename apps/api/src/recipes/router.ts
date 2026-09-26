@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { sharedFallbackResultCaches } from "../catalog/dynamic-food-resolution.js";
 import rateLimit from "express-rate-limit";
 import { locales, recipeImportPreviewSchema, recipeInputSchema, recipeListQuerySchema, recipeMealSchema, type Locale } from "@keto-mentor/shared";
 import { env } from "../config.js";
@@ -115,7 +116,7 @@ recipeRouter.post("/import-url/preview", importPreviewLimiter, async (req, res, 
     const locale = trustedLocale(req.user!);
     const foodLocale = foodLocaleFor(locale);
     const dynamic = externalFoodAdapters.length
-      ? { prisma, searchIntentProvider, semanticRecoveryProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale, foodLocale, localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider, webEvidenceFallback, aiEstimation }
+      ? { prisma, searchIntentProvider, semanticRecoveryProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale, foodLocale, localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider, webEvidenceFallback, aiEstimation, fallbackCaches: sharedFallbackResultCaches }
       : null;
     const preview = await previewRecipeImport(prisma, url, {}, recipeAiProvider, dynamic, recipeIngredientNormalizationProvider, recipeQuantityEstimationProvider);
     res.json({ preview: { ...preview, importProof: createRecipeImportProof(req.user!.id, preview.sourceUrl, preview.extractionMethod) } });
@@ -132,7 +133,7 @@ recipeRouter.post("/import-url/preview/confirm-ingredients", confirmIngredientsL
     // why this is a safe default rather than a finer-grained region pick).
     const foodLocale = foodLocaleFor(locale);
     const dynamic = externalFoodAdapters.length
-      ? { prisma, searchIntentProvider, semanticRecoveryProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale, foodLocale, localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider, webEvidenceFallback, aiEstimation }
+      ? { prisma, searchIntentProvider, semanticRecoveryProvider, adapters: externalFoodAdapters, rateLimiter: dynamicFoodResolutionLimiter, userId: req.user!.id, locale, foodLocale, localizationProvider: candidateLocalizationProvider, semanticCandidateGateProvider, recipeSemanticGateProvider, webEvidenceFallback, aiEstimation, fallbackCaches: sharedFallbackResultCaches }
       : null;
     const result = await confirmRecipeIngredients(prisma, req.user!.id, input, {
       recipeAiProvider, dynamic, confirmAdapters: externalFoodConfirmAdapters,

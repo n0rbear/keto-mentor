@@ -348,15 +348,37 @@ export async function resolveManyAuthoritativeFoods(
   // still name what they actually wrote; anything else is dropped. When no
   // candidate survives, the ingredient is treated as not found, so the
   // caller's normal fallback (web evidence / AI estimate) runs instead.
+  //
+  // Roadmap E1 (2026-09-26): the name check is only the fast path. A
+  // candidate whose localized name does not contain the user's word is no
+  // longer dropped on spelling alone ("virsli" vs "frankfurti" are the same
+  // food; five correct frankfurters were thrown away live). The semantic
+  // gate is asked with the user's OWN word instead, and decides: same food
+  // stays, a different food (tejföl vs cheese) goes. Without a real gate the
+  // old lexical rule still applies (fail closed).
   const verifyLocale: LocalizationLocale = deps.foodLocale ?? (deps.locale as LocalizationLocale) ?? "hu";
-  for (const p of pending) {
+  const gate = deps.semanticCandidateGateProvider && deps.semanticCandidateGateProvider.id !== "disabled" ? deps.semanticCandidateGateProvider : null;
+  await Promise.all(pending.map(async (p) => {
     const outcome = outcomes.get(p.id);
-    if (outcome?.status !== "confirmation_required" || !p.sourceIdentity) continue;
-    const kept = outcome.candidates.filter((candidate) => roundTripMatches(candidate, p.sourceIdentity!, p.canonicalIdentity, verifyLocale));
-    if (kept.length === outcome.candidates.length) continue;
-    console.log(`round_trip_identity dropped=${outcome.candidates.length - kept.length} kept=${kept.length}`);
+    if (outcome?.status !== "confirmation_required" || !p.sourceIdentity) return;
+    const lexical = outcome.candidates.map((candidate) => roundTripMatches(candidate, p.sourceIdentity!, p.canonicalIdentity, verifyLocale));
+    if (lexical.every(Boolean)) return;
+    let semanticallySame = new Set<number>();
+    if (gate) {
+      const doubtful = outcome.candidates.map((candidate, index) => ({ candidate, index })).filter(({ index }) => !lexical[index]);
+      try {
+        const verdicts = await gate.checkRelevance(
+          { identity: p.sourceIdentity!, canonicalIdentity: p.canonicalIdentity, rawIngredient: p.rawIngredient, recipeTitle: deps.recipeTitle, recipeContext: deps.recipeContext, preparation: p.preparation, locale: verifyLocale },
+          doubtful.map(({ candidate, index }) => ({ id: String(index), authoritativeName: ((candidate.names as Record<string, string> | undefined)?.[verifyLocale]) ?? candidate.originalName ?? candidate.name }))
+        );
+        semanticallySame = new Set(doubtful.filter(({ index }) => !!verdicts.get(String(index))).map(({ index }) => index));
+      } catch { semanticallySame = new Set(); }
+    }
+    const kept = outcome.candidates.filter((_, index) => lexical[index] || semanticallySame.has(index));
+    console.log(`round_trip_identity lexical_mismatch=${lexical.filter((ok) => !ok).length} semantic_kept=${semanticallySame.size} dropped=${outcome.candidates.length - kept.length} kept=${kept.length}`);
+    if (kept.length === outcome.candidates.length) return;
     outcomes.set(p.id, kept.length ? { ...outcome, candidates: kept } : { status: "unresolved", reason: "not_found" });
-  }
+  }));
 
   return outcomes;
 }
