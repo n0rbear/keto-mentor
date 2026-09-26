@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Barcode, Camera } from "lucide-react";
 import { api, ApiError, type ApiState } from "./api";
 import { dict, type Lang } from "./i18n";
@@ -26,7 +26,9 @@ function barcodeErrorText(error: unknown, labels: Record<string, string>) {
  * a confirmed product becomes an ordinary Food usable anywhere FoodCombobox
  * is used — no separate barcode-only catalog.
  */
-export function BarcodeLookup({ lang, state, onFoodConfirmed }: { lang: Lang; state: ApiState; onFoodConfirmed: (food: Food) => void }) {
+// compact: only a camera button (the single search field types barcodes);
+// request: a barcode the search field recognized — looked up right away.
+export function BarcodeLookup({ lang, state, onFoodConfirmed, compact = false, request }: { lang: Lang; state: ApiState; onFoodConfirmed: (food: Food) => void; compact?: boolean; request?: { barcode: string; nonce: number } }) {
   const t = dict[lang].barcode;
   const errors = dict[lang].barcodeErrors;
   const scannerText = dict[lang].barcodeScanner;
@@ -38,6 +40,14 @@ export function BarcodeLookup({ lang, state, onFoodConfirmed }: { lang: Lang; st
   const [confirming, setConfirming] = useState(false);
   const [success, setSuccess] = useState(false);
   const [scanning, setScanning] = useState(false);
+
+  useEffect(() => {
+    if (!request?.barcode) return;
+    setExpanded(true);
+    setValue(request.barcode);
+    void performLookup(request.barcode);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [request?.nonce]);
 
   async function performLookup(barcode: string) {
     if (looking || !barcode) return;
@@ -94,23 +104,26 @@ export function BarcodeLookup({ lang, state, onFoodConfirmed }: { lang: Lang; st
 
   return (
     <div className="barcode-lookup">
-      <button type="button" className="btn secondary" onClick={() => setExpanded((current) => !current)} aria-expanded={expanded}>
-        <Barcode size={16}/>{t.toggleLabel}
-      </button>
+      {compact
+        ? <button type="button" className="btn secondary" onClick={() => { setExpanded(true); setError(""); setScanning(true); }}><Camera size={16}/>{scannerText.scanButton}</button>
+        : <button type="button" className="btn secondary" onClick={() => setExpanded((current) => !current)} aria-expanded={expanded}>
+          <Barcode size={16}/>{t.toggleLabel}
+        </button>}
       {expanded && (
         <div className="barcode-panel">
-          <label htmlFor="barcode-input">{t.inputLabel}
+          {!compact && <label htmlFor="barcode-input">{t.inputLabel}
             <div className="barcode-input-row">
               <input id="barcode-input" className="field" inputMode="numeric" placeholder={t.placeholder} value={value}
                 onChange={(event) => { setValue(event.target.value); setResult(null); setError(""); setSuccess(false); }}
                 onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); lookup(); } }}/>
               <button type="button" className="btn secondary" disabled={looking || !value.trim()} aria-busy={looking} onClick={lookup}>{looking ? t.looking : t.lookupButton}</button>
             </div>
-          </label>
+          </label>}
 
-          <button type="button" className="btn secondary" onClick={() => { setError(""); setScanning(true); }}>
+          {!compact && <button type="button" className="btn secondary" onClick={() => { setError(""); setScanning(true); }}>
             <Camera size={16}/>{scannerText.scanButton}
-          </button>
+          </button>}
+          {compact && looking && <p className="text-sm text-muted" role="status">{t.looking}</p>}
 
           {scanning && <BarcodeScanner lang={lang} onDetected={onScanned} onClose={() => setScanning(false)}/>}
 

@@ -1,4 +1,6 @@
 import compression from "compression";
+import { foodLocaleFor } from "./catalog/food-locale.js";
+import { unifiedSearch } from "./meal-input/unified-search.js";
 import { sharedFallbackResultCaches } from "./catalog/dynamic-food-resolution.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
@@ -315,6 +317,21 @@ app.get("/foods", requireAuth, async (req, res, next) => {
     const parsed = parseNaturalFoodQuery(String(req.query.q ?? ""));
     const foods = await searchFoods(prisma, parsed.foodQuery);
     res.json({ foods, parsedQuery: parsed, resolution: foods.length ? "resolved" : "unresolved" });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// One search field (roadmap G1 + E4): barcode, ingredient, own recipe and
+// reference dish in one list. Typing is AI-free; "meaning=1" (sent once
+// after a lexical miss) adds a search-intent retry, budgeted per user.
+const meaningSearchLimiter = new DynamicFoodResolutionRateLimiter(Date.now, { windowMs: 15 * 60 * 1000, limit: 30 });
+app.get("/search", requireAuth, async (req, res, next) => {
+  try {
+    const { q, meaning } = z.object({ q: z.string().max(200).default(""), meaning: z.enum(["0", "1"]).default("0") }).parse(req.query);
+    res.json(await unifiedSearch(prisma, q, meaning === "1", {
+      userId: req.user!.id, foodLocale: foodLocaleFor(trustedLocale(req.user!)), searchIntentProvider, meaningLimiter: meaningSearchLimiter
+    }));
   } catch (error) {
     next(error);
   }

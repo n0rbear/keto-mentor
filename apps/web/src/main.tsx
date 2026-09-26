@@ -12,10 +12,11 @@ import { RecipeBuilder } from "./RecipeBuilder";
 import { MealEditDialog, DeleteMealDialog, RepeatMealDialog, type MealDetail } from "./MealActions";
 import { WeekOverviewCard, type WeekOverviewData } from "./WeekOverview";
 import { AuthForm } from "./AuthForm";
-import { FoodUnderstandingPreview, type ExternalCandidate, type RecipeDiscoveryPreviewValue, type RecipeDiscoveryCandidateValue, type AiEstimateValue, type AiEstimateOverridePayload, type CandidateFood, type RecipeIngredientOverride, type LocalRecipeOption } from "./FoodUnderstandingPreview";
+import { FoodUnderstandingPreview, type ExternalCandidate, type RecipeDiscoveryPreviewValue, type RecipeDiscoveryCandidateValue, type AiEstimateValue, type AiEstimateOverridePayload, type CandidateFood, type RecipeIngredientOverride, type LocalRecipeOption, LocalRecipePicker } from "./FoodUnderstandingPreview";
 import { pickDisplayName } from "./food-display-name";
 import { QuantityClarification } from "./QuantityClarification";
 import { BarcodeLookup } from "./BarcodeLookup";
+import { UnifiedFoodSearch, isBarcodeInput } from "./UnifiedFoodSearch";
 import { VoiceInput } from "./VoiceInput";
 import { MobileNav } from "./MobileNav";
 import { InstallPrompt } from "./InstallPrompt";
@@ -85,6 +86,10 @@ export function App() {
   const [gramsOverride, setGramsOverride] = useState("");
   const [mealQuantity, setMealQuantity] = useState("1");
   const [naturalInput, setNaturalInput] = useState("");
+  // Single search field (roadmap G2): a recipe picked from the suggestions,
+  // and a barcode typed into the field.
+  const [pickedRecipe, setPickedRecipe] = useState<LocalRecipeOption | null>(null);
+  const [barcodeRequest, setBarcodeRequest] = useState<{ barcode: string; nonce: number } | undefined>(undefined);
   const [interpretation, setInterpretation] = useState<MealInterpretation | null>(null);
   const [interpreting, setInterpreting] = useState(false);
   const [progressStage, setProgressStage] = useState<ProgressStage | null>(null);
@@ -252,7 +257,7 @@ export function App() {
       const selectedServing = selectedFood.servings?.find((serving) => serving.id === servingId);
       await api("/meals", {
         method: "POST",
-        body: JSON.stringify({ title: String(form.get("title")), items: [{ foodId: selectedFood.id, quantity: Number(form.get("quantity")), unit: servingId ? "serving" : mealMeasure, servingId, gramsOverride: selectedServing?.isEstimated && gramsOverride ? Number(gramsOverride) : undefined, quantityConfirmation: interpretation?.selectedFood?.id === selectedFood.id && mealMeasure === "g" && interpretation.quantityConfirmation ? { ...interpretation.quantityConfirmation, grams: Number(form.get("quantity")), method: Number(form.get("quantity")) === interpretation.quantityConfirmation.grams ? interpretation.quantityConfirmation.method : "user_corrected" } : undefined }] })
+        body: JSON.stringify({ title: String(form.get("title") ?? "").trim() || (pickDisplayName(selectedFood, lang) || selectedFood.name).slice(0, 100), items: [{ foodId: selectedFood.id, quantity: Number(form.get("quantity")), unit: servingId ? "serving" : mealMeasure, servingId, gramsOverride: selectedServing?.isEstimated && gramsOverride ? Number(gramsOverride) : undefined, quantityConfirmation: interpretation?.selectedFood?.id === selectedFood.id && mealMeasure === "g" && interpretation.quantityConfirmation ? { ...interpretation.quantityConfirmation, grams: Number(form.get("quantity")), method: Number(form.get("quantity")) === interpretation.quantityConfirmation.grams ? interpretation.quantityConfirmation.method : "user_corrected" } : undefined }] })
       }, state);
       formElement.reset();
       setSelectedFood(null);
@@ -269,8 +274,17 @@ export function App() {
     }
   }
 
+  function submitSearchField() {
+    if (isBarcodeInput(naturalInput)) {
+      setBarcodeRequest({ barcode: naturalInput.replace(/\s+/g, ""), nonce: Date.now() });
+      return;
+    }
+    void interpretNaturalInput();
+  }
+
   async function interpretNaturalInput() {
     if (naturalInput.trim().length < 2 || interpreting) return;
+    setPickedRecipe(null);
     setInterpreting(true);
     setProgressStage(null);
     // Real backend stages, not a timer: opened in parallel with the POST
@@ -740,38 +754,43 @@ export function App() {
           <form id="log-meal" onSubmit={addMeal} method="post" className="card meal-entry-card space-y-3">
             <h2 className="section-heading"><Plus size={20}/>{t.addMeal}</h2>
             <div className="natural-input">
-              <label htmlFor="natural-meal-input">{lang === "hu" ? "Mondd el, mit ettél" : lang === "de" ? "Beschreibe, was du gegessen hast" : "Describe what you ate"}</label>
-              <p className="natural-input-helper">{lang === "hu" ? "Írj természetesen — az ellenőrzött tápértékeket mindig a katalógus adja." : lang === "de" ? "Natürlich formulieren — geprüfte Nährwerte kommen immer aus dem Katalog." : "Use natural language — verified nutrition always comes from the catalog."}</p>
+              <label htmlFor="natural-meal-input">{lang === "hu" ? "Mit ettél?" : lang === "de" ? "Was hast du gegessen?" : "What did you eat?"}</label>
+              <p className="natural-input-helper">{lang === "hu" ? "Ételt, alapanyagot vagy vonalkódot is írhatsz vagy mondhatsz. Gépelés közben javaslatokat mutatok, Enterre a teljes mondatot értelmezem." : lang === "de" ? "Gericht, Zutat oder Barcode – tippen oder sprechen. Beim Tippen gibt es Vorschläge, Enter wertet den ganzen Satz aus." : "A dish, an ingredient or a barcode – type or speak. Suggestions appear while typing; Enter interprets the whole sentence."}</p>
               <div className="natural-input-row"><input id="natural-meal-input" className="field" enterKeyHint="go" value={naturalInput} onKeyDown={(event) => {
                 // Enter here means "interpret", never submitting the manual meal form around it (it only raised "fill out this field" on phones).
-                if (event.key === "Enter") { event.preventDefault(); if (!interpreting && naturalInput.trim().length >= 2) void interpretNaturalInput(); }
-              }} onChange={(event) => { setNaturalInput(event.target.value); setInterpretation(null); setSelectedFood(null); setMealQuantity("1"); setMealMeasure("g"); setGramsOverride(""); }} placeholder={lang === "hu" ? "Például: 5 tojás" : lang === "de" ? "Zum Beispiel: 3 Scheiben Gouda" : "For example: 5 eggs"}/><button type="button" className="btn primary" disabled={interpreting || naturalInput.trim().length < 2} onClick={interpretNaturalInput}>{interpreting ? "…" : lang === "hu" ? "Értelmezés" : lang === "de" ? "Verstehen" : "Interpret"}</button></div>
+                if (event.key === "Enter") { event.preventDefault(); if (!interpreting && naturalInput.trim().length >= 2) submitSearchField(); }
+              }} onChange={(event) => { setNaturalInput(event.target.value); setInterpretation(null); setSelectedFood(null); setPickedRecipe(null); setMealQuantity("1"); setMealMeasure("g"); setGramsOverride(""); }} placeholder={lang === "hu" ? "Például: 5 tojás" : lang === "de" ? "Zum Beispiel: 3 Scheiben Gouda" : "For example: 5 eggs"}/><button type="button" className="btn primary" disabled={interpreting || naturalInput.trim().length < 2} onClick={submitSearchField}>{interpreting ? "…" : lang === "hu" ? "Értelmezés" : lang === "de" ? "Verstehen" : "Interpret"}</button></div>
+              {!interpretation && <UnifiedFoodSearch lang={lang} state={state} value={naturalInput} disabled={interpreting}
+                onPickFood={(food) => { setSelectedFood(food); setPickedRecipe(null); setInterpretation(null); setMealMeasure("g"); setGramsOverride(""); }}
+                onPickRecipe={(option) => { setPickedRecipe(option); setSelectedFood(null); setInterpretation(null); }}/>}
               <div className="natural-input-methods">
                 <VoiceInput lang={lang} state={state} onTranscribed={(text) => { setNaturalInput(text); setInterpretation(null); setSelectedFood(null); setMealQuantity("1"); setMealMeasure("g"); setGramsOverride(""); }}/>
-                <BarcodeLookup lang={lang} state={state} onFoodConfirmed={(food) => { setSelectedFood(food); setMealMeasure("g"); setGramsOverride(""); }}/>
+                <BarcodeLookup lang={lang} state={state} compact request={barcodeRequest} onFoodConfirmed={(food) => { setSelectedFood(food); setPickedRecipe(null); setMealMeasure("g"); setGramsOverride(""); }}/>
               </div>
+              {pickedRecipe && <div className="selected-food-chip"><strong>{pickedRecipe.title}</strong><button type="button" className="btn secondary" onClick={() => setPickedRecipe(null)}>{lang === "hu" ? "Másik" : lang === "de" ? "Andere" : "Change"}</button></div>}
+              {pickedRecipe && <LocalRecipePicker key={pickedRecipe.recipeId} discovery={{ status: "local_match", localMatch: pickedRecipe }} labels={t.foodUnderstanding.recipeDiscovery} lang={lang} portionState={state}
+                busy={confirmingRecipe || mealSaving} onConfirm={(option, quantity, unit) => { void confirmLocalRecipe(option, quantity, unit).then(() => setPickedRecipe(null)); }}/>}
               {interpreting && progressStage && <p className="natural-input-progress" role="status" aria-live="polite">{t.progress[progressStage] ?? t.progress.finalizing}</p>}
               {interpretation && <FoodUnderstandingPreview value={interpretation} lang={lang} labels={t.foodUnderstanding} busy={mealSaving || interpreting || !!confirmingExternalId || confirmingRecipe || confirmingAiEstimate} onConfirmAll={confirmMultiMeal} onConfirmExternal={confirmExternalCandidate} confirmingExternalId={confirmingExternalId} onConfirmRecipe={confirmRecipe} onConfirmLocalRecipe={confirmLocalRecipe} onAcceptAiEstimate={(estimate, quantityGrams) => acceptAiEstimate(estimate, quantityGrams)} onOverrideAiEstimate={(payload) => overrideAiEstimate(payload)} onSelectCandidate={selectCandidate} recipeFixServices={{ resolveExternal: resolveExternalForRecipe, acceptEstimate: acceptIngredientEstimateForRecipe, searchFoods: searchFoodsForRecipe, portionState: state }}/>}
               {interpretation?.diagnostics && <DiagnosticsPanel events={interpretation.diagnostics} lang={lang}/>}
               {interpretation?.clarification && (() => { const row = (interpretation.items ?? [interpretation])[interpretation.clarification!.itemIndex]; return <QuantityClarification key={`${interpretation.input}:${interpretation.clarification.itemIndex}`} value={interpretation.clarification} foodName={pickDisplayName(row?.selectedFood, lang)} quantity={row?.parsed.quantity} unit={row?.parsed.unit} lang={lang} onResolve={resolveClarification} apiState={state}/>; })()}
             </div>
-            <input className="field" name="title" placeholder={t.mealName} required/>
-            <FoodCombobox lang={lang} state={state} selected={selectedFood} onSelect={(food) => { setSelectedFood(food); setMealMeasure("g"); setGramsOverride(""); }} labels={t.foodSearch} resetVersion={foodResetVersion} showBarcodeLookup={false}/>
-            <div className="grid grid-cols-[1fr_120px] gap-3">
+            {selectedFood && <div className="selected-food-chip"><strong>{pickDisplayName(selectedFood, lang) || selectedFood.name}</strong><button type="button" className="btn secondary" onClick={() => { setSelectedFood(null); setMealMeasure("g"); setGramsOverride(""); }}>{lang === "hu" ? "Másik" : lang === "de" ? "Andere" : "Change"}</button></div>}
+            {selectedFood && <input className="field" name="title" aria-label={t.mealName} placeholder={`${t.mealName}: ${pickDisplayName(selectedFood, lang) || selectedFood.name}`}/>}
+            {selectedFood && <div className="grid grid-cols-[1fr_120px] gap-3">
               <label htmlFor="meal-quantity">{t.quantity}<input id="meal-quantity" className="field" name="quantity" value={mealQuantity} onChange={(event) => setMealQuantity(event.target.value)} type="number" min="0.1" max="5000" step="0.1" required/></label>
               <label htmlFor="meal-unit">{t.unit}<select id="meal-unit" className="field" value={mealMeasure} onChange={(event) => { setMealMeasure(event.target.value); setGramsOverride(""); }}>
                 <optgroup label={t.unitGroupPhysical}><option value="g">g</option><option value="kg">kg</option></optgroup>
                 {!!selectedFood?.servings?.length && <optgroup label={t.unitGroupServings}>{selectedFood.servings.map((serving) => <option key={serving.id} value={`serving:${serving.id}`}>{serving.labels?.[lang] ?? serving.unit}</option>)}</optgroup>}
               </select></label>
-            </div>
+            </div>}
             {mealMeasure.startsWith("serving:") && (() => {
               const serving = selectedFood?.servings?.find((candidate) => candidate.id === mealMeasure.slice(8));
               if (!serving) return null;
               return <div className="serving-detail"><strong>1 {serving.labels?.[lang] ?? serving.unit} = {serving.grams} g</strong>{serving.isEstimated && <><span>{lang === "hu" ? "Becsült átváltás – módosítható" : lang === "de" ? "Geschätzte Umrechnung – bearbeitbar" : "Estimated conversion – editable"}</span><input className="field" aria-label="Gram equivalent" type="number" min="0.1" max="50000" step="0.1" placeholder={String(serving.grams)} value={gramsOverride} onChange={(event) => setGramsOverride(event.target.value)}/></>}</div>;
             })()}
-            <p className="text-xs text-muted">{lang === "hu" ? "USDA FoodData Central alapú átlagértékek. Csomagolt termékhez add meg vagy olvasd be a vonalkódot alább." : lang === "de" ? "Durchschnittswerte auf Basis von USDA FoodData Central. Für verpackte Produkte den Barcode unten eingeben oder scannen." : "Average values based on USDA FoodData Central. For a packaged product, enter or scan its barcode below."}</p>
             {mealStatus && <div className={`status ${mealStatus.kind}`} role={mealStatus.kind === "error" ? "alert" : "status"}>{mealStatus.text}</div>}
-            <button className="btn primary w-full" disabled={mealSaving} aria-busy={mealSaving}>{mealSaving ? t.savingMeal : t.addMeal}</button>
+            {selectedFood && <button className="btn primary w-full" disabled={mealSaving} aria-busy={mealSaving}>{mealSaving ? t.savingMeal : t.addMeal}</button>}
           </form>
         </section>
       )}
