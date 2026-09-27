@@ -83,5 +83,6 @@ Ezek minden ételre hatnak, nem csak a 10 referenciaételre.
 
 | # | Lépés | Állapot |
 |---|---|---|
+| F0 | Regionális étel- és adagadatbázis, első kör: HU, AT, DE (hagyományos, gyakori, street food, gyorséttermi ételek; egységsúlyok; regionális aliasok). Feladatleírás: `docs/REGIONAL_DATABASE_BRIEF.md`, megvalósító: Codex, fázisonként külön PR. | 🔄 feladatleírás kész |
 | F1 | Bővítés: az európai országok és az USA gyakori ételei | ⬜ |
 | F2 | Mérés: az ételek hány százalékát fedik le a referenciaételek | ⬜ |
