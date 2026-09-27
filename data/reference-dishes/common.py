@@ -47,7 +47,7 @@ def srcs(retrieved, urls):
 # never nutrition; every use keeps the source wording in the ingredient note.
 MEASURE_G = {
     "ek_flour": 10, "ek_paprika": 7, "ek_oil": 13, "ek_lard": 13, "ek_sugar": 12, "ek_tomato_paste": 17,
-    "ek_vinegar": 15, "ek_sour_cream": 17, "ek_dried_herb": 2, "tk_spice": 2.5,
+    "ek_vinegar": 15, "ek_sour_cream": 17, "ek_dried_herb": 2, "tk_spice": 2.5, "mk_spice": 1,
     "dl_oil": 92, "dl_sour_cream": 102, "dl_milk": 103, "dl_cream": 100, "dl_water": 100, "dl_wine": 99,
     "db_onion": 100, "gerezd_garlic": 5, "db_green_pepper": 60, "db_tomato": 100, "db_potato": 150,
     "db_carrot": 80, "db_parsley_root": 70, "db_egg": 50, "db_lemon_juice": 45, "fej_kohlrabi": 250,

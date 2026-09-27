@@ -1755,19 +1755,37 @@
       },
       "matrix": "liquid",
       "batch": {
-        "servings_source": 8,
+        "servings_source": 4,
         "ingredients": [
-          {
-            "food_key": "smoked_pork_hock",
-            "raw_g": 500,
-            "role": "core",
-            "note": "50 dkg füstölt csülök, soaked; the source gives no edible weight, so bone is not subtracted (overstates meat)"
-          },
           {
             "food_key": "dry_bean",
             "raw_g": 400,
             "role": "core",
-            "note": "40 dkg tarkabab, dry, soaked overnight"
+            "note": "40 dkg bab, dry weight, soaked overnight (Street Kitchen: 500 g)"
+          },
+          {
+            "food_key": "smoked_pork_hock",
+            "raw_g": 550,
+            "role": "core",
+            "note": "edible part of 1 kg bone-in smoked hock (both sources: 1 kg); ~55% edible share is an estimate"
+          },
+          {
+            "food_key": "smoked_sausage",
+            "raw_g": 100,
+            "role": "core",
+            "note": "10 dkg füstölt kolbász (Street Kitchen: 150 g)"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 100,
+            "role": "core",
+            "note": "1 fej"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 10,
+            "role": "seasoning",
+            "note": "2 gerezd"
           },
           {
             "food_key": "carrot",
@@ -1780,89 +1798,78 @@
             "role": "core"
           },
           {
-            "food_key": "celeriac",
-            "raw_g": 100,
-            "role": "core"
-          },
-          {
-            "food_key": "onion",
-            "raw_g": 50,
-            "role": "core"
-          },
-          {
-            "food_key": "garlic",
-            "raw_g": 10,
-            "role": "core",
-            "note": "2 gerezd"
-          },
-          {
-            "food_key": "smoked_sausage",
-            "raw_g": 500,
-            "role": "core",
-            "note": "50 dkg debreceni kolbász"
-          },
-          {
-            "food_key": "lard",
-            "raw_g": 100,
+            "food_key": "sunflower_oil",
+            "raw_g": 13,
             "role": "fat",
-            "note": "10 dkg zsír, rántás"
+            "note": "1 ek, rántás"
           },
           {
             "food_key": "wheat_flour",
-            "raw_g": 100,
+            "raw_g": 20,
             "role": "thickener",
-            "note": "10 dkg liszt, rántás"
+            "note": "2 ek, rántás"
           },
           {
             "food_key": "paprika_ground",
-            "raw_g": 2.5,
+            "raw_g": 1,
             "role": "seasoning",
-            "note": "fűszerpaprika, amount not given"
+            "note": "1 mokkáskanál"
           },
           {
             "food_key": "parsley_leaf",
             "raw_g": 10,
-            "role": "seasoning",
-            "note": "1 csokor"
+            "role": "garnish"
+          },
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 100,
+            "role": "core",
+            "note": "csipetke: 10 dkg liszt"
+          },
+          {
+            "food_key": "egg",
+            "raw_g": 50,
+            "role": "core",
+            "note": "csipetke: 1 tojás"
           },
           {
             "food_key": "water",
             "raw_g": 2000,
             "role": "liquid",
-            "note": "2 l csontlé from bouillon cube + water; the cube's few grams are ignored"
+            "note": "the hock's cooking water ('annyi, hogy ellepje') is the soup base"
           }
         ],
-        "raw_total_g": 4072.5,
+        "raw_total_g": 3654,
         "cooking": {
-          "method": "boil the hock 1 h, add beans, then roots; thicken with roux, add sausage",
-          "mass_change_g": -400,
-          "note": "about 2 h of simmering; evaporation is an estimate. servings_source is derived (the source lists 0 adag): finished batch / 450 g. Vinegar and sour cream are optional table toppings, not counted"
+          "method": "hock cooked soft, beans and roots simmered in its broth, roux and csipetke at the end",
+          "mass_change_g": 150,
+          "note": "about +450 g water taken up by the dry beans, about -300 g evaporation over the long simmer (estimates)"
         },
-        "finished_weight_g": 3672.5,
-        "yield_factor": 0.902
+        "finished_weight_g": 3804,
+        "yield_factor": 1.041
       },
       "standard_serving_g": 450,
-      "density_g_per_ml": 1.035,
+      "density_g_per_ml": 1.036,
       "density_method": "derived from components after cooking mass change",
       "sources": [
         {
-          "url": "https://www.mindmegette.hu/recept/jokai-bableves",
+          "url": "https://www.mindmegette.hu/recept/jokai-bableves-fustolt-csulokkel",
           "retrieved": "2026-09-27",
-          "note": "batch recipe"
+          "note": "batch recipe, 4 adag"
         },
         {
-          "url": "https://www.receptneked.hu/recept/jokai-bableves",
+          "url": "https://streetkitchen.hu/receptek/a-klasszikus-jokai-bableves",
           "retrieved": "2026-09-27",
-          "note": "cross-check: 500 g vörösbab, sárgarépa, petrezselyemgyökér, füstölt kolbász, 10 adag"
+          "note": "cross-check: 1 kg smoked hock, 500 g beans, 150 g sausage, csipetke"
         }
       ],
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 143.4,
-          "fat": 7.7,
-          "protein": 8.7,
-          "net_carbs": 8.0
+          "kcal": 88.3,
+          "fat": 2.6,
+          "protein": 6.4,
+          "net_carbs": 8.1
         },
         "incomplete_missing_food_keys": []
       }
@@ -2627,7 +2634,8 @@
           "part": "palocleves",
           "standard_serving_g": 450
         }
-      ]
+      ],
+      "review_note_hu": "Az eredeti (Mikszáth-féle) palócleves ürühússal készül; ez a sertéslapockás hétköznapi változat. Birkahúsos változat külön rész legyen, ha lesz ürü katalógusrekord."
     },
     {
       "id": "hu_jokai_bableves",
@@ -2644,11 +2652,12 @@
         "hu": [
           "jókai-bableves",
           "jókai bableves",
-          "jokai bableves"
+          "jokai bableves",
+          "csülkös bableves"
         ],
         "de": [
           "jókai-bohnensuppe",
-          "ungarische bohnensuppe jókai"
+          "ungarische bohnensuppe mit eisbein"
         ],
         "de-AT": [
           "jókai-bohnensuppe"

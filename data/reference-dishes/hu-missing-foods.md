@@ -58,7 +58,6 @@ a hivatalos forrásból (BLS xlsx, `BlsAdapter`) külön migrációban kell impo
 | `inventory-only` | Gundel-palacsinta | traditional | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | halászlé tejföllel | traditional | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | juhászos tokány | traditional | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | székelygulyás | traditional | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | savanyú tojásleves | traditional | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | kapros túrós lepény | traditional | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | mákos guba | traditional | inventory identity; recipe/ingredient mapping still required |
