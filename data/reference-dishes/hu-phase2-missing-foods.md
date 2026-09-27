@@ -1,0 +1,156 @@
+# HU phase-2 gap report
+
+A rekordok addig `inventory_only` státuszúak, amíg minden recept-összetevőjük ellenőrzött BLS/USDA Food rekordhoz nincs kötve. Tápérték ebben a fázisban nem került kitalálásra.
+
+- [traditional] gulyásleves
+- [traditional] halászlé
+- [traditional] bajai halászlé
+- [traditional] tiszai halászlé
+- [traditional] húsleves
+- [traditional] marhahúsleves
+- [traditional] újházi tyúkhúsleves
+- [traditional] palócleves
+- [traditional] Jókai-bableves
+- [traditional] bableves
+- [traditional] lencseleves
+- [traditional] sárgaborsó-leves
+- [traditional] krumplileves
+- [traditional] frankfurti leves
+- [traditional] tárkonyos raguleves
+- [traditional] gyümölcsleves
+- [traditional] meggyleves
+- [traditional] sütőtökkrémleves
+- [traditional] gombakrémleves
+- [traditional] tejfölös burgonyaleves
+- [traditional] sertéspörkölt
+- [traditional] marhapörkölt
+- [traditional] csirkepörkölt
+- [traditional] birkapörkölt
+- [traditional] vadpörkölt
+- [traditional] pacalpörkölt
+- [traditional] körömpörkölt
+- [traditional] csülökpörkölt
+- [traditional] paprikás csirke
+- [traditional] harcsapaprikás
+- [traditional] bakonyi sertésszelet
+- [traditional] vadas marha
+- [traditional] tokány
+- [traditional] brassói aprópecsenye
+- [traditional] cigánypecsenye
+- [traditional] fasírt
+- [traditional] töltött paprika
+- [traditional] töltött káposzta
+- [traditional] székelykáposzta
+- [traditional] rakott krumpli
+- [traditional] rakott kel
+- [traditional] rakott karfiol
+- [traditional] rakott zöldbab
+- [traditional] lecsó
+- [traditional] paprikás krumpli
+- [traditional] rizses hús
+- [traditional] tarhonyás hús
+- [traditional] hortobágyi palacsinta
+- [traditional] rántott hús
+- [traditional] rántott sajt
+- [traditional] sült oldalas
+- [traditional] sült csülök
+- [traditional] tepsis csirke
+- [traditional] nokedli
+- [traditional] túrós csusza
+- [traditional] káposztás tészta
+- [traditional] krumplis tészta
+- [traditional] mákos tészta
+- [traditional] diós tészta
+- [traditional] grízes tészta
+- [traditional] szilvás gombóc
+- [traditional] túrógombóc
+- [traditional] somlói galuska
+- [traditional] Gundel-palacsinta
+- [everyday] rántotta
+- [everyday] tükörtojás
+- [everyday] főtt tojás
+- [everyday] tojásos nokedli
+- [everyday] bundás kenyér
+- [everyday] melegszendvics
+- [everyday] sonkás szendvics
+- [everyday] sajtos szendvics
+- [everyday] felvágottas szendvics
+- [everyday] zsíros kenyér
+- [everyday] körözöttes kenyér
+- [everyday] tejbegríz
+- [everyday] zabkása
+- [everyday] müzli joghurttal
+- [everyday] joghurt gyümölccsel
+- [everyday] túrós reggeli
+- [everyday] virsli mustárral
+- [everyday] debreceni mustárral
+- [everyday] sült kolbász
+- [everyday] párizsis zsemle
+- [everyday] sonkás kifli
+- [everyday] sajtos pogácsa
+- [everyday] tepertős pogácsa
+- [everyday] kifli
+- [everyday] zsemle
+- [everyday] magvas zsemle
+- [everyday] túrós táska
+- [everyday] kakaós csiga
+- [everyday] lekváros bukta
+- [everyday] fánk
+- [everyday] palacsinta
+- [everyday] túrós palacsinta
+- [everyday] lekváros palacsinta
+- [everyday] tejfölös tészta
+- [everyday] pesto pasta
+- [everyday] spaghetti bolognese
+- [everyday] carbonara
+- [everyday] lasagne
+- [everyday] pizza margherita
+- [everyday] sonkás pizza
+- [everyday] görög saláta
+- [everyday] cézársaláta
+- [everyday] uborkasaláta
+- [everyday] paradicsomsaláta
+- [everyday] káposztasaláta
+- [everyday] franciasaláta
+- [everyday] majonézes kukoricasaláta
+- [everyday] rizs csirkemellel
+- [everyday] csirkemell rizzsel
+- [everyday] rántott hús krumplival
+- [everyday] rántott hús rizzsel
+- [everyday] párolt zöldség
+- [everyday] főtt burgonya
+- [everyday] burgonyapüré
+- [everyday] hasábburgonya
+- [everyday] sült zöldség
+- [everyday] chili con carne
+- [everyday] tortilla wrap
+- [everyday] tonhalsaláta
+- [everyday] gombás rizottó
+- [everyday] zöldséges kuszkusz
+- [everyday] sült csirkecomb
+- [street_food] lángos
+- [street_food] fokhagymás lángos
+- [street_food] sajtos-tejfölös lángos
+- [street_food] töltött lángos
+- [street_food] kürtőskalács
+- [street_food] sült kolbász kenyérrel
+- [street_food] hurka mustárral
+- [street_food] véres hurka
+- [street_food] májas hurka
+- [street_food] budapesti hot dog
+- [street_food] hot dog
+- [street_food] gyros pita
+- [street_food] gyros tál
+- [street_food] kebab
+- [street_food] döner
+- [street_food] döner tál
+- [street_food] falafel wrap
+- [street_food] hamburger
+- [street_food] sajtos hamburger
+- [street_food] pulled pork szendvics
+- [street_food] szelet pizza
+- [street_food] palacsinta street food
+- [street_food] tócsni
+- [street_food] lapcsánka
+- [street_food] hekk
+- [street_food] sült hekk
