@@ -72,6 +72,11 @@ SERVINGS = collect("SERVINGS")
 UNIT_CLASSES = collect("UNIT_CLASSES")
 FOOD_ALIASES = collect("FOOD_ALIASES")
 CHAIN_PRODUCTS = collect("CHAIN_PRODUCTS")
+INVENTORY = {
+    "HU": getattr(hu, "INVENTORY", {}),
+    "AT": getattr(at, "INVENTORY", {}),
+    "DE": getattr(de, "INVENTORY", {}),
+}
 
 
 # ---------------------------------------------------------------------------
@@ -97,6 +102,12 @@ def check_languages(owner, mapping):
 
 
 def validate():
+    hu_inventory = INVENTORY.get("HU", {})
+    if len(hu_inventory.get("traditional", [])) < 60 or len(hu_inventory.get("everyday", [])) < 60 or len(hu_inventory.get("street_food", [])) < 25:
+        raise SystemExit("HU inventory is below the phase-2 minimums")
+    flat_inventory = [name.casefold() for names in hu_inventory.values() for name in names]
+    if len(flat_inventory) != len(set(flat_inventory)):
+        raise SystemExit("HU inventory contains duplicate dish identities")
     for pid, p in PARTS.items():
         check_sources(f"part {pid}", p["sources"])
         check_languages(f"part {pid}", p["names"])
@@ -477,12 +488,13 @@ def main():
         "unit_classes": UNIT_CLASSES,
         "food_aliases": FOOD_ALIASES,
         "chain_products": CHAIN_PRODUCTS,
+        "inventory": INVENTORY,
     }
     (OUT / "reference-dishes.json").write_text(json.dumps(doc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     variants, aliases = build_variants(parts, dishes)
     food_keys = {k: {"catalog": catalog_ref(k), "hu": v[0]} for k, v in FOOD_KEYS.items() if k != "water"}
     emit_reference_ts({"foodKeys": food_keys, "variants": variants, "aliases": aliases, "servings": servings,
-                       "foodAliases": food_aliases, "chainProducts": chain_products},
+                       "foodAliases": food_aliases, "chainProducts": chain_products, "inventory": INVENTORY},
                       API_SRC / "reference-dishes" / "reference-data.ts")
     emit_unit_classes_ts(API_SRC / "meal-input" / "generic-unit-weights.data.ts")
     emit_missing_foods(dishes)

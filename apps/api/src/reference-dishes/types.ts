@@ -65,4 +65,5 @@ export type ReferenceDishData = {
   servings: ReferenceServing[];
   foodAliases: ReferenceFoodAlias[];
   chainProducts: ReferenceChainProduct[];
+  inventory: Record<ReferenceCountry, Record<string, string[]>>;
 };
