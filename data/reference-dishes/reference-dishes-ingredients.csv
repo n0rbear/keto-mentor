@@ -95,3 +95,17 @@ szekelykaposzta,Székelykáposzta,4,garlic,fokhagyma,6,seasoning,bls:G490100,320
 szekelykaposzta,Székelykáposzta,4,caraway_seed,kömény (egész/őrölt),1,seasoning,usda_fdc:170918,3207,0.928,1.026,450
 szekelykaposzta,Székelykáposzta,4,wheat_flour,búzaliszt (BL55),20,thickener,bls:C214100,3207,0.928,1.026,450
 szekelykaposzta,Székelykáposzta,4,water,víz,800,liquid,none,3207,0.928,1.026,450
+schweinsbraten,Sült sertéslapocka (Schweinsbraten),4,pork_shoulder,sertéslapocka,1250,core,usda_fdc:167843,1306,0.704,1.055,250
+schweinsbraten,Sült sertéslapocka (Schweinsbraten),4,onion,vöröshagyma,160,core,bls:G480100,1306,0.704,1.055,250
+schweinsbraten,Sült sertéslapocka (Schweinsbraten),4,garlic,fokhagyma,12,seasoning,bls:G490100,1306,0.704,1.055,250
+schweinsbraten,Sült sertéslapocka (Schweinsbraten),4,caraway_seed,kömény (egész/őrölt),4,seasoning,usda_fdc:170918,1306,0.704,1.055,250
+schweinsbraten,Sült sertéslapocka (Schweinsbraten),4,lard,sertészsír,30,fat,usda_fdc:171401,1306,0.704,1.055,250
+schweinsbraten,Sült sertéslapocka (Schweinsbraten),4,water,víz,400,liquid,none,1306,0.704,1.055,250
+bratkartoffeln,Pirított burgonya szalonnával és hagymával,2,potato,burgonya,500,core,bls:K110100,580,0.853,0.65,250
+bratkartoffeln,Pirított burgonya szalonnával és hagymával,2,smoked_bacon,füstölt szalonna / bacon,90,core,bls:W415000,580,0.853,0.65,250
+bratkartoffeln,Pirított burgonya szalonnával és hagymával,2,onion,vöröshagyma,80,core,bls:G480100,580,0.853,0.65,250
+bratkartoffeln,Pirított burgonya szalonnával és hagymával,2,clarified_butter,tisztított vaj (ghí),10,fat,bls:Q683000,580,0.853,0.65,250
+eierspeis,Rántotta,1,egg,tojás,150,core,bls:E111100,150,0.949,0.55,150
+eierspeis,Rántotta,1,butter,vaj,8,fat,open_database:173430,150,0.949,0.55,150
+leberkaessemmel,Leberkäsés zsemle,1,wheat_roll,zsemle,62.5,core,bls:B511000,162.5,1.0,0.464,162.5
+leberkaessemmel,Leberkäsés zsemle,1,leberkaese,leberkäse (sütött hússajt),100,core,bls:W233000,162.5,1.0,0.464,162.5

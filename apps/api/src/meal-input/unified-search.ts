@@ -4,7 +4,7 @@ import { isTrustedLocalMatch, searchFoods } from "../catalog/food-search.js";
 import type { SearchIntentProvider } from "../catalog/search-intent.js";
 import type { FoodLocale } from "../catalog/food-locale.js";
 import type { UsageLimiter } from "../catalog/usage-budget.js";
-import { REFERENCE_DATA } from "../reference-dishes/hu-pilot.data.js";
+import { REFERENCE_DATA } from "../reference-dishes/reference-data.js";
 import { findReferenceRecipes } from "../reference-dishes/lookup.js";
 import { parseNaturalFoodQuery } from "../catalog/natural-food-query.js";
 import { dishCoreKey, phraseMentionsDish } from "./local-recipe-lookup.js";

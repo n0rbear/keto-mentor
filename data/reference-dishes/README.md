@@ -1,22 +1,71 @@
-# Referenciaételek – regionális katalógus (fázis 1 pilot)
+# Referenciaételek – regionális katalógus (HU, AT, DE)
 
-Állapot: **fázis-1 formátum és generátor**. A pilot a meglévő 10 magyar referenciaételt használja mintaként; az AT/DE és a teljes HU készlet külön PR-okban bővül.
+Állapot: **1. fázis: formátum és generátor**, kategóriánként egy-két mintával. A teljes
+országos készletek a 2–4. fázisban (HU, AT, DE), a láncok az 5., az egységsúlyok és
+aliasok a 6. fázisban jönnek. Feladatleírás: `docs/REGIONAL_DATABASE_BRIEF.md`.
 
-Fájlok:
+## Formátumdöntés
+
+A kézzel írt igazságforrás **országonként egy Python-modul**, hogy egy átnéző egyszerre
+egy országot olvasson, és semmi ne legyen kétszer leírva:
 
 | Fájl | Mi ez |
 |---|---|
-| `build.py` | Az egyetlen forrás. Minden kézzel beírt szám itt van; a többit ez számolja. |
-| `hu-pilot.json` | A generált adatbázis (ezt töltené be az app). |
-| `hu-pilot-ingredients.csv` | Ugyanez táblázatban, átnézéshez. |
-| `hu-pilot-check.md` | Ellenőrző táblázat: hozam, sűrűség, tányér → gramm, tápérték-keresztellenőrzés. |
+| `foods.py` | Alapanyag-kulcsok (`food_key` → egy ellenőrzött katalógusrekord), minden országnak közös. |
+| `hu.py`, `at.py`, `de.py` | Az ország ételei (`PARTS`, `DISHES`), egységsúlyai (`SERVINGS`, `UNIT_CLASSES`), aliasai (`FOOD_ALIASES`), lánctermékei (`CHAIN_PRODUCTS`) és hiánylistája (`MISSING_FOODS`). |
+| `shared.py` | Több országban ugyanígy evett ételek (pl. rántotta / Eierspeis / Rührei). |
+| `common.py` | Segédfüggvények, az engedett országok, kategóriák és nyelvi címkék, tányérmodell. |
+| `build.py` | Generátor: csak ellenőriz és számol, kézi szám nincs benne. |
 
-A generált variánsok kötelező metaadatai: `country` (`HU`/`AT`/`DE`), `category`
-(`traditional`, `everyday`, `street_food`, `chain`) és a `tags` tömb. A kézzel
-beírt adatok kizárólag a `build.py` forrásfájlban vannak; a TypeScript és JSON
-kimenetet nem szabad kézzel szerkeszteni.
+Generált kimenetek (kézzel nem szerkeszthetők):
 
-Újragenerálás: `python3 data/reference-dishes/build.py`
+| Fájl | Mi ez |
+|---|---|
+| `reference-dishes.json` | A teljes generált adatbázis, átnézéshez. |
+| `reference-dishes-ingredients.csv` | Részek összetevői táblázatban. |
+| `reference-dishes-check.md` | Hozam, sűrűség, tányér → gramm, makró-keresztellenőrzés referenciával, egységsúlyok, lánctermék-adagsúly ellenőrzése. |
+| `hu-missing-foods.md`, `at-missing-foods.md`, `de-missing-foods.md` | Katalógusrekord nélküli alapanyagok országonként. |
+| `apps/api/src/reference-dishes/reference-data.ts` | Az app ezt tölti be (seed). |
+| `apps/api/src/meal-input/generic-unit-weights.data.ts` | Ételosztály-szintű egységsúlyok. |
+
+Újragenerálás: `python3 data/reference-dishes/build.py`. A generátor leáll, ha egy
+rekordból hiányzik a kötelező adat.
+
+### Kötelező adatok rekordonként
+
+- **Étel:** `countries` (egy vagy több: `HU`/`AT`/`DE`), `category` (`traditional`,
+  `everyday`, `street_food`), aliasok nyelvi címkénként (`hu`, `de`, `de-AT`, `en`),
+  `served_in` (`deep_plate`, `flat_plate`, `handheld`), legalább két forrás.
+  Opcionális `reference_check`: nyilvános referencia (pl. BLS összetett étel) a
+  makró-keresztellenőrzéshez; 15% feletti kcal-eltérést a check-fájl jelöl.
+- **Forrás:** mindig `src(url, retrieved)`, letöltési dátummal. A 10 pilot étel forrásai
+  a pilot napjának (2026-09-26) dátumát kapták.
+- **Egységsúly (`SERVINGS` → `FoodServing`):** katalógusrekordhoz kötve, országonként
+  külön kulccsal (pl. `piece_at`), `is_estimated`, `confidence`, forrás. Más importőr
+  azonos kulcsú sorát a seed nem írja felül.
+- **Ételosztály-súly (`UNIT_CLASSES`):** a `generic-unit-weights.ts` kézi táblája után
+  kerül, így meglévő találatot nem változtat; `whole_word` kizárja pl. a
+  „Semmelbrösel” találatot.
+- **Alias (`FOOD_ALIASES` → `FoodAlias`):** nyelvi címkével (`locale`), csak beszúrás.
+- **Lánctermék (`CHAIN_PRODUCTS` → `Food`, `source: chain_official`):** a lánc adott
+  országra vonatkozó hivatalos táblázata, URL-lel és dátummal, országonként külön
+  rekord (`sourceId`: `lanc-orszag:termek`). Az EU-címke „available” szénhidrátja
+  + rost kerül tárolásra (`carbohydrateBasis: total_from_available_plus_fiber`). Ha a
+  táblázat nem adja meg az adagsúlyt, a generátor adag-kcal / 100 g-kcal alapján
+  számolja, és becsültnek jelöli; a check-fájl kJ-ból és makrókból is ellenőrzi.
+- **Hiányzó alapanyag:** nem helyettesíthető hasonlóval, a `MISSING_FOODS`-ba kerül,
+  és a BLS xlsx-ből a `BlsAdapter`-rel, külön migrációban importálandó.
+
+### Az 1. fázis mintái
+
+| Kategória | Minta |
+|---|---|
+| Hagyományos | 10 magyar pilot étel; Schweinsbraten (AT, DE); Bratkartoffeln (DE) |
+| Mindennapi | rántotta / Eierspeis / Rührei (HU, AT, DE) |
+| Street food | Leberkässemmel / Leberkäsbrötchen (AT, DE) |
+| Lánc | Big Mac, McDonald's Österreich |
+| Egységsúly | 1 Semmel = 62,5 g (AT, két kiskereskedelmi termék átlaga) |
+| Alias | Paradeiser, Erdäpfel, Frankfurter, Semmel/Schrippe/Weck |
 
 ## A három réteg
 

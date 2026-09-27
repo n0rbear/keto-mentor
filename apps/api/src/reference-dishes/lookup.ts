@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
 import { normalizeSearch } from "../catalog/normalize.js";
-import { REFERENCE_DATA } from "./hu-pilot.data.js";
+import { REFERENCE_DATA } from "./reference-data.js";
 import { REFERENCE_USERNAME } from "./seed.js";
 
 /**
