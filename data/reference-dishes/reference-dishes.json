@@ -758,6 +758,232 @@
       "carb_basis": "total",
       "density_intrinsic_g_ml": 1.15,
       "density_bulk_g_ml": 1.15
+    },
+    "quark_20": {
+      "names": {
+        "hu": "tehéntúró (félzsíros)",
+        "de": "Speisequark Halbfettstufe, 20 % Fett i. Tr.",
+        "en": "quark / farmer cheese, 20% fat in dry matter"
+      },
+      "catalog": "bls:M713300",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.05,
+      "density_bulk_g_ml": 0.8,
+      "note": "ordinary Hungarian tehéntúró (félzsíros, ~5% fat)"
+    },
+    "quark_40": {
+      "names": {
+        "hu": "tehéntúró (zsíros)",
+        "de": "Speisequark Fettstufe, 40 % Fett i. Tr.",
+        "en": "quark / farmer cheese, 40% fat in dry matter"
+      },
+      "catalog": "bls:M713500",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.05,
+      "density_bulk_g_ml": 0.8,
+      "note": "Hungarian zsíros tehéntúró (~10-11% fat)"
+    },
+    "powdered_sugar": {
+      "names": {
+        "hu": "porcukor",
+        "de": "Puderzucker",
+        "en": "powdered sugar"
+      },
+      "catalog": "bls:S111100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.59,
+      "density_bulk_g_ml": 0.56
+    },
+    "poppy_seed_ground": {
+      "names": {
+        "hu": "darált mák",
+        "de": "Mohn gemahlen",
+        "en": "ground poppy seed"
+      },
+      "catalog": "bls:H450400",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.0,
+      "density_bulk_g_ml": 0.55
+    },
+    "walnut_ground": {
+      "names": {
+        "hu": "darált dió",
+        "de": "Walnuss gemahlen",
+        "en": "ground walnuts"
+      },
+      "catalog": "bls:H120400",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.0,
+      "density_bulk_g_ml": 0.45
+    },
+    "semolina_soft": {
+      "names": {
+        "hu": "búzadara (gríz)",
+        "de": "Weichweizengrieß",
+        "en": "wheat semolina (soft wheat)"
+      },
+      "catalog": "bls:C218000",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.4,
+      "density_bulk_g_ml": 0.7,
+      "note": "Hungarian búzadara is milled from common (soft) wheat"
+    },
+    "plum": {
+      "names": {
+        "hu": "szilva (magozott)",
+        "de": "Zwetschge roh",
+        "en": "plum (Zwetschge), raw"
+      },
+      "catalog": "bls:F223100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.05,
+      "density_bulk_g_ml": 0.6,
+      "note": "grams = pitted"
+    },
+    "jam": {
+      "names": {
+        "hu": "lekvár (sárgabarack, szilva)",
+        "de": "Konfitüre extra",
+        "en": "jam"
+      },
+      "catalog": "bls:S132000",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.3,
+      "density_bulk_g_ml": 1.3,
+      "note": "BLS generic Konfitüre extra; Hungarian baracklekvár"
+    },
+    "cocoa_powder": {
+      "names": {
+        "hu": "kakaópor (holland)",
+        "de": "Kakaopulver schwach entölt",
+        "en": "cocoa powder"
+      },
+      "catalog": "bls:S711000",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.0,
+      "density_bulk_g_ml": 0.45
+    },
+    "dark_chocolate": {
+      "names": {
+        "hu": "étcsokoládé (~50-60%)",
+        "de": "Zartbitter-/Halbbitterschokolade",
+        "en": "dark chocolate (semisweet)"
+      },
+      "catalog": "bls:S560000",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.25,
+      "density_bulk_g_ml": 1.25
+    },
+    "bitter_chocolate": {
+      "names": {
+        "hu": "étcsokoládé (70%)",
+        "de": "Bitterschokolade",
+        "en": "bittersweet chocolate (70%)"
+      },
+      "catalog": "bls:S570000",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.25,
+      "density_bulk_g_ml": 1.25
+    },
+    "yeast_fresh": {
+      "names": {
+        "hu": "friss élesztő",
+        "de": "Backhefe frisch",
+        "en": "fresh yeast"
+      },
+      "catalog": "bls:R459000",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.0,
+      "density_bulk_g_ml": 1.0
+    },
+    "raisins": {
+      "names": {
+        "hu": "mazsola",
+        "de": "Rosinen/Sultaninen",
+        "en": "raisins"
+      },
+      "catalog": "bls:F840100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.0,
+      "density_bulk_g_ml": 0.65
+    },
+    "white_cabbage": {
+      "names": {
+        "hu": "fejes káposzta",
+        "de": "Weißkohl",
+        "en": "white cabbage"
+      },
+      "catalog": "bls:G342100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.0,
+      "density_bulk_g_ml": 0.45
+    },
+    "rum": {
+      "names": {
+        "hu": "rum",
+        "de": "Rum 37,5/40 % vol",
+        "en": "rum 40%"
+      },
+      "catalog": "bls:P741000",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 0.94,
+      "density_bulk_g_ml": 0.94
+    },
+    "corn_starch": {
+      "names": {
+        "hu": "étkezési keményítő",
+        "de": "Maisstärke",
+        "en": "corn starch"
+      },
+      "catalog": "bls:C446000",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.0,
+      "density_bulk_g_ml": 0.6
+    },
+    "egg_yolk": {
+      "names": {
+        "hu": "tojássárgája",
+        "de": "Hühnerei Eigelb",
+        "en": "egg yolk"
+      },
+      "catalog": "bls:E112100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.03,
+      "density_bulk_g_ml": 1.03,
+      "note": "1 yolk ~18 g"
+    },
+    "gelatin": {
+      "names": {
+        "hu": "zselatin",
+        "de": "Speisegelatine",
+        "en": "gelatin"
+      },
+      "catalog": "bls:R468000",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.0,
+      "density_bulk_g_ml": 0.6
+    },
+    "olive_oil": {
+      "names": {
+        "hu": "olívaolaj",
+        "de": "Olivenöl",
+        "en": "olive oil"
+      },
+      "catalog": "bls:Q120000",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 0.92,
+      "density_bulk_g_ml": 0.92
+    },
+    "baking_powder": {
+      "names": {
+        "hu": "sütőpor",
+        "de": "Backpulver",
+        "en": "baking powder"
+      },
+      "catalog": "bls:R421100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.0,
+      "density_bulk_g_ml": 0.8
     }
   },
   "parts": {
@@ -2144,6 +2370,2119 @@
           "fat": 2.6,
           "protein": 6.4,
           "net_carbs": 8.1
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "hortobagyi_palacsinta": {
+      "id": "hortobagyi_palacsinta",
+      "names": {
+        "hu": "Hortobágyi palacsinta",
+        "de": "Hortobágyer Palatschinken",
+        "en": "Hortobágy pancakes (meat-filled crêpes)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "chicken_thigh_skin",
+            "raw_g": 1000,
+            "role": "core",
+            "note": "6 db csirkecomb; edible part of ~1.5 kg bone-in legs (estimate)"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 92,
+            "role": "fat",
+            "note": "1 dl napraforgó olaj"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 200,
+            "role": "core",
+            "note": "2 db"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 10,
+            "role": "seasoning",
+            "note": "2 gerezd"
+          },
+          {
+            "food_key": "wax_pepper",
+            "raw_g": 60,
+            "role": "core",
+            "note": "1 db paprika"
+          },
+          {
+            "food_key": "hot_pepper_fresh",
+            "raw_g": 20,
+            "role": "seasoning",
+            "note": "1 db hegyes erős paprika (20 g estimate)"
+          },
+          {
+            "food_key": "tomato",
+            "raw_g": 100,
+            "role": "core",
+            "note": "1 db"
+          },
+          {
+            "food_key": "paprika_ground",
+            "raw_g": 7,
+            "role": "seasoning",
+            "note": "fűszerpaprika ízlés szerint (1 ek estimate)"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 1000,
+            "role": "liquid",
+            "note": "1 l víz"
+          },
+          {
+            "food_key": "sour_cream",
+            "raw_g": 330,
+            "role": "thickener",
+            "note": "330 g tejföl"
+          },
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 20,
+            "role": "thickener",
+            "note": "2 ek"
+          },
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 150,
+            "role": "core",
+            "note": "palacsinta: 15 dkg finomliszt"
+          },
+          {
+            "food_key": "egg",
+            "raw_g": 150,
+            "role": "core",
+            "note": "palacsinta: 3 db tojás"
+          },
+          {
+            "food_key": "milk_whole",
+            "raw_g": 360.5,
+            "role": "core",
+            "note": "palacsinta: 3,5 dl tej"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 46.0,
+            "role": "fat",
+            "note": "palacsinta: 0,5 dl napraforgó olaj"
+          }
+        ],
+        "raw_total_g": 3545.5,
+        "cooking": {
+          "method": "chicken stewed as paprikás in 1 l water, meat chopped, rolled in pancakes, baked with the sour-cream sauce",
+          "mass_change_g": -800,
+          "note": "about -700 g evaporation from the stew and -100 g pancake frying loss (estimates). Salt and pepper left out"
+        },
+        "finished_weight_g": 2745.5,
+        "yield_factor": 0.774
+      },
+      "standard_serving_g": 350,
+      "density_g_per_ml": 1.02,
+      "density_method": "derived from components after cooking mass change",
+      "flat_plate": {
+        "coverage": 0.34,
+        "height_cm": 3.0
+      },
+      "sources": [
+        {
+          "url": "https://www.nosalty.hu/recept/hortobagyi-palacsinta",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 adag (csirkecombból)"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/a-legfinomabb-hortobagyi-palacsinta",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 3 csirkecomb, tejföl + liszt, 40 dkg liszt palacsinta, 5 adag"
+        },
+        {
+          "url": "https://www.receptneked.hu/recept/hortobagyi-palacsinta",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: darált húsos változat, 400 g tejföl, 6 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 187.7,
+          "fat": 14.1,
+          "protein": 8.7,
+          "net_carbs": 6.4
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "turos_csusza": {
+      "id": "turos_csusza",
+      "names": {
+        "hu": "Túrós csusza",
+        "de": "Topfennudeln mit Speck (Túrós csusza)",
+        "en": "Pasta with cottage cheese and bacon (túrós csusza)"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "egg_pasta_dry",
+            "raw_g": 400,
+            "role": "core",
+            "note": "40 dkg csuszatészta, dry weight"
+          },
+          {
+            "food_key": "smoked_bacon",
+            "raw_g": 250,
+            "role": "fat",
+            "note": "25 dkg húsos szalonna, cracklings + rendered fat go on the pasta"
+          },
+          {
+            "food_key": "quark_20",
+            "raw_g": 500,
+            "role": "core",
+            "note": "50 dkg túró; plain tehéntúró = BLS Speisequark Halbfettstufe 20 % i. Tr."
+          },
+          {
+            "food_key": "sour_cream",
+            "raw_g": 408,
+            "role": "core",
+            "note": "4 dl tejföl"
+          }
+        ],
+        "raw_total_g": 1558,
+        "cooking": {
+          "method": "pasta boiled and drained, tossed with bacon fat, túró and sour cream, topped with cracklings",
+          "mass_change_g": 420,
+          "note": "+480 g water taken up by the pasta (1.2 x dry), about -60 g water lost from the bacon while rendering (estimates). Salt left out"
+        },
+        "finished_weight_g": 1978,
+        "yield_factor": 1.27
+      },
+      "standard_serving_g": 400,
+      "density_g_per_ml": 0.7,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.56,
+        "height_cm": 3.0
+      },
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/hagyomanyos-turos-csusza",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 adag"
+        },
+        {
+          "url": "https://www.nosalty.hu/recept/turos-csusza",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 40 dkg csuszatészta, 350 g szalonna, 450 g túró, 2 dl tejföl, 4 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 175.1,
+          "fat": 8.7,
+          "protein": 8.5,
+          "net_carbs": 15.3
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "kaposztas_teszta": {
+      "id": "kaposztas_teszta",
+      "names": {
+        "hu": "Káposztás tészta",
+        "de": "Krautfleckerl (ungarisch)",
+        "en": "Cabbage pasta (káposztás tészta)"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "white_cabbage",
+            "raw_g": 1000,
+            "role": "core",
+            "note": "1 kg fejes káposzta"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 65,
+            "role": "fat",
+            "note": "5 ek napraforgó olaj"
+          },
+          {
+            "food_key": "sugar",
+            "raw_g": 8,
+            "role": "seasoning",
+            "note": "2 tk cukor (4 g/tk estimate)"
+          },
+          {
+            "food_key": "egg_pasta_dry",
+            "raw_g": 500,
+            "role": "core",
+            "note": "50 dkg fodros nagykocka, dry weight"
+          }
+        ],
+        "raw_total_g": 1573,
+        "cooking": {
+          "method": "grated cabbage salted, squeezed and fried slowly until brown; mixed with boiled pasta",
+          "mass_change_g": 200,
+          "note": "+600 g water taken up by the pasta, about -400 g water lost from the cabbage (squeezing and frying) (estimates). Salt and pepper left out"
+        },
+        "finished_weight_g": 1773,
+        "yield_factor": 1.127
+      },
+      "standard_serving_g": 350,
+      "density_g_per_ml": 0.65,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.53,
+        "height_cm": 3.0
+      },
+      "sources": [
+        {
+          "url": "https://www.nosalty.hu/recept/kaposztas-teszta",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 adag"
+        },
+        {
+          "url": "https://sobors.hu/receptek/kaposztas-teszta-recept/",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 700 g káposzta, 500 g tojásos tészta, 1 ek cukor, 4 adag"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/hagyomanyos-kaposztas-teszta",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 1 kg káposzta, 50 dkg fodros kocka, 4 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 149.3,
+          "fat": 4.3,
+          "protein": 4.5,
+          "net_carbs": 21.7
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "krumplis_teszta": {
+      "id": "krumplis_teszta",
+      "names": {
+        "hu": "Krumplis tészta",
+        "de": "Kartoffelnudeln mit Paprika (ungarisch)",
+        "en": "Pasta with paprika potatoes (krumplis tészta)"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "potato",
+            "raw_g": 600,
+            "role": "core",
+            "note": "4 db krumpli, peeled"
+          },
+          {
+            "food_key": "egg_pasta_dry",
+            "raw_g": 250,
+            "role": "core",
+            "note": "1 csomag kockatészta; 250 g package is an estimate (sobors: 500 g per 1 kg krumpli, same ratio)"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 200,
+            "role": "core",
+            "note": "2 fej"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 78,
+            "role": "fat",
+            "note": "6 ek olaj"
+          },
+          {
+            "food_key": "paprika_ground",
+            "raw_g": 7,
+            "role": "seasoning",
+            "note": "1 ek pirospaprika"
+          }
+        ],
+        "raw_total_g": 1135,
+        "cooking": {
+          "method": "diced potatoes boiled, onion fried with paprika, mixed with boiled pasta",
+          "mass_change_g": 240,
+          "note": "+300 g water taken up by the pasta, about -60 g from frying the onion and boiling the potatoes (estimates). Salt and pepper left out"
+        },
+        "finished_weight_g": 1375,
+        "yield_factor": 1.211
+      },
+      "standard_serving_g": 350,
+      "density_g_per_ml": 0.7,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.49,
+        "height_cm": 3.0
+      },
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/krumplis-teszta",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 adag"
+        },
+        {
+          "url": "https://sobors.hu/receptek/krumplis-teszta-recept/",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 1 kg krumpli, 4 fej hagyma, 1 ek pirospaprika, 500 g kockatészta, 4 személy"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 155.8,
+          "fat": 6.2,
+          "protein": 3.5,
+          "net_carbs": 20.8
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "makos_teszta": {
+      "id": "makos_teszta",
+      "names": {
+        "hu": "Mákos tészta",
+        "de": "Mohnnudeln (ungarisch)",
+        "en": "Pasta with poppy seeds and sugar"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "egg_pasta_dry",
+            "raw_g": 500,
+            "role": "core",
+            "note": "500 g szélesmetélt, dry weight"
+          },
+          {
+            "food_key": "poppy_seed_ground",
+            "raw_g": 225,
+            "role": "core",
+            "note": "225 g mák (darált)"
+          },
+          {
+            "food_key": "powdered_sugar",
+            "raw_g": 175,
+            "role": "core",
+            "note": "175 g porcukor"
+          }
+        ],
+        "raw_total_g": 900,
+        "cooking": {
+          "method": "pasta boiled, drained, tossed with ground poppy seed and powdered sugar",
+          "mass_change_g": 600,
+          "note": "+600 g water taken up by the pasta (1.2 x dry, estimate). Salt left out"
+        },
+        "finished_weight_g": 1500,
+        "yield_factor": 1.667
+      },
+      "standard_serving_g": 350,
+      "density_g_per_ml": 0.6,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.57,
+        "height_cm": 3.0
+      },
+      "sources": [
+        {
+          "url": "https://www.nosalty.hu/recept/makos-teszta",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 adag"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/klasszikus-makos-teszta",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 25 dkg szélesmetélt, 3,5 dkg vaj, 6 ek mák, 4 ek porcukor, 3 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 238.8,
+          "fat": 7.0,
+          "protein": 8.0,
+          "net_carbs": 34.1
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "dios_teszta": {
+      "id": "dios_teszta",
+      "names": {
+        "hu": "Diós tészta",
+        "de": "Nussnudeln (ungarisch)",
+        "en": "Pasta with walnuts and sugar"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 2,
+        "ingredients": [
+          {
+            "food_key": "egg_pasta_dry",
+            "raw_g": 200,
+            "role": "core",
+            "note": "200 g széles metélt, dry weight"
+          },
+          {
+            "food_key": "butter",
+            "raw_g": 80,
+            "role": "fat",
+            "note": "80 g lágy vaj"
+          },
+          {
+            "food_key": "walnut_ground",
+            "raw_g": 200,
+            "role": "core",
+            "note": "200 g darált dió"
+          },
+          {
+            "food_key": "powdered_sugar",
+            "raw_g": 100,
+            "role": "core",
+            "note": "100 g porcukor"
+          },
+          {
+            "food_key": "jam",
+            "raw_g": 100,
+            "role": "garnish",
+            "note": "a tálaláshoz 100 g baracklekvár"
+          },
+          {
+            "food_key": "powdered_sugar",
+            "raw_g": 6,
+            "role": "garnish",
+            "note": "2 tk porcukor (3 g/tk estimate)"
+          }
+        ],
+        "raw_total_g": 686,
+        "cooking": {
+          "method": "pasta boiled, tossed with butter, walnut and sugar, jam on top",
+          "mass_change_g": 240,
+          "note": "+240 g water taken up by the pasta (1.2 x dry, estimate). Salt left out"
+        },
+        "finished_weight_g": 926,
+        "yield_factor": 1.35
+      },
+      "standard_serving_g": 350,
+      "density_g_per_ml": 0.6,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.57,
+        "height_cm": 3.0
+      },
+      "sources": [
+        {
+          "url": "https://streetkitchen.hu/receptek/dios-teszta",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 2 főre"
+        },
+        {
+          "url": "https://sobors.hu/receptek/dios-teszta-recept/",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 250 g széles metélt, 150 g dió, 80 g porcukor, 2 ek olaj, 4 személy"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 361.9,
+          "fat": 22.7,
+          "protein": 6.4,
+          "net_carbs": 32.5
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "grizes_teszta": {
+      "id": "grizes_teszta",
+      "names": {
+        "hu": "Grízes tészta",
+        "de": "Grießnudeln (ungarisch)",
+        "en": "Pasta with toasted semolina"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "egg_pasta_dry",
+            "raw_g": 250,
+            "role": "core",
+            "note": "25 dkg rövidmetélt, dry weight"
+          },
+          {
+            "food_key": "olive_oil",
+            "raw_g": 26,
+            "role": "fat",
+            "note": "2 ek olívaolaj"
+          },
+          {
+            "food_key": "semolina_soft",
+            "raw_g": 80,
+            "role": "core",
+            "note": "80 g búzadara, toasted in the oil"
+          },
+          {
+            "food_key": "powdered_sugar",
+            "raw_g": 48,
+            "role": "garnish",
+            "note": "4 ek porcukor (ek_sugar measure)"
+          },
+          {
+            "food_key": "jam",
+            "raw_g": 80,
+            "role": "garnish",
+            "note": "4 ek lekvár (20 g/ek estimate)"
+          }
+        ],
+        "raw_total_g": 484,
+        "cooking": {
+          "method": "semolina toasted golden in oil, tossed with boiled pasta, sugar and jam on top",
+          "mass_change_g": 300,
+          "note": "+300 g water taken up by the pasta (1.2 x dry, estimate); the toasted semolina stays dry. Salt left out"
+        },
+        "finished_weight_g": 784,
+        "yield_factor": 1.62
+      },
+      "standard_serving_g": 300,
+      "density_g_per_ml": 0.6,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.49,
+        "height_cm": 3.0
+      },
+      "sources": [
+        {
+          "url": "https://www.nosalty.hu/recept/grizes-teszta",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 adag"
+        },
+        {
+          "url": "https://sobors.hu/receptek/grizes-teszta-recept/",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 2 ek vaj, 150 g búzadara, 250 g tojásos metélt, 2 ek cukor, 4 adag"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/hagyomanyos-grizes-teszta",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 2 dkg zsír, 10 dkg búzadara, 30 dkg fodros kocka, 4 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 223.5,
+          "fat": 4.1,
+          "protein": 5.3,
+          "net_carbs": 40.5
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "szilvas_gomboc": {
+      "id": "szilvas_gomboc",
+      "names": {
+        "hu": "Szilvás gombóc",
+        "de": "Zwetschgenknödel (ungarisch)",
+        "en": "Plum dumplings"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "potato",
+            "raw_g": 800,
+            "role": "core",
+            "note": "80 dkg burgonya, boiled, peeled"
+          },
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 300,
+            "role": "core",
+            "note": "30 dkg liszt"
+          },
+          {
+            "food_key": "butter",
+            "raw_g": 13,
+            "role": "fat",
+            "note": "1 ek vaj (13 g estimate)"
+          },
+          {
+            "food_key": "egg",
+            "raw_g": 50,
+            "role": "core",
+            "note": "1 db"
+          },
+          {
+            "food_key": "plum",
+            "raw_g": 420,
+            "role": "core",
+            "note": "14 db szilva, pitted (30 g each, estimate)"
+          },
+          {
+            "food_key": "sugar",
+            "raw_g": 42,
+            "role": "core",
+            "note": "14 db kockacukor (3 g each, estimate)"
+          },
+          {
+            "food_key": "breadcrumbs",
+            "raw_g": 150,
+            "role": "core",
+            "note": "15 dkg zsemlemorzsa"
+          },
+          {
+            "food_key": "butter",
+            "raw_g": 100,
+            "role": "fat",
+            "note": "10 dkg vaj a morzsához"
+          },
+          {
+            "food_key": "powdered_sugar",
+            "raw_g": 12,
+            "role": "seasoning",
+            "note": "1 ek porcukor a morzsába"
+          },
+          {
+            "food_key": "powdered_sugar",
+            "raw_g": 20,
+            "role": "garnish",
+            "note": "porcukor a tetejére (20 g estimate)"
+          }
+        ],
+        "raw_total_g": 1907,
+        "cooking": {
+          "method": "potato dough wrapped around plums, boiled, rolled in butter-toasted breadcrumbs",
+          "mass_change_g": 50,
+          "note": "boiled dumplings take up a little water (+50 g estimate). Salt left out"
+        },
+        "finished_weight_g": 1957,
+        "yield_factor": 1.026
+      },
+      "standard_serving_g": 300,
+      "density_g_per_ml": 0.75,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.29,
+        "height_cm": 4.0
+      },
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/szilvas-gomboc",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 adag"
+        },
+        {
+          "url": "https://www.nosalty.hu/recept/szilvas-gomboc",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 1 kg burgonya, 30 dkg liszt, 22 szilva, 25 dkg zsemlemorzsa, 4 adag"
+        },
+        {
+          "url": "https://sobors.hu/receptek/szilvas-gomboc-recept/",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 1 kg krumpli, 300 g liszt, 200 g zsemlemorzsa, 6 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 185.5,
+          "fat": 5.4,
+          "protein": 3.7,
+          "net_carbs": 29.6
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "turogomboc": {
+      "id": "turogomboc",
+      "names": {
+        "hu": "Túrógombóc",
+        "de": "Topfenknödel (ungarisch)",
+        "en": "Cottage cheese dumplings"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "quark_40",
+            "raw_g": 500,
+            "role": "core",
+            "note": "500 g zsíros tehéntúró = BLS Speisequark Fettstufe 40 % i. Tr."
+          },
+          {
+            "food_key": "egg",
+            "raw_g": 150,
+            "role": "core",
+            "note": "3 db"
+          },
+          {
+            "food_key": "sugar",
+            "raw_g": 24,
+            "role": "core",
+            "note": "2 ek cukor"
+          },
+          {
+            "food_key": "semolina_soft",
+            "raw_g": 60,
+            "role": "core",
+            "note": "60 g búzadara"
+          },
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 60,
+            "role": "core",
+            "note": "60 g liszt"
+          },
+          {
+            "food_key": "breadcrumbs",
+            "raw_g": 150,
+            "role": "core",
+            "note": "150 g zsemle/kiflimorzsa"
+          },
+          {
+            "food_key": "butter",
+            "raw_g": 13,
+            "role": "fat",
+            "note": "1 ek vaj a morzsához (13 g estimate)"
+          }
+        ],
+        "raw_total_g": 957,
+        "cooking": {
+          "method": "dough rested, shaped into balls, boiled, rolled in toasted breadcrumbs",
+          "mass_change_g": 40,
+          "note": "semolina swells while resting and boiling (+40 g estimate). Salt left out; sour cream, cinnamon and powdered sugar for serving are optional"
+        },
+        "finished_weight_g": 997,
+        "yield_factor": 1.042
+      },
+      "standard_serving_g": 250,
+      "density_g_per_ml": 0.75,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.29,
+        "height_cm": 4.0
+      },
+      "sources": [
+        {
+          "url": "https://sobors.hu/receptek/turogomboc-recept/",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 adag"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/klasszikus-turogomboc",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 50 dkg túró, 3 tojás, 2 dl búzadara, 10 dkg zsemlemorzsa, 2 dl tejföl, 4 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 216.1,
+          "fat": 8.8,
+          "protein": 10.5,
+          "net_carbs": 22.7
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "somloi_galuska": {
+      "id": "somloi_galuska",
+      "names": {
+        "hu": "Somlói galuska",
+        "de": "Somlauer Nockerl",
+        "en": "Somlói trifle (somlói galuska)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 5,
+        "ingredients": [
+          {
+            "food_key": "egg",
+            "raw_g": 330,
+            "role": "core",
+            "note": "piskóta: 6 db tojás (330 g, the source's own gram figure)"
+          },
+          {
+            "food_key": "powdered_sugar",
+            "raw_g": 42,
+            "role": "core",
+            "note": "6 ek porcukor (42 g per source)"
+          },
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 90,
+            "role": "core",
+            "note": "6 ek finomliszt (90 g per source)"
+          },
+          {
+            "food_key": "cocoa_powder",
+            "raw_g": 10,
+            "role": "core",
+            "note": "1 ek kakaópor (10 g per source)"
+          },
+          {
+            "food_key": "egg_yolk",
+            "raw_g": 60,
+            "role": "core",
+            "note": "vaníliakrém: 3 tojássárgája (60 g per source)"
+          },
+          {
+            "food_key": "milk_whole",
+            "raw_g": 500,
+            "role": "core",
+            "note": "5 dl tej (500 g per source)"
+          },
+          {
+            "food_key": "sugar",
+            "raw_g": 30,
+            "role": "core",
+            "note": "3 ek cukor (30 g per source)"
+          },
+          {
+            "food_key": "corn_starch",
+            "raw_g": 15,
+            "role": "thickener",
+            "note": "1 ek keményítő (15 g per source)"
+          },
+          {
+            "food_key": "sugar",
+            "raw_g": 200,
+            "role": "core",
+            "note": "szirup: 200 g cukor"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 250,
+            "role": "liquid",
+            "note": "szirup: 250 ml víz"
+          },
+          {
+            "food_key": "raisins",
+            "raw_g": 22,
+            "role": "core",
+            "note": "1 marék mazsola (22 g per source)"
+          },
+          {
+            "food_key": "rum",
+            "raw_g": 100,
+            "role": "core",
+            "note": "1 dl rum (100 g per source)"
+          },
+          {
+            "food_key": "walnut_ground",
+            "raw_g": 100,
+            "role": "core",
+            "note": "10 dkg darált dió"
+          },
+          {
+            "food_key": "butter",
+            "raw_g": 100,
+            "role": "fat",
+            "note": "csokiöntet: 10 dkg vaj"
+          },
+          {
+            "food_key": "sugar",
+            "raw_g": 100,
+            "role": "core",
+            "note": "csokiöntet: 10 dkg cukor"
+          },
+          {
+            "food_key": "cocoa_powder",
+            "raw_g": 30,
+            "role": "core",
+            "note": "3 ek kakaópor (30 g per source)"
+          },
+          {
+            "food_key": "milk_whole",
+            "raw_g": 20,
+            "role": "core",
+            "note": "2 ek tej (20 g per source)"
+          },
+          {
+            "food_key": "cream_30",
+            "raw_g": 150,
+            "role": "garnish",
+            "note": "150 ml habtejszín a tálaláshoz"
+          }
+        ],
+        "raw_total_g": 2149,
+        "cooking": {
+          "method": "three sponge layers baked, soaked in rum syrup, layered with vanilla cream, walnuts and raisins; chocolate sauce and whipped cream",
+          "mass_change_g": -170,
+          "note": "about -60 g sponge baking loss, -80 g syrup reduction, -30 g cream boiling (estimates); part of the rum's alcohol evaporates (not modelled). Vanilla bean and salt left out"
+        },
+        "finished_weight_g": 1979,
+        "yield_factor": 0.921
+      },
+      "standard_serving_g": 250,
+      "density_g_per_ml": 1.081,
+      "density_method": "derived from components after cooking mass change",
+      "flat_plate": {
+        "coverage": 0.14,
+        "height_cm": 5.0
+      },
+      "sources": [
+        {
+          "url": "https://www.nosalty.hu/recept/somloi-galuska",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 5 adag; grams from the page's own per-batch nutrition table"
+        },
+        {
+          "url": "https://sobors.hu/receptek/somloi-galuska-recept/",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 3 piskóta (sima, kakaós, diós), vaníliakrém, rumos szirup, 10 adag"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/klasszikus-somloi-galuska",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 8 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 260.2,
+          "fat": 13.9,
+          "protein": 5.6,
+          "net_carbs": 25.1
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "gundel_palacsinta": {
+      "id": "gundel_palacsinta",
+      "names": {
+        "hu": "Gundel-palacsinta",
+        "de": "Gundel-Palatschinken",
+        "en": "Gundel pancakes (walnut-filled crêpes with chocolate sauce)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 200,
+            "role": "core",
+            "note": "20 dkg liszt"
+          },
+          {
+            "food_key": "egg",
+            "raw_g": 100,
+            "role": "core",
+            "note": "2 db"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 69.0,
+            "role": "fat",
+            "note": "0,75 dl olaj a tésztába"
+          },
+          {
+            "food_key": "milk_whole",
+            "raw_g": 309,
+            "role": "core",
+            "note": "3 dl tej"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 200,
+            "role": "liquid",
+            "note": "2 dl szénsavas ásványvíz"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 20,
+            "role": "fat",
+            "note": "olaj a sütéshez (20 g absorbed, estimate)"
+          },
+          {
+            "food_key": "walnut_ground",
+            "raw_g": 100,
+            "role": "core",
+            "note": "töltelék: 10 dkg darált dió"
+          },
+          {
+            "food_key": "powdered_sugar",
+            "raw_g": 50,
+            "role": "core",
+            "note": "5 ek porcukor (10 g/ek estimate)"
+          },
+          {
+            "food_key": "vanilla_sugar",
+            "raw_g": 8,
+            "role": "seasoning",
+            "note": "1 tasak (8 g estimate)"
+          },
+          {
+            "food_key": "raisins",
+            "raw_g": 20,
+            "role": "core",
+            "note": "2 ek mazsola (10 g/ek estimate)"
+          },
+          {
+            "food_key": "rum",
+            "raw_g": 94,
+            "role": "core",
+            "note": "1 dl rum"
+          },
+          {
+            "food_key": "cream_30",
+            "raw_g": 100,
+            "role": "core",
+            "note": "töltelék: 1 dl tejszín"
+          },
+          {
+            "food_key": "dark_chocolate",
+            "raw_g": 100,
+            "role": "core",
+            "note": "mártás: 10 dkg étcsokoládé"
+          },
+          {
+            "food_key": "butter",
+            "raw_g": 20,
+            "role": "fat",
+            "note": "2 dkg vaj"
+          },
+          {
+            "food_key": "cream_30",
+            "raw_g": 100,
+            "role": "core",
+            "note": "mártás: 1 dl tejszín"
+          }
+        ],
+        "raw_total_g": 1490.0,
+        "cooking": {
+          "method": "thin pancakes fried, filled with rum-walnut filling, folded, served with chocolate sauce",
+          "mass_change_g": -90,
+          "note": "about -60 g pancake frying loss and -30 g from heating the rum filling (estimates); remaining alcohol not modelled. Dióbél garnish and salt left out"
+        },
+        "finished_weight_g": 1400.0,
+        "yield_factor": 0.94
+      },
+      "standard_serving_g": 220,
+      "density_g_per_ml": 1.028,
+      "density_method": "derived from components after cooking mass change",
+      "flat_plate": {
+        "coverage": 0.25,
+        "height_cm": 2.5
+      },
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/gundel-palacsinta",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 adag"
+        },
+        {
+          "url": "https://sobors.hu/receptek/gundel-palacsinta-recept/",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 25 dkg liszt, 25 dkg dió, 20 dkg cukor, tejcsokoládé + tejszín mártás, rum, 6 személy"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 309.0,
+          "fat": 21.0,
+          "protein": 5.2,
+          "net_carbs": 20.4
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "kapros_turos_lepeny": {
+      "id": "kapros_turos_lepeny",
+      "names": {
+        "hu": "Kapros túrós lepény",
+        "de": "Topfen-Dill-Fladen (ungarisch)",
+        "en": "Dill and cottage cheese pie (kapros túrós lepény)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 8,
+        "ingredients": [
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 300,
+            "role": "core",
+            "note": "300 g liszt"
+          },
+          {
+            "food_key": "milk_whole",
+            "raw_g": 154.5,
+            "role": "core",
+            "note": "1,5 dl tej"
+          },
+          {
+            "food_key": "yeast_fresh",
+            "raw_g": 3,
+            "role": "seasoning",
+            "note": "3 g élesztő"
+          },
+          {
+            "food_key": "sugar",
+            "raw_g": 24,
+            "role": "core",
+            "note": "tészta: 2 ek cukor"
+          },
+          {
+            "food_key": "butter",
+            "raw_g": 60,
+            "role": "fat",
+            "note": "60 g vaj"
+          },
+          {
+            "food_key": "egg",
+            "raw_g": 50,
+            "role": "core",
+            "note": "tészta: 1 db tojás"
+          },
+          {
+            "food_key": "quark_20",
+            "raw_g": 500,
+            "role": "core",
+            "note": "500 g túró; plain tehéntúró = BLS Speisequark Halbfettstufe 20 % i. Tr."
+          },
+          {
+            "food_key": "egg",
+            "raw_g": 150,
+            "role": "core",
+            "note": "töltelék: 3 db tojás"
+          },
+          {
+            "food_key": "sugar",
+            "raw_g": 24,
+            "role": "core",
+            "note": "töltelék: 2 ek cukor"
+          }
+        ],
+        "raw_total_g": 1265.5,
+        "cooking": {
+          "method": "yeast dough base and top, túró-egg-dill filling, baked",
+          "mass_change_g": -100,
+          "note": "baking loss about 7% (estimate). 2 csomag kapor (MISSING dill_fresh, ~20 g), lemon zest and salt left out"
+        },
+        "finished_weight_g": 1165.5,
+        "yield_factor": 0.921
+      },
+      "standard_serving_g": 150,
+      "density_g_per_ml": 1.041,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://sobors.hu/receptek/kapros-turos-lepeny-recept/",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 8 adag"
+        },
+        {
+          "url": "https://www.nosalty.hu/recept/kapros-turos-lepeny",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 500 g liszt, 50 g zsír, 500 g túró, 3 tojás, búzadara, kapor, tejföl, 8 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 221.9,
+          "fat": 8.6,
+          "protein": 10.8,
+          "net_carbs": 24.5
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "makos_guba": {
+      "id": "makos_guba",
+      "names": {
+        "hu": "Mákos guba",
+        "de": "Mohnbeugel-Auflauf (Mákos guba)",
+        "en": "Poppy seed bread pudding (mákos guba)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "wheat_roll",
+            "raw_g": 200,
+            "role": "core",
+            "note": "4 db szikkadt kifli (50 g each, estimate); Hungarian kifli is plain white wheat-roll dough"
+          },
+          {
+            "food_key": "milk_whole",
+            "raw_g": 515,
+            "role": "core",
+            "note": "0,5 l tej"
+          },
+          {
+            "food_key": "egg",
+            "raw_g": 100,
+            "role": "core",
+            "note": "2 db tojás"
+          },
+          {
+            "food_key": "poppy_seed_ground",
+            "raw_g": 200,
+            "role": "core",
+            "note": "200 g darált mák"
+          },
+          {
+            "food_key": "powdered_sugar",
+            "raw_g": 100,
+            "role": "core",
+            "note": "100 g porcukor"
+          },
+          {
+            "food_key": "egg",
+            "raw_g": 100,
+            "role": "core",
+            "note": "sodó: 2 db tojás"
+          },
+          {
+            "food_key": "milk_whole",
+            "raw_g": 206,
+            "role": "core",
+            "note": "sodó: 2 dl tej"
+          },
+          {
+            "food_key": "sugar",
+            "raw_g": 24,
+            "role": "core",
+            "note": "sodó: cukor ízlés szerint (2 ek estimate)"
+          }
+        ],
+        "raw_total_g": 1445,
+        "cooking": {
+          "method": "sliced kifli soaked in sweet milk-egg, layered with poppy seed sugar, baked; vanilla custard (sodó) poured over",
+          "mass_change_g": -120,
+          "note": "about -100 g baking loss and -20 g custard reduction (estimates). Vanilla extract and lemon zest left out"
+        },
+        "finished_weight_g": 1325,
+        "yield_factor": 0.917
+      },
+      "standard_serving_g": 300,
+      "density_g_per_ml": 0.715,
+      "density_method": "derived from components after cooking mass change",
+      "flat_plate": {
+        "coverage": 0.31,
+        "height_cm": 4.0
+      },
+      "sources": [
+        {
+          "url": "https://sobors.hu/receptek/makos-guba-recept/",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 adag (sütőben sütve, sodóval)"
+        },
+        {
+          "url": "https://www.receptneked.hu/recept/makos-guba",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 10 kifli, 4 dl tej, 8 dkg vaj, méz, mák, 6 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 212.5,
+          "fat": 9.9,
+          "protein": 9.0,
+          "net_carbs": 20.2
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "aranygaluska": {
+      "id": "aranygaluska",
+      "names": {
+        "hu": "Aranygaluska",
+        "de": "Goldene Nockerl (Aranygaluska)",
+        "en": "Golden dumpling cake (aranygaluska)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 500,
+            "role": "core",
+            "note": "50 dkg búzaliszt"
+          },
+          {
+            "food_key": "butter",
+            "raw_g": 250,
+            "role": "fat",
+            "note": "25 dkg vaj (dough + melted butter between layers)"
+          },
+          {
+            "food_key": "walnut_ground",
+            "raw_g": 150,
+            "role": "core",
+            "note": "15 dkg darált dió"
+          },
+          {
+            "food_key": "powdered_sugar",
+            "raw_g": 150,
+            "role": "core",
+            "note": "15 dkg porcukor"
+          },
+          {
+            "food_key": "milk_whole",
+            "raw_g": 309,
+            "role": "core",
+            "note": "3 dl tej"
+          },
+          {
+            "food_key": "yeast_fresh",
+            "raw_g": 25,
+            "role": "seasoning",
+            "note": "2,5 dkg élesztő"
+          },
+          {
+            "food_key": "egg_yolk",
+            "raw_g": 18,
+            "role": "core",
+            "note": "1 tojássárga"
+          },
+          {
+            "food_key": "sugar",
+            "raw_g": 12,
+            "role": "core",
+            "note": "1 ek kristálycukor"
+          }
+        ],
+        "raw_total_g": 1414,
+        "cooking": {
+          "method": "yeast dough balls dipped in butter, layered with walnut sugar, baked 35 min at 180 °C",
+          "mass_change_g": -120,
+          "note": "baking loss about 8% (estimate). The vanilla custard (sodó) is served on the side and not included: the source lists 20 dkg vaj for it, which looks like a list error. Salt left out"
+        },
+        "finished_weight_g": 1294,
+        "yield_factor": 0.915
+      },
+      "standard_serving_g": 250,
+      "density_g_per_ml": 1.036,
+      "density_method": "derived from components after cooking mass change",
+      "flat_plate": {
+        "coverage": 0.14,
+        "height_cm": 5.0
+      },
+      "sources": [
+        {
+          "url": "https://femina.hu/recept/aranygaluska-recept/",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 személy"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/aranygaluska",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 50 dkg liszt, 10 dkg margarin, 15 dkg dió, vaníliasodó, 6 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 428.4,
+          "fat": 25.5,
+          "protein": 7.5,
+          "net_carbs": 41.8
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "kelt_retes": {
+      "id": "kelt_retes",
+      "names": {
+        "hu": "Kelt rétes (mákos, almás, meggyes, túrós)",
+        "de": "Hefestrudel (ungarisch, gemischt)",
+        "en": "Yeast-dough strudel, mixed fillings"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 40,
+        "ingredients": [
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 1000,
+            "role": "core",
+            "note": "1 kg liszt"
+          },
+          {
+            "food_key": "egg",
+            "raw_g": 50,
+            "role": "core",
+            "note": "1 db tojás"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 39,
+            "role": "fat",
+            "note": "3 ek étolaj"
+          },
+          {
+            "food_key": "lard",
+            "raw_g": 39,
+            "role": "fat",
+            "note": "3 ek zsír"
+          },
+          {
+            "food_key": "sour_cream",
+            "raw_g": 68,
+            "role": "core",
+            "note": "4 ek tejföl"
+          },
+          {
+            "food_key": "milk_whole",
+            "raw_g": 721,
+            "role": "core",
+            "note": "7 dl tej"
+          },
+          {
+            "food_key": "yeast_fresh",
+            "raw_g": 50,
+            "role": "seasoning",
+            "note": "5 dkg élesztő"
+          },
+          {
+            "food_key": "sugar",
+            "raw_g": 36,
+            "role": "core",
+            "note": "tészta: 3 ek cukor"
+          },
+          {
+            "food_key": "poppy_seed_ground",
+            "raw_g": 300,
+            "role": "core",
+            "note": "mákos: 30 dkg mák (darált)"
+          },
+          {
+            "food_key": "apple_peeled",
+            "raw_g": 450,
+            "role": "core",
+            "note": "almás: 3 db alma (150 g peeled each, estimate)"
+          },
+          {
+            "food_key": "sugar",
+            "raw_g": 200,
+            "role": "core",
+            "note": "mákos/almás: 20 dkg cukor"
+          },
+          {
+            "food_key": "semolina_soft",
+            "raw_g": 210,
+            "role": "core",
+            "note": "3 dl búzadara (0.7 g/ml estimate)"
+          },
+          {
+            "food_key": "sour_cream",
+            "raw_g": 306,
+            "role": "core",
+            "note": "3 dl tejföl"
+          },
+          {
+            "food_key": "sugar",
+            "raw_g": 72,
+            "role": "core",
+            "note": "6 ek cukor"
+          },
+          {
+            "food_key": "sour_cherry",
+            "raw_g": 200,
+            "role": "core",
+            "note": "meggyes: 20 dkg meggy, pitted"
+          },
+          {
+            "food_key": "quark_20",
+            "raw_g": 1000,
+            "role": "core",
+            "note": "túrós: 1 kg túró; plain tehéntúró = BLS Speisequark 20 % i. Tr."
+          },
+          {
+            "food_key": "raisins",
+            "raw_g": 100,
+            "role": "core",
+            "note": "1 csomag mazsola (100 g estimate)"
+          },
+          {
+            "food_key": "egg",
+            "raw_g": 150,
+            "role": "core",
+            "note": "túrós: 3 db tojás"
+          },
+          {
+            "food_key": "sugar",
+            "raw_g": 200,
+            "role": "core",
+            "note": "túrós: 20 dkg cukor"
+          }
+        ],
+        "raw_total_g": 5191,
+        "cooking": {
+          "method": "yeast dough rolled out, filled (poppy seed, apple, sour cherry, túró), rolled, baked 20-25 min at 180 °C",
+          "mass_change_g": -300,
+          "note": "baking loss about 6% (estimate). The source gives no yield; 40 slices of ~120 g is an estimate. Lemon zest/juice and salt left out"
+        },
+        "finished_weight_g": 4891,
+        "yield_factor": 0.942
+      },
+      "standard_serving_g": 120,
+      "density_g_per_ml": 1.055,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/kelt-retes",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe (no yield given)"
+        },
+        {
+          "url": "https://www.receptneked.hu/recept/kelt-retes",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 1 kg liszt, 6 dl tej, élesztő, túrós-almás töltelék, 24 adag"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/kelt-makos-retes",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: mákos kelt rétes, 50 dkg liszt, 30 dkg mák"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 240.1,
+          "fat": 7.8,
+          "protein": 8.2,
+          "net_carbs": 32.8
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "dobostorta": {
+      "id": "dobostorta",
+      "names": {
+        "hu": "Dobostorta",
+        "de": "Dobostorte",
+        "en": "Dobos torte"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 12,
+        "ingredients": [
+          {
+            "food_key": "egg",
+            "raw_g": 300,
+            "role": "core",
+            "note": "piskóta: 6 db tojás"
+          },
+          {
+            "food_key": "butter",
+            "raw_g": 35,
+            "role": "fat",
+            "note": "35 g vaj"
+          },
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 100,
+            "role": "core",
+            "note": "100 g liszt"
+          },
+          {
+            "food_key": "powdered_sugar",
+            "raw_g": 100,
+            "role": "core",
+            "note": "100 g porcukor"
+          },
+          {
+            "food_key": "bitter_chocolate",
+            "raw_g": 200,
+            "role": "core",
+            "note": "200 g csoki (70% kakaótartalom)"
+          },
+          {
+            "food_key": "butter",
+            "raw_g": 280,
+            "role": "fat",
+            "note": "krém: 280 g vaj"
+          },
+          {
+            "food_key": "powdered_sugar",
+            "raw_g": 200,
+            "role": "core",
+            "note": "krém: 200 g porcukor"
+          },
+          {
+            "food_key": "egg",
+            "raw_g": 200,
+            "role": "core",
+            "note": "krém: 4 db tojás"
+          },
+          {
+            "food_key": "sugar",
+            "raw_g": 120,
+            "role": "core",
+            "note": "karamell: 120 g kockacukor"
+          },
+          {
+            "food_key": "butter",
+            "raw_g": 5,
+            "role": "fat",
+            "note": "vaj kevés (5 g estimate)"
+          }
+        ],
+        "raw_total_g": 1540,
+        "cooking": {
+          "method": "6 thin sponge layers baked, chocolate buttercream (eggs cooked over steam), caramel-glazed top layer",
+          "mass_change_g": -60,
+          "note": "sponge baking loss about -60 g (estimate). Vanilla bean left out. One whole torte = batch; 1 slice = 1/12"
+        },
+        "finished_weight_g": 1480,
+        "yield_factor": 0.961
+      },
+      "standard_serving_g": 125,
+      "density_g_per_ml": 1.137,
+      "density_method": "derived from components after cooking mass change",
+      "flat_plate": {
+        "coverage": 0.055,
+        "height_cm": 6.0
+      },
+      "sources": [
+        {
+          "url": "https://sobors.hu/receptek/dobostorta-recept/",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 12 szelet"
+        },
+        {
+          "url": "https://femina.hu/recept/dobostorta-recept/",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 8 tojás + 4 tojás, 16 dkg liszt, 24 dkg vaj, 20 dkg étcsokoládé, 18 dkg cukor karamell, 16 szelet"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 413.7,
+          "fat": 26.2,
+          "protein": 6.6,
+          "net_carbs": 37.9
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "rigojancsi": {
+      "id": "rigojancsi",
+      "names": {
+        "hu": "Rigójancsi",
+        "de": "Rigó Jancsi (Schokoladen-Sahneschnitte)",
+        "en": "Rigó Jancsi (chocolate mousse cake)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 16,
+        "ingredients": [
+          {
+            "food_key": "sugar",
+            "raw_g": 120,
+            "role": "core",
+            "note": "piskóta: 12 dkg cukor"
+          },
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 100,
+            "role": "core",
+            "note": "10 dkg liszt"
+          },
+          {
+            "food_key": "egg",
+            "raw_g": 300,
+            "role": "core",
+            "note": "6 tojás"
+          },
+          {
+            "food_key": "cocoa_powder",
+            "raw_g": 50,
+            "role": "core",
+            "note": "5 dkg kakaópor"
+          },
+          {
+            "food_key": "baking_powder",
+            "raw_g": 12,
+            "role": "seasoning",
+            "note": "1 csomag sütőpor (12 g estimate)"
+          },
+          {
+            "food_key": "powdered_sugar",
+            "raw_g": 150,
+            "role": "core",
+            "note": "krém: 15 dkg porcukor"
+          },
+          {
+            "food_key": "cocoa_powder",
+            "raw_g": 150,
+            "role": "core",
+            "note": "krém: 15 dkg kakaó"
+          },
+          {
+            "food_key": "cream_30",
+            "raw_g": 700,
+            "role": "core",
+            "note": "7 dl tejszín"
+          },
+          {
+            "food_key": "milk_whole",
+            "raw_g": 103,
+            "role": "core",
+            "note": "1 dl tej"
+          },
+          {
+            "food_key": "gelatin",
+            "raw_g": 20,
+            "role": "thickener",
+            "note": "2 ek zselatinpor (10 g/ek estimate)"
+          },
+          {
+            "food_key": "dark_chocolate",
+            "raw_g": 150,
+            "role": "core",
+            "note": "bevonó: 15 dkg étcsokoládé"
+          },
+          {
+            "food_key": "butter",
+            "raw_g": 100,
+            "role": "fat",
+            "note": "bevonó: 10 dkg vaj"
+          }
+        ],
+        "raw_total_g": 1955,
+        "cooking": {
+          "method": "thin cocoa sponge baked in two sheets, whipped chocolate cream set with gelatin between, chocolate glaze",
+          "mass_change_g": -50,
+          "note": "sponge baking loss about -50 g (estimate). One tray = batch; 1 slice = 1/16"
+        },
+        "finished_weight_g": 1905,
+        "yield_factor": 0.974
+      },
+      "standard_serving_g": 120,
+      "density_g_per_ml": 1.074,
+      "density_method": "derived from components after cooking mass change",
+      "flat_plate": {
+        "coverage": 0.055,
+        "height_cm": 6.0
+      },
+      "sources": [
+        {
+          "url": "https://femina.hu/recept/rigojancsi-recept/",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 16 szelet"
+        },
+        {
+          "url": "https://sobors.hu/receptek/rigojancsi-recept/",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 170 g liszt, 8 tojás, 30 g kakaó, 1 l habtejszín, 600 g étcsokoládé, zselatin, 8 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 334.9,
+          "fat": 22.2,
+          "protein": 7.5,
+          "net_carbs": 24.6
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "zserbo": {
+      "id": "zserbo",
+      "names": {
+        "hu": "Zserbó",
+        "de": "Gerbeaud-Schnitte",
+        "en": "Zserbó (Gerbeaud slice)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 8,
+        "ingredients": [
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 600,
+            "role": "core",
+            "note": "60 dkg liszt"
+          },
+          {
+            "food_key": "butter",
+            "raw_g": 300,
+            "role": "fat",
+            "note": "30 dkg vaj"
+          },
+          {
+            "food_key": "sugar",
+            "raw_g": 100,
+            "role": "core",
+            "note": "tészta: 10 dkg cukor"
+          },
+          {
+            "food_key": "milk_whole",
+            "raw_g": 103,
+            "role": "core",
+            "note": "1 dl tej"
+          },
+          {
+            "food_key": "yeast_fresh",
+            "raw_g": 15,
+            "role": "seasoning",
+            "note": "1,5 dkg élesztő"
+          },
+          {
+            "food_key": "egg_yolk",
+            "raw_g": 72,
+            "role": "core",
+            "note": "4 tojássárgája (18 g each)"
+          },
+          {
+            "food_key": "rum",
+            "raw_g": 47,
+            "role": "core",
+            "note": "0,5 dl rum"
+          },
+          {
+            "food_key": "walnut_ground",
+            "raw_g": 400,
+            "role": "core",
+            "note": "töltelék: 40 dkg dió"
+          },
+          {
+            "food_key": "jam",
+            "raw_g": 400,
+            "role": "core",
+            "note": "40 dkg sárgabaracklekvár"
+          },
+          {
+            "food_key": "sugar",
+            "raw_g": 300,
+            "role": "core",
+            "note": "töltelék: 30 dkg cukor"
+          },
+          {
+            "food_key": "powdered_sugar",
+            "raw_g": 150,
+            "role": "core",
+            "note": "máz: 15 dkg porcukor"
+          },
+          {
+            "food_key": "cocoa_powder",
+            "raw_g": 50,
+            "role": "core",
+            "note": "máz: 5 dkg kakaópor"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 30,
+            "role": "liquid",
+            "note": "máz: 2 ek forró víz"
+          },
+          {
+            "food_key": "butter",
+            "raw_g": 50,
+            "role": "fat",
+            "note": "máz: 5 dkg vaj"
+          }
+        ],
+        "raw_total_g": 2617,
+        "cooking": {
+          "method": "four thin yeast-shortcrust layers with walnut-sugar and apricot jam, baked, chocolate glaze",
+          "mass_change_g": -150,
+          "note": "baking loss about 6% (estimate); rum alcohol evaporates in baking (not modelled). Baking soda and salt left out. The source calls the tray 8 adag; zserbó is cut into ~30 small squares, a normal portion is 2 squares (~80 g)"
+        },
+        "finished_weight_g": 2467,
+        "yield_factor": 0.943
+      },
+      "standard_serving_g": 80,
+      "density_g_per_ml": 1.12,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://sobors.hu/receptek/zserbo-recept/",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 8 adag"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/klasszikus-zserbo",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 50 dkg liszt, 22,5 dkg vaj, 25 dkg dió, baracklekvár, étcsokoládé máz"
+        },
+        {
+          "url": "https://femina.hu/recept/zserbo-recept/",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 35 dkg liszt, 20 dkg vaj, 15 dkg dió, baracklekvár, 32 szelet"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 454.8,
+          "fat": 24.7,
+          "protein": 6.5,
+          "net_carbs": 49.8
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "rakott_palacsinta": {
+      "id": "rakott_palacsinta",
+      "names": {
+        "hu": "Rakott palacsinta (diós-kakaós-lekváros)",
+        "de": "Palatschinkentorte (ungarisch)",
+        "en": "Layered pancake cake (rakott palacsinta)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 6,
+        "ingredients": [
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 200,
+            "role": "core",
+            "note": "200 g finomliszt"
+          },
+          {
+            "food_key": "milk_whole",
+            "raw_g": 309,
+            "role": "core",
+            "note": "300 ml zsíros tej"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 100,
+            "role": "liquid",
+            "note": "100 ml szódavíz"
+          },
+          {
+            "food_key": "egg",
+            "raw_g": 150,
+            "role": "core",
+            "note": "3 db tojás"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 39,
+            "role": "fat",
+            "note": "3 ek napraforgóolaj (tésztába és sütéshez)"
+          },
+          {
+            "food_key": "walnut_ground",
+            "raw_g": 150,
+            "role": "core",
+            "note": "150 g darált dió"
+          },
+          {
+            "food_key": "sugar",
+            "raw_g": 120,
+            "role": "core",
+            "note": "120 g kristálycukor"
+          },
+          {
+            "food_key": "cocoa_powder",
+            "raw_g": 30,
+            "role": "core",
+            "note": "30 g kakaópor"
+          },
+          {
+            "food_key": "jam",
+            "raw_g": 150,
+            "role": "core",
+            "note": "150 g sárgabaracklekvár"
+          },
+          {
+            "food_key": "sour_cream",
+            "raw_g": 200,
+            "role": "core",
+            "note": "200 g tejföl (20%)"
+          },
+          {
+            "food_key": "butter",
+            "raw_g": 5,
+            "role": "fat",
+            "note": "1 tk vaj a jénaihoz (5 g estimate)"
+          },
+          {
+            "food_key": "dark_chocolate",
+            "raw_g": 100,
+            "role": "core",
+            "note": "öntet: 100 g étcsokoládé (min. 50%)"
+          },
+          {
+            "food_key": "milk_whole",
+            "raw_g": 51.5,
+            "role": "core",
+            "note": "öntet: 50 ml tej"
+          },
+          {
+            "food_key": "butter",
+            "raw_g": 20,
+            "role": "fat",
+            "note": "öntet: 20 g vaj"
+          }
+        ],
+        "raw_total_g": 1624.5,
+        "cooking": {
+          "method": "pancakes fried, layered with walnut-sugar, cocoa, jam; sour-cream top, baked; chocolate sauce",
+          "mass_change_g": -100,
+          "note": "about -60 g pancake frying loss and -40 g baking loss (estimates). Salt left out"
+        },
+        "finished_weight_g": 1524.5,
+        "yield_factor": 0.938
+      },
+      "standard_serving_g": 250,
+      "density_g_per_ml": 1.079,
+      "density_method": "derived from components after cooking mass change",
+      "flat_plate": {
+        "coverage": 0.14,
+        "height_cm": 5.0
+      },
+      "sources": [
+        {
+          "url": "https://izekesillatok.hu/receptek/rakott-palacsinta",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 6 fő"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/turos-dios-rakott-palacsinta",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 16 palacsinta, túrós, diós, lekváros rétegek, tejfölös tojásos teteje"
+        },
+        {
+          "url": "https://kemenytojas.com/receptek/dios-lekvaros-rakott-palacsintatorta/",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: diós-lekváros palacsintatorta csokoládéöntettel, 12 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 301.0,
+          "fat": 17.6,
+          "protein": 6.4,
+          "net_carbs": 28.3
         },
         "incomplete_missing_food_keys": []
       }
@@ -4595,6 +6934,837 @@
       ]
     },
     {
+      "id": "hu_hortobagyi_palacsinta",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "hortobágyi palacsinta",
+        "de": "Hortobágyer Palatschinken",
+        "en": "Hortobágy pancakes"
+      },
+      "aliases": {
+        "hu": [
+          "hortobágyi palacsinta",
+          "hortobagyi palacsinta",
+          "húsos palacsinta"
+        ],
+        "de": [
+          "hortobágyer palatschinken",
+          "hortobagyi palatschinken",
+          "fleischpalatschinken"
+        ],
+        "de-AT": [
+          "hortobágyer palatschinken",
+          "fleischpalatschinken"
+        ],
+        "en": [
+          "hortobágy pancakes",
+          "hortobagy pancakes",
+          "meat-filled crepes"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "pancake",
+        "higher-carb"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "hortobagyi_palacsinta",
+          "standard_serving_g": 350
+        }
+      ],
+      "review_note_hu": "Csirkecombos (paprikás csirkés) változat; a klasszikus borjúpörköltes töltelék külön rész lehet. A bőrt egyes receptek eltávolítják (itt bőrös comb rekord)."
+    },
+    {
+      "id": "hu_turos_csusza",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "túrós csusza",
+        "de": "Topfennudeln mit Speck",
+        "en": "Túrós csusza"
+      },
+      "aliases": {
+        "hu": [
+          "túrós csusza",
+          "turos csusza",
+          "túrós tészta",
+          "túrós-szalonnás tészta"
+        ],
+        "de": [
+          "topfennudeln mit speck",
+          "quarknudeln mit speck"
+        ],
+        "de-AT": [
+          "topfennudeln mit speck",
+          "topfenfleckerl"
+        ],
+        "en": [
+          "túrós csusza",
+          "cottage cheese pasta with bacon"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "pasta",
+        "higher-carb"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "turos_csusza",
+          "standard_serving_g": 400
+        }
+      ],
+      "review_note_hu": "A 'túrós tészta' alias ide mutat; ha lesz szalonna nélküli változat, szét kell választani."
+    },
+    {
+      "id": "hu_kaposztas_teszta",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "káposztás tészta",
+        "de": "Krautfleckerl",
+        "en": "Cabbage pasta"
+      },
+      "aliases": {
+        "hu": [
+          "káposztás tészta",
+          "kaposztas teszta",
+          "káposztás kocka"
+        ],
+        "de": [
+          "krautfleckerl",
+          "krautnudeln"
+        ],
+        "de-AT": [
+          "krautfleckerl"
+        ],
+        "en": [
+          "cabbage pasta",
+          "cabbage noodles"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "pasta",
+        "higher-carb"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "kaposztas_teszta",
+          "standard_serving_g": 350
+        }
+      ]
+    },
+    {
+      "id": "hu_krumplis_teszta",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "krumplis tészta",
+        "de": "Kartoffelnudeln (ungarisch)",
+        "en": "Potato pasta"
+      },
+      "aliases": {
+        "hu": [
+          "krumplis tészta",
+          "krumplis teszta",
+          "burgonyás tészta",
+          "krumplis kocka"
+        ],
+        "de": [
+          "kartoffelnudeln ungarisch",
+          "erdäpfelfleckerl"
+        ],
+        "de-AT": [
+          "erdäpfelfleckerl"
+        ],
+        "en": [
+          "potato pasta",
+          "hungarian potato pasta"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "pasta",
+        "higher-carb"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "krumplis_teszta",
+          "standard_serving_g": 350
+        }
+      ]
+    },
+    {
+      "id": "hu_makos_teszta",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "mákos tészta",
+        "de": "Mohnnudeln",
+        "en": "Poppy seed pasta"
+      },
+      "aliases": {
+        "hu": [
+          "mákos tészta",
+          "makos teszta",
+          "mákos metélt"
+        ],
+        "de": [
+          "mohnnudeln"
+        ],
+        "de-AT": [
+          "mohnnudeln"
+        ],
+        "en": [
+          "poppy seed pasta",
+          "poppy seed noodles"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "pasta",
+        "sweet",
+        "higher-carb"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "makos_teszta",
+          "standard_serving_g": 350
+        }
+      ]
+    },
+    {
+      "id": "hu_dios_teszta",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "diós tészta",
+        "de": "Nussnudeln",
+        "en": "Walnut pasta"
+      },
+      "aliases": {
+        "hu": [
+          "diós tészta",
+          "dios teszta",
+          "diós metélt"
+        ],
+        "de": [
+          "nussnudeln",
+          "walnussnudeln"
+        ],
+        "de-AT": [
+          "nussnudeln"
+        ],
+        "en": [
+          "walnut pasta",
+          "sweet walnut noodles"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "pasta",
+        "sweet",
+        "higher-carb"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "dios_teszta",
+          "standard_serving_g": 350
+        }
+      ]
+    },
+    {
+      "id": "hu_grizes_teszta",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "grízes tészta",
+        "de": "Grießnudeln",
+        "en": "Semolina pasta"
+      },
+      "aliases": {
+        "hu": [
+          "grízes tészta",
+          "grizes teszta",
+          "grízes metélt"
+        ],
+        "de": [
+          "grießnudeln",
+          "griessnudeln"
+        ],
+        "de-AT": [
+          "grießnudeln"
+        ],
+        "en": [
+          "semolina pasta",
+          "pasta with toasted semolina"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "pasta",
+        "sweet",
+        "higher-carb"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "grizes_teszta",
+          "standard_serving_g": 300
+        }
+      ]
+    },
+    {
+      "id": "hu_szilvas_gomboc",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "szilvás gombóc",
+        "de": "Zwetschgenknödel",
+        "en": "Plum dumplings"
+      },
+      "aliases": {
+        "hu": [
+          "szilvás gombóc",
+          "szilvas gomboc",
+          "szilvásgombóc"
+        ],
+        "de": [
+          "zwetschgenknödel",
+          "pflaumenknödel"
+        ],
+        "de-AT": [
+          "zwetschkenknödel",
+          "zwetschgenknödel"
+        ],
+        "en": [
+          "plum dumplings"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "sweet",
+        "higher-carb"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "szilvas_gomboc",
+          "standard_serving_g": 300
+        }
+      ]
+    },
+    {
+      "id": "hu_turogomboc",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "túrógombóc",
+        "de": "Topfenknödel",
+        "en": "Cottage cheese dumplings"
+      },
+      "aliases": {
+        "hu": [
+          "túrógombóc",
+          "turogomboc",
+          "túrós gombóc"
+        ],
+        "de": [
+          "topfenknödel",
+          "quarkknödel",
+          "quarkklöße"
+        ],
+        "de-AT": [
+          "topfenknödel"
+        ],
+        "en": [
+          "cottage cheese dumplings",
+          "quark dumplings"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "sweet"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "turogomboc",
+          "standard_serving_g": 250
+        }
+      ],
+      "optional_toppings": [
+        {
+          "food_key": "sour_cream",
+          "g": 40,
+          "hu": "tejföl a tetejére"
+        },
+        {
+          "food_key": "powdered_sugar",
+          "g": 10,
+          "hu": "porcukor a tetejére"
+        }
+      ]
+    },
+    {
+      "id": "hu_somloi_galuska",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "somlói galuska",
+        "de": "Somlauer Nockerl",
+        "en": "Somlói trifle"
+      },
+      "aliases": {
+        "hu": [
+          "somlói galuska",
+          "somloi galuska",
+          "somlói"
+        ],
+        "de": [
+          "somlauer nockerl",
+          "somloer nockerl"
+        ],
+        "de-AT": [
+          "somlauer nockerl"
+        ],
+        "en": [
+          "somlói trifle",
+          "somloi galuska",
+          "somlo sponge"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "dessert",
+        "cake"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "somloi_galuska",
+          "standard_serving_g": 250
+        }
+      ]
+    },
+    {
+      "id": "hu_gundel_palacsinta",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "Gundel-palacsinta",
+        "de": "Gundel-Palatschinken",
+        "en": "Gundel pancakes"
+      },
+      "aliases": {
+        "hu": [
+          "gundel-palacsinta",
+          "gundel palacsinta",
+          "gundelpalacsinta"
+        ],
+        "de": [
+          "gundel-palatschinken",
+          "gundel palatschinken"
+        ],
+        "de-AT": [
+          "gundel-palatschinken"
+        ],
+        "en": [
+          "gundel pancakes",
+          "gundel crepes"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "dessert",
+        "pancake"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "gundel_palacsinta",
+          "standard_serving_g": 220
+        }
+      ]
+    },
+    {
+      "id": "hu_kapros_turos_lepeny",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "kapros túrós lepény",
+        "de": "Topfen-Dill-Fladen",
+        "en": "Dill and cottage cheese pie"
+      },
+      "aliases": {
+        "hu": [
+          "kapros túrós lepény",
+          "kapros-túrós lepény",
+          "kapros lepény",
+          "túrós lepény"
+        ],
+        "de": [
+          "topfen-dill-fladen",
+          "quark-dill-kuchen"
+        ],
+        "de-AT": [
+          "topfen-dill-fladen"
+        ],
+        "en": [
+          "dill and cottage cheese pie",
+          "dill cheese pie"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "pastry"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "kapros_turos_lepeny",
+          "standard_serving_g": 150
+        }
+      ],
+      "review_note_hu": "A kapor (MISSING dill_fresh) kimaradt; kis tömeg, a makrókra alig hat."
+    },
+    {
+      "id": "hu_makos_guba",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "mákos guba",
+        "de": "Mohnbeugel-Auflauf (Mákos guba)",
+        "en": "Poppy seed bread pudding"
+      },
+      "aliases": {
+        "hu": [
+          "mákos guba",
+          "makos guba",
+          "mákos bobájka",
+          "bobájka"
+        ],
+        "de": [
+          "mohnbeugel-auflauf",
+          "ungarischer mohnauflauf"
+        ],
+        "de-AT": [
+          "mohnbeugel-auflauf"
+        ],
+        "en": [
+          "poppy seed bread pudding",
+          "makos guba"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "sweet",
+        "higher-carb"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "makos_guba",
+          "standard_serving_g": 300
+        }
+      ],
+      "review_note_hu": "A kifli a wheat_roll (BLS Weizenbrötchen) rekordra mutat: a magyar vizes kifli ugyanaz a fehér zsemletészta, csak más formában. Ellenőrizendő."
+    },
+    {
+      "id": "hu_aranygaluska",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "aranygaluska",
+        "de": "Goldene Nockerl",
+        "en": "Golden dumpling cake"
+      },
+      "aliases": {
+        "hu": [
+          "aranygaluska",
+          "arany galuska"
+        ],
+        "de": [
+          "goldene nockerl",
+          "aranygaluska"
+        ],
+        "de-AT": [
+          "goldene nockerl"
+        ],
+        "en": [
+          "golden dumpling cake",
+          "hungarian monkey bread"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "dessert",
+        "pastry"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "aranygaluska",
+          "standard_serving_g": 250
+        }
+      ],
+      "review_note_hu": "A vaníliasodó nincs benne (a femina-lista 20 dkg vaja hibásnak tűnik); sodó külön rész legyen."
+    },
+    {
+      "id": "hu_kelt_retes",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "kelt rétes",
+        "de": "Hefestrudel",
+        "en": "Yeast-dough strudel"
+      },
+      "aliases": {
+        "hu": [
+          "kelt rétes",
+          "kelt retes",
+          "kelt tésztás rétes"
+        ],
+        "de": [
+          "hefestrudel",
+          "germstrudel"
+        ],
+        "de-AT": [
+          "germstrudel"
+        ],
+        "en": [
+          "yeast-dough strudel",
+          "yeast strudel"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "pastry"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "kelt_retes",
+          "standard_serving_g": 120
+        }
+      ],
+      "review_note_hu": "Vegyes töltelékes (mákos, almás, meggyes, túrós) tepsi; a forrás nem ad adagszámot, a 40 szelet becslés."
+    },
+    {
+      "id": "hu_dobostorta",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "dobostorta",
+        "de": "Dobostorte",
+        "en": "Dobos torte"
+      },
+      "aliases": {
+        "hu": [
+          "dobostorta",
+          "dobos torta",
+          "dobos"
+        ],
+        "de": [
+          "dobostorte",
+          "dobos-torte"
+        ],
+        "de-AT": [
+          "dobostorte"
+        ],
+        "en": [
+          "dobos torte",
+          "dobos cake"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "dessert",
+        "cake"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "dobostorta",
+          "standard_serving_g": 125
+        }
+      ]
+    },
+    {
+      "id": "hu_rigojancsi",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "rigójancsi",
+        "de": "Rigó Jancsi",
+        "en": "Rigó Jancsi"
+      },
+      "aliases": {
+        "hu": [
+          "rigójancsi",
+          "rigó jancsi",
+          "rigojancsi"
+        ],
+        "de": [
+          "rigó jancsi",
+          "rigo jancsi",
+          "rigojanci"
+        ],
+        "de-AT": [
+          "rigó jancsi",
+          "rigojanci"
+        ],
+        "en": [
+          "rigó jancsi",
+          "rigo jancsi",
+          "chocolate mousse cake"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "dessert",
+        "cake"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "rigojancsi",
+          "standard_serving_g": 120
+        }
+      ]
+    },
+    {
+      "id": "hu_zserbo",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "zserbó",
+        "de": "Gerbeaud-Schnitte",
+        "en": "Zserbó (Gerbeaud slice)"
+      },
+      "aliases": {
+        "hu": [
+          "zserbó",
+          "zserbo",
+          "zserbó szelet",
+          "gerbeaud szelet"
+        ],
+        "de": [
+          "gerbeaud-schnitte",
+          "zserbo"
+        ],
+        "de-AT": [
+          "gerbeaud-schnitte"
+        ],
+        "en": [
+          "zserbo",
+          "gerbeaud slice",
+          "gerbeaud cake"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "dessert",
+        "pastry"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "zserbo",
+          "standard_serving_g": 80
+        }
+      ],
+      "review_note_hu": "Adag = 2 kis kocka (~80 g); a forrás '8 adag'-ja egész tepsire vonatkozik, ez nem egy szelet."
+    },
+    {
+      "id": "hu_rakott_palacsinta",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "rakott palacsinta",
+        "de": "Palatschinkentorte",
+        "en": "Layered pancake cake"
+      },
+      "aliases": {
+        "hu": [
+          "rakott palacsinta",
+          "palacsintatorta",
+          "rakott palacsintatorta"
+        ],
+        "de": [
+          "palatschinkentorte",
+          "pfannkuchentorte"
+        ],
+        "de-AT": [
+          "palatschinkentorte"
+        ],
+        "en": [
+          "layered pancake cake",
+          "crepe cake"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "dessert",
+        "pancake"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "rakott_palacsinta",
+          "standard_serving_g": 250
+        }
+      ],
+      "review_note_hu": "Édes diós-kakaós-lekváros változat; túrós réteges és sós (sonkás) rakott palacsinta külön rész lehet."
+    },
+    {
       "id": "hu_bajai_halaszle",
       "countries": [
         "HU"
@@ -5702,31 +8872,12 @@
         "paprikás krumpli",
         "rizses hús",
         "tarhonyás hús",
-        "hortobágyi palacsinta",
         "rántott sajt",
         "sült oldalas",
         "sült csülök",
         "tepsis csirke",
-        "túrós csusza",
-        "káposztás tészta",
-        "krumplis tészta",
-        "mákos tészta",
-        "diós tészta",
-        "grízes tészta",
-        "szilvás gombóc",
-        "túrógombóc",
-        "somlói galuska",
-        "Gundel-palacsinta",
         "juhászos tokány",
-        "kapros túrós lepény",
-        "mákos guba",
-        "aranygaluska",
-        "kelt rétes",
-        "dobostorta",
-        "rigójancsi",
-        "zserbó",
-        "gombapaprikás",
-        "rakott palacsinta"
+        "gombapaprikás"
       ],
       "everyday": [
         "tükörtojás",

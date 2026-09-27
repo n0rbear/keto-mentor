@@ -180,7 +180,7 @@ SIDE_WITH = {
 # A row is promoted into PARTS/DISHES only after all ingredients resolve to an
 # authoritative record in foods.py; unresolved rows are emitted to the HU gap report.
 INVENTORY = {
-    "traditional": "marhapörkölt|csirkepörkölt|birkapörkölt|vadpörkölt|pacalpörkölt|körömpörkölt|csülökpörkölt|harcsapaprikás|bakonyi sertésszelet|vadas marha|tokány|brassói aprópecsenye|cigánypecsenye|fasírt|töltött paprika|rakott kel|rakott karfiol|rakott zöldbab|paprikás krumpli|rizses hús|tarhonyás hús|hortobágyi palacsinta|rántott sajt|sült oldalas|sült csülök|tepsis csirke|túrós csusza|káposztás tészta|krumplis tészta|mákos tészta|diós tészta|grízes tészta|szilvás gombóc|túrógombóc|somlói galuska|Gundel-palacsinta|juhászos tokány|kapros túrós lepény|mákos guba|aranygaluska|kelt rétes|dobostorta|rigójancsi|zserbó|gombapaprikás|rakott palacsinta".split("|"),
+    "traditional": "marhapörkölt|csirkepörkölt|birkapörkölt|vadpörkölt|pacalpörkölt|körömpörkölt|csülökpörkölt|harcsapaprikás|bakonyi sertésszelet|vadas marha|tokány|brassói aprópecsenye|cigánypecsenye|fasírt|töltött paprika|rakott kel|rakott karfiol|rakott zöldbab|paprikás krumpli|rizses hús|tarhonyás hús|rántott sajt|sült oldalas|sült csülök|tepsis csirke|juhászos tokány|gombapaprikás".split("|"),
     "everyday": "tükörtojás|főtt tojás|tojásos nokedli|bundás kenyér|melegszendvics|sonkás szendvics|sajtos szendvics|felvágottas szendvics|zsíros kenyér|körözöttes kenyér|tejbegríz|zabkása|müzli joghurttal|joghurt gyümölccsel|túrós reggeli|virsli mustárral|debreceni mustárral|sült kolbász|párizsis zsemle|sonkás kifli|sajtos pogácsa|tepertős pogácsa|túrós táska|kakaós csiga|lekváros bukta|fánk|palacsinta|túrós palacsinta|lekváros palacsinta|tejfölös tészta|pesto pasta|spaghetti bolognese|carbonara|lasagne|pizza margherita|sonkás pizza|görög saláta|cézársaláta|uborkasaláta|paradicsomsaláta|káposztasaláta|franciasaláta|majonézes kukoricasaláta|rizs csirkemellel|gombás rizottó|zöldséges kuszkusz|sült csirkecomb|sült csirkemell|rakott tészta|zöldborsófőzelék|tökfőzelék|krumplifőzelék|lencsefőzelék|spenótfőzelék|finomfőzelék|paradicsomos káposzta|sárgaborsó-főzelék|kelkáposzta-főzelék|rántott csirkemell|chili con carne".split("|"),
     "street_food": "fokhagymás lángos|sajtos-tejfölös lángos|töltött lángos|kürtőskalács|sült kolbász kenyérrel|hurka mustárral|véres hurka|májas hurka|budapesti hot dog|hot dog|gyros pita|gyros tál|döner|döner tál|falafel wrap|hamburger|sajtos hamburger|pulled pork szendvics|szelet pizza|tócsni|lapcsánka|hekk|lángos|hasábburgonya|gofri".split("|")
 }
@@ -237,7 +237,7 @@ DISHES += [
 
 # Phase-2 dishes live in one module per group (hu_*.py), each with the same
 # PARTS / DISHES / MISSING layout as above.
-PHASE2_MODULES = ('hu_levesek', )
+PHASE2_MODULES = ('hu_tesztak_edessegek', 'hu_levesek', )
 for _name in PHASE2_MODULES:
     _m = __import__(_name)
     PARTS.update(_m.PARTS)

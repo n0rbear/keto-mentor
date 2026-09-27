@@ -124,6 +124,192 @@ jokai_bableves,Jókai-bableves,4,parsley_leaf,petrezselyemzöld,10,garnish,usda_
 jokai_bableves,Jókai-bableves,4,wheat_flour,búzaliszt (BL55),100,core,bls:C214100,3804,1.041,1.036,450
 jokai_bableves,Jókai-bableves,4,egg,tojás,50,core,bls:E111100,3804,1.041,1.036,450
 jokai_bableves,Jókai-bableves,4,water,víz,2000,liquid,none,3804,1.041,1.036,450
+hortobagyi_palacsinta,Hortobágyi palacsinta,4,chicken_thigh_skin,csirke felsőcomb bőrrel,1000,core,bls:V4A5100,2745.5,0.774,1.02,350
+hortobagyi_palacsinta,Hortobágyi palacsinta,4,sunflower_oil,napraforgóolaj,92,fat,bls:Q320000,2745.5,0.774,1.02,350
+hortobagyi_palacsinta,Hortobágyi palacsinta,4,onion,vöröshagyma,200,core,bls:G480100,2745.5,0.774,1.02,350
+hortobagyi_palacsinta,Hortobágyi palacsinta,4,garlic,fokhagyma,10,seasoning,bls:G490100,2745.5,0.774,1.02,350
+hortobagyi_palacsinta,Hortobágyi palacsinta,4,wax_pepper,TV paprika / zöldpaprika,60,core,usda_fdc:2747660,2745.5,0.774,1.02,350
+hortobagyi_palacsinta,Hortobágyi palacsinta,4,hot_pepper_fresh,cseresznyepaprika (erős),20,seasoning,usda_fdc:2747660,2745.5,0.774,1.02,350
+hortobagyi_palacsinta,Hortobágyi palacsinta,4,tomato,paradicsom,100,core,bls:G561100,2745.5,0.774,1.02,350
+hortobagyi_palacsinta,Hortobágyi palacsinta,4,paprika_ground,őrölt pirospaprika,7,seasoning,usda_fdc:171329,2745.5,0.774,1.02,350
+hortobagyi_palacsinta,Hortobágyi palacsinta,4,water,víz,1000,liquid,none,2745.5,0.774,1.02,350
+hortobagyi_palacsinta,Hortobágyi palacsinta,4,sour_cream,tejföl (20%),330,thickener,usda_fdc:2346387,2745.5,0.774,1.02,350
+hortobagyi_palacsinta,Hortobágyi palacsinta,4,wheat_flour,búzaliszt (BL55),20,thickener,bls:C214100,2745.5,0.774,1.02,350
+hortobagyi_palacsinta,Hortobágyi palacsinta,4,wheat_flour,búzaliszt (BL55),150,core,bls:C214100,2745.5,0.774,1.02,350
+hortobagyi_palacsinta,Hortobágyi palacsinta,4,egg,tojás,150,core,bls:E111100,2745.5,0.774,1.02,350
+hortobagyi_palacsinta,Hortobágyi palacsinta,4,milk_whole,"tej (3,5%)",360.5,core,bls:M111300,2745.5,0.774,1.02,350
+hortobagyi_palacsinta,Hortobágyi palacsinta,4,sunflower_oil,napraforgóolaj,46.0,fat,bls:Q320000,2745.5,0.774,1.02,350
+turos_csusza,Túrós csusza,4,egg_pasta_dry,"száraz tojásos tészta (gyufatészta, lebbencs, eperlevél)",400,core,bls:E432000,1978,1.27,0.7,400
+turos_csusza,Túrós csusza,4,smoked_bacon,füstölt szalonna / bacon,250,fat,bls:W415000,1978,1.27,0.7,400
+turos_csusza,Túrós csusza,4,quark_20,tehéntúró (félzsíros),500,core,bls:M713300,1978,1.27,0.7,400
+turos_csusza,Túrós csusza,4,sour_cream,tejföl (20%),408,core,usda_fdc:2346387,1978,1.27,0.7,400
+kaposztas_teszta,Káposztás tészta,4,white_cabbage,fejes káposzta,1000,core,bls:G342100,1773,1.127,0.65,350
+kaposztas_teszta,Káposztás tészta,4,sunflower_oil,napraforgóolaj,65,fat,bls:Q320000,1773,1.127,0.65,350
+kaposztas_teszta,Káposztás tészta,4,sugar,kristálycukor,8,seasoning,bls:S111000,1773,1.127,0.65,350
+kaposztas_teszta,Káposztás tészta,4,egg_pasta_dry,"száraz tojásos tészta (gyufatészta, lebbencs, eperlevél)",500,core,bls:E432000,1773,1.127,0.65,350
+krumplis_teszta,Krumplis tészta,4,potato,burgonya,600,core,bls:K110100,1375,1.211,0.7,350
+krumplis_teszta,Krumplis tészta,4,egg_pasta_dry,"száraz tojásos tészta (gyufatészta, lebbencs, eperlevél)",250,core,bls:E432000,1375,1.211,0.7,350
+krumplis_teszta,Krumplis tészta,4,onion,vöröshagyma,200,core,bls:G480100,1375,1.211,0.7,350
+krumplis_teszta,Krumplis tészta,4,sunflower_oil,napraforgóolaj,78,fat,bls:Q320000,1375,1.211,0.7,350
+krumplis_teszta,Krumplis tészta,4,paprika_ground,őrölt pirospaprika,7,seasoning,usda_fdc:171329,1375,1.211,0.7,350
+makos_teszta,Mákos tészta,4,egg_pasta_dry,"száraz tojásos tészta (gyufatészta, lebbencs, eperlevél)",500,core,bls:E432000,1500,1.667,0.6,350
+makos_teszta,Mákos tészta,4,poppy_seed_ground,darált mák,225,core,bls:H450400,1500,1.667,0.6,350
+makos_teszta,Mákos tészta,4,powdered_sugar,porcukor,175,core,bls:S111100,1500,1.667,0.6,350
+dios_teszta,Diós tészta,2,egg_pasta_dry,"száraz tojásos tészta (gyufatészta, lebbencs, eperlevél)",200,core,bls:E432000,926,1.35,0.6,350
+dios_teszta,Diós tészta,2,butter,vaj,80,fat,open_database:173430,926,1.35,0.6,350
+dios_teszta,Diós tészta,2,walnut_ground,darált dió,200,core,bls:H120400,926,1.35,0.6,350
+dios_teszta,Diós tészta,2,powdered_sugar,porcukor,100,core,bls:S111100,926,1.35,0.6,350
+dios_teszta,Diós tészta,2,jam,"lekvár (sárgabarack, szilva)",100,garnish,bls:S132000,926,1.35,0.6,350
+dios_teszta,Diós tészta,2,powdered_sugar,porcukor,6,garnish,bls:S111100,926,1.35,0.6,350
+grizes_teszta,Grízes tészta,4,egg_pasta_dry,"száraz tojásos tészta (gyufatészta, lebbencs, eperlevél)",250,core,bls:E432000,784,1.62,0.6,300
+grizes_teszta,Grízes tészta,4,olive_oil,olívaolaj,26,fat,bls:Q120000,784,1.62,0.6,300
+grizes_teszta,Grízes tészta,4,semolina_soft,búzadara (gríz),80,core,bls:C218000,784,1.62,0.6,300
+grizes_teszta,Grízes tészta,4,powdered_sugar,porcukor,48,garnish,bls:S111100,784,1.62,0.6,300
+grizes_teszta,Grízes tészta,4,jam,"lekvár (sárgabarack, szilva)",80,garnish,bls:S132000,784,1.62,0.6,300
+szilvas_gomboc,Szilvás gombóc,4,potato,burgonya,800,core,bls:K110100,1957,1.026,0.75,300
+szilvas_gomboc,Szilvás gombóc,4,wheat_flour,búzaliszt (BL55),300,core,bls:C214100,1957,1.026,0.75,300
+szilvas_gomboc,Szilvás gombóc,4,butter,vaj,13,fat,open_database:173430,1957,1.026,0.75,300
+szilvas_gomboc,Szilvás gombóc,4,egg,tojás,50,core,bls:E111100,1957,1.026,0.75,300
+szilvas_gomboc,Szilvás gombóc,4,plum,szilva (magozott),420,core,bls:F223100,1957,1.026,0.75,300
+szilvas_gomboc,Szilvás gombóc,4,sugar,kristálycukor,42,core,bls:S111000,1957,1.026,0.75,300
+szilvas_gomboc,Szilvás gombóc,4,breadcrumbs,zsemlemorzsa,150,core,bls:B821000,1957,1.026,0.75,300
+szilvas_gomboc,Szilvás gombóc,4,butter,vaj,100,fat,open_database:173430,1957,1.026,0.75,300
+szilvas_gomboc,Szilvás gombóc,4,powdered_sugar,porcukor,12,seasoning,bls:S111100,1957,1.026,0.75,300
+szilvas_gomboc,Szilvás gombóc,4,powdered_sugar,porcukor,20,garnish,bls:S111100,1957,1.026,0.75,300
+turogomboc,Túrógombóc,4,quark_40,tehéntúró (zsíros),500,core,bls:M713500,997,1.042,0.75,250
+turogomboc,Túrógombóc,4,egg,tojás,150,core,bls:E111100,997,1.042,0.75,250
+turogomboc,Túrógombóc,4,sugar,kristálycukor,24,core,bls:S111000,997,1.042,0.75,250
+turogomboc,Túrógombóc,4,semolina_soft,búzadara (gríz),60,core,bls:C218000,997,1.042,0.75,250
+turogomboc,Túrógombóc,4,wheat_flour,búzaliszt (BL55),60,core,bls:C214100,997,1.042,0.75,250
+turogomboc,Túrógombóc,4,breadcrumbs,zsemlemorzsa,150,core,bls:B821000,997,1.042,0.75,250
+turogomboc,Túrógombóc,4,butter,vaj,13,fat,open_database:173430,997,1.042,0.75,250
+somloi_galuska,Somlói galuska,5,egg,tojás,330,core,bls:E111100,1979,0.921,1.081,250
+somloi_galuska,Somlói galuska,5,powdered_sugar,porcukor,42,core,bls:S111100,1979,0.921,1.081,250
+somloi_galuska,Somlói galuska,5,wheat_flour,búzaliszt (BL55),90,core,bls:C214100,1979,0.921,1.081,250
+somloi_galuska,Somlói galuska,5,cocoa_powder,kakaópor (holland),10,core,bls:S711000,1979,0.921,1.081,250
+somloi_galuska,Somlói galuska,5,egg_yolk,tojássárgája,60,core,bls:E112100,1979,0.921,1.081,250
+somloi_galuska,Somlói galuska,5,milk_whole,"tej (3,5%)",500,core,bls:M111300,1979,0.921,1.081,250
+somloi_galuska,Somlói galuska,5,sugar,kristálycukor,30,core,bls:S111000,1979,0.921,1.081,250
+somloi_galuska,Somlói galuska,5,corn_starch,étkezési keményítő,15,thickener,bls:C446000,1979,0.921,1.081,250
+somloi_galuska,Somlói galuska,5,sugar,kristálycukor,200,core,bls:S111000,1979,0.921,1.081,250
+somloi_galuska,Somlói galuska,5,water,víz,250,liquid,none,1979,0.921,1.081,250
+somloi_galuska,Somlói galuska,5,raisins,mazsola,22,core,bls:F840100,1979,0.921,1.081,250
+somloi_galuska,Somlói galuska,5,rum,rum,100,core,bls:P741000,1979,0.921,1.081,250
+somloi_galuska,Somlói galuska,5,walnut_ground,darált dió,100,core,bls:H120400,1979,0.921,1.081,250
+somloi_galuska,Somlói galuska,5,butter,vaj,100,fat,open_database:173430,1979,0.921,1.081,250
+somloi_galuska,Somlói galuska,5,sugar,kristálycukor,100,core,bls:S111000,1979,0.921,1.081,250
+somloi_galuska,Somlói galuska,5,cocoa_powder,kakaópor (holland),30,core,bls:S711000,1979,0.921,1.081,250
+somloi_galuska,Somlói galuska,5,milk_whole,"tej (3,5%)",20,core,bls:M111300,1979,0.921,1.081,250
+somloi_galuska,Somlói galuska,5,cream_30,habtejszín (30%),150,garnish,bls:M173800,1979,0.921,1.081,250
+gundel_palacsinta,Gundel-palacsinta,4,wheat_flour,búzaliszt (BL55),200,core,bls:C214100,1400.0,0.94,1.028,220
+gundel_palacsinta,Gundel-palacsinta,4,egg,tojás,100,core,bls:E111100,1400.0,0.94,1.028,220
+gundel_palacsinta,Gundel-palacsinta,4,sunflower_oil,napraforgóolaj,69.0,fat,bls:Q320000,1400.0,0.94,1.028,220
+gundel_palacsinta,Gundel-palacsinta,4,milk_whole,"tej (3,5%)",309,core,bls:M111300,1400.0,0.94,1.028,220
+gundel_palacsinta,Gundel-palacsinta,4,water,víz,200,liquid,none,1400.0,0.94,1.028,220
+gundel_palacsinta,Gundel-palacsinta,4,sunflower_oil,napraforgóolaj,20,fat,bls:Q320000,1400.0,0.94,1.028,220
+gundel_palacsinta,Gundel-palacsinta,4,walnut_ground,darált dió,100,core,bls:H120400,1400.0,0.94,1.028,220
+gundel_palacsinta,Gundel-palacsinta,4,powdered_sugar,porcukor,50,core,bls:S111100,1400.0,0.94,1.028,220
+gundel_palacsinta,Gundel-palacsinta,4,vanilla_sugar,vaníliás cukor,8,seasoning,bls:S114000,1400.0,0.94,1.028,220
+gundel_palacsinta,Gundel-palacsinta,4,raisins,mazsola,20,core,bls:F840100,1400.0,0.94,1.028,220
+gundel_palacsinta,Gundel-palacsinta,4,rum,rum,94,core,bls:P741000,1400.0,0.94,1.028,220
+gundel_palacsinta,Gundel-palacsinta,4,cream_30,habtejszín (30%),100,core,bls:M173800,1400.0,0.94,1.028,220
+gundel_palacsinta,Gundel-palacsinta,4,dark_chocolate,étcsokoládé (~50-60%),100,core,bls:S560000,1400.0,0.94,1.028,220
+gundel_palacsinta,Gundel-palacsinta,4,butter,vaj,20,fat,open_database:173430,1400.0,0.94,1.028,220
+gundel_palacsinta,Gundel-palacsinta,4,cream_30,habtejszín (30%),100,core,bls:M173800,1400.0,0.94,1.028,220
+kapros_turos_lepeny,Kapros túrós lepény,8,wheat_flour,búzaliszt (BL55),300,core,bls:C214100,1165.5,0.921,1.041,150
+kapros_turos_lepeny,Kapros túrós lepény,8,milk_whole,"tej (3,5%)",154.5,core,bls:M111300,1165.5,0.921,1.041,150
+kapros_turos_lepeny,Kapros túrós lepény,8,yeast_fresh,friss élesztő,3,seasoning,bls:R459000,1165.5,0.921,1.041,150
+kapros_turos_lepeny,Kapros túrós lepény,8,sugar,kristálycukor,24,core,bls:S111000,1165.5,0.921,1.041,150
+kapros_turos_lepeny,Kapros túrós lepény,8,butter,vaj,60,fat,open_database:173430,1165.5,0.921,1.041,150
+kapros_turos_lepeny,Kapros túrós lepény,8,egg,tojás,50,core,bls:E111100,1165.5,0.921,1.041,150
+kapros_turos_lepeny,Kapros túrós lepény,8,quark_20,tehéntúró (félzsíros),500,core,bls:M713300,1165.5,0.921,1.041,150
+kapros_turos_lepeny,Kapros túrós lepény,8,egg,tojás,150,core,bls:E111100,1165.5,0.921,1.041,150
+kapros_turos_lepeny,Kapros túrós lepény,8,sugar,kristálycukor,24,core,bls:S111000,1165.5,0.921,1.041,150
+makos_guba,Mákos guba,4,wheat_roll,zsemle,200,core,bls:B511000,1325,0.917,0.715,300
+makos_guba,Mákos guba,4,milk_whole,"tej (3,5%)",515,core,bls:M111300,1325,0.917,0.715,300
+makos_guba,Mákos guba,4,egg,tojás,100,core,bls:E111100,1325,0.917,0.715,300
+makos_guba,Mákos guba,4,poppy_seed_ground,darált mák,200,core,bls:H450400,1325,0.917,0.715,300
+makos_guba,Mákos guba,4,powdered_sugar,porcukor,100,core,bls:S111100,1325,0.917,0.715,300
+makos_guba,Mákos guba,4,egg,tojás,100,core,bls:E111100,1325,0.917,0.715,300
+makos_guba,Mákos guba,4,milk_whole,"tej (3,5%)",206,core,bls:M111300,1325,0.917,0.715,300
+makos_guba,Mákos guba,4,sugar,kristálycukor,24,core,bls:S111000,1325,0.917,0.715,300
+aranygaluska,Aranygaluska,4,wheat_flour,búzaliszt (BL55),500,core,bls:C214100,1294,0.915,1.036,250
+aranygaluska,Aranygaluska,4,butter,vaj,250,fat,open_database:173430,1294,0.915,1.036,250
+aranygaluska,Aranygaluska,4,walnut_ground,darált dió,150,core,bls:H120400,1294,0.915,1.036,250
+aranygaluska,Aranygaluska,4,powdered_sugar,porcukor,150,core,bls:S111100,1294,0.915,1.036,250
+aranygaluska,Aranygaluska,4,milk_whole,"tej (3,5%)",309,core,bls:M111300,1294,0.915,1.036,250
+aranygaluska,Aranygaluska,4,yeast_fresh,friss élesztő,25,seasoning,bls:R459000,1294,0.915,1.036,250
+aranygaluska,Aranygaluska,4,egg_yolk,tojássárgája,18,core,bls:E112100,1294,0.915,1.036,250
+aranygaluska,Aranygaluska,4,sugar,kristálycukor,12,core,bls:S111000,1294,0.915,1.036,250
+kelt_retes,"Kelt rétes (mákos, almás, meggyes, túrós)",40,wheat_flour,búzaliszt (BL55),1000,core,bls:C214100,4891,0.942,1.055,120
+kelt_retes,"Kelt rétes (mákos, almás, meggyes, túrós)",40,egg,tojás,50,core,bls:E111100,4891,0.942,1.055,120
+kelt_retes,"Kelt rétes (mákos, almás, meggyes, túrós)",40,sunflower_oil,napraforgóolaj,39,fat,bls:Q320000,4891,0.942,1.055,120
+kelt_retes,"Kelt rétes (mákos, almás, meggyes, túrós)",40,lard,sertészsír,39,fat,usda_fdc:171401,4891,0.942,1.055,120
+kelt_retes,"Kelt rétes (mákos, almás, meggyes, túrós)",40,sour_cream,tejföl (20%),68,core,usda_fdc:2346387,4891,0.942,1.055,120
+kelt_retes,"Kelt rétes (mákos, almás, meggyes, túrós)",40,milk_whole,"tej (3,5%)",721,core,bls:M111300,4891,0.942,1.055,120
+kelt_retes,"Kelt rétes (mákos, almás, meggyes, túrós)",40,yeast_fresh,friss élesztő,50,seasoning,bls:R459000,4891,0.942,1.055,120
+kelt_retes,"Kelt rétes (mákos, almás, meggyes, túrós)",40,sugar,kristálycukor,36,core,bls:S111000,4891,0.942,1.055,120
+kelt_retes,"Kelt rétes (mákos, almás, meggyes, túrós)",40,poppy_seed_ground,darált mák,300,core,bls:H450400,4891,0.942,1.055,120
+kelt_retes,"Kelt rétes (mákos, almás, meggyes, túrós)",40,apple_peeled,alma (hámozva),450,core,bls:F120100,4891,0.942,1.055,120
+kelt_retes,"Kelt rétes (mákos, almás, meggyes, túrós)",40,sugar,kristálycukor,200,core,bls:S111000,4891,0.942,1.055,120
+kelt_retes,"Kelt rétes (mákos, almás, meggyes, túrós)",40,semolina_soft,búzadara (gríz),210,core,bls:C218000,4891,0.942,1.055,120
+kelt_retes,"Kelt rétes (mákos, almás, meggyes, túrós)",40,sour_cream,tejföl (20%),306,core,usda_fdc:2346387,4891,0.942,1.055,120
+kelt_retes,"Kelt rétes (mákos, almás, meggyes, túrós)",40,sugar,kristálycukor,72,core,bls:S111000,4891,0.942,1.055,120
+kelt_retes,"Kelt rétes (mákos, almás, meggyes, túrós)",40,sour_cherry,meggy,200,core,bls:F212100,4891,0.942,1.055,120
+kelt_retes,"Kelt rétes (mákos, almás, meggyes, túrós)",40,quark_20,tehéntúró (félzsíros),1000,core,bls:M713300,4891,0.942,1.055,120
+kelt_retes,"Kelt rétes (mákos, almás, meggyes, túrós)",40,raisins,mazsola,100,core,bls:F840100,4891,0.942,1.055,120
+kelt_retes,"Kelt rétes (mákos, almás, meggyes, túrós)",40,egg,tojás,150,core,bls:E111100,4891,0.942,1.055,120
+kelt_retes,"Kelt rétes (mákos, almás, meggyes, túrós)",40,sugar,kristálycukor,200,core,bls:S111000,4891,0.942,1.055,120
+dobostorta,Dobostorta,12,egg,tojás,300,core,bls:E111100,1480,0.961,1.137,125
+dobostorta,Dobostorta,12,butter,vaj,35,fat,open_database:173430,1480,0.961,1.137,125
+dobostorta,Dobostorta,12,wheat_flour,búzaliszt (BL55),100,core,bls:C214100,1480,0.961,1.137,125
+dobostorta,Dobostorta,12,powdered_sugar,porcukor,100,core,bls:S111100,1480,0.961,1.137,125
+dobostorta,Dobostorta,12,bitter_chocolate,étcsokoládé (70%),200,core,bls:S570000,1480,0.961,1.137,125
+dobostorta,Dobostorta,12,butter,vaj,280,fat,open_database:173430,1480,0.961,1.137,125
+dobostorta,Dobostorta,12,powdered_sugar,porcukor,200,core,bls:S111100,1480,0.961,1.137,125
+dobostorta,Dobostorta,12,egg,tojás,200,core,bls:E111100,1480,0.961,1.137,125
+dobostorta,Dobostorta,12,sugar,kristálycukor,120,core,bls:S111000,1480,0.961,1.137,125
+dobostorta,Dobostorta,12,butter,vaj,5,fat,open_database:173430,1480,0.961,1.137,125
+rigojancsi,Rigójancsi,16,sugar,kristálycukor,120,core,bls:S111000,1905,0.974,1.074,120
+rigojancsi,Rigójancsi,16,wheat_flour,búzaliszt (BL55),100,core,bls:C214100,1905,0.974,1.074,120
+rigojancsi,Rigójancsi,16,egg,tojás,300,core,bls:E111100,1905,0.974,1.074,120
+rigojancsi,Rigójancsi,16,cocoa_powder,kakaópor (holland),50,core,bls:S711000,1905,0.974,1.074,120
+rigojancsi,Rigójancsi,16,baking_powder,sütőpor,12,seasoning,bls:R421100,1905,0.974,1.074,120
+rigojancsi,Rigójancsi,16,powdered_sugar,porcukor,150,core,bls:S111100,1905,0.974,1.074,120
+rigojancsi,Rigójancsi,16,cocoa_powder,kakaópor (holland),150,core,bls:S711000,1905,0.974,1.074,120
+rigojancsi,Rigójancsi,16,cream_30,habtejszín (30%),700,core,bls:M173800,1905,0.974,1.074,120
+rigojancsi,Rigójancsi,16,milk_whole,"tej (3,5%)",103,core,bls:M111300,1905,0.974,1.074,120
+rigojancsi,Rigójancsi,16,gelatin,zselatin,20,thickener,bls:R468000,1905,0.974,1.074,120
+rigojancsi,Rigójancsi,16,dark_chocolate,étcsokoládé (~50-60%),150,core,bls:S560000,1905,0.974,1.074,120
+rigojancsi,Rigójancsi,16,butter,vaj,100,fat,open_database:173430,1905,0.974,1.074,120
+zserbo,Zserbó,8,wheat_flour,búzaliszt (BL55),600,core,bls:C214100,2467,0.943,1.12,80
+zserbo,Zserbó,8,butter,vaj,300,fat,open_database:173430,2467,0.943,1.12,80
+zserbo,Zserbó,8,sugar,kristálycukor,100,core,bls:S111000,2467,0.943,1.12,80
+zserbo,Zserbó,8,milk_whole,"tej (3,5%)",103,core,bls:M111300,2467,0.943,1.12,80
+zserbo,Zserbó,8,yeast_fresh,friss élesztő,15,seasoning,bls:R459000,2467,0.943,1.12,80
+zserbo,Zserbó,8,egg_yolk,tojássárgája,72,core,bls:E112100,2467,0.943,1.12,80
+zserbo,Zserbó,8,rum,rum,47,core,bls:P741000,2467,0.943,1.12,80
+zserbo,Zserbó,8,walnut_ground,darált dió,400,core,bls:H120400,2467,0.943,1.12,80
+zserbo,Zserbó,8,jam,"lekvár (sárgabarack, szilva)",400,core,bls:S132000,2467,0.943,1.12,80
+zserbo,Zserbó,8,sugar,kristálycukor,300,core,bls:S111000,2467,0.943,1.12,80
+zserbo,Zserbó,8,powdered_sugar,porcukor,150,core,bls:S111100,2467,0.943,1.12,80
+zserbo,Zserbó,8,cocoa_powder,kakaópor (holland),50,core,bls:S711000,2467,0.943,1.12,80
+zserbo,Zserbó,8,water,víz,30,liquid,none,2467,0.943,1.12,80
+zserbo,Zserbó,8,butter,vaj,50,fat,open_database:173430,2467,0.943,1.12,80
+rakott_palacsinta,Rakott palacsinta (diós-kakaós-lekváros),6,wheat_flour,búzaliszt (BL55),200,core,bls:C214100,1524.5,0.938,1.079,250
+rakott_palacsinta,Rakott palacsinta (diós-kakaós-lekváros),6,milk_whole,"tej (3,5%)",309,core,bls:M111300,1524.5,0.938,1.079,250
+rakott_palacsinta,Rakott palacsinta (diós-kakaós-lekváros),6,water,víz,100,liquid,none,1524.5,0.938,1.079,250
+rakott_palacsinta,Rakott palacsinta (diós-kakaós-lekváros),6,egg,tojás,150,core,bls:E111100,1524.5,0.938,1.079,250
+rakott_palacsinta,Rakott palacsinta (diós-kakaós-lekváros),6,sunflower_oil,napraforgóolaj,39,fat,bls:Q320000,1524.5,0.938,1.079,250
+rakott_palacsinta,Rakott palacsinta (diós-kakaós-lekváros),6,walnut_ground,darált dió,150,core,bls:H120400,1524.5,0.938,1.079,250
+rakott_palacsinta,Rakott palacsinta (diós-kakaós-lekváros),6,sugar,kristálycukor,120,core,bls:S111000,1524.5,0.938,1.079,250
+rakott_palacsinta,Rakott palacsinta (diós-kakaós-lekváros),6,cocoa_powder,kakaópor (holland),30,core,bls:S711000,1524.5,0.938,1.079,250
+rakott_palacsinta,Rakott palacsinta (diós-kakaós-lekváros),6,jam,"lekvár (sárgabarack, szilva)",150,core,bls:S132000,1524.5,0.938,1.079,250
+rakott_palacsinta,Rakott palacsinta (diós-kakaós-lekváros),6,sour_cream,tejföl (20%),200,core,usda_fdc:2346387,1524.5,0.938,1.079,250
+rakott_palacsinta,Rakott palacsinta (diós-kakaós-lekváros),6,butter,vaj,5,fat,open_database:173430,1524.5,0.938,1.079,250
+rakott_palacsinta,Rakott palacsinta (diós-kakaós-lekváros),6,dark_chocolate,étcsokoládé (~50-60%),100,core,bls:S560000,1524.5,0.938,1.079,250
+rakott_palacsinta,Rakott palacsinta (diós-kakaós-lekváros),6,milk_whole,"tej (3,5%)",51.5,core,bls:M111300,1524.5,0.938,1.079,250
+rakott_palacsinta,Rakott palacsinta (diós-kakaós-lekváros),6,butter,vaj,20,fat,open_database:173430,1524.5,0.938,1.079,250
 bajai_halaszle,Bajai halászlé (gyufatésztával),4,carp,ponty,1200,core,bls:T501100,4195,0.901,1.014,450
 bajai_halaszle,Bajai halászlé (gyufatésztával),4,onion,vöröshagyma,180,core,bls:G480100,4195,0.901,1.014,450
 bajai_halaszle,Bajai halászlé (gyufatésztával),4,paprika_ground,őrölt pirospaprika,40,seasoning,usda_fdc:171329,4195,0.901,1.014,450

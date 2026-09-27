@@ -8,5 +8,16 @@
   {"sourceId": "M173800", "names": {"hu": "habtejszín (30%)", "en": "whipping cream 30%"}},
   {"sourceId": "F212100", "names": {"hu": "meggy", "en": "sour cherry"}},
   {"sourceId": "F120100", "names": {"hu": "alma (hámozva)", "en": "apple, peeled"}},
-  {"sourceId": "S114000", "names": {"hu": "vaníliás cukor", "en": "vanilla sugar"}}
+  {"sourceId": "S114000", "names": {"hu": "vaníliás cukor", "en": "vanilla sugar"}},
+  {"sourceId": "M713300", "names": {"hu": "tehéntúró (félzsíros)", "en": "quark / farmer cheese, 20% fat in dry matter"}},
+  {"sourceId": "M713500", "names": {"hu": "tehéntúró (zsíros)", "en": "quark / farmer cheese, 40% fat in dry matter"}},
+  {"sourceId": "S111100", "names": {"hu": "porcukor", "en": "powdered sugar"}},
+  {"sourceId": "H450400", "names": {"hu": "darált mák", "en": "ground poppy seed"}},
+  {"sourceId": "H120400", "names": {"hu": "darált dió", "en": "ground walnuts"}},
+  {"sourceId": "C218000", "names": {"hu": "búzadara (gríz)", "en": "wheat semolina (soft wheat)"}},
+  {"sourceId": "F223100", "names": {"hu": "szilva (magozott)", "en": "plum (Zwetschge), raw"}},
+  {"sourceId": "S132000", "names": {"hu": "lekvár (sárgabarack, szilva)", "en": "jam"}},
+  {"sourceId": "S560000", "names": {"hu": "étcsokoládé (~50-60%)", "en": "dark chocolate (semisweet)"}},
+  {"sourceId": "S570000", "names": {"hu": "étcsokoládé (70%)", "en": "bittersweet chocolate (70%)"}},
+  {"sourceId": "F840100", "names": {"hu": "mazsola", "en": "raisins"}}
 ]

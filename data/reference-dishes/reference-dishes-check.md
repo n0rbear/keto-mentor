@@ -19,6 +19,25 @@
 | Székelykáposzta | 3457 | -250 | 3207 | 0.928 | 1.026 | 114.9 | 8.5 | 6.3 | 1.9 | – |
 | Palócleves | 3075.7 | -150 | 2925.7 | 0.951 | 1.011 | 73.3 | 5.4 | 2.7 | 3.1 | – |
 | Jókai-bableves | 3654 | +150 | 3804 | 1.041 | 1.036 | 88.3 | 2.6 | 6.4 | 8.1 | – |
+| Hortobágyi palacsinta | 3545.5 | -800 | 2745.5 | 0.774 | 1.02 | 187.7 | 14.1 | 8.7 | 6.4 | – |
+| Túrós csusza | 1558 | +420 | 1978 | 1.27 | 0.7 | 175.1 | 8.7 | 8.5 | 15.3 | – |
+| Káposztás tészta | 1573 | +200 | 1773 | 1.127 | 0.65 | 149.3 | 4.3 | 4.5 | 21.7 | – |
+| Krumplis tészta | 1135 | +240 | 1375 | 1.211 | 0.7 | 155.8 | 6.2 | 3.5 | 20.8 | – |
+| Mákos tészta | 900 | +600 | 1500 | 1.667 | 0.6 | 238.8 | 7.0 | 8.0 | 34.1 | – |
+| Diós tészta | 686 | +240 | 926 | 1.35 | 0.6 | 361.9 | 22.7 | 6.4 | 32.5 | – |
+| Grízes tészta | 484 | +300 | 784 | 1.62 | 0.6 | 223.5 | 4.1 | 5.3 | 40.5 | – |
+| Szilvás gombóc | 1907 | +50 | 1957 | 1.026 | 0.75 | 185.5 | 5.4 | 3.7 | 29.6 | – |
+| Túrógombóc | 957 | +40 | 997 | 1.042 | 0.75 | 216.1 | 8.8 | 10.5 | 22.7 | – |
+| Somlói galuska | 2149 | -170 | 1979 | 0.921 | 1.081 | 260.2 | 13.9 | 5.6 | 25.1 | – |
+| Gundel-palacsinta | 1490.0 | -90 | 1400.0 | 0.94 | 1.028 | 309.0 | 21.0 | 5.2 | 20.4 | – |
+| Kapros túrós lepény | 1265.5 | -100 | 1165.5 | 0.921 | 1.041 | 221.9 | 8.6 | 10.8 | 24.5 | – |
+| Mákos guba | 1445 | -120 | 1325 | 0.917 | 0.715 | 212.5 | 9.9 | 9.0 | 20.2 | – |
+| Aranygaluska | 1414 | -120 | 1294 | 0.915 | 1.036 | 428.4 | 25.5 | 7.5 | 41.8 | – |
+| Kelt rétes (mákos, almás, meggyes, túrós) | 5191 | -300 | 4891 | 0.942 | 1.055 | 240.1 | 7.8 | 8.2 | 32.8 | – |
+| Dobostorta | 1540 | -60 | 1480 | 0.961 | 1.137 | 413.7 | 26.2 | 6.6 | 37.9 | – |
+| Rigójancsi | 1955 | -50 | 1905 | 0.974 | 1.074 | 334.9 | 22.2 | 7.5 | 24.6 | – |
+| Zserbó | 2617 | -150 | 2467 | 0.943 | 1.12 | 454.8 | 24.7 | 6.5 | 49.8 | – |
+| Rakott palacsinta (diós-kakaós-lekváros) | 1624.5 | -100 | 1524.5 | 0.938 | 1.079 | 301.0 | 17.6 | 6.4 | 28.3 | – |
 | Bajai halászlé (gyufatésztával) | 4655 | -460 | 4195 | 0.901 | 1.014 | 54.7 | 1.7 | 6.0 | 3.6 | – |
 | Tiszai halászlé | 2927 | -600 | 2327 | 0.795 | 1.012 | 37.2 | 1.5 | 5.2 | 0.6 | – |
 | Újházi tyúkhúsleves (hússal, zöldséggel) | 5615.0 | -700 | 4915.0 | 0.875 | 1.012 | 58.8 | 3.5 | 4.0 | 2.2 | – |
@@ -58,6 +77,25 @@ Számolt érték a katalógusrekordokból vs. egy nyilvános referencia (pl. BLS
 | Székelykáposzta | nincs még | – | – | – | – | – |
 | Palócleves | nincs még | – | – | – | – | – |
 | Jókai-bableves | nincs még | – | – | – | – | – |
+| hortobágyi palacsinta | nincs még | – | – | – | – | – |
+| túrós csusza | nincs még | – | – | – | – | – |
+| káposztás tészta | nincs még | – | – | – | – | – |
+| krumplis tészta | nincs még | – | – | – | – | – |
+| mákos tészta | nincs még | – | – | – | – | – |
+| diós tészta | nincs még | – | – | – | – | – |
+| grízes tészta | nincs még | – | – | – | – | – |
+| szilvás gombóc | bls:X6A5020 Zwetschgenknödel mit Zucker und Zimt | 186 / 165 | 5.4 / 7.73 | 3.7 / 2.28 | 29.6 / 20.89 | +12% rendben |
+| túrógombóc | nincs még | – | – | – | – | – |
+| somlói galuska | nincs még | – | – | – | – | – |
+| Gundel-palacsinta | nincs még | – | – | – | – | – |
+| kapros túrós lepény | nincs még | – | – | – | – | – |
+| mákos guba | nincs még | – | – | – | – | – |
+| aranygaluska | nincs még | – | – | – | – | – |
+| kelt rétes | nincs még | – | – | – | – | – |
+| dobostorta | nincs még | – | – | – | – | – |
+| rigójancsi | nincs még | – | – | – | – | – |
+| zserbó | nincs még | – | – | – | – | – |
+| rakott palacsinta | nincs még | – | – | – | – | – |
 | bajai halászlé | nincs még | – | – | – | – | – |
 | tiszai halászlé | nincs még | – | – | – | – | – |
 | újházi tyúkhúsleves | nincs még | – | – | – | – | – |
@@ -97,6 +135,25 @@ Mély tányér: kapacitás × töltöttség × sűrűség. Lapos tányér: 0,8 �
 | Székelykáposzta | HU | traditional | 450 | 346 | 500 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | Palócleves | HU | traditional | 450 | 341 | 493 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | Jókai-bableves | HU | traditional | 450 | 350 | 505 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| hortobágyi palacsinta | HU | traditional | 350 | 344 | 497 | 301 | 354 | 410 |
+| túrós csusza | HU | traditional | 400 | – (lapos tányéros étel) | – (lapos tányéros étel) | 340 | 400 | 463 |
+| káposztás tészta | HU | traditional | 350 | – (lapos tányéros étel) | – (lapos tányéros étel) | 299 | 351 | 407 |
+| krumplis tészta | HU | traditional | 350 | – (lapos tányéros étel) | – (lapos tányéros étel) | 298 | 350 | 406 |
+| mákos tészta | HU | traditional | 350 | – (lapos tányéros étel) | – (lapos tányéros étel) | 297 | 349 | 404 |
+| diós tészta | HU | traditional | 350 | – (lapos tányéros étel) | – (lapos tányéros étel) | 297 | 349 | 404 |
+| grízes tészta | HU | traditional | 300 | – (lapos tányéros étel) | – (lapos tányéros étel) | 255 | 300 | 348 |
+| szilvás gombóc | HU | traditional | 300 | – (lapos tányéros étel) | – (lapos tányéros étel) | 252 | 296 | 343 |
+| túrógombóc | HU | traditional | 250 | – (lapos tányéros étel) | – (lapos tányéros étel) | 252 | 296 | 343 |
+| somlói galuska | HU | traditional | 250 | 365 | 527 | 219 | 257 | 298 |
+| Gundel-palacsinta | HU | traditional | 220 | 347 | 501 | 186 | 218 | 253 |
+| kapros túrós lepény | HU | traditional | 150 | – (kézből) | – | – | – | – |
+| mákos guba | HU | traditional | 300 | 241 | 349 | 257 | 301 | 349 |
+| aranygaluska | HU | traditional | 250 | 350 | 505 | 210 | 246 | 286 |
+| kelt rétes | HU | traditional | 120 | – (kézből) | – | – | – | – |
+| dobostorta | HU | traditional | 125 | 384 | 554 | 109 | 127 | 148 |
+| rigójancsi | HU | traditional | 120 | 362 | 524 | 103 | 120 | 140 |
+| zserbó | HU | traditional | 80 | – (kézből) | – | – | – | – |
+| rakott palacsinta | HU | traditional | 250 | 364 | 526 | 219 | 257 | 298 |
 | bajai halászlé | HU | traditional | 450 | 342 | 494 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | tiszai halászlé | HU | traditional | 450 | 342 | 493 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | újházi tyúkhúsleves | HU | traditional | 450 | 342 | 493 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
