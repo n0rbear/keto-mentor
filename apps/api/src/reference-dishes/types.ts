@@ -12,6 +12,9 @@ export type ReferenceVariant = {
   parts: Array<{ part: string; grams: number; densityGPerMl: number; flatPlate?: ReferenceFlatPlate }>;
   ingredients: Array<{ foodKey: string; grams: number; role: "core" | "seasoning" | "garnish" }>;
   sources: string[];
+  country: "HU" | "AT" | "DE";
+  category: "traditional" | "everyday" | "street_food" | "chain";
+  tags?: string[];
 };
 
 export type ReferenceDishData = {

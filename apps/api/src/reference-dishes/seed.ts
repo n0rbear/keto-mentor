@@ -76,6 +76,9 @@ function recipeData(variant: ReferenceVariant) {
       densityGPerMl: variant.densityGPerMl,
       servedIn: variant.servedIn,
       parts: variant.parts,
+      country: variant.country,
+      category: variant.category,
+      tags: variant.tags ?? [],
       sources: variant.sources
     } as Prisma.InputJsonValue
   };

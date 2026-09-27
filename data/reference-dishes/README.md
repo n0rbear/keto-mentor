@@ -1,6 +1,6 @@
-# Referenciaételek – pilot (10 magyar étel)
+# Referenciaételek – regionális katalógus (fázis 1 pilot)
 
-Állapot: **javaslat, még nincs bekötve az alkalmazásba.** A tulajdonos jóváhagyása után kerül a kódba.
+Állapot: **fázis-1 formátum és generátor**. A pilot a meglévő 10 magyar referenciaételt használja mintaként; az AT/DE és a teljes HU készlet külön PR-okban bővül.
 
 Fájlok:
 
@@ -10,6 +10,11 @@ Fájlok:
 | `hu-pilot.json` | A generált adatbázis (ezt töltené be az app). |
 | `hu-pilot-ingredients.csv` | Ugyanez táblázatban, átnézéshez. |
 | `hu-pilot-check.md` | Ellenőrző táblázat: hozam, sűrűség, tányér → gramm, tápérték-keresztellenőrzés. |
+
+A generált variánsok kötelező metaadatai: `country` (`HU`/`AT`/`DE`), `category`
+(`traditional`, `everyday`, `street_food`, `chain`) és a `tags` tömb. A kézzel
+beírt adatok kizárólag a `build.py` forrásfájlban vannak; a TypeScript és JSON
+kimenetet nem szabad kézzel szerkeszteni.
 
 Újragenerálás: `python3 data/reference-dishes/build.py`
 

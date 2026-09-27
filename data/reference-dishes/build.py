@@ -20,6 +20,22 @@ from pathlib import Path
 OUT = Path(__file__).resolve().parent
 SCHEMA_VERSION = "0.2-pilot"
 
+# Phase 1 metadata is deliberately generated, not hand-maintained in the TS
+# output. Later country batches extend this mapping while keeping the same
+# source format and seed contract.
+DISH_METADATA = {
+    "hu_gulyasleves": ("HU", "traditional"),
+    "hu_halaszle": ("HU", "traditional"),
+    "hu_toltott_kaposzta": ("HU", "traditional"),
+    "hu_paprikas_csirke_nokedlivel": ("HU", "traditional"),
+    "hu_sertesporkolt": ("HU", "traditional"),
+    "hu_lecso_virslivel": ("HU", "everyday"),
+    "hu_rakott_krumpli": ("HU", "everyday"),
+    "hu_marhahusleves": ("HU", "traditional"),
+    "hu_rantott_hus": ("HU", "everyday"),
+    "hu_szekelykaposzta": ("HU", "traditional"),
+}
+
 # ---------------------------------------------------------------------------
 # 1. Ingredient identity layer (food_key -> one reviewed catalog record).
 #
@@ -374,6 +390,9 @@ def build_variants(parts, dishes):
             density = serving_total / sum(g / parts[pid]["density_g_per_ml"] for pid, g in plist)
             variants.append({
                 "id": vid, "dishId": d["id"], "titles": titles,
+                "country": DISH_METADATA[d["id"]][0],
+                "category": DISH_METADATA[d["id"]][1],
+                "tags": d["tags"],
                 "servingGrams": serving_total, "densityGPerMl": round(density, 3), "servedIn": d["served_in"],
                 "parts": [{"part": pid, "grams": g, **({"flatPlate": parts[pid]["flat_plate"], "densityGPerMl": parts[pid]["density_g_per_ml"]} if parts[pid].get("flat_plate") else {"densityGPerMl": parts[pid]["density_g_per_ml"]})} for pid, g in plist],
                 "ingredients": [{"foodKey": k, "grams": round(v, 2), "role": roles[k]} for k, v in grams.items()],
