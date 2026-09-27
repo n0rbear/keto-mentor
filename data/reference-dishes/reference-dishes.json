@@ -984,6 +984,211 @@
       "carb_basis": "total",
       "density_intrinsic_g_ml": 1.0,
       "density_bulk_g_ml": 0.8
+    },
+    "chicken_whole_skin": {
+      "names": {
+        "hu": "csirke (egész, csont nélkül, bőrrel)",
+        "de": "Hähnchen ganz, entbeint, mit Haut",
+        "en": "whole chicken, boneless, with skin"
+      },
+      "catalog": "bls:V414100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.05,
+      "density_bulk_g_ml": 0.8,
+      "note": "grams = edible part; bone-in pieces are ~1.4x"
+    },
+    "mutton_meat": {
+      "names": {
+        "hu": "birkahús",
+        "de": "Schaffleisch, grob entsehnt",
+        "en": "mutton meat"
+      },
+      "catalog": "bls:U803000",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.05,
+      "density_bulk_g_ml": 0.8
+    },
+    "wild_boar": {
+      "names": {
+        "hu": "vaddisznóhús",
+        "de": "Wildschwein Fleisch",
+        "en": "wild boar meat"
+      },
+      "catalog": "bls:V250100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.05,
+      "density_bulk_g_ml": 0.8
+    },
+    "beef_tripe": {
+      "names": {
+        "hu": "marhapacal",
+        "de": "Rind Magen/Kutteln",
+        "en": "beef tripe"
+      },
+      "catalog": "bls:V551100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.04,
+      "density_bulk_g_ml": 0.8,
+      "note": "cleaned tripe, raw"
+    },
+    "pork_hock": {
+      "names": {
+        "hu": "sertéscsülök (nyers)",
+        "de": "Schweine-Vordereisbein/Vorderhaxe",
+        "en": "pork hock, raw"
+      },
+      "catalog": "bls:U672100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.06,
+      "density_bulk_g_ml": 0.8,
+      "note": "grams = edible part (meat, skin, fat), bone removed"
+    },
+    "catfish": {
+      "names": {
+        "hu": "harcsa",
+        "de": "Wels",
+        "en": "wels catfish"
+      },
+      "catalog": "bls:T506100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.05,
+      "density_bulk_g_ml": 0.8,
+      "note": "grams = fillet"
+    },
+    "pork_neck": {
+      "names": {
+        "hu": "sertéstarja",
+        "de": "Schweinekamm",
+        "en": "pork neck (collar)"
+      },
+      "catalog": "bls:U632100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.05,
+      "density_bulk_g_ml": 0.85
+    },
+    "pork_leg": {
+      "names": {
+        "hu": "sertéscomb",
+        "de": "Schwein Oberschale",
+        "en": "pork leg (top round)"
+      },
+      "catalog": "bls:U687000",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.05,
+      "density_bulk_g_ml": 0.85
+    },
+    "pork_rib": {
+      "names": {
+        "hu": "sertésoldalas",
+        "de": "Schwein Dicke Rippe",
+        "en": "pork ribs (belly ribs)"
+      },
+      "catalog": "bls:U564100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.05,
+      "density_bulk_g_ml": 0.8,
+      "note": "grams = edible part; bone-in weight is ~1.5x"
+    },
+    "beef_striploin": {
+      "names": {
+        "hu": "marha hátszín",
+        "de": "Rind Roastbeef (Rücken)",
+        "en": "beef striploin"
+      },
+      "catalog": "bls:U221100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.05,
+      "density_bulk_g_ml": 0.85
+    },
+    "beef_chuck": {
+      "names": {
+        "hu": "marhalapocka",
+        "de": "Rind Bug/Schulter",
+        "en": "beef shoulder (chuck)"
+      },
+      "catalog": "bls:U261100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.06,
+      "density_bulk_g_ml": 0.8
+    },
+    "mushroom_mix": {
+      "names": {
+        "hu": "erdei gomba (vegyes)",
+        "de": "Mischpilze",
+        "en": "mixed mushrooms"
+      },
+      "catalog": "bls:K750100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 0.95,
+      "density_bulk_g_ml": 0.5
+    },
+    "beef_broth": {
+      "names": {
+        "hu": "marhahúsleves-alaplé",
+        "de": "Fleischbrühe (Rind)",
+        "en": "beef broth"
+      },
+      "catalog": "bls:Y183013",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.0,
+      "density_bulk_g_ml": 1.0
+    },
+    "apple": {
+      "names": {
+        "hu": "alma",
+        "de": "Apfel",
+        "en": "apple"
+      },
+      "catalog": "bls:F110100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 0.85,
+      "density_bulk_g_ml": 0.6,
+      "note": "grams = cored, with peel"
+    },
+    "tomato_paste": {
+      "names": {
+        "hu": "sűrített paradicsom (paradicsompüré)",
+        "de": "Tomatenmark",
+        "en": "tomato paste"
+      },
+      "catalog": "bls:R160000",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.1,
+      "density_bulk_g_ml": 1.1,
+      "note": "Hungarian 'paradicsompüré' = concentrated paste"
+    },
+    "tomato_passata": {
+      "names": {
+        "hu": "paradicsomlé / passata",
+        "de": "Tomaten passiert",
+        "en": "tomato passata"
+      },
+      "catalog": "bls:R161200",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.03,
+      "density_bulk_g_ml": 1.03
+    },
+    "trappista": {
+      "names": {
+        "hu": "trappista sajt",
+        "de": "Trappistenkäse mind. 45 % Fett i. Tr.",
+        "en": "Trappist cheese"
+      },
+      "catalog": "bls:M505600",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.08,
+      "density_bulk_g_ml": 0.4
+    },
+    "spring_onion": {
+      "names": {
+        "hu": "újhagyma",
+        "de": "Frühlingszwiebel",
+        "en": "spring onion"
+      },
+      "catalog": "bls:G482100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.0,
+      "density_bulk_g_ml": 0.4
     }
   },
   "parts": {
@@ -2370,6 +2575,2604 @@
           "fat": 2.6,
           "protein": 6.4,
           "net_carbs": 8.1
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "marhaporkolt": {
+      "id": "marhaporkolt",
+      "names": {
+        "hu": "Marhapörkölt",
+        "de": "Ungarisches Rindspörkölt (Rindergulasch)",
+        "en": "Hungarian beef stew (pörkölt)"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 12,
+        "ingredients": [
+          {
+            "food_key": "beef_shank",
+            "raw_g": 2000,
+            "role": "core",
+            "note": "2 kg marhalábszár"
+          },
+          {
+            "food_key": "smoked_bacon",
+            "raw_g": 100,
+            "role": "fat",
+            "note": "10 dkg füstölt szalonna"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 600,
+            "role": "core",
+            "note": "60 dkg"
+          },
+          {
+            "food_key": "lard",
+            "raw_g": 39,
+            "role": "fat",
+            "note": "3 ek sertészsír"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 25,
+            "role": "seasoning",
+            "note": "5 gerezd"
+          },
+          {
+            "food_key": "wax_pepper",
+            "raw_g": 120,
+            "role": "core",
+            "note": "2 db paprika"
+          },
+          {
+            "food_key": "tomato",
+            "raw_g": 200,
+            "role": "core",
+            "note": "2 db"
+          },
+          {
+            "food_key": "paprika_ground",
+            "raw_g": 14,
+            "role": "seasoning",
+            "note": "2 ek"
+          },
+          {
+            "food_key": "caraway_seed",
+            "raw_g": 2.5,
+            "role": "seasoning",
+            "note": "1 kk őrölt kömény"
+          },
+          {
+            "food_key": "apple",
+            "raw_g": 450,
+            "role": "core",
+            "note": "3 db alma at the end; 150 g each is an estimate"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 800,
+            "role": "liquid",
+            "note": "'víz szükség szerint'; amount is an estimate"
+          }
+        ],
+        "raw_total_g": 4350.5,
+        "cooking": {
+          "method": "bogrács pörkölt, ~3 h, water added little by little, reduced to a thick sauce",
+          "mass_change_g": -1250,
+          "note": "estimate from the source's ~258 g x 12 portions; 3 dl vörösbor (MISSING dry_red_wine), borókabogyó, babérlevél, majoránna, bors and salt left out"
+        },
+        "finished_weight_g": 3100.5,
+        "yield_factor": 0.713
+      },
+      "standard_serving_g": 300,
+      "density_g_per_ml": 1.008,
+      "density_method": "derived from components after cooking mass change",
+      "flat_plate": {
+        "coverage": 0.45,
+        "height_cm": 2.0
+      },
+      "sources": [
+        {
+          "url": "https://www.receptneked.hu/recept/marhaporkolt",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 12 adag"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/marhaporkolt",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 60 dkg lábszár, 1 fej hagyma, 4 ek olaj, 1 ek paprika, 2 paradicsom, 2 dl vörösbor, ~2 h"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 123.4,
+          "fat": 4.8,
+          "protein": 15.1,
+          "net_carbs": 3.3
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "csirkeporkolt": {
+      "id": "csirkeporkolt",
+      "names": {
+        "hu": "Csirkepörkölt",
+        "de": "Ungarisches Hühnerpörkölt",
+        "en": "Hungarian chicken stew (pörkölt)"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "lard",
+            "raw_g": 45.5,
+            "role": "fat",
+            "note": "3-4 ek zsír (sertés)"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 200,
+            "role": "core",
+            "note": "2 db nagy vöröshagyma"
+          },
+          {
+            "food_key": "paprika_ground",
+            "raw_g": 14,
+            "role": "seasoning",
+            "note": "2 ek"
+          },
+          {
+            "food_key": "chicken_whole_skin",
+            "raw_g": 1050,
+            "role": "core",
+            "note": "1,5 kg csirkehús (comb, szárny, mell csonttal); ~70% edible share is an estimate"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 200,
+            "role": "liquid",
+            "note": "2 dl víz"
+          },
+          {
+            "food_key": "tomato",
+            "raw_g": 100,
+            "role": "core",
+            "note": "1 db"
+          },
+          {
+            "food_key": "wax_pepper",
+            "raw_g": 60,
+            "role": "core",
+            "note": "1 db paprika"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 17.5,
+            "role": "seasoning",
+            "note": "3-4 gerezd"
+          },
+          {
+            "food_key": "caraway_seed",
+            "raw_g": 1,
+            "role": "seasoning",
+            "note": "1 mk őrölt kömény"
+          }
+        ],
+        "raw_total_g": 1688.0,
+        "cooking": {
+          "method": "stewed ~45-50 min covered, then reduced",
+          "mass_change_g": -250,
+          "note": "estimate: chicken loses water, part of the added water evaporates; bay leaf, pepper, salt left out"
+        },
+        "finished_weight_g": 1438.0,
+        "yield_factor": 0.852
+      },
+      "standard_serving_g": 300,
+      "density_g_per_ml": 1.031,
+      "density_method": "derived from components after cooking mass change",
+      "flat_plate": {
+        "coverage": 0.45,
+        "height_cm": 2.0
+      },
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/csirkeporkolt",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 adag"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/hagyomanyos-csirkeporkolt",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 6 csirkecomb, 3 fej hagyma, 3 ek zsír, 2 ek paprika, 3,5 dl víz, 6 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 175.8,
+          "fat": 12.5,
+          "protein": 13.9,
+          "net_carbs": 1.4
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "birkaporkolt": {
+      "id": "birkaporkolt",
+      "names": {
+        "hu": "Birkapörkölt",
+        "de": "Ungarisches Hammelpörkölt",
+        "en": "Hungarian mutton stew (pörkölt)"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 5,
+        "ingredients": [
+          {
+            "food_key": "mutton_meat",
+            "raw_g": 1000,
+            "role": "core",
+            "note": "1 kg birkahús (boneless cubes assumed)"
+          },
+          {
+            "food_key": "smoked_bacon",
+            "raw_g": 100,
+            "role": "fat",
+            "note": "10 dkg füstölt szalonna"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 150,
+            "role": "core",
+            "note": "1 nagy fej; 150 g is an estimate"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 20,
+            "role": "seasoning",
+            "note": "4 gerezd"
+          },
+          {
+            "food_key": "wax_pepper",
+            "raw_g": 60,
+            "role": "core",
+            "note": "1 darab paprika"
+          },
+          {
+            "food_key": "tomato",
+            "raw_g": 100,
+            "role": "core",
+            "note": "1 darab"
+          },
+          {
+            "food_key": "caraway_seed",
+            "raw_g": 2.5,
+            "role": "seasoning",
+            "note": "1 tk őrölt kömény"
+          },
+          {
+            "food_key": "paprika_ground",
+            "raw_g": 7,
+            "role": "seasoning",
+            "note": "'fűszerpaprika', no amount; 1 ek is an estimate"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 400,
+            "role": "liquid",
+            "note": "no amount given; estimate"
+          }
+        ],
+        "raw_total_g": 1839.5,
+        "cooking": {
+          "method": "slow pörkölt ~3-4 h, reduced",
+          "mass_change_g": -650,
+          "note": "estimate from the source's ~230 g x 5 portions; bay leaf and salt left out"
+        },
+        "finished_weight_g": 1189.5,
+        "yield_factor": 0.647
+      },
+      "standard_serving_g": 300,
+      "density_g_per_ml": 1.04,
+      "density_method": "derived from components after cooking mass change",
+      "flat_plate": {
+        "coverage": 0.45,
+        "height_cm": 2.0
+      },
+      "sources": [
+        {
+          "url": "https://www.receptneked.hu/recept/birkaporkolt",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 5 adag"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/birkaporkolt-bogracsban",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 10 kg birkahús, 2,5 kg hagyma, 20 dkg szalonna, paradicsom, zöldpaprika, pirospaprika"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 189.1,
+          "fat": 12.4,
+          "protein": 17.4,
+          "net_carbs": 1.4
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "vadporkolt": {
+      "id": "vadporkolt",
+      "names": {
+        "hu": "Vadpörkölt (vaddisznó)",
+        "de": "Wildschweinpörkölt",
+        "en": "Hungarian wild boar stew (pörkölt)"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 8,
+        "ingredients": [
+          {
+            "food_key": "wild_boar",
+            "raw_g": 1500,
+            "role": "core",
+            "note": "1,5 kg vaddisznó ragu"
+          },
+          {
+            "food_key": "smoked_bacon",
+            "raw_g": 100,
+            "role": "fat",
+            "note": "10 dkg füstölt szalonna"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 250,
+            "role": "core",
+            "note": "2 fej nagyobb hagyma; 125 g each is an estimate"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 15,
+            "role": "seasoning",
+            "note": "3 gerezd"
+          },
+          {
+            "food_key": "wax_pepper",
+            "raw_g": 120,
+            "role": "core",
+            "note": "2 db friss édespaprika"
+          },
+          {
+            "food_key": "paprika_ground",
+            "raw_g": 7,
+            "role": "seasoning",
+            "note": "'piros fűszerpaprika', no amount; 1 ek is an estimate"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 500,
+            "role": "liquid",
+            "note": "no amount given; estimate"
+          }
+        ],
+        "raw_total_g": 2492,
+        "cooking": {
+          "method": "pörkölt ~90 min, reduced",
+          "mass_change_g": -650,
+          "note": "estimate; 3 dl kékfrankos (MISSING dry_red_wine), bay leaf, pepper, salt left out"
+        },
+        "finished_weight_g": 1842,
+        "yield_factor": 0.739
+      },
+      "standard_serving_g": 300,
+      "density_g_per_ml": 1.039,
+      "density_method": "derived from components after cooking mass change",
+      "flat_plate": {
+        "coverage": 0.45,
+        "height_cm": 2.0
+      },
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/vaddiszno-porkolt",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 8 adag"
+        },
+        {
+          "url": "https://vadkonyha.hu/hagyomanyos-szarvasporkolt/",
+          "retrieved": "2026-09-27",
+          "note": "cross-check (szarvas): 1 kg hús, 1 fej hagyma, paprika, paradicsom, bacon, 2 ek pirospaprika, 1 dl zsír, 1 dl víz, 2-3 h"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 156.5,
+          "fat": 9.1,
+          "protein": 17.1,
+          "net_carbs": 1.1
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "pacalporkolt": {
+      "id": "pacalporkolt",
+      "names": {
+        "hu": "Pacalpörkölt",
+        "de": "Kuttelpörkölt",
+        "en": "Hungarian tripe stew (pörkölt)"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "beef_tripe",
+            "raw_g": 1000,
+            "role": "core",
+            "note": "1 kg tisztított marhapacal, precooked soft in salted water (drained)"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 100,
+            "role": "core",
+            "note": "1 fej"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 10,
+            "role": "seasoning",
+            "note": "2 gerezd"
+          },
+          {
+            "food_key": "tomato",
+            "raw_g": 100,
+            "role": "core",
+            "note": "1 db"
+          },
+          {
+            "food_key": "wax_pepper",
+            "raw_g": 60,
+            "role": "core",
+            "note": "1 db zöldpaprika"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 65,
+            "role": "fat",
+            "note": "5 ek olaj"
+          },
+          {
+            "food_key": "paprika_ground",
+            "raw_g": 7,
+            "role": "seasoning",
+            "note": "1 ek"
+          },
+          {
+            "food_key": "caraway_seed",
+            "raw_g": 1,
+            "role": "seasoning",
+            "note": "őrölt kömény, no amount; 1 mk is an estimate"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 200,
+            "role": "liquid",
+            "note": "a little water while stewing; estimate"
+          }
+        ],
+        "raw_total_g": 1543,
+        "cooking": {
+          "method": "tripe boiled soft (~2 h pressure cooker), then stewed in the pörkölt base",
+          "mass_change_g": -300,
+          "note": "estimate: tripe shrinks while boiling, the pörkölt is reduced; majoránna and salt left out"
+        },
+        "finished_weight_g": 1243,
+        "yield_factor": 0.806
+      },
+      "standard_serving_g": 300,
+      "density_g_per_ml": 1.025,
+      "density_method": "derived from components after cooking mass change",
+      "flat_plate": {
+        "coverage": 0.45,
+        "height_cm": 2.0
+      },
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/pacalporkolt",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 adag"
+        },
+        {
+          "url": "https://www.receptneked.hu/recept/pacalporkolt",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 2 kg pacal, 4 fej hagyma, 5 gerezd fokhagyma, paradicsom, paprika, 10 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 119.7,
+          "fat": 7.6,
+          "protein": 11.2,
+          "net_carbs": 1.0
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "csulokporkolt": {
+      "id": "csulokporkolt",
+      "names": {
+        "hu": "Csülökpörkölt",
+        "de": "Schweinshaxen-Pörkölt",
+        "en": "Hungarian pork hock stew (pörkölt)"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 6,
+        "ingredients": [
+          {
+            "food_key": "pork_hock",
+            "raw_g": 900,
+            "role": "core",
+            "note": "1,5 kg csülök, deboned and skin removed per recipe; ~60% edible share is an estimate"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 400,
+            "role": "core",
+            "note": "4 fej"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 20,
+            "role": "seasoning",
+            "note": "4 gerezd"
+          },
+          {
+            "food_key": "tomato",
+            "raw_g": 100,
+            "role": "core",
+            "note": "1 db"
+          },
+          {
+            "food_key": "wax_pepper",
+            "raw_g": 60,
+            "role": "core",
+            "note": "1 db paprika"
+          },
+          {
+            "food_key": "hot_pepper_fresh",
+            "raw_g": 20,
+            "role": "seasoning",
+            "note": "1 db hegyes erős paprika; 20 g is an estimate"
+          },
+          {
+            "food_key": "lard",
+            "raw_g": 26,
+            "role": "fat",
+            "note": "2 ek sertészsír"
+          },
+          {
+            "food_key": "paprika_ground",
+            "raw_g": 7,
+            "role": "seasoning",
+            "note": "1 ek"
+          },
+          {
+            "food_key": "caraway_seed",
+            "raw_g": 2.5,
+            "role": "seasoning",
+            "note": "1 kk őrölt kömény"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 300,
+            "role": "liquid",
+            "note": "'mindig csak pici vizet'; total is an estimate"
+          }
+        ],
+        "raw_total_g": 1835.5,
+        "cooking": {
+          "method": "pörkölt, water added little by little, fried back several times",
+          "mass_change_g": -680,
+          "note": "estimate from the source's ~192 g x 6 portions"
+        },
+        "finished_weight_g": 1155.5,
+        "yield_factor": 0.63
+      },
+      "standard_serving_g": 300,
+      "density_g_per_ml": 1.041,
+      "density_method": "derived from components after cooking mass change",
+      "flat_plate": {
+        "coverage": 0.45,
+        "height_cm": 2.0
+      },
+      "sources": [
+        {
+          "url": "https://www.receptneked.hu/recept/csulokporkolt",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 6 adag"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/csulokporkolt",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 50 dkg csülök + 50 dkg köröm, 2 fej hagyma, paradicsom, paprika, 6 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 195.5,
+          "fat": 11.8,
+          "protein": 18.7,
+          "net_carbs": 2.8
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "harcsapaprikas": {
+      "id": "harcsapaprikas",
+      "names": {
+        "hu": "Harcsapaprikás",
+        "de": "Welspaprikasch",
+        "en": "Catfish paprikash"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 5,
+        "ingredients": [
+          {
+            "food_key": "catfish",
+            "raw_g": 700,
+            "role": "core",
+            "note": "700 g harcsafilé"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 80,
+            "role": "core",
+            "note": "80 g"
+          },
+          {
+            "food_key": "lard",
+            "raw_g": 70,
+            "role": "fat",
+            "note": "70 g zsír"
+          },
+          {
+            "food_key": "wax_pepper",
+            "raw_g": 100,
+            "role": "core",
+            "note": "100 g zöldpaprika"
+          },
+          {
+            "food_key": "tomato",
+            "raw_g": 100,
+            "role": "core",
+            "note": "100 g"
+          },
+          {
+            "food_key": "sour_cream",
+            "raw_g": 204,
+            "role": "thickener",
+            "note": "2 dl tejföl"
+          },
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 20,
+            "role": "thickener",
+            "note": "20 g finomliszt"
+          },
+          {
+            "food_key": "paprika_ground",
+            "raw_g": 10,
+            "role": "seasoning",
+            "note": "10 g fűszerpaprika"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 5,
+            "role": "seasoning",
+            "note": "'fokhagyma', no amount; 1 gerezd is an estimate"
+          },
+          {
+            "food_key": "caraway_seed",
+            "raw_g": 0.5,
+            "role": "seasoning",
+            "note": "köménymag, a pinch"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 200,
+            "role": "liquid",
+            "note": "a little water; estimate"
+          }
+        ],
+        "raw_total_g": 1489.5,
+        "cooking": {
+          "method": "fish stewed in the paprika base ~20 min, thickened with sour cream + flour",
+          "mass_change_g": -350,
+          "note": "estimate: fish loses water, some evaporation; 1 csomag kapor (dill) and salt left out"
+        },
+        "finished_weight_g": 1139.5,
+        "yield_factor": 0.765
+      },
+      "standard_serving_g": 300,
+      "density_g_per_ml": 1.025,
+      "density_method": "derived from components after cooking mass change",
+      "flat_plate": {
+        "coverage": 0.45,
+        "height_cm": 2.0
+      },
+      "sources": [
+        {
+          "url": "https://www.receptneked.hu/recept/harcsapaprikas",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 5 adag"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/harcsapaprikas",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 70 dkg harcsafilé, 1 fej hagyma, 2 zöldpaprika, 2 paradicsom, 2 dl tejföl"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 184.1,
+          "fat": 14.1,
+          "protein": 10.5,
+          "net_carbs": 3.4
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "bakonyi_sertesszelet": {
+      "id": "bakonyi_sertesszelet",
+      "names": {
+        "hu": "Bakonyi sertésszelet (mártással)",
+        "de": "Schweinekamm nach Bakony-Art (mit Pilz-Paprika-Rahmsauce)",
+        "en": "Bakony-style pork with mushroom paprika cream sauce"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "lard",
+            "raw_g": 5,
+            "role": "fat",
+            "note": "1 tk zsír; 5 g is an estimate"
+          },
+          {
+            "food_key": "smoked_bacon",
+            "raw_g": 150,
+            "role": "fat",
+            "note": "15 dkg füstölt szalonna"
+          },
+          {
+            "food_key": "mushroom_mix",
+            "raw_g": 600,
+            "role": "core",
+            "note": "60 dkg erdei gomba"
+          },
+          {
+            "food_key": "pork_neck",
+            "raw_g": 800,
+            "role": "core",
+            "note": "80 dkg sertéstarja"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 150,
+            "role": "core",
+            "note": "1 nagy fej; 150 g is an estimate"
+          },
+          {
+            "food_key": "wax_pepper",
+            "raw_g": 60,
+            "role": "core",
+            "note": "1 db zöldpaprika"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 12.5,
+            "role": "seasoning",
+            "note": "2-3 gerezd"
+          },
+          {
+            "food_key": "paprika_ground",
+            "raw_g": 7,
+            "role": "seasoning",
+            "note": "1 ek"
+          },
+          {
+            "food_key": "tomato",
+            "raw_g": 100,
+            "role": "core",
+            "note": "1 db"
+          },
+          {
+            "food_key": "beef_broth",
+            "raw_g": 250,
+            "role": "liquid",
+            "note": "2-3 dl alaplé (vagy víz)"
+          },
+          {
+            "food_key": "cream_30",
+            "raw_g": 100,
+            "role": "thickener",
+            "note": "1 dl habtejszín"
+          },
+          {
+            "food_key": "sour_cream",
+            "raw_g": 34,
+            "role": "thickener",
+            "note": "2 ek"
+          },
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 10,
+            "role": "thickener",
+            "note": "1 ek"
+          },
+          {
+            "food_key": "parsley_leaf",
+            "raw_g": 10,
+            "role": "garnish",
+            "note": "1/2 csokor; estimate"
+          }
+        ],
+        "raw_total_g": 2288.5,
+        "cooking": {
+          "method": "meat seared, braised with bacon, mushrooms, paprika base; finished with cream + sour cream",
+          "mass_change_g": -600,
+          "note": "estimate: mushrooms release much water, part evaporates; 1/2 dl fehérbor (MISSING dry_white_wine), thyme, salt left out"
+        },
+        "finished_weight_g": 1688.5,
+        "yield_factor": 0.738
+      },
+      "standard_serving_g": 400,
+      "density_g_per_ml": 1.003,
+      "density_method": "derived from components after cooking mass change",
+      "flat_plate": {
+        "coverage": 0.5,
+        "height_cm": 2.2
+      },
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/bakonyi-sertesszelet",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 adag"
+        },
+        {
+          "url": "https://www.receptneked.hu/recept/bakonyi-sertesszelet",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 8 szelet sertéscomb, 25 dkg gomba, hagyma, 2 dl tejföl, paprika, liszt, 8 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 156.6,
+          "fat": 10.3,
+          "protein": 12.4,
+          "net_carbs": 2.5
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "vadas_marha": {
+      "id": "vadas_marha",
+      "names": {
+        "hu": "Vadas marha (hús vadasmártással)",
+        "de": "Rind in ungarischer Wurzelrahmsauce (Vadas)",
+        "en": "Beef in Hungarian vadas (root vegetable cream) sauce"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "beef_striploin",
+            "raw_g": 800,
+            "role": "core",
+            "note": "80 dkg hátszín"
+          },
+          {
+            "food_key": "lard",
+            "raw_g": 13,
+            "role": "fat",
+            "note": "1 ek zsír"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 100,
+            "role": "core",
+            "note": "1 fej"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 10,
+            "role": "seasoning",
+            "note": "2 gerezd"
+          },
+          {
+            "food_key": "carrot",
+            "raw_g": 500,
+            "role": "core",
+            "note": "50 dkg sárgarépa"
+          },
+          {
+            "food_key": "parsley_root",
+            "raw_g": 200,
+            "role": "core",
+            "note": "20 dkg fehérrépa"
+          },
+          {
+            "food_key": "celeriac",
+            "raw_g": 100,
+            "role": "core",
+            "note": "10 dkg zeller"
+          },
+          {
+            "food_key": "apple",
+            "raw_g": 150,
+            "role": "core",
+            "note": "1 db alma; 150 g is an estimate"
+          },
+          {
+            "food_key": "sugar",
+            "raw_g": 24,
+            "role": "seasoning",
+            "note": "2 ek kristálycukor"
+          },
+          {
+            "food_key": "cream_30",
+            "raw_g": 100,
+            "role": "thickener",
+            "note": "1 dl tejszín"
+          },
+          {
+            "food_key": "sour_cream",
+            "raw_g": 34,
+            "role": "thickener",
+            "note": "2 ek tejföl"
+          },
+          {
+            "food_key": "mustard",
+            "raw_g": 5,
+            "role": "seasoning",
+            "note": "1 tk mustár; 5 g is an estimate"
+          },
+          {
+            "food_key": "butter",
+            "raw_g": 50,
+            "role": "fat",
+            "note": "5 dkg vaj"
+          },
+          {
+            "food_key": "lemon_juice",
+            "raw_g": 33.8,
+            "role": "seasoning",
+            "note": "fél-egy citrom leve"
+          },
+          {
+            "food_key": "parsley_leaf",
+            "raw_g": 10,
+            "role": "garnish",
+            "note": "1 csokor; estimate"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 1000,
+            "role": "liquid",
+            "note": "'annyi vízzel, amennyi pont ellepi'; estimate"
+          }
+        ],
+        "raw_total_g": 3129.8,
+        "cooking": {
+          "method": "meat braised ~2 h with roots and apple, vegetables blended with cream, sour cream, mustard, butter, strained",
+          "mass_change_g": -550,
+          "note": "estimate: meat loses ~30% water, some evaporation; straining fibre loss ignored. 1,5 dl fehérbor (MISSING dry_white_wine), 1 narancs leve (MISSING orange_juice), citrus peel, juniper, bay leaf, thyme, pepper, salt left out"
+        },
+        "finished_weight_g": 2579.8,
+        "yield_factor": 0.824
+      },
+      "standard_serving_g": 400,
+      "density_g_per_ml": 1.016,
+      "density_method": "derived from components after cooking mass change",
+      "flat_plate": {
+        "coverage": 0.5,
+        "height_cm": 2.2
+      },
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/vadas-marha",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 adag"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/vadas-marha-recept",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 1 kg marhahús, sárgarépa, fehérrépa, cukor, mustár, liszt, tejföl, 4 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 97.5,
+          "fat": 5.1,
+          "protein": 7.7,
+          "net_carbs": 4.6
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "tokany": {
+      "id": "tokany",
+      "names": {
+        "hu": "Tokány (erdélyi marhatokány)",
+        "de": "Ungarisches Tokány (Rindfleischstreifen)",
+        "en": "Hungarian tokány (beef strips stew)"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 5,
+        "ingredients": [
+          {
+            "food_key": "beef_chuck",
+            "raw_g": 800,
+            "role": "core",
+            "note": "80 dkg marhalapocka, cut in strips"
+          },
+          {
+            "food_key": "smoked_bacon",
+            "raw_g": 100,
+            "role": "fat",
+            "note": "10 dkg füstölt szalonna"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 140,
+            "role": "core",
+            "note": "2 kisebb fej; 70 g each is an estimate"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 10,
+            "role": "seasoning",
+            "note": "2 gerezd"
+          },
+          {
+            "food_key": "tomato_paste",
+            "raw_g": 50,
+            "role": "seasoning",
+            "note": "5 dkg paradicsompüré"
+          },
+          {
+            "food_key": "wax_pepper",
+            "raw_g": 120,
+            "role": "core",
+            "note": "2 db paprika"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 300,
+            "role": "liquid",
+            "note": "water added while braising; estimate"
+          }
+        ],
+        "raw_total_g": 1520,
+        "cooking": {
+          "method": "strips braised covered ~1 h in bacon fat with onion and tomato paste",
+          "mass_change_g": -450,
+          "note": "estimate; 1 dl fehérbor (MISSING dry_white_wine), majoránna, pepper, salt left out"
+        },
+        "finished_weight_g": 1070,
+        "yield_factor": 0.704
+      },
+      "standard_serving_g": 300,
+      "density_g_per_ml": 1.046,
+      "density_method": "derived from components after cooking mass change",
+      "flat_plate": {
+        "coverage": 0.45,
+        "height_cm": 2.0
+      },
+      "sources": [
+        {
+          "url": "https://www.receptneked.hu/recept/erdelyi-tokany",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 5 adag"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/erdelyi-tokany",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 60 dkg birka- vagy marha apróhús, 10 dkg szalonna, paradicsompüré, 1 dl leves"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 135.9,
+          "fat": 6.5,
+          "protein": 17.1,
+          "net_carbs": 1.8
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "brassoi_apropecsenye": {
+      "id": "brassoi_apropecsenye",
+      "names": {
+        "hu": "Brassói aprópecsenye",
+        "de": "Brassói-Pfanne (Schweinefleisch mit Röstkartoffeln)",
+        "en": "Brassó-style pork with fried potatoes"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "pork_shoulder",
+            "raw_g": 500,
+            "role": "core",
+            "note": "50 dkg sertéslapocka"
+          },
+          {
+            "food_key": "smoked_bacon",
+            "raw_g": 50,
+            "role": "fat",
+            "note": "5 dkg füstölt szalonna"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 300,
+            "role": "core",
+            "note": "3 fej"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 20,
+            "role": "seasoning",
+            "note": "4 gerezd"
+          },
+          {
+            "food_key": "paprika_ground",
+            "raw_g": 2.5,
+            "role": "seasoning",
+            "note": "1 tk"
+          },
+          {
+            "food_key": "potato",
+            "raw_g": 500,
+            "role": "core",
+            "note": "50 dkg, diced and fried"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 50,
+            "role": "absorbed_fat",
+            "note": "'olaj a sütéshez'; ~10% of the potato is absorbed (estimate)"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 100,
+            "role": "liquid",
+            "note": "'kevés víz'; estimate"
+          }
+        ],
+        "raw_total_g": 1522.5,
+        "cooking": {
+          "method": "meat strips braised with bacon, onion, garlic; potato cubes deep-fried and mixed in",
+          "mass_change_g": -350,
+          "note": "estimate: frying loss of the potatoes, meat loss, water evaporates; majoránna, pepper, salt left out"
+        },
+        "finished_weight_g": 1172.5,
+        "yield_factor": 0.77
+      },
+      "standard_serving_g": 350,
+      "density_g_per_ml": 0.7,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.5,
+        "height_cm": 2.5
+      },
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/hagyomanyos-brassoi-apropecsenye",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 adag"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/brassoi-apropecsenye",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 50 dkg sertéslapocka, 1 kg burgonya, 1 fej hagyma, 4 fej fokhagyma, 4 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 198.3,
+          "fat": 13.2,
+          "protein": 9.3,
+          "net_carbs": 9.3
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "ciganypecsenye": {
+      "id": "ciganypecsenye",
+      "names": {
+        "hu": "Cigánypecsenye (tarja sült szalonnával)",
+        "de": "Zigeunerbraten (Schweinekamm mit Speck und Knoblauch)",
+        "en": "Gypsy roast (pork neck steak with bacon and garlic)"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "pork_neck",
+            "raw_g": 1200,
+            "role": "core",
+            "note": "1,2 kg sertéstarja"
+          },
+          {
+            "food_key": "smoked_bacon",
+            "raw_g": 300,
+            "role": "core",
+            "note": "30 dkg füstölt szalonna (kakastaréj)"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 52,
+            "role": "fat",
+            "note": "4 ek olaj (pác)"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 40,
+            "role": "seasoning",
+            "note": "8 gerezd"
+          },
+          {
+            "food_key": "paprika_ground",
+            "raw_g": 7,
+            "role": "seasoning",
+            "note": "1 ek"
+          }
+        ],
+        "raw_total_g": 1599,
+        "cooking": {
+          "method": "marinated neck steaks pan-fried, bacon fried crisp",
+          "mass_change_g": -420,
+          "note": "estimate: meat loses ~25% water, bacon renders ~40%; the 1,5 kg burgonya side (hasábburgonya) is not in this part; pepper, salt left out"
+        },
+        "finished_weight_g": 1179,
+        "yield_factor": 0.737
+      },
+      "standard_serving_g": 300,
+      "density_g_per_ml": 0.9,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.4,
+        "height_cm": 2.0
+      },
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/klasszikus-ciganypecsenye",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 adag"
+        },
+        {
+          "url": "https://www.receptneked.hu/recept/ciganypecsenye",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 4 szelet tarja, 6-8 gerezd fokhagyma, 30 dkg füstölt szalonna, 4 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 300.1,
+          "fat": 22.3,
+          "protein": 24.1,
+          "net_carbs": 0.3
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "fasirt": {
+      "id": "fasirt",
+      "names": {
+        "hu": "Fasírt",
+        "de": "Ungarische Fleischlaibchen (Fasírt)",
+        "en": "Hungarian meatballs / patties (fasírt)"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 5,
+        "ingredients": [
+          {
+            "food_key": "pork_minced",
+            "raw_g": 500,
+            "role": "core",
+            "note": "0,5 kg darált hús (pork assumed)"
+          },
+          {
+            "food_key": "egg",
+            "raw_g": 100,
+            "role": "core",
+            "note": "2 db"
+          },
+          {
+            "food_key": "breadcrumbs",
+            "raw_g": 100,
+            "role": "core",
+            "note": "100 g zsemlemorzsa in the mixture"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 100,
+            "role": "liquid",
+            "note": "1 dl víz (soaks the crumbs)"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 200,
+            "role": "core",
+            "note": "2 fej"
+          },
+          {
+            "food_key": "parsley_leaf",
+            "raw_g": 10,
+            "role": "seasoning",
+            "note": "1 csokor; estimate"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 15,
+            "role": "seasoning",
+            "note": "3 gerezd"
+          },
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 30,
+            "role": "coating",
+            "note": "10 dkg for rolling; ~30 g sticks (estimate)"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 60,
+            "role": "absorbed_fat",
+            "note": "'olaj a sütéshez'; absorbed amount is an estimate"
+          }
+        ],
+        "raw_total_g": 1115,
+        "cooking": {
+          "method": "shallow-fried patties",
+          "mass_change_g": -150,
+          "note": "estimate: ~15% frying loss; salt and pepper left out"
+        },
+        "finished_weight_g": 965,
+        "yield_factor": 0.865
+      },
+      "standard_serving_g": 180,
+      "density_g_per_ml": 0.85,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.3,
+        "height_cm": 2.5
+      },
+      "sources": [
+        {
+          "url": "https://www.receptneked.hu/recept/fasirt",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 5 adag"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/fasirt",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 50 dkg sertéshús, 2 zsemle, 2 tojás, 10 dkg morzsa, 5 dl olaj a sütéshez, 4 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 267.8,
+          "fat": 19.1,
+          "protein": 12.5,
+          "net_carbs": 10.6
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "toltott_paprika": {
+      "id": "toltott_paprika",
+      "names": {
+        "hu": "Töltött paprika (paradicsomszósszal)",
+        "de": "Gefüllte Paprika in Tomatensauce",
+        "en": "Stuffed peppers in tomato sauce"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 6,
+        "ingredients": [
+          {
+            "food_key": "pork_minced",
+            "raw_g": 300,
+            "role": "core",
+            "note": "30 dkg darált sertésdagadó"
+          },
+          {
+            "food_key": "rice_white",
+            "raw_g": 100,
+            "role": "core",
+            "note": "10 dkg, raw, cooks inside the filling"
+          },
+          {
+            "food_key": "egg",
+            "raw_g": 50,
+            "role": "core",
+            "note": "1 db"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 70,
+            "role": "core",
+            "note": "1 kis fej; 70 g is an estimate"
+          },
+          {
+            "food_key": "paprika_ground",
+            "raw_g": 14,
+            "role": "seasoning",
+            "note": "2 ek"
+          },
+          {
+            "food_key": "wax_pepper",
+            "raw_g": 300,
+            "role": "core",
+            "note": "5 db TV paprika"
+          },
+          {
+            "food_key": "tomato_passata",
+            "raw_g": 720,
+            "role": "liquid",
+            "note": "7 dl paradicsomlé"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 100,
+            "role": "liquid",
+            "note": "1 dl víz"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 13,
+            "role": "fat",
+            "note": "1 ek"
+          },
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 20,
+            "role": "thickener",
+            "note": "2 ek (rántás)"
+          },
+          {
+            "food_key": "sugar",
+            "raw_g": 24,
+            "role": "seasoning",
+            "note": "2 ek cukor"
+          }
+        ],
+        "raw_total_g": 1711,
+        "cooking": {
+          "method": "stuffed peppers simmered in tomato juice, sauce thickened with a roux",
+          "mass_change_g": -100,
+          "note": "estimate; rice absorbs sauce inside the filling (no mass change); pepper, salt left out"
+        },
+        "finished_weight_g": 1611,
+        "yield_factor": 0.942
+      },
+      "standard_serving_g": 400,
+      "density_g_per_ml": 1.024,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/klasszikus-toltott-paprika",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 6 adag"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/toltott-paprika",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: darált hús, 6 TV paprika, 4 ek rizs, tojás, 5 dl paradicsompüré"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 115.3,
+          "fat": 5.4,
+          "protein": 5.2,
+          "net_carbs": 10.0
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "rakott_kel": {
+      "id": "rakott_kel",
+      "names": {
+        "hu": "Rakott kel",
+        "de": "Ungarischer Wirsingauflauf mit Hackfleisch und Reis",
+        "en": "Hungarian layered savoy cabbage casserole"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 6,
+        "ingredients": [
+          {
+            "food_key": "savoy_cabbage",
+            "raw_g": 1000,
+            "role": "core",
+            "note": "1 kg, boiled in salted water and drained"
+          },
+          {
+            "food_key": "pork_minced",
+            "raw_g": 500,
+            "role": "core",
+            "note": "50 dkg darált hús (pork assumed)"
+          },
+          {
+            "food_key": "rice_white",
+            "raw_g": 150,
+            "role": "core",
+            "note": "15 dkg, raw"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 300,
+            "role": "liquid",
+            "note": "rice cooked in 2x water (absorbed)"
+          },
+          {
+            "food_key": "sour_cream",
+            "raw_g": 204,
+            "role": "core",
+            "note": "2 dl tejföl"
+          },
+          {
+            "food_key": "lard",
+            "raw_g": 50,
+            "role": "fat",
+            "note": "5 dkg zsír"
+          },
+          {
+            "food_key": "caraway_seed",
+            "raw_g": 0.5,
+            "role": "seasoning",
+            "note": "csipet kömény"
+          }
+        ],
+        "raw_total_g": 2204.5,
+        "cooking": {
+          "method": "layered, baked ~30 min",
+          "mass_change_g": -150,
+          "note": "baking loss estimate; rice water listed as an ingredient; pepper, salt left out"
+        },
+        "finished_weight_g": 2054.5,
+        "yield_factor": 0.932
+      },
+      "standard_serving_g": 350,
+      "density_g_per_ml": 1.012,
+      "density_method": "derived from components after cooking mass change",
+      "flat_plate": {
+        "coverage": 0.35,
+        "height_cm": 3.2
+      },
+      "sources": [
+        {
+          "url": "https://www.receptneked.hu/recept/rakott-kel",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 6 adag"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/klasszikus-rakott-kel",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 1 kg kel, 40 dkg darált sertés, 10 dkg rizs, 3 dl tejföl, 4 tojás, sajt, 4 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 150.8,
+          "fat": 9.8,
+          "protein": 6.6,
+          "net_carbs": 8.2
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "rakott_karfiol": {
+      "id": "rakott_karfiol",
+      "names": {
+        "hu": "Rakott karfiol",
+        "de": "Ungarischer Blumenkohlauflauf mit Hackfleisch und Reis",
+        "en": "Hungarian layered cauliflower casserole"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "rice_white",
+            "raw_g": 250,
+            "role": "core",
+            "note": "25 dkg, raw"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 500,
+            "role": "liquid",
+            "note": "rice cooked in 2x water (absorbed)"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 100,
+            "role": "core",
+            "note": "1 fej"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 26,
+            "role": "fat",
+            "note": "'olaj', no amount; 2 ek is an estimate"
+          },
+          {
+            "food_key": "pork_minced",
+            "raw_g": 500,
+            "role": "core",
+            "note": "50 dkg darált hús (pork assumed)"
+          },
+          {
+            "food_key": "cauliflower",
+            "raw_g": 800,
+            "role": "core",
+            "note": "1 db karfiol; 800 g florets is an estimate"
+          },
+          {
+            "food_key": "milk_whole",
+            "raw_g": 206,
+            "role": "core",
+            "note": "2 dl tej"
+          },
+          {
+            "food_key": "sour_cream",
+            "raw_g": 510,
+            "role": "core",
+            "note": "5 dl tejföl"
+          },
+          {
+            "food_key": "egg",
+            "raw_g": 100,
+            "role": "core",
+            "note": "2 db"
+          }
+        ],
+        "raw_total_g": 2992,
+        "cooking": {
+          "method": "layered, baked ~30-40 min",
+          "mass_change_g": -200,
+          "note": "baking loss estimate; ételízesítő, pepper, salt left out"
+        },
+        "finished_weight_g": 2792,
+        "yield_factor": 0.933
+      },
+      "standard_serving_g": 400,
+      "density_g_per_ml": 1.015,
+      "density_method": "derived from components after cooking mass change",
+      "flat_plate": {
+        "coverage": 0.35,
+        "height_cm": 3.5
+      },
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/klasszikus-rakott-karfiol",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 adag"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/rakott-karfiol",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 1 kg karfiol, 20 dkg kolbász, 8 dkg rizs, 5 dl tejföl, 2 tojás, 15 dkg sajt, 4 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 144.2,
+          "fat": 8.9,
+          "protein": 5.9,
+          "net_carbs": 10.0
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "rakott_zoldbab": {
+      "id": "rakott_zoldbab",
+      "names": {
+        "hu": "Rakott zöldbab",
+        "de": "Ungarischer Grüne-Bohnen-Auflauf",
+        "en": "Hungarian green bean casserole"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 2,
+        "ingredients": [
+          {
+            "food_key": "green_bean",
+            "raw_g": 500,
+            "role": "core",
+            "note": "50 dkg"
+          },
+          {
+            "food_key": "pork_minced",
+            "raw_g": 250,
+            "role": "core",
+            "note": "25 dkg sertéshús (darált)"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 100,
+            "role": "core",
+            "note": "1 db"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 5,
+            "role": "seasoning",
+            "note": "1 gerezd"
+          },
+          {
+            "food_key": "spring_onion",
+            "raw_g": 20,
+            "role": "core",
+            "note": "1 db újhagyma; estimate"
+          },
+          {
+            "food_key": "carrot",
+            "raw_g": 80,
+            "role": "core",
+            "note": "1 db"
+          },
+          {
+            "food_key": "parsley_root",
+            "raw_g": 70,
+            "role": "core",
+            "note": "1 db fehérrépa"
+          },
+          {
+            "food_key": "hot_pepper_fresh",
+            "raw_g": 20,
+            "role": "seasoning",
+            "note": "1 db csípős hegyes paprika; estimate"
+          },
+          {
+            "food_key": "tomato",
+            "raw_g": 100,
+            "role": "core",
+            "note": "1 db"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 13,
+            "role": "fat",
+            "note": "1 ek napraforgó olaj"
+          },
+          {
+            "food_key": "sour_cream",
+            "raw_g": 204,
+            "role": "core",
+            "note": "2 dl"
+          },
+          {
+            "food_key": "trappista",
+            "raw_g": 50,
+            "role": "core",
+            "note": "5 dkg sajt (trappista)"
+          },
+          {
+            "food_key": "paprika_ground",
+            "raw_g": 1,
+            "role": "seasoning",
+            "note": "'paprika', no amount; estimate"
+          },
+          {
+            "food_key": "caraway_seed",
+            "raw_g": 0.5,
+            "role": "seasoning",
+            "note": "kömény, a pinch"
+          }
+        ],
+        "raw_total_g": 1413.5,
+        "cooking": {
+          "method": "meat and vegetables stewed, layered with beans, sour cream and cheese, baked",
+          "mass_change_g": -150,
+          "note": "estimate; 2 db csilipaprika, pepper, salt left out"
+        },
+        "finished_weight_g": 1263.5,
+        "yield_factor": 0.894
+      },
+      "standard_serving_g": 400,
+      "density_g_per_ml": 1.017,
+      "density_method": "derived from components after cooking mass change",
+      "flat_plate": {
+        "coverage": 0.4,
+        "height_cm": 3.0
+      },
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/rakott-zoldbab",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 2 adag"
+        },
+        {
+          "url": "https://www.receptneked.hu/recept/rakott-zoldbab",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 2 kg zöldbab, darált háj, tejföl, 2 tojás, hagyma, rizs, 10 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 131.4,
+          "fat": 9.6,
+          "protein": 6.4,
+          "net_carbs": 4.3
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "paprikas_krumpli": {
+      "id": "paprikas_krumpli",
+      "names": {
+        "hu": "Paprikás krumpli",
+        "de": "Paprikakartoffeln mit Wurst",
+        "en": "Hungarian paprika potatoes with sausage"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "potato",
+            "raw_g": 1500,
+            "role": "core",
+            "note": "1,5 kg"
+          },
+          {
+            "food_key": "smoked_sausage",
+            "raw_g": 150,
+            "role": "core",
+            "note": "15 dkg parasztkolbász"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 200,
+            "role": "core",
+            "note": "2 fej"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 5,
+            "role": "seasoning",
+            "note": "1 gerezd"
+          },
+          {
+            "food_key": "wax_pepper",
+            "raw_g": 60,
+            "role": "core",
+            "note": "1 db zöldpaprika"
+          },
+          {
+            "food_key": "tomato",
+            "raw_g": 100,
+            "role": "core",
+            "note": "1 db"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 65,
+            "role": "fat",
+            "note": "5 ek"
+          },
+          {
+            "food_key": "paprika_ground",
+            "raw_g": 7,
+            "role": "seasoning",
+            "note": "1 ek"
+          },
+          {
+            "food_key": "caraway_seed",
+            "raw_g": 2.5,
+            "role": "seasoning",
+            "note": "1 tk őrölt kömény"
+          },
+          {
+            "food_key": "sour_cream",
+            "raw_g": 102,
+            "role": "core",
+            "note": "1 dl"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 150,
+            "role": "liquid",
+            "note": "1,5 dl víz"
+          }
+        ],
+        "raw_total_g": 2341.5,
+        "cooking": {
+          "method": "stewed covered on low heat until the potatoes are soft",
+          "mass_change_g": -100,
+          "note": "covered pot, small evaporation (estimate); salt left out"
+        },
+        "finished_weight_g": 2241.5,
+        "yield_factor": 0.957
+      },
+      "standard_serving_g": 450,
+      "density_g_per_ml": 1.049,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/hagyomanyos-paprikas-krumpli",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 adag"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/paprikas-krumpli",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 1 kg burgonya, 20 dkg kolbász, 2 fej hagyma, 2 ek paprika, water to cover, 4 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 118.6,
+          "fat": 5.6,
+          "protein": 3.2,
+          "net_carbs": 13.1
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "rizses_hus": {
+      "id": "rizses_hus",
+      "names": {
+        "hu": "Rizses hús",
+        "de": "Ungarisches Reisfleisch",
+        "en": "Hungarian pork with rice (rizses hús)"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "lard",
+            "raw_g": 13,
+            "role": "fat",
+            "note": "1 ek sertészsír"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 150,
+            "role": "core",
+            "note": "1 fej (150 g)"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 20,
+            "role": "seasoning",
+            "note": "4 gerezd"
+          },
+          {
+            "food_key": "wax_pepper",
+            "raw_g": 90,
+            "role": "core",
+            "note": "1 db tv-paprika (90 g)"
+          },
+          {
+            "food_key": "tomato",
+            "raw_g": 120,
+            "role": "core",
+            "note": "1 db (120 g)"
+          },
+          {
+            "food_key": "pork_shoulder",
+            "raw_g": 800,
+            "role": "core",
+            "note": "800 g sertéslapocka"
+          },
+          {
+            "food_key": "caraway_seed",
+            "raw_g": 2.5,
+            "role": "seasoning",
+            "note": "1 tk őrölt kömény"
+          },
+          {
+            "food_key": "paprika_ground",
+            "raw_g": 7,
+            "role": "seasoning",
+            "note": "1 ek"
+          },
+          {
+            "food_key": "rice_white",
+            "raw_g": 250,
+            "role": "core",
+            "note": "250 g, raw"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 1000,
+            "role": "liquid",
+            "note": "'annyi vízzel, ami ellepi' (~500 ml, estimate) + 500 ml for the rice"
+          }
+        ],
+        "raw_total_g": 2452.5,
+        "cooking": {
+          "method": "pörkölt base cooked until almost all water is gone, rice steamed in it with 500 ml water",
+          "mass_change_g": -600,
+          "note": "estimate: the first water (~500 g) and some meat water evaporate, the rice takes up the second 500 ml; 2 ek daráltpaprika-krém (MISSING paprika_paste), salt, pepper left out"
+        },
+        "finished_weight_g": 1852.5,
+        "yield_factor": 0.755
+      },
+      "standard_serving_g": 400,
+      "density_g_per_ml": 0.85,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.45,
+        "height_cm": 2.5
+      },
+      "sources": [
+        {
+          "url": "https://streetkitchen.hu/receptek/a-legjobb-rizses-hus",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 főre"
+        },
+        {
+          "url": "https://sobors.hu/receptek/rizseshus-majorannaval-recept/",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 30 dkg sertéslapocka, 5 dkg szalonna, 200 g rizs, sárgarépa, 4 személyre"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 163.5,
+          "fat": 8.7,
+          "protein": 8.8,
+          "net_carbs": 11.4
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "tarhonyas_hus": {
+      "id": "tarhonyas_hus",
+      "names": {
+        "hu": "Tarhonyás hús",
+        "de": "Schweinepörkölt mit Tarhonya (Eiergraupen)",
+        "en": "Hungarian pork stew with tarhonya pasta"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 8,
+        "ingredients": [
+          {
+            "food_key": "pork_leg",
+            "raw_g": 1000,
+            "role": "core",
+            "note": "1 kg sertéscomb"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 400,
+            "role": "core",
+            "note": "4 fej"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 20,
+            "role": "seasoning",
+            "note": "4 gerezd"
+          },
+          {
+            "food_key": "tomato",
+            "raw_g": 200,
+            "role": "core",
+            "note": "2 db"
+          },
+          {
+            "food_key": "wax_pepper",
+            "raw_g": 120,
+            "role": "core",
+            "note": "2 db paprika"
+          },
+          {
+            "food_key": "hot_pepper_fresh",
+            "raw_g": 20,
+            "role": "seasoning",
+            "note": "1 db hegyes erős paprika; estimate"
+          },
+          {
+            "food_key": "caraway_seed",
+            "raw_g": 2.5,
+            "role": "seasoning",
+            "note": "1 kk őrölt kömény"
+          },
+          {
+            "food_key": "paprika_ground",
+            "raw_g": 6.2,
+            "role": "seasoning",
+            "note": "2-3 tk fűszerpaprika"
+          },
+          {
+            "food_key": "egg_pasta_dry",
+            "raw_g": 500,
+            "role": "core",
+            "note": "0,5 kg tarhonya, dry"
+          },
+          {
+            "food_key": "lard",
+            "raw_g": 39,
+            "role": "fat",
+            "note": "'zsír (vagy olaj)', no amount; 3 ek is an estimate"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 13,
+            "role": "fat",
+            "note": "'kevés olaj' to toast the tarhonya; estimate"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 1425,
+            "role": "liquid",
+            "note": "tarhonya: 2-2,5x water (1125 g); pörkölt: 'pici víz' ~300 g (estimate)"
+          }
+        ],
+        "raw_total_g": 3745.7,
+        "cooking": {
+          "method": "tarhonya toasted and steamed in 2-2.5x water; pörkölt made separately; mixed",
+          "mass_change_g": -650,
+          "note": "estimate: the tarhonya takes up almost all its water, the pörkölt water and meat juices mostly evaporate; 1 tk gulyáskrém and salt left out"
+        },
+        "finished_weight_g": 3095.7,
+        "yield_factor": 0.826
+      },
+      "standard_serving_g": 400,
+      "density_g_per_ml": 0.8,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.45,
+        "height_cm": 2.5
+      },
+      "sources": [
+        {
+          "url": "https://www.receptneked.hu/recept/tarhonyas-hus",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 8 adag"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/tarhonyas-hus",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 60 dkg sertéslapocka, 50 dkg tarhonya, 2 fej hagyma, 10 dkg szalonna, libazsír, 4 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 115.9,
+          "fat": 2.9,
+          "protein": 9.9,
+          "net_carbs": 11.9
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "rantott_sajt": {
+      "id": "rantott_sajt",
+      "names": {
+        "hu": "Rántott sajt (trappista)",
+        "de": "Gebackener Käse (Trappistenkäse, paniert)",
+        "en": "Breaded fried cheese (Trappist)"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 2,
+        "ingredients": [
+          {
+            "food_key": "trappista",
+            "raw_g": 350,
+            "role": "core",
+            "note": "350 g trappista sajt"
+          },
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 25,
+            "role": "coating",
+            "note": "100 g put out; ~25 g sticks (estimate)"
+          },
+          {
+            "food_key": "egg",
+            "raw_g": 75,
+            "role": "coating",
+            "note": "3 db tojás put out; ~75 g sticks (estimate)"
+          },
+          {
+            "food_key": "breadcrumbs",
+            "raw_g": 70,
+            "role": "coating",
+            "note": "150 g put out; ~70 g sticks (estimate)"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 40,
+            "role": "absorbed_fat",
+            "note": "'bő olaj a sütéshez'; ~8% of the breaded weight absorbed (estimate)"
+          }
+        ],
+        "raw_total_g": 560,
+        "cooking": {
+          "method": "deep-fried at 150-160 °C, 6-8 min",
+          "mass_change_g": -30,
+          "note": "small water loss from the coating (estimate); the rice side from the source is not in this part"
+        },
+        "finished_weight_g": 530,
+        "yield_factor": 0.946
+      },
+      "standard_serving_g": 250,
+      "density_g_per_ml": 0.95,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.3,
+        "height_cm": 2.2
+      },
+      "sources": [
+        {
+          "url": "https://streetkitchen.hu/receptek/rantott-trappista-sajt",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 2 főre"
+        },
+        {
+          "url": "https://www.receptneked.hu/recept/rantott-sajt",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 40 dkg sajt, liszt, 2 tojás, zsemlemorzsa, olaj, 4 adag"
+        },
+        {
+          "url": "https://falatozz.hu/recept/rantott-sajt",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 60 dkg trappista, 6 tojás, 30 dkg liszt, 40 dkg morzsa"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 379.3,
+          "fat": 27.1,
+          "protein": 20.5,
+          "net_carbs": 12.4
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "sult_oldalas": {
+      "id": "sult_oldalas",
+      "names": {
+        "hu": "Sült oldalas",
+        "de": "Ofen-Schweinerippchen",
+        "en": "Roast pork ribs"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "pork_rib",
+            "raw_g": 455,
+            "role": "core",
+            "note": "70 dkg sertésoldalas bone-in; ~65% edible share is an estimate"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 13,
+            "role": "fat",
+            "note": "'olaj' for the dish, no amount; 1 ek is an estimate"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 200,
+            "role": "core",
+            "note": "2 fej, roasted next to the meat"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 250,
+            "role": "liquid",
+            "note": "'egy nagyobb pohár víz'; 2,5 dl is an estimate"
+          }
+        ],
+        "raw_total_g": 918,
+        "cooking": {
+          "method": "roasted in the oven, first covered with water, then uncovered until brown",
+          "mass_change_g": -400,
+          "note": "estimate: the water evaporates, meat loses ~30%; the 4 db burgonya roasted alongside is not in this part; flekken spice mix and salt left out"
+        },
+        "finished_weight_g": 518,
+        "yield_factor": 0.564
+      },
+      "standard_serving_g": 250,
+      "density_g_per_ml": 0.8,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.4,
+        "height_cm": 3.0
+      },
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/sult-oldalas",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 adag"
+        },
+        {
+          "url": "https://sobors.hu/receptek/sult-sertesoldalas-recept/",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 1 kg sertésoldalas, 300 g sertészsír a tepsiben, 4 személyre"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 207.9,
+          "fat": 14.0,
+          "protein": 17.7,
+          "net_carbs": 2.3
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "sult_csulok": {
+      "id": "sult_csulok",
+      "names": {
+        "hu": "Sült csülök",
+        "de": "Gebratene Schweinshaxe",
+        "en": "Roast pork knuckle"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "pork_hock",
+            "raw_g": 2400,
+            "role": "core",
+            "note": "4 db nyers csülök (~1 kg each bone-in); ~60% edible share is an estimate"
+          },
+          {
+            "food_key": "lard",
+            "raw_g": 50,
+            "role": "fat",
+            "note": "5 dkg zsiradék"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 15,
+            "role": "seasoning",
+            "note": "3 gerezd"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 200,
+            "role": "core",
+            "note": "2 fej, roasted with the hock"
+          }
+        ],
+        "raw_total_g": 2665,
+        "cooking": {
+          "method": "boiled ~1.5 h, then roasted in the oven until the skin is crisp",
+          "mass_change_g": -900,
+          "note": "estimate: ~35% loss of the hock (water and rendered fat into the cooking water/tray); the 2 kg burgonya roasted around it is not in this part; bay leaf, vegeta, salt left out"
+        },
+        "finished_weight_g": 1765,
+        "yield_factor": 0.662
+      },
+      "standard_serving_g": 450,
+      "density_g_per_ml": 0.9,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.4,
+        "height_cm": 5.0
+      },
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/sult-csulok",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 adag"
+        },
+        {
+          "url": "https://www.receptneked.hu/recept/sult-csulok",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: csont nélküli csülök precooked 1 h, then roasted with onion, garlic, 6 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 302.2,
+          "fat": 19.3,
+          "protein": 31.4,
+          "net_carbs": 0.7
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "tepsis_csirke": {
+      "id": "tepsis_csirke",
+      "names": {
+        "hu": "Tepsis csirke (sült csirkedarabok)",
+        "de": "Hähnchenteile aus dem Ofen",
+        "en": "Oven-roasted chicken pieces"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "chicken_whole_skin",
+            "raw_g": 700,
+            "role": "core",
+            "note": "1 kg csirkehús bone-in pieces; ~70% edible share is an estimate"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 46,
+            "role": "fat",
+            "note": "1 dl olaj marinade; about half stays in the tray (estimate)"
+          }
+        ],
+        "raw_total_g": 746,
+        "cooking": {
+          "method": "marinated in oil and spices, roasted in a tray",
+          "mass_change_g": -175,
+          "note": "estimate: ~25% roasting loss of the chicken; sült csirke fűszer and salt left out"
+        },
+        "finished_weight_g": 571,
+        "yield_factor": 0.765
+      },
+      "standard_serving_g": 250,
+      "density_g_per_ml": 0.8,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.4,
+        "height_cm": 3.5
+      },
+      "sources": [
+        {
+          "url": "https://www.receptneked.hu/recept/tepsis-csirke",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 adag"
+        },
+        {
+          "url": "https://www.receptneked.hu/recept/tepsis-csirkecomb",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 8 csirkecomb, 50 ml olaj, tejfölös-sajtos bevonat, 6 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 300.5,
+          "fat": 23.4,
+          "protein": 22.5,
+          "net_carbs": 0.0
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "gombapaprikas": {
+      "id": "gombapaprikas",
+      "names": {
+        "hu": "Gombapaprikás",
+        "de": "Pilzpaprikasch",
+        "en": "Mushroom paprikash"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "mushroom",
+            "raw_g": 1000,
+            "role": "core",
+            "note": "1 kg gomba"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 100,
+            "role": "core",
+            "note": "1 fej"
+          },
+          {
+            "food_key": "wax_pepper",
+            "raw_g": 120,
+            "role": "core",
+            "note": "2 db zöldpaprika"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 78,
+            "role": "fat",
+            "note": "6 ek olaj"
+          },
+          {
+            "food_key": "paprika_ground",
+            "raw_g": 2.5,
+            "role": "seasoning",
+            "note": "1 tk"
+          },
+          {
+            "food_key": "sour_cream",
+            "raw_g": 204,
+            "role": "thickener",
+            "note": "2 dl tejföl"
+          },
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 20,
+            "role": "thickener",
+            "note": "2 ek finomliszt"
+          }
+        ],
+        "raw_total_g": 1524.5,
+        "cooking": {
+          "method": "mushrooms stewed in the paprika base, thickened with sour cream + flour",
+          "mass_change_g": -350,
+          "note": "estimate: mushrooms lose ~35% water; 1 dl főzőtejszín (MISSING cooking_cream_20) and 2 ek ételízesítő, salt left out"
+        },
+        "finished_weight_g": 1174.5,
+        "yield_factor": 0.77
+      },
+      "standard_serving_g": 300,
+      "density_g_per_ml": 0.996,
+      "density_method": "derived from components after cooking mass change",
+      "flat_plate": {
+        "coverage": 0.45,
+        "height_cm": 2.0
+      },
+      "sources": [
+        {
+          "url": "https://www.receptneked.hu/recept/gombapaprikas",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 adag"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/gombapaprikas",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 0,5 kg csiperke, fokhagyma, olaj, 2 dl tejföl, 1 dl tej, 2 ek liszt"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 128.9,
+          "fat": 10.1,
+          "protein": 4.0,
+          "net_carbs": 5.5
         },
         "incomplete_missing_food_keys": []
       }
@@ -6934,6 +9737,1356 @@
       ]
     },
     {
+      "id": "hu_marhaporkolt",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "marhapörkölt",
+        "de": "Rindspörkölt (ungarisches Rindergulasch)",
+        "en": "Hungarian beef stew (pörkölt)"
+      },
+      "aliases": {
+        "hu": [
+          "marhapörkölt",
+          "marha pörkölt",
+          "marhaporkolt"
+        ],
+        "de": [
+          "rindergulasch ungarisch",
+          "rindspörkölt"
+        ],
+        "de-AT": [
+          "rindsgulasch",
+          "rindsgulasch ungarisch"
+        ],
+        "en": [
+          "beef pörkölt",
+          "hungarian beef stew",
+          "beef goulash stew"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "low-carb-friendly"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "marhaporkolt",
+          "standard_serving_g": 300
+        }
+      ],
+      "side_options": [
+        {
+          "part": "nokedli",
+          "standard_serving_g": 200
+        },
+        {
+          "part": "petrezselymes_burgonya",
+          "standard_serving_g": 200
+        },
+        {
+          "part": "parolt_rizs",
+          "standard_serving_g": 180
+        }
+      ],
+      "side_required_question": true,
+      "alias_side": {
+        "marhapörkölt nokedlivel": "nokedli",
+        "marhapörkölt galuskával": "nokedli",
+        "marhapörkölt krumplival": "petrezselymes_burgonya",
+        "marhapörkölt rizzsel": "parolt_rizs"
+      },
+      "review_note_hu": "A forrásrecept 3 almát és 3 dl vörösbort tesz bele: az alma benne van (BLS Apfel), a bor kimaradt (MISSING dry_red_wine). Az alma miatt a szénhidrát kissé magasabb, mint alma nélküli marhapörköltnél."
+    },
+    {
+      "id": "hu_csirkeporkolt",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "csirkepörkölt",
+        "de": "Hühnerpörkölt",
+        "en": "Hungarian chicken stew (pörkölt)"
+      },
+      "aliases": {
+        "hu": [
+          "csirkepörkölt",
+          "csirke pörkölt",
+          "csirkeporkolt"
+        ],
+        "de": [
+          "hühnerpörkölt",
+          "hühnergulasch ungarisch"
+        ],
+        "de-AT": [
+          "hendlpörkölt"
+        ],
+        "en": [
+          "chicken pörkölt",
+          "hungarian chicken stew"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "low-carb-friendly"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "csirkeporkolt",
+          "standard_serving_g": 300
+        }
+      ],
+      "side_options": [
+        {
+          "part": "nokedli",
+          "standard_serving_g": 200
+        },
+        {
+          "part": "petrezselymes_burgonya",
+          "standard_serving_g": 200
+        },
+        {
+          "part": "parolt_rizs",
+          "standard_serving_g": 180
+        }
+      ],
+      "side_required_question": true,
+      "alias_side": {
+        "csirkepörkölt nokedlivel": "nokedli",
+        "csirkepörkölt galuskával": "nokedli",
+        "csirkepörkölt krumplival": "petrezselymes_burgonya",
+        "csirkepörkölt rizzsel": "parolt_rizs"
+      },
+      "review_note_hu": "Tejföl nélküli pörkölt; a tejfölös változat a paprikás csirke (pilot)."
+    },
+    {
+      "id": "hu_birkaporkolt",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "birkapörkölt",
+        "de": "Hammelpörkölt",
+        "en": "Hungarian mutton stew (pörkölt)"
+      },
+      "aliases": {
+        "hu": [
+          "birkapörkölt",
+          "birka pörkölt",
+          "ürüpörkölt"
+        ],
+        "de": [
+          "hammelpörkölt",
+          "hammelgulasch"
+        ],
+        "de-AT": [
+          "schafgulasch"
+        ],
+        "en": [
+          "mutton stew",
+          "mutton pörkölt"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "low-carb-friendly"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "birkaporkolt",
+          "standard_serving_g": 300
+        }
+      ],
+      "side_options": [
+        {
+          "part": "nokedli",
+          "standard_serving_g": 200
+        },
+        {
+          "part": "petrezselymes_burgonya",
+          "standard_serving_g": 200
+        },
+        {
+          "part": "parolt_rizs",
+          "standard_serving_g": 180
+        }
+      ],
+      "side_required_question": true,
+      "alias_side": {
+        "birkapörkölt nokedlivel": "nokedli",
+        "birkapörkölt galuskával": "nokedli",
+        "birkapörkölt krumplival": "petrezselymes_burgonya",
+        "birkapörkölt rizzsel": "parolt_rizs"
+      },
+      "review_note_hu": "BLS 'Schaf Fleisch, grob entsehnt' (181 kcal) a nyers hús; csontos birkahúsnál az ehető rész kisebb. A BLS Hammelgulasch referencia fehérjéje szokatlanul alacsony, csak tájékoztató."
+    },
+    {
+      "id": "hu_vadporkolt",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "vadpörkölt",
+        "de": "Wildpörkölt (Wildschwein)",
+        "en": "Hungarian game stew (wild boar pörkölt)"
+      },
+      "aliases": {
+        "hu": [
+          "vadpörkölt",
+          "vaddisznópörkölt",
+          "vaddisznó pörkölt",
+          "szarvaspörkölt",
+          "őzpörkölt"
+        ],
+        "de": [
+          "wildgulasch",
+          "wildschweingulasch"
+        ],
+        "de-AT": [
+          "wildgulasch"
+        ],
+        "en": [
+          "game stew",
+          "wild boar stew",
+          "venison stew"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "low-carb-friendly",
+        "game"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "vadporkolt",
+          "standard_serving_g": 300
+        }
+      ],
+      "side_options": [
+        {
+          "part": "nokedli",
+          "standard_serving_g": 200
+        },
+        {
+          "part": "petrezselymes_burgonya",
+          "standard_serving_g": 200
+        },
+        {
+          "part": "parolt_rizs",
+          "standard_serving_g": 180
+        }
+      ],
+      "side_required_question": true,
+      "alias_side": {
+        "vadpörkölt nokedlivel": "nokedli",
+        "vadpörkölt galuskával": "nokedli",
+        "vadpörkölt krumplival": "petrezselymes_burgonya",
+        "vadpörkölt rizzsel": "parolt_rizs",
+        "vaddisznópörkölt nokedlivel": "nokedli",
+        "vaddisznópörkölt galuskával": "nokedli",
+        "vaddisznópörkölt krumplival": "petrezselymes_burgonya",
+        "vaddisznópörkölt rizzsel": "parolt_rizs"
+      },
+      "review_note_hu": "Vaddisznóhúsos alaprecept; a szarvas (BLS Hirsch V212100, soványabb) és őz alias ide mutat. Ha a zsírtartalom számít, külön szarvaspörkölt rész legyen."
+    },
+    {
+      "id": "hu_pacalporkolt",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "pacalpörkölt",
+        "de": "Kuttelpörkölt",
+        "en": "Hungarian tripe stew (pörkölt)"
+      },
+      "aliases": {
+        "hu": [
+          "pacalpörkölt",
+          "pacal",
+          "pacalporkolt"
+        ],
+        "de": [
+          "kuttelgulasch",
+          "kuttelpörkölt"
+        ],
+        "de-AT": [
+          "kuttelgulasch"
+        ],
+        "en": [
+          "tripe stew",
+          "tripe pörkölt"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "low-carb-friendly",
+        "offal"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "pacalporkolt",
+          "standard_serving_g": 300
+        }
+      ],
+      "side_options": [
+        {
+          "part": "petrezselymes_burgonya",
+          "standard_serving_g": 200
+        },
+        {
+          "part": "nokedli",
+          "standard_serving_g": 200
+        }
+      ],
+      "side_required_question": true,
+      "alias_side": {
+        "pacalpörkölt krumplival": "petrezselymes_burgonya",
+        "pacalpörkölt nokedlivel": "nokedli"
+      },
+      "review_note_hu": "A de-AT 'Kuttelfleck' más étel lehet (leves); ellenőrizni."
+    },
+    {
+      "id": "hu_csulokporkolt",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "csülökpörkölt",
+        "de": "Schweinshaxen-Pörkölt",
+        "en": "Hungarian pork hock stew (pörkölt)"
+      },
+      "aliases": {
+        "hu": [
+          "csülökpörkölt",
+          "csülök pörkölt"
+        ],
+        "de": [
+          "haxengulasch",
+          "schweinshaxengulasch"
+        ],
+        "de-AT": [
+          "stelzengulasch"
+        ],
+        "en": [
+          "pork hock stew",
+          "pork knuckle stew"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "low-carb-friendly"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "csulokporkolt",
+          "standard_serving_g": 300
+        }
+      ],
+      "side_options": [
+        {
+          "part": "nokedli",
+          "standard_serving_g": 200
+        },
+        {
+          "part": "petrezselymes_burgonya",
+          "standard_serving_g": 200
+        },
+        {
+          "part": "parolt_rizs",
+          "standard_serving_g": 180
+        }
+      ],
+      "side_required_question": true,
+      "alias_side": {
+        "csülökpörkölt nokedlivel": "nokedli",
+        "csülökpörkölt galuskával": "nokedli",
+        "csülökpörkölt krumplival": "petrezselymes_burgonya",
+        "csülökpörkölt rizzsel": "parolt_rizs"
+      },
+      "review_note_hu": "A mindmegette változat félig körömmel készül; köröm (sertésláb) nincs a BLS-ben, ezért a csak csülkös recept a batch."
+    },
+    {
+      "id": "hu_harcsapaprikas",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "harcsapaprikás",
+        "de": "Welspaprikasch",
+        "en": "Catfish paprikash"
+      },
+      "aliases": {
+        "hu": [
+          "harcsapaprikás",
+          "harcsa paprikás",
+          "harcsapörkölt"
+        ],
+        "de": [
+          "welspaprikasch",
+          "wels paprikasch"
+        ],
+        "de-AT": [
+          "welspaprikasch"
+        ],
+        "en": [
+          "catfish paprikash",
+          "catfish stew"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "fish",
+        "low-carb-friendly"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "harcsapaprikas",
+          "standard_serving_g": 300
+        }
+      ],
+      "side_options": [
+        {
+          "part": "nokedli",
+          "standard_serving_g": 200
+        },
+        {
+          "part": "petrezselymes_burgonya",
+          "standard_serving_g": 200
+        }
+      ],
+      "side_required_question": true,
+      "alias_side": {
+        "harcsapaprikás nokedlivel": "nokedli",
+        "harcsapaprikás galuskával": "nokedli",
+        "harcsapaprikás krumplival": "petrezselymes_burgonya"
+      },
+      "review_note_hu": "Gyakran túrós csuszával tálalják; az még nem létező rész (C batch)."
+    },
+    {
+      "id": "hu_bakonyi_sertesszelet",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "bakonyi sertésszelet",
+        "de": "Schweinekamm nach Bakony-Art",
+        "en": "Bakony-style pork cutlet"
+      },
+      "aliases": {
+        "hu": [
+          "bakonyi sertésszelet",
+          "bakonyi szelet",
+          "bakonyi sertésborda",
+          "bakonyi"
+        ],
+        "de": [
+          "schweinekamm bakony art",
+          "bakonyer schnitzel"
+        ],
+        "de-AT": [
+          "bakonyer schnitzel"
+        ],
+        "en": [
+          "bakony pork",
+          "pork in mushroom paprika sauce"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "low-carb-friendly"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "bakonyi_sertesszelet",
+          "standard_serving_g": 400
+        }
+      ],
+      "side_options": [
+        {
+          "part": "nokedli",
+          "standard_serving_g": 200
+        },
+        {
+          "part": "parolt_rizs",
+          "standard_serving_g": 180
+        },
+        {
+          "part": "petrezselymes_burgonya",
+          "standard_serving_g": 200
+        }
+      ],
+      "side_required_question": true,
+      "alias_side": {
+        "bakonyi sertésszelet nokedlivel": "nokedli",
+        "bakonyi galuskával": "nokedli",
+        "bakonyi sertésszelet rizzsel": "parolt_rizs"
+      },
+      "review_note_hu": "'Erdei gomba' -> BLS Mischpilze (vegyes gomba); csiperkével kicsit kevesebb a rost és a szénhidrát. Az alaplé BLS Fleischbrühe (Rind)."
+    },
+    {
+      "id": "hu_vadas_marha",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "vadas marha",
+        "de": "Rind in Vadas-Sauce",
+        "en": "Beef in vadas sauce"
+      },
+      "aliases": {
+        "hu": [
+          "vadas marha",
+          "vadas marhahús",
+          "vadas",
+          "marha vadasan"
+        ],
+        "de": [
+          "rind vadas",
+          "ungarischer sauerbraten"
+        ],
+        "de-AT": [
+          "rindfleisch vadas"
+        ],
+        "en": [
+          "beef vadas",
+          "hungarian vadas beef"
+        ]
+      },
+      "tags": [
+        "traditional"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "vadas_marha",
+          "standard_serving_g": 400
+        }
+      ],
+      "review_note_hu": "Hagyományosan zsemlegombóccal tálalják; zsemlegombóc rész még nincs, ezért csak a hús + mártás épült. A narancslé és a fehérbor MISSING, a mártás szűrése miatti rostveszteség nincs levonva."
+    },
+    {
+      "id": "hu_tokany",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "tokány",
+        "de": "Tokány (ungarisches Rindfleischragout in Streifen)",
+        "en": "Hungarian tokány"
+      },
+      "aliases": {
+        "hu": [
+          "tokány",
+          "erdélyi tokány",
+          "marhatokány",
+          "tokany"
+        ],
+        "de": [
+          "tokány",
+          "tokany"
+        ],
+        "de-AT": [
+          "tokany"
+        ],
+        "en": [
+          "tokany",
+          "hungarian beef strips stew"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "low-carb-friendly"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "tokany",
+          "standard_serving_g": 300
+        }
+      ],
+      "side_options": [
+        {
+          "part": "nokedli",
+          "standard_serving_g": 200
+        },
+        {
+          "part": "petrezselymes_burgonya",
+          "standard_serving_g": 200
+        },
+        {
+          "part": "parolt_rizs",
+          "standard_serving_g": 180
+        }
+      ],
+      "side_required_question": true,
+      "alias_side": {
+        "tokány nokedlivel": "nokedli",
+        "tokány galuskával": "nokedli",
+        "tokány krumplival": "petrezselymes_burgonya",
+        "tokány rizzsel": "parolt_rizs"
+      },
+      "review_note_hu": "A 'tokány' általános név; alapként az erdélyi (marhalapockás, paradicsompürés) tokány épült. Hentes, csikós, bakonyi tokány később külön rész lehet."
+    },
+    {
+      "id": "hu_brassoi_apropecsenye",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "brassói aprópecsenye",
+        "de": "Brassói (Schweinefleisch mit Röstkartoffeln)",
+        "en": "Brassó pork with fried potatoes"
+      },
+      "aliases": {
+        "hu": [
+          "brassói aprópecsenye",
+          "brassói",
+          "brassói apró",
+          "brassoi"
+        ],
+        "de": [
+          "brassói",
+          "brassoer fleisch"
+        ],
+        "de-AT": [
+          "brassói"
+        ],
+        "en": [
+          "brasso pork",
+          "brassoi pork with potatoes"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "fried",
+        "higher-carb"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "brassoi_apropecsenye",
+          "standard_serving_g": 350
+        }
+      ]
+    },
+    {
+      "id": "hu_ciganypecsenye",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "cigánypecsenye",
+        "de": "Zigeunerbraten",
+        "en": "Gypsy roast (pork neck with bacon)"
+      },
+      "aliases": {
+        "hu": [
+          "cigánypecsenye",
+          "cigány pecsenye",
+          "ciganypecsenye"
+        ],
+        "de": [
+          "zigeunerbraten",
+          "zigeunerschnitzel ungarisch"
+        ],
+        "de-AT": [
+          "zigeunerbraten"
+        ],
+        "en": [
+          "gypsy roast",
+          "pork neck steak with bacon"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "fried",
+        "low-carb-friendly"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "ciganypecsenye",
+          "standard_serving_g": 300
+        }
+      ],
+      "side_options": [
+        {
+          "part": "petrezselymes_burgonya",
+          "standard_serving_g": 200
+        },
+        {
+          "part": "parolt_rizs",
+          "standard_serving_g": 180
+        }
+      ],
+      "side_required_question": true,
+      "alias_side": {
+        "cigánypecsenye krumplival": "petrezselymes_burgonya",
+        "cigánypecsenye rizzsel": "parolt_rizs"
+      },
+      "review_note_hu": "Szokásos köret a hasábburgonya, amely még nem létező rész; addig burgonya/rizs választható vagy köret nélkül."
+    },
+    {
+      "id": "hu_fasirt",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "fasírt",
+        "de": "Fleischlaibchen (Fasírt)",
+        "en": "Hungarian meat patties (fasírt)"
+      },
+      "aliases": {
+        "hu": [
+          "fasírt",
+          "fasírozott",
+          "vagdalt",
+          "fasirt"
+        ],
+        "de": [
+          "frikadellen",
+          "buletten",
+          "fleischpflanzerl"
+        ],
+        "de-AT": [
+          "fleischlaibchen",
+          "faschierte laibchen"
+        ],
+        "en": [
+          "meat patties",
+          "hungarian meatballs"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "fried"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "fasirt",
+          "standard_serving_g": 180
+        }
+      ],
+      "side_options": [
+        {
+          "part": "petrezselymes_burgonya",
+          "standard_serving_g": 200
+        },
+        {
+          "part": "parolt_rizs",
+          "standard_serving_g": 180
+        }
+      ],
+      "side_required_question": true,
+      "alias_side": {
+        "fasírt krumplival": "petrezselymes_burgonya",
+        "fasírt rizzsel": "parolt_rizs"
+      },
+      "review_note_hu": "Szokásos köretek: burgonyapüré, főzelék – még nem létező részek."
+    },
+    {
+      "id": "hu_toltott_paprika",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "töltött paprika",
+        "de": "Gefüllte Paprika",
+        "en": "Stuffed peppers"
+      },
+      "aliases": {
+        "hu": [
+          "töltött paprika",
+          "toltott paprika",
+          "paradicsomos töltött paprika"
+        ],
+        "de": [
+          "gefüllte paprika",
+          "paprika gefüllt"
+        ],
+        "de-AT": [
+          "gefüllte paprika"
+        ],
+        "en": [
+          "stuffed peppers",
+          "stuffed paprika"
+        ]
+      },
+      "tags": [
+        "traditional"
+      ],
+      "served_in": "deep_plate",
+      "parts": [
+        {
+          "part": "toltott_paprika",
+          "standard_serving_g": 400
+        }
+      ],
+      "side_options": [
+        {
+          "part": "petrezselymes_burgonya",
+          "standard_serving_g": 200
+        }
+      ],
+      "side_required_question": true,
+      "alias_side": {
+        "töltött paprika krumplival": "petrezselymes_burgonya"
+      },
+      "review_note_hu": "'Paradicsomlé' -> BLS Tomaten passiert (passata); ha a forrás sűrűbb paradicsomlevet ért, a szénhidrát kicsit változik. Sertésdagadó -> BLS Schwein Hackfleisch."
+    },
+    {
+      "id": "hu_rakott_kel",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "rakott kel",
+        "de": "Ungarischer Wirsingauflauf",
+        "en": "Layered savoy cabbage casserole"
+      },
+      "aliases": {
+        "hu": [
+          "rakott kel",
+          "rakott kelkáposzta"
+        ],
+        "de": [
+          "wirsingauflauf",
+          "wirsingauflauf mit hackfleisch"
+        ],
+        "de-AT": [
+          "kohlauflauf"
+        ],
+        "en": [
+          "savoy cabbage casserole",
+          "layered cabbage bake"
+        ]
+      },
+      "tags": [
+        "traditional"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "rakott_kel",
+          "standard_serving_g": 350
+        }
+      ]
+    },
+    {
+      "id": "hu_rakott_karfiol",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "rakott karfiol",
+        "de": "Ungarischer Blumenkohlauflauf",
+        "en": "Layered cauliflower casserole"
+      },
+      "aliases": {
+        "hu": [
+          "rakott karfiol",
+          "karfiolos rakott"
+        ],
+        "de": [
+          "blumenkohlauflauf",
+          "blumenkohlauflauf mit hackfleisch"
+        ],
+        "de-AT": [
+          "karfiolauflauf"
+        ],
+        "en": [
+          "cauliflower casserole",
+          "layered cauliflower bake"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "higher-carb"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "rakott_karfiol",
+          "standard_serving_g": 400
+        }
+      ],
+      "review_note_hu": "A forrás 25 dkg rizse miatt szénhidrátosabb; rizs nélküli változat keto célra külön rész lehet."
+    },
+    {
+      "id": "hu_rakott_zoldbab",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "rakott zöldbab",
+        "de": "Grüne-Bohnen-Auflauf",
+        "en": "Green bean casserole (Hungarian)"
+      },
+      "aliases": {
+        "hu": [
+          "rakott zöldbab",
+          "rakott zöldbabos"
+        ],
+        "de": [
+          "bohnenauflauf",
+          "grüne bohnen auflauf"
+        ],
+        "de-AT": [
+          "fisolenauflauf"
+        ],
+        "en": [
+          "green bean casserole",
+          "layered green bean bake"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "low-carb-friendly"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "rakott_zoldbab",
+          "standard_serving_g": 400
+        }
+      ]
+    },
+    {
+      "id": "hu_paprikas_krumpli",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "paprikás krumpli",
+        "de": "Paprikakartoffeln",
+        "en": "Paprika potatoes"
+      },
+      "aliases": {
+        "hu": [
+          "paprikás krumpli",
+          "paprikás burgonya",
+          "krumplipaprikás",
+          "paprikas krumpli"
+        ],
+        "de": [
+          "paprikakartoffeln",
+          "kartoffelpaprikasch"
+        ],
+        "de-AT": [
+          "erdäpfelgulasch",
+          "erdäpfelpaprikasch"
+        ],
+        "en": [
+          "paprika potatoes",
+          "potato paprikash"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "higher-carb"
+      ],
+      "served_in": "deep_plate",
+      "parts": [
+        {
+          "part": "paprikas_krumpli",
+          "standard_serving_g": 450
+        }
+      ],
+      "review_note_hu": "Parasztkolbász -> Debrecziner (smoked_sausage) kulcs; száraz parasztkolbásznál magasabb a zsír."
+    },
+    {
+      "id": "hu_rizses_hus",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "rizses hús",
+        "de": "Reisfleisch (ungarisch)",
+        "en": "Hungarian pork with rice"
+      },
+      "aliases": {
+        "hu": [
+          "rizses hús",
+          "rizseshús",
+          "rizses hus"
+        ],
+        "de": [
+          "reisfleisch",
+          "serbisches reisfleisch"
+        ],
+        "de-AT": [
+          "reisfleisch"
+        ],
+        "en": [
+          "pork and rice",
+          "rice with pork"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "higher-carb"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "rizses_hus",
+          "standard_serving_g": 400
+        }
+      ]
+    },
+    {
+      "id": "hu_tarhonyas_hus",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "tarhonyás hús",
+        "de": "Fleisch mit Tarhonya (Eiergraupen)",
+        "en": "Pork with tarhonya"
+      },
+      "aliases": {
+        "hu": [
+          "tarhonyás hús",
+          "tarhonyás",
+          "tarhonyas hus"
+        ],
+        "de": [
+          "tarhonya mit fleisch",
+          "eiergraupen mit fleisch"
+        ],
+        "de-AT": [
+          "tarhonya mit fleisch"
+        ],
+        "en": [
+          "pork with tarhonya",
+          "hungarian egg barley with pork"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "higher-carb"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "tarhonyas_hus",
+          "standard_serving_g": 400
+        }
+      ],
+      "review_note_hu": "Tarhonya -> BLS Eierteigwaren roh (tojásos száraztészta); a tarhonya maga tojásos száraztészta, de nincs saját rekordja – ellenőrizni."
+    },
+    {
+      "id": "hu_rantott_sajt",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "rántott sajt",
+        "de": "Gebackener Käse",
+        "en": "Breaded fried cheese"
+      },
+      "aliases": {
+        "hu": [
+          "rántott sajt",
+          "rántott trappista",
+          "rántottsajt"
+        ],
+        "de": [
+          "gebackener käse",
+          "panierter käse"
+        ],
+        "de-AT": [
+          "gebackener käse"
+        ],
+        "en": [
+          "fried cheese",
+          "breaded cheese"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "fried",
+        "vegetarian"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "rantott_sajt",
+          "standard_serving_g": 250
+        }
+      ],
+      "side_options": [
+        {
+          "part": "parolt_rizs",
+          "standard_serving_g": 180
+        },
+        {
+          "part": "petrezselymes_burgonya",
+          "standard_serving_g": 200
+        }
+      ],
+      "side_required_question": true,
+      "alias_side": {
+        "rántott sajt rizzsel": "parolt_rizs",
+        "rántott sajt krumplival": "petrezselymes_burgonya"
+      },
+      "review_note_hu": "Tartármártás és hasábburgonya gyakori, de még nem létező rész. A panír és az olajfelvétel becslés."
+    },
+    {
+      "id": "hu_sult_oldalas",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "sült oldalas",
+        "de": "Gebratene Schweinerippchen",
+        "en": "Roast pork ribs"
+      },
+      "aliases": {
+        "hu": [
+          "sült oldalas",
+          "oldalas",
+          "sült sertésoldalas"
+        ],
+        "de": [
+          "schweinerippchen",
+          "spareribs"
+        ],
+        "de-AT": [
+          "ripperl"
+        ],
+        "en": [
+          "roast pork ribs",
+          "spare ribs"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "low-carb-friendly"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "sult_oldalas",
+          "standard_serving_g": 250
+        }
+      ],
+      "side_options": [
+        {
+          "part": "petrezselymes_burgonya",
+          "standard_serving_g": 200
+        }
+      ],
+      "side_required_question": true,
+      "alias_side": {
+        "sült oldalas krumplival": "petrezselymes_burgonya"
+      },
+      "review_note_hu": "A forrás 4 burgonyát süt mellé; tepsis burgonya rész még nincs, ezért petrezselymes burgonya választható. Ehető rész / csontos súly becslés."
+    },
+    {
+      "id": "hu_sult_csulok",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "sült csülök",
+        "de": "Schweinshaxe",
+        "en": "Roast pork knuckle"
+      },
+      "aliases": {
+        "hu": [
+          "sült csülök",
+          "csülök",
+          "pékné csülök"
+        ],
+        "de": [
+          "schweinshaxe",
+          "haxe"
+        ],
+        "de-AT": [
+          "stelze",
+          "schweinsstelze"
+        ],
+        "en": [
+          "pork knuckle",
+          "roast pork hock"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "low-carb-friendly"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "sult_csulok",
+          "standard_serving_g": 450
+        }
+      ],
+      "side_options": [
+        {
+          "part": "petrezselymes_burgonya",
+          "standard_serving_g": 200
+        }
+      ],
+      "side_required_question": true,
+      "alias_side": {
+        "sült csülök krumplival": "petrezselymes_burgonya"
+      },
+      "review_note_hu": "A forrás 2 kg burgonyát süt köré; tepsis burgonya rész még nincs. A 'pékné csülök' alias csak ha a burgonyás változatot külön nem vesszük fel."
+    },
+    {
+      "id": "hu_tepsis_csirke",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "tepsis csirke",
+        "de": "Hähnchen vom Blech",
+        "en": "Tray-roasted chicken"
+      },
+      "aliases": {
+        "hu": [
+          "tepsis csirke",
+          "tepsiben sült csirke",
+          "sült csirke"
+        ],
+        "de": [
+          "hähnchen vom blech",
+          "ofenhähnchen"
+        ],
+        "de-AT": [
+          "backhendl vom blech",
+          "brathendl"
+        ],
+        "en": [
+          "tray roasted chicken",
+          "oven roasted chicken pieces"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "low-carb-friendly"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "tepsis_csirke",
+          "standard_serving_g": 250
+        }
+      ],
+      "side_options": [
+        {
+          "part": "petrezselymes_burgonya",
+          "standard_serving_g": 200
+        },
+        {
+          "part": "parolt_rizs",
+          "standard_serving_g": 180
+        }
+      ],
+      "side_required_question": true,
+      "alias_side": {
+        "tepsis csirke krumplival": "petrezselymes_burgonya",
+        "tepsis csirke rizzsel": "parolt_rizs"
+      },
+      "review_note_hu": "A 'sült csirke' alias ütközhet a 'sült csirkecomb' (E batch) étellel; ellenőrizni. Sok tepsis csirke recept burgonyával/tejföllel együtt sül – az itteni a sima olajos változat."
+    },
+    {
+      "id": "hu_gombapaprikas",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "gombapaprikás",
+        "de": "Pilzpaprikasch",
+        "en": "Mushroom paprikash"
+      },
+      "aliases": {
+        "hu": [
+          "gombapaprikás",
+          "gomba paprikás",
+          "gombapörkölt"
+        ],
+        "de": [
+          "pilzpaprikasch",
+          "champignonpaprikasch"
+        ],
+        "de-AT": [
+          "schwammerlpaprikasch",
+          "schwammerlgulasch"
+        ],
+        "en": [
+          "mushroom paprikash",
+          "mushroom stew"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "vegetarian",
+        "low-carb-friendly"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "gombapaprikas",
+          "standard_serving_g": 300
+        }
+      ],
+      "side_options": [
+        {
+          "part": "nokedli",
+          "standard_serving_g": 200
+        },
+        {
+          "part": "parolt_rizs",
+          "standard_serving_g": 180
+        }
+      ],
+      "side_required_question": true,
+      "alias_side": {
+        "gombapaprikás nokedlivel": "nokedli",
+        "gombapaprikás galuskával": "nokedli",
+        "gombapaprikás rizzsel": "parolt_rizs"
+      },
+      "review_note_hu": "1 dl főzőtejszín kimaradt (MISSING cooking_cream_20), ezért a zsír kissé alulbecsült."
+    },
+    {
       "id": "hu_hortobagyi_palacsinta",
       "countries": [
         "HU"
@@ -8851,33 +13004,8 @@
   "inventory": {
     "HU": {
       "traditional": [
-        "marhapörkölt",
-        "csirkepörkölt",
-        "birkapörkölt",
-        "vadpörkölt",
-        "pacalpörkölt",
         "körömpörkölt",
-        "csülökpörkölt",
-        "harcsapaprikás",
-        "bakonyi sertésszelet",
-        "vadas marha",
-        "tokány",
-        "brassói aprópecsenye",
-        "cigánypecsenye",
-        "fasírt",
-        "töltött paprika",
-        "rakott kel",
-        "rakott karfiol",
-        "rakott zöldbab",
-        "paprikás krumpli",
-        "rizses hús",
-        "tarhonyás hús",
-        "rántott sajt",
-        "sült oldalas",
-        "sült csülök",
-        "tepsis csirke",
-        "juhászos tokány",
-        "gombapaprikás"
+        "juhászos tokány"
       ],
       "everyday": [
         "tükörtojás",

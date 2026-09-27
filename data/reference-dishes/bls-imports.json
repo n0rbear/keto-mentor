@@ -19,5 +19,18 @@
   {"sourceId": "S132000", "names": {"hu": "lekvár (sárgabarack, szilva)", "en": "jam"}},
   {"sourceId": "S560000", "names": {"hu": "étcsokoládé (~50-60%)", "en": "dark chocolate (semisweet)"}},
   {"sourceId": "S570000", "names": {"hu": "étcsokoládé (70%)", "en": "bittersweet chocolate (70%)"}},
-  {"sourceId": "F840100", "names": {"hu": "mazsola", "en": "raisins"}}
+  {"sourceId": "F840100", "names": {"hu": "mazsola", "en": "raisins"}},
+  {"sourceId": "U803000", "names": {"hu": "birkahús", "en": "mutton meat"}},
+  {"sourceId": "V551100", "names": {"hu": "marhapacal", "en": "beef tripe"}},
+  {"sourceId": "U672100", "names": {"hu": "sertéscsülök (nyers)", "en": "pork hock, raw"}},
+  {"sourceId": "U632100", "names": {"hu": "sertéstarja", "en": "pork neck (collar)"}},
+  {"sourceId": "U687000", "names": {"hu": "sertéscomb", "en": "pork leg (top round)"}},
+  {"sourceId": "U564100", "names": {"hu": "sertésoldalas", "en": "pork ribs (belly ribs)"}},
+  {"sourceId": "U221100", "names": {"hu": "marha hátszín", "en": "beef striploin"}},
+  {"sourceId": "U261100", "names": {"hu": "marhalapocka", "en": "beef shoulder (chuck)"}},
+  {"sourceId": "K750100", "names": {"hu": "erdei gomba (vegyes)", "en": "mixed mushrooms"}},
+  {"sourceId": "R160000", "names": {"hu": "sűrített paradicsom (paradicsompüré)", "en": "tomato paste"}},
+  {"sourceId": "R161200", "names": {"hu": "paradicsomlé / passata", "en": "tomato passata"}},
+  {"sourceId": "M505600", "names": {"hu": "trappista sajt", "en": "Trappist cheese"}},
+  {"sourceId": "G482100", "names": {"hu": "újhagyma", "en": "spring onion"}}
 ]

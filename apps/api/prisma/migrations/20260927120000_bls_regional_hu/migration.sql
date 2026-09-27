@@ -4315,3 +4315,2634 @@ INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g"
 SELECT f."id", n."id", 0.25 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
 WHERE f."source" = 'bls' AND f."sourceId" = 'F840100' AND n."key" = 'zinc'
 ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+-- U803000 Schaf Fleisch, grob entsehnt, roh: 181 kcal, P 18.4, F 11.9, carbs(total) 0, fiber 0
+
+INSERT INTO "ketomentor"."Food" ("id", "name", "names", "synonyms", "source", "sourceId", "originalName", "category", "searchText", "provenance", "kcalPer100g", "fatPer100g", "proteinPer100g", "carbsPer100g", "fiberPer100g")
+VALUES ('bls-U803000', 'Schaf Fleisch, grob entsehnt, roh', '{"de":"Schaf Fleisch, grob entsehnt, roh","hu":"birkahús","en":"mutton meat"}'::jsonb, '{}'::jsonb, 'bls', 'U803000', 'Schaf Fleisch, grob entsehnt, roh', 'Oils and fats', 'schaf fleisch grob entsehnt roh schaf fleisch grob entsehnt roh de schaf fleisch grob entsehnt roh hu birkahus en mutton meat', '{"source":"Bundeslebensmittelschlüssel","version":"4.0 (2025)","sourceUrl":"https://blsdb.de/download","license":"CC-BY-4.0","attribution":"Max Rubner-Institut (2025): Bundeslebensmittelschlüssel (BLS), Version 4.0 - Deutsche Nährstoffdatenbank.","valuesPer":"100 g","carbohydrateBasis":"total_from_available_plus_fiber"}'::jsonb, 181, 11.9, 18.4, 0, 0)
+ON CONFLICT ("source", "sourceId") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-U803000-de-schaf_fleisch_grob_entsehnt_roh', f."id", 'Schaf Fleisch, grob entsehnt, roh', 'schaf fleisch grob entsehnt roh', 'de', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"U803000","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'U803000'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-U803000-hu-birkahus', f."id", 'birkahús', 'birkahus', 'hu', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"U803000","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'U803000'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-U803000-en-mutton_meat', f."id", 'mutton meat', 'mutton meat', 'en', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"U803000","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'U803000'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-calcium', 'calcium', 'Calcium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 11 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U803000' AND n."key" = 'calcium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-carbohydrate', 'carbohydrate', 'Carbohydrate', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U803000' AND n."key" = 'carbohydrate'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-copper', 'copper', 'Copper', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.081 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U803000' AND n."key" = 'copper'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-energy_kcal', 'energy_kcal', 'Energy', 'kcal', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 181 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U803000' AND n."key" = 'energy_kcal'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-fiber', 'fiber', 'Fiber', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U803000' AND n."key" = 'fiber'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-iron', 'iron', 'Iron', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 1.7 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U803000' AND n."key" = 'iron'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-magnesium', 'magnesium', 'Magnesium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 17 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U803000' AND n."key" = 'magnesium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-manganese', 'manganese', 'Manganese', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.012 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U803000' AND n."key" = 'manganese'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-monounsaturated_fat', 'monounsaturated_fat', 'Monounsaturated fat', 'g', 'fat') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 3.1 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U803000' AND n."key" = 'monounsaturated_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-phosphorus', 'phosphorus', 'Phosphorus', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 149 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U803000' AND n."key" = 'phosphorus'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-polyunsaturated_fat', 'polyunsaturated_fat', 'Polyunsaturated fat', 'g', 'fat') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.39 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U803000' AND n."key" = 'polyunsaturated_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-potassium', 'potassium', 'Potassium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 267 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U803000' AND n."key" = 'potassium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-protein', 'protein', 'Protein', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 18.4 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U803000' AND n."key" = 'protein'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-saturated_fat', 'saturated_fat', 'Saturated fat', 'g', 'fat') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 5 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U803000' AND n."key" = 'saturated_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-sodium', 'sodium', 'Sodium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 86 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U803000' AND n."key" = 'sodium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-sugar', 'sugar', 'Sugar', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U803000' AND n."key" = 'sugar'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-total_fat', 'total_fat', 'Total fat', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 11.9 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U803000' AND n."key" = 'total_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_a', 'vitamin_a', 'Vitamin A (RAE)', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 8 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U803000' AND n."key" = 'vitamin_a'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b1', 'vitamin_b1', 'Vitamin B1', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.169 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U803000' AND n."key" = 'vitamin_b1'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b12', 'vitamin_b12', 'Vitamin B12', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 1.03 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U803000' AND n."key" = 'vitamin_b12'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b2', 'vitamin_b2', 'Vitamin B2', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.222 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U803000' AND n."key" = 'vitamin_b2'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b3', 'vitamin_b3', 'Vitamin B3', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 5.2 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U803000' AND n."key" = 'vitamin_b3'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b5', 'vitamin_b5', 'Vitamin B5', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.494 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U803000' AND n."key" = 'vitamin_b5'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b6', 'vitamin_b6', 'Vitamin B6', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.16 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U803000' AND n."key" = 'vitamin_b6'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b7', 'vitamin_b7', 'Vitamin B7', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.05 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U803000' AND n."key" = 'vitamin_b7'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b9', 'vitamin_b9', 'Vitamin B9', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 3 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U803000' AND n."key" = 'vitamin_b9'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_c', 'vitamin_c', 'Vitamin C', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U803000' AND n."key" = 'vitamin_c'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_d', 'vitamin_d', 'Vitamin D', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U803000' AND n."key" = 'vitamin_d'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_e', 'vitamin_e', 'Vitamin E', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.48 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U803000' AND n."key" = 'vitamin_e'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_k', 'vitamin_k', 'Vitamin K', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.16 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U803000' AND n."key" = 'vitamin_k'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-zinc', 'zinc', 'Zinc', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 2.1 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U803000' AND n."key" = 'zinc'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+-- V551100 Rind Magen/Kutteln, roh: 80 kcal, P 13.5, F 2.84, carbs(total) 0, fiber 0
+
+INSERT INTO "ketomentor"."Food" ("id", "name", "names", "synonyms", "source", "sourceId", "originalName", "category", "searchText", "provenance", "kcalPer100g", "fatPer100g", "proteinPer100g", "carbsPer100g", "fiberPer100g")
+VALUES ('bls-V551100', 'Rind Magen/Kutteln, roh', '{"de":"Rind Magen/Kutteln, roh","hu":"marhapacal","en":"beef tripe"}'::jsonb, '{}'::jsonb, 'bls', 'V551100', 'Rind Magen/Kutteln, roh', 'BLS group V', 'rind magen kutteln roh rind magen kutteln roh de rind magen kutteln roh hu marhapacal en beef tripe', '{"source":"Bundeslebensmittelschlüssel","version":"4.0 (2025)","sourceUrl":"https://blsdb.de/download","license":"CC-BY-4.0","attribution":"Max Rubner-Institut (2025): Bundeslebensmittelschlüssel (BLS), Version 4.0 - Deutsche Nährstoffdatenbank.","valuesPer":"100 g","carbohydrateBasis":"total_from_available_plus_fiber"}'::jsonb, 80, 2.84, 13.5, 0, 0)
+ON CONFLICT ("source", "sourceId") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-V551100-de-rind_magen_kutteln_roh', f."id", 'Rind Magen/Kutteln, roh', 'rind magen kutteln roh', 'de', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"V551100","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'V551100'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-V551100-hu-marhapacal', f."id", 'marhapacal', 'marhapacal', 'hu', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"V551100","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'V551100'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-V551100-en-beef_tripe', f."id", 'beef tripe', 'beef tripe', 'en', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"V551100","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'V551100'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-calcium', 'calcium', 'Calcium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 90 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'V551100' AND n."key" = 'calcium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-carbohydrate', 'carbohydrate', 'Carbohydrate', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'V551100' AND n."key" = 'carbohydrate'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-copper', 'copper', 'Copper', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.08 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'V551100' AND n."key" = 'copper'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-energy_kcal', 'energy_kcal', 'Energy', 'kcal', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 80 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'V551100' AND n."key" = 'energy_kcal'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-fiber', 'fiber', 'Fiber', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'V551100' AND n."key" = 'fiber'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-iron', 'iron', 'Iron', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 2.52 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'V551100' AND n."key" = 'iron'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-magnesium', 'magnesium', 'Magnesium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 16 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'V551100' AND n."key" = 'magnesium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-manganese', 'manganese', 'Manganese', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 2.07 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'V551100' AND n."key" = 'manganese'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-phosphorus', 'phosphorus', 'Phosphorus', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 112 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'V551100' AND n."key" = 'phosphorus'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-polyunsaturated_fat', 'polyunsaturated_fat', 'Polyunsaturated fat', 'g', 'fat') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.144 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'V551100' AND n."key" = 'polyunsaturated_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-potassium', 'potassium', 'Potassium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 142 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'V551100' AND n."key" = 'potassium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-protein', 'protein', 'Protein', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 13.5 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'V551100' AND n."key" = 'protein'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-saturated_fat', 'saturated_fat', 'Saturated fat', 'g', 'fat') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 1.17 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'V551100' AND n."key" = 'saturated_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-sodium', 'sodium', 'Sodium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 89 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'V551100' AND n."key" = 'sodium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-sugar', 'sugar', 'Sugar', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'V551100' AND n."key" = 'sugar'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-total_fat', 'total_fat', 'Total fat', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 2.84 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'V551100' AND n."key" = 'total_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_a', 'vitamin_a', 'Vitamin A (RAE)', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 3 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'V551100' AND n."key" = 'vitamin_a'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b1', 'vitamin_b1', 'Vitamin B1', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.026 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'V551100' AND n."key" = 'vitamin_b1'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b12', 'vitamin_b12', 'Vitamin B12', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 4.26 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'V551100' AND n."key" = 'vitamin_b12'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b2', 'vitamin_b2', 'Vitamin B2', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.128 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'V551100' AND n."key" = 'vitamin_b2'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b3', 'vitamin_b3', 'Vitamin B3', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 4.41 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'V551100' AND n."key" = 'vitamin_b3'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b5', 'vitamin_b5', 'Vitamin B5', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.484 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'V551100' AND n."key" = 'vitamin_b5'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b6', 'vitamin_b6', 'Vitamin B6', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.024 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'V551100' AND n."key" = 'vitamin_b6'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b7', 'vitamin_b7', 'Vitamin B7', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.89 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'V551100' AND n."key" = 'vitamin_b7'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b9', 'vitamin_b9', 'Vitamin B9', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 5 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'V551100' AND n."key" = 'vitamin_b9'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_c', 'vitamin_c', 'Vitamin C', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 5.42 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'V551100' AND n."key" = 'vitamin_c'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_d', 'vitamin_d', 'Vitamin D', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.2 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'V551100' AND n."key" = 'vitamin_d'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_e', 'vitamin_e', 'Vitamin E', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.27 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'V551100' AND n."key" = 'vitamin_e'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_k', 'vitamin_k', 'Vitamin K', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 54.7 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'V551100' AND n."key" = 'vitamin_k'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-zinc', 'zinc', 'Zinc', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 1.57 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'V551100' AND n."key" = 'zinc'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+-- U672100 Schwein Vordereisbein/Vorderhaxe, roh: 200 kcal, P 22.99, F 12.06, carbs(total) 0, fiber 0
+
+INSERT INTO "ketomentor"."Food" ("id", "name", "names", "synonyms", "source", "sourceId", "originalName", "category", "searchText", "provenance", "kcalPer100g", "fatPer100g", "proteinPer100g", "carbsPer100g", "fiberPer100g")
+VALUES ('bls-U672100', 'Schwein Vordereisbein/Vorderhaxe, roh', '{"de":"Schwein Vordereisbein/Vorderhaxe, roh","hu":"sertéscsülök (nyers)","en":"pork hock, raw"}'::jsonb, '{}'::jsonb, 'bls', 'U672100', 'Schwein Vordereisbein/Vorderhaxe, roh', 'Oils and fats', 'schwein vordereisbein vorderhaxe roh schwein vordereisbein vorderhaxe roh de schwein vordereisbein vorderhaxe roh hu sertescsulok nyers en pork hock raw', '{"source":"Bundeslebensmittelschlüssel","version":"4.0 (2025)","sourceUrl":"https://blsdb.de/download","license":"CC-BY-4.0","attribution":"Max Rubner-Institut (2025): Bundeslebensmittelschlüssel (BLS), Version 4.0 - Deutsche Nährstoffdatenbank.","valuesPer":"100 g","carbohydrateBasis":"total_from_available_plus_fiber"}'::jsonb, 200, 12.06, 22.99, 0, 0)
+ON CONFLICT ("source", "sourceId") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-U672100-de-schwein_vordereisbein_vorderhaxe_roh', f."id", 'Schwein Vordereisbein/Vorderhaxe, roh', 'schwein vordereisbein vorderhaxe roh', 'de', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"U672100","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'U672100'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-U672100-hu-sertescsulok_nyers', f."id", 'sertéscsülök (nyers)', 'sertescsulok nyers', 'hu', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"U672100","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'U672100'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-U672100-en-pork_hock_raw', f."id", 'pork hock, raw', 'pork hock raw', 'en', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"U672100","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'U672100'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-calcium', 'calcium', 'Calcium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 5.8 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U672100' AND n."key" = 'calcium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-carbohydrate', 'carbohydrate', 'Carbohydrate', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U672100' AND n."key" = 'carbohydrate'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-copper', 'copper', 'Copper', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.07579999999999999 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U672100' AND n."key" = 'copper'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-energy_kcal', 'energy_kcal', 'Energy', 'kcal', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 200 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U672100' AND n."key" = 'energy_kcal'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-fiber', 'fiber', 'Fiber', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U672100' AND n."key" = 'fiber'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-iron', 'iron', 'Iron', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.9144 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U672100' AND n."key" = 'iron'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-magnesium', 'magnesium', 'Magnesium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 16.1 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U672100' AND n."key" = 'magnesium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-manganese', 'manganese', 'Manganese', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.0083 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U672100' AND n."key" = 'manganese'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-monounsaturated_fat', 'monounsaturated_fat', 'Monounsaturated fat', 'g', 'fat') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 5.386 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U672100' AND n."key" = 'monounsaturated_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-phosphorus', 'phosphorus', 'Phosphorus', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 138.3 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U672100' AND n."key" = 'phosphorus'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-polyunsaturated_fat', 'polyunsaturated_fat', 'Polyunsaturated fat', 'g', 'fat') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 1.0472 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U672100' AND n."key" = 'polyunsaturated_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-potassium', 'potassium', 'Potassium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 288.4 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U672100' AND n."key" = 'potassium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-protein', 'protein', 'Protein', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 22.99 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U672100' AND n."key" = 'protein'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-saturated_fat', 'saturated_fat', 'Saturated fat', 'g', 'fat') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 3.822 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U672100' AND n."key" = 'saturated_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-sodium', 'sodium', 'Sodium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 100.5 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U672100' AND n."key" = 'sodium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-sugar', 'sugar', 'Sugar', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U672100' AND n."key" = 'sugar'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-total_fat', 'total_fat', 'Total fat', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 12.06 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U672100' AND n."key" = 'total_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_a', 'vitamin_a', 'Vitamin A (RAE)', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 8.8 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U672100' AND n."key" = 'vitamin_a'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b1', 'vitamin_b1', 'Vitamin B1', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.43 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U672100' AND n."key" = 'vitamin_b1'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b2', 'vitamin_b2', 'Vitamin B2', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.21 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U672100' AND n."key" = 'vitamin_b2'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b3', 'vitamin_b3', 'Vitamin B3', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 5.07 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U672100' AND n."key" = 'vitamin_b3'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b5', 'vitamin_b5', 'Vitamin B5', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.65 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U672100' AND n."key" = 'vitamin_b5'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b6', 'vitamin_b6', 'Vitamin B6', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.298 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U672100' AND n."key" = 'vitamin_b6'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b7', 'vitamin_b7', 'Vitamin B7', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.7 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U672100' AND n."key" = 'vitamin_b7'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b9', 'vitamin_b9', 'Vitamin B9', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 3 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U672100' AND n."key" = 'vitamin_b9'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_d', 'vitamin_d', 'Vitamin D', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.28 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U672100' AND n."key" = 'vitamin_d'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_e', 'vitamin_e', 'Vitamin E', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.705 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U672100' AND n."key" = 'vitamin_e'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_k', 'vitamin_k', 'Vitamin K', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 3.36 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U672100' AND n."key" = 'vitamin_k'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-zinc', 'zinc', 'Zinc', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 2.7871 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U672100' AND n."key" = 'zinc'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+-- U632100 Schwein Kamm, roh: 175 kcal, P 19.21, F 10.9, carbs(total) 0, fiber 0
+
+INSERT INTO "ketomentor"."Food" ("id", "name", "names", "synonyms", "source", "sourceId", "originalName", "category", "searchText", "provenance", "kcalPer100g", "fatPer100g", "proteinPer100g", "carbsPer100g", "fiberPer100g")
+VALUES ('bls-U632100', 'Schwein Kamm, roh', '{"de":"Schwein Kamm, roh","hu":"sertéstarja","en":"pork neck (collar)"}'::jsonb, '{}'::jsonb, 'bls', 'U632100', 'Schwein Kamm, roh', 'Oils and fats', 'schwein kamm roh schwein kamm roh de schwein kamm roh hu sertestarja en pork neck collar', '{"source":"Bundeslebensmittelschlüssel","version":"4.0 (2025)","sourceUrl":"https://blsdb.de/download","license":"CC-BY-4.0","attribution":"Max Rubner-Institut (2025): Bundeslebensmittelschlüssel (BLS), Version 4.0 - Deutsche Nährstoffdatenbank.","valuesPer":"100 g","carbohydrateBasis":"total_from_available_plus_fiber"}'::jsonb, 175, 10.9, 19.21, 0, 0)
+ON CONFLICT ("source", "sourceId") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-U632100-de-schwein_kamm_roh', f."id", 'Schwein Kamm, roh', 'schwein kamm roh', 'de', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"U632100","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'U632100'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-U632100-hu-sertestarja', f."id", 'sertéstarja', 'sertestarja', 'hu', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"U632100","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'U632100'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-U632100-en-pork_neck_collar', f."id", 'pork neck (collar)', 'pork neck collar', 'en', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"U632100","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'U632100'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-calcium', 'calcium', 'Calcium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 3.7 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U632100' AND n."key" = 'calcium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-carbohydrate', 'carbohydrate', 'Carbohydrate', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U632100' AND n."key" = 'carbohydrate'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-copper', 'copper', 'Copper', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.073 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U632100' AND n."key" = 'copper'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-energy_kcal', 'energy_kcal', 'Energy', 'kcal', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 175 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U632100' AND n."key" = 'energy_kcal'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-fiber', 'fiber', 'Fiber', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U632100' AND n."key" = 'fiber'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-iron', 'iron', 'Iron', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.8821 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U632100' AND n."key" = 'iron'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-magnesium', 'magnesium', 'Magnesium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 19.3 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U632100' AND n."key" = 'magnesium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-manganese', 'manganese', 'Manganese', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.0089 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U632100' AND n."key" = 'manganese'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-monounsaturated_fat', 'monounsaturated_fat', 'Monounsaturated fat', 'g', 'fat') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 4.321 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U632100' AND n."key" = 'monounsaturated_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-phosphorus', 'phosphorus', 'Phosphorus', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 164.6 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U632100' AND n."key" = 'phosphorus'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-polyunsaturated_fat', 'polyunsaturated_fat', 'Polyunsaturated fat', 'g', 'fat') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 1.017 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U632100' AND n."key" = 'polyunsaturated_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-potassium', 'potassium', 'Potassium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 345.7 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U632100' AND n."key" = 'potassium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-protein', 'protein', 'Protein', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 19.21 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U632100' AND n."key" = 'protein'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-saturated_fat', 'saturated_fat', 'Saturated fat', 'g', 'fat') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 4.061 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U632100' AND n."key" = 'saturated_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-sodium', 'sodium', 'Sodium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 54.3 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U632100' AND n."key" = 'sodium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-sugar', 'sugar', 'Sugar', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U632100' AND n."key" = 'sugar'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-total_fat', 'total_fat', 'Total fat', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 10.9 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U632100' AND n."key" = 'total_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_a', 'vitamin_a', 'Vitamin A (RAE)', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 8.3 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U632100' AND n."key" = 'vitamin_a'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b1', 'vitamin_b1', 'Vitamin B1', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.74 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U632100' AND n."key" = 'vitamin_b1'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b2', 'vitamin_b2', 'Vitamin B2', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.23 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U632100' AND n."key" = 'vitamin_b2'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b3', 'vitamin_b3', 'Vitamin B3', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 5.15 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U632100' AND n."key" = 'vitamin_b3'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b5', 'vitamin_b5', 'Vitamin B5', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.92 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U632100' AND n."key" = 'vitamin_b5'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b6', 'vitamin_b6', 'Vitamin B6', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.392 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U632100' AND n."key" = 'vitamin_b6'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b7', 'vitamin_b7', 'Vitamin B7', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.88 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U632100' AND n."key" = 'vitamin_b7'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b9', 'vitamin_b9', 'Vitamin B9', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 2.2 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U632100' AND n."key" = 'vitamin_b9'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_d', 'vitamin_d', 'Vitamin D', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.27 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U632100' AND n."key" = 'vitamin_d'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_e', 'vitamin_e', 'Vitamin E', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.833 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U632100' AND n."key" = 'vitamin_e'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_k', 'vitamin_k', 'Vitamin K', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 2.87 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U632100' AND n."key" = 'vitamin_k'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-zinc', 'zinc', 'Zinc', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 2.7119 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U632100' AND n."key" = 'zinc'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+-- U687000 Schwein Oberschale (ohne Deckel) roh: 115 kcal, P 23.01, F 2.51, carbs(total) 0, fiber 0
+
+INSERT INTO "ketomentor"."Food" ("id", "name", "names", "synonyms", "source", "sourceId", "originalName", "category", "searchText", "provenance", "kcalPer100g", "fatPer100g", "proteinPer100g", "carbsPer100g", "fiberPer100g")
+VALUES ('bls-U687000', 'Schwein Oberschale (ohne Deckel) roh', '{"de":"Schwein Oberschale (ohne Deckel) roh","hu":"sertéscomb","en":"pork leg (top round)"}'::jsonb, '{}'::jsonb, 'bls', 'U687000', 'Schwein Oberschale (ohne Deckel) roh', 'Oils and fats', 'schwein oberschale ohne deckel roh schwein oberschale ohne deckel roh de schwein oberschale ohne deckel roh hu sertescomb en pork leg top round', '{"source":"Bundeslebensmittelschlüssel","version":"4.0 (2025)","sourceUrl":"https://blsdb.de/download","license":"CC-BY-4.0","attribution":"Max Rubner-Institut (2025): Bundeslebensmittelschlüssel (BLS), Version 4.0 - Deutsche Nährstoffdatenbank.","valuesPer":"100 g","carbohydrateBasis":"total_from_available_plus_fiber"}'::jsonb, 115, 2.51, 23.01, 0, 0)
+ON CONFLICT ("source", "sourceId") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-U687000-de-schwein_oberschale_ohne_deckel_roh', f."id", 'Schwein Oberschale (ohne Deckel) roh', 'schwein oberschale ohne deckel roh', 'de', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"U687000","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'U687000'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-U687000-hu-sertescomb', f."id", 'sertéscomb', 'sertescomb', 'hu', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"U687000","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'U687000'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-U687000-en-pork_leg_top_round', f."id", 'pork leg (top round)', 'pork leg top round', 'en', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"U687000","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'U687000'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-calcium', 'calcium', 'Calcium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 3.6 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U687000' AND n."key" = 'calcium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-carbohydrate', 'carbohydrate', 'Carbohydrate', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U687000' AND n."key" = 'carbohydrate'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-copper', 'copper', 'Copper', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.055200000000000006 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U687000' AND n."key" = 'copper'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-energy_kcal', 'energy_kcal', 'Energy', 'kcal', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 115 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U687000' AND n."key" = 'energy_kcal'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-fiber', 'fiber', 'Fiber', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U687000' AND n."key" = 'fiber'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-iron', 'iron', 'Iron', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.5706 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U687000' AND n."key" = 'iron'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-magnesium', 'magnesium', 'Magnesium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 25.7 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U687000' AND n."key" = 'magnesium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-manganese', 'manganese', 'Manganese', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.0076 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U687000' AND n."key" = 'manganese'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-monounsaturated_fat', 'monounsaturated_fat', 'Monounsaturated fat', 'g', 'fat') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 1.044 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U687000' AND n."key" = 'monounsaturated_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-phosphorus', 'phosphorus', 'Phosphorus', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 204.6 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U687000' AND n."key" = 'phosphorus'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-polyunsaturated_fat', 'polyunsaturated_fat', 'Polyunsaturated fat', 'g', 'fat') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.209 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U687000' AND n."key" = 'polyunsaturated_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-potassium', 'potassium', 'Potassium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 401.2 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U687000' AND n."key" = 'potassium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-protein', 'protein', 'Protein', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 23.01 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U687000' AND n."key" = 'protein'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-saturated_fat', 'saturated_fat', 'Saturated fat', 'g', 'fat') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.781 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U687000' AND n."key" = 'saturated_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-sodium', 'sodium', 'Sodium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 47.7 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U687000' AND n."key" = 'sodium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-sugar', 'sugar', 'Sugar', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U687000' AND n."key" = 'sugar'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-total_fat', 'total_fat', 'Total fat', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 2.51 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U687000' AND n."key" = 'total_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_a', 'vitamin_a', 'Vitamin A (RAE)', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 2.6 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U687000' AND n."key" = 'vitamin_a'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b1', 'vitamin_b1', 'Vitamin B1', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.7 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U687000' AND n."key" = 'vitamin_b1'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b2', 'vitamin_b2', 'Vitamin B2', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.19 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U687000' AND n."key" = 'vitamin_b2'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b3', 'vitamin_b3', 'Vitamin B3', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 8.25 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U687000' AND n."key" = 'vitamin_b3'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b5', 'vitamin_b5', 'Vitamin B5', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.49 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U687000' AND n."key" = 'vitamin_b5'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b6', 'vitamin_b6', 'Vitamin B6', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.603 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U687000' AND n."key" = 'vitamin_b6'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b7', 'vitamin_b7', 'Vitamin B7', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.62 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U687000' AND n."key" = 'vitamin_b7'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b9', 'vitamin_b9', 'Vitamin B9', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 1.5 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U687000' AND n."key" = 'vitamin_b9'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_d', 'vitamin_d', 'Vitamin D', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U687000' AND n."key" = 'vitamin_d'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_e', 'vitamin_e', 'Vitamin E', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.442 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U687000' AND n."key" = 'vitamin_e'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_k', 'vitamin_k', 'Vitamin K', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 2.87 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U687000' AND n."key" = 'vitamin_k'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-zinc', 'zinc', 'Zinc', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 1.5473 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U687000' AND n."key" = 'zinc'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+-- U564100 Schwein Dicke Rippe roh: 196 kcal, P 19.66, F 13.07, carbs(total) 0, fiber 0
+
+INSERT INTO "ketomentor"."Food" ("id", "name", "names", "synonyms", "source", "sourceId", "originalName", "category", "searchText", "provenance", "kcalPer100g", "fatPer100g", "proteinPer100g", "carbsPer100g", "fiberPer100g")
+VALUES ('bls-U564100', 'Schwein Dicke Rippe roh', '{"de":"Schwein Dicke Rippe roh","hu":"sertésoldalas","en":"pork ribs (belly ribs)"}'::jsonb, '{}'::jsonb, 'bls', 'U564100', 'Schwein Dicke Rippe roh', 'Oils and fats', 'schwein dicke rippe roh schwein dicke rippe roh de schwein dicke rippe roh hu sertesoldalas en pork ribs belly ribs', '{"source":"Bundeslebensmittelschlüssel","version":"4.0 (2025)","sourceUrl":"https://blsdb.de/download","license":"CC-BY-4.0","attribution":"Max Rubner-Institut (2025): Bundeslebensmittelschlüssel (BLS), Version 4.0 - Deutsche Nährstoffdatenbank.","valuesPer":"100 g","carbohydrateBasis":"total_from_available_plus_fiber"}'::jsonb, 196, 13.07, 19.66, 0, 0)
+ON CONFLICT ("source", "sourceId") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-U564100-de-schwein_dicke_rippe_roh', f."id", 'Schwein Dicke Rippe roh', 'schwein dicke rippe roh', 'de', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"U564100","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'U564100'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-U564100-hu-sertesoldalas', f."id", 'sertésoldalas', 'sertesoldalas', 'hu', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"U564100","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'U564100'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-U564100-en-pork_ribs_belly_ribs', f."id", 'pork ribs (belly ribs)', 'pork ribs belly ribs', 'en', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"U564100","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'U564100'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-calcium', 'calcium', 'Calcium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 8 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U564100' AND n."key" = 'calcium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-carbohydrate', 'carbohydrate', 'Carbohydrate', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U564100' AND n."key" = 'carbohydrate'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-copper', 'copper', 'Copper', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.0683 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U564100' AND n."key" = 'copper'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-energy_kcal', 'energy_kcal', 'Energy', 'kcal', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 196 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U564100' AND n."key" = 'energy_kcal'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-fiber', 'fiber', 'Fiber', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U564100' AND n."key" = 'fiber'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-iron', 'iron', 'Iron', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.7816 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U564100' AND n."key" = 'iron'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-magnesium', 'magnesium', 'Magnesium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 20.4 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U564100' AND n."key" = 'magnesium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-manganese', 'manganese', 'Manganese', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.008400000000000001 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U564100' AND n."key" = 'manganese'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-monounsaturated_fat', 'monounsaturated_fat', 'Monounsaturated fat', 'g', 'fat') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 5.42 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U564100' AND n."key" = 'monounsaturated_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-phosphorus', 'phosphorus', 'Phosphorus', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 169.4 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U564100' AND n."key" = 'phosphorus'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-polyunsaturated_fat', 'polyunsaturated_fat', 'Polyunsaturated fat', 'g', 'fat') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 1.28 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U564100' AND n."key" = 'polyunsaturated_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-potassium', 'potassium', 'Potassium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 333.3 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U564100' AND n."key" = 'potassium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-protein', 'protein', 'Protein', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 19.66 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U564100' AND n."key" = 'protein'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-saturated_fat', 'saturated_fat', 'Saturated fat', 'g', 'fat') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 4.25 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U564100' AND n."key" = 'saturated_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-sodium', 'sodium', 'Sodium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 69.6 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U564100' AND n."key" = 'sodium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-sugar', 'sugar', 'Sugar', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U564100' AND n."key" = 'sugar'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-total_fat', 'total_fat', 'Total fat', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 13.07 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U564100' AND n."key" = 'total_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_a', 'vitamin_a', 'Vitamin A (RAE)', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 9.4 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U564100' AND n."key" = 'vitamin_a'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b1', 'vitamin_b1', 'Vitamin B1', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.53 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U564100' AND n."key" = 'vitamin_b1'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b12', 'vitamin_b12', 'Vitamin B12', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.37 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U564100' AND n."key" = 'vitamin_b12'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b2', 'vitamin_b2', 'Vitamin B2', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.26 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U564100' AND n."key" = 'vitamin_b2'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b3', 'vitamin_b3', 'Vitamin B3', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 6.82 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U564100' AND n."key" = 'vitamin_b3'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b5', 'vitamin_b5', 'Vitamin B5', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.63 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U564100' AND n."key" = 'vitamin_b5'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b6', 'vitamin_b6', 'Vitamin B6', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.441 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U564100' AND n."key" = 'vitamin_b6'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b7', 'vitamin_b7', 'Vitamin B7', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.85 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U564100' AND n."key" = 'vitamin_b7'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b9', 'vitamin_b9', 'Vitamin B9', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 1.9 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U564100' AND n."key" = 'vitamin_b9'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_c', 'vitamin_c', 'Vitamin C', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U564100' AND n."key" = 'vitamin_c'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_d', 'vitamin_d', 'Vitamin D', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.25 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U564100' AND n."key" = 'vitamin_d'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_e', 'vitamin_e', 'Vitamin E', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.818 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U564100' AND n."key" = 'vitamin_e'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_k', 'vitamin_k', 'Vitamin K', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 3.06 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U564100' AND n."key" = 'vitamin_k'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-zinc', 'zinc', 'Zinc', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 2.3238 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U564100' AND n."key" = 'zinc'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+-- U221100 Rind Roastbeef (Rücken) roh: 130 kcal, P 22.45, F 4.45, carbs(total) 0, fiber 0
+
+INSERT INTO "ketomentor"."Food" ("id", "name", "names", "synonyms", "source", "sourceId", "originalName", "category", "searchText", "provenance", "kcalPer100g", "fatPer100g", "proteinPer100g", "carbsPer100g", "fiberPer100g")
+VALUES ('bls-U221100', 'Rind Roastbeef (Rücken) roh', '{"de":"Rind Roastbeef (Rücken) roh","hu":"marha hátszín","en":"beef striploin"}'::jsonb, '{}'::jsonb, 'bls', 'U221100', 'Rind Roastbeef (Rücken) roh', 'Oils and fats', 'rind roastbeef rucken roh rind roastbeef rucken roh de rind roastbeef rucken roh hu marha hatszin en beef striploin', '{"source":"Bundeslebensmittelschlüssel","version":"4.0 (2025)","sourceUrl":"https://blsdb.de/download","license":"CC-BY-4.0","attribution":"Max Rubner-Institut (2025): Bundeslebensmittelschlüssel (BLS), Version 4.0 - Deutsche Nährstoffdatenbank.","valuesPer":"100 g","carbohydrateBasis":"total_from_available_plus_fiber"}'::jsonb, 130, 4.45, 22.45, 0, 0)
+ON CONFLICT ("source", "sourceId") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-U221100-de-rind_roastbeef_rucken_roh', f."id", 'Rind Roastbeef (Rücken) roh', 'rind roastbeef rucken roh', 'de', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"U221100","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'U221100'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-U221100-hu-marha_hatszin', f."id", 'marha hátszín', 'marha hatszin', 'hu', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"U221100","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'U221100'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-U221100-en-beef_striploin', f."id", 'beef striploin', 'beef striploin', 'en', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"U221100","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'U221100'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-calcium', 'calcium', 'Calcium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 3.191 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U221100' AND n."key" = 'calcium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-carbohydrate', 'carbohydrate', 'Carbohydrate', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U221100' AND n."key" = 'carbohydrate'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-copper', 'copper', 'Copper', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.079 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U221100' AND n."key" = 'copper'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-energy_kcal', 'energy_kcal', 'Energy', 'kcal', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 130 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U221100' AND n."key" = 'energy_kcal'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-fiber', 'fiber', 'Fiber', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U221100' AND n."key" = 'fiber'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-iron', 'iron', 'Iron', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 1.992 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U221100' AND n."key" = 'iron'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-magnesium', 'magnesium', 'Magnesium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 23.03 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U221100' AND n."key" = 'magnesium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-manganese', 'manganese', 'Manganese', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.02 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U221100' AND n."key" = 'manganese'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-monounsaturated_fat', 'monounsaturated_fat', 'Monounsaturated fat', 'g', 'fat') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 1.995 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U221100' AND n."key" = 'monounsaturated_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-phosphorus', 'phosphorus', 'Phosphorus', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 157 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U221100' AND n."key" = 'phosphorus'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-polyunsaturated_fat', 'polyunsaturated_fat', 'Polyunsaturated fat', 'g', 'fat') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.226 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U221100' AND n."key" = 'polyunsaturated_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-potassium', 'potassium', 'Potassium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 356.12 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U221100' AND n."key" = 'potassium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-protein', 'protein', 'Protein', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 22.45 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U221100' AND n."key" = 'protein'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-saturated_fat', 'saturated_fat', 'Saturated fat', 'g', 'fat') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 1.943 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U221100' AND n."key" = 'saturated_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-sodium', 'sodium', 'Sodium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 55 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U221100' AND n."key" = 'sodium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-sugar', 'sugar', 'Sugar', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U221100' AND n."key" = 'sugar'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-total_fat', 'total_fat', 'Total fat', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 4.45 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U221100' AND n."key" = 'total_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_a', 'vitamin_a', 'Vitamin A (RAE)', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 19 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U221100' AND n."key" = 'vitamin_a'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b1', 'vitamin_b1', 'Vitamin B1', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.09 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U221100' AND n."key" = 'vitamin_b1'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b12', 'vitamin_b12', 'Vitamin B12', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 2.84 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U221100' AND n."key" = 'vitamin_b12'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b2', 'vitamin_b2', 'Vitamin B2', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.16 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U221100' AND n."key" = 'vitamin_b2'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b3', 'vitamin_b3', 'Vitamin B3', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 4.9 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U221100' AND n."key" = 'vitamin_b3'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b5', 'vitamin_b5', 'Vitamin B5', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.33 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U221100' AND n."key" = 'vitamin_b5'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b6', 'vitamin_b6', 'Vitamin B6', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.5 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U221100' AND n."key" = 'vitamin_b6'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b7', 'vitamin_b7', 'Vitamin B7', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 5 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U221100' AND n."key" = 'vitamin_b7'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b9', 'vitamin_b9', 'Vitamin B9', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 10 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U221100' AND n."key" = 'vitamin_b9'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_c', 'vitamin_c', 'Vitamin C', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U221100' AND n."key" = 'vitamin_c'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_d', 'vitamin_d', 'Vitamin D', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.4 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U221100' AND n."key" = 'vitamin_d'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_e', 'vitamin_e', 'Vitamin E', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.8 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U221100' AND n."key" = 'vitamin_e'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_k', 'vitamin_k', 'Vitamin K', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 3.57 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U221100' AND n."key" = 'vitamin_k'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-zinc', 'zinc', 'Zinc', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 4.081 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U221100' AND n."key" = 'zinc'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+-- U261100 Rind Bug/Schulter, roh: 128 kcal, P 20.2, F 5.3, carbs(total) 0, fiber 0
+
+INSERT INTO "ketomentor"."Food" ("id", "name", "names", "synonyms", "source", "sourceId", "originalName", "category", "searchText", "provenance", "kcalPer100g", "fatPer100g", "proteinPer100g", "carbsPer100g", "fiberPer100g")
+VALUES ('bls-U261100', 'Rind Bug/Schulter, roh', '{"de":"Rind Bug/Schulter, roh","hu":"marhalapocka","en":"beef shoulder (chuck)"}'::jsonb, '{}'::jsonb, 'bls', 'U261100', 'Rind Bug/Schulter, roh', 'Oils and fats', 'rind bug schulter roh rind bug schulter roh de rind bug schulter roh hu marhalapocka en beef shoulder chuck', '{"source":"Bundeslebensmittelschlüssel","version":"4.0 (2025)","sourceUrl":"https://blsdb.de/download","license":"CC-BY-4.0","attribution":"Max Rubner-Institut (2025): Bundeslebensmittelschlüssel (BLS), Version 4.0 - Deutsche Nährstoffdatenbank.","valuesPer":"100 g","carbohydrateBasis":"total_from_available_plus_fiber"}'::jsonb, 128, 5.3, 20.2, 0, 0)
+ON CONFLICT ("source", "sourceId") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-U261100-de-rind_bug_schulter_roh', f."id", 'Rind Bug/Schulter, roh', 'rind bug schulter roh', 'de', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"U261100","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'U261100'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-U261100-hu-marhalapocka', f."id", 'marhalapocka', 'marhalapocka', 'hu', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"U261100","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'U261100'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-U261100-en-beef_shoulder_chuck', f."id", 'beef shoulder (chuck)', 'beef shoulder chuck', 'en', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"U261100","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'U261100'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-calcium', 'calcium', 'Calcium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 3.818 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U261100' AND n."key" = 'calcium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-carbohydrate', 'carbohydrate', 'Carbohydrate', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U261100' AND n."key" = 'carbohydrate'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-copper', 'copper', 'Copper', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.073 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U261100' AND n."key" = 'copper'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-energy_kcal', 'energy_kcal', 'Energy', 'kcal', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 128 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U261100' AND n."key" = 'energy_kcal'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-fiber', 'fiber', 'Fiber', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U261100' AND n."key" = 'fiber'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-iron', 'iron', 'Iron', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 2.289 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U261100' AND n."key" = 'iron'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-magnesium', 'magnesium', 'Magnesium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 19.193 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U261100' AND n."key" = 'magnesium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-manganese', 'manganese', 'Manganese', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.01 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U261100' AND n."key" = 'manganese'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-monounsaturated_fat', 'monounsaturated_fat', 'Monounsaturated fat', 'g', 'fat') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 2.389 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U261100' AND n."key" = 'monounsaturated_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-phosphorus', 'phosphorus', 'Phosphorus', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 165 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U261100' AND n."key" = 'phosphorus'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-polyunsaturated_fat', 'polyunsaturated_fat', 'Polyunsaturated fat', 'g', 'fat') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.282 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U261100' AND n."key" = 'polyunsaturated_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-potassium', 'potassium', 'Potassium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 295.964 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U261100' AND n."key" = 'potassium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-protein', 'protein', 'Protein', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 20.2 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U261100' AND n."key" = 'protein'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-saturated_fat', 'saturated_fat', 'Saturated fat', 'g', 'fat') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 2.325 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U261100' AND n."key" = 'saturated_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-sodium', 'sodium', 'Sodium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 50 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U261100' AND n."key" = 'sodium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-sugar', 'sugar', 'Sugar', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U261100' AND n."key" = 'sugar'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-total_fat', 'total_fat', 'Total fat', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 5.3 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U261100' AND n."key" = 'total_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_a', 'vitamin_a', 'Vitamin A (RAE)', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 6 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U261100' AND n."key" = 'vitamin_a'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b1', 'vitamin_b1', 'Vitamin B1', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.09 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U261100' AND n."key" = 'vitamin_b1'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b12', 'vitamin_b12', 'Vitamin B12', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 1.4 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U261100' AND n."key" = 'vitamin_b12'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b2', 'vitamin_b2', 'Vitamin B2', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.19 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U261100' AND n."key" = 'vitamin_b2'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b3', 'vitamin_b3', 'Vitamin B3', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 5.1 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U261100' AND n."key" = 'vitamin_b3'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b5', 'vitamin_b5', 'Vitamin B5', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.9 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U261100' AND n."key" = 'vitamin_b5'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b6', 'vitamin_b6', 'Vitamin B6', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.3 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U261100' AND n."key" = 'vitamin_b6'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b9', 'vitamin_b9', 'Vitamin B9', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 4.1 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U261100' AND n."key" = 'vitamin_b9'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_c', 'vitamin_c', 'Vitamin C', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U261100' AND n."key" = 'vitamin_c'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_d', 'vitamin_d', 'Vitamin D', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.4 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U261100' AND n."key" = 'vitamin_d'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_e', 'vitamin_e', 'Vitamin E', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.3 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U261100' AND n."key" = 'vitamin_e'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-zinc', 'zinc', 'Zinc', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 5.199 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'U261100' AND n."key" = 'zinc'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+-- K750100 Mischpilze roh: 34 kcal, P 3.5, F 0.3, carbs(total) 7.26, fiber 5.1
+
+INSERT INTO "ketomentor"."Food" ("id", "name", "names", "synonyms", "source", "sourceId", "originalName", "category", "searchText", "provenance", "kcalPer100g", "fatPer100g", "proteinPer100g", "carbsPer100g", "fiberPer100g")
+VALUES ('bls-K750100', 'Mischpilze roh', '{"de":"Mischpilze roh","hu":"erdei gomba (vegyes)","en":"mixed mushrooms"}'::jsonb, '{}'::jsonb, 'bls', 'K750100', 'Mischpilze roh', 'Potatoes', 'mischpilze roh mischpilze roh de mischpilze roh hu erdei gomba vegyes en mixed mushrooms', '{"source":"Bundeslebensmittelschlüssel","version":"4.0 (2025)","sourceUrl":"https://blsdb.de/download","license":"CC-BY-4.0","attribution":"Max Rubner-Institut (2025): Bundeslebensmittelschlüssel (BLS), Version 4.0 - Deutsche Nährstoffdatenbank.","valuesPer":"100 g","carbohydrateBasis":"total_from_available_plus_fiber"}'::jsonb, 34, 0.3, 3.5, 7.26, 5.1)
+ON CONFLICT ("source", "sourceId") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-K750100-de-mischpilze_roh', f."id", 'Mischpilze roh', 'mischpilze roh', 'de', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"K750100","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'K750100'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-K750100-hu-erdei_gomba_vegyes', f."id", 'erdei gomba (vegyes)', 'erdei gomba vegyes', 'hu', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"K750100","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'K750100'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-K750100-en-mixed_mushrooms', f."id", 'mixed mushrooms', 'mixed mushrooms', 'en', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"K750100","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'K750100'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-calcium', 'calcium', 'Calcium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 11 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'K750100' AND n."key" = 'calcium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-carbohydrate', 'carbohydrate', 'Carbohydrate', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 7.26 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'K750100' AND n."key" = 'carbohydrate'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-copper', 'copper', 'Copper', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.19 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'K750100' AND n."key" = 'copper'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-energy_kcal', 'energy_kcal', 'Energy', 'kcal', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 34 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'K750100' AND n."key" = 'energy_kcal'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-fiber', 'fiber', 'Fiber', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 5.1 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'K750100' AND n."key" = 'fiber'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-iron', 'iron', 'Iron', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.8 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'K750100' AND n."key" = 'iron'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-magnesium', 'magnesium', 'Magnesium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 11 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'K750100' AND n."key" = 'magnesium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-manganese', 'manganese', 'Manganese', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 1.04 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'K750100' AND n."key" = 'manganese'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-monounsaturated_fat', 'monounsaturated_fat', 'Monounsaturated fat', 'g', 'fat') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.011 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'K750100' AND n."key" = 'monounsaturated_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-phosphorus', 'phosphorus', 'Phosphorus', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 73 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'K750100' AND n."key" = 'phosphorus'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-polyunsaturated_fat', 'polyunsaturated_fat', 'Polyunsaturated fat', 'g', 'fat') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.1 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'K750100' AND n."key" = 'polyunsaturated_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-potassium', 'potassium', 'Potassium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 274 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'K750100' AND n."key" = 'potassium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-protein', 'protein', 'Protein', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 3.5 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'K750100' AND n."key" = 'protein'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-saturated_fat', 'saturated_fat', 'Saturated fat', 'g', 'fat') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.041 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'K750100' AND n."key" = 'saturated_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-sodium', 'sodium', 'Sodium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 5 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'K750100' AND n."key" = 'sodium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-sugar', 'sugar', 'Sugar', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.97 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'K750100' AND n."key" = 'sugar'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-total_fat', 'total_fat', 'Total fat', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.3 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'K750100' AND n."key" = 'total_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_a', 'vitamin_a', 'Vitamin A (RAE)', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 11 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'K750100' AND n."key" = 'vitamin_a'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b1', 'vitamin_b1', 'Vitamin B1', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.082 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'K750100' AND n."key" = 'vitamin_b1'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b2', 'vitamin_b2', 'Vitamin B2', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.3 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'K750100' AND n."key" = 'vitamin_b2'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b3', 'vitamin_b3', 'Vitamin B3', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 6.52 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'K750100' AND n."key" = 'vitamin_b3'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b5', 'vitamin_b5', 'Vitamin B5', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 1.64 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'K750100' AND n."key" = 'vitamin_b5'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b6', 'vitamin_b6', 'Vitamin B6', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.09 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'K750100' AND n."key" = 'vitamin_b6'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b7', 'vitamin_b7', 'Vitamin B7', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 10 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'K750100' AND n."key" = 'vitamin_b7'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b9', 'vitamin_b9', 'Vitamin B9', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 35 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'K750100' AND n."key" = 'vitamin_b9'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_c', 'vitamin_c', 'Vitamin C', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 2.91 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'K750100' AND n."key" = 'vitamin_c'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_d', 'vitamin_d', 'Vitamin D', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 2.3 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'K750100' AND n."key" = 'vitamin_d'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_e', 'vitamin_e', 'Vitamin E', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.016 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'K750100' AND n."key" = 'vitamin_e'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_k', 'vitamin_k', 'Vitamin K', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'K750100' AND n."key" = 'vitamin_k'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-zinc', 'zinc', 'Zinc', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.65 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'K750100' AND n."key" = 'zinc'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+-- R160000 Tomatenmark: 81 kcal, P 3.4, F 0.2, carbs(total) 17.9, fiber 4.7
+
+INSERT INTO "ketomentor"."Food" ("id", "name", "names", "synonyms", "source", "sourceId", "originalName", "category", "searchText", "provenance", "kcalPer100g", "fatPer100g", "proteinPer100g", "carbsPer100g", "fiberPer100g")
+VALUES ('bls-R160000', 'Tomatenmark', '{"de":"Tomatenmark","hu":"sűrített paradicsom (paradicsompüré)","en":"tomato paste"}'::jsonb, '{}'::jsonb, 'bls', 'R160000', 'Tomatenmark', 'Meat', 'tomatenmark tomatenmark de tomatenmark hu suritett paradicsom paradicsompure en tomato paste', '{"source":"Bundeslebensmittelschlüssel","version":"4.0 (2025)","sourceUrl":"https://blsdb.de/download","license":"CC-BY-4.0","attribution":"Max Rubner-Institut (2025): Bundeslebensmittelschlüssel (BLS), Version 4.0 - Deutsche Nährstoffdatenbank.","valuesPer":"100 g","carbohydrateBasis":"total_from_available_plus_fiber"}'::jsonb, 81, 0.2, 3.4, 17.9, 4.7)
+ON CONFLICT ("source", "sourceId") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-R160000-de-tomatenmark', f."id", 'Tomatenmark', 'tomatenmark', 'de', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"R160000","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'R160000'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-R160000-hu-suritett_paradicsom_paradicsompure', f."id", 'sűrített paradicsom (paradicsompüré)', 'suritett paradicsom paradicsompure', 'hu', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"R160000","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'R160000'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-R160000-en-tomato_paste', f."id", 'tomato paste', 'tomato paste', 'en', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"R160000","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'R160000'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-calcium', 'calcium', 'Calcium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 52 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R160000' AND n."key" = 'calcium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-carbohydrate', 'carbohydrate', 'Carbohydrate', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 17.9 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R160000' AND n."key" = 'carbohydrate'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-copper', 'copper', 'Copper', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.264 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R160000' AND n."key" = 'copper'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-energy_kcal', 'energy_kcal', 'Energy', 'kcal', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 81 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R160000' AND n."key" = 'energy_kcal'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-fiber', 'fiber', 'Fiber', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 4.7 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R160000' AND n."key" = 'fiber'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-iron', 'iron', 'Iron', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 3.146 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R160000' AND n."key" = 'iron'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-magnesium', 'magnesium', 'Magnesium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 44 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R160000' AND n."key" = 'magnesium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-manganese', 'manganese', 'Manganese', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 1.07 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R160000' AND n."key" = 'manganese'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-monounsaturated_fat', 'monounsaturated_fat', 'Monounsaturated fat', 'g', 'fat') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.02 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R160000' AND n."key" = 'monounsaturated_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-phosphorus', 'phosphorus', 'Phosphorus', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 64 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R160000' AND n."key" = 'phosphorus'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-polyunsaturated_fat', 'polyunsaturated_fat', 'Polyunsaturated fat', 'g', 'fat') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.08 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R160000' AND n."key" = 'polyunsaturated_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-potassium', 'potassium', 'Potassium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 1114 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R160000' AND n."key" = 'potassium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-protein', 'protein', 'Protein', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 3.4 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R160000' AND n."key" = 'protein'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-saturated_fat', 'saturated_fat', 'Saturated fat', 'g', 'fat') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.04 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R160000' AND n."key" = 'saturated_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-sodium', 'sodium', 'Sodium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 320 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R160000' AND n."key" = 'sodium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-sugar', 'sugar', 'Sugar', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 12.9 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R160000' AND n."key" = 'sugar'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-total_fat', 'total_fat', 'Total fat', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.2 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R160000' AND n."key" = 'total_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_a', 'vitamin_a', 'Vitamin A (RAE)', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 70 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R160000' AND n."key" = 'vitamin_a'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b1', 'vitamin_b1', 'Vitamin B1', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.54 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R160000' AND n."key" = 'vitamin_b1'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b12', 'vitamin_b12', 'Vitamin B12', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R160000' AND n."key" = 'vitamin_b12'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b2', 'vitamin_b2', 'Vitamin B2', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.09 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R160000' AND n."key" = 'vitamin_b2'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b3', 'vitamin_b3', 'Vitamin B3', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 2.5 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R160000' AND n."key" = 'vitamin_b3'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b5', 'vitamin_b5', 'Vitamin B5', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.11 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R160000' AND n."key" = 'vitamin_b5'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b6', 'vitamin_b6', 'Vitamin B6', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.23 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R160000' AND n."key" = 'vitamin_b6'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b7', 'vitamin_b7', 'Vitamin B7', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 6.3 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R160000' AND n."key" = 'vitamin_b7'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b9', 'vitamin_b9', 'Vitamin B9', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 39 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R160000' AND n."key" = 'vitamin_b9'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_c', 'vitamin_c', 'Vitamin C', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 67.54 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R160000' AND n."key" = 'vitamin_c'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_d', 'vitamin_d', 'Vitamin D', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R160000' AND n."key" = 'vitamin_d'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_e', 'vitamin_e', 'Vitamin E', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 10.8663 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R160000' AND n."key" = 'vitamin_e'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_k', 'vitamin_k', 'Vitamin K', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 3.4 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R160000' AND n."key" = 'vitamin_k'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-zinc', 'zinc', 'Zinc', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.46 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R160000' AND n."key" = 'zinc'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+-- R161200 Tomaten passiert/Tomatenpüree: 29 kcal, P 1.18, F 0.1, carbs(total) 5.75, fiber 1.81
+
+INSERT INTO "ketomentor"."Food" ("id", "name", "names", "synonyms", "source", "sourceId", "originalName", "category", "searchText", "provenance", "kcalPer100g", "fatPer100g", "proteinPer100g", "carbsPer100g", "fiberPer100g")
+VALUES ('bls-R161200', 'Tomaten passiert/Tomatenpüree', '{"de":"Tomaten passiert/Tomatenpüree","hu":"paradicsomlé / passata","en":"tomato passata"}'::jsonb, '{}'::jsonb, 'bls', 'R161200', 'Tomaten passiert/Tomatenpüree', 'Meat', 'tomaten passiert tomatenpuree tomaten passiert tomatenpuree de tomaten passiert tomatenpuree hu paradicsomle passata en tomato passata', '{"source":"Bundeslebensmittelschlüssel","version":"4.0 (2025)","sourceUrl":"https://blsdb.de/download","license":"CC-BY-4.0","attribution":"Max Rubner-Institut (2025): Bundeslebensmittelschlüssel (BLS), Version 4.0 - Deutsche Nährstoffdatenbank.","valuesPer":"100 g","carbohydrateBasis":"total_from_available_plus_fiber"}'::jsonb, 29, 0.1, 1.18, 5.75, 1.81)
+ON CONFLICT ("source", "sourceId") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-R161200-de-tomaten_passiert_tomatenpuree', f."id", 'Tomaten passiert/Tomatenpüree', 'tomaten passiert tomatenpuree', 'de', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"R161200","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'R161200'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-R161200-hu-paradicsomle_passata', f."id", 'paradicsomlé / passata', 'paradicsomle passata', 'hu', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"R161200","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'R161200'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-R161200-en-tomato_passata', f."id", 'tomato passata', 'tomato passata', 'en', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"R161200","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'R161200'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-calcium', 'calcium', 'Calcium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 17.83 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R161200' AND n."key" = 'calcium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-carbohydrate', 'carbohydrate', 'Carbohydrate', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 5.75 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R161200' AND n."key" = 'carbohydrate'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-copper', 'copper', 'Copper', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.0932 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R161200' AND n."key" = 'copper'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-energy_kcal', 'energy_kcal', 'Energy', 'kcal', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 29 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R161200' AND n."key" = 'energy_kcal'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-fiber', 'fiber', 'Fiber', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 1.81 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R161200' AND n."key" = 'fiber'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-iron', 'iron', 'Iron', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.60046 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R161200' AND n."key" = 'iron'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-magnesium', 'magnesium', 'Magnesium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 17.18 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R161200' AND n."key" = 'magnesium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-manganese', 'manganese', 'Manganese', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.09909000000000001 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R161200' AND n."key" = 'manganese'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-monounsaturated_fat', 'monounsaturated_fat', 'Monounsaturated fat', 'g', 'fat') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.01 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R161200' AND n."key" = 'monounsaturated_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-phosphorus', 'phosphorus', 'Phosphorus', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 25.22 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R161200' AND n."key" = 'phosphorus'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-polyunsaturated_fat', 'polyunsaturated_fat', 'Polyunsaturated fat', 'g', 'fat') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.04 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R161200' AND n."key" = 'polyunsaturated_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-potassium', 'potassium', 'Potassium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 229.01 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R161200' AND n."key" = 'potassium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-protein', 'protein', 'Protein', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 1.18 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R161200' AND n."key" = 'protein'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-saturated_fat', 'saturated_fat', 'Saturated fat', 'g', 'fat') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.02 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R161200' AND n."key" = 'saturated_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-sodium', 'sodium', 'Sodium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 124.29 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R161200' AND n."key" = 'sodium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-sugar', 'sugar', 'Sugar', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 3.6 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R161200' AND n."key" = 'sugar'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-total_fat', 'total_fat', 'Total fat', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.1 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R161200' AND n."key" = 'total_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_a', 'vitamin_a', 'Vitamin A (RAE)', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 43 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R161200' AND n."key" = 'vitamin_a'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b1', 'vitamin_b1', 'Vitamin B1', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.069 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R161200' AND n."key" = 'vitamin_b1'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b12', 'vitamin_b12', 'Vitamin B12', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R161200' AND n."key" = 'vitamin_b12'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b2', 'vitamin_b2', 'Vitamin B2', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.06 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R161200' AND n."key" = 'vitamin_b2'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b3', 'vitamin_b3', 'Vitamin B3', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 1.38 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R161200' AND n."key" = 'vitamin_b3'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b5', 'vitamin_b5', 'Vitamin B5', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.44 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R161200' AND n."key" = 'vitamin_b5'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b6', 'vitamin_b6', 'Vitamin B6', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.153 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R161200' AND n."key" = 'vitamin_b6'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b7', 'vitamin_b7', 'Vitamin B7', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 3.6 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R161200' AND n."key" = 'vitamin_b7'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b9', 'vitamin_b9', 'Vitamin B9', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 33 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R161200' AND n."key" = 'vitamin_b9'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_c', 'vitamin_c', 'Vitamin C', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 9 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R161200' AND n."key" = 'vitamin_c'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_d', 'vitamin_d', 'Vitamin D', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R161200' AND n."key" = 'vitamin_d'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_e', 'vitamin_e', 'Vitamin E', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 2.3 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R161200' AND n."key" = 'vitamin_e'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_k', 'vitamin_k', 'Vitamin K', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 3.4 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R161200' AND n."key" = 'vitamin_k'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-zinc', 'zinc', 'Zinc', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.16578 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'R161200' AND n."key" = 'zinc'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+-- M505600 Trappistenkäse mind. 45 % Fett i. Tr.: 345 kcal, P 25.1, F 26.8, carbs(total) 0.01, fiber 0
+
+INSERT INTO "ketomentor"."Food" ("id", "name", "names", "synonyms", "source", "sourceId", "originalName", "category", "searchText", "provenance", "kcalPer100g", "fatPer100g", "proteinPer100g", "carbsPer100g", "fiberPer100g")
+VALUES ('bls-M505600', 'Trappistenkäse mind. 45 % Fett i. Tr.', '{"de":"Trappistenkäse mind. 45 % Fett i. Tr.","hu":"trappista sajt","en":"Trappist cheese"}'::jsonb, '{}'::jsonb, 'bls', 'M505600', 'Trappistenkäse mind. 45 % Fett i. Tr.', 'Dairy', 'trappistenkase mind 45 fett i tr trappistenkase mind 45 fett i tr de trappistenkase mind 45 fett i tr hu trappista sajt en trappist cheese', '{"source":"Bundeslebensmittelschlüssel","version":"4.0 (2025)","sourceUrl":"https://blsdb.de/download","license":"CC-BY-4.0","attribution":"Max Rubner-Institut (2025): Bundeslebensmittelschlüssel (BLS), Version 4.0 - Deutsche Nährstoffdatenbank.","valuesPer":"100 g","carbohydrateBasis":"total_from_available_plus_fiber"}'::jsonb, 345, 26.8, 25.1, 0.01, 0)
+ON CONFLICT ("source", "sourceId") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-M505600-de-trappistenkase_mind_45_fett_i_tr', f."id", 'Trappistenkäse mind. 45 % Fett i. Tr.', 'trappistenkase mind 45 fett i tr', 'de', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"M505600","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'M505600'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-M505600-hu-trappista_sajt', f."id", 'trappista sajt', 'trappista sajt', 'hu', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"M505600","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'M505600'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-M505600-en-trappist_cheese', f."id", 'Trappist cheese', 'trappist cheese', 'en', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"M505600","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'M505600'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-calcium', 'calcium', 'Calcium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 750 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'M505600' AND n."key" = 'calcium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-carbohydrate', 'carbohydrate', 'Carbohydrate', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.01 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'M505600' AND n."key" = 'carbohydrate'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-copper', 'copper', 'Copper', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.1 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'M505600' AND n."key" = 'copper'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-energy_kcal', 'energy_kcal', 'Energy', 'kcal', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 345 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'M505600' AND n."key" = 'energy_kcal'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-fiber', 'fiber', 'Fiber', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'M505600' AND n."key" = 'fiber'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-iron', 'iron', 'Iron', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.4 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'M505600' AND n."key" = 'iron'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-magnesium', 'magnesium', 'Magnesium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 37 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'M505600' AND n."key" = 'magnesium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-manganese', 'manganese', 'Manganese', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.04 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'M505600' AND n."key" = 'manganese'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-monounsaturated_fat', 'monounsaturated_fat', 'Monounsaturated fat', 'g', 'fat') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 8 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'M505600' AND n."key" = 'monounsaturated_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-phosphorus', 'phosphorus', 'Phosphorus', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 500 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'M505600' AND n."key" = 'phosphorus'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-polyunsaturated_fat', 'polyunsaturated_fat', 'Polyunsaturated fat', 'g', 'fat') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 1.1 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'M505600' AND n."key" = 'polyunsaturated_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-potassium', 'potassium', 'Potassium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 100 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'M505600' AND n."key" = 'potassium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-protein', 'protein', 'Protein', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 25.1 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'M505600' AND n."key" = 'protein'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-saturated_fat', 'saturated_fat', 'Saturated fat', 'g', 'fat') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 14 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'M505600' AND n."key" = 'saturated_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-sodium', 'sodium', 'Sodium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 600 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'M505600' AND n."key" = 'sodium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-sugar', 'sugar', 'Sugar', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'M505600' AND n."key" = 'sugar'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-total_fat', 'total_fat', 'Total fat', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 26.8 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'M505600' AND n."key" = 'total_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_a', 'vitamin_a', 'Vitamin A (RAE)', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 313 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'M505600' AND n."key" = 'vitamin_a'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b1', 'vitamin_b1', 'Vitamin B1', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.04 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'M505600' AND n."key" = 'vitamin_b1'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b12', 'vitamin_b12', 'Vitamin B12', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 2 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'M505600' AND n."key" = 'vitamin_b12'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b2', 'vitamin_b2', 'Vitamin B2', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.35 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'M505600' AND n."key" = 'vitamin_b2'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b3', 'vitamin_b3', 'Vitamin B3', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.1 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'M505600' AND n."key" = 'vitamin_b3'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b5', 'vitamin_b5', 'Vitamin B5', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.5 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'M505600' AND n."key" = 'vitamin_b5'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b6', 'vitamin_b6', 'Vitamin B6', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.06 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'M505600' AND n."key" = 'vitamin_b6'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b7', 'vitamin_b7', 'Vitamin B7', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 2 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'M505600' AND n."key" = 'vitamin_b7'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b9', 'vitamin_b9', 'Vitamin B9', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 30 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'M505600' AND n."key" = 'vitamin_b9'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_c', 'vitamin_c', 'Vitamin C', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 1 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'M505600' AND n."key" = 'vitamin_c'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_d', 'vitamin_d', 'Vitamin D', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.54 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'M505600' AND n."key" = 'vitamin_d'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_e', 'vitamin_e', 'Vitamin E', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.8 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'M505600' AND n."key" = 'vitamin_e'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_k', 'vitamin_k', 'Vitamin K', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 15.85 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'M505600' AND n."key" = 'vitamin_k'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-zinc', 'zinc', 'Zinc', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 3.8 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'M505600' AND n."key" = 'zinc'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+-- G482100 Frühlingszwiebel/Lauchzwiebel, roh: 27 kcal, P 1.9, F 0.19, carbs(total) 5.6, fiber 2.6
+
+INSERT INTO "ketomentor"."Food" ("id", "name", "names", "synonyms", "source", "sourceId", "originalName", "category", "searchText", "provenance", "kcalPer100g", "fatPer100g", "proteinPer100g", "carbsPer100g", "fiberPer100g")
+VALUES ('bls-G482100', 'Frühlingszwiebel/Lauchzwiebel, roh', '{"de":"Frühlingszwiebel/Lauchzwiebel, roh","hu":"újhagyma","en":"spring onion"}'::jsonb, '{}'::jsonb, 'bls', 'G482100', 'Frühlingszwiebel/Lauchzwiebel, roh', 'Vegetables', 'fruhlingszwiebel lauchzwiebel roh fruhlingszwiebel lauchzwiebel roh de fruhlingszwiebel lauchzwiebel roh hu ujhagyma en spring onion', '{"source":"Bundeslebensmittelschlüssel","version":"4.0 (2025)","sourceUrl":"https://blsdb.de/download","license":"CC-BY-4.0","attribution":"Max Rubner-Institut (2025): Bundeslebensmittelschlüssel (BLS), Version 4.0 - Deutsche Nährstoffdatenbank.","valuesPer":"100 g","carbohydrateBasis":"total_from_available_plus_fiber"}'::jsonb, 27, 0.19, 1.9, 5.6, 2.6)
+ON CONFLICT ("source", "sourceId") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-G482100-de-fruhlingszwiebel_lauchzwiebel_roh', f."id", 'Frühlingszwiebel/Lauchzwiebel, roh', 'fruhlingszwiebel lauchzwiebel roh', 'de', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"G482100","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'G482100'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-G482100-hu-ujhagyma', f."id", 'újhagyma', 'ujhagyma', 'hu', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"G482100","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'G482100'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
+SELECT 'bls-G482100-en-spring_onion', f."id", 'spring onion', 'spring onion', 'en', 'localized_name', 1, '{"method":"curated_import","source":"bls","sourceId":"G482100","via":"reviewed_migration_regional_hu"}'::jsonb
+FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'G482100'
+ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-calcium', 'calcium', 'Calcium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 56 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'G482100' AND n."key" = 'calcium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-carbohydrate', 'carbohydrate', 'Carbohydrate', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 5.6 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'G482100' AND n."key" = 'carbohydrate'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-copper', 'copper', 'Copper', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.044 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'G482100' AND n."key" = 'copper'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-energy_kcal', 'energy_kcal', 'Energy', 'kcal', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 27 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'G482100' AND n."key" = 'energy_kcal'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-fiber', 'fiber', 'Fiber', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 2.6 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'G482100' AND n."key" = 'fiber'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-iron', 'iron', 'Iron', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 1.69 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'G482100' AND n."key" = 'iron'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-magnesium', 'magnesium', 'Magnesium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 16 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'G482100' AND n."key" = 'magnesium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-manganese', 'manganese', 'Manganese', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.26 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'G482100' AND n."key" = 'manganese'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-monounsaturated_fat', 'monounsaturated_fat', 'Monounsaturated fat', 'g', 'fat') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'G482100' AND n."key" = 'monounsaturated_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-phosphorus', 'phosphorus', 'Phosphorus', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 33 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'G482100' AND n."key" = 'phosphorus'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-polyunsaturated_fat', 'polyunsaturated_fat', 'Polyunsaturated fat', 'g', 'fat') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'G482100' AND n."key" = 'polyunsaturated_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-potassium', 'potassium', 'Potassium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 268 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'G482100' AND n."key" = 'potassium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-protein', 'protein', 'Protein', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 1.9 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'G482100' AND n."key" = 'protein'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-saturated_fat', 'saturated_fat', 'Saturated fat', 'g', 'fat') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.032 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'G482100' AND n."key" = 'saturated_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-sodium', 'sodium', 'Sodium', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 12 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'G482100' AND n."key" = 'sodium'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-sugar', 'sugar', 'Sugar', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 2.8 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'G482100' AND n."key" = 'sugar'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-total_fat', 'total_fat', 'Total fat', 'g', 'macro') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.19 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'G482100' AND n."key" = 'total_fat'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_a', 'vitamin_a', 'Vitamin A (RAE)', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 52 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'G482100' AND n."key" = 'vitamin_a'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b1', 'vitamin_b1', 'Vitamin B1', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.05 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'G482100' AND n."key" = 'vitamin_b1'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b12', 'vitamin_b12', 'Vitamin B12', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'G482100' AND n."key" = 'vitamin_b12'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b2', 'vitamin_b2', 'Vitamin B2', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.06 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'G482100' AND n."key" = 'vitamin_b2'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b3', 'vitamin_b3', 'Vitamin B3', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.5 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'G482100' AND n."key" = 'vitamin_b3'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b5', 'vitamin_b5', 'Vitamin B5', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.07 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'G482100' AND n."key" = 'vitamin_b5'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b6', 'vitamin_b6', 'Vitamin B6', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.1 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'G482100' AND n."key" = 'vitamin_b6'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b7', 'vitamin_b7', 'Vitamin B7', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 3 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'G482100' AND n."key" = 'vitamin_b7'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_b9', 'vitamin_b9', 'Vitamin B9', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 89 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'G482100' AND n."key" = 'vitamin_b9'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_c', 'vitamin_c', 'Vitamin C', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 22 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'G482100' AND n."key" = 'vitamin_c'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_d', 'vitamin_d', 'Vitamin D', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'G482100' AND n."key" = 'vitamin_d'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_e', 'vitamin_e', 'Vitamin E', 'mg', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.35 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'G482100' AND n."key" = 'vitamin_e'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-vitamin_k', 'vitamin_k', 'Vitamin K', 'ug', 'vitamin') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 54 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'G482100' AND n."key" = 'vitamin_k'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
+
+INSERT INTO "ketomentor"."Nutrient" ("id", "key", "label", "unit", "group") VALUES ('nutrient-zinc', 'zinc', 'Zinc', 'mg', 'mineral') ON CONFLICT ("key") DO NOTHING;
+INSERT INTO "ketomentor"."FoodNutrient" ("foodId", "nutrientId", "amountPer100g")
+SELECT f."id", n."id", 0.18 FROM "ketomentor"."Food" f, "ketomentor"."Nutrient" n
+WHERE f."source" = 'bls' AND f."sourceId" = 'G482100' AND n."key" = 'zinc'
+ON CONFLICT ("foodId", "nutrientId") DO NOTHING;

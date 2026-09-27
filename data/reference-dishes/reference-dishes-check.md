@@ -19,6 +19,31 @@
 | Székelykáposzta | 3457 | -250 | 3207 | 0.928 | 1.026 | 114.9 | 8.5 | 6.3 | 1.9 | – |
 | Palócleves | 3075.7 | -150 | 2925.7 | 0.951 | 1.011 | 73.3 | 5.4 | 2.7 | 3.1 | – |
 | Jókai-bableves | 3654 | +150 | 3804 | 1.041 | 1.036 | 88.3 | 2.6 | 6.4 | 8.1 | – |
+| Marhapörkölt | 4350.5 | -1250 | 3100.5 | 0.713 | 1.008 | 123.4 | 4.8 | 15.1 | 3.3 | – |
+| Csirkepörkölt | 1688.0 | -250 | 1438.0 | 0.852 | 1.031 | 175.8 | 12.5 | 13.9 | 1.4 | – |
+| Birkapörkölt | 1839.5 | -650 | 1189.5 | 0.647 | 1.04 | 189.1 | 12.4 | 17.4 | 1.4 | – |
+| Vadpörkölt (vaddisznó) | 2492 | -650 | 1842 | 0.739 | 1.039 | 156.5 | 9.1 | 17.1 | 1.1 | – |
+| Pacalpörkölt | 1543 | -300 | 1243 | 0.806 | 1.025 | 119.7 | 7.6 | 11.2 | 1.0 | – |
+| Csülökpörkölt | 1835.5 | -680 | 1155.5 | 0.63 | 1.041 | 195.5 | 11.8 | 18.7 | 2.8 | – |
+| Harcsapaprikás | 1489.5 | -350 | 1139.5 | 0.765 | 1.025 | 184.1 | 14.1 | 10.5 | 3.4 | – |
+| Bakonyi sertésszelet (mártással) | 2288.5 | -600 | 1688.5 | 0.738 | 1.003 | 156.6 | 10.3 | 12.4 | 2.5 | – |
+| Vadas marha (hús vadasmártással) | 3129.8 | -550 | 2579.8 | 0.824 | 1.016 | 97.5 | 5.1 | 7.7 | 4.6 | – |
+| Tokány (erdélyi marhatokány) | 1520 | -450 | 1070 | 0.704 | 1.046 | 135.9 | 6.5 | 17.1 | 1.8 | – |
+| Brassói aprópecsenye | 1522.5 | -350 | 1172.5 | 0.77 | 0.7 | 198.3 | 13.2 | 9.3 | 9.3 | – |
+| Cigánypecsenye (tarja sült szalonnával) | 1599 | -420 | 1179 | 0.737 | 0.9 | 300.1 | 22.3 | 24.1 | 0.3 | – |
+| Fasírt | 1115 | -150 | 965 | 0.865 | 0.85 | 267.8 | 19.1 | 12.5 | 10.6 | – |
+| Töltött paprika (paradicsomszósszal) | 1711 | -100 | 1611 | 0.942 | 1.024 | 115.3 | 5.4 | 5.2 | 10.0 | – |
+| Rakott kel | 2204.5 | -150 | 2054.5 | 0.932 | 1.012 | 150.8 | 9.8 | 6.6 | 8.2 | – |
+| Rakott karfiol | 2992 | -200 | 2792 | 0.933 | 1.015 | 144.2 | 8.9 | 5.9 | 10.0 | – |
+| Rakott zöldbab | 1413.5 | -150 | 1263.5 | 0.894 | 1.017 | 131.4 | 9.6 | 6.4 | 4.3 | – |
+| Paprikás krumpli | 2341.5 | -100 | 2241.5 | 0.957 | 1.049 | 118.6 | 5.6 | 3.2 | 13.1 | – |
+| Rizses hús | 2452.5 | -600 | 1852.5 | 0.755 | 0.85 | 163.5 | 8.7 | 8.8 | 11.4 | – |
+| Tarhonyás hús | 3745.7 | -650 | 3095.7 | 0.826 | 0.8 | 115.9 | 2.9 | 9.9 | 11.9 | – |
+| Rántott sajt (trappista) | 560 | -30 | 530 | 0.946 | 0.95 | 379.3 | 27.1 | 20.5 | 12.4 | – |
+| Sült oldalas | 918 | -400 | 518 | 0.564 | 0.8 | 207.9 | 14.0 | 17.7 | 2.3 | – |
+| Sült csülök | 2665 | -900 | 1765 | 0.662 | 0.9 | 302.2 | 19.3 | 31.4 | 0.7 | – |
+| Tepsis csirke (sült csirkedarabok) | 746 | -175 | 571 | 0.765 | 0.8 | 300.5 | 23.4 | 22.5 | 0.0 | – |
+| Gombapaprikás | 1524.5 | -350 | 1174.5 | 0.77 | 0.996 | 128.9 | 10.1 | 4.0 | 5.5 | – |
 | Hortobágyi palacsinta | 3545.5 | -800 | 2745.5 | 0.774 | 1.02 | 187.7 | 14.1 | 8.7 | 6.4 | – |
 | Túrós csusza | 1558 | +420 | 1978 | 1.27 | 0.7 | 175.1 | 8.7 | 8.5 | 15.3 | – |
 | Káposztás tészta | 1573 | +200 | 1773 | 1.127 | 0.65 | 149.3 | 4.3 | 4.5 | 21.7 | – |
@@ -77,6 +102,31 @@ Számolt érték a katalógusrekordokból vs. egy nyilvános referencia (pl. BLS
 | Székelykáposzta | nincs még | – | – | – | – | – |
 | Palócleves | nincs még | – | – | – | – | – |
 | Jókai-bableves | nincs még | – | – | – | – | – |
+| marhapörkölt | bls:Y1A1000 Gulasch (mit Rindfleisch) | 123 / 124 | 4.8 / 5.9 | 15.1 / 12.95 | 3.3 / 4.2 | -0% rendben |
+| csirkepörkölt | nincs még | – | – | – | – | – |
+| birkapörkölt | bls:Y441133 Hammelgulasch | 189 / 254 | 12.4 / 23.3 | 17.4 / 6.6 | 1.4 / 4.0 | -26% ELLENŐRIZENDŐ |
+| vadpörkölt | nincs még | – | – | – | – | – |
+| pacalpörkölt | nincs még | – | – | – | – | – |
+| csülökpörkölt | nincs még | – | – | – | – | – |
+| harcsapaprikás | nincs még | – | – | – | – | – |
+| bakonyi sertésszelet | nincs még | – | – | – | – | – |
+| vadas marha | nincs még | – | – | – | – | – |
+| tokány | nincs még | – | – | – | – | – |
+| brassói aprópecsenye | nincs még | – | – | – | – | – |
+| cigánypecsenye | nincs még | – | – | – | – | – |
+| fasírt | bls:Y396512 Frikadellen aus Schweinefleisch gebraten | 268 / 297 | 19.1 / 21.44 | 12.5 / 17.24 | 10.6 / 8.41 | -10% rendben |
+| töltött paprika | nincs még | – | – | – | – | – |
+| rakott kel | nincs még | – | – | – | – | – |
+| rakott karfiol | nincs még | – | – | – | – | – |
+| rakott zöldbab | nincs még | – | – | – | – | – |
+| paprikás krumpli | nincs még | – | – | – | – | – |
+| rizses hús | bls:X890733 Pilaw, Serbisches Reisfleisch | 164 / 191 | 8.7 / 11.6 | 8.8 / 6.9 | 11.4 / 14.0 | -14% rendben |
+| tarhonyás hús | nincs még | – | – | – | – | – |
+| rántott sajt | nincs még | – | – | – | – | – |
+| sült oldalas | nincs még | – | – | – | – | – |
+| sült csülök | bls:Y362012 Schweinshaxe geschmort, ohne Sauce | 302 / 300 | 19.3 / 20.15 | 31.4 / 29.71 | 0.7 / 0.02 | +1% rendben |
+| tepsis csirke | nincs még | – | – | – | – | – |
+| gombapaprikás | nincs még | – | – | – | – | – |
 | hortobágyi palacsinta | nincs még | – | – | – | – | – |
 | túrós csusza | nincs még | – | – | – | – | – |
 | káposztás tészta | nincs még | – | – | – | – | – |
@@ -135,6 +185,31 @@ Mély tányér: kapacitás × töltöttség × sűrűség. Lapos tányér: 0,8 �
 | Székelykáposzta | HU | traditional | 450 | 346 | 500 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | Palócleves | HU | traditional | 450 | 341 | 493 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | Jókai-bableves | HU | traditional | 450 | 350 | 505 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| marhapörkölt | HU | traditional | 300 | 340 | 491 | 263 | 308 | 358 |
+| csirkepörkölt | HU | traditional | 300 | 348 | 503 | 269 | 315 | 366 |
+| birkapörkölt | HU | traditional | 300 | 351 | 507 | 271 | 318 | 369 |
+| vadpörkölt | HU | traditional | 300 | 351 | 507 | 271 | 318 | 369 |
+| pacalpörkölt | HU | traditional | 300 | 346 | 500 | 267 | 313 | 364 |
+| csülökpörkölt | HU | traditional | 300 | 351 | 507 | 271 | 318 | 369 |
+| harcsapaprikás | HU | traditional | 300 | 346 | 500 | 267 | 313 | 364 |
+| bakonyi sertésszelet | HU | traditional | 400 | 339 | 489 | 319 | 375 | 435 |
+| vadas marha | HU | traditional | 400 | 343 | 495 | 324 | 380 | 440 |
+| tokány | HU | traditional | 300 | 353 | 510 | 273 | 320 | 371 |
+| brassói aprópecsenye | HU | traditional | 350 | – (lapos tányéros étel) | – (lapos tányéros étel) | 253 | 297 | 345 |
+| cigánypecsenye | HU | traditional | 300 | – (lapos tányéros étel) | – (lapos tányéros étel) | 208 | 245 | 284 |
+| fasírt | HU | traditional | 180 | – (lapos tányéros étel) | – (lapos tányéros étel) | 185 | 217 | 251 |
+| töltött paprika | HU | traditional | 400 | 346 | 499 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| rakott kel | HU | traditional | 350 | 342 | 493 | 328 | 385 | 447 |
+| rakott karfiol | HU | traditional | 400 | 343 | 495 | 360 | 422 | 490 |
+| rakott zöldbab | HU | traditional | 400 | 343 | 496 | 353 | 415 | 481 |
+| paprikás krumpli | HU | traditional | 450 | 354 | 511 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| rizses hús | HU | traditional | 400 | – (lapos tányéros étel) | – (lapos tányéros étel) | 277 | 325 | 377 |
+| tarhonyás hús | HU | traditional | 400 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| rántott sajt | HU | traditional | 250 | – (lapos tányéros étel) | – (lapos tányéros étel) | 182 | 213 | 247 |
+| sült oldalas | HU | traditional | 250 | – (lapos tányéros étel) | – (lapos tányéros étel) | 278 | 326 | 378 |
+| sült csülök | HU | traditional | 450 | – (lapos tányéros étel) | – (lapos tányéros étel) | 521 | 612 | 709 |
+| tepsis csirke | HU | traditional | 250 | – (lapos tányéros étel) | – (lapos tányéros étel) | 324 | 381 | 441 |
+| gombapaprikás | HU | traditional | 300 | 336 | 486 | 260 | 305 | 353 |
 | hortobágyi palacsinta | HU | traditional | 350 | 344 | 497 | 301 | 354 | 410 |
 | túrós csusza | HU | traditional | 400 | – (lapos tányéros étel) | – (lapos tányéros étel) | 340 | 400 | 463 |
 | káposztás tészta | HU | traditional | 350 | – (lapos tányéros étel) | – (lapos tányéros étel) | 299 | 351 | 407 |
