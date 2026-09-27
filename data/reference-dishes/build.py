@@ -410,6 +410,13 @@ def emit_missing_foods(dishes_json):
             if k != "water" and catalog_ref(k) is None:
                 for c in d["countries"]:
                     per_country[c].append({"food_key": k, "names": {"hu": FOOD_KEYS[k][0], "de": FOOD_KEYS[k][1], "en": FOOD_KEYS[k][2]}, "needed_for": [d["id"]], "note": "no catalog record linked in foods.py"})
+    # Inventory identities are intentionally not promoted to recipes until a
+    # reviewed PARTS definition and authoritative ingredient mapping exists.
+    # Keep them visible in the generated gap report instead of inventing food
+    # weights or nutrition values.
+    for category, names in INVENTORY.get("HU", {}).items():
+        for name in names:
+            per_country["HU"].append({"food_key": "inventory-only", "names": {"hu": name}, "needed_for": [category], "note": "inventory identity; recipe/ingredient mapping still required"})
     for c, rows in per_country.items():
         lines = [f"# Hiányzó katalógusrekordok – {c} (generált)", "",
                  "Ezekhez az ételrészekhez nincs ellenőrzött katalógusrekord. Nem helyettesíthetők hasonlóval;",
