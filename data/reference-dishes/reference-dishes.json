@@ -438,6 +438,54 @@
       "carb_basis": "total",
       "density_intrinsic_g_ml": 1.05,
       "density_bulk_g_ml": 1.05
+    },
+    "green_bean_missing": {
+      "names": {
+        "hu": "zöldbab",
+        "de": "Grüne Bohnen",
+        "en": "green beans"
+      },
+      "catalog": "",
+      "carb_basis": "none",
+      "density_intrinsic_g_ml": 1.0,
+      "density_bulk_g_ml": 0.75,
+      "note": "MISSING_FOODS: authoritative BLS record required"
+    },
+    "white_bean_missing": {
+      "names": {
+        "hu": "fehérbab",
+        "de": "weiße Bohnen",
+        "en": "white beans"
+      },
+      "catalog": "",
+      "carb_basis": "none",
+      "density_intrinsic_g_ml": 1.0,
+      "density_bulk_g_ml": 0.75,
+      "note": "MISSING_FOODS: authoritative BLS record required"
+    },
+    "tarragon_missing": {
+      "names": {
+        "hu": "tárkony",
+        "de": "Estragon",
+        "en": "tarragon"
+      },
+      "catalog": "",
+      "carb_basis": "none",
+      "density_intrinsic_g_ml": 1.0,
+      "density_bulk_g_ml": 0.3,
+      "note": "MISSING_FOODS: authoritative BLS record required"
+    },
+    "lemon_missing": {
+      "names": {
+        "hu": "citrom",
+        "de": "Zitrone",
+        "en": "lemon"
+      },
+      "catalog": "",
+      "carb_basis": "none",
+      "density_intrinsic_g_ml": 0.99,
+      "density_bulk_g_ml": 0.99,
+      "note": "MISSING_FOODS: authoritative BLS record required"
     }
   },
   "parts": {
@@ -1566,6 +1614,227 @@
         "incomplete_missing_food_keys": []
       }
     },
+    "palocleves": {
+      "id": "palocleves",
+      "names": {
+        "hu": "Palócleves",
+        "de": "Palóc-Suppe",
+        "en": "Palóc soup"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 5,
+        "ingredients": [
+          {
+            "food_key": "pork_shoulder",
+            "raw_g": 300,
+            "role": "core"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 120,
+            "role": "core"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 25,
+            "role": "fat"
+          },
+          {
+            "food_key": "paprika_ground",
+            "raw_g": 8,
+            "role": "seasoning"
+          },
+          {
+            "food_key": "wax_pepper",
+            "raw_g": 100,
+            "role": "core"
+          },
+          {
+            "food_key": "tomato",
+            "raw_g": 120,
+            "role": "core"
+          },
+          {
+            "food_key": "green_bean_missing",
+            "raw_g": 300,
+            "role": "core"
+          },
+          {
+            "food_key": "potato",
+            "raw_g": 200,
+            "role": "core"
+          },
+          {
+            "food_key": "sour_cream",
+            "raw_g": 300,
+            "role": "thickener"
+          },
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 20,
+            "role": "thickener"
+          },
+          {
+            "food_key": "tarragon_missing",
+            "raw_g": 3,
+            "role": "seasoning"
+          },
+          {
+            "food_key": "lemon_missing",
+            "raw_g": 15,
+            "role": "seasoning"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 1700,
+            "role": "liquid"
+          }
+        ],
+        "raw_total_g": 3211,
+        "cooking": {
+          "method": "covered simmer until tender",
+          "mass_change_g": -180,
+          "note": "water yield is derived; unresolved food keys intentionally block seed"
+        },
+        "finished_weight_g": 3031,
+        "yield_factor": 0.944
+      },
+      "standard_serving_g": 450,
+      "density_g_per_ml": 1.011,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/tarkonyos-palocleves",
+          "retrieved": "2026-09-27"
+        },
+        {
+          "url": "https://www.mindmegette.hu/egytaletel/palocleves-mikszath-kedvence",
+          "retrieved": "2026-09-27"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 61.4,
+          "fat": 4.4,
+          "protein": 2.3,
+          "net_carbs": 2.7
+        },
+        "incomplete_missing_food_keys": [
+          "green_bean_missing",
+          "tarragon_missing",
+          "lemon_missing"
+        ]
+      }
+    },
+    "jokai_bableves": {
+      "id": "jokai_bableves",
+      "names": {
+        "hu": "Jókai-bableves",
+        "de": "Jókai-Bohnensuppe",
+        "en": "Jókai bean soup"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 6,
+        "ingredients": [
+          {
+            "food_key": "smoked_bacon",
+            "raw_g": 120,
+            "role": "core"
+          },
+          {
+            "food_key": "smoked_sausage",
+            "raw_g": 250,
+            "role": "core"
+          },
+          {
+            "food_key": "pork_shoulder",
+            "raw_g": 400,
+            "role": "core"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 150,
+            "role": "core"
+          },
+          {
+            "food_key": "white_bean_missing",
+            "raw_g": 500,
+            "role": "core"
+          },
+          {
+            "food_key": "carrot",
+            "raw_g": 250,
+            "role": "core"
+          },
+          {
+            "food_key": "parsley_root",
+            "raw_g": 120,
+            "role": "core"
+          },
+          {
+            "food_key": "celeriac",
+            "raw_g": 100,
+            "role": "core"
+          },
+          {
+            "food_key": "sour_cream",
+            "raw_g": 250,
+            "role": "thickener"
+          },
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 20,
+            "role": "thickener"
+          },
+          {
+            "food_key": "paprika_ground",
+            "raw_g": 8,
+            "role": "seasoning"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 2600,
+            "role": "liquid"
+          }
+        ],
+        "raw_total_g": 4768,
+        "cooking": {
+          "method": "soak beans and simmer until tender",
+          "mass_change_g": -300,
+          "note": "white bean catalog identity unresolved; seed will skip this dish"
+        },
+        "finished_weight_g": 4468,
+        "yield_factor": 0.937
+      },
+      "standard_serving_g": 450,
+      "density_g_per_ml": 1.009,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/alapetelek/leves-gulyas-csorbaleves-husgombocleves-tarkonyos-csirke-krumplileves-bableves-eroleves",
+          "retrieved": "2026-09-27"
+        },
+        {
+          "url": "https://www.mindmegette.hu/alapetelek/11-kiados-magyaros-leves-ami-foetelnek-is-beillik/",
+          "retrieved": "2026-09-27"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 66.7,
+          "fat": 4.9,
+          "protein": 3.7,
+          "net_carbs": 1.7
+        },
+        "incomplete_missing_food_keys": [
+          "white_bean_missing"
+        ]
+      }
+    },
     "schweinsbraten": {
       "id": "schweinsbraten",
       "names": {
@@ -2283,6 +2552,78 @@
       "parts": [
         {
           "part": "szekelykaposzta",
+          "standard_serving_g": 450
+        }
+      ]
+    },
+    {
+      "id": "hu_palocleves",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "Palócleves",
+        "de": "Palóc-Suppe",
+        "en": "Palóc soup"
+      },
+      "aliases": {
+        "hu": [
+          "palócleves",
+          "palóc leves"
+        ],
+        "de": [
+          "palóc suppe"
+        ],
+        "de-AT": [],
+        "en": [
+          "paloc soup"
+        ]
+      },
+      "tags": [
+        "soup",
+        "traditional"
+      ],
+      "served_in": "deep_plate",
+      "parts": [
+        {
+          "part": "palocleves",
+          "standard_serving_g": 450
+        }
+      ]
+    },
+    {
+      "id": "hu_jokai_bableves",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "Jókai-bableves",
+        "de": "Jókai-Bohnensuppe",
+        "en": "Jókai bean soup"
+      },
+      "aliases": {
+        "hu": [
+          "Jókai-bableves",
+          "jokai bableves"
+        ],
+        "de": [
+          "Jókai-Bohnensuppe"
+        ],
+        "de-AT": [],
+        "en": [
+          "Jokai bean soup"
+        ]
+      },
+      "tags": [
+        "soup",
+        "traditional"
+      ],
+      "served_in": "deep_plate",
+      "parts": [
+        {
+          "part": "jokai_bableves",
           "standard_serving_g": 450
         }
       ]

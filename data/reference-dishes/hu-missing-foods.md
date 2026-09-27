@@ -5,6 +5,10 @@ a hivatalos forrásból (BLS xlsx, `BlsAdapter`) külön migrációban kell impo
 
 | food_key | Név | Kell ehhez | Megjegyzés |
 |---|---|---|---|
+| `green_bean_missing` | zöldbab / Grüne Bohnen / green beans | hu_palocleves | no catalog record linked in foods.py |
+| `lemon_missing` | citrom / Zitrone / lemon | hu_palocleves | no catalog record linked in foods.py |
+| `tarragon_missing` | tárkony / Estragon / tarragon | hu_palocleves | no catalog record linked in foods.py |
+| `white_bean_missing` | fehérbab / weiße Bohnen / white beans | hu_jokai_bableves | no catalog record linked in foods.py |
 | `inventory-only` | bajai halászlé | traditional | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | tiszai halászlé | traditional | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | újházi tyúkhúsleves | traditional | inventory identity; recipe/ingredient mapping still required |

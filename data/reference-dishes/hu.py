@@ -1,5 +1,5 @@
 """Hungary (HU): reference dishes. The 10 pilot dishes (2026-09-26)."""
-from common import ing, srcs
+from common import ing, src, srcs
 
 # The pilot sources were read when the pilot was built (commit ac4416d).
 PILOT_RETRIEVED = "2026-09-26"
