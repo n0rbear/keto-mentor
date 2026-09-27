@@ -55,8 +55,8 @@ FOOD_KEYS = {
     "wheat_roll":          ("zsemle", "Weizenbrötchen / Semmel", "white bread roll", "bls:B511000", "total", 280, 1.81, 10.09, 57.57, 3.6, 0.25, 0.25, "density = whole roll (airy crumb); carbs stored as total"),
     "leberkaese":          ("leberkäse (sütött hússajt)", "Leberkäse / Fleischkäse", "Leberkäse (baked meat loaf)", "bls:W233000", "total", 282, 24.9, 13.5, 0.57, 0, 1.00, 1.00, "BLS Fleischkäse einfach, fein / Bayerischer Leberkäse"),
     "mustard":             ("mustár", "Senf mittelscharf", "mustard", "bls:R132000", "total", 111, 6.96, 5.51, 7.44, 4.5, 1.05, 1.05, None),
-    "green_bean_missing":  ("zöldbab", "Grüne Bohnen", "green beans", "", "none", None, None, None, None, None, 1.0, 0.75, "MISSING_FOODS: authoritative BLS record required"),
-    "white_bean_missing":  ("fehérbab", "weiße Bohnen", "white beans", "", "none", None, None, None, None, None, 1.0, 0.75, "MISSING_FOODS: authoritative BLS record required"),
-    "tarragon_missing":    ("tárkony", "Estragon", "tarragon", "", "none", None, None, None, None, None, 1.0, 0.30, "MISSING_FOODS: authoritative BLS record required"),
-    "lemon_missing":       ("citrom", "Zitrone", "lemon", "", "none", None, None, None, None, None, 0.99, 0.99, "MISSING_FOODS: authoritative BLS record required"),
+    "green_bean":          ("zöldbab", "Grüne Bohnen", "green beans", "bls:G710100", "total", 28, 0.24, 2.238, 5.29, 1.89, 1.0, 0.60, None),
+    "dry_bean":            ("szárazbab (tarkabab, vörösbab)", "Gartenbohne getrocknet", "dry beans (pinto, kidney)", "bls:H739400", "total", 344, 1.6, 22.619, 68.991, 23.24, 1.3, 0.80, "grams = dry beans before soaking"),
+    "lemon_juice":         ("citromlé", "Zitronensaft", "lemon juice", "usda_fdc:167747", "total", 22, 0.24, 0.35, 6.9, 0.3, 1.03, 1.03, None),
+    "smoked_pork_hock":    ("füstölt sertéscsülök", "Eisbein gepökelt, geräuchert", "smoked pork hock", "bls:U672700", "total", 150, 8.17, 18.68, 0.437, 0, 1.06, 0.80, "BLS Vorderhaxe Kochpökelware geräuchert; imported by migration 20260927120000"),
 }

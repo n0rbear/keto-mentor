@@ -102,12 +102,22 @@ def check_languages(owner, mapping):
 
 
 def validate():
+    # Phase-2 minimums (brief): new HU dishes on top of the 10 pilot dishes,
+    # side variants not counted. A dish still on INVENTORY is planned, not
+    # built; each promoted dish leaves the inventory, so both together must
+    # reach the minimum and no identity may appear twice.
     hu_inventory = INVENTORY.get("HU", {})
-    if len(hu_inventory.get("traditional", [])) < 60 or len(hu_inventory.get("everyday", [])) < 60 or len(hu_inventory.get("street_food", [])) < 25:
-        raise SystemExit("HU inventory is below the phase-2 minimums")
-    flat_inventory = [name.casefold() for names in hu_inventory.values() for name in names]
+    pilot = set(getattr(hu, "PILOT_DISH_IDS", ()))
+    minimums = {"traditional": 60, "everyday": 60, "street_food": 25}
+    promoted = {c: [d for d in DISHES if "HU" in d["countries"] and d["category"] == c and d["id"] not in pilot] for c in minimums}
+    for category, minimum in minimums.items():
+        if len(promoted[category]) + len(hu_inventory.get(category, [])) < minimum:
+            raise SystemExit(f"HU {category}: built + planned dishes are below the phase-2 minimum {minimum}")
+    built_names = [n.casefold() for ds in promoted.values() for d in ds for n in [d.get("names", PARTS[d["part_refs"][0][0]]["names"])["hu"]]]
+    flat_inventory = [name.casefold() for names in hu_inventory.values() for name in names] + built_names
     if len(flat_inventory) != len(set(flat_inventory)):
-        raise SystemExit("HU inventory contains duplicate dish identities")
+        dupes = sorted({n for n in flat_inventory if flat_inventory.count(n) > 1})
+        raise SystemExit(f"HU dish identities appear twice (inventory and/or built): {dupes}")
     for pid, p in PARTS.items():
         check_sources(f"part {pid}", p["sources"])
         check_languages(f"part {pid}", p["names"])

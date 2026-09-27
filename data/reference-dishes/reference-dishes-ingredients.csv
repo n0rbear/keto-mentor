@@ -95,6 +95,34 @@ szekelykaposzta,Székelykáposzta,4,garlic,fokhagyma,6,seasoning,bls:G490100,320
 szekelykaposzta,Székelykáposzta,4,caraway_seed,kömény (egész/őrölt),1,seasoning,usda_fdc:170918,3207,0.928,1.026,450
 szekelykaposzta,Székelykáposzta,4,wheat_flour,búzaliszt (BL55),20,thickener,bls:C214100,3207,0.928,1.026,450
 szekelykaposzta,Székelykáposzta,4,water,víz,800,liquid,none,3207,0.928,1.026,450
+palocleves,Palócleves,5,sunflower_oil,napraforgóolaj,46.0,fat,bls:Q320000,2925.7,0.951,1.011,450
+palocleves,Palócleves,5,onion,vöröshagyma,100,core,bls:G480100,2925.7,0.951,1.011,450
+palocleves,Palócleves,5,garlic,fokhagyma,15,core,bls:G490100,2925.7,0.951,1.011,450
+palocleves,Palócleves,5,pork_shoulder,sertéslapocka,300,core,usda_fdc:167843,2925.7,0.951,1.011,450
+palocleves,Palócleves,5,paprika_ground,őrölt pirospaprika,7,seasoning,usda_fdc:171329,2925.7,0.951,1.011,450
+palocleves,Palócleves,5,wax_pepper,TV paprika / zöldpaprika,60,core,usda_fdc:2747660,2925.7,0.951,1.011,450
+palocleves,Palócleves,5,tomato,paradicsom,100,core,bls:G561100,2925.7,0.951,1.011,450
+palocleves,Palócleves,5,green_bean,zöldbab,300,core,bls:G710100,2925.7,0.951,1.011,450
+palocleves,Palócleves,5,potato,burgonya,200,core,bls:K110100,2925.7,0.951,1.011,450
+palocleves,Palócleves,5,caraway_seed,kömény (egész/őrölt),0.5,seasoning,usda_fdc:170918,2925.7,0.951,1.011,450
+palocleves,Palócleves,5,sour_cream,tejföl (20%),306,thickener,usda_fdc:2346387,2925.7,0.951,1.011,450
+palocleves,Palócleves,5,wheat_flour,búzaliszt (BL55),20,thickener,bls:C214100,2925.7,0.951,1.011,450
+palocleves,Palócleves,5,parsley_leaf,petrezselyemzöld,10,seasoning,usda_fdc:170416,2925.7,0.951,1.011,450
+palocleves,Palócleves,5,lemon_juice,citromlé,11.2,seasoning,usda_fdc:167747,2925.7,0.951,1.011,450
+palocleves,Palócleves,5,water,víz,1600,liquid,none,2925.7,0.951,1.011,450
+jokai_bableves,Jókai-bableves,8,smoked_pork_hock,füstölt sertéscsülök,500,core,bls:U672700,3672.5,0.902,1.035,450
+jokai_bableves,Jókai-bableves,8,dry_bean,"szárazbab (tarkabab, vörösbab)",400,core,bls:H739400,3672.5,0.902,1.035,450
+jokai_bableves,Jókai-bableves,8,carrot,sárgarépa,150,core,bls:G620100,3672.5,0.902,1.035,450
+jokai_bableves,Jókai-bableves,8,parsley_root,petrezselyemgyökér,150,core,bls:G670100,3672.5,0.902,1.035,450
+jokai_bableves,Jókai-bableves,8,celeriac,zellergumó,100,core,bls:G660100,3672.5,0.902,1.035,450
+jokai_bableves,Jókai-bableves,8,onion,vöröshagyma,50,core,bls:G480100,3672.5,0.902,1.035,450
+jokai_bableves,Jókai-bableves,8,garlic,fokhagyma,10,core,bls:G490100,3672.5,0.902,1.035,450
+jokai_bableves,Jókai-bableves,8,smoked_sausage,füstölt kolbász (debreceni),500,core,bls:W185000,3672.5,0.902,1.035,450
+jokai_bableves,Jókai-bableves,8,lard,sertészsír,100,fat,usda_fdc:171401,3672.5,0.902,1.035,450
+jokai_bableves,Jókai-bableves,8,wheat_flour,búzaliszt (BL55),100,thickener,bls:C214100,3672.5,0.902,1.035,450
+jokai_bableves,Jókai-bableves,8,paprika_ground,őrölt pirospaprika,2.5,seasoning,usda_fdc:171329,3672.5,0.902,1.035,450
+jokai_bableves,Jókai-bableves,8,parsley_leaf,petrezselyemzöld,10,seasoning,usda_fdc:170416,3672.5,0.902,1.035,450
+jokai_bableves,Jókai-bableves,8,water,víz,2000,liquid,none,3672.5,0.902,1.035,450
 schweinsbraten,Sült sertéslapocka (Schweinsbraten),4,pork_shoulder,sertéslapocka,1250,core,usda_fdc:167843,1306,0.704,1.055,250
 schweinsbraten,Sült sertéslapocka (Schweinsbraten),4,onion,vöröshagyma,160,core,bls:G480100,1306,0.704,1.055,250
 schweinsbraten,Sült sertéslapocka (Schweinsbraten),4,garlic,fokhagyma,12,seasoning,bls:G490100,1306,0.704,1.055,250

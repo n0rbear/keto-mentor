@@ -439,53 +439,51 @@
       "density_intrinsic_g_ml": 1.05,
       "density_bulk_g_ml": 1.05
     },
-    "green_bean_missing": {
+    "green_bean": {
       "names": {
         "hu": "zöldbab",
         "de": "Grüne Bohnen",
         "en": "green beans"
       },
-      "catalog": "",
-      "carb_basis": "none",
+      "catalog": "bls:G710100",
+      "carb_basis": "total",
       "density_intrinsic_g_ml": 1.0,
-      "density_bulk_g_ml": 0.75,
-      "note": "MISSING_FOODS: authoritative BLS record required"
+      "density_bulk_g_ml": 0.6
     },
-    "white_bean_missing": {
+    "dry_bean": {
       "names": {
-        "hu": "fehérbab",
-        "de": "weiße Bohnen",
-        "en": "white beans"
+        "hu": "szárazbab (tarkabab, vörösbab)",
+        "de": "Gartenbohne getrocknet",
+        "en": "dry beans (pinto, kidney)"
       },
-      "catalog": "",
-      "carb_basis": "none",
-      "density_intrinsic_g_ml": 1.0,
-      "density_bulk_g_ml": 0.75,
-      "note": "MISSING_FOODS: authoritative BLS record required"
+      "catalog": "bls:H739400",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.3,
+      "density_bulk_g_ml": 0.8,
+      "note": "grams = dry beans before soaking"
     },
-    "tarragon_missing": {
+    "lemon_juice": {
       "names": {
-        "hu": "tárkony",
-        "de": "Estragon",
-        "en": "tarragon"
+        "hu": "citromlé",
+        "de": "Zitronensaft",
+        "en": "lemon juice"
       },
-      "catalog": "",
-      "carb_basis": "none",
-      "density_intrinsic_g_ml": 1.0,
-      "density_bulk_g_ml": 0.3,
-      "note": "MISSING_FOODS: authoritative BLS record required"
+      "catalog": "usda_fdc:167747",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.03,
+      "density_bulk_g_ml": 1.03
     },
-    "lemon_missing": {
+    "smoked_pork_hock": {
       "names": {
-        "hu": "citrom",
-        "de": "Zitrone",
-        "en": "lemon"
+        "hu": "füstölt sertéscsülök",
+        "de": "Eisbein gepökelt, geräuchert",
+        "en": "smoked pork hock"
       },
-      "catalog": "",
-      "carb_basis": "none",
-      "density_intrinsic_g_ml": 0.99,
-      "density_bulk_g_ml": 0.99,
-      "note": "MISSING_FOODS: authoritative BLS record required"
+      "catalog": "bls:U672700",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.06,
+      "density_bulk_g_ml": 0.8,
+      "note": "BLS Vorderhaxe Kochpökelware geräuchert; imported by migration 20260927120000"
     }
   },
   "parts": {
@@ -1626,37 +1624,48 @@
         "servings_source": 5,
         "ingredients": [
           {
+            "food_key": "sunflower_oil",
+            "raw_g": 46.0,
+            "role": "fat",
+            "note": "0,5 dl olaj"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 100,
+            "role": "core",
+            "note": "1 db"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 15,
+            "role": "core",
+            "note": "3 gerezd"
+          },
+          {
             "food_key": "pork_shoulder",
             "raw_g": 300,
             "role": "core"
           },
           {
-            "food_key": "onion",
-            "raw_g": 120,
-            "role": "core"
-          },
-          {
-            "food_key": "sunflower_oil",
-            "raw_g": 25,
-            "role": "fat"
-          },
-          {
             "food_key": "paprika_ground",
-            "raw_g": 8,
-            "role": "seasoning"
+            "raw_g": 7,
+            "role": "seasoning",
+            "note": "1 ek"
           },
           {
             "food_key": "wax_pepper",
-            "raw_g": 100,
-            "role": "core"
+            "raw_g": 60,
+            "role": "core",
+            "note": "1 db zöldpaprika"
           },
           {
             "food_key": "tomato",
-            "raw_g": 120,
-            "role": "core"
+            "raw_g": 100,
+            "role": "core",
+            "note": "1 db"
           },
           {
-            "food_key": "green_bean_missing",
+            "food_key": "green_bean",
             "raw_g": 300,
             "role": "core"
           },
@@ -1666,39 +1675,50 @@
             "role": "core"
           },
           {
+            "food_key": "caraway_seed",
+            "raw_g": 0.5,
+            "role": "seasoning",
+            "note": "1 csipet"
+          },
+          {
             "food_key": "sour_cream",
-            "raw_g": 300,
-            "role": "thickener"
+            "raw_g": 306,
+            "role": "thickener",
+            "note": "3 dl"
           },
           {
             "food_key": "wheat_flour",
             "raw_g": 20,
-            "role": "thickener"
+            "role": "thickener",
+            "note": "2 ek"
           },
           {
-            "food_key": "tarragon_missing",
-            "raw_g": 3,
-            "role": "seasoning"
+            "food_key": "parsley_leaf",
+            "raw_g": 10,
+            "role": "seasoning",
+            "note": "1 csokor, apróra vágva"
           },
           {
-            "food_key": "lemon_missing",
-            "raw_g": 15,
-            "role": "seasoning"
+            "food_key": "lemon_juice",
+            "raw_g": 11.2,
+            "role": "seasoning",
+            "note": "1/4 citrom leve"
           },
           {
             "food_key": "water",
-            "raw_g": 1700,
-            "role": "liquid"
+            "raw_g": 1600,
+            "role": "liquid",
+            "note": "kb. 1,5 l a zöldbabhoz + egy kevés a hús párolásához"
           }
         ],
-        "raw_total_g": 3211,
+        "raw_total_g": 3075.7,
         "cooking": {
-          "method": "covered simmer until tender",
-          "mass_change_g": -180,
-          "note": "water yield is derived; unresolved food keys intentionally block seed"
+          "method": "stew the meat covered, add beans, water, potatoes; thicken with sour cream roux",
+          "mass_change_g": -150,
+          "note": "about 50 min covered simmer; evaporation is an estimate. 1 ek tarragon (MISSING_FOODS) and 2 bay leaves are left out of the mass"
         },
-        "finished_weight_g": 3031,
-        "yield_factor": 0.944
+        "finished_weight_g": 2925.7,
+        "yield_factor": 0.951
       },
       "standard_serving_g": 450,
       "density_g_per_ml": 1.011,
@@ -1706,26 +1726,24 @@
       "sources": [
         {
           "url": "https://www.mindmegette.hu/recept/tarkonyos-palocleves",
-          "retrieved": "2026-09-27"
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 5 adag"
         },
         {
-          "url": "https://www.mindmegette.hu/egytaletel/palocleves-mikszath-kedvence",
-          "retrieved": "2026-09-27"
+          "url": "https://www.mindmegette.hu/recept/palocleves",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: sertéscomb, zöldbab, burgonya, tejföl + liszt, 8 adag"
         }
       ],
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 61.4,
-          "fat": 4.4,
-          "protein": 2.3,
-          "net_carbs": 2.7
+          "kcal": 73.3,
+          "fat": 5.4,
+          "protein": 2.7,
+          "net_carbs": 3.1
         },
-        "incomplete_missing_food_keys": [
-          "green_bean_missing",
-          "tarragon_missing",
-          "lemon_missing"
-        ]
+        "incomplete_missing_food_keys": []
       }
     },
     "jokai_bableves": {
@@ -1737,41 +1755,28 @@
       },
       "matrix": "liquid",
       "batch": {
-        "servings_source": 6,
+        "servings_source": 8,
         "ingredients": [
           {
-            "food_key": "smoked_bacon",
-            "raw_g": 120,
-            "role": "core"
+            "food_key": "smoked_pork_hock",
+            "raw_g": 500,
+            "role": "core",
+            "note": "50 dkg füstölt csülök, soaked; the source gives no edible weight, so bone is not subtracted (overstates meat)"
           },
           {
-            "food_key": "smoked_sausage",
-            "raw_g": 250,
-            "role": "core"
-          },
-          {
-            "food_key": "pork_shoulder",
+            "food_key": "dry_bean",
             "raw_g": 400,
-            "role": "core"
+            "role": "core",
+            "note": "40 dkg tarkabab, dry, soaked overnight"
           },
           {
-            "food_key": "onion",
+            "food_key": "carrot",
             "raw_g": 150,
             "role": "core"
           },
           {
-            "food_key": "white_bean_missing",
-            "raw_g": 500,
-            "role": "core"
-          },
-          {
-            "food_key": "carrot",
-            "raw_g": 250,
-            "role": "core"
-          },
-          {
             "food_key": "parsley_root",
-            "raw_g": 120,
+            "raw_g": 150,
             "role": "core"
           },
           {
@@ -1780,59 +1785,86 @@
             "role": "core"
           },
           {
-            "food_key": "sour_cream",
-            "raw_g": 250,
-            "role": "thickener"
+            "food_key": "onion",
+            "raw_g": 50,
+            "role": "core"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 10,
+            "role": "core",
+            "note": "2 gerezd"
+          },
+          {
+            "food_key": "smoked_sausage",
+            "raw_g": 500,
+            "role": "core",
+            "note": "50 dkg debreceni kolbász"
+          },
+          {
+            "food_key": "lard",
+            "raw_g": 100,
+            "role": "fat",
+            "note": "10 dkg zsír, rántás"
           },
           {
             "food_key": "wheat_flour",
-            "raw_g": 20,
-            "role": "thickener"
+            "raw_g": 100,
+            "role": "thickener",
+            "note": "10 dkg liszt, rántás"
           },
           {
             "food_key": "paprika_ground",
-            "raw_g": 8,
-            "role": "seasoning"
+            "raw_g": 2.5,
+            "role": "seasoning",
+            "note": "fűszerpaprika, amount not given"
+          },
+          {
+            "food_key": "parsley_leaf",
+            "raw_g": 10,
+            "role": "seasoning",
+            "note": "1 csokor"
           },
           {
             "food_key": "water",
-            "raw_g": 2600,
-            "role": "liquid"
+            "raw_g": 2000,
+            "role": "liquid",
+            "note": "2 l csontlé from bouillon cube + water; the cube's few grams are ignored"
           }
         ],
-        "raw_total_g": 4768,
+        "raw_total_g": 4072.5,
         "cooking": {
-          "method": "soak beans and simmer until tender",
-          "mass_change_g": -300,
-          "note": "white bean catalog identity unresolved; seed will skip this dish"
+          "method": "boil the hock 1 h, add beans, then roots; thicken with roux, add sausage",
+          "mass_change_g": -400,
+          "note": "about 2 h of simmering; evaporation is an estimate. servings_source is derived (the source lists 0 adag): finished batch / 450 g. Vinegar and sour cream are optional table toppings, not counted"
         },
-        "finished_weight_g": 4468,
-        "yield_factor": 0.937
+        "finished_weight_g": 3672.5,
+        "yield_factor": 0.902
       },
       "standard_serving_g": 450,
-      "density_g_per_ml": 1.009,
+      "density_g_per_ml": 1.035,
       "density_method": "derived from components after cooking mass change",
       "sources": [
         {
-          "url": "https://www.mindmegette.hu/alapetelek/leves-gulyas-csorbaleves-husgombocleves-tarkonyos-csirke-krumplileves-bableves-eroleves",
-          "retrieved": "2026-09-27"
+          "url": "https://www.mindmegette.hu/recept/jokai-bableves",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe"
         },
         {
-          "url": "https://www.mindmegette.hu/alapetelek/11-kiados-magyaros-leves-ami-foetelnek-is-beillik/",
-          "retrieved": "2026-09-27"
+          "url": "https://www.receptneked.hu/recept/jokai-bableves",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 500 g vörösbab, sárgarépa, petrezselyemgyökér, füstölt kolbász, 10 adag"
         }
       ],
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 66.7,
-          "fat": 4.9,
-          "protein": 3.7,
-          "net_carbs": 1.7
+          "kcal": 143.4,
+          "fat": 7.7,
+          "protein": 8.7,
+          "net_carbs": 8.0
         },
-        "incomplete_missing_food_keys": [
-          "white_bean_missing"
-        ]
+        "incomplete_missing_food_keys": []
       }
     },
     "schweinsbraten": {
@@ -2570,13 +2602,18 @@
       "aliases": {
         "hu": [
           "palócleves",
-          "palóc leves"
+          "palóc leves",
+          "tárkonyos palócleves"
         ],
         "de": [
-          "palóc suppe"
+          "palóc-suppe",
+          "palocsuppe"
         ],
-        "de-AT": [],
+        "de-AT": [
+          "palóc-suppe"
+        ],
         "en": [
+          "palóc soup",
           "paloc soup"
         ]
       },
@@ -2605,15 +2642,20 @@
       },
       "aliases": {
         "hu": [
-          "Jókai-bableves",
+          "jókai-bableves",
+          "jókai bableves",
           "jokai bableves"
         ],
         "de": [
-          "Jókai-Bohnensuppe"
+          "jókai-bohnensuppe",
+          "ungarische bohnensuppe jókai"
         ],
-        "de-AT": [],
+        "de-AT": [
+          "jókai-bohnensuppe"
+        ],
         "en": [
-          "Jokai bean soup"
+          "jókai bean soup",
+          "jokai bean soup"
         ]
       },
       "tags": [
@@ -3034,8 +3076,6 @@
         "bajai halászlé",
         "tiszai halászlé",
         "újházi tyúkhúsleves",
-        "palócleves",
-        "Jókai-bableves",
         "bableves",
         "lencseleves",
         "sárgaborsó-leves",

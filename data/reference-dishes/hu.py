@@ -1,5 +1,10 @@
-"""Hungary (HU): reference dishes. The 10 pilot dishes (2026-09-26)."""
-from common import ing, src, srcs
+"""Hungary (HU): reference dishes.
+
+The 10 pilot dishes (2026-09-26), then phase 2 (2026-09-27): the full Hungarian
+set. INVENTORY lists the phase-2 dishes still to build; a dish leaves it when
+its PARTS/DISHES entry (two dated sources, catalog-linked ingredients) lands.
+"""
+from common import g, ing, src, srcs
 
 # The pilot sources were read when the pilot was built (commit ac4416d).
 PILOT_RETRIEVED = "2026-09-26"
@@ -175,23 +180,53 @@ SIDE_WITH = {
 # A row is promoted into PARTS/DISHES only after all ingredients resolve to an
 # authoritative record in foods.py; unresolved rows are emitted to the HU gap report.
 INVENTORY = {
-    "traditional": "bajai halászlé|tiszai halászlé|újházi tyúkhúsleves|palócleves|Jókai-bableves|bableves|lencseleves|sárgaborsó-leves|krumplileves|frankfurti leves|tárkonyos raguleves|gyümölcsleves|meggyleves|sütőtökkrémleves|gombakrémleves|tejfölös burgonyaleves|marhapörkölt|csirkepörkölt|birkapörkölt|vadpörkölt|pacalpörkölt|körömpörkölt|csülökpörkölt|harcsapaprikás|bakonyi sertésszelet|vadas marha|tokány|brassói aprópecsenye|cigánypecsenye|fasírt|töltött paprika|rakott kel|rakott karfiol|rakott zöldbab|paprikás krumpli|rizses hús|tarhonyás hús|hortobágyi palacsinta|rántott sajt|sült oldalas|sült csülök|tepsis csirke|túrós csusza|káposztás tészta|krumplis tészta|mákos tészta|diós tészta|grízes tészta|szilvás gombóc|túrógombóc|somlói galuska|Gundel-palacsinta|halászlé tejföllel|juhászos tokány|székelygulyás|savanyú tojásleves|kapros túrós lepény|mákos guba|aranygaluska|kelt rétes|dobostorta|rigójancsi|zserbó".split("|"),
+    "traditional": "bajai halászlé|tiszai halászlé|újházi tyúkhúsleves|bableves|lencseleves|sárgaborsó-leves|krumplileves|frankfurti leves|tárkonyos raguleves|gyümölcsleves|meggyleves|sütőtökkrémleves|gombakrémleves|tejfölös burgonyaleves|marhapörkölt|csirkepörkölt|birkapörkölt|vadpörkölt|pacalpörkölt|körömpörkölt|csülökpörkölt|harcsapaprikás|bakonyi sertésszelet|vadas marha|tokány|brassói aprópecsenye|cigánypecsenye|fasírt|töltött paprika|rakott kel|rakott karfiol|rakott zöldbab|paprikás krumpli|rizses hús|tarhonyás hús|hortobágyi palacsinta|rántott sajt|sült oldalas|sült csülök|tepsis csirke|túrós csusza|káposztás tészta|krumplis tészta|mákos tészta|diós tészta|grízes tészta|szilvás gombóc|túrógombóc|somlói galuska|Gundel-palacsinta|halászlé tejföllel|juhászos tokány|székelygulyás|savanyú tojásleves|kapros túrós lepény|mákos guba|aranygaluska|kelt rétes|dobostorta|rigójancsi|zserbó".split("|"),
     "everyday": "tükörtojás|főtt tojás|tojásos nokedli|bundás kenyér|melegszendvics|sonkás szendvics|sajtos szendvics|felvágottas szendvics|zsíros kenyér|körözöttes kenyér|tejbegríz|zabkása|müzli joghurttal|joghurt gyümölccsel|túrós reggeli|virsli mustárral|debreceni mustárral|sült kolbász|párizsis zsemle|sonkás kifli|sajtos pogácsa|tepertős pogácsa|kifli|zsemle|magvas zsemle|túrós táska|kakaós csiga|lekváros bukta|fánk|palacsinta|túrós palacsinta|lekváros palacsinta|tejfölös tészta|pesto pasta|spaghetti bolognese|carbonara|lasagne|pizza margherita|sonkás pizza|görög saláta|cézársaláta|uborkasaláta|paradicsomsaláta|káposztasaláta|franciasaláta|majonézes kukoricasaláta|rizs csirkemellel|gombás rizottó|zöldséges kuszkusz|sült csirkecomb|csirkepaprikás|sült csirkemell|rakott tészta|rakott karfiol hétköznapi|zöldborsófőzelék|tökfőzelék|krumplifőzelék|lencsefőzelék|spenótfőzelék|finomfőzelék|paradicsomos káposzta|sárgaborsó-főzelék|kelkáposzta-főzelék".split("|"),
     "street_food": "fokhagymás lángos|sajtos-tejfölös lángos|töltött lángos|kürtőskalács|sült kolbász kenyérrel|hurka mustárral|véres hurka|májas hurka|budapesti hot dog|hot dog|gyros pita|gyros tál|döner|döner tál|falafel wrap|hamburger|sajtos hamburger|pulled pork szendvics|szelet pizza|tócsni|lapcsánka|hekk|lángos hamburgerrel|lángos csirkével|lángos sonkával".split("|")
 }
-MISSING_FOODS = []
+MISSING_FOODS = [
+    dict(food_key="tarragon_dried", names={"hu": "tárkony (szárított)", "de": "Estragon getrocknet", "en": "dried tarragon"},
+         needed_for=["hu_palocleves (1 ek per 5 adag, seasoning)"],
+         note="BLS 4.0 has no Estragon record and the production catalog has none; left out of the batch (about 2 g). Candidate: USDA FDC 'Spices, tarragon, dried' via a reviewed import."),
+]
+
+PHASE2_RETRIEVED = "2026-09-27"
+
+PILOT_DISH_IDS = ("hu_gulyasleves", "hu_halaszle", "hu_toltott_kaposzta", "hu_paprikas_csirke_nokedlivel", "hu_sertesporkolt",
+                  "hu_lecso_virslivel", "hu_rakott_krumpli", "hu_marhahusleves", "hu_rantott_hus", "hu_szekelykaposzta")
 
 PARTS.update({
-    "palocleves": dict(names={"hu": "Palócleves", "de": "Palóc-Suppe", "en": "Palóc soup"}, matrix="liquid", servings_source=5, standard_serving_g=450,
-        ingredients=[ing("pork_shoulder", 300), ing("onion", 120), ing("sunflower_oil", 25, "fat"), ing("paprika_ground", 8, "seasoning"), ing("wax_pepper", 100), ing("tomato", 120), ing("green_bean_missing", 300), ing("potato", 200), ing("sour_cream", 300, "thickener"), ing("wheat_flour", 20, "thickener"), ing("tarragon_missing", 3, "seasoning"), ing("lemon_missing", 15, "seasoning"), ing("water", 1700, "liquid")],
-        cooking=dict(method="covered simmer until tender", mass_change_g=-180, note="water yield is derived; unresolved food keys intentionally block seed"),
-        sources=[src("https://www.mindmegette.hu/recept/tarkonyos-palocleves", "2026-09-27"), src("https://www.mindmegette.hu/egytaletel/palocleves-mikszath-kedvence", "2026-09-27")]),
-    "jokai_bableves": dict(names={"hu": "Jókai-bableves", "de": "Jókai-Bohnensuppe", "en": "Jókai bean soup"}, matrix="liquid", servings_source=6, standard_serving_g=450,
-        ingredients=[ing("smoked_bacon", 120), ing("smoked_sausage", 250), ing("pork_shoulder", 400), ing("onion", 150), ing("white_bean_missing", 500), ing("carrot", 250), ing("parsley_root", 120), ing("celeriac", 100), ing("sour_cream", 250, "thickener"), ing("wheat_flour", 20, "thickener"), ing("paprika_ground", 8, "seasoning"), ing("water", 2600, "liquid")],
-        cooking=dict(method="soak beans and simmer until tender", mass_change_g=-300, note="white bean catalog identity unresolved; seed will skip this dish"),
-        sources=[src("https://www.mindmegette.hu/alapetelek/leves-gulyas-csorbaleves-husgombocleves-tarkonyos-csirke-krumplileves-bableves-eroleves", "2026-09-27"), src("https://www.mindmegette.hu/alapetelek/11-kiados-magyaros-leves-ami-foetelnek-is-beillik/", "2026-09-27")]),
+    "palocleves": dict(
+        names={"hu": "Palócleves", "de": "Palóc-Suppe", "en": "Palóc soup"},
+        matrix="liquid", servings_source=5, standard_serving_g=450,
+        ingredients=[ing("sunflower_oil", g(0.5, "dl_oil"), "fat", "0,5 dl olaj"), ing("onion", g(1, "db_onion"), note="1 db"), ing("garlic", g(3, "gerezd_garlic"), note="3 gerezd"),
+                     ing("pork_shoulder", 300), ing("paprika_ground", g(1, "ek_paprika"), "seasoning", "1 ek"), ing("wax_pepper", g(1, "db_green_pepper"), note="1 db zöldpaprika"),
+                     ing("tomato", g(1, "db_tomato"), note="1 db"), ing("green_bean", 300), ing("potato", 200), ing("caraway_seed", 0.5, "seasoning", "1 csipet"),
+                     ing("sour_cream", g(3, "dl_sour_cream"), "thickener", "3 dl"), ing("wheat_flour", g(2, "ek_flour"), "thickener", "2 ek"),
+                     ing("parsley_leaf", 10, "seasoning", "1 csokor, apróra vágva"), ing("lemon_juice", g(0.25, "db_lemon_juice"), "seasoning", "1/4 citrom leve"),
+                     ing("water", 1600, "liquid", "kb. 1,5 l a zöldbabhoz + egy kevés a hús párolásához")],
+        cooking=dict(method="stew the meat covered, add beans, water, potatoes; thicken with sour cream roux", mass_change_g=-150,
+                     note="about 50 min covered simmer; evaporation is an estimate. 1 ek tarragon (MISSING_FOODS) and 2 bay leaves are left out of the mass"),
+        sources=[src("https://www.mindmegette.hu/recept/tarkonyos-palocleves", PHASE2_RETRIEVED, "batch recipe, 5 adag"),
+                 src("https://www.mindmegette.hu/recept/palocleves", PHASE2_RETRIEVED, "cross-check: sertéscomb, zöldbab, burgonya, tejföl + liszt, 8 adag")]),
+    "jokai_bableves": dict(
+        names={"hu": "Jókai-bableves", "de": "Jókai-Bohnensuppe", "en": "Jókai bean soup"},
+        matrix="liquid", servings_source=8, standard_serving_g=450,
+        ingredients=[ing("smoked_pork_hock", 500, note="50 dkg füstölt csülök, soaked; the source gives no edible weight, so bone is not subtracted (overstates meat)"),
+                     ing("dry_bean", 400, note="40 dkg tarkabab, dry, soaked overnight"), ing("carrot", 150), ing("parsley_root", 150), ing("celeriac", 100), ing("onion", 50),
+                     ing("garlic", g(2, "gerezd_garlic"), note="2 gerezd"), ing("smoked_sausage", 500, note="50 dkg debreceni kolbász"),
+                     ing("lard", 100, "fat", "10 dkg zsír, rántás"), ing("wheat_flour", 100, "thickener", "10 dkg liszt, rántás"), ing("paprika_ground", g(1, "tk_spice"), "seasoning", "fűszerpaprika, amount not given"),
+                     ing("parsley_leaf", 10, "seasoning", "1 csokor"), ing("water", 2000, "liquid", "2 l csontlé from bouillon cube + water; the cube's few grams are ignored")],
+        cooking=dict(method="boil the hock 1 h, add beans, then roots; thicken with roux, add sausage", mass_change_g=-400,
+                     note="about 2 h of simmering; evaporation is an estimate. servings_source is derived (the source lists 0 adag): finished batch / 450 g. Vinegar and sour cream are optional table toppings, not counted"),
+        sources=[src("https://www.mindmegette.hu/recept/jokai-bableves", PHASE2_RETRIEVED, "batch recipe"),
+                 src("https://www.receptneked.hu/recept/jokai-bableves", PHASE2_RETRIEVED, "cross-check: 500 g vörösbab, sárgarépa, petrezselyemgyökér, füstölt kolbász, 10 adag")]),
 })
 DISHES += [
-    dict(id="hu_palocleves", countries=["HU"], category="traditional", part_refs=[("palocleves", 450)], served_in="deep_plate", tags=["soup", "traditional"], aliases={"hu": ["palócleves", "palóc leves"], "de": ["palóc suppe"], "de-AT": [], "en": ["paloc soup"]}),
-    dict(id="hu_jokai_bableves", countries=["HU"], category="traditional", part_refs=[("jokai_bableves", 450)], served_in="deep_plate", tags=["soup", "traditional"], aliases={"hu": ["Jókai-bableves", "jokai bableves"], "de": ["Jókai-Bohnensuppe"], "de-AT": [], "en": ["Jokai bean soup"]}),
+    dict(id="hu_palocleves", countries=["HU"], category="traditional", part_refs=[("palocleves", 450)], served_in="deep_plate", tags=["soup", "traditional"],
+         names={"hu": "Palócleves", "de": "Palóc-Suppe", "en": "Palóc soup"},
+         aliases={"hu": ["palócleves", "palóc leves", "tárkonyos palócleves"], "de": ["palóc-suppe", "palocsuppe"], "de-AT": ["palóc-suppe"], "en": ["palóc soup", "paloc soup"]}),
+    dict(id="hu_jokai_bableves", countries=["HU"], category="traditional", part_refs=[("jokai_bableves", 450)], served_in="deep_plate", tags=["soup", "traditional"],
+         names={"hu": "Jókai-bableves", "de": "Jókai-Bohnensuppe", "en": "Jókai bean soup"},
+         aliases={"hu": ["jókai-bableves", "jókai bableves", "jokai bableves"], "de": ["jókai-bohnensuppe", "ungarische bohnensuppe jókai"], "de-AT": ["jókai-bohnensuppe"], "en": ["jókai bean soup", "jokai bean soup"]}),
 ]
