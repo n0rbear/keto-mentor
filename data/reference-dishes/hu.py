@@ -182,7 +182,7 @@ SIDE_WITH = {
 INVENTORY = {
     "traditional": "körömpörkölt|juhászos tokány".split("|"),
     "everyday": "tepertős pogácsa".split("|"),
-    "street_food": "fokhagymás lángos|sajtos-tejfölös lángos|töltött lángos|kürtőskalács|sült kolbász kenyérrel|hurka mustárral|véres hurka|májas hurka|budapesti hot dog|hot dog|gyros pita|gyros tál|döner|döner tál|falafel wrap|hamburger|sajtos hamburger|pulled pork szendvics|szelet pizza|tócsni|lapcsánka|hekk|lángos|hasábburgonya|gofri".split("|")
+    "street_food": [],
 }
 MISSING_FOODS = [
     dict(food_key="tarragon_dried", names={"hu": "tárkony (szárított)", "de": "Estragon getrocknet", "en": "dried tarragon"},
@@ -237,7 +237,7 @@ DISHES += [
 
 # Phase-2 dishes live in one module per group (hu_*.py), each with the same
 # PARTS / DISHES / MISSING layout as above.
-PHASE2_MODULES = ('hu_hetkoznapi', 'hu_reggeli_pekaru', 'hu_husetelek', 'hu_tesztak_edessegek', 'hu_levesek', )
+PHASE2_MODULES = ('hu_street_food', 'hu_hetkoznapi', 'hu_reggeli_pekaru', 'hu_husetelek', 'hu_tesztak_edessegek', 'hu_levesek', )
 for _name in PHASE2_MODULES:
     _m = __import__(_name)
     _clash = PARTS.keys() & _m.PARTS.keys()

@@ -19,6 +19,35 @@
 | Székelykáposzta | 3457 | -250 | 3207 | 0.928 | 1.026 | 114.9 | 8.5 | 6.3 | 1.9 | – |
 | Palócleves | 3075.7 | -150 | 2925.7 | 0.951 | 1.011 | 73.3 | 5.4 | 2.7 | 3.1 | – |
 | Jókai-bableves | 3654 | +150 | 3804 | 1.041 | 1.036 | 88.3 | 2.6 | 6.4 | 8.1 | – |
+| Lángos (sima, kisütve) | 943.5 | -180 | 763.5 | 0.809 | 0.997 | 331.2 | 11.2 | 7.9 | 48.0 | – |
+| Fokhagymás öntet lángosra | 82.0 | +0 | 82.0 | 1.0 | 0.98 | 228.8 | 23.8 | 0.9 | 0.5 | – |
+| Tejföl lángosra | 306 | +0 | 306 | 1.0 | 1.02 | 206.0 | 20.0 | 2.8 | 3.0 | – |
+| Reszelt sajt lángosra | 200 | +0 | 200 | 1.0 | 0.4 | 345.0 | 26.8 | 25.1 | 0.0 | – |
+| Sonkával-sajttal töltött lángos | 1862.5 | -150 | 1712.5 | 0.919 | 1.031 | 270.3 | 13.8 | 10.4 | 24.8 | – |
+| Kürtőskalács (cukros) | 1107.5 | -110 | 997.5 | 0.901 | 1.068 | 315.1 | 7.2 | 8.0 | 53.4 | – |
+| Kenyér mustárral (hentes köret) | 100 | +0 | 100 | 1.0 | 0.35 | 239.8 | 3.8 | 8.1 | 41.0 | – |
+| Véres hurka (rizses, sütve) | 1993.5 | +70 | 2063.5 | 1.035 | 1.011 | 233.4 | 15.0 | 14.2 | 10.0 | – |
+| Májas hurka (rizses, sütve) | 995 | -205 | 790 | 0.794 | 1.014 | 225.3 | 14.4 | 15.5 | 8.1 | – |
+| Hot dog kifli | 1185.0 | -130 | 1055.0 | 0.89 | 1.015 | 286.0 | 10.6 | 7.9 | 38.5 | – |
+| Virsli mustárral, ketchuppal (lyukas kifliben) | 120 | +0 | 120 | 1.0 | 1.032 | 258.3 | 22.4 | 11.3 | 2.0 | – |
+| Hot dog töltelék (virsli, hagyma, mustár, ketchup) | 373 | -40 | 333 | 0.893 | 1.024 | 230.6 | 19.6 | 8.8 | 4.0 | – |
+| Gyros hús (sertés, sütve) | 1067 | -330 | 737 | 0.691 | 0.6 | 275.1 | 20.1 | 21.3 | 1.8 | – |
+| Gyros saláta tejfölös-fokhagymás öntettel | 1515 | +0 | 1515 | 1.0 | 0.7 | 83.5 | 6.8 | 1.6 | 3.0 | – |
+| Pita / török kenyér | 80 | +0 | 80 | 1.0 | 0.35 | 248.0 | 2.3 | 8.2 | 47.0 | – |
+| Csirke döner hús | 2593.5 | -700 | 1893.5 | 0.73 | 0.6 | 188.8 | 9.1 | 25.4 | 1.1 | – |
+| Falafel wrap | 1658.5 | -60 | 1598.5 | 0.964 | 0.928 | 153.7 | 7.1 | 5.2 | 15.1 | – |
+| Hamburger zsemle | 1054.5 | -120 | 934.5 | 0.886 | 1.021 | 284.0 | 4.1 | 9.8 | 50.2 | – |
+| Hamburger húspogácsa (marha) | 420 | -60 | 360 | 0.857 | 1.051 | 288.8 | 22.6 | 21.2 | 0.0 | – |
+| Hamburger feltét (zöldség, szósz) | 688 | +0 | 688 | 1.0 | 0.98 | 44.7 | 2.2 | 1.3 | 3.9 | – |
+| Sajtszelet hamburgerbe | 20 | +0 | 20 | 1.0 | 1.08 | 345.0 | 26.8 | 25.1 | 0.0 | – |
+| Pulled pork (szálas sertés BBQ szószban) | 1844 | -480 | 1364 | 0.74 | 0.6 | 278.3 | 20.7 | 15.5 | 5.8 | – |
+| Coleslaw saláta | 1650 | +0 | 1650 | 1.0 | 0.6 | 207.1 | 19.9 | 1.3 | 4.3 | – |
+| Sonkás-sajtos tepsis pizza (szelet) | 1801 | -150 | 1651 | 0.917 | 1.022 | 231.4 | 8.6 | 12.6 | 24.4 | – |
+| Tócsni | 1200 | -250 | 950 | 0.792 | 0.6 | 184.7 | 9.5 | 3.6 | 20.4 | – |
+| Lapcsánka | 848 | -100 | 748 | 0.882 | 0.6 | 227.6 | 10.0 | 5.8 | 27.5 | – |
+| Sült hekk (paprikás lisztben) | 627 | -110 | 517 | 0.825 | 0.6 | 195.9 | 10.9 | 18.5 | 5.2 | – |
+| Hasábburgonya | 1060 | -380 | 680 | 0.642 | 0.45 | 201.5 | 9.0 | 2.9 | 26.3 | – |
+| Gofri | 744.9 | -120 | 624.9 | 0.839 | 1.015 | 326.5 | 20.3 | 6.3 | 28.8 | – |
 | Tejfölös tészta (szalonnapörccel) | 1620 | +1160 | 2780 | 1.716 | 0.65 | 176.0 | 5.5 | 6.6 | 24.6 | – |
 | Pesztós tészta | 652 | +480 | 1132 | 1.736 | 0.6 | 242.1 | 12.3 | 7.5 | 24.5 | – |
 | Bolognai spagetti | 1316 | +280 | 1596 | 1.213 | 0.7 | 163.5 | 6.1 | 7.8 | 18.5 | – |
@@ -52,13 +81,13 @@
 | Tükörtojás | 55 | -2 | 53 | 0.964 | 1.018 | 195.0 | 16.1 | 12.5 | 0.3 | – |
 | Főtt tojás | 100 | +0 | 100 | 1.0 | 1.03 | 135.0 | 9.0 | 13.2 | 0.3 | – |
 | Tojásos nokedli tojásrésze | 432.5 | -20 | 412.5 | 0.954 | 0.55 | 201.8 | 16.6 | 12.8 | 0.3 | – |
-| Bundás kenyér | 540 | -30 | 510 | 0.944 | 0.495 | 272.5 | 16.1 | 9.9 | 20.6 | – |
-| Sonkás-sajtos melegszendvics | 1198 | -60 | 1138 | 0.95 | 0.639 | 167.5 | 8.3 | 8.2 | 13.8 | – |
-| Sonkás szendvics | 120 | +0 | 120 | 1.0 | 0.482 | 223.8 | 8.9 | 12.6 | 22.0 | – |
-| Sajtos szendvics | 120 | +0 | 120 | 1.0 | 0.484 | 295.5 | 16.6 | 13.5 | 21.8 | – |
-| Felvágottas szendvics | 120 | +0 | 120 | 1.0 | 0.478 | 248.5 | 12.9 | 10.2 | 21.8 | – |
-| Zsíros kenyér | 1335 | +0 | 1335 | 1.0 | 0.416 | 314.1 | 18.4 | 6.6 | 28.5 | – |
-| Körözöttes kenyér | 1030.0 | +0 | 1030.0 | 1.0 | 0.5 | 186.7 | 6.6 | 8.5 | 21.9 | – |
+| Bundás kenyér | 540 | -30 | 510 | 0.944 | 0.439 | 308.2 | 16.9 | 9.9 | 27.9 | – |
+| Sonkás-sajtos melegszendvics | 1198 | -60 | 1138 | 0.95 | 0.585 | 187.4 | 8.8 | 8.2 | 17.9 | – |
+| Sonkás szendvics | 120 | +0 | 120 | 1.0 | 0.425 | 261.8 | 9.7 | 12.6 | 29.7 | – |
+| Sajtos szendvics | 120 | +0 | 120 | 1.0 | 0.427 | 333.4 | 17.4 | 13.5 | 29.5 | – |
+| Felvágottas szendvics | 120 | +0 | 120 | 1.0 | 0.422 | 286.4 | 13.8 | 10.2 | 29.5 | – |
+| Zsíros kenyér | 1335 | +0 | 1335 | 1.0 | 0.362 | 362.7 | 19.5 | 6.6 | 38.4 | – |
+| Körözöttes kenyér | 1030.0 | +0 | 1030.0 | 1.0 | 0.443 | 222.1 | 7.4 | 8.5 | 29.1 | – |
 | Párizsis zsemle | 110 | +0 | 110 | 1.0 | 0.379 | 280.5 | 12.6 | 11.1 | 29.6 | – |
 | Virsli mustárral | 120 | +0 | 120 | 1.0 | 1.025 | 259.3 | 23.0 | 11.7 | 0.5 | – |
 | Debreceni mustárral | 170 | +0 | 170 | 1.0 | 1.006 | 304.2 | 24.0 | 21.2 | 0.3 | – |
@@ -160,6 +189,31 @@ Számolt érték a katalógusrekordokból vs. egy nyilvános referencia (pl. BLS
 | Székelykáposzta | nincs még | – | – | – | – | – |
 | Palócleves | nincs még | – | – | – | – | – |
 | Jókai-bableves | nincs még | – | – | – | – | – |
+| fokhagymás lángos | nincs még | – | – | – | – | – |
+| sajtos-tejfölös lángos | nincs még | – | – | – | – | – |
+| töltött lángos | nincs még | – | – | – | – | – |
+| kürtőskalács | nincs még | – | – | – | – | – |
+| sült kolbász kenyérrel | nincs még | – | – | – | – | – |
+| hurka mustárral | nincs még | – | – | – | – | – |
+| véres hurka | nincs még | – | – | – | – | – |
+| májas hurka | nincs még | – | – | – | – | – |
+| budapesti hot dog | nincs még | – | – | – | – | – |
+| hot dog | bls:Y021512 Hot Dog | 252 / 231 | 16.1 / 13.28 | 8.4 / 9.61 | 17.4 / 17.15 | +9% rendben |
+| gyros pita | nincs még | – | – | – | – | – |
+| gyros tál | nincs még | – | – | – | – | – |
+| döner | bls:Y921162 Döner Kebab, Fladenbrot gefüllt mit Grillfleisch (Geflügel), Rohkost und Sauce | 175 / 199 | 6.0 / 7.9 | 11.6 / 13.08 | 17.8 / 18.0 | -12% rendben |
+| döner tál | nincs még | – | – | – | – | – |
+| falafel wrap | nincs még | – | – | – | – | – |
+| hamburger | bls:Y911060 Hamburger | 175 / 190 | 7.7 / 7.31 | 8.7 / 10.01 | 16.7 / 19.72 | -8% rendben |
+| sajtos hamburger | bls:Y911160 Cheeseburger | 184 / 202 | 8.7 / 9.1 | 9.5 / 10.6 | 15.9 / 18.1 | -9% rendben |
+| pulled pork szendvics | nincs még | – | – | – | – | – |
+| szelet pizza | bls:X912412 Pizza Prosciutto (mit Tomatensauce, Kochschinken, Mozzarella) | 231 / 224 | 8.6 / 12.17 | 12.6 / 11.36 | 24.4 / 16.0 | +3% rendben |
+| tócsni | bls:X655032 Kartoffelpuffer/Reibekuchen (mit saurer Sahne und Grieß) gebraten | 185 / 185 | 9.5 / 8.9 | 3.6 / 3.6 | 20.4 / 21.6 | -0% rendben |
+| lapcsánka | nincs még | – | – | – | – | – |
+| hekk | nincs még | – | – | – | – | – |
+| lángos | bls:D7A6700 Langos (Hefeteig) frittiert, ungefüllt | 331 / 340 | 11.2 / 10.0 | 7.9 / 8.63 | 48.0 / 52.0 | -3% rendben |
+| hasábburgonya | bls:K130492 Pommes frites tiefgefroren, frittiert | 202 / 203 | 9.0 / 9.04 | 2.9 / 2.9 | 26.3 / 25.94 | -1% rendben |
+| gofri | nincs még | – | – | – | – | – |
 | tejfölös tészta | nincs még | – | – | – | – | – |
 | pesto pasta | bls:X703112 Teigwaren eifrei, mit Pesto verde | 242 / 222 | 12.3 / 11.5 | 7.5 / 5.7 | 24.5 / 23.2 | +9% rendben |
 | spaghetti bolognese | bls:X740433 Eierteigwaren mit Bologneser Sauce | 164 / 164 | 6.1 / 8.0 | 7.8 / 8.3 | 18.5 / 13.9 | -0% rendben |
@@ -302,6 +356,31 @@ Mély tányér: kapacitás × töltöttség × sűrűség. Lapos tányér: 0,8 �
 | Székelykáposzta | HU | traditional | 450 | 346 | 500 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | Palócleves | HU | traditional | 450 | 341 | 493 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | Jókai-bableves | HU | traditional | 450 | 350 | 505 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| fokhagymás lángos | HU | street_food | 144 | – (kézből) | – | – | – | – |
+| sajtos-tejfölös lángos | HU | street_food | 213 | – (kézből) | – | – | – | – |
+| töltött lángos | HU | street_food | 175 | – (kézből) | – | – | – | – |
+| kürtőskalács | HU | street_food | 250 | – (kézből) | – | – | – | – |
+| sült kolbász kenyérrel | HU | street_food | 280 | 205 | 296 | 218 | 256 | 297 |
+| hurka mustárral | HU | street_food | 300 | 210 | 303 | 246 | 289 | 335 |
+| véres hurka | HU | street_food | 200 | 341 | 493 | 205 | 240 | 279 |
+| májas hurka | HU | street_food | 200 | 342 | 494 | 206 | 241 | 280 |
+| budapesti hot dog | HU | street_food | 225 | – (kézből) | – | – | – | – |
+| hot dog | HU | street_food | 270 | – (kézből) | – | – | – | – |
+| gyros pita | HU | street_food | 300 | – (kézből) | – | – | – | – |
+| gyros tál | HU | street_food | 550 | – (lapos tányéros étel) | – (lapos tányéros étel) | 343 | 403 | 467 |
+| döner | HU | street_food | 370 | – (kézből) | – | – | – | – |
+| döner tál | HU | street_food | 550 | – (lapos tányéros étel) | – (lapos tányéros étel) | 343 | 403 | 467 |
+| falafel wrap | HU | street_food | 380 | – (kézből) | – | – | – | – |
+| hamburger | HU | street_food | 370 | – (kézből) | – | – | – | – |
+| sajtos hamburger | HU | street_food | 390 | – (kézből) | – | – | – | – |
+| pulled pork szendvics | HU | street_food | 300 | – (kézből) | – | – | – | – |
+| szelet pizza | HU | street_food | 180 | – (kézből) | – | – | – | – |
+| tócsni | HU | street_food | 200 | – (lapos tányéros étel) | – (lapos tányéros étel) | 91 | 107 | 124 |
+| lapcsánka | HU | street_food | 190 | – (lapos tányéros étel) | – (lapos tányéros étel) | 91 | 107 | 124 |
+| hekk | HU | street_food | 150 | – (lapos tányéros étel) | – (lapos tányéros étel) | 130 | 153 | 177 |
+| lángos | HU | street_food | 130 | – (kézből) | – | – | – | – |
+| hasábburgonya | HU | street_food | 170 | – (lapos tányéros étel) | – (lapos tányéros étel) | 117 | 138 | 160 |
+| gofri | HU | street_food | 100 | – (kézből) | – | – | – | – |
 | tejfölös tészta | HU | everyday | 350 | – (lapos tányéros étel) | – (lapos tányéros étel) | 254 | 298 | 346 |
 | pesto pasta | HU | everyday | 280 | – (lapos tányéros étel) | – (lapos tányéros étel) | 235 | 275 | 319 |
 | spaghetti bolognese | HU | everyday | 400 | – (lapos tányéros étel) | – (lapos tányéros étel) | 304 | 357 | 414 |
@@ -336,7 +415,7 @@ Mély tányér: kapacitás × töltöttség × sűrűség. Lapos tányér: 0,8 �
 | tükörtojás | HU | everyday | 106 | 344 | 496 | 74 | 86 | 100 |
 | főtt tojás | HU | everyday | 100 | 348 | 502 | 107 | 126 | 146 |
 | tojásos nokedli | HU | everyday | 303 | – (lapos tányéros étel) | – (lapos tányéros étel) | 238 | 279 | 324 |
-| bundás kenyér | HU | everyday | 128 | 167 | 241 | 90 | 106 | 123 |
+| bundás kenyér | HU | everyday | 128 | 148 | 214 | 80 | 94 | 109 |
 | melegszendvics | HU | everyday | 236 | – (kézből) | – | – | – | – |
 | sonkás szendvics | HU | everyday | 120 | – (kézből) | – | – | – | – |
 | sajtos szendvics | HU | everyday | 120 | – (kézből) | – | – | – | – |

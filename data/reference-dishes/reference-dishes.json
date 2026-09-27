@@ -1190,18 +1190,6 @@
       "density_intrinsic_g_ml": 1.0,
       "density_bulk_g_ml": 0.4
     },
-    "white_bread": {
-      "names": {
-        "hu": "fehér kenyér (búza-rozs keverék)",
-        "de": "Weizenmischbrot",
-        "en": "white bread (wheat-rye mix)"
-      },
-      "catalog": "bls:B251000",
-      "carb_basis": "total",
-      "density_intrinsic_g_ml": 0.35,
-      "density_bulk_g_ml": 0.3,
-      "note": "Hungarian fehér kenyér = wheat-rye mixed bread; BLS Weizenmischbrot; 1 slice ~35 g"
-    },
     "ham_cooked": {
       "names": {
         "hu": "főtt sonka / szendvicssonka",
@@ -1627,6 +1615,241 @@
       "carb_basis": "total",
       "density_intrinsic_g_ml": 0.9,
       "density_bulk_g_ml": 0.9
+    },
+    "sour_cream_20_bls": {
+      "names": {
+        "hu": "tejföl (20%)",
+        "de": "Schmand, 20 % Fett",
+        "en": "sour cream 20%"
+      },
+      "catalog": "bls:M172700",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.02,
+      "density_bulk_g_ml": 1.02,
+      "note": "BLS record matching Hungarian 20% tejföl; foods.py sour_cream is the USDA 18% record"
+    },
+    "pork_liver": {
+      "names": {
+        "hu": "sertésmáj",
+        "de": "Schweineleber",
+        "en": "pork liver"
+      },
+      "catalog": "bls:V533100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.05,
+      "density_bulk_g_ml": 0.8
+    },
+    "pork_lung": {
+      "names": {
+        "hu": "sertéstüdő",
+        "de": "Schweinelunge",
+        "en": "pork lung"
+      },
+      "catalog": "bls:V543100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.0,
+      "density_bulk_g_ml": 0.7
+    },
+    "pork_heart": {
+      "names": {
+        "hu": "sertésszív",
+        "de": "Schweineherz",
+        "en": "pork heart"
+      },
+      "catalog": "bls:V513100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.05,
+      "density_bulk_g_ml": 0.8
+    },
+    "pork_kidney": {
+      "names": {
+        "hu": "sertésvese",
+        "de": "Schweineniere",
+        "en": "pork kidney"
+      },
+      "catalog": "bls:V573100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.05,
+      "density_bulk_g_ml": 0.8
+    },
+    "pork_tongue": {
+      "names": {
+        "hu": "sertésnyelv",
+        "de": "Schweinezunge",
+        "en": "pork tongue"
+      },
+      "catalog": "bls:V593100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.05,
+      "density_bulk_g_ml": 0.8
+    },
+    "pork_blood": {
+      "names": {
+        "hu": "sertésvér",
+        "de": "Schweineblut",
+        "en": "pork blood"
+      },
+      "catalog": "bls:U609100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.05,
+      "density_bulk_g_ml": 1.05
+    },
+    "pork_belly": {
+      "names": {
+        "hu": "sertésdagadó / hasaalja (bőrös)",
+        "de": "Schweinebauch",
+        "en": "pork belly"
+      },
+      "catalog": "bls:U642100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.0,
+      "density_bulk_g_ml": 0.8
+    },
+    "white_bread": {
+      "names": {
+        "hu": "fehér kenyér",
+        "de": "Weizenbrot/Weißbrot",
+        "en": "white wheat bread"
+      },
+      "catalog": "bls:B311000",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 0.3,
+      "density_bulk_g_ml": 0.3,
+      "note": "density = sliced bread with airy crumb"
+    },
+    "hake": {
+      "names": {
+        "hu": "hekk (tengeri)",
+        "de": "Seehecht",
+        "en": "hake"
+      },
+      "catalog": "bls:T209100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.05,
+      "density_bulk_g_ml": 0.8,
+      "note": "grams = edible part (no head, bones)"
+    },
+    "flatbread": {
+      "names": {
+        "hu": "pita / török kenyér",
+        "de": "Weizenfladenbrot",
+        "en": "wheat flatbread (pita)"
+      },
+      "catalog": "bls:B782100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 0.35,
+      "density_bulk_g_ml": 0.35
+    },
+    "tortilla": {
+      "names": {
+        "hu": "tortilla lap",
+        "de": "Weizentortilla",
+        "en": "wheat tortilla"
+      },
+      "catalog": "bls:B783012",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 0.6,
+      "density_bulk_g_ml": 0.4
+    },
+    "yogurt_greek_10": {
+      "names": {
+        "hu": "görög típusú joghurt (10%)",
+        "de": "Sahnejoghurt 10 %",
+        "en": "Greek-style yogurt 10%"
+      },
+      "catalog": "bls:M141500",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.05,
+      "density_bulk_g_ml": 1.05,
+      "note": "Hungarian 'görög joghurt' retail = 10% fat creamy yogurt"
+    },
+    "kefir": {
+      "names": {
+        "hu": "kefir",
+        "de": "Kefir 3,5 %",
+        "en": "kefir"
+      },
+      "catalog": "bls:M130300",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.03,
+      "density_bulk_g_ml": 1.03
+    },
+    "lettuce": {
+      "names": {
+        "hu": "fejes saláta",
+        "de": "Kopfsalat",
+        "en": "lettuce"
+      },
+      "catalog": "bls:G105100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 0.95,
+      "density_bulk_g_ml": 0.2
+    },
+    "yellow_bell_pepper": {
+      "names": {
+        "hu": "kaliforniai paprika (sárga)",
+        "de": "Gemüsepaprika gelb",
+        "en": "yellow bell pepper"
+      },
+      "catalog": "bls:G542100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 0.95,
+      "density_bulk_g_ml": 0.5
+    },
+    "ketchup": {
+      "names": {
+        "hu": "ketchup",
+        "de": "Tomatenketchup",
+        "en": "ketchup"
+      },
+      "catalog": "bls:R141100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.14,
+      "density_bulk_g_ml": 1.14
+    },
+    "bbq_sauce": {
+      "names": {
+        "hu": "barbecue szósz",
+        "de": "Grillsauce, Tomaten-Basis",
+        "en": "barbecue sauce"
+      },
+      "catalog": "bls:R148200",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.1,
+      "density_bulk_g_ml": 1.1
+    },
+    "chickpeas_canned": {
+      "names": {
+        "hu": "csicseriborsó (konzerv, lecsepegtetve)",
+        "de": "Kichererbse Konserve, abgetropft",
+        "en": "chickpeas, canned, drained"
+      },
+      "catalog": "bls:H720902",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.1,
+      "density_bulk_g_ml": 0.75
+    },
+    "hummus": {
+      "names": {
+        "hu": "humusz",
+        "de": "Hummus",
+        "en": "hummus"
+      },
+      "catalog": "bls:H960000",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.05,
+      "density_bulk_g_ml": 1.05
+    },
+    "margarine": {
+      "names": {
+        "hu": "margarin",
+        "de": "Pflanzenmargarine Vollfett",
+        "en": "margarine (full fat)"
+      },
+      "catalog": "bls:Q400000",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 0.92,
+      "density_bulk_g_ml": 0.92
     }
   },
   "parts": {
@@ -3013,6 +3236,2371 @@
           "fat": 2.6,
           "protein": 6.4,
           "net_carbs": 8.1
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "langos": {
+      "id": "langos",
+      "names": {
+        "hu": "Lángos (sima, kisütve)",
+        "de": "Langos (frittiert, ohne Belag)",
+        "en": "Lángos (plain fried dough)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 6,
+        "ingredients": [
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 500,
+            "role": "core",
+            "note": "500 g finomliszt (kenyér)"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 200,
+            "role": "liquid",
+            "note": "200 ml víz"
+          },
+          {
+            "food_key": "milk_whole",
+            "raw_g": 154.5,
+            "role": "liquid",
+            "note": "150 ml tej"
+          },
+          {
+            "food_key": "yeast_fresh",
+            "raw_g": 14,
+            "role": "core",
+            "note": "14 g friss élesztő"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 5,
+            "role": "fat",
+            "note": "1 teáskanál napraforgó olaj a tésztába"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 70,
+            "role": "absorbed_fat",
+            "note": "oil taken up while deep-frying in 1 l oil at 180 °C: ~9% of the fried weight (estimate, BLS Langos frittiert has 10 g fat/100 g)"
+          }
+        ],
+        "raw_total_g": 943.5,
+        "cooking": {
+          "method": "yeast dough, 6 pieces, deep-fried 1.5-2 min per side at 180 °C",
+          "mass_change_g": -180,
+          "note": "water lost while frying ~19% of the dough (estimate, tuned so the plain part stays near BLS 'Langos frittiert'). Pinch of sugar and salt left out"
+        },
+        "finished_weight_g": 763.5,
+        "yield_factor": 0.809
+      },
+      "standard_serving_g": 130,
+      "density_g_per_ml": 0.997,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.receptneked.hu/recept/klasszikus-langos",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 6 lángos (dough part)"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/fokhagymas-sajtos-tejfolos-langos",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 40 dkg kenyérliszt, 3,2 dl víz, 1 dkg élesztő, 1 l olaj a sütéshez, 4 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 331.2,
+          "fat": 11.2,
+          "protein": 7.9,
+          "net_carbs": 48.0
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "langos_fokhagymas_olaj": {
+      "id": "langos_fokhagymas_olaj",
+      "names": {
+        "hu": "Fokhagymás öntet lángosra",
+        "de": "Knoblauchöl für Langos",
+        "en": "Garlic oil-water for lángos"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 6,
+        "ingredients": [
+          {
+            "food_key": "garlic",
+            "raw_g": 12.5,
+            "role": "core",
+            "note": "2-3 gerezd"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 19.5,
+            "role": "fat",
+            "note": "1-2 evőkanál olaj"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 50,
+            "role": "liquid",
+            "note": "fél deci víz"
+          }
+        ],
+        "raw_total_g": 82.0,
+        "cooking": {
+          "method": "crushed garlic stirred into oil and water, brushed on the hot lángos",
+          "mass_change_g": 0,
+          "note": "no cooking; a pinch of salt left out"
+        },
+        "finished_weight_g": 82.0,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 14,
+      "density_g_per_ml": 0.98,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://tudasmania.hu/fokhagymas-langos-igy-keszul-a-fokhagyma-ontet-a-langoshoz/",
+          "retrieved": "2026-09-27",
+          "note": "batch: 2-3 gerezd fokhagyma, 1-2 ek olaj, fél deci víz, ~6 lángoshoz"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/fokhagymas-sajtos-tejfolos-langos",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 3 gerezd fokhagyma + 1 dl olaj 4 lángosra"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 228.8,
+          "fat": 23.8,
+          "protein": 0.9,
+          "net_carbs": 0.5
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "langos_tejfol": {
+      "id": "langos_tejfol",
+      "names": {
+        "hu": "Tejföl lángosra",
+        "de": "Sauerrahm für Langos",
+        "en": "Sour cream topping for lángos"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 6,
+        "ingredients": [
+          {
+            "food_key": "sour_cream_20_bls",
+            "raw_g": 306,
+            "role": "core",
+            "note": "300 ml tejföl 6 lángosra"
+          }
+        ],
+        "raw_total_g": 306,
+        "cooking": {
+          "method": "spread on the fried lángos",
+          "mass_change_g": 0,
+          "note": "no cooking"
+        },
+        "finished_weight_g": 306,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 50,
+      "density_g_per_ml": 1.02,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.receptneked.hu/recept/klasszikus-langos",
+          "retrieved": "2026-09-27",
+          "note": "feltét: 300 ml tejföl, 6 adag"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/sajtos-tejfolos-langos",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 1 kis doboz tejföl 4 lángosra"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 206.0,
+          "fat": 20.0,
+          "protein": 2.8,
+          "net_carbs": 3.0
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "langos_sajt": {
+      "id": "langos_sajt",
+      "names": {
+        "hu": "Reszelt sajt lángosra",
+        "de": "Geriebener Käse für Langos",
+        "en": "Grated cheese topping for lángos"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 6,
+        "ingredients": [
+          {
+            "food_key": "trappista",
+            "raw_g": 200,
+            "role": "core",
+            "note": "200 g reszelt sajt 6 lángosra (trappista)"
+          }
+        ],
+        "raw_total_g": 200,
+        "cooking": {
+          "method": "sprinkled on top",
+          "mass_change_g": 0,
+          "note": "no cooking"
+        },
+        "finished_weight_g": 200,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 33,
+      "density_g_per_ml": 0.4,
+      "density_method": "cooked bulk density (loose pieces)",
+      "sources": [
+        {
+          "url": "https://www.receptneked.hu/recept/klasszikus-langos",
+          "retrieved": "2026-09-27",
+          "note": "feltét: 200 g reszelt sajt, 6 adag"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/sajtos-tejfolos-langos",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 10 dkg reszelt sajt 4 lángosra"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 345.0,
+          "fat": 26.8,
+          "protein": 25.1,
+          "net_carbs": 0.0
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "toltott_langos": {
+      "id": "toltott_langos",
+      "names": {
+        "hu": "Sonkával-sajttal töltött lángos",
+        "de": "Gefüllter Langos mit Schinken und Käse",
+        "en": "Lángos filled with ham and cheese"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 10,
+        "ingredients": [
+          {
+            "food_key": "potato",
+            "raw_g": 250,
+            "role": "core",
+            "note": "25 dkg főtt, áttört burgonya (weighed cooked; boiled potato ~ raw peeled weight)"
+          },
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 500,
+            "role": "core",
+            "note": "50 dkg"
+          },
+          {
+            "food_key": "yeast_fresh",
+            "raw_g": 15,
+            "role": "core",
+            "note": "15 g"
+          },
+          {
+            "food_key": "milk_whole",
+            "raw_g": 257.5,
+            "role": "liquid",
+            "note": "kb. 2,5 dl tej"
+          },
+          {
+            "food_key": "ham_smoked_cooked",
+            "raw_g": 200,
+            "role": "core",
+            "note": "20 dkg füstölt sonka"
+          },
+          {
+            "food_key": "trappista",
+            "raw_g": 250,
+            "role": "core",
+            "note": "25 dkg trappista sajt"
+          },
+          {
+            "food_key": "sour_cream_20_bls",
+            "raw_g": 300,
+            "role": "core",
+            "note": "30 dkg tejföl, spread inside"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 90,
+            "role": "absorbed_fat",
+            "note": "taken up while frying in hot oil, ~5% of the fried weight (estimate)"
+          }
+        ],
+        "raw_total_g": 1862.5,
+        "cooking": {
+          "method": "potato-yeast dough rounds filled, folded, sealed, fried 1-1 min per side",
+          "mass_change_g": -150,
+          "note": "frying water loss of the dough (estimate); sugar pinch and salt left out"
+        },
+        "finished_weight_g": 1712.5,
+        "yield_factor": 0.919
+      },
+      "standard_serving_g": 175,
+      "density_g_per_ml": 1.031,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://receptneked.hu/sonkaval-es-sajttal-toltott-langos",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 10 adag (≈183 g)"
+        },
+        {
+          "url": "https://langosreceptek.hu/sajttal-sonkaval-toltott-langos/",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 1 kg liszt, 30 dkg gépsonka, 30 dkg sajt, 2 dl tejföl töltelék, 6 személy"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 270.3,
+          "fat": 13.8,
+          "protein": 10.4,
+          "net_carbs": 24.8
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "kurtoskalacs": {
+      "id": "kurtoskalacs",
+      "names": {
+        "hu": "Kürtőskalács (cukros)",
+        "de": "Baumstriezel (Kürtőskalács)",
+        "en": "Chimney cake (kürtőskalács)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 500,
+            "role": "core",
+            "note": "50 dkg"
+          },
+          {
+            "food_key": "yeast_fresh",
+            "raw_g": 30,
+            "role": "core",
+            "note": "3 dkg"
+          },
+          {
+            "food_key": "sugar",
+            "raw_g": 60,
+            "role": "core",
+            "note": "6 dkg a tésztába"
+          },
+          {
+            "food_key": "milk_whole",
+            "raw_g": 257.5,
+            "role": "liquid",
+            "note": "2,5 dl langyos tej"
+          },
+          {
+            "food_key": "butter",
+            "raw_g": 60,
+            "role": "fat",
+            "note": "6 dkg olvasztott vaj"
+          },
+          {
+            "food_key": "egg",
+            "raw_g": 100,
+            "role": "core",
+            "note": "2 db"
+          },
+          {
+            "food_key": "sugar",
+            "raw_g": 100,
+            "role": "coating",
+            "note": "kristálycukor to roll the dough in + fahéjas/vaníliás cukor after baking: amount that sticks, 25 g per piece (estimate)"
+          }
+        ],
+        "raw_total_g": 1107.5,
+        "cooking": {
+          "method": "dough strips wound on a spit, rolled in sugar, baked over charcoal 10-15 min until caramelised",
+          "mass_change_g": -110,
+          "note": "~10% baking loss (estimate). Cinnamon, salt and the optional nut/coconut coatings are left out"
+        },
+        "finished_weight_g": 997.5,
+        "yield_factor": 0.901
+      },
+      "standard_serving_g": 250,
+      "density_g_per_ml": 1.068,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/kurtoskalacs",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 adag"
+        },
+        {
+          "url": "https://www.receptneked.hu/recept/kurtoskalacs",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 50 dkg liszt, 10 dkg vaj, 8 ek porcukor, 2,5 dl tej, 10 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 315.1,
+          "fat": 7.2,
+          "protein": 8.0,
+          "net_carbs": 53.4
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "kenyer_mustarral": {
+      "id": "kenyer_mustarral",
+      "names": {
+        "hu": "Kenyér mustárral (hentes köret)",
+        "de": "Brot mit Senf (Beilage)",
+        "en": "Bread with mustard (side)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "white_bread",
+            "raw_g": 80,
+            "role": "core",
+            "note": "2 szelet fehér kenyér, ~40 g/szelet (estimate)"
+          },
+          {
+            "food_key": "mustard",
+            "raw_g": 20,
+            "role": "garnish",
+            "note": "1 adag mustár (estimate)"
+          }
+        ],
+        "raw_total_g": 100,
+        "cooking": {
+          "method": "served alongside",
+          "mass_change_g": 0,
+          "note": "no cooking"
+        },
+        "finished_weight_g": 100,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 100,
+      "density_g_per_ml": 0.35,
+      "density_method": "derived from components after cooking mass change",
+      "flat_plate": {
+        "coverage": 0.2,
+        "height_cm": 2.0
+      },
+      "sources": [
+        {
+          "url": "https://burgerhouse.hu/hazi-sultkolbasz-igy-keszul-az-igazi-csabai-kolbasz-otthon/",
+          "retrieved": "2026-09-27",
+          "note": "tálalás: friss kenyérrel, mustárral és savanyúsággal"
+        },
+        {
+          "url": "https://finomkonyha.hu/receptek/rizses-hurka-recept/",
+          "retrieved": "2026-09-27",
+          "note": "tálalás: friss kenyér, hagymapác vagy mustár"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 239.8,
+          "fat": 3.8,
+          "protein": 8.1,
+          "net_carbs": 41.0
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "veres_hurka": {
+      "id": "veres_hurka",
+      "names": {
+        "hu": "Véres hurka (rizses, sütve)",
+        "de": "Ungarische Blutwurst mit Reis (gebraten)",
+        "en": "Hungarian blood sausage with rice (roasted)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 6,
+        "ingredients": [
+          {
+            "food_key": "pork_belly",
+            "raw_g": 1000,
+            "role": "core",
+            "note": "1 kg zsíros sertéshús vagy szalonna -> pork belly with rind"
+          },
+          {
+            "food_key": "pork_blood",
+            "raw_g": 500,
+            "role": "core",
+            "note": "500 g friss sertésvér"
+          },
+          {
+            "food_key": "rice_white",
+            "raw_g": 250,
+            "role": "core",
+            "note": "250 g rizs, raw"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 200,
+            "role": "core",
+            "note": "2 közepes vöröshagyma"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 15,
+            "role": "seasoning",
+            "note": "3 gerezd"
+          },
+          {
+            "food_key": "lard",
+            "raw_g": 26,
+            "role": "fat",
+            "note": "2 ek sertészsír"
+          },
+          {
+            "food_key": "paprika_ground",
+            "raw_g": 2.5,
+            "role": "seasoning",
+            "note": "1 tk pirospaprika"
+          }
+        ],
+        "raw_total_g": 1993.5,
+        "cooking": {
+          "method": "rice half-cooked, mixed with meat, onion and blood, stuffed, poached 40-50 min, roasted/pan-crisped before serving",
+          "mass_change_g": 70,
+          "note": "+250 g water taken up by the half-cooked rice, -80 g poaching and -100 g roasting loss (estimates). Marjoram (MISSING), pepper, caraway, salt and casing left out"
+        },
+        "finished_weight_g": 2063.5,
+        "yield_factor": 1.035
+      },
+      "standard_serving_g": 200,
+      "density_g_per_ml": 1.011,
+      "density_method": "derived from components after cooking mass change",
+      "flat_plate": {
+        "coverage": 0.2,
+        "height_cm": 3.5
+      },
+      "sources": [
+        {
+          "url": "https://finomkonyha.hu/receptek/rizses-hurka-recept/",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 6 adag"
+        },
+        {
+          "url": "https://hu.wikibooks.org/wiki/Szak%C3%A1csk%C3%B6nyv/Diszn%C3%B3tor/Hurk%C3%A1k/Rizses_%C3%A9s_v%C3%A9res_hurka",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: disznótoros rizses és véres hurka arányai (zsíros hús, fejhús, máj, rizs, vér)"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 233.4,
+          "fat": 15.0,
+          "protein": 14.2,
+          "net_carbs": 10.0
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "majas_hurka": {
+      "id": "majas_hurka",
+      "names": {
+        "hu": "Májas hurka (rizses, sütve)",
+        "de": "Ungarische Leberwurst mit Reis (gebraten)",
+        "en": "Hungarian liver sausage with rice (roasted)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "pork_liver",
+            "raw_g": 110,
+            "role": "core",
+            "note": "part of 33 dkg belsőség (vese, máj, szív, tüdő, nyelv); split is an estimate"
+          },
+          {
+            "food_key": "pork_lung",
+            "raw_g": 100,
+            "role": "core",
+            "note": "belsőség, estimate share"
+          },
+          {
+            "food_key": "pork_heart",
+            "raw_g": 60,
+            "role": "core",
+            "note": "belsőség, estimate share"
+          },
+          {
+            "food_key": "pork_kidney",
+            "raw_g": 30,
+            "role": "core",
+            "note": "belsőség, estimate share"
+          },
+          {
+            "food_key": "pork_tongue",
+            "raw_g": 30,
+            "role": "core",
+            "note": "belsőség, estimate share"
+          },
+          {
+            "food_key": "pork_belly",
+            "raw_g": 330,
+            "role": "core",
+            "note": "33 dkg bőrkés háj, hús -> pork belly with rind as the closest single record"
+          },
+          {
+            "food_key": "rice_white",
+            "raw_g": 80,
+            "role": "core",
+            "note": "8 dkg rizs, raw"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 250,
+            "role": "liquid",
+            "note": "2,5 dl abálólé a rizs főzéshez (clear cooking broth, modelled as water)"
+          },
+          {
+            "food_key": "paprika_ground",
+            "raw_g": 5,
+            "role": "seasoning",
+            "note": "0,5 dkg pirospaprika"
+          }
+        ],
+        "raw_total_g": 995,
+        "cooking": {
+          "method": "offal and fatty parts poached soft, minced, mixed with rice cooked in broth, stuffed, poached 1-2 min, baked 15 min at 190 °C",
+          "mass_change_g": -205,
+          "note": "~25% poaching loss of the meat (-165 g) and ~5% baking loss (-40 g), estimates; the rice takes up the 2,5 dl broth. 2,5 dkg marjoram (MISSING), pepper, salt and casing left out"
+        },
+        "finished_weight_g": 790,
+        "yield_factor": 0.794
+      },
+      "standard_serving_g": 200,
+      "density_g_per_ml": 1.014,
+      "density_method": "derived from components after cooking mass change",
+      "flat_plate": {
+        "coverage": 0.2,
+        "height_cm": 3.5
+      },
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/majas-hurka",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 adag"
+        },
+        {
+          "url": "https://hu.wikibooks.org/wiki/Szak%C3%A1csk%C3%B6nyv/Diszn%C3%B3tor/Hurk%C3%A1k/Rizses_%C3%A9s_v%C3%A9res_hurka",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: máj, fejhús, bőrke, zsíros hús, párolt rizs, abalé"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 225.3,
+          "fat": 14.4,
+          "protein": 15.5,
+          "net_carbs": 8.1
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "hot_dog_kifli": {
+      "id": "hot_dog_kifli",
+      "names": {
+        "hu": "Hot dog kifli",
+        "de": "Hotdog-Brötchen (ungarisch)",
+        "en": "Hot dog bun (Hungarian kifli)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 10,
+        "ingredients": [
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 500,
+            "role": "core",
+            "note": "250 g rétesliszt + 250 g finomliszt"
+          },
+          {
+            "food_key": "egg",
+            "raw_g": 50,
+            "role": "core",
+            "note": "1 db a tésztába"
+          },
+          {
+            "food_key": "yeast_fresh",
+            "raw_g": 25,
+            "role": "core",
+            "note": "2,5 dkg"
+          },
+          {
+            "food_key": "sugar",
+            "raw_g": 5,
+            "role": "core",
+            "note": "1 tk (estimate)"
+          },
+          {
+            "food_key": "kefir",
+            "raw_g": 154.5,
+            "role": "liquid",
+            "note": "1,5 dl kefir"
+          },
+          {
+            "food_key": "milk_whole",
+            "raw_g": 154.5,
+            "role": "liquid",
+            "note": "1,5 dl tej"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 46.0,
+            "role": "fat",
+            "note": "fél dl olaj"
+          },
+          {
+            "food_key": "potato",
+            "raw_g": 150,
+            "role": "core",
+            "note": "1 közepes, főzve, áttörve"
+          },
+          {
+            "food_key": "butter",
+            "raw_g": 50,
+            "role": "fat",
+            "note": "5 dkg vaj kenéshez"
+          },
+          {
+            "food_key": "egg",
+            "raw_g": 50,
+            "role": "core",
+            "note": "1 db kenéshez"
+          }
+        ],
+        "raw_total_g": 1185.0,
+        "cooking": {
+          "method": "soft yeast dough, 10 long rolls, baked 35 min",
+          "mass_change_g": -130,
+          "note": "~11% baking loss (estimate); salt left out"
+        },
+        "finished_weight_g": 1055.0,
+        "yield_factor": 0.89
+      },
+      "standard_serving_g": 105,
+      "density_g_per_ml": 1.015,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.finomlesz.hu/receptek/hot-dog-kifli/",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 10 kifli"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/hot-dog-kifli",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 35 dkg liszt, joghurt, tej, olaj, vaj, tojás"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 286.0,
+          "fat": 10.6,
+          "protein": 7.9,
+          "net_carbs": 38.5
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "budapesti_hot_dog_toltes": {
+      "id": "budapesti_hot_dog_toltes",
+      "names": {
+        "hu": "Virsli mustárral, ketchuppal (lyukas kifliben)",
+        "de": "Wiener mit Senf und Ketchup (im gebohrten Brötchen)",
+        "en": "Frankfurter with mustard and ketchup (in a bored bun)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "frankfurter",
+            "raw_g": 100,
+            "role": "core",
+            "note": "1 hot dog virsli; ~100 g (finomkonyha: 2 virsli kb. 200 g), estimate"
+          },
+          {
+            "food_key": "mustard",
+            "raw_g": 10,
+            "role": "garnish",
+            "note": "mustár a kifli lyukába (estimate)"
+          },
+          {
+            "food_key": "ketchup",
+            "raw_g": 10,
+            "role": "garnish",
+            "note": "ketchup a kifli lyukába (estimate)"
+          }
+        ],
+        "raw_total_g": 120,
+        "cooking": {
+          "method": "virsli heated in water, pushed into the hole bored in the kifli after mustard and ketchup",
+          "mass_change_g": 0,
+          "note": "heating in water: no mass change modelled"
+        },
+        "finished_weight_g": 120,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 120,
+      "density_g_per_ml": 1.032,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.limarapeksege.com/2009/03/hot-dog-kifli.html",
+          "retrieved": "2026-09-27",
+          "note": "a kisült kiflikbe fakanállal lyukat fúrtam, mustár, kechup került bele, majd a virsli"
+        },
+        {
+          "url": "https://www.origo.hu/tafelspicc/20150818-az-eheto-hot-dog-igenis-letezik-budapest-food-truck.html",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: the classic Budapest büfé hot dog: kifli, virsli, mustár"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 258.3,
+          "fat": 22.4,
+          "protein": 11.3,
+          "net_carbs": 2.0
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "hot_dog_toltes": {
+      "id": "hot_dog_toltes",
+      "names": {
+        "hu": "Hot dog töltelék (virsli, hagyma, mustár, ketchup)",
+        "de": "Hotdog-Füllung (Wiener, Zwiebel, Senf, Ketchup)",
+        "en": "Hot dog filling (frankfurter, onion, mustard, ketchup)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 2,
+        "ingredients": [
+          {
+            "food_key": "frankfurter",
+            "raw_g": 200,
+            "role": "core",
+            "note": "2 virsli (kb. 200 g)"
+          },
+          {
+            "food_key": "butter",
+            "raw_g": 13,
+            "role": "fat",
+            "note": "1 ek vaj, the kifli is toasted in it (estimate 13 g)"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 100,
+            "role": "core",
+            "note": "1 közepes, karamellizálva"
+          },
+          {
+            "food_key": "mustard",
+            "raw_g": 30,
+            "role": "garnish",
+            "note": "2 ek (15 g/ek, estimate)"
+          },
+          {
+            "food_key": "ketchup",
+            "raw_g": 30,
+            "role": "garnish",
+            "note": "2 ek (15 g/ek, estimate)"
+          }
+        ],
+        "raw_total_g": 373,
+        "cooking": {
+          "method": "virsli grilled or boiled, onion caramelised, bun split and toasted in butter",
+          "mass_change_g": -40,
+          "note": "onion loses ~40% while caramelising (estimate). Savanyú uborka (MISSING) and salad leaves left out"
+        },
+        "finished_weight_g": 333,
+        "yield_factor": 0.893
+      },
+      "standard_serving_g": 165,
+      "density_g_per_ml": 1.024,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://finomkonyha.hu/receptek/hot-dog-recept/",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 2 adag"
+        },
+        {
+          "url": "https://www.kifli.hu/sef/12772-klasszikus-amerikai-hot-dog",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 4 virsli, 4 kifli, 150 g csemegeuborka, 170 g vöröshagyma, 1 ek mustár, 1 ek ketchup"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 230.6,
+          "fat": 19.6,
+          "protein": 8.8,
+          "net_carbs": 4.0
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "gyros_hus": {
+      "id": "gyros_hus",
+      "names": {
+        "hu": "Gyros hús (sertés, sütve)",
+        "de": "Gyros-Fleisch (Schwein)",
+        "en": "Gyros meat (pork)"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "pork_neck",
+            "raw_g": 800,
+            "role": "core",
+            "note": "80 dkg sertéstarja"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 200,
+            "role": "core",
+            "note": "2 fej vöröshagyma (nagy)"
+          },
+          {
+            "food_key": "paprika_ground",
+            "raw_g": 7,
+            "role": "seasoning",
+            "note": "pirospaprika (1 ek, estimate)"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 60,
+            "role": "fat",
+            "note": "marinated covered in oil overnight; ~60 g stays on the meat (estimate)"
+          }
+        ],
+        "raw_total_g": 1067,
+        "cooking": {
+          "method": "marinated overnight, roasted >1 h under foil, then uncovered until browned",
+          "mass_change_g": -330,
+          "note": "meat loses ~35%, onion ~25% (estimates). Source gives no yield; 4 portions is an estimate. Gyros spice mix, salt, pepper left out"
+        },
+        "finished_weight_g": 737,
+        "yield_factor": 0.691
+      },
+      "standard_serving_g": 150,
+      "density_g_per_ml": 0.6,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.3,
+        "height_cm": 2.0
+      },
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/gyros-tal",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe (meat part)"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/gyros",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 60 dkg színhús, görög fűszer, 2-3 ek olaj, serpenyőben pirítva"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 275.1,
+          "fat": 20.1,
+          "protein": 21.3,
+          "net_carbs": 1.8
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "gyros_zoldseg_ontet": {
+      "id": "gyros_zoldseg_ontet",
+      "names": {
+        "hu": "Gyros saláta tejfölös-fokhagymás öntettel",
+        "de": "Gyros-Salat mit Knoblauch-Sauerrahm-Sauce",
+        "en": "Gyros salad with garlic sour-cream sauce"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "cucumber",
+            "raw_g": 400,
+            "role": "core",
+            "note": "40 dkg uborka"
+          },
+          {
+            "food_key": "tomato",
+            "raw_g": 400,
+            "role": "core",
+            "note": "40 dkg paradicsom"
+          },
+          {
+            "food_key": "wax_pepper",
+            "raw_g": 100,
+            "role": "core",
+            "note": "10 dkg paprika"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 100,
+            "role": "core",
+            "note": "10 dkg lilahagyma (red onion; mapped to the onion record)"
+          },
+          {
+            "food_key": "sour_cream_20_bls",
+            "raw_g": 510,
+            "role": "core",
+            "note": "5 dl tejföl"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 5,
+            "role": "seasoning",
+            "note": "1 gerezd"
+          }
+        ],
+        "raw_total_g": 1515,
+        "cooking": {
+          "method": "chopped vegetables, sour cream mixed with crushed garlic",
+          "mass_change_g": 0,
+          "note": "no cooking. The source's optional feta (40 dkg) and olives are left out: street gyros usually has neither"
+        },
+        "finished_weight_g": 1515,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 150,
+      "density_g_per_ml": 0.7,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.3,
+        "height_cm": 2.0
+      },
+      "sources": [
+        {
+          "url": "https://www.receptneked.hu/recept/gyros",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 adag (vegetables and sauce)"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/gyros-tal",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 2 dl tejföl + tej + fokhagyma öntet; paradicsom, lilahagyma, kígyóuborka, paprika"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 83.5,
+          "fat": 6.8,
+          "protein": 1.6,
+          "net_carbs": 3.0
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "fladenbrot": {
+      "id": "fladenbrot",
+      "names": {
+        "hu": "Pita / török kenyér",
+        "de": "Fladenbrot / Pita",
+        "en": "Pita / Turkish flatbread"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "flatbread",
+            "raw_g": 80,
+            "role": "core",
+            "note": "one pita 60-100 g (MSM blog); a döner uses a larger quarter/half loaf"
+          }
+        ],
+        "raw_total_g": 80,
+        "cooking": {
+          "method": "warmed",
+          "mass_change_g": 0,
+          "note": "bought ready-baked"
+        },
+        "finished_weight_g": 80,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 80,
+      "density_g_per_ml": 0.35,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://msmchickengoods.com/blog/gyros-kaloria-osszehasonlito/",
+          "retrieved": "2026-09-27",
+          "note": "zsebes vagy hajtogatott lepénykenyér (60-100 g); standard gyros pita ~330-370 g"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/gyros",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 40 dkg lisztből 4 pita (home-made, larger)"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 248.0,
+          "fat": 2.3,
+          "protein": 8.2,
+          "net_carbs": 47.0
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "doner_hus": {
+      "id": "doner_hus",
+      "names": {
+        "hu": "Csirke döner hús",
+        "de": "Hähnchen-Dönerfleisch",
+        "en": "Chicken döner meat"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 6,
+        "ingredients": [
+          {
+            "food_key": "chicken_breast",
+            "raw_g": 2000,
+            "role": "core",
+            "note": "2 kg csirkemell"
+          },
+          {
+            "food_key": "olive_oil",
+            "raw_g": 92,
+            "role": "fat",
+            "note": "1 dl olívaolaj a pácba"
+          },
+          {
+            "food_key": "yogurt_plain",
+            "raw_g": 309,
+            "role": "core",
+            "note": "3 dl joghurt"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 100,
+            "role": "core",
+            "note": "1 db"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 10,
+            "role": "seasoning",
+            "note": "2 gerezd"
+          },
+          {
+            "food_key": "paprika_ground",
+            "raw_g": 2.5,
+            "role": "seasoning",
+            "note": "1 tk fűszerpaprika"
+          },
+          {
+            "food_key": "parsley_leaf",
+            "raw_g": 20,
+            "role": "seasoning",
+            "note": "1 csokor petrezselyem (estimate)"
+          },
+          {
+            "food_key": "mustard",
+            "raw_g": 30,
+            "role": "seasoning",
+            "note": "2 ek dijoni mustár (estimate 15 g/ek)"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 30,
+            "role": "fat",
+            "note": "olaj a sütéshez (estimate)"
+          }
+        ],
+        "raw_total_g": 2593.5,
+        "cooking": {
+          "method": "marinated, stacked, roasted and sliced thin",
+          "mass_change_g": -700,
+          "note": "meat loses ~30% and part of the marinade drips off (estimate). Cumin, oregano, thyme, chili, marjoram, coriander, ginger, salt, pepper left out"
+        },
+        "finished_weight_g": 1893.5,
+        "yield_factor": 0.73
+      },
+      "standard_serving_g": 150,
+      "density_g_per_ml": 0.6,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.3,
+        "height_cm": 2.0
+      },
+      "sources": [
+        {
+          "url": "https://sobors.hu/receptek/hazi-csirkes-doner-recept/",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 6 személy"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/doner",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 1 kg hús, gyros fűszer, fokhagyma, nyárson sütve, joghurtos-fokhagymás öntet"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 188.8,
+          "fat": 9.1,
+          "protein": 25.4,
+          "net_carbs": 1.1
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "falafel_wrap": {
+      "id": "falafel_wrap",
+      "names": {
+        "hu": "Falafel wrap",
+        "de": "Falafel-Wrap",
+        "en": "Falafel wrap"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "tortilla",
+            "raw_g": 248,
+            "role": "core",
+            "note": "4 darab tortilla, ~62 g each (estimate)"
+          },
+          {
+            "food_key": "chickpeas_canned",
+            "raw_g": 400,
+            "role": "core",
+            "note": "400 g csicseriborsó (canned, drained)"
+          },
+          {
+            "food_key": "parsley_leaf",
+            "raw_g": 15,
+            "role": "seasoning",
+            "note": "1/2 csokor (estimate)"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 15,
+            "role": "seasoning",
+            "note": "3 darab fokhagyma"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 28,
+            "role": "fat",
+            "note": "30 ml olaj, falafel pan-fried in it"
+          },
+          {
+            "food_key": "lemon_juice",
+            "raw_g": 22.5,
+            "role": "seasoning",
+            "note": "1/2 citrom leve"
+          },
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 40,
+            "role": "core",
+            "note": "40 g liszt"
+          },
+          {
+            "food_key": "hummus",
+            "raw_g": 60,
+            "role": "core",
+            "note": "4 ek hummusz (15 g/ek, estimate)"
+          },
+          {
+            "food_key": "cucumber",
+            "raw_g": 150,
+            "role": "core",
+            "note": "1/2 kígyóuborka (estimate)"
+          },
+          {
+            "food_key": "tomato",
+            "raw_g": 200,
+            "role": "core",
+            "note": "2 db"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 100,
+            "role": "core",
+            "note": "1 db"
+          },
+          {
+            "food_key": "feta",
+            "raw_g": 50,
+            "role": "core",
+            "note": "50 g feta"
+          },
+          {
+            "food_key": "lettuce",
+            "raw_g": 80,
+            "role": "core",
+            "note": "8 levél saláta (estimate)"
+          },
+          {
+            "food_key": "yogurt_greek_10",
+            "raw_g": 250,
+            "role": "core",
+            "note": "250 g görög joghurt"
+          }
+        ],
+        "raw_total_g": 1658.5,
+        "cooking": {
+          "method": "chickpea mass shaped and fried; wraps filled with hummus, vegetables, feta, yogurt sauce",
+          "mass_change_g": -60,
+          "note": "falafel frying water loss (estimate). Mint, chili, baking soda, salt, pepper and the Maggi gyros seasoning left out"
+        },
+        "finished_weight_g": 1598.5,
+        "yield_factor": 0.964
+      },
+      "standard_serving_g": 380,
+      "density_g_per_ml": 0.928,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.maggi.hu/receptek/falafel-kebab-wrap",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 wrap"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/klasszikus-falafel",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 50 dkg konzerv csicseriborsó, 4 ek liszt, görög joghurtos saláta, 4 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 153.7,
+          "fat": 7.1,
+          "protein": 5.2,
+          "net_carbs": 15.1
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "hamburger_zsemle": {
+      "id": "hamburger_zsemle",
+      "names": {
+        "hu": "Hamburger zsemle",
+        "de": "Burgerbrötchen",
+        "en": "Burger bun"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 8,
+        "ingredients": [
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 600,
+            "role": "core",
+            "note": "60 dkg finomliszt"
+          },
+          {
+            "food_key": "milk_whole",
+            "raw_g": 257.5,
+            "role": "liquid",
+            "note": "2-3 dl langyos tej"
+          },
+          {
+            "food_key": "sugar",
+            "raw_g": 24,
+            "role": "core",
+            "note": "2 evőkanál"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 13,
+            "role": "fat",
+            "note": "1 evőkanál olaj"
+          },
+          {
+            "food_key": "egg",
+            "raw_g": 50,
+            "role": "core",
+            "note": "1 db a tésztába"
+          },
+          {
+            "food_key": "yogurt_plain",
+            "raw_g": 30,
+            "role": "core",
+            "note": "2 evőkanál joghurt (15 g/ek, estimate)"
+          },
+          {
+            "food_key": "yeast_fresh",
+            "raw_g": 30,
+            "role": "core",
+            "note": "3 dkg"
+          },
+          {
+            "food_key": "egg",
+            "raw_g": 50,
+            "role": "core",
+            "note": "1 db a kenésre"
+          }
+        ],
+        "raw_total_g": 1054.5,
+        "cooking": {
+          "method": "yeast dough, 8 buns, baked",
+          "mass_change_g": -120,
+          "note": "~11% baking loss (estimate); salt left out"
+        },
+        "finished_weight_g": 934.5,
+        "yield_factor": 0.886
+      },
+      "standard_serving_g": 110,
+      "density_g_per_ml": 1.021,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.receptneked.hu/recept/hamburger-zsemle",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 8 zsemle (≈110 g)"
+        },
+        {
+          "url": "https://sobors.hu/receptek/hamburger-zsemle-recept/",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 500 g liszt, 2,2 dl tej, 0,5 dl olaj, 2 tojás, 8 darab"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 284.0,
+          "fat": 4.1,
+          "protein": 9.8,
+          "net_carbs": 50.2
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "hamburger_pogacsa": {
+      "id": "hamburger_pogacsa",
+      "names": {
+        "hu": "Hamburger húspogácsa (marha)",
+        "de": "Burger-Patty (Rind)",
+        "en": "Beef burger patty"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "beef_minced",
+            "raw_g": 400,
+            "role": "core",
+            "note": "40 dkg marhahús (kétszer darált)"
+          },
+          {
+            "food_key": "margarine",
+            "raw_g": 20,
+            "role": "fat",
+            "note": "5 dkg margarin a sütéshez; ~20 g stays on the patties (estimate)"
+          }
+        ],
+        "raw_total_g": 420,
+        "cooking": {
+          "method": "4 patties fried 2-2 min per side",
+          "mass_change_g": -60,
+          "note": "~15% frying loss (estimate); salt and pepper left out"
+        },
+        "finished_weight_g": 360,
+        "yield_factor": 0.857
+      },
+      "standard_serving_g": 90,
+      "density_g_per_ml": 1.051,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/hamburger",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 adag"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/hazi-hamburger",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 50 dkg darált marhahús, 1 hagyma, 8 buci"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 288.8,
+          "fat": 22.6,
+          "protein": 21.2,
+          "net_carbs": 0.0
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "hamburger_feltet": {
+      "id": "hamburger_feltet",
+      "names": {
+        "hu": "Hamburger feltét (zöldség, szósz)",
+        "de": "Burger-Belag (Gemüse, Sauce)",
+        "en": "Burger toppings (vegetables, sauce)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "onion",
+            "raw_g": 100,
+            "role": "core",
+            "note": "1 fej lila hagyma (red onion; onion record)"
+          },
+          {
+            "food_key": "tomato",
+            "raw_g": 200,
+            "role": "core",
+            "note": "2 db paradicsom"
+          },
+          {
+            "food_key": "yellow_bell_pepper",
+            "raw_g": 150,
+            "role": "core",
+            "note": "1 db sárga kaliforniai paprika (estimate)"
+          },
+          {
+            "food_key": "lettuce",
+            "raw_g": 150,
+            "role": "core",
+            "note": "1 fej saláta, leaves used ~150 g (estimate)"
+          },
+          {
+            "food_key": "sour_cream_20_bls",
+            "raw_g": 68,
+            "role": "core",
+            "note": "4 ek tejföl (mártás)"
+          },
+          {
+            "food_key": "mustard",
+            "raw_g": 5,
+            "role": "garnish",
+            "note": "1 kávéskanál mustár"
+          },
+          {
+            "food_key": "ketchup",
+            "raw_g": 15,
+            "role": "garnish",
+            "note": "1 ek ketchup"
+          }
+        ],
+        "raw_total_g": 688,
+        "cooking": {
+          "method": "raw vegetables; sauce = sour cream + mustard + ketchup",
+          "mass_change_g": 0,
+          "note": "no cooking"
+        },
+        "finished_weight_g": 688,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 170,
+      "density_g_per_ml": 0.98,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/hamburger",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 adag"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/hazi-hamburger",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: saláta, paradicsom, hagyma, ketchup, mustár, majonéz"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 44.7,
+          "fat": 2.2,
+          "protein": 1.3,
+          "net_carbs": 3.9
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "hamburger_sajt": {
+      "id": "hamburger_sajt",
+      "names": {
+        "hu": "Sajtszelet hamburgerbe",
+        "de": "Käsescheibe für Burger",
+        "en": "Cheese slice for burger"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "trappista",
+            "raw_g": 20,
+            "role": "core",
+            "note": "1 szelet sajt, ~20 g (estimate)"
+          }
+        ],
+        "raw_total_g": 20,
+        "cooking": {
+          "method": "laid on the hot patty",
+          "mass_change_g": 0,
+          "note": "no cooking"
+        },
+        "finished_weight_g": 20,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 20,
+      "density_g_per_ml": 1.08,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/hamburger",
+          "retrieved": "2026-09-27",
+          "note": "4 szelet sajt 4 hamburgerhez"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/sajtos-hamburger",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: sajtos hamburger, sajt a húspogácsára"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 345.0,
+          "fat": 26.8,
+          "protein": 25.1,
+          "net_carbs": 0.0
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "pulled_pork": {
+      "id": "pulled_pork",
+      "names": {
+        "hu": "Pulled pork (szálas sertés BBQ szószban)",
+        "de": "Pulled Pork",
+        "en": "Pulled pork"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 10,
+        "ingredients": [
+          {
+            "food_key": "pork_shoulder",
+            "raw_g": 1200,
+            "role": "core",
+            "note": "1,2 kg sertés lapocka"
+          },
+          {
+            "food_key": "brown_sugar",
+            "raw_g": 24,
+            "role": "core",
+            "note": "2 ek barna cukor"
+          },
+          {
+            "food_key": "paprika_ground",
+            "raw_g": 5,
+            "role": "seasoning",
+            "note": "2 tk füstölt paprika"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 10,
+            "role": "seasoning",
+            "note": "2 gerezd"
+          },
+          {
+            "food_key": "tomato_paste",
+            "raw_g": 5,
+            "role": "core",
+            "note": "1 tk sűrített paradicsom (estimate)"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 65,
+            "role": "fat",
+            "note": "4 ek olaj + a pirításhoz (1 ek, estimate)"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 210,
+            "role": "liquid",
+            "note": "4 ek víz + 150 ml víz"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 100,
+            "role": "core",
+            "note": "1 fej"
+          },
+          {
+            "food_key": "ketchup",
+            "raw_g": 125,
+            "role": "core",
+            "note": "125 g"
+          },
+          {
+            "food_key": "bbq_sauce",
+            "raw_g": 100,
+            "role": "core",
+            "note": "100 g sweet barbecue szósz"
+          }
+        ],
+        "raw_total_g": 1844,
+        "cooking": {
+          "method": "rubbed, browned, braised covered 4 h, pulled with forks",
+          "mass_change_g": -480,
+          "note": "meat loses ~35% (-420 g), ~60 g of the liquid evaporates (estimates). Soy sauce 1 ek, vinegar 2 ek, Worcester 2 ek, spices and salt left out"
+        },
+        "finished_weight_g": 1364,
+        "yield_factor": 0.74
+      },
+      "standard_serving_g": 130,
+      "density_g_per_ml": 0.6,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.3,
+        "height_cm": 2.5
+      },
+      "sources": [
+        {
+          "url": "https://boretelhez.hu/2020/08/15/pulled-pork-szendvics-coleslaw-salataval/",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 10 szendvics"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/pulled-pork",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 1,4 kg sertéscomb, barna cukor, ketchup, 12 hamburgerzsemle"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 278.3,
+          "fat": 20.7,
+          "protein": 15.5,
+          "net_carbs": 5.8
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "coleslaw": {
+      "id": "coleslaw",
+      "names": {
+        "hu": "Coleslaw saláta",
+        "de": "Coleslaw (Krautsalat mit Mayonnaise)",
+        "en": "Coleslaw"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 10,
+        "ingredients": [
+          {
+            "food_key": "white_cabbage",
+            "raw_g": 1000,
+            "role": "core",
+            "note": "1 kg káposzta"
+          },
+          {
+            "food_key": "carrot",
+            "raw_g": 200,
+            "role": "core",
+            "note": "200 g sárgarépa"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 50,
+            "role": "core",
+            "note": "fél fej vöröshagyma"
+          },
+          {
+            "food_key": "mayonnaise",
+            "raw_g": 400,
+            "role": "core",
+            "note": "400 g majonéz"
+          }
+        ],
+        "raw_total_g": 1650,
+        "cooking": {
+          "method": "shredded, mixed with mayonnaise",
+          "mass_change_g": 0,
+          "note": "no cooking; tarragon vinegar 2 ek, honey 1 ek, salt, pepper left out"
+        },
+        "finished_weight_g": 1650,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 60,
+      "density_g_per_ml": 0.6,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.2,
+        "height_cm": 2.5
+      },
+      "sources": [
+        {
+          "url": "https://boretelhez.hu/2020/08/15/pulled-pork-szendvics-coleslaw-salataval/",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe (coleslaw part), 10 szendvics"
+        },
+        {
+          "url": "https://www.receptneked.hu/recept/coleslaw-salata",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 1 kis fej káposzta, 2 répa, 3 dl majonéz + 3 dl tejföl, 9 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 207.1,
+          "fat": 19.9,
+          "protein": 1.3,
+          "net_carbs": 4.3
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "szelet_pizza": {
+      "id": "szelet_pizza",
+      "names": {
+        "hu": "Sonkás-sajtos tepsis pizza (szelet)",
+        "de": "Blechpizza mit Schinken und Käse (Stück)",
+        "en": "Ham and cheese tray pizza (slice)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 8,
+        "ingredients": [
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 500,
+            "role": "core",
+            "note": "50 dkg finomliszt"
+          },
+          {
+            "food_key": "yeast_dry",
+            "raw_g": 7,
+            "role": "core",
+            "note": "1 csomag porélesztő (7 g)"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 300,
+            "role": "liquid",
+            "note": "3 dl víz"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 39,
+            "role": "fat",
+            "note": "3 evőkanál olaj"
+          },
+          {
+            "food_key": "ham_cooked",
+            "raw_g": 300,
+            "role": "core",
+            "note": "30 dkg sonka"
+          },
+          {
+            "food_key": "sweet_corn_canned",
+            "raw_g": 285,
+            "role": "core",
+            "note": "1 doboz kukorica, drained ~285 g (estimate)"
+          },
+          {
+            "food_key": "tomato_paste",
+            "raw_g": 70,
+            "role": "core",
+            "note": "1 kis konzerv sűrített paradicsom (~70 g)"
+          },
+          {
+            "food_key": "trappista",
+            "raw_g": 300,
+            "role": "core",
+            "note": "30 dkg trappista sajt"
+          }
+        ],
+        "raw_total_g": 1801,
+        "cooking": {
+          "method": "30x35 cm tray, baked briefly in a hot oven, cut in 8",
+          "mass_change_g": -150,
+          "note": "~8% baking loss (estimate). Pizzakrém (1 nagy tubus) and 2-3 savanyú uborka are MISSING and left out; sugar, salt, pepper left out"
+        },
+        "finished_weight_g": 1651,
+        "yield_factor": 0.917
+      },
+      "standard_serving_g": 180,
+      "density_g_per_ml": 1.022,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.receptneked.hu/recept/sonkas-sajtos-pizza",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 8 adag"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/tepsis-pizza",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 50 dkg liszt, 1 csomag porélesztő, 3 ek olaj, 20 dkg sajt, kukorica, 3 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 231.4,
+          "fat": 8.6,
+          "protein": 12.6,
+          "net_carbs": 24.4
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "tocsni": {
+      "id": "tocsni",
+      "names": {
+        "hu": "Tócsni",
+        "de": "Ungarische Kartoffelpuffer (Tócsni)",
+        "en": "Hungarian potato pancakes (tócsni)"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "potato",
+            "raw_g": 1000,
+            "role": "core",
+            "note": "1 kg burgonya, raw, grated"
+          },
+          {
+            "food_key": "egg",
+            "raw_g": 100,
+            "role": "core",
+            "note": "2 db"
+          },
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 20,
+            "role": "core",
+            "note": "2 ek liszt"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 80,
+            "role": "absorbed_fat",
+            "note": "taken up while shallow-frying, ~8% of the fried weight (estimate)"
+          }
+        ],
+        "raw_total_g": 1200,
+        "cooking": {
+          "method": "spooned into hot oil, flattened, fried ~5 min per side",
+          "mass_change_g": -250,
+          "note": "grated potato loses ~25% water while frying (estimate); salt and pepper left out"
+        },
+        "finished_weight_g": 950,
+        "yield_factor": 0.792
+      },
+      "standard_serving_g": 200,
+      "density_g_per_ml": 0.6,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.35,
+        "height_cm": 1.5
+      },
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/tocsni",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 adag"
+        },
+        {
+          "url": "https://www.receptneked.hu/recept/tocsni",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 8 közepes burgonya, 2 ek liszt, 2 tojás, 2 gerezd fokhagyma, 6 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 184.7,
+          "fat": 9.5,
+          "protein": 3.6,
+          "net_carbs": 20.4
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "lapcsanka": {
+      "id": "lapcsanka",
+      "names": {
+        "hu": "Lapcsánka",
+        "de": "Lapcsánka (Kartoffelpuffer mit Mehlteig)",
+        "en": "Lapcsánka (potato-batter pancakes)"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "egg",
+            "raw_g": 100,
+            "role": "core",
+            "note": "2 darab"
+          },
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 180,
+            "role": "core",
+            "note": "18 dkg"
+          },
+          {
+            "food_key": "milk_whole",
+            "raw_g": 103,
+            "role": "liquid",
+            "note": "1 dl tej"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 5,
+            "role": "seasoning",
+            "note": "1 gerezd"
+          },
+          {
+            "food_key": "potato",
+            "raw_g": 400,
+            "role": "core",
+            "note": "40 dkg, raw, grated"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 60,
+            "role": "absorbed_fat",
+            "note": "taken up while frying (estimate)"
+          }
+        ],
+        "raw_total_g": 848,
+        "cooking": {
+          "method": "batter mixed, raw potato grated in, fried as small pancakes",
+          "mass_change_g": -100,
+          "note": "frying water loss (estimate). Yield not given by the source: 4 portions is an estimate. Salt and pepper left out"
+        },
+        "finished_weight_g": 748,
+        "yield_factor": 0.882
+      },
+      "standard_serving_g": 190,
+      "density_g_per_ml": 0.6,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.35,
+        "height_cm": 1.5
+      },
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/lapcsanka",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe"
+        },
+        {
+          "url": "https://www.receptneked.hu/recept/lapcsanka",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 1 kg burgonya, liszt, tojás, fokhagyma, olaj, 5 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 227.6,
+          "fat": 10.0,
+          "protein": 5.8,
+          "net_carbs": 27.5
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "hekk": {
+      "id": "hekk",
+      "names": {
+        "hu": "Sült hekk (paprikás lisztben)",
+        "de": "Gebackener Seehecht (in Paprikamehl)",
+        "en": "Fried hake (in paprika flour)"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "hake",
+            "raw_g": 525,
+            "role": "core",
+            "note": "edible part of 75 dkg hekktörzs (headless, bone-in); ~70% edible share is an estimate"
+          },
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 35,
+            "role": "coating",
+            "note": "5 ek liszt put out; ~35 g sticks (estimate)"
+          },
+          {
+            "food_key": "paprika_ground",
+            "raw_g": 7,
+            "role": "seasoning",
+            "note": "1 ek fűszerpaprika"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 15,
+            "role": "seasoning",
+            "note": "3 gerezd"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 45,
+            "role": "absorbed_fat",
+            "note": "fried in 0,5 l zsír or oil; ~8% of the fried weight is taken up (estimate)"
+          }
+        ],
+        "raw_total_g": 627,
+        "cooking": {
+          "method": "salted, dredged in paprika flour, fried 6-8 min per side",
+          "mass_change_g": -110,
+          "note": "fish loses ~20% water while frying (estimate); salt and pepper left out"
+        },
+        "finished_weight_g": 517,
+        "yield_factor": 0.825
+      },
+      "standard_serving_g": 150,
+      "density_g_per_ml": 0.6,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.3,
+        "height_cm": 2.5
+      },
+      "sources": [
+        {
+          "url": "https://www.receptneked.hu/recept/sult-hekk",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 adag"
+        },
+        {
+          "url": "https://sobors.hu/receptek/paprikas-lisztben-sult-hekk-recept",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 4 db hekk, 4 ek liszt, 2 ek pirospaprika, 4 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 195.9,
+          "fat": 10.9,
+          "protein": 18.5,
+          "net_carbs": 5.2
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "hasabburgonya": {
+      "id": "hasabburgonya",
+      "names": {
+        "hu": "Hasábburgonya",
+        "de": "Pommes frites (hausgemacht)",
+        "en": "French fries (home-made)"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "potato",
+            "raw_g": 1000,
+            "role": "core",
+            "note": "1 kg burgonya, peeled"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 60,
+            "role": "absorbed_fat",
+            "note": "deep-fried in plenty of oil; ~9% of the fried weight is taken up (estimate)"
+          }
+        ],
+        "raw_total_g": 1060,
+        "cooking": {
+          "method": "cut in finger-thick sticks, dried, deep-fried until golden",
+          "mass_change_g": -380,
+          "note": "~38% water loss while frying (estimate); salt left out"
+        },
+        "finished_weight_g": 680,
+        "yield_factor": 0.642
+      },
+      "standard_serving_g": 170,
+      "density_g_per_ml": 0.45,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.3,
+        "height_cm": 3.0
+      },
+      "sources": [
+        {
+          "url": "https://www.receptneked.hu/recept/hasabburgonya",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 adag"
+        },
+        {
+          "url": "https://falatozz.hu/recept/hasabburgonya",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 1 kg burgonya, 1 liter napraforgóolaj"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 201.5,
+          "fat": 9.0,
+          "protein": 2.9,
+          "net_carbs": 26.3
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "gofri": {
+      "id": "gofri",
+      "names": {
+        "hu": "Gofri",
+        "de": "Waffel (Gofri)",
+        "en": "Waffle (gofri)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 6,
+        "ingredients": [
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 200,
+            "role": "core",
+            "note": "20 dkg"
+          },
+          {
+            "food_key": "sugar",
+            "raw_g": 30,
+            "role": "core",
+            "note": "2-3 evőkanál"
+          },
+          {
+            "food_key": "egg",
+            "raw_g": 100,
+            "role": "core",
+            "note": "2 db"
+          },
+          {
+            "food_key": "milk_whole",
+            "raw_g": 154.5,
+            "role": "liquid",
+            "note": "1,5 dl tej"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 150,
+            "role": "liquid",
+            "note": "1,5 dl víz"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 110.4,
+            "role": "fat",
+            "note": "1,2 dl olaj"
+          }
+        ],
+        "raw_total_g": 744.9,
+        "cooking": {
+          "method": "batter baked in a waffle iron",
+          "mass_change_g": -120,
+          "note": "~15% baking loss (estimate); baking soda and salt left out; plain, without topping"
+        },
+        "finished_weight_g": 624.9,
+        "yield_factor": 0.839
+      },
+      "standard_serving_g": 100,
+      "density_g_per_ml": 1.015,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.receptneked.hu/recept/gofri",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 6 adag"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/gofri",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 30 dkg liszt, 4 dl tej, 2 tojás, 5 dkg margarin, élesztő, 4 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 326.5,
+          "fat": 20.3,
+          "protein": 6.3,
+          "net_carbs": 28.8
         },
         "incomplete_missing_food_keys": []
       }
@@ -5980,7 +8568,7 @@
         "yield_factor": 0.944
       },
       "standard_serving_g": 128,
-      "density_g_per_ml": 0.495,
+      "density_g_per_ml": 0.439,
       "density_method": "derived from components after cooking mass change",
       "flat_plate": {
         "coverage": 0.35,
@@ -6006,10 +8594,10 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 272.5,
-          "fat": 16.1,
+          "kcal": 308.2,
+          "fat": 16.9,
           "protein": 9.9,
-          "net_carbs": 20.6
+          "net_carbs": 27.9
         },
         "incomplete_missing_food_keys": []
       }
@@ -6072,7 +8660,7 @@
         "yield_factor": 0.95
       },
       "standard_serving_g": 236,
-      "density_g_per_ml": 0.639,
+      "density_g_per_ml": 0.585,
       "density_method": "derived from components after cooking mass change",
       "flat_plate": {
         "coverage": 0.35,
@@ -6093,10 +8681,10 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 167.5,
-          "fat": 8.3,
+          "kcal": 187.4,
+          "fat": 8.8,
           "protein": 8.2,
-          "net_carbs": 13.8
+          "net_carbs": 17.9
         },
         "incomplete_missing_food_keys": []
       }
@@ -6141,7 +8729,7 @@
         "yield_factor": 1.0
       },
       "standard_serving_g": 120,
-      "density_g_per_ml": 0.482,
+      "density_g_per_ml": 0.425,
       "density_method": "derived from components after cooking mass change",
       "sources": [
         {
@@ -6158,10 +8746,10 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 223.8,
-          "fat": 8.9,
+          "kcal": 261.8,
+          "fat": 9.7,
           "protein": 12.6,
-          "net_carbs": 22.0
+          "net_carbs": 29.7
         },
         "incomplete_missing_food_keys": []
       }
@@ -6206,7 +8794,7 @@
         "yield_factor": 1.0
       },
       "standard_serving_g": 120,
-      "density_g_per_ml": 0.484,
+      "density_g_per_ml": 0.427,
       "density_method": "derived from components after cooking mass change",
       "sources": [
         {
@@ -6223,10 +8811,10 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 295.5,
-          "fat": 16.6,
+          "kcal": 333.4,
+          "fat": 17.4,
           "protein": 13.5,
-          "net_carbs": 21.8
+          "net_carbs": 29.5
         },
         "incomplete_missing_food_keys": []
       }
@@ -6271,7 +8859,7 @@
         "yield_factor": 1.0
       },
       "standard_serving_g": 120,
-      "density_g_per_ml": 0.478,
+      "density_g_per_ml": 0.422,
       "density_method": "derived from components after cooking mass change",
       "sources": [
         {
@@ -6293,10 +8881,10 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 248.5,
-          "fat": 12.9,
+          "kcal": 286.4,
+          "fat": 13.8,
           "protein": 10.2,
-          "net_carbs": 21.8
+          "net_carbs": 29.5
         },
         "incomplete_missing_food_keys": []
       }
@@ -6347,7 +8935,7 @@
         "yield_factor": 1.0
       },
       "standard_serving_g": 89,
-      "density_g_per_ml": 0.416,
+      "density_g_per_ml": 0.362,
       "density_method": "derived from components after cooking mass change",
       "sources": [
         {
@@ -6364,10 +8952,10 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 314.1,
-          "fat": 18.4,
+          "kcal": 362.7,
+          "fat": 19.5,
           "protein": 6.6,
-          "net_carbs": 28.5
+          "net_carbs": 38.4
         },
         "incomplete_missing_food_keys": []
       }
@@ -6436,7 +9024,7 @@
         "yield_factor": 1.0
       },
       "standard_serving_g": 129,
-      "density_g_per_ml": 0.5,
+      "density_g_per_ml": 0.443,
       "density_method": "derived from components after cooking mass change",
       "sources": [
         {
@@ -6458,10 +9046,10 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 186.7,
-          "fat": 6.6,
+          "kcal": 222.1,
+          "fat": 7.4,
           "protein": 8.5,
-          "net_carbs": 21.9
+          "net_carbs": 29.1
         },
         "incomplete_missing_food_keys": []
       }
@@ -15046,6 +17634,1182 @@
       ]
     },
     {
+      "id": "hu_fokhagymas_langos",
+      "countries": [
+        "HU"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "fokhagymás lángos",
+        "de": "Langos mit Knoblauch",
+        "en": "Lángos with garlic"
+      },
+      "aliases": {
+        "hu": [
+          "fokhagymás lángos",
+          "lángos fokhagymával",
+          "fokhagymas langos"
+        ],
+        "de": [
+          "langos mit knoblauch",
+          "knoblauch-langos"
+        ],
+        "de-AT": [
+          "langos mit knoblauch"
+        ],
+        "en": [
+          "garlic langos",
+          "langos with garlic"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "fried",
+        "higher-carb"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "langos",
+          "standard_serving_g": 130
+        },
+        {
+          "part": "langos_fokhagymas_olaj",
+          "standard_serving_g": 14
+        }
+      ]
+    },
+    {
+      "id": "hu_sajtos_tejfolos_langos",
+      "countries": [
+        "HU"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "sajtos-tejfölös lángos",
+        "de": "Langos mit Sauerrahm und Käse",
+        "en": "Lángos with sour cream and cheese"
+      },
+      "aliases": {
+        "hu": [
+          "sajtos-tejfölös lángos",
+          "sajtos tejfölös lángos",
+          "tejfölös-sajtos lángos",
+          "sajtos tejfolos langos"
+        ],
+        "de": [
+          "langos mit sauerrahm und käse",
+          "langos mit käse und schmand"
+        ],
+        "de-AT": [
+          "langos mit sauerrahm und käse"
+        ],
+        "en": [
+          "langos with sour cream and cheese",
+          "cheese and sour cream langos"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "fried",
+        "higher-carb"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "langos",
+          "standard_serving_g": 130
+        },
+        {
+          "part": "langos_tejfol",
+          "standard_serving_g": 50
+        },
+        {
+          "part": "langos_sajt",
+          "standard_serving_g": 33
+        }
+      ],
+      "optional_toppings": [
+        {
+          "food_key": "garlic",
+          "g": 3,
+          "hu": "fokhagyma"
+        }
+      ],
+      "review_note_hu": "A receptneked forrás fokhagymás vajat is ken alá; a 'mindenes' (fokhagymás-sajtos-tejfölös) változathoz a felhasználó adja hozzá a fokhagymás öntetet."
+    },
+    {
+      "id": "hu_toltott_langos",
+      "countries": [
+        "HU"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "töltött lángos",
+        "de": "Gefüllter Langos (Schinken, Käse)",
+        "en": "Filled lángos (ham and cheese)"
+      },
+      "aliases": {
+        "hu": [
+          "töltött lángos",
+          "sonkás-sajtos töltött lángos",
+          "toltott langos"
+        ],
+        "de": [
+          "gefüllter langos"
+        ],
+        "de-AT": [
+          "gefüllter langos"
+        ],
+        "en": [
+          "filled langos",
+          "stuffed langos"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "fried",
+        "higher-carb"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "toltott_langos",
+          "standard_serving_g": 175
+        }
+      ],
+      "review_note_hu": "A töltés változó (sonka-sajt-tejföl, kolbászos, párizsis); ez a sonkás-sajtos-tejfölös változat."
+    },
+    {
+      "id": "hu_kurtoskalacs",
+      "countries": [
+        "HU"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "kürtőskalács",
+        "de": "Baumstriezel (Kürtőskalács)",
+        "en": "Chimney cake"
+      },
+      "aliases": {
+        "hu": [
+          "kürtőskalács",
+          "kürtős kalács",
+          "kurtoskalacs",
+          "kürtős"
+        ],
+        "de": [
+          "baumstriezel",
+          "kürtőskalács",
+          "schornsteinkuchen"
+        ],
+        "de-AT": [
+          "baumstriezel",
+          "prügelkrapfen"
+        ],
+        "en": [
+          "chimney cake",
+          "kurtoskalacs"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "sweet",
+        "higher-carb"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "kurtoskalacs",
+          "standard_serving_g": 250
+        }
+      ],
+      "review_note_hu": "Fahéjas/diós/kókuszos bevonat nélkül (csak cukros); 250 g egy egész kalács."
+    },
+    {
+      "id": "hu_sult_kolbasz_kenyerrel",
+      "countries": [
+        "HU"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "sült kolbász kenyérrel",
+        "de": "Gebratene Paprikawurst mit Brot und Senf",
+        "en": "Roasted Hungarian sausage with bread"
+      },
+      "aliases": {
+        "hu": [
+          "sült kolbász kenyérrel",
+          "sült kolbász mustárral",
+          "kolbász kenyérrel",
+          "sult kolbasz kenyerrel"
+        ],
+        "de": [
+          "bratwurst mit brot",
+          "paprikawurst mit brot und senf"
+        ],
+        "de-AT": [
+          "bratwurst mit brot",
+          "brat'l mit brot"
+        ],
+        "en": [
+          "roasted sausage with bread",
+          "hungarian sausage with bread"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "traditional"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "sult_kolbasz",
+          "standard_serving_g": 180
+        },
+        {
+          "part": "kenyer_mustarral",
+          "standard_serving_g": 100
+        }
+      ],
+      "review_note_hu": "A hentesnél kapható sütnivaló kolbász zsírosabb lehet; a lecsöpögő zsírt a modell nem vonja le (enyhe túlbecslés)."
+    },
+    {
+      "id": "hu_hurka_mustarral",
+      "countries": [
+        "HU"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "hurka mustárral",
+        "de": "Ungarische Leberwurst mit Senf und Brot",
+        "en": "Hungarian sausage (hurka) with mustard and bread"
+      },
+      "aliases": {
+        "hu": [
+          "hurka mustárral",
+          "hurka kenyérrel",
+          "sült hurka",
+          "hurka"
+        ],
+        "de": [
+          "ungarische leberwurst mit senf",
+          "hurka mit senf"
+        ],
+        "de-AT": [
+          "leberwurst mit senf und brot"
+        ],
+        "en": [
+          "hurka with mustard",
+          "hungarian sausage with mustard"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "traditional"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "majas_hurka",
+          "standard_serving_g": 200
+        },
+        {
+          "part": "kenyer_mustarral",
+          "standard_serving_g": 100
+        }
+      ],
+      "review_note_hu": "A 'hurka' a hentesnél leggyakrabban májas; véres hurkához a felhasználó válassza a véres hurka ételt. Savanyúság (MISSING) nincs benne."
+    },
+    {
+      "id": "hu_veres_hurka",
+      "countries": [
+        "HU"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "véres hurka",
+        "de": "Ungarische Blutwurst mit Reis",
+        "en": "Hungarian blood sausage with rice"
+      },
+      "aliases": {
+        "hu": [
+          "véres hurka",
+          "rizses véres hurka",
+          "veres hurka"
+        ],
+        "de": [
+          "ungarische blutwurst",
+          "blutwurst mit reis"
+        ],
+        "de-AT": [
+          "blunzn mit reis",
+          "ungarische blutwurst"
+        ],
+        "en": [
+          "hungarian blood sausage",
+          "blood sausage with rice"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "traditional"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "veres_hurka",
+          "standard_serving_g": 200
+        }
+      ],
+      "review_note_hu": "Recept alapján építve (sertéshas, vér, rizs); nem a BLS Blutwurst. Majoránna MISSING."
+    },
+    {
+      "id": "hu_majas_hurka",
+      "countries": [
+        "HU"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "májas hurka",
+        "de": "Ungarische Leberwurst mit Reis",
+        "en": "Hungarian liver sausage with rice"
+      },
+      "aliases": {
+        "hu": [
+          "májas hurka",
+          "rizses májas hurka",
+          "majas hurka"
+        ],
+        "de": [
+          "ungarische leberwurst",
+          "leberwurst mit reis"
+        ],
+        "de-AT": [
+          "ungarische leberwurst"
+        ],
+        "en": [
+          "hungarian liver sausage",
+          "liver sausage with rice"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "traditional"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "majas_hurka",
+          "standard_serving_g": 200
+        }
+      ],
+      "review_note_hu": "A belsőség-arány (máj, tüdő, szív, vese, nyelv) becslés; a 'bőrkés háj, hús' sertéshas rekorddal modellezve. Majoránna (2,5 dkg) MISSING."
+    },
+    {
+      "id": "hu_budapesti_hot_dog",
+      "countries": [
+        "HU"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "budapesti hot dog",
+        "de": "Budapester Hotdog (Wiener im Brötchen)",
+        "en": "Budapest-style hot dog"
+      },
+      "aliases": {
+        "hu": [
+          "budapesti hot dog",
+          "büfés hot dog",
+          "lyukas hot dog",
+          "francia hot dog"
+        ],
+        "de": [
+          "budapester hotdog",
+          "hotdog ungarisch"
+        ],
+        "de-AT": [
+          "hot dog ungarisch"
+        ],
+        "en": [
+          "budapest hot dog",
+          "hungarian hot dog"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "higher-carb"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "hot_dog_kifli",
+          "standard_serving_g": 105
+        },
+        {
+          "part": "budapesti_hot_dog_toltes",
+          "standard_serving_g": 120
+        }
+      ],
+      "review_note_hu": "Klasszikus büfés hot dog: kifli kifúrva, mustár + ketchup, egy virsli. A virsli 100 g-ja becslés."
+    },
+    {
+      "id": "hu_hot_dog",
+      "countries": [
+        "HU"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "hot dog",
+        "de": "Hotdog",
+        "en": "Hot dog"
+      },
+      "aliases": {
+        "hu": [
+          "hot dog",
+          "hotdog",
+          "amerikai hot dog"
+        ],
+        "de": [
+          "hotdog",
+          "hot dog"
+        ],
+        "de-AT": [
+          "hotdog"
+        ],
+        "en": [
+          "hot dog",
+          "hotdog"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "higher-carb"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "hot_dog_kifli",
+          "standard_serving_g": 105
+        },
+        {
+          "part": "hot_dog_toltes",
+          "standard_serving_g": 165
+        }
+      ],
+      "review_note_hu": "Savanyú uborka (csemegeuborka) MISSING, kimaradt."
+    },
+    {
+      "id": "hu_gyros_pita",
+      "countries": [
+        "HU"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "gyros pita",
+        "de": "Gyros im Pitabrot",
+        "en": "Gyros pita"
+      },
+      "aliases": {
+        "hu": [
+          "gyros pita",
+          "gyros pitában",
+          "pitás gyros",
+          "gyros"
+        ],
+        "de": [
+          "gyros pita",
+          "gyros im pitabrot"
+        ],
+        "de-AT": [
+          "gyros pita"
+        ],
+        "en": [
+          "gyros pita",
+          "gyro"
+        ]
+      },
+      "tags": [
+        "street_food"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "fladenbrot",
+          "standard_serving_g": 80
+        },
+        {
+          "part": "gyros_hus",
+          "standard_serving_g": 100
+        },
+        {
+          "part": "gyros_zoldseg_ontet",
+          "standard_serving_g": 120
+        }
+      ],
+      "review_note_hu": "Sertés gyros; a csirke gyros külön rész lehet. Sok büfé hasábburgonyát is tesz a pitába: a felhasználó adhatja hozzá."
+    },
+    {
+      "id": "hu_gyros_tal",
+      "countries": [
+        "HU"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "gyros tál",
+        "de": "Gyrosteller",
+        "en": "Gyros plate"
+      },
+      "aliases": {
+        "hu": [
+          "gyros tál",
+          "gyrostál",
+          "gyros tal",
+          "gyros tál hasábburgonyával"
+        ],
+        "de": [
+          "gyrosteller",
+          "gyros teller mit pommes"
+        ],
+        "de-AT": [
+          "gyrosteller"
+        ],
+        "en": [
+          "gyros plate",
+          "gyros platter"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "higher-carb"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "gyros_hus",
+          "standard_serving_g": 150
+        },
+        {
+          "part": "hasabburgonya",
+          "standard_serving_g": 200
+        },
+        {
+          "part": "gyros_zoldseg_ontet",
+          "standard_serving_g": 200
+        }
+      ]
+    },
+    {
+      "id": "hu_doner",
+      "countries": [
+        "HU"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "döner",
+        "de": "Döner Kebab (Hähnchen)",
+        "en": "Döner kebab (chicken)"
+      },
+      "aliases": {
+        "hu": [
+          "döner",
+          "döner kebab",
+          "doner",
+          "kebab",
+          "csirke döner"
+        ],
+        "de": [
+          "döner",
+          "döner kebab",
+          "dönerkebab"
+        ],
+        "de-AT": [
+          "kebap",
+          "döner"
+        ],
+        "en": [
+          "doner kebab",
+          "doner"
+        ]
+      },
+      "tags": [
+        "street_food"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "fladenbrot",
+          "standard_serving_g": 130
+        },
+        {
+          "part": "doner_hus",
+          "standard_serving_g": 120
+        },
+        {
+          "part": "gyros_zoldseg_ontet",
+          "standard_serving_g": 120
+        }
+      ],
+      "review_note_hu": "A döner kenyér (fél/negyed török kenyér) 130 g-ja becslés. Az öntet a gyros tejfölös-fokhagymás salátája; a boltok gyakran joghurtos szószt és lilakáposztát adnak."
+    },
+    {
+      "id": "hu_doner_tal",
+      "countries": [
+        "HU"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "döner tál",
+        "de": "Dönerteller",
+        "en": "Döner plate"
+      },
+      "aliases": {
+        "hu": [
+          "döner tál",
+          "dönertál",
+          "kebab tál",
+          "doner tal"
+        ],
+        "de": [
+          "dönerteller",
+          "döner teller"
+        ],
+        "de-AT": [
+          "kebapteller",
+          "dönerteller"
+        ],
+        "en": [
+          "doner plate",
+          "kebab plate"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "higher-carb"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "doner_hus",
+          "standard_serving_g": 150
+        },
+        {
+          "part": "hasabburgonya",
+          "standard_serving_g": 200
+        },
+        {
+          "part": "gyros_zoldseg_ontet",
+          "standard_serving_g": 200
+        }
+      ]
+    },
+    {
+      "id": "hu_falafel_wrap",
+      "countries": [
+        "HU"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "falafel wrap",
+        "de": "Falafel-Wrap",
+        "en": "Falafel wrap"
+      },
+      "aliases": {
+        "hu": [
+          "falafel wrap",
+          "falafeles wrap",
+          "falafeles tortilla",
+          "falafel tekercs"
+        ],
+        "de": [
+          "falafel wrap",
+          "falafel-wrap",
+          "falafel dürüm"
+        ],
+        "de-AT": [
+          "falafel wrap"
+        ],
+        "en": [
+          "falafel wrap"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "vegetarian",
+        "higher-carb"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "falafel_wrap",
+          "standard_serving_g": 380
+        }
+      ]
+    },
+    {
+      "id": "hu_hamburger",
+      "countries": [
+        "HU"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "hamburger",
+        "de": "Hamburger",
+        "en": "Hamburger"
+      },
+      "aliases": {
+        "hu": [
+          "hamburger",
+          "házi hamburger",
+          "büfés hamburger",
+          "marhahúsos hamburger"
+        ],
+        "de": [
+          "hamburger",
+          "burger"
+        ],
+        "de-AT": [
+          "hamburger",
+          "burger"
+        ],
+        "en": [
+          "hamburger",
+          "burger"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "higher-carb"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "hamburger_zsemle",
+          "standard_serving_g": 110
+        },
+        {
+          "part": "hamburger_pogacsa",
+          "standard_serving_g": 90
+        },
+        {
+          "part": "hamburger_feltet",
+          "standard_serving_g": 170
+        }
+      ],
+      "review_note_hu": "Házi/büfés recept, nem lánctermék. A feltét zöldségmennyisége (1 fej saláta, 1 paprika 4 burgerre) a forrás szerint bőséges."
+    },
+    {
+      "id": "hu_sajtos_hamburger",
+      "countries": [
+        "HU"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "sajtos hamburger",
+        "de": "Cheeseburger",
+        "en": "Cheeseburger"
+      },
+      "aliases": {
+        "hu": [
+          "sajtos hamburger",
+          "sajtburger",
+          "cheeseburger",
+          "sajtos burger"
+        ],
+        "de": [
+          "cheeseburger"
+        ],
+        "de-AT": [
+          "cheeseburger"
+        ],
+        "en": [
+          "cheeseburger"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "higher-carb"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "hamburger_zsemle",
+          "standard_serving_g": 110
+        },
+        {
+          "part": "hamburger_pogacsa",
+          "standard_serving_g": 90
+        },
+        {
+          "part": "hamburger_feltet",
+          "standard_serving_g": 170
+        },
+        {
+          "part": "hamburger_sajt",
+          "standard_serving_g": 20
+        }
+      ],
+      "review_note_hu": "Sajt: trappista szelet (a házi recept 'sajt'-ja); a cheddar/ömlesztett szelet hasonló."
+    },
+    {
+      "id": "hu_pulled_pork_szendvics",
+      "countries": [
+        "HU"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "pulled pork szendvics",
+        "de": "Pulled-Pork-Sandwich",
+        "en": "Pulled pork sandwich"
+      },
+      "aliases": {
+        "hu": [
+          "pulled pork szendvics",
+          "pulled pork burger",
+          "pulled pork",
+          "tépett hús szendvics"
+        ],
+        "de": [
+          "pulled pork sandwich",
+          "pulled pork burger"
+        ],
+        "de-AT": [
+          "pulled pork burger"
+        ],
+        "en": [
+          "pulled pork sandwich",
+          "pulled pork burger"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "higher-carb"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "hamburger_zsemle",
+          "standard_serving_g": 110
+        },
+        {
+          "part": "pulled_pork",
+          "standard_serving_g": 130
+        },
+        {
+          "part": "coleslaw",
+          "standard_serving_g": 60
+        }
+      ]
+    },
+    {
+      "id": "hu_szelet_pizza",
+      "countries": [
+        "HU"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "szelet pizza",
+        "de": "Pizzastück (Blechpizza mit Schinken)",
+        "en": "Pizza slice (ham and cheese)"
+      },
+      "aliases": {
+        "hu": [
+          "szelet pizza",
+          "pizzaszelet",
+          "egy szelet pizza",
+          "sonkás pizza szelet"
+        ],
+        "de": [
+          "pizzastück",
+          "stück pizza",
+          "pizza slice"
+        ],
+        "de-AT": [
+          "pizzaschnitte",
+          "stück pizza"
+        ],
+        "en": [
+          "pizza slice",
+          "slice of pizza"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "higher-carb"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "szelet_pizza",
+          "standard_serving_g": 180
+        }
+      ],
+      "review_note_hu": "Pizzakrém és savanyú uborka MISSING (kimaradt); a paradicsomalapot csak a sűrített paradicsom képviseli."
+    },
+    {
+      "id": "hu_tocsni",
+      "countries": [
+        "HU"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "tócsni",
+        "de": "Ungarische Kartoffelpuffer",
+        "en": "Hungarian potato pancakes"
+      },
+      "aliases": {
+        "hu": [
+          "tócsni",
+          "tocsni",
+          "krumplis lepény",
+          "prósza",
+          "berce"
+        ],
+        "de": [
+          "kartoffelpuffer",
+          "reibekuchen",
+          "reibeplätzchen"
+        ],
+        "de-AT": [
+          "erdäpfelpuffer",
+          "rösti-puffer"
+        ],
+        "en": [
+          "potato pancakes",
+          "potato latkes"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "fried",
+        "higher-carb"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "tocsni",
+          "standard_serving_g": 200
+        }
+      ]
+    },
+    {
+      "id": "hu_lapcsanka",
+      "countries": [
+        "HU"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "lapcsánka",
+        "de": "Lapcsánka (Kartoffelpuffer mit Mehl)",
+        "en": "Lapcsánka potato pancakes"
+      },
+      "aliases": {
+        "hu": [
+          "lapcsánka",
+          "lapcsanka",
+          "lepcsánka"
+        ],
+        "de": [
+          "lapcsánka",
+          "kartoffelpuffer mit mehl"
+        ],
+        "de-AT": [
+          "lapcsánka"
+        ],
+        "en": [
+          "lapcsanka",
+          "potato batter pancakes"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "fried",
+        "higher-carb"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "lapcsanka",
+          "standard_serving_g": 190
+        }
+      ],
+      "review_note_hu": "A lapcsánka a tócsni tájnyelvi neve is; ez a lisztesebb (18 dkg liszt / 40 dkg burgonya) palóc változat."
+    },
+    {
+      "id": "hu_hekk",
+      "countries": [
+        "HU"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "hekk",
+        "de": "Gebackener Seehecht",
+        "en": "Fried hake"
+      },
+      "aliases": {
+        "hu": [
+          "hekk",
+          "sült hekk",
+          "rántott hekk",
+          "balatoni hekk"
+        ],
+        "de": [
+          "gebackener seehecht",
+          "seehecht frittiert"
+        ],
+        "de-AT": [
+          "gebackener seehecht"
+        ],
+        "en": [
+          "fried hake",
+          "hake"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "fish",
+        "fried"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "hekk",
+          "standard_serving_g": 150
+        }
+      ],
+      "review_note_hu": "A gramm az ehető rész (szálka nélkül); a 150 g kb. 21 dkg szálkás hekknek felel meg."
+    },
+    {
+      "id": "hu_langos",
+      "countries": [
+        "HU"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "lángos",
+        "de": "Langos",
+        "en": "Lángos"
+      },
+      "aliases": {
+        "hu": [
+          "lángos",
+          "sima lángos",
+          "langos"
+        ],
+        "de": [
+          "langos",
+          "lángos"
+        ],
+        "de-AT": [
+          "langos"
+        ],
+        "en": [
+          "langos",
+          "hungarian fried bread"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "fried",
+        "higher-carb"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "langos",
+          "standard_serving_g": 130
+        }
+      ]
+    },
+    {
+      "id": "hu_hasabburgonya",
+      "countries": [
+        "HU"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "hasábburgonya",
+        "de": "Pommes frites",
+        "en": "French fries"
+      },
+      "aliases": {
+        "hu": [
+          "hasábburgonya",
+          "sült krumpli",
+          "hasáb",
+          "sültkrumpli",
+          "hasabburgonya"
+        ],
+        "de": [
+          "pommes frites",
+          "pommes"
+        ],
+        "de-AT": [
+          "pommes frites",
+          "pommes"
+        ],
+        "en": [
+          "french fries",
+          "fries",
+          "chips"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "fried",
+        "higher-carb"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "hasabburgonya",
+          "standard_serving_g": 170
+        }
+      ]
+    },
+    {
+      "id": "hu_gofri",
+      "countries": [
+        "HU"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "gofri",
+        "de": "Waffel",
+        "en": "Waffle"
+      },
+      "aliases": {
+        "hu": [
+          "gofri",
+          "sima gofri",
+          "porcukros gofri"
+        ],
+        "de": [
+          "waffel",
+          "waffeln"
+        ],
+        "de-AT": [
+          "waffel"
+        ],
+        "en": [
+          "waffle"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "sweet",
+        "higher-carb"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "gofri",
+          "standard_serving_g": 100
+        }
+      ],
+      "review_note_hu": "Feltét nélkül; porcukor, lekvár, tejszínhab, nutella külön adható."
+    },
+    {
       "id": "hu_tejfolos_teszta",
       "countries": [
         "HU"
@@ -20990,33 +24754,7 @@
       "everyday": [
         "tepertős pogácsa"
       ],
-      "street_food": [
-        "fokhagymás lángos",
-        "sajtos-tejfölös lángos",
-        "töltött lángos",
-        "kürtőskalács",
-        "sült kolbász kenyérrel",
-        "hurka mustárral",
-        "véres hurka",
-        "májas hurka",
-        "budapesti hot dog",
-        "hot dog",
-        "gyros pita",
-        "gyros tál",
-        "döner",
-        "döner tál",
-        "falafel wrap",
-        "hamburger",
-        "sajtos hamburger",
-        "pulled pork szendvics",
-        "szelet pizza",
-        "tócsni",
-        "lapcsánka",
-        "hekk",
-        "lángos",
-        "hasábburgonya",
-        "gofri"
-      ]
+      "street_food": []
     },
     "AT": {},
     "DE": {}

@@ -19,11 +19,8 @@ const builtDishes = (category: string) => {
 };
 
 describe("HU phase 2 inventory", () => {
-  it("built plus still-planned dishes meet the non-chain minimums", () => {
-    for (const [category, minimum] of Object.entries(MINIMUMS)) {
-      const planned = REFERENCE_DATA.inventory.HU[category] ?? [];
-      expect(builtDishes(category).size + planned.length, category).toBeGreaterThanOrEqual(minimum);
-    }
+  it("built dishes alone meet the non-chain minimums", () => {
+    for (const [category, minimum] of Object.entries(MINIMUMS)) expect(builtDishes(category).size, category).toBeGreaterThanOrEqual(minimum);
   });
 
   it("drops a dish from the inventory once it is built", () => {

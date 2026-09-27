@@ -33,7 +33,6 @@
   {"sourceId": "R161200", "names": {"hu": "paradicsomlé / passata", "en": "tomato passata"}},
   {"sourceId": "M505600", "names": {"hu": "trappista sajt", "en": "Trappist cheese"}},
   {"sourceId": "G482100", "names": {"hu": "újhagyma", "en": "spring onion"}},
-  {"sourceId": "B251000", "names": {"hu": "fehér kenyér (búza-rozs keverék)", "en": "white bread (wheat-rye mix)"}},
   {"sourceId": "W254000", "names": {"hu": "felvágott (olasz/bécsi típusú)", "en": "cold cuts (Brühwurst with meat pieces)"}},
   {"sourceId": "M771600", "names": {"hu": "lapkasajt (ömlesztett)", "en": "processed cheese slices"}},
   {"sourceId": "C538000", "names": {"hu": "müzli (gyümölcsös)", "en": "muesli with dried fruit, sweetened"}},
@@ -46,5 +45,17 @@
   {"sourceId": "G560600", "names": {"hu": "paradicsomlé", "en": "tomato juice"}},
   {"sourceId": "H320100", "names": {"hu": "fenyőmag", "en": "pine nuts"}},
   {"sourceId": "H742902", "names": {"hu": "vörösbab (konzerv)", "en": "kidney beans, canned, drained"}},
-  {"sourceId": "P161000", "names": {"hu": "világos sör", "en": "lager beer"}}
+  {"sourceId": "P161000", "names": {"hu": "világos sör", "en": "lager beer"}},
+  {"sourceId": "M172700", "names": {"hu": "tejföl (20%)", "en": "sour cream 20%"}},
+  {"sourceId": "V543100", "names": {"hu": "sertéstüdő", "en": "pork lung"}},
+  {"sourceId": "V573100", "names": {"hu": "sertésvese", "en": "pork kidney"}},
+  {"sourceId": "U609100", "names": {"hu": "sertésvér", "en": "pork blood"}},
+  {"sourceId": "T209100", "names": {"hu": "hekk (tengeri)", "en": "hake"}},
+  {"sourceId": "B782100", "names": {"hu": "pita / török kenyér", "en": "wheat flatbread (pita)"}},
+  {"sourceId": "M141500", "names": {"hu": "görög típusú joghurt (10%)", "en": "Greek-style yogurt 10%"}},
+  {"sourceId": "M130300", "names": {"hu": "kefir", "en": "kefir"}},
+  {"sourceId": "R148200", "names": {"hu": "barbecue szósz", "en": "barbecue sauce"}},
+  {"sourceId": "H720902", "names": {"hu": "csicseriborsó (konzerv, lecsepegtetve)", "en": "chickpeas, canned, drained"}},
+  {"sourceId": "H960000", "names": {"hu": "humusz", "en": "hummus"}},
+  {"sourceId": "Q400000", "names": {"hu": "margarin", "en": "margarine (full fat)"}}
 ]
