@@ -47,6 +47,18 @@ A rendszernek AI-hívás nélkül tudnia kell:
 Mind a három ország mind a négy kategóriát megkapja. Az alábbi listák kiindulópontok:
 egészítsd ki őket a források alapján, a ténylegesen leggyakrabban evett ételek felé.
 
+**Minimális mennyiség országonként** (a meglévő 10 magyar ételen felül). Ezek alsó
+határok, nem célok: ami az adott országban gyakori, az kerüljön be.
+
+| Kategória | Országonként legalább |
+|---|---|
+| Hagyományos ételek | 60 étel (köretváltozatok nélkül számolva) |
+| Gyakori, mindennapi ételek | 60 étel |
+| Street food | 25 étel |
+| Gyorsétteremláncok | a jelen lévő láncok fő menütételei, lánconként legalább 20 termék |
+
+Összesen országonként kb. 150 étel, plusz a lánctermékek.
+
 ### 1. Hagyományos ételek
 
 - **HU** (a meglévő 10 mellé): halászlé-változatok, töltött paprika, csirkepaprikás,
@@ -212,12 +224,16 @@ Szabályok:
 ## Minőség és munkamenet
 
 - **Fázisok**, mindegyik külön PR:
-  1. formátumdöntés + 5 étel/ország pilotként (kategóriánként legalább egy);
-  2. HU;
-  3. AT;
-  4. DE;
+  1. formátumdöntés és generátor: a forrásfájl-szerkezet, a seed és a tesztek, néhány
+     mintaétellel (kategóriánként egy-kettő) csak a formátum bemutatására. Ez nem a
+     teljes adat: a mennyiségi minimumok a 2–4. fázisra vonatkoznak;
+  2. HU – a teljes magyar készlet (mind a négy kategória, a fenti minimumokkal);
+  3. AT – a teljes osztrák készlet;
+  4. DE – a teljes német készlet;
   5. gyorsétteremláncok (mindhárom ország);
   6. egységsúlyok és aliasok.
+  Egy országos PR túl nagy is lehet az átnézéshez. Ilyenkor kategóriánként bontsd
+  (pl. „HU hagyományos”, „HU street food”), de ne csökkentsd a mennyiséget.
 - **Minden PR tartalmazza:**
   - a forrásfájlt és a generált fájlokat;
   - a check-riportot ételenként: hozam, sűrűség, tányér → gramm, makró-keresztellenőrzés;
