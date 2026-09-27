@@ -348,7 +348,7 @@ DISHES = [
     D("hu_lekvaros_bukta", "lekváros bukta", "Buchtel mit Pflaumenmus", "Plum-jam bun (bukta)", [("lekvaros_bukta", 113)], "handheld", ["bakery", "sweet", "higher-carb"],
       ["lekváros bukta", "bukta", "szilvalekváros bukta", "buktája"], ["buchtel", "buchteln"], ["powidlbuchtel", "buchtel", "wuchtel"], ["jam bun", "bukta"]),
     D("hu_fank", "fánk", "Krapfen", "Hungarian doughnut", [("fank", 73)], "handheld", ["bakery", "sweet", "fried", "higher-carb"],
-      ["fánk", "szalagos fánk", "farsangi fánk"], ["krapfen", "berliner", "pfannkuchen"], ["krapfen", "faschingskrapfen"], ["doughnut", "donut", "hungarian doughnut"],
+      ["fánk", "szalagos fánk", "farsangi fánk"], ["krapfen", "berliner"], ["krapfen", "faschingskrapfen"], ["doughnut", "donut", "hungarian doughnut"],
       optional_toppings=[{"food_key": "apricot_jam", "g": 20, "hu": "baracklekvár"}, {"food_key": "powdered_sugar", "g": 5, "hu": "porcukor a tetejére"}],
       reference_check=dict(catalog="bls:D7A6000", name="Berliner/Pfannkuchen/Krapfen (Hefeteig) frittiert, ungefüllt", kcal=355, fat=17.3, protein=7.8, net_carbs=40.7),
       review="Az olajfelvétel (~7 g/db) becslés."),
