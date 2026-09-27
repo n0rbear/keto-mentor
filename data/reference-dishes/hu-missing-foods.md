@@ -5,15 +5,12 @@ a hivatalos forrásból (BLS xlsx, `BlsAdapter`) külön migrációban kell impo
 
 | food_key | Név | Kell ehhez | Megjegyzés |
 |---|---|---|---|
-| `green_bean_missing` | zöldbab / Grüne Bohnen / green beans | hu_palocleves | no catalog record linked in foods.py |
-| `lemon_missing` | citrom / Zitrone / lemon | hu_palocleves | no catalog record linked in foods.py |
-| `tarragon_missing` | tárkony / Estragon / tarragon | hu_palocleves | no catalog record linked in foods.py |
-| `white_bean_missing` | fehérbab / weiße Bohnen / white beans | hu_jokai_bableves | no catalog record linked in foods.py |
+| `tarragon` | tárkony / Estragon / tarragon | hu_palocleves | no catalog record linked in foods.py |
+| `smoked_pork_hock` | füstölt csülök / Eisbein, geräuchert / smoked pork hock | hu_jokai_bableves | no catalog record linked in foods.py |
+| `white_beans_dried` | fehérbab (száraz) / Weiße Bohnen, getrocknet / white beans, dried | hu_jokai_bableves | no catalog record linked in foods.py |
 | `inventory-only` | bajai halászlé | traditional | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | tiszai halászlé | traditional | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | újházi tyúkhúsleves | traditional | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | palócleves | traditional | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | Jókai-bableves | traditional | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | bableves | traditional | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | lencseleves | traditional | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | sárgaborsó-leves | traditional | inventory identity; recipe/ingredient mapping still required |
@@ -63,7 +60,6 @@ a hivatalos forrásból (BLS xlsx, `BlsAdapter`) külön migrációban kell impo
 | `inventory-only` | Gundel-palacsinta | traditional | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | halászlé tejföllel | traditional | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | juhászos tokány | traditional | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | székelygulyás | traditional | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | savanyú tojásleves | traditional | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | kapros túrós lepény | traditional | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | mákos guba | traditional | inventory identity; recipe/ingredient mapping still required |

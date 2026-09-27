@@ -439,31 +439,55 @@
       "density_intrinsic_g_ml": 1.05,
       "density_bulk_g_ml": 1.05
     },
-    "green_bean_missing": {
+    "green_beans": {
       "names": {
         "hu": "zöldbab",
-        "de": "Grüne Bohnen",
+        "de": "Grüne Bohne",
         "en": "green beans"
       },
-      "catalog": "",
-      "carb_basis": "none",
+      "catalog": "bls:G710100",
+      "carb_basis": "available",
       "density_intrinsic_g_ml": 1.0,
       "density_bulk_g_ml": 0.75,
-      "note": "MISSING_FOODS: authoritative BLS record required"
+      "note": "BLS Grüne Bohne roh; imported by the European essentials run (production, 2026-08-12)"
     },
-    "white_bean_missing": {
+    "lemon": {
       "names": {
-        "hu": "fehérbab",
-        "de": "weiße Bohnen",
-        "en": "white beans"
+        "hu": "citrom",
+        "de": "Zitrone",
+        "en": "lemon"
+      },
+      "catalog": "bls:F601100",
+      "carb_basis": "available",
+      "density_intrinsic_g_ml": 0.99,
+      "density_bulk_g_ml": 0.99,
+      "note": "BLS Zitrone roh (European essentials, 2026-08-12); used for lemon juice"
+    },
+    "white_beans_dried": {
+      "names": {
+        "hu": "fehérbab (száraz)",
+        "de": "Weiße Bohnen, getrocknet",
+        "en": "white beans, dried"
       },
       "catalog": "",
       "carb_basis": "none",
       "density_intrinsic_g_ml": 1.0,
       "density_bulk_g_ml": 0.75,
-      "note": "MISSING_FOODS: authoritative BLS record required"
+      "note": "MISSING: dry seed record needed (BLS legume group H)"
     },
-    "tarragon_missing": {
+    "smoked_pork_hock": {
+      "names": {
+        "hu": "füstölt csülök",
+        "de": "Eisbein, geräuchert",
+        "en": "smoked pork hock"
+      },
+      "catalog": "",
+      "carb_basis": "none",
+      "density_intrinsic_g_ml": 1.05,
+      "density_bulk_g_ml": 0.8,
+      "note": "MISSING: grams = edible part (~55% of bone-in weight)"
+    },
+    "tarragon": {
       "names": {
         "hu": "tárkony",
         "de": "Estragon",
@@ -473,19 +497,7 @@
       "carb_basis": "none",
       "density_intrinsic_g_ml": 1.0,
       "density_bulk_g_ml": 0.3,
-      "note": "MISSING_FOODS: authoritative BLS record required"
-    },
-    "lemon_missing": {
-      "names": {
-        "hu": "citrom",
-        "de": "Zitrone",
-        "en": "lemon"
-      },
-      "catalog": "",
-      "carb_basis": "none",
-      "density_intrinsic_g_ml": 0.99,
-      "density_bulk_g_ml": 0.99,
-      "note": "MISSING_FOODS: authoritative BLS record required"
+      "note": "MISSING: dried/fresh tarragon record needed"
     }
   },
   "parts": {
@@ -1636,13 +1648,25 @@
             "role": "core"
           },
           {
+            "food_key": "garlic",
+            "raw_g": 10,
+            "role": "seasoning",
+            "note": "3 cloves"
+          },
+          {
             "food_key": "sunflower_oil",
-            "raw_g": 25,
-            "role": "fat"
+            "raw_g": 46,
+            "role": "fat",
+            "note": "0.5 dl"
           },
           {
             "food_key": "paprika_ground",
             "raw_g": 8,
+            "role": "seasoning"
+          },
+          {
+            "food_key": "caraway_seed",
+            "raw_g": 1,
             "role": "seasoning"
           },
           {
@@ -1656,7 +1680,7 @@
             "role": "core"
           },
           {
-            "food_key": "green_bean_missing",
+            "food_key": "green_beans",
             "raw_g": 300,
             "role": "core"
           },
@@ -1668,7 +1692,8 @@
           {
             "food_key": "sour_cream",
             "raw_g": 300,
-            "role": "thickener"
+            "role": "thickener",
+            "note": "3 dl"
           },
           {
             "food_key": "wheat_flour",
@@ -1676,29 +1701,35 @@
             "role": "thickener"
           },
           {
-            "food_key": "tarragon_missing",
+            "food_key": "tarragon",
             "raw_g": 3,
             "role": "seasoning"
           },
           {
-            "food_key": "lemon_missing",
-            "raw_g": 15,
-            "role": "seasoning"
+            "food_key": "lemon",
+            "raw_g": 10,
+            "role": "seasoning",
+            "note": "juice of 1/4 lemon"
+          },
+          {
+            "food_key": "parsley_leaf",
+            "raw_g": 10,
+            "role": "garnish"
           },
           {
             "food_key": "water",
-            "raw_g": 1700,
+            "raw_g": 1500,
             "role": "liquid"
           }
         ],
-        "raw_total_g": 3211,
+        "raw_total_g": 3048,
         "cooking": {
-          "method": "covered simmer until tender",
+          "method": "meat stewed 20 min, then simmered covered with beans and potato ~40 min, thickened with sour cream + flour",
           "mass_change_g": -180,
-          "note": "water yield is derived; unresolved food keys intentionally block seed"
+          "note": "covered pot, moderate evaporation"
         },
-        "finished_weight_g": 3031,
-        "yield_factor": 0.944
+        "finished_weight_g": 2868,
+        "yield_factor": 0.941
       },
       "standard_serving_g": 450,
       "density_g_per_ml": 1.011,
@@ -1706,25 +1737,22 @@
       "sources": [
         {
           "url": "https://www.mindmegette.hu/recept/tarkonyos-palocleves",
-          "retrieved": "2026-09-27"
+          "retrieved": "2026-09-27",
+          "note": "recipe used for the grams (5 servings, pork shoulder)"
         },
         {
           "url": "https://www.mindmegette.hu/egytaletel/palocleves-mikszath-kedvence",
-          "retrieved": "2026-09-27"
+          "retrieved": "2026-09-27",
+          "note": "original mutton version (700 g mutton, 400 g potato, 400 g green beans); pork shoulder is the common everyday variant"
         }
       ],
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
-        "per_100g": {
-          "kcal": 61.4,
-          "fat": 4.4,
-          "protein": 2.3,
-          "net_carbs": 2.7
-        },
+        "per_100g": null,
         "incomplete_missing_food_keys": [
-          "green_bean_missing",
-          "tarragon_missing",
-          "lemon_missing"
+          "green_beans",
+          "tarragon",
+          "lemon"
         ]
       }
     },
@@ -1737,101 +1765,115 @@
       },
       "matrix": "liquid",
       "batch": {
-        "servings_source": 6,
+        "servings_source": 4,
         "ingredients": [
           {
-            "food_key": "smoked_bacon",
-            "raw_g": 120,
-            "role": "core"
+            "food_key": "white_beans_dried",
+            "raw_g": 450,
+            "role": "core",
+            "note": "dry weight, soaked overnight; sources: 500 g / 400 g"
+          },
+          {
+            "food_key": "smoked_pork_hock",
+            "raw_g": 550,
+            "role": "core",
+            "note": "edible part of ~1 kg bone-in smoked hock (both sources: 1 kg)"
           },
           {
             "food_key": "smoked_sausage",
-            "raw_g": 250,
-            "role": "core"
-          },
-          {
-            "food_key": "pork_shoulder",
-            "raw_g": 400,
-            "role": "core"
+            "raw_g": 125,
+            "role": "core",
+            "note": "sources: 150 g / 100 g"
           },
           {
             "food_key": "onion",
-            "raw_g": 150,
+            "raw_g": 180,
             "role": "core"
           },
           {
-            "food_key": "white_bean_missing",
-            "raw_g": 500,
-            "role": "core"
+            "food_key": "garlic",
+            "raw_g": 10,
+            "role": "seasoning"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 50,
+            "role": "fat",
+            "note": "sources: 100 ml / 1 tbsp"
+          },
+          {
+            "food_key": "paprika_ground",
+            "raw_g": 5,
+            "role": "seasoning"
           },
           {
             "food_key": "carrot",
-            "raw_g": 250,
+            "raw_g": 225,
             "role": "core"
           },
           {
             "food_key": "parsley_root",
-            "raw_g": 120,
-            "role": "core"
-          },
-          {
-            "food_key": "celeriac",
-            "raw_g": 100,
+            "raw_g": 125,
             "role": "core"
           },
           {
             "food_key": "sour_cream",
-            "raw_g": 250,
+            "raw_g": 50,
+            "role": "thickener",
+            "note": "only one source uses it (100 ml)"
+          },
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 15,
             "role": "thickener"
           },
           {
             "food_key": "wheat_flour",
-            "raw_g": 20,
-            "role": "thickener"
+            "raw_g": 100,
+            "role": "core",
+            "note": "csipetke dough"
           },
           {
-            "food_key": "paprika_ground",
-            "raw_g": 8,
-            "role": "seasoning"
+            "food_key": "egg",
+            "raw_g": 50,
+            "role": "core",
+            "note": "csipetke dough, 1 egg"
           },
           {
             "food_key": "water",
-            "raw_g": 2600,
-            "role": "liquid"
+            "raw_g": 2000,
+            "role": "liquid",
+            "note": "hock cooking broth used for the soup"
           }
         ],
-        "raw_total_g": 4768,
+        "raw_total_g": 3935,
         "cooking": {
-          "method": "soak beans and simmer until tender",
-          "mass_change_g": -300,
-          "note": "white bean catalog identity unresolved; seed will skip this dish"
+          "method": "hock pre-cooked, beans simmered in its broth until tender, roux + csipetke at the end",
+          "mass_change_g": 150,
+          "note": "+450 g soaking water taken up by the dry beans, about -300 g evaporation over the long simmer"
         },
-        "finished_weight_g": 4468,
-        "yield_factor": 0.937
+        "finished_weight_g": 4085,
+        "yield_factor": 1.038
       },
       "standard_serving_g": 450,
       "density_g_per_ml": 1.009,
       "density_method": "derived from components after cooking mass change",
       "sources": [
         {
-          "url": "https://www.mindmegette.hu/alapetelek/leves-gulyas-csorbaleves-husgombocleves-tarkonyos-csirke-krumplileves-bableves-eroleves",
+          "url": "https://streetkitchen.hu/receptek/a-klasszikus-jokai-bableves",
           "retrieved": "2026-09-27"
         },
         {
-          "url": "https://www.mindmegette.hu/alapetelek/11-kiados-magyaros-leves-ami-foetelnek-is-beillik/",
+          "url": "https://www.mindmegette.hu/recept/jokai-bableves-fustolt-csulokkel",
           "retrieved": "2026-09-27"
         }
       ],
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
-        "per_100g": {
-          "kcal": 66.7,
-          "fat": 4.9,
-          "protein": 3.7,
-          "net_carbs": 1.7
-        },
+        "per_100g": null,
         "incomplete_missing_food_keys": [
-          "white_bean_missing"
+          "white_beans_dried",
+          "smoked_pork_hock"
         ]
       }
     },
@@ -2570,12 +2612,13 @@
       "aliases": {
         "hu": [
           "palócleves",
-          "palóc leves"
+          "palóc leves",
+          "tárkonyos palócleves"
         ],
         "de": [
-          "palóc suppe"
+          "palóc-suppe",
+          "palocsuppe"
         ],
-        "de-AT": [],
         "en": [
           "paloc soup"
         ]
@@ -2590,7 +2633,8 @@
           "part": "palocleves",
           "standard_serving_g": 450
         }
-      ]
+      ],
+      "review_note_hu": "Az eredeti (Mikszáth-féle) palócleves ürühússal készül; ez a sertéslapockás hétköznapi változat. Birkahúsos változat külön rész legyen, ha lesz ürü katalógusrekord."
     },
     {
       "id": "hu_jokai_bableves",
@@ -2605,15 +2649,16 @@
       },
       "aliases": {
         "hu": [
-          "Jókai-bableves",
-          "jokai bableves"
+          "jókai-bableves",
+          "jókai bableves",
+          "csülkös bableves"
         ],
         "de": [
-          "Jókai-Bohnensuppe"
+          "jókai-bohnensuppe",
+          "ungarische bohnensuppe mit eisbein"
         ],
-        "de-AT": [],
         "en": [
-          "Jokai bean soup"
+          "jokai bean soup"
         ]
       },
       "tags": [

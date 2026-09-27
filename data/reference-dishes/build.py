@@ -189,7 +189,9 @@ def build_part(pid, p):
             continue
         for x in totals:
             totals[x] += n[x]
-    per100 = {x: round(v / finished * 100, 1) for x, v in totals.items()}
+    # A partial sum would under-count (e.g. 500 g beans counted as 0 kcal), so
+    # the cross-check is only computed when every ingredient has macros.
+    per100 = None if missing else {x: round(v / finished * 100, 1) for x, v in totals.items()}
     out = {
         "id": pid, "names": p["names"], "matrix": p["matrix"],
         "batch": {
@@ -233,6 +235,8 @@ def norm(value: str) -> str:
 
 
 def dish_per_100g(parts, dish):
+    if any(parts[x["part"]]["derived_check"]["per_100g"] is None for x in dish["parts"]):
+        return None
     total = sum(x["standard_serving_g"] for x in dish["parts"])
     out = {}
     for m in ("kcal", "fat", "protein", "net_carbs"):
@@ -414,8 +418,13 @@ def emit_missing_foods(dishes_json):
     # reviewed PARTS definition and authoritative ingredient mapping exists.
     # Keep them visible in the generated gap report instead of inventing food
     # weights or nutrition values.
+    # A name that already is a dish (title or alias) is no longer a gap.
+    covered = {norm(v) for d in DISHES if "HU" in d["countries"]
+               for v in [*(d.get("names") or PARTS[d["part_refs"][0][0]]["names"]).values(), *d["aliases"].get("hu", [])]}
     for category, names in INVENTORY.get("HU", {}).items():
         for name in names:
+            if norm(name) in covered:
+                continue
             per_country["HU"].append({"food_key": "inventory-only", "names": {"hu": name}, "needed_for": [category], "note": "inventory identity; recipe/ingredient mapping still required"})
     for c, rows in per_country.items():
         lines = [f"# Hiányzó katalógusrekordok – {c} (generált)", "",
@@ -520,7 +529,8 @@ def main():
              "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|"]
     for pid, p in parts.items():
         b = p["batch"]; c = p["derived_check"]["per_100g"]
-        lines.append(f"| {p['names']['hu']} | {b['raw_total_g']} | {b['cooking']['mass_change_g']:+} | {b['finished_weight_g']} | {b['yield_factor']} | {p['density_g_per_ml']} | {c['kcal']} | {c['fat']} | {c['protein']} | {c['net_carbs']} | {', '.join(p['derived_check']['incomplete_missing_food_keys']) or '–'} |")
+        macros = f"{c['kcal']} | {c['fat']} | {c['protein']} | {c['net_carbs']}" if c else "nincs számolva | – | – | –"
+        lines.append(f"| {p['names']['hu']} | {b['raw_total_g']} | {b['cooking']['mass_change_g']:+} | {b['finished_weight_g']} | {b['yield_factor']} | {p['density_g_per_ml']} | {macros} | {', '.join(p['derived_check']['incomplete_missing_food_keys']) or '–'} |")
     lines += ["", "## Makró-keresztellenőrzés nyilvános referenciával (100 g)", "",
               "Számolt érték a katalógusrekordokból vs. egy nyilvános referencia (pl. BLS összetett étel). 15% feletti kcal-eltérés: ELLENŐRIZENDŐ.", "",
               "| Étel | Referencia | kcal (számolt / ref.) | zsír | fehérje | nettó CH | kcal eltérés |", "|---|---|---:|---:|---:|---:|---|"]
@@ -530,6 +540,9 @@ def main():
             lines.append(f"| {d['names']['hu']} | nincs még | – | – | – | – | – |")
             continue
         calc = dish_per_100g(parts, d)
+        if calc is None:
+            lines.append(f"| {d['names']['hu']} | {ref['catalog']} {ref['name']} | nincs számolva (hiányzó makró) | – | – | – | – |")
+            continue
         dev = (calc["kcal"] - ref["kcal"]) / ref["kcal"] * 100
         flag = "rendben" if abs(dev) <= 15 else "ELLENŐRIZENDŐ"
         lines.append(f"| {d['names']['hu']} | {ref['catalog']} {ref['name']} | {calc['kcal']:.0f} / {ref['kcal']} | {calc['fat']:.1f} / {ref['fat']} | {calc['protein']:.1f} / {ref['protein']} | {calc['net_carbs']:.1f} / {ref['net_carbs']} | {dev:+.0f}% {flag} |")

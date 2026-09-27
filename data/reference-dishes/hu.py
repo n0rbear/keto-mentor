@@ -125,6 +125,32 @@ PARTS = {
                      ing("wheat_flour", 20, "thickener"), ing("water", 800, "liquid")],
         cooking=dict(method="stewed ~1.5 h covered, thickened with sour cream", mass_change_g=-250, note="covered pot, moderate evaporation"),
         sources=srcs(PILOT_RETRIEVED, ["https://www.mindmegette.hu/recept/szekelykaposzta", "https://magyarkonyhaonline.hu/receptek/a-legfinomabb-szekelykaposzta"])),
+    # Phase 2 soups (sources read 2026-09-27).
+    "palocleves": dict(
+        names={"hu": "Palócleves", "de": "Palóc-Suppe", "en": "Palóc soup"},
+        matrix="liquid", servings_source=5, standard_serving_g=450,
+        ingredients=[ing("pork_shoulder", 300), ing("onion", 120), ing("garlic", 10, "seasoning", "3 cloves"), ing("sunflower_oil", 46, "fat", "0.5 dl"),
+                     ing("paprika_ground", 8, "seasoning"), ing("caraway_seed", 1, "seasoning"), ing("wax_pepper", 100), ing("tomato", 120),
+                     ing("green_beans", 300), ing("potato", 200), ing("sour_cream", 300, "thickener", "3 dl"), ing("wheat_flour", 20, "thickener"),
+                     ing("tarragon", 3, "seasoning"), ing("lemon", 10, "seasoning", "juice of 1/4 lemon"), ing("parsley_leaf", 10, "garnish"),
+                     ing("water", 1500, "liquid")],
+        cooking=dict(method="meat stewed 20 min, then simmered covered with beans and potato ~40 min, thickened with sour cream + flour", mass_change_g=-180, note="covered pot, moderate evaporation"),
+        sources=[src("https://www.mindmegette.hu/recept/tarkonyos-palocleves", "2026-09-27", "recipe used for the grams (5 servings, pork shoulder)"),
+                 src("https://www.mindmegette.hu/egytaletel/palocleves-mikszath-kedvence", "2026-09-27", "original mutton version (700 g mutton, 400 g potato, 400 g green beans); pork shoulder is the common everyday variant")]),
+    "jokai_bableves": dict(
+        names={"hu": "Jókai-bableves", "de": "Jókai-Bohnensuppe", "en": "Jókai bean soup"},
+        matrix="liquid", servings_source=4, standard_serving_g=450,
+        ingredients=[ing("white_beans_dried", 450, note="dry weight, soaked overnight; sources: 500 g / 400 g"),
+                     ing("smoked_pork_hock", 550, note="edible part of ~1 kg bone-in smoked hock (both sources: 1 kg)"),
+                     ing("smoked_sausage", 125, note="sources: 150 g / 100 g"), ing("onion", 180), ing("garlic", 10, "seasoning"),
+                     ing("sunflower_oil", 50, "fat", "sources: 100 ml / 1 tbsp"), ing("paprika_ground", 5, "seasoning"),
+                     ing("carrot", 225), ing("parsley_root", 125), ing("sour_cream", 50, "thickener", "only one source uses it (100 ml)"),
+                     ing("wheat_flour", 15, "thickener"), ing("wheat_flour", 100, note="csipetke dough"), ing("egg", 50, note="csipetke dough, 1 egg"),
+                     ing("water", 2000, "liquid", "hock cooking broth used for the soup")],
+        cooking=dict(method="hock pre-cooked, beans simmered in its broth until tender, roux + csipetke at the end", mass_change_g=150,
+                     note="+450 g soaking water taken up by the dry beans, about -300 g evaporation over the long simmer"),
+        sources=[src("https://streetkitchen.hu/receptek/a-klasszikus-jokai-bableves", "2026-09-27"),
+                 src("https://www.mindmegette.hu/recept/jokai-bableves-fustolt-csulokkel", "2026-09-27")]),
 }
 
 # ---------------------------------------------------------------------------
@@ -163,6 +189,11 @@ DISHES = [
          review="A 'körettel' szó nem dönt a köretről: ha a felhasználó nem mondja meg, a rendszer kérdezzen (burgonya / rizs), ne találgasson. A hasábburgonya és a burgonyapüré későbbi köret."),
     dict(id="hu_szekelykaposzta", countries=["HU"], category="traditional", part_refs=[("szekelykaposzta", 450)], served_in="deep_plate", tags=["traditional", "low-carb-friendly"],
          aliases={"hu": ["székelykáposzta", "székely káposzta", "székelygulyás"], "de": ["szegediner gulasch", "szegediner"], "en": ["szekely goulash", "pork and sauerkraut stew"]}),
+    dict(id="hu_palocleves", countries=["HU"], category="traditional", part_refs=[("palocleves", 450)], served_in="deep_plate", tags=["soup", "traditional"],
+         aliases={"hu": ["palócleves", "palóc leves", "tárkonyos palócleves"], "de": ["palóc-suppe", "palocsuppe"], "en": ["paloc soup"]},
+         review="Az eredeti (Mikszáth-féle) palócleves ürühússal készül; ez a sertéslapockás hétköznapi változat. Birkahúsos változat külön rész legyen, ha lesz ürü katalógusrekord."),
+    dict(id="hu_jokai_bableves", countries=["HU"], category="traditional", part_refs=[("jokai_bableves", 450)], served_in="deep_plate", tags=["soup", "traditional"],
+         aliases={"hu": ["jókai-bableves", "jókai bableves", "csülkös bableves"], "de": ["jókai-bohnensuppe", "ungarische bohnensuppe mit eisbein"], "en": ["jokai bean soup"]}),
 ]
 
 SIDE_WITH = {
@@ -180,18 +211,3 @@ INVENTORY = {
     "street_food": "fokhagymás lángos|sajtos-tejfölös lángos|töltött lángos|kürtőskalács|sült kolbász kenyérrel|hurka mustárral|véres hurka|májas hurka|budapesti hot dog|hot dog|gyros pita|gyros tál|döner|döner tál|falafel wrap|hamburger|sajtos hamburger|pulled pork szendvics|szelet pizza|tócsni|lapcsánka|hekk|lángos hamburgerrel|lángos csirkével|lángos sonkával".split("|")
 }
 MISSING_FOODS = []
-
-PARTS.update({
-    "palocleves": dict(names={"hu": "Palócleves", "de": "Palóc-Suppe", "en": "Palóc soup"}, matrix="liquid", servings_source=5, standard_serving_g=450,
-        ingredients=[ing("pork_shoulder", 300), ing("onion", 120), ing("sunflower_oil", 25, "fat"), ing("paprika_ground", 8, "seasoning"), ing("wax_pepper", 100), ing("tomato", 120), ing("green_bean_missing", 300), ing("potato", 200), ing("sour_cream", 300, "thickener"), ing("wheat_flour", 20, "thickener"), ing("tarragon_missing", 3, "seasoning"), ing("lemon_missing", 15, "seasoning"), ing("water", 1700, "liquid")],
-        cooking=dict(method="covered simmer until tender", mass_change_g=-180, note="water yield is derived; unresolved food keys intentionally block seed"),
-        sources=[src("https://www.mindmegette.hu/recept/tarkonyos-palocleves", "2026-09-27"), src("https://www.mindmegette.hu/egytaletel/palocleves-mikszath-kedvence", "2026-09-27")]),
-    "jokai_bableves": dict(names={"hu": "Jókai-bableves", "de": "Jókai-Bohnensuppe", "en": "Jókai bean soup"}, matrix="liquid", servings_source=6, standard_serving_g=450,
-        ingredients=[ing("smoked_bacon", 120), ing("smoked_sausage", 250), ing("pork_shoulder", 400), ing("onion", 150), ing("white_bean_missing", 500), ing("carrot", 250), ing("parsley_root", 120), ing("celeriac", 100), ing("sour_cream", 250, "thickener"), ing("wheat_flour", 20, "thickener"), ing("paprika_ground", 8, "seasoning"), ing("water", 2600, "liquid")],
-        cooking=dict(method="soak beans and simmer until tender", mass_change_g=-300, note="white bean catalog identity unresolved; seed will skip this dish"),
-        sources=[src("https://www.mindmegette.hu/alapetelek/leves-gulyas-csorbaleves-husgombocleves-tarkonyos-csirke-krumplileves-bableves-eroleves", "2026-09-27"), src("https://www.mindmegette.hu/alapetelek/11-kiados-magyaros-leves-ami-foetelnek-is-beillik/", "2026-09-27")]),
-})
-DISHES += [
-    dict(id="hu_palocleves", countries=["HU"], category="traditional", part_refs=[("palocleves", 450)], served_in="deep_plate", tags=["soup", "traditional"], aliases={"hu": ["palócleves", "palóc leves"], "de": ["palóc suppe"], "de-AT": [], "en": ["paloc soup"]}),
-    dict(id="hu_jokai_bableves", countries=["HU"], category="traditional", part_refs=[("jokai_bableves", 450)], served_in="deep_plate", tags=["soup", "traditional"], aliases={"hu": ["Jókai-bableves", "jokai bableves"], "de": ["Jókai-Bohnensuppe"], "de-AT": [], "en": ["Jokai bean soup"]}),
-]

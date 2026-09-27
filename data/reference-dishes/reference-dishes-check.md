@@ -17,6 +17,8 @@
 | Petrezselymes burgonya | 1050 | -20 | 1030 | 0.981 | 0.7 | 108.8 | 3.3 | 1.9 | 17.4 | – |
 | Párolt rizs | 895 | -60 | 835 | 0.933 | 0.8 | 122.5 | 2.0 | 2.4 | 23.3 | – |
 | Székelykáposzta | 3457 | -250 | 3207 | 0.928 | 1.026 | 114.9 | 8.5 | 6.3 | 1.9 | – |
+| Palócleves | 3048 | -180 | 2868 | 0.941 | 1.011 | nincs számolva | – | – | – | green_beans, tarragon, lemon |
+| Jókai-bableves | 3935 | +150 | 4085 | 1.038 | 1.009 | nincs számolva | – | – | – | white_beans_dried, smoked_pork_hock |
 | Sült sertéslapocka (Schweinsbraten) | 1856 | -550 | 1306 | 0.704 | 1.055 | 252.7 | 19.6 | 16.7 | 0.8 | – |
 | Pirított burgonya szalonnával és hagymával | 680 | -100 | 580 | 0.853 | 0.65 | 138.9 | 5.9 | 4.4 | 16.3 | – |
 | Rántotta | 158 | -8 | 150 | 0.949 | 0.55 | 173.2 | 13.3 | 13.2 | 0.3 | – |
@@ -38,6 +40,8 @@ Számolt érték a katalógusrekordokból vs. egy nyilvános referencia (pl. BLS
 | Marhahúsleves (hússal, zöldséggel) | nincs még | – | – | – | – | – |
 | Rántott hús (sertéskaraj) | nincs még | – | – | – | – | – |
 | Székelykáposzta | nincs még | – | – | – | – | – |
+| Palócleves | nincs még | – | – | – | – | – |
+| Jókai-bableves | nincs még | – | – | – | – | – |
 | Sült sertéslapocka (Schweinsbraten) | bls:Y352212 Schweinebraten ohne Sauce | 253 / 264 | 19.6 / 17.24 | 16.7 / 27.24 | 0.8 / 0.0 | -4% rendben |
 | Pirított burgonya szalonnával és hagymával | nincs még | – | – | – | – | – |
 | Rántotta | bls:Y720163 Rührei gebraten in Butter | 173 / 172 | 13.3 / 12.99 | 13.2 / 13.31 | 0.3 / 0.42 | +1% rendben |
@@ -59,6 +63,8 @@ Mély tányér: kapacitás × töltöttség × sűrűség. Lapos tányér: 0,8 �
 | Marhahúsleves (hússal, zöldséggel) | HU | traditional | 450 | 343 | 495 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | Rántott hús (sertéskaraj) | HU | everyday | 185 | – (lapos tányéros étel) | – (lapos tányéros étel) | 155 | 182 | 211 |
 | Székelykáposzta | HU | traditional | 450 | 346 | 500 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Palócleves | HU | traditional | 450 | 341 | 493 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Jókai-bableves | HU | traditional | 450 | 341 | 492 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | Sült sertéslapocka (Schweinsbraten) | AT, DE | traditional | 250 | 356 | 514 | 215 | 252 | 293 |
 | Pirított burgonya szalonnával és hagymával | DE | traditional | 250 | – (lapos tányéros étel) | – (lapos tányéros étel) | 212 | 248 | 288 |
 | Rántotta | HU, AT, DE | everyday | 150 | – (lapos tányéros étel) | – (lapos tányéros étel) | 127 | 150 | 173 |
