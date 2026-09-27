@@ -3132,9 +3132,7 @@
         "túrógombóc",
         "somlói galuska",
         "Gundel-palacsinta",
-        "halászlé tejföllel",
         "juhászos tokány",
-        "székelygulyás",
         "savanyú tojásleves",
         "kapros túrós lepény",
         "mákos guba",
@@ -3142,7 +3140,10 @@
         "kelt rétes",
         "dobostorta",
         "rigójancsi",
-        "zserbó"
+        "zserbó",
+        "lebbencsleves",
+        "gombapaprikás",
+        "rakott palacsinta"
       ],
       "everyday": [
         "tükörtojás",
@@ -3167,9 +3168,6 @@
         "sonkás kifli",
         "sajtos pogácsa",
         "tepertős pogácsa",
-        "kifli",
-        "zsemle",
-        "magvas zsemle",
         "túrós táska",
         "kakaós csiga",
         "lekváros bukta",
@@ -3195,10 +3193,8 @@
         "gombás rizottó",
         "zöldséges kuszkusz",
         "sült csirkecomb",
-        "csirkepaprikás",
         "sült csirkemell",
         "rakott tészta",
-        "rakott karfiol hétköznapi",
         "zöldborsófőzelék",
         "tökfőzelék",
         "krumplifőzelék",
@@ -3207,7 +3203,9 @@
         "finomfőzelék",
         "paradicsomos káposzta",
         "sárgaborsó-főzelék",
-        "kelkáposzta-főzelék"
+        "kelkáposzta-főzelék",
+        "rántott csirkemell",
+        "chili con carne"
       ],
       "street_food": [
         "fokhagymás lángos",
@@ -3232,9 +3230,9 @@
         "tócsni",
         "lapcsánka",
         "hekk",
-        "lángos hamburgerrel",
-        "lángos csirkével",
-        "lángos sonkával"
+        "lángos",
+        "hasábburgonya",
+        "gofri"
       ]
     },
     "AT": {},

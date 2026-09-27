@@ -56,7 +56,6 @@ a hivatalos forrásból (BLS xlsx, `BlsAdapter`) külön migrációban kell impo
 | `inventory-only` | túrógombóc | traditional | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | somlói galuska | traditional | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | Gundel-palacsinta | traditional | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | halászlé tejföllel | traditional | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | juhászos tokány | traditional | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | savanyú tojásleves | traditional | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | kapros túrós lepény | traditional | inventory identity; recipe/ingredient mapping still required |
@@ -66,6 +65,9 @@ a hivatalos forrásból (BLS xlsx, `BlsAdapter`) külön migrációban kell impo
 | `inventory-only` | dobostorta | traditional | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | rigójancsi | traditional | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | zserbó | traditional | inventory identity; recipe/ingredient mapping still required |
+| `inventory-only` | lebbencsleves | traditional | inventory identity; recipe/ingredient mapping still required |
+| `inventory-only` | gombapaprikás | traditional | inventory identity; recipe/ingredient mapping still required |
+| `inventory-only` | rakott palacsinta | traditional | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | tükörtojás | everyday | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | főtt tojás | everyday | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | tojásos nokedli | everyday | inventory identity; recipe/ingredient mapping still required |
@@ -88,9 +90,6 @@ a hivatalos forrásból (BLS xlsx, `BlsAdapter`) külön migrációban kell impo
 | `inventory-only` | sonkás kifli | everyday | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | sajtos pogácsa | everyday | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | tepertős pogácsa | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | kifli | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | zsemle | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | magvas zsemle | everyday | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | túrós táska | everyday | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | kakaós csiga | everyday | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | lekváros bukta | everyday | inventory identity; recipe/ingredient mapping still required |
@@ -116,10 +115,8 @@ a hivatalos forrásból (BLS xlsx, `BlsAdapter`) külön migrációban kell impo
 | `inventory-only` | gombás rizottó | everyday | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | zöldséges kuszkusz | everyday | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | sült csirkecomb | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | csirkepaprikás | everyday | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | sült csirkemell | everyday | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | rakott tészta | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | rakott karfiol hétköznapi | everyday | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | zöldborsófőzelék | everyday | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | tökfőzelék | everyday | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | krumplifőzelék | everyday | inventory identity; recipe/ingredient mapping still required |
@@ -129,6 +126,8 @@ a hivatalos forrásból (BLS xlsx, `BlsAdapter`) külön migrációban kell impo
 | `inventory-only` | paradicsomos káposzta | everyday | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | sárgaborsó-főzelék | everyday | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | kelkáposzta-főzelék | everyday | inventory identity; recipe/ingredient mapping still required |
+| `inventory-only` | rántott csirkemell | everyday | inventory identity; recipe/ingredient mapping still required |
+| `inventory-only` | chili con carne | everyday | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | fokhagymás lángos | street_food | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | sajtos-tejfölös lángos | street_food | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | töltött lángos | street_food | inventory identity; recipe/ingredient mapping still required |
@@ -151,6 +150,6 @@ a hivatalos forrásból (BLS xlsx, `BlsAdapter`) külön migrációban kell impo
 | `inventory-only` | tócsni | street_food | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | lapcsánka | street_food | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | hekk | street_food | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | lángos hamburgerrel | street_food | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | lángos csirkével | street_food | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | lángos sonkával | street_food | inventory identity; recipe/ingredient mapping still required |
+| `inventory-only` | lángos | street_food | inventory identity; recipe/ingredient mapping still required |
+| `inventory-only` | hasábburgonya | street_food | inventory identity; recipe/ingredient mapping still required |
+| `inventory-only` | gofri | street_food | inventory identity; recipe/ingredient mapping still required |
