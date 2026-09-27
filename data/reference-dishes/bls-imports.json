@@ -1,4 +1,12 @@
 [
-  {"sourceId": "U672700", "names": {"hu": "füstölt sertéscsülök", "en": "smoked pork hock"},
-   "synonyms": {"hu": ["füstölt csülök", "sertéscsülök füstölt"], "de": ["Eisbein geräuchert", "Schweinshaxe geräuchert", "Surhaxe geräuchert"], "en": ["smoked ham hock", "smoked pork knuckle"]}}
+  {"sourceId": "U672700", "names": {"hu": "füstölt sertéscsülök", "en": "smoked pork hock"}, "synonyms": {"hu": ["füstölt csülök", "sertéscsülök füstölt"], "de": ["Eisbein geräuchert", "Schweinshaxe geräuchert", "Surhaxe geräuchert"], "en": ["smoked ham hock", "smoked pork knuckle"]}},
+  {"sourceId": "V434100", "names": {"hu": "tyúkhús (bőrrel)", "en": "stewing hen meat with skin"}},
+  {"sourceId": "G343100", "names": {"hu": "kelkáposzta", "en": "savoy cabbage"}},
+  {"sourceId": "W511000", "names": {"hu": "füstölt tarja", "en": "smoked cured pork neck"}},
+  {"sourceId": "G760400", "names": {"hu": "sárgaborsó (száraz)", "en": "dry yellow split peas"}},
+  {"sourceId": "R122000", "names": {"hu": "ecet (10%-os)", "en": "spirit vinegar"}},
+  {"sourceId": "M173800", "names": {"hu": "habtejszín (30%)", "en": "whipping cream 30%"}},
+  {"sourceId": "F212100", "names": {"hu": "meggy", "en": "sour cherry"}},
+  {"sourceId": "F120100", "names": {"hu": "alma (hámozva)", "en": "apple, peeled"}},
+  {"sourceId": "S114000", "names": {"hu": "vaníliás cukor", "en": "vanilla sugar"}}
 ]

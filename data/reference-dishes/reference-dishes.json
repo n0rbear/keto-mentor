@@ -484,6 +484,280 @@
       "density_intrinsic_g_ml": 1.06,
       "density_bulk_g_ml": 0.8,
       "note": "BLS Vorderhaxe Kochpökelware geräuchert; imported by migration 20260927120000"
+    },
+    "egg_pasta_dry": {
+      "names": {
+        "hu": "száraz tojásos tészta (gyufatészta, lebbencs, eperlevél)",
+        "de": "Eierteigwaren (roh)",
+        "en": "dry egg pasta"
+      },
+      "catalog": "bls:E432000",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.0,
+      "density_bulk_g_ml": 0.5,
+      "note": "dry weight; takes up ~1.2x its weight in water when boiled"
+    },
+    "stewing_hen": {
+      "names": {
+        "hu": "tyúkhús (bőrrel)",
+        "de": "Suppenhuhn Fleisch mit Haut",
+        "en": "stewing hen meat with skin"
+      },
+      "catalog": "bls:V434100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.05,
+      "density_bulk_g_ml": 0.8,
+      "note": "grams = edible part; whole hen is ~55% edible"
+    },
+    "savoy_cabbage": {
+      "names": {
+        "hu": "kelkáposzta",
+        "de": "Wirsing",
+        "en": "savoy cabbage"
+      },
+      "catalog": "bls:G343100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.0,
+      "density_bulk_g_ml": 0.4
+    },
+    "green_peas": {
+      "names": {
+        "hu": "zöldborsó",
+        "de": "Erbse grün",
+        "en": "green peas"
+      },
+      "catalog": "bls:G760100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.0,
+      "density_bulk_g_ml": 0.7
+    },
+    "mushroom": {
+      "names": {
+        "hu": "csiperkegomba",
+        "de": "Champignon",
+        "en": "button mushroom"
+      },
+      "catalog": "bls:K701100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.0,
+      "density_bulk_g_ml": 0.5
+    },
+    "cauliflower": {
+      "names": {
+        "hu": "karfiol",
+        "de": "Blumenkohl",
+        "en": "cauliflower"
+      },
+      "catalog": "bls:G311100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.0,
+      "density_bulk_g_ml": 0.5
+    },
+    "smoked_pork_neck": {
+      "names": {
+        "hu": "füstölt tarja",
+        "de": "Kasseler Kamm (gepökelt, geräuchert)",
+        "en": "smoked cured pork neck"
+      },
+      "catalog": "bls:W511000",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.05,
+      "density_bulk_g_ml": 0.8,
+      "note": "BLS Kasseler Kamm, Kochpökelware, geräuchert"
+    },
+    "lentils_dry": {
+      "names": {
+        "hu": "lencse (száraz)",
+        "de": "Linsen getrocknet",
+        "en": "dry lentils"
+      },
+      "catalog": "bls:H725100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.3,
+      "density_bulk_g_ml": 0.8,
+      "note": "grams = dry lentils before soaking"
+    },
+    "split_peas_dry": {
+      "names": {
+        "hu": "sárgaborsó (száraz)",
+        "de": "Erbsen getrocknet (gelbe Schälerbsen)",
+        "en": "dry yellow split peas"
+      },
+      "catalog": "bls:G760400",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.3,
+      "density_bulk_g_ml": 0.8,
+      "note": "BLS Erbse reif = dried mature peas; grams = dry weight"
+    },
+    "sugar": {
+      "names": {
+        "hu": "kristálycukor",
+        "de": "Zucker weiß",
+        "en": "white sugar"
+      },
+      "catalog": "bls:S111000",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.59,
+      "density_bulk_g_ml": 0.85
+    },
+    "vinegar": {
+      "names": {
+        "hu": "ecet (10%-os)",
+        "de": "Branntweinessig",
+        "en": "spirit vinegar"
+      },
+      "catalog": "bls:R122000",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.01,
+      "density_bulk_g_ml": 1.01
+    },
+    "turkey_breast": {
+      "names": {
+        "hu": "pulykamell",
+        "de": "Putenbrust ohne Haut",
+        "en": "turkey breast, skinless"
+      },
+      "catalog": "bls:V486100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.05,
+      "density_bulk_g_ml": 0.8
+    },
+    "leek": {
+      "names": {
+        "hu": "póréhagyma",
+        "de": "Porree/Lauch",
+        "en": "leek"
+      },
+      "catalog": "bls:G470100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.0,
+      "density_bulk_g_ml": 0.4
+    },
+    "cream_30": {
+      "names": {
+        "hu": "habtejszín (30%)",
+        "de": "Schlagsahne 30 % Fett",
+        "en": "whipping cream 30%"
+      },
+      "catalog": "bls:M173800",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.0,
+      "density_bulk_g_ml": 1.0,
+      "note": "also used for recipes that say plain 'tejszín'"
+    },
+    "sour_cherry": {
+      "names": {
+        "hu": "meggy",
+        "de": "Sauerkirsche",
+        "en": "sour cherry"
+      },
+      "catalog": "bls:F212100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.05,
+      "density_bulk_g_ml": 0.6,
+      "note": "grams = pitted"
+    },
+    "sweet_cherry": {
+      "names": {
+        "hu": "cseresznye",
+        "de": "Süßkirsche",
+        "en": "sweet cherry"
+      },
+      "catalog": "bls:F211100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.05,
+      "density_bulk_g_ml": 0.6,
+      "note": "grams = pitted"
+    },
+    "apple_peeled": {
+      "names": {
+        "hu": "alma (hámozva)",
+        "de": "Apfel geschält",
+        "en": "apple, peeled"
+      },
+      "catalog": "bls:F120100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 0.85,
+      "density_bulk_g_ml": 0.55
+    },
+    "pear": {
+      "names": {
+        "hu": "körte",
+        "de": "Birne",
+        "en": "pear"
+      },
+      "catalog": "bls:F130100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.0,
+      "density_bulk_g_ml": 0.55
+    },
+    "peach": {
+      "names": {
+        "hu": "őszibarack",
+        "de": "Pfirsich",
+        "en": "peach"
+      },
+      "catalog": "bls:F203100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.0,
+      "density_bulk_g_ml": 0.55
+    },
+    "vanilla_sugar": {
+      "names": {
+        "hu": "vaníliás cukor",
+        "de": "Vanillezucker",
+        "en": "vanilla sugar"
+      },
+      "catalog": "bls:S114000",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.59,
+      "density_bulk_g_ml": 0.85
+    },
+    "milk_whole": {
+      "names": {
+        "hu": "tej (3,5%)",
+        "de": "Vollmilch 3,5 %",
+        "en": "whole milk 3.5%"
+      },
+      "catalog": "bls:M111300",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.03,
+      "density_bulk_g_ml": 1.03
+    },
+    "pumpkin": {
+      "names": {
+        "hu": "sütőtök",
+        "de": "Kürbis Hokkaido (C. maxima)",
+        "en": "winter squash (C. maxima)"
+      },
+      "catalog": "bls:G581000",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 0.95,
+      "density_bulk_g_ml": 0.6,
+      "note": "Hungarian sütőtök is C. maxima"
+    },
+    "bouillon_cube": {
+      "names": {
+        "hu": "leveskocka / erőleveskocka",
+        "de": "Fleischbrühe (Brühwürfel)",
+        "en": "meat bouillon cube"
+      },
+      "catalog": "bls:R811000",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.0,
+      "density_bulk_g_ml": 1.0,
+      "note": "values per 100 g of cube/powder; 1 cube ~10 g"
+    },
+    "soy_sauce": {
+      "names": {
+        "hu": "szójaszósz",
+        "de": "Sojasauce",
+        "en": "soy sauce"
+      },
+      "catalog": "bls:R143000",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.15,
+      "density_bulk_g_ml": 1.15
     }
   },
   "parts": {
@@ -1874,6 +2148,1647 @@
         "incomplete_missing_food_keys": []
       }
     },
+    "bajai_halaszle": {
+      "id": "bajai_halaszle",
+      "names": {
+        "hu": "Bajai halászlé (gyufatésztával)",
+        "de": "Fischsuppe nach Baja-Art (mit Fadennudeln)",
+        "en": "Baja-style fish soup with matchstick pasta"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "carp",
+            "raw_g": 1200,
+            "role": "core",
+            "note": "2 kg cleaned carp incl. halved head; ~60% edible share is an estimate"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 180,
+            "role": "core",
+            "note": "18 dkg vöröshagyma"
+          },
+          {
+            "food_key": "paprika_ground",
+            "raw_g": 40,
+            "role": "seasoning",
+            "note": "4 dkg házi édes-nemes paprika"
+          },
+          {
+            "food_key": "hot_pepper_fresh",
+            "raw_g": 35,
+            "role": "seasoning",
+            "note": "3-4 db cseresznyepaprika (~10 g each, estimate)"
+          },
+          {
+            "food_key": "egg_pasta_dry",
+            "raw_g": 200,
+            "role": "core",
+            "note": "20 dkg gyufatészta, dry weight, boiled separately and served in the soup"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 3000,
+            "role": "liquid",
+            "note": "3 liter víz"
+          }
+        ],
+        "not_eaten": [
+          {
+            "what": "halfej, szálka, uszony",
+            "raw_g": 800,
+            "note": "stays in the pot but left on the plate (estimate ~40% of the cleaned fish)"
+          }
+        ],
+        "raw_total_g": 4655,
+        "cooking": {
+          "method": "fish and onion boiled hard 35-40 min, paprika after the foam; not passed; pasta cooked separately",
+          "mass_change_g": -460,
+          "note": "about -700 g evaporation on a hard boil and +240 g water taken up by the pasta (estimates); 4 dkg salt left out"
+        },
+        "finished_weight_g": 4195,
+        "yield_factor": 0.901
+      },
+      "standard_serving_g": 450,
+      "density_g_per_ml": 1.014,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://mediaklikk.hu/csalad-barat-receptek/cikk/2021/10/28/bajai-halaszle-4-fore/",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 fő"
+        },
+        {
+          "url": "https://www.haztartas-ma.hu/index.php/receptek/haletelek/bajai-halaszle/",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 1,5 kg ponty + 0,5 kg kárász, 2 l víz, 20-25 dkg gyufatészta, 6-8 fő"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/bajai-halaszle",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 3 kg hal, 1,1 l víz/kg, gyufatészta"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 54.7,
+          "fat": 1.7,
+          "protein": 6.0,
+          "net_carbs": 3.6
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "tiszai_halaszle": {
+      "id": "tiszai_halaszle",
+      "names": {
+        "hu": "Tiszai halászlé",
+        "de": "Fischsuppe nach Theiß-Art",
+        "en": "Tisza-style fish soup"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "carp",
+            "raw_g": 650,
+            "role": "core",
+            "note": "slices of 1 db ponty (~1,5 kg whole, estimate); edible part of the slices ~650 g (estimate)"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 100,
+            "role": "core",
+            "note": "1 fej"
+          },
+          {
+            "food_key": "tomato",
+            "raw_g": 100,
+            "role": "core",
+            "note": "1 szem"
+          },
+          {
+            "food_key": "wax_pepper",
+            "raw_g": 60,
+            "role": "core",
+            "note": "1 darab zöldpaprika"
+          },
+          {
+            "food_key": "paprika_ground",
+            "raw_g": 7,
+            "role": "seasoning",
+            "note": "1 ek"
+          },
+          {
+            "food_key": "hot_pepper_fresh",
+            "raw_g": 10,
+            "role": "seasoning",
+            "note": "cseresznyepaprika ízlés szerint (estimate)"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 2000,
+            "role": "liquid",
+            "note": "stock: 'annyi, hogy ellepje' (~1 l, estimate) + 1 l after straining"
+          }
+        ],
+        "not_eaten": [
+          {
+            "what": "50 dkg apróhal + pontyfej, farok, szálka",
+            "raw_g": 1350,
+            "note": "stock only, boiled 1 h and strained through a dense sieve; protein/fat carried into the broth is ignored (underestimate)"
+          }
+        ],
+        "raw_total_g": 2927,
+        "cooking": {
+          "method": "small fish stock boiled 1 h and strained, topped up, carp slices simmered 10-15 min",
+          "mass_change_g": -600,
+          "note": "evaporation and liquid held back in the strained pulp are an estimate"
+        },
+        "finished_weight_g": 2327,
+        "yield_factor": 0.795
+      },
+      "standard_serving_g": 450,
+      "density_g_per_ml": 1.012,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/tiszai-halaszle",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 adag"
+        },
+        {
+          "url": "https://www.receptneked.hu/recept/tiszai-halaszle",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 4 kg vegyes hal, passzírozott alaplé, 10 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 37.2,
+          "fat": 1.5,
+          "protein": 5.2,
+          "net_carbs": 0.6
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "ujhazi_tyukhusleves": {
+      "id": "ujhazi_tyukhusleves",
+      "names": {
+        "hu": "Újházi tyúkhúsleves (hússal, zöldséggel)",
+        "de": "Újházi-Hühnersuppe",
+        "en": "Újházi hen soup"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 8,
+        "ingredients": [
+          {
+            "food_key": "stewing_hen",
+            "raw_g": 825,
+            "role": "core",
+            "note": "edible part of 1,5 kg tyúk; ~55% edible share is an estimate"
+          },
+          {
+            "food_key": "carrot",
+            "raw_g": 240,
+            "role": "core",
+            "note": "3 szál"
+          },
+          {
+            "food_key": "parsley_root",
+            "raw_g": 140,
+            "role": "core",
+            "note": "2 szál fehérrépa"
+          },
+          {
+            "food_key": "celeriac",
+            "raw_g": 150,
+            "role": "core",
+            "note": "1 db kisebb zellergumó (estimate)"
+          },
+          {
+            "food_key": "kohlrabi",
+            "raw_g": 125.0,
+            "role": "core",
+            "note": "0,5 db karalábé"
+          },
+          {
+            "food_key": "savoy_cabbage",
+            "raw_g": 250,
+            "role": "core",
+            "note": "0,25 darab kelkáposzta (~1 kg head, estimate)"
+          },
+          {
+            "food_key": "green_peas",
+            "raw_g": 200,
+            "role": "core",
+            "note": "20 dkg"
+          },
+          {
+            "food_key": "mushroom",
+            "raw_g": 200,
+            "role": "core",
+            "note": "20 dkg gomba"
+          },
+          {
+            "food_key": "cauliflower",
+            "raw_g": 200,
+            "role": "core",
+            "note": "20 dkg karfiol"
+          },
+          {
+            "food_key": "wax_pepper",
+            "raw_g": 60,
+            "role": "core",
+            "note": "1 db paprika"
+          },
+          {
+            "food_key": "tomato",
+            "raw_g": 100,
+            "role": "core",
+            "note": "1 db"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 100,
+            "role": "core",
+            "note": "1 fej"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 25,
+            "role": "seasoning",
+            "note": "5 gerezd"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 3000,
+            "role": "liquid",
+            "note": "not given ('hideg vízben feltesszük'); ~3 l is an estimate"
+          }
+        ],
+        "not_eaten": [
+          {
+            "what": "tyúkcsont",
+            "raw_g": 675,
+            "note": "bones of the 1,5 kg hen (estimate)"
+          }
+        ],
+        "raw_total_g": 5615.0,
+        "cooking": {
+          "method": "hen simmered ~1 h, roots added, peas/mushroom/cauliflower cooked apart; strained, meat and vegetables returned",
+          "mass_change_g": -700,
+          "note": "slow simmer; evaporation is an estimate. Pepper, ginger, mace and ételízesítő left out; served without pasta here"
+        },
+        "finished_weight_g": 4915.0,
+        "yield_factor": 0.875
+      },
+      "standard_serving_g": 450,
+      "density_g_per_ml": 1.012,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/ujhazy-tyukhusleves",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 8 adag"
+        },
+        {
+          "url": "https://streetkitchen.hu/receptek/ujhazi-tyukhusleves",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 1 nagy tyúk, 7 l víz, 400 g gomba, 300 g zöldborsó, 7 főre"
+        },
+        {
+          "url": "https://receptvadasz.hu/ujhazi-tyukhusleves/",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 1,5-2 kg tyúk, 2 l víz"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 58.8,
+          "fat": 3.5,
+          "protein": 4.0,
+          "net_carbs": 2.2
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "bableves": {
+      "id": "bableves",
+      "names": {
+        "hu": "Bableves füstölt tarjával",
+        "de": "Ungarische Bohnensuppe mit Kasseler",
+        "en": "Hungarian bean soup with smoked pork"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "dry_bean",
+            "raw_g": 500,
+            "role": "core",
+            "note": "50 dkg szárazbab, dry weight, soaked overnight"
+          },
+          {
+            "food_key": "smoked_pork_neck",
+            "raw_g": 1000,
+            "role": "core",
+            "note": "1 kg füstölt tarja"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 20,
+            "role": "seasoning",
+            "note": "4 gerezd"
+          },
+          {
+            "food_key": "carrot",
+            "raw_g": 160,
+            "role": "core",
+            "note": "2 db"
+          },
+          {
+            "food_key": "parsley_root",
+            "raw_g": 140,
+            "role": "core",
+            "note": "2 db fehérrépa"
+          },
+          {
+            "food_key": "celeriac",
+            "raw_g": 150,
+            "role": "core",
+            "note": "1 db kisebb zeller (estimate)"
+          },
+          {
+            "food_key": "potato",
+            "raw_g": 500,
+            "role": "core",
+            "note": "50 dkg"
+          },
+          {
+            "food_key": "frankfurter",
+            "raw_g": 200,
+            "role": "core",
+            "note": "4 db virsli (~50 g each, estimate)"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 52,
+            "role": "fat",
+            "note": "4 ek olaj, rántás"
+          },
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 35.0,
+            "role": "thickener",
+            "note": "3-4 ek liszt, rántás"
+          },
+          {
+            "food_key": "paprika_ground",
+            "raw_g": 1,
+            "role": "seasoning",
+            "note": "1 mk"
+          },
+          {
+            "food_key": "egg",
+            "raw_g": 50,
+            "role": "core",
+            "note": "csipetke: 1 tojás"
+          },
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 100,
+            "role": "core",
+            "note": "csipetke: 10 dkg liszt"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 2500,
+            "role": "liquid",
+            "note": "not given; ~2,5 l is an estimate"
+          }
+        ],
+        "raw_total_g": 5408.0,
+        "cooking": {
+          "method": "beans cooked with the smoked neck, roots and potatoes added, roux and csipetke at the end",
+          "mass_change_g": 50,
+          "note": "about +550 g water taken up by the dry beans, about -500 g evaporation (estimates); bay leaves and pepper left out"
+        },
+        "finished_weight_g": 5458.0,
+        "yield_factor": 1.009
+      },
+      "standard_serving_g": 450,
+      "density_g_per_ml": 1.041,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/bableves",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, '4 adag' (realistically ~10 portions)"
+        },
+        {
+          "url": "https://www.receptneked.hu/recept/bableves",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 0,5 kg bab, füstölt csont/hús, burgonya, csipetke, 12 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 100.7,
+          "fat": 3.6,
+          "protein": 7.1,
+          "net_carbs": 8.4
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "lencseleves": {
+      "id": "lencseleves",
+      "names": {
+        "hu": "Lencseleves",
+        "de": "Ungarische Linsensuppe",
+        "en": "Hungarian lentil soup"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 6,
+        "ingredients": [
+          {
+            "food_key": "lentils_dry",
+            "raw_g": 200,
+            "role": "core",
+            "note": "20 dkg lencse, soaked"
+          },
+          {
+            "food_key": "lard",
+            "raw_g": 50,
+            "role": "fat",
+            "note": "5 dkg zsír"
+          },
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 40,
+            "role": "thickener",
+            "note": "4 dkg liszt, barna rántás"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 40,
+            "role": "core",
+            "note": "4 dkg"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 5,
+            "role": "seasoning",
+            "note": "1 gerezd"
+          },
+          {
+            "food_key": "sour_cream",
+            "raw_g": 204,
+            "role": "thickener",
+            "note": "2 dl tejföl"
+          },
+          {
+            "food_key": "vinegar",
+            "raw_g": 15,
+            "role": "seasoning",
+            "note": "1 ek ecet"
+          },
+          {
+            "food_key": "sugar",
+            "raw_g": 30,
+            "role": "seasoning",
+            "note": "3 dkg cukor"
+          },
+          {
+            "food_key": "mustard",
+            "raw_g": 20,
+            "role": "seasoning",
+            "note": "2 dkg mustár"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 1500,
+            "role": "liquid",
+            "note": "pork-bone broth; amount not given, ~1,5 l is an estimate"
+          }
+        ],
+        "not_eaten": [
+          {
+            "what": "sertéscsont",
+            "raw_g": 250,
+            "note": "stock only; fat transfer ignored"
+          }
+        ],
+        "raw_total_g": 2104,
+        "cooking": {
+          "method": "lentils simmered in bone broth, brown roux with sugar, sour cream and vinegar",
+          "mass_change_g": -30,
+          "note": "about +220 g water taken up by the lentils, about -250 g evaporation (estimates); bay leaf and paprika left out"
+        },
+        "finished_weight_g": 2074,
+        "yield_factor": 0.986
+      },
+      "standard_serving_g": 450,
+      "density_g_per_ml": 1.029,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.receptneked.hu/recept/lencseleves",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 6 adag"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/lencseleves",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 25 dkg lencse, ~2 l víz, tejföl + liszt"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 86.5,
+          "fat": 4.4,
+          "protein": 2.8,
+          "net_carbs": 7.8
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "sargaborso_leves": {
+      "id": "sargaborso_leves",
+      "names": {
+        "hu": "Sárgaborsó-leves",
+        "de": "Gelbe Erbsensuppe (ungarisch)",
+        "en": "Hungarian yellow split pea soup"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 6,
+        "ingredients": [
+          {
+            "food_key": "split_peas_dry",
+            "raw_g": 250,
+            "role": "core",
+            "note": "25 dkg sárgaborsó, soaked overnight"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 26,
+            "role": "fat",
+            "note": "2 ek olaj"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 100,
+            "role": "core",
+            "note": "1 fej, reszelve"
+          },
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 15,
+            "role": "thickener",
+            "note": "1 púpos ek (estimate 15 g)"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 1300,
+            "role": "liquid",
+            "note": "soaking + cooking water; the soup is passed and diluted to 1,5 l (water amount is an estimate)"
+          }
+        ],
+        "raw_total_g": 1691,
+        "cooking": {
+          "method": "peas cooked very soft, onion-flour roux, passed through a sieve, diluted to 1,5 l",
+          "mass_change_g": -140,
+          "note": "final volume 1,5 l per the source; mass change is an estimate. Paprika (késhegynyi) left out; croutons and virsli are optional serving extras, not included"
+        },
+        "finished_weight_g": 1551,
+        "yield_factor": 0.917
+      },
+      "standard_serving_g": 450,
+      "density_g_per_ml": 1.037,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.receptneked.hu/recept/sargaborsoleves",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 6 adag"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/sargaborso-leves",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 15 dkg sárgaborsó, 1,5 l víz, tejföl + liszt, 4 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 70.8,
+          "fat": 1.9,
+          "protein": 3.9,
+          "net_carbs": 7.6
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "krumplileves": {
+      "id": "krumplileves",
+      "names": {
+        "hu": "Krumplileves (kolbásszal)",
+        "de": "Ungarische Kartoffelsuppe mit Wurst",
+        "en": "Hungarian potato soup with sausage"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "lard",
+            "raw_g": 26,
+            "role": "fat",
+            "note": "2 ek zsír"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 100,
+            "role": "core",
+            "note": "1 fej"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 10,
+            "role": "seasoning",
+            "note": "2 gerezd"
+          },
+          {
+            "food_key": "carrot",
+            "raw_g": 160,
+            "role": "core",
+            "note": "2 db"
+          },
+          {
+            "food_key": "parsley_root",
+            "raw_g": 70,
+            "role": "core",
+            "note": "1 db"
+          },
+          {
+            "food_key": "potato",
+            "raw_g": 825.0,
+            "role": "core",
+            "note": "5-6 db"
+          },
+          {
+            "food_key": "paprika_ground",
+            "raw_g": 2.5,
+            "role": "seasoning",
+            "note": "1 tk"
+          },
+          {
+            "food_key": "smoked_sausage",
+            "raw_g": 200,
+            "role": "core",
+            "note": "20 dkg füstölt kolbász"
+          },
+          {
+            "food_key": "sour_cream",
+            "raw_g": 102,
+            "role": "thickener",
+            "note": "1 dl tejföl"
+          },
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 3,
+            "role": "thickener",
+            "note": "1 tk liszt (estimate 3 g)"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 1500,
+            "role": "liquid",
+            "note": "1,5 liter alaplé (vagy víz)"
+          }
+        ],
+        "raw_total_g": 2998.5,
+        "cooking": {
+          "method": "vegetables sweated in lard, simmered with sausage, thickened with sour cream",
+          "mass_change_g": -150,
+          "note": "evaporation is an estimate; bay leaf, pepper and marjoram left out"
+        },
+        "finished_weight_g": 2848.5,
+        "yield_factor": 0.95
+      },
+      "standard_serving_g": 450,
+      "density_g_per_ml": 1.024,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/krumplileves",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 adag"
+        },
+        {
+          "url": "https://www.receptneked.hu/recept/kolbaszos-krumplileves",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 15 dkg füstölt kolbász, 4 krumpli, sárgarépa, 2 dl tejföl, 6 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 68.6,
+          "fat": 3.5,
+          "protein": 2.5,
+          "net_carbs": 6.4
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "frankfurti_leves": {
+      "id": "frankfurti_leves",
+      "names": {
+        "hu": "Frankfurti leves",
+        "de": "Frankfurter Suppe (Wirsing-Würstchen-Suppe)",
+        "en": "Frankfurter soup (savoy cabbage and sausage)"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "lard",
+            "raw_g": 26,
+            "role": "fat",
+            "note": "2 ek zsír"
+          },
+          {
+            "food_key": "frankfurter",
+            "raw_g": 250,
+            "role": "core",
+            "note": "25 dkg virsli"
+          },
+          {
+            "food_key": "caraway_seed",
+            "raw_g": 2.5,
+            "role": "seasoning",
+            "note": "1 tk köménymag"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 70,
+            "role": "core",
+            "note": "1 kis fej (estimate)"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 17.5,
+            "role": "seasoning",
+            "note": "3-4 gerezd"
+          },
+          {
+            "food_key": "paprika_ground",
+            "raw_g": 2.5,
+            "role": "seasoning",
+            "note": "1 tk"
+          },
+          {
+            "food_key": "potato",
+            "raw_g": 375.0,
+            "role": "core",
+            "note": "2-3 db"
+          },
+          {
+            "food_key": "savoy_cabbage",
+            "raw_g": 300,
+            "role": "core",
+            "note": "6-7 levél kelkáposzta (~45 g per leaf, estimate)"
+          },
+          {
+            "food_key": "sour_cream",
+            "raw_g": 120,
+            "role": "thickener",
+            "note": "12 dkg tejföl"
+          },
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 10,
+            "role": "thickener",
+            "note": "1 ek"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 2500,
+            "role": "liquid",
+            "note": "2-3 liter víz"
+          }
+        ],
+        "raw_total_g": 3673.5,
+        "cooking": {
+          "method": "sausage browned, caraway-onion-paprika base, potatoes and cabbage simmered, sour cream thickening",
+          "mass_change_g": -300,
+          "note": "evaporation is an estimate"
+        },
+        "finished_weight_g": 3373.5,
+        "yield_factor": 0.918
+      },
+      "standard_serving_g": 450,
+      "density_g_per_ml": 1.01,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/frankfurti-leves-recept",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 adag"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/hagyomanyos-frankfurti-leves",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 60 dkg kelkáposzta, 2 burgonya, 4 virsli, olajos-lisztes rántás, 4 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 50.4,
+          "fat": 3.4,
+          "protein": 1.6,
+          "net_carbs": 2.9
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "tarkonyos_raguleves": {
+      "id": "tarkonyos_raguleves",
+      "names": {
+        "hu": "Tárkonyos pulykaraguleves",
+        "de": "Estragon-Ragoutsuppe mit Pute",
+        "en": "Tarragon turkey ragout soup"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 6,
+        "ingredients": [
+          {
+            "food_key": "turkey_breast",
+            "raw_g": 250,
+            "role": "core",
+            "note": "25 dkg pulykamell"
+          },
+          {
+            "food_key": "carrot",
+            "raw_g": 100,
+            "role": "core",
+            "note": "10 dkg"
+          },
+          {
+            "food_key": "parsley_root",
+            "raw_g": 100,
+            "role": "core",
+            "note": "10 dkg"
+          },
+          {
+            "food_key": "green_peas",
+            "raw_g": 50,
+            "role": "core",
+            "note": "5 dkg"
+          },
+          {
+            "food_key": "mushroom",
+            "raw_g": 50,
+            "role": "core",
+            "note": "5 dkg gomba"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 30,
+            "role": "core",
+            "note": "3 dkg"
+          },
+          {
+            "food_key": "egg_pasta_dry",
+            "raw_g": 50,
+            "role": "core",
+            "note": "5 dkg eperszalag tészta, dry weight"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 18.4,
+            "role": "fat",
+            "note": "0,2 dl olaj"
+          },
+          {
+            "food_key": "sour_cream",
+            "raw_g": 102,
+            "role": "thickener",
+            "note": "1 dl tejföl"
+          },
+          {
+            "food_key": "cream_30",
+            "raw_g": 100,
+            "role": "thickener",
+            "note": "1 dl habtejszín"
+          },
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 20,
+            "role": "thickener",
+            "note": "2 dkg"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 1500,
+            "role": "liquid",
+            "note": "1,5 liter húsleves alaplé, counted as water (broth nutrition ignored)"
+          }
+        ],
+        "raw_total_g": 2370.4,
+        "cooking": {
+          "method": "meat and vegetables simmered in stock with pasta, thickened with sour cream, cream and flour",
+          "mass_change_g": -90,
+          "note": "about +60 g water taken up by the pasta, about -150 g evaporation (estimates). Tarragon/tárkonyecet (MISSING tarragon_dried) and white pepper left out"
+        },
+        "finished_weight_g": 2280.4,
+        "yield_factor": 0.962
+      },
+      "standard_serving_g": 450,
+      "density_g_per_ml": 1.008,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.receptneked.hu/recept/tarkonyos-pulykaraguleves",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 6 adag"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/tarkonyos-raguleves",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 30 dkg pulykamell, gyökérzöldség, zöldborsó, 8 dl víz, 2 dl főzőtejszín, 4 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 59.5,
+          "fat": 3.2,
+          "protein": 3.6,
+          "net_carbs": 3.8
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "gyumolcsleves": {
+      "id": "gyumolcsleves",
+      "names": {
+        "hu": "Gyümölcsleves (vegyes, tejfölös)",
+        "de": "Ungarische Obstsuppe (kalt)",
+        "en": "Hungarian cold mixed fruit soup"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "sour_cherry",
+            "raw_g": 225,
+            "role": "core",
+            "note": "25 dkg meggy, pitted (~10% pits, estimate)"
+          },
+          {
+            "food_key": "sweet_cherry",
+            "raw_g": 90,
+            "role": "core",
+            "note": "10 dkg cseresznye, pitted (estimate)"
+          },
+          {
+            "food_key": "apple_peeled",
+            "raw_g": 130,
+            "role": "core",
+            "note": "1 db alma, peeled and cored (estimate)"
+          },
+          {
+            "food_key": "pear",
+            "raw_g": 130,
+            "role": "core",
+            "note": "1 db körte, peeled and cored (estimate)"
+          },
+          {
+            "food_key": "peach",
+            "raw_g": 120,
+            "role": "core",
+            "note": "1 db őszibarack, pitted (estimate)"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 1000,
+            "role": "liquid",
+            "note": "1 l víz"
+          },
+          {
+            "food_key": "sour_cream",
+            "raw_g": 204,
+            "role": "thickener",
+            "note": "2 dl tejföl"
+          },
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 20,
+            "role": "thickener",
+            "note": "2 ek"
+          },
+          {
+            "food_key": "sugar",
+            "raw_g": 100,
+            "role": "seasoning",
+            "note": "10 dkg cukor"
+          },
+          {
+            "food_key": "vanilla_sugar",
+            "raw_g": 8,
+            "role": "seasoning",
+            "note": "1 csomag vaníliás cukor (8 g)"
+          },
+          {
+            "food_key": "lemon_juice",
+            "raw_g": 15,
+            "role": "seasoning",
+            "note": "1 ek citromlé (estimate 15 g)"
+          }
+        ],
+        "raw_total_g": 2042,
+        "cooking": {
+          "method": "fruit simmered 10-15 min with sugar and spices, sour cream thickening, served cold",
+          "mass_change_g": -60,
+          "note": "evaporation is an estimate; cinnamon stick and cloves are removed and left out"
+        },
+        "finished_weight_g": 1982,
+        "yield_factor": 0.971
+      },
+      "standard_serving_g": 300,
+      "density_g_per_ml": 1.019,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/gyumolcsleves",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 adag"
+        },
+        {
+          "url": "https://www.receptneked.hu/recept/gyumolcsleves",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 40 dkg gyümölcs, 1 l víz, 4 dkg liszt, 2 dl habtejszín/3 dl tejföl, 15 dkg cukor, 6 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 65.3,
+          "fat": 2.0,
+          "protein": 0.6,
+          "net_carbs": 11.0
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "meggyleves": {
+      "id": "meggyleves",
+      "names": {
+        "hu": "Meggyleves (hideg)",
+        "de": "Ungarische Sauerkirschsuppe (kalt)",
+        "en": "Hungarian cold sour cherry soup"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "sour_cherry",
+            "raw_g": 450,
+            "role": "core",
+            "note": "50 dkg meggy, pitted (~10% pits, estimate)"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 1000,
+            "role": "liquid",
+            "note": "1 l víz"
+          },
+          {
+            "food_key": "sugar",
+            "raw_g": 24,
+            "role": "seasoning",
+            "note": "2 ek cukor"
+          },
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 20,
+            "role": "thickener",
+            "note": "2 ek liszt"
+          },
+          {
+            "food_key": "milk_whole",
+            "raw_g": 103,
+            "role": "thickener",
+            "note": "1 dl tej"
+          },
+          {
+            "food_key": "cream_30",
+            "raw_g": 100,
+            "role": "thickener",
+            "note": "1 dl tejszín"
+          }
+        ],
+        "raw_total_g": 1697,
+        "cooking": {
+          "method": "cherries simmered 8-10 min with sugar and cinnamon, thickened with flour-milk-cream, served cold",
+          "mass_change_g": -50,
+          "note": "evaporation is an estimate; cinnamon stick and optional lemon juice left out"
+        },
+        "finished_weight_g": 1647,
+        "yield_factor": 0.971
+      },
+      "standard_serving_g": 300,
+      "density_g_per_ml": 1.021,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/hagyomanyos-meggyleves",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 adag"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/meggyleves",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 50 dkg meggy, 1 l víz, 12 dkg cukor, 1,5 ek liszt, 2,5 dl főzőtejszín, 4 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 51.5,
+          "fat": 2.3,
+          "protein": 0.7,
+          "net_carbs": 6.5
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "sutotokkremleves": {
+      "id": "sutotokkremleves",
+      "names": {
+        "hu": "Sütőtökkrémleves",
+        "de": "Kürbiscremesuppe",
+        "en": "Cream of pumpkin soup"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "pumpkin",
+            "raw_g": 600,
+            "role": "core",
+            "note": "60 dkg sütőtök, peeled"
+          },
+          {
+            "food_key": "leek",
+            "raw_g": 150,
+            "role": "core",
+            "note": "1 szál póréhagyma (estimate)"
+          },
+          {
+            "food_key": "potato",
+            "raw_g": 450,
+            "role": "core",
+            "note": "3 db"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 2000,
+            "role": "liquid",
+            "note": "kb. 2 liter víz"
+          },
+          {
+            "food_key": "bouillon_cube",
+            "raw_g": 40,
+            "role": "seasoning",
+            "note": "4 db erőleveskocka (~10 g each, estimate)"
+          },
+          {
+            "food_key": "cream_30",
+            "raw_g": 250.0,
+            "role": "thickener",
+            "note": "2,5 dl tejszín"
+          }
+        ],
+        "raw_total_g": 3490.0,
+        "cooking": {
+          "method": "vegetables simmered 15-20 min covered, blended with cream",
+          "mass_change_g": -150,
+          "note": "covered simmer; evaporation is an estimate. Ginger, salt, pepper left out; toast and grated cheese served on top are not included"
+        },
+        "finished_weight_g": 3340.0,
+        "yield_factor": 0.957
+      },
+      "standard_serving_g": 450,
+      "density_g_per_ml": 1.001,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/sutotok-kremleves",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 adag"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/sutotokkremleves",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 1 kg sütőtök, hagyma, 10 dkg vaj, krémsajt, fehérbor, 4 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 43.7,
+          "fat": 2.5,
+          "protein": 0.9,
+          "net_carbs": 4.2
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "gombakremleves": {
+      "id": "gombakremleves",
+      "names": {
+        "hu": "Gombakrémleves",
+        "de": "Champignoncremesuppe",
+        "en": "Cream of mushroom soup"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 2,
+        "ingredients": [
+          {
+            "food_key": "mushroom",
+            "raw_g": 200,
+            "role": "core",
+            "note": "20 dkg gomba"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 70,
+            "role": "core",
+            "note": "1 fej hagyma (kicsi), estimate"
+          },
+          {
+            "food_key": "potato",
+            "raw_g": 100,
+            "role": "core",
+            "note": "1 kicsi burgonya (estimate)"
+          },
+          {
+            "food_key": "butter",
+            "raw_g": 15,
+            "role": "fat",
+            "note": "1 evőkanál vaj (estimate 15 g)"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 300,
+            "role": "liquid",
+            "note": "3 dl zöldségalaplé, counted as water (broth nutrition ignored)"
+          },
+          {
+            "food_key": "cream_30",
+            "raw_g": 100,
+            "role": "thickener",
+            "note": "1 dl tejszín"
+          },
+          {
+            "food_key": "soy_sauce",
+            "raw_g": 15,
+            "role": "seasoning",
+            "note": "1 evőkanál szójaszósz (estimate 15 g)"
+          }
+        ],
+        "raw_total_g": 800,
+        "cooking": {
+          "method": "mushrooms browned in butter, onion and potato simmered 20 min in stock, blended with most of the mushrooms and cream",
+          "mass_change_g": -40,
+          "note": "covered simmer; evaporation is an estimate; salt and pepper left out"
+        },
+        "finished_weight_g": 760,
+        "yield_factor": 0.95
+      },
+      "standard_serving_g": 450,
+      "density_g_per_ml": 1.01,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/gombakremleves",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 2 adag"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/gombakremleves-egyszeruen",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 1 kg gomba, hagyma, olaj, vaj, 2 dl tejszín, 8 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 77.4,
+          "fat": 5.9,
+          "protein": 1.8,
+          "net_carbs": 4.2
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "tejfolos_burgonyaleves": {
+      "id": "tejfolos_burgonyaleves",
+      "names": {
+        "hu": "Tejfölös burgonyaleves",
+        "de": "Kartoffelsuppe mit Sauerrahm",
+        "en": "Potato soup with sour cream"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "potato",
+            "raw_g": 600,
+            "role": "core",
+            "note": "60 dkg"
+          },
+          {
+            "food_key": "smoked_bacon",
+            "raw_g": 60,
+            "role": "fat",
+            "note": "6 dkg füstölt szalonna"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 100,
+            "role": "core",
+            "note": "1 fej"
+          },
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 10,
+            "role": "thickener",
+            "note": "1 evőkanál"
+          },
+          {
+            "food_key": "sour_cream",
+            "raw_g": 102,
+            "role": "thickener",
+            "note": "1 dl tejföl"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 1000,
+            "role": "liquid",
+            "note": "1 liter víz"
+          }
+        ],
+        "raw_total_g": 1872,
+        "cooking": {
+          "method": "bacon rendered, onion and potato sweated with caraway and paprika, simmered covered, thickened with sour cream",
+          "mass_change_g": -100,
+          "note": "the source gives no yield; 4 portions is an estimate. Evaporation is an estimate; caraway, paprika, pepper (pinches) left out"
+        },
+        "finished_weight_g": 1772,
+        "yield_factor": 0.947
+      },
+      "standard_serving_g": 450,
+      "density_g_per_ml": 1.027,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/tejfolos-burgonyaleves",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, yield not given"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/tejfolos-krumplileves",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 1 kg burgonya, 4 ek zsír + 4 ek liszt, 1 l alaplé, 2 dl tejföl, 4 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 53.4,
+          "fat": 2.0,
+          "protein": 1.5,
+          "net_carbs": 7.1
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "savanyu_tojasleves": {
+      "id": "savanyu_tojasleves",
+      "names": {
+        "hu": "Savanyú tojásleves (buggyantott tojással)",
+        "de": "Saure Eiersuppe mit pochierten Eiern",
+        "en": "Sour egg soup with poached eggs"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "onion",
+            "raw_g": 200,
+            "role": "core",
+            "note": "2 fej hagyma (nagyobb)"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 39,
+            "role": "fat",
+            "note": "3 evőkanál olaj"
+          },
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 20,
+            "role": "thickener",
+            "note": "2 evőkanál, rántás"
+          },
+          {
+            "food_key": "paprika_ground",
+            "raw_g": 7,
+            "role": "seasoning",
+            "note": "1 evőkanál pirospaprika"
+          },
+          {
+            "food_key": "lemon_juice",
+            "raw_g": 22.5,
+            "role": "seasoning",
+            "note": "fél citrom leve"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 1500,
+            "role": "liquid",
+            "note": "1,5 liter víz"
+          },
+          {
+            "food_key": "sour_cream",
+            "raw_g": 204,
+            "role": "thickener",
+            "note": "2 dl tejföl"
+          },
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 10,
+            "role": "thickener",
+            "note": "1 evőkanál, habaráshoz"
+          },
+          {
+            "food_key": "egg",
+            "raw_g": 200,
+            "role": "core",
+            "note": "4 db tojás, poached"
+          }
+        ],
+        "raw_total_g": 2202.5,
+        "cooking": {
+          "method": "onion roux with paprika, simmered 10-15 min with lemon, eggs poached separately, sour cream thickening",
+          "mass_change_g": -150,
+          "note": "the source gives no yield; 4 portions (4 eggs) is an estimate. Vinegar is only in the poaching water and is discarded; caraway, bay leaf, pepper, ételízesítő and lemon slices left out"
+        },
+        "finished_weight_g": 2052.5,
+        "yield_factor": 0.932
+      },
+      "standard_serving_g": 450,
+      "density_g_per_ml": 1.003,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/tojasleves",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 tojás, yield not given"
+        },
+        {
+          "url": "https://www.receptneked.hu/recept/tojasleves",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 3 ek olaj + 3 ek liszt, 1 l víz, 3 kk paprika, 4 tojás, ecet, 4 adag"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/savanyu-tojasleves",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: burgonyás, mustáros-ecetes, 4 tojás, ~1,5 l víz"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 59.0,
+          "fat": 4.6,
+          "protein": 1.9,
+          "net_carbs": 2.4
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "lebbencsleves": {
+      "id": "lebbencsleves",
+      "names": {
+        "hu": "Lebbencsleves",
+        "de": "Lebbencs-Suppe (Kartoffelsuppe mit gerösteten Nudelflecken)",
+        "en": "Lebbencs soup (potato soup with toasted pasta sheets)"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "egg_pasta_dry",
+            "raw_g": 80,
+            "role": "core",
+            "note": "8 dkg lebbencs, dry weight, toasted in the bacon fat"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 2000,
+            "role": "liquid",
+            "note": "2 liter víz"
+          },
+          {
+            "food_key": "potato",
+            "raw_g": 300,
+            "role": "core",
+            "note": "30 dkg"
+          },
+          {
+            "food_key": "smoked_bacon",
+            "raw_g": 100,
+            "role": "fat",
+            "note": "10 dkg füstölt szalonna"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 70,
+            "role": "core",
+            "note": "1 kis fej (estimate)"
+          },
+          {
+            "food_key": "paprika_ground",
+            "raw_g": 2.5,
+            "role": "seasoning",
+            "note": "1 teáskanál"
+          }
+        ],
+        "raw_total_g": 2552.5,
+        "cooking": {
+          "method": "bacon rendered, pasta toasted in the fat, onion and paprika, potatoes simmered ~30 min",
+          "mass_change_g": -150,
+          "note": "about +100 g water taken up by the pasta, about -250 g evaporation (estimates); salt and 2 tk ételízesítő left out"
+        },
+        "finished_weight_g": 2402.5,
+        "yield_factor": 0.941
+      },
+      "standard_serving_g": 450,
+      "density_g_per_ml": 1.009,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/lebbencsleves",
+          "retrieved": "2026-09-27",
+          "note": "batch recipe, 4 adag"
+        },
+        {
+          "url": "https://www.receptneked.hu/recept/lebbencsleves",
+          "retrieved": "2026-09-27",
+          "note": "cross-check: 15 dkg füstölt szalonna, 40 dkg burgonya, lebbencstészta, paradicsom, paprika, 4 adag"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 35.7,
+          "fat": 1.2,
+          "protein": 1.4,
+          "net_carbs": 4.7
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
     "schweinsbraten": {
       "id": "schweinsbraten",
       "names": {
@@ -2680,6 +4595,690 @@
       ]
     },
     {
+      "id": "hu_bajai_halaszle",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "bajai halászlé",
+        "de": "Fischsuppe nach Baja-Art",
+        "en": "Baja-style fish soup"
+      },
+      "aliases": {
+        "hu": [
+          "bajai halászlé",
+          "bajai halaszle",
+          "bajai hallé",
+          "halászlé gyufatésztával"
+        ],
+        "de": [
+          "fischsuppe nach baja-art",
+          "bajaer fischsuppe"
+        ],
+        "de-AT": [
+          "fischsuppe nach baja-art"
+        ],
+        "en": [
+          "baja fish soup",
+          "baja-style fish soup"
+        ]
+      },
+      "tags": [
+        "soup",
+        "traditional",
+        "fish"
+      ],
+      "served_in": "deep_plate",
+      "parts": [
+        {
+          "part": "bajai_halaszle",
+          "standard_serving_g": 450
+        }
+      ],
+      "review_note_hu": "A 2 kg pontyból ~60% ehető rész becslés; a tészta a részben van (20 dkg száraz gyufatészta / 4 adag)."
+    },
+    {
+      "id": "hu_tiszai_halaszle",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "tiszai halászlé",
+        "de": "Fischsuppe nach Theiß-Art",
+        "en": "Tisza-style fish soup"
+      },
+      "aliases": {
+        "hu": [
+          "tiszai halászlé",
+          "tiszai halaszle"
+        ],
+        "de": [
+          "fischsuppe nach theiß-art",
+          "theiß-fischsuppe"
+        ],
+        "de-AT": [
+          "fischsuppe nach theiß-art"
+        ],
+        "en": [
+          "tisza fish soup",
+          "tisza-style fish soup"
+        ]
+      },
+      "tags": [
+        "soup",
+        "traditional",
+        "fish"
+      ],
+      "served_in": "deep_plate",
+      "parts": [
+        {
+          "part": "tiszai_halaszle",
+          "standard_serving_g": 450
+        }
+      ],
+      "review_note_hu": "Az apróhalas alaplé passzírozva kerül a levesbe; a belőle átjutó fehérje/zsír nincs számolva (alulbecslés). Vegyes hal esetén is ponty rekordot használ."
+    },
+    {
+      "id": "hu_ujhazi_tyukhusleves",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "újházi tyúkhúsleves",
+        "de": "Újházi-Hühnersuppe",
+        "en": "Újházi hen soup"
+      },
+      "aliases": {
+        "hu": [
+          "újházi tyúkhúsleves",
+          "újházi",
+          "ujhazi tyukhusleves",
+          "tyúkhúsleves",
+          "újházy tyúkhúsleves"
+        ],
+        "de": [
+          "újházi-hühnersuppe",
+          "ungarische hühnersuppe"
+        ],
+        "de-AT": [
+          "újházi-hühnersuppe"
+        ],
+        "en": [
+          "újházi chicken soup",
+          "hungarian hen soup"
+        ]
+      },
+      "tags": [
+        "soup",
+        "traditional"
+      ],
+      "served_in": "deep_plate",
+      "parts": [
+        {
+          "part": "ujhazi_tyukhusleves",
+          "standard_serving_g": 450
+        }
+      ],
+      "review_note_hu": "Tészta (cérnametélt/csigatészta) nélkül; a 'tésztával' változat későbbi bővítés, mint a marhahúslevesnél. A tyúk ehető része (55%) becslés."
+    },
+    {
+      "id": "hu_bableves",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "bableves",
+        "de": "Ungarische Bohnensuppe",
+        "en": "Hungarian bean soup"
+      },
+      "aliases": {
+        "hu": [
+          "bableves",
+          "füstölt húsos bableves",
+          "tarjás bableves",
+          "bableves csipetkével"
+        ],
+        "de": [
+          "ungarische bohnensuppe",
+          "bohnensuppe mit kasseler"
+        ],
+        "de-AT": [
+          "ungarische bohnensuppe"
+        ],
+        "en": [
+          "hungarian bean soup",
+          "bean soup with smoked pork"
+        ]
+      },
+      "tags": [
+        "soup",
+        "traditional"
+      ],
+      "served_in": "deep_plate",
+      "parts": [
+        {
+          "part": "bableves",
+          "standard_serving_g": 450
+        }
+      ],
+      "review_note_hu": "A forrás '4 adag'-ot ír, a tömeg alapján inkább ~10 adag; a vízmennyiség (2,5 l) becslés. A Jókai-bableves külön étel."
+    },
+    {
+      "id": "hu_lencseleves",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "lencseleves",
+        "de": "Ungarische Linsensuppe",
+        "en": "Hungarian lentil soup"
+      },
+      "aliases": {
+        "hu": [
+          "lencseleves",
+          "lencse leves",
+          "savanyú lencseleves"
+        ],
+        "de": [
+          "ungarische linsensuppe",
+          "linsensuppe"
+        ],
+        "de-AT": [
+          "linsensuppe"
+        ],
+        "en": [
+          "hungarian lentil soup",
+          "lentil soup"
+        ]
+      },
+      "tags": [
+        "soup",
+        "traditional"
+      ],
+      "served_in": "deep_plate",
+      "parts": [
+        {
+          "part": "lencseleves",
+          "standard_serving_g": 450
+        }
+      ]
+    },
+    {
+      "id": "hu_sargaborso_leves",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "sárgaborsó-leves",
+        "de": "Gelbe Erbsensuppe",
+        "en": "Yellow split pea soup"
+      },
+      "aliases": {
+        "hu": [
+          "sárgaborsó-leves",
+          "sárgaborsóleves",
+          "sárgaborsó leves",
+          "sargaborso leves"
+        ],
+        "de": [
+          "gelbe erbsensuppe",
+          "erbsensuppe"
+        ],
+        "de-AT": [
+          "erbsensuppe"
+        ],
+        "en": [
+          "yellow split pea soup",
+          "split pea soup"
+        ]
+      },
+      "tags": [
+        "soup",
+        "traditional"
+      ],
+      "served_in": "deep_plate",
+      "parts": [
+        {
+          "part": "sargaborso_leves",
+          "standard_serving_g": 450
+        }
+      ]
+    },
+    {
+      "id": "hu_krumplileves",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "krumplileves",
+        "de": "Ungarische Kartoffelsuppe",
+        "en": "Hungarian potato soup"
+      },
+      "aliases": {
+        "hu": [
+          "krumplileves",
+          "burgonyaleves",
+          "kolbászos krumplileves"
+        ],
+        "de": [
+          "ungarische kartoffelsuppe",
+          "kartoffelsuppe mit wurst"
+        ],
+        "de-AT": [
+          "erdäpfelsuppe"
+        ],
+        "en": [
+          "hungarian potato soup",
+          "potato soup with sausage"
+        ]
+      },
+      "tags": [
+        "soup",
+        "traditional"
+      ],
+      "served_in": "deep_plate",
+      "parts": [
+        {
+          "part": "krumplileves",
+          "standard_serving_g": 450
+        }
+      ]
+    },
+    {
+      "id": "hu_frankfurti_leves",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "frankfurti leves",
+        "de": "Frankfurter Suppe",
+        "en": "Frankfurter soup"
+      },
+      "aliases": {
+        "hu": [
+          "frankfurti leves",
+          "frankfurti",
+          "virslis kelkáposztaleves"
+        ],
+        "de": [
+          "frankfurter suppe",
+          "wirsingsuppe mit würstchen"
+        ],
+        "de-AT": [
+          "frankfurter suppe",
+          "kohlsuppe mit frankfurtern"
+        ],
+        "en": [
+          "frankfurter soup",
+          "savoy cabbage sausage soup"
+        ]
+      },
+      "tags": [
+        "soup",
+        "traditional"
+      ],
+      "served_in": "deep_plate",
+      "parts": [
+        {
+          "part": "frankfurti_leves",
+          "standard_serving_g": 450
+        }
+      ]
+    },
+    {
+      "id": "hu_tarkonyos_raguleves",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "tárkonyos raguleves",
+        "de": "Estragon-Ragoutsuppe",
+        "en": "Tarragon ragout soup"
+      },
+      "aliases": {
+        "hu": [
+          "tárkonyos raguleves",
+          "raguleves",
+          "tárkonyos pulykaraguleves",
+          "tárkonyos csirkeraguleves"
+        ],
+        "de": [
+          "estragon-ragoutsuppe",
+          "ragoutsuppe mit estragon"
+        ],
+        "de-AT": [
+          "estragon-ragoutsuppe"
+        ],
+        "en": [
+          "tarragon ragout soup",
+          "tarragon chicken soup"
+        ]
+      },
+      "tags": [
+        "soup",
+        "traditional"
+      ],
+      "served_in": "deep_plate",
+      "parts": [
+        {
+          "part": "tarkonyos_raguleves",
+          "standard_serving_g": 450
+        }
+      ],
+      "review_note_hu": "Pulykamelles változat; csirkemellel alig tér el. A főzőtejszínes változatokhoz nincs 20%-os főzőtejszín rekord (MISSING cooking_cream_20), ezért tejföl + habtejszín receptet használ."
+    },
+    {
+      "id": "hu_gyumolcsleves",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "gyümölcsleves",
+        "de": "Ungarische Obstsuppe",
+        "en": "Hungarian fruit soup"
+      },
+      "aliases": {
+        "hu": [
+          "gyümölcsleves",
+          "hideg gyümölcsleves",
+          "vegyes gyümölcsleves"
+        ],
+        "de": [
+          "ungarische obstsuppe",
+          "kalte obstsuppe",
+          "obstkaltschale"
+        ],
+        "de-AT": [
+          "obstsuppe"
+        ],
+        "en": [
+          "hungarian fruit soup",
+          "cold fruit soup"
+        ]
+      },
+      "tags": [
+        "soup",
+        "traditional",
+        "sweet",
+        "cold"
+      ],
+      "served_in": "deep_plate",
+      "parts": [
+        {
+          "part": "gyumolcsleves",
+          "standard_serving_g": 300
+        }
+      ]
+    },
+    {
+      "id": "hu_meggyleves",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "meggyleves",
+        "de": "Ungarische Sauerkirschsuppe",
+        "en": "Hungarian sour cherry soup"
+      },
+      "aliases": {
+        "hu": [
+          "meggyleves",
+          "hideg meggyleves",
+          "tejszínes meggyleves"
+        ],
+        "de": [
+          "sauerkirschsuppe",
+          "kalte kirschsuppe",
+          "kirschkaltschale"
+        ],
+        "de-AT": [
+          "weichselsuppe"
+        ],
+        "en": [
+          "sour cherry soup",
+          "cold cherry soup"
+        ]
+      },
+      "tags": [
+        "soup",
+        "traditional",
+        "sweet",
+        "cold"
+      ],
+      "served_in": "deep_plate",
+      "parts": [
+        {
+          "part": "meggyleves",
+          "standard_serving_g": 300
+        }
+      ]
+    },
+    {
+      "id": "hu_sutotokkremleves",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "sütőtökkrémleves",
+        "de": "Kürbiscremesuppe",
+        "en": "Cream of pumpkin soup"
+      },
+      "aliases": {
+        "hu": [
+          "sütőtökkrémleves",
+          "sütőtök krémleves",
+          "tökkrémleves",
+          "sütőtökleves"
+        ],
+        "de": [
+          "kürbiscremesuppe",
+          "kürbissuppe"
+        ],
+        "de-AT": [
+          "kürbiscremesuppe"
+        ],
+        "en": [
+          "pumpkin cream soup",
+          "cream of pumpkin soup",
+          "pumpkin soup"
+        ]
+      },
+      "tags": [
+        "soup",
+        "traditional",
+        "vegetarian"
+      ],
+      "served_in": "deep_plate",
+      "parts": [
+        {
+          "part": "sutotokkremleves",
+          "standard_serving_g": 450
+        }
+      ],
+      "review_note_hu": "Az erőleveskocka miatt nem szigorúan vegetáriánus; a 'vegetarian' címke ellenőrizendő."
+    },
+    {
+      "id": "hu_gombakremleves",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "gombakrémleves",
+        "de": "Champignoncremesuppe",
+        "en": "Cream of mushroom soup"
+      },
+      "aliases": {
+        "hu": [
+          "gombakrémleves",
+          "gomba krémleves",
+          "gombaleves krémes"
+        ],
+        "de": [
+          "champignoncremesuppe",
+          "pilzcremesuppe"
+        ],
+        "de-AT": [
+          "schwammerlcremesuppe",
+          "champignoncremesuppe"
+        ],
+        "en": [
+          "cream of mushroom soup",
+          "mushroom cream soup"
+        ]
+      },
+      "tags": [
+        "soup",
+        "traditional",
+        "vegetarian"
+      ],
+      "served_in": "deep_plate",
+      "parts": [
+        {
+          "part": "gombakremleves",
+          "standard_serving_g": 450
+        }
+      ]
+    },
+    {
+      "id": "hu_tejfolos_burgonyaleves",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "tejfölös burgonyaleves",
+        "de": "Kartoffelsuppe mit Sauerrahm",
+        "en": "Potato soup with sour cream"
+      },
+      "aliases": {
+        "hu": [
+          "tejfölös burgonyaleves",
+          "tejfölös krumplileves",
+          "habart krumplileves"
+        ],
+        "de": [
+          "kartoffelsuppe mit sauerrahm",
+          "saure kartoffelsuppe"
+        ],
+        "de-AT": [
+          "erdäpfelsuppe mit sauerrahm"
+        ],
+        "en": [
+          "potato soup with sour cream",
+          "creamy potato soup"
+        ]
+      },
+      "tags": [
+        "soup",
+        "traditional"
+      ],
+      "served_in": "deep_plate",
+      "parts": [
+        {
+          "part": "tejfolos_burgonyaleves",
+          "standard_serving_g": 450
+        }
+      ],
+      "review_note_hu": "A 'füstölt szalonna' a meglévő smoked_bacon kulcsra (BLS Frühstücksspeck, 26% zsír) mutat; a magyar kolozsvári/császár szalonna közel ilyen, a hízott szalonna sokkal zsírosabb."
+    },
+    {
+      "id": "hu_savanyu_tojasleves",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "savanyú tojásleves",
+        "de": "Saure Eiersuppe",
+        "en": "Sour egg soup"
+      },
+      "aliases": {
+        "hu": [
+          "savanyú tojásleves",
+          "tojásleves",
+          "buggyantott tojásleves",
+          "habart tojásleves"
+        ],
+        "de": [
+          "saure eiersuppe",
+          "eiersuppe"
+        ],
+        "de-AT": [
+          "saure eiersuppe"
+        ],
+        "en": [
+          "sour egg soup",
+          "hungarian egg soup"
+        ]
+      },
+      "tags": [
+        "soup",
+        "traditional"
+      ],
+      "served_in": "deep_plate",
+      "parts": [
+        {
+          "part": "savanyu_tojasleves",
+          "standard_serving_g": 450
+        }
+      ],
+      "review_note_hu": "A buggyantott tojásos (citromos, tejfölös) változat; a burgonyás, habart-tojásos változatok ettől eltérnek."
+    },
+    {
+      "id": "hu_lebbencsleves",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "lebbencsleves",
+        "de": "Lebbencs-Suppe",
+        "en": "Lebbencs soup"
+      },
+      "aliases": {
+        "hu": [
+          "lebbencsleves",
+          "lebbencs leves",
+          "pirított tésztás krumplileves"
+        ],
+        "de": [
+          "lebbencs-suppe",
+          "kartoffelsuppe mit gerösteten nudeln"
+        ],
+        "de-AT": [
+          "lebbencs-suppe"
+        ],
+        "en": [
+          "lebbencs soup",
+          "potato soup with toasted pasta"
+        ]
+      },
+      "tags": [
+        "soup",
+        "traditional"
+      ],
+      "served_in": "deep_plate",
+      "parts": [
+        {
+          "part": "lebbencsleves",
+          "standard_serving_g": 450
+        }
+      ]
+    },
+    {
       "id": "at_schweinsbraten",
       "countries": [
         "AT",
@@ -3082,20 +5681,6 @@
   "inventory": {
     "HU": {
       "traditional": [
-        "bajai halászlé",
-        "tiszai halászlé",
-        "újházi tyúkhúsleves",
-        "bableves",
-        "lencseleves",
-        "sárgaborsó-leves",
-        "krumplileves",
-        "frankfurti leves",
-        "tárkonyos raguleves",
-        "gyümölcsleves",
-        "meggyleves",
-        "sütőtökkrémleves",
-        "gombakrémleves",
-        "tejfölös burgonyaleves",
         "marhapörkölt",
         "csirkepörkölt",
         "birkapörkölt",
@@ -3133,7 +5718,6 @@
         "somlói galuska",
         "Gundel-palacsinta",
         "juhászos tokány",
-        "savanyú tojásleves",
         "kapros túrós lepény",
         "mákos guba",
         "aranygaluska",
@@ -3141,7 +5725,6 @@
         "dobostorta",
         "rigójancsi",
         "zserbó",
-        "lebbencsleves",
         "gombapaprikás",
         "rakott palacsinta"
       ],

@@ -6,20 +6,7 @@ a hivatalos forrásból (BLS xlsx, `BlsAdapter`) külön migrációban kell impo
 | food_key | Név | Kell ehhez | Megjegyzés |
 |---|---|---|---|
 | `tarragon_dried` | tárkony (szárított) / Estragon getrocknet / dried tarragon | hu_palocleves (1 ek per 5 adag, seasoning) | BLS 4.0 has no Estragon record and the production catalog has none; left out of the batch (about 2 g). Candidate: USDA FDC 'Spices, tarragon, dried' via a reviewed import. |
-| `inventory-only` | bajai halászlé | traditional | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | tiszai halászlé | traditional | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | újházi tyúkhúsleves | traditional | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | bableves | traditional | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | lencseleves | traditional | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | sárgaborsó-leves | traditional | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | krumplileves | traditional | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | frankfurti leves | traditional | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | tárkonyos raguleves | traditional | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | gyümölcsleves | traditional | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | meggyleves | traditional | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | sütőtökkrémleves | traditional | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | gombakrémleves | traditional | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | tejfölös burgonyaleves | traditional | inventory identity; recipe/ingredient mapping still required |
+| `cooking_cream_20` | főzőtejszín (20%) / Kochsahne 20 % / cooking cream 20% | hu_tarkonyos_raguleves (alternative recipes: 1,5-2 dl), hu_meggyleves (alternative recipe: 2,5 dl) | BLS has Kaffeesahne 10 % and Schlagsahne 30/36 % only; no 20 % cooking cream. Built dishes use recipes with tejföl / habtejszín instead. Candidate: USDA 'Cream, fluid, light (coffee cream or table cream)' (~19 % fat) via a reviewed import. |
 | `inventory-only` | marhapörkölt | traditional | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | csirkepörkölt | traditional | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | birkapörkölt | traditional | inventory identity; recipe/ingredient mapping still required |
@@ -57,7 +44,6 @@ a hivatalos forrásból (BLS xlsx, `BlsAdapter`) külön migrációban kell impo
 | `inventory-only` | somlói galuska | traditional | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | Gundel-palacsinta | traditional | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | juhászos tokány | traditional | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | savanyú tojásleves | traditional | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | kapros túrós lepény | traditional | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | mákos guba | traditional | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | aranygaluska | traditional | inventory identity; recipe/ingredient mapping still required |
@@ -65,7 +51,6 @@ a hivatalos forrásból (BLS xlsx, `BlsAdapter`) külön migrációban kell impo
 | `inventory-only` | dobostorta | traditional | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | rigójancsi | traditional | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | zserbó | traditional | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | lebbencsleves | traditional | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | gombapaprikás | traditional | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | rakott palacsinta | traditional | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | tükörtojás | everyday | inventory identity; recipe/ingredient mapping still required |

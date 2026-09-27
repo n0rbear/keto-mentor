@@ -19,6 +19,22 @@
 | Székelykáposzta | 3457 | -250 | 3207 | 0.928 | 1.026 | 114.9 | 8.5 | 6.3 | 1.9 | – |
 | Palócleves | 3075.7 | -150 | 2925.7 | 0.951 | 1.011 | 73.3 | 5.4 | 2.7 | 3.1 | – |
 | Jókai-bableves | 3654 | +150 | 3804 | 1.041 | 1.036 | 88.3 | 2.6 | 6.4 | 8.1 | – |
+| Bajai halászlé (gyufatésztával) | 4655 | -460 | 4195 | 0.901 | 1.014 | 54.7 | 1.7 | 6.0 | 3.6 | – |
+| Tiszai halászlé | 2927 | -600 | 2327 | 0.795 | 1.012 | 37.2 | 1.5 | 5.2 | 0.6 | – |
+| Újházi tyúkhúsleves (hússal, zöldséggel) | 5615.0 | -700 | 4915.0 | 0.875 | 1.012 | 58.8 | 3.5 | 4.0 | 2.2 | – |
+| Bableves füstölt tarjával | 5408.0 | +50 | 5458.0 | 1.009 | 1.041 | 100.7 | 3.6 | 7.1 | 8.4 | – |
+| Lencseleves | 2104 | -30 | 2074 | 0.986 | 1.029 | 86.5 | 4.4 | 2.8 | 7.8 | – |
+| Sárgaborsó-leves | 1691 | -140 | 1551 | 0.917 | 1.037 | 70.8 | 1.9 | 3.9 | 7.6 | – |
+| Krumplileves (kolbásszal) | 2998.5 | -150 | 2848.5 | 0.95 | 1.024 | 68.6 | 3.5 | 2.5 | 6.4 | – |
+| Frankfurti leves | 3673.5 | -300 | 3373.5 | 0.918 | 1.01 | 50.4 | 3.4 | 1.6 | 2.9 | – |
+| Tárkonyos pulykaraguleves | 2370.4 | -90 | 2280.4 | 0.962 | 1.008 | 59.5 | 3.2 | 3.6 | 3.8 | – |
+| Gyümölcsleves (vegyes, tejfölös) | 2042 | -60 | 1982 | 0.971 | 1.019 | 65.3 | 2.0 | 0.6 | 11.0 | – |
+| Meggyleves (hideg) | 1697 | -50 | 1647 | 0.971 | 1.021 | 51.5 | 2.3 | 0.7 | 6.5 | – |
+| Sütőtökkrémleves | 3490.0 | -150 | 3340.0 | 0.957 | 1.001 | 43.7 | 2.5 | 0.9 | 4.2 | – |
+| Gombakrémleves | 800 | -40 | 760 | 0.95 | 1.01 | 77.4 | 5.9 | 1.8 | 4.2 | – |
+| Tejfölös burgonyaleves | 1872 | -100 | 1772 | 0.947 | 1.027 | 53.4 | 2.0 | 1.5 | 7.1 | – |
+| Savanyú tojásleves (buggyantott tojással) | 2202.5 | -150 | 2052.5 | 0.932 | 1.003 | 59.0 | 4.6 | 1.9 | 2.4 | – |
+| Lebbencsleves | 2552.5 | -150 | 2402.5 | 0.941 | 1.009 | 35.7 | 1.2 | 1.4 | 4.7 | – |
 | Sült sertéslapocka (Schweinsbraten) | 1856 | -550 | 1306 | 0.704 | 1.055 | 252.7 | 19.6 | 16.7 | 0.8 | – |
 | Pirított burgonya szalonnával és hagymával | 680 | -100 | 580 | 0.853 | 0.65 | 138.9 | 5.9 | 4.4 | 16.3 | – |
 | Rántotta | 158 | -8 | 150 | 0.949 | 0.55 | 173.2 | 13.3 | 13.2 | 0.3 | – |
@@ -42,6 +58,22 @@ Számolt érték a katalógusrekordokból vs. egy nyilvános referencia (pl. BLS
 | Székelykáposzta | nincs még | – | – | – | – | – |
 | Palócleves | nincs még | – | – | – | – | – |
 | Jókai-bableves | nincs még | – | – | – | – | – |
+| bajai halászlé | nincs még | – | – | – | – | – |
+| tiszai halászlé | nincs még | – | – | – | – | – |
+| újházi tyúkhúsleves | nincs még | – | – | – | – | – |
+| bableves | nincs még | – | – | – | – | – |
+| lencseleves | bls:X462513 Linsensuppe mit Gemüse | 86 / 82 | 4.4 / 1.9 | 2.8 / 4.53 | 7.8 / 10.0 | +5% rendben |
+| sárgaborsó-leves | bls:X4A8020 Erbsensuppe mit Gemüsebrühe und Suppengrün | 71 / 56 | 1.9 / 1.4 | 3.9 / 3.25 | 7.6 / 6.0 | +26% ELLENŐRIZENDŐ |
+| krumplileves | bls:X450033 Kartoffelsuppe mit Gemüsebrühe und Brühwurst | 69 / 93 | 3.5 / 5.4 | 2.5 / 2.95 | 6.4 / 8.0 | -26% ELLENŐRIZENDŐ |
+| frankfurti leves | nincs még | – | – | – | – | – |
+| tárkonyos raguleves | nincs még | – | – | – | – | – |
+| gyümölcsleves | nincs még | – | – | – | – | – |
+| meggyleves | bls:X492143 Kirschkaltschale/Kirschsuppe, gebunden mit Stärke | 52 / 66 | 2.3 / 0.222 | 0.7 / 0.671 | 6.5 / 15.1 | -22% ELLENŐRIZENDŐ |
+| sütőtökkrémleves | bls:X445863 Kürbiscremesuppe | 44 / 69 | 2.5 / 5.2 | 0.9 / 0.95 | 4.2 / 4.0 | -37% ELLENŐRIZENDŐ |
+| gombakrémleves | bls:X448153 Champignoncremesuppe aus frischen Champignons und Fleischbrühe | 77 / 78 | 5.9 / 7.0 | 1.8 / 1.68 | 4.2 / 2.0 | -1% rendben |
+| tejfölös burgonyaleves | nincs még | – | – | – | – | – |
+| savanyú tojásleves | nincs még | – | – | – | – | – |
+| lebbencsleves | nincs még | – | – | – | – | – |
 | Sült sertéslapocka (Schweinsbraten) | bls:Y352212 Schweinebraten ohne Sauce | 253 / 264 | 19.6 / 17.24 | 16.7 / 27.24 | 0.8 / 0.0 | -4% rendben |
 | Pirított burgonya szalonnával és hagymával | nincs még | – | – | – | – | – |
 | Rántotta | bls:Y720163 Rührei gebraten in Butter | 173 / 172 | 13.3 / 12.99 | 13.2 / 13.31 | 0.3 / 0.42 | +1% rendben |
@@ -65,6 +97,22 @@ Mély tányér: kapacitás × töltöttség × sűrűség. Lapos tányér: 0,8 �
 | Székelykáposzta | HU | traditional | 450 | 346 | 500 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | Palócleves | HU | traditional | 450 | 341 | 493 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | Jókai-bableves | HU | traditional | 450 | 350 | 505 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| bajai halászlé | HU | traditional | 450 | 342 | 494 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| tiszai halászlé | HU | traditional | 450 | 342 | 493 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| újházi tyúkhúsleves | HU | traditional | 450 | 342 | 493 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| bableves | HU | traditional | 450 | 351 | 507 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| lencseleves | HU | traditional | 450 | 347 | 502 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| sárgaborsó-leves | HU | traditional | 450 | 350 | 506 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| krumplileves | HU | traditional | 450 | 346 | 499 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| frankfurti leves | HU | traditional | 450 | 341 | 492 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| tárkonyos raguleves | HU | traditional | 450 | 340 | 491 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| gyümölcsleves | HU | traditional | 300 | 344 | 497 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| meggyleves | HU | traditional | 300 | 345 | 498 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| sütőtökkrémleves | HU | traditional | 450 | 338 | 488 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| gombakrémleves | HU | traditional | 450 | 341 | 492 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| tejfölös burgonyaleves | HU | traditional | 450 | 347 | 501 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| savanyú tojásleves | HU | traditional | 450 | 339 | 489 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| lebbencsleves | HU | traditional | 450 | 341 | 492 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | Sült sertéslapocka (Schweinsbraten) | AT, DE | traditional | 250 | 356 | 514 | 215 | 252 | 293 |
 | Pirított burgonya szalonnával és hagymával | DE | traditional | 250 | – (lapos tányéros étel) | – (lapos tányéros étel) | 212 | 248 | 288 |
 | Rántotta | HU, AT, DE | everyday | 150 | – (lapos tányéros étel) | – (lapos tányéros étel) | 127 | 150 | 173 |
