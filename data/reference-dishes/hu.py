@@ -180,3 +180,18 @@ INVENTORY = {
     "street_food": "fokhagymás lángos|sajtos-tejfölös lángos|töltött lángos|kürtőskalács|sült kolbász kenyérrel|hurka mustárral|véres hurka|májas hurka|budapesti hot dog|hot dog|gyros pita|gyros tál|döner|döner tál|falafel wrap|hamburger|sajtos hamburger|pulled pork szendvics|szelet pizza|tócsni|lapcsánka|hekk|lángos hamburgerrel|lángos csirkével|lángos sonkával".split("|")
 }
 MISSING_FOODS = []
+
+PARTS.update({
+    "palocleves": dict(names={"hu": "Palócleves", "de": "Palóc-Suppe", "en": "Palóc soup"}, matrix="liquid", servings_source=5, standard_serving_g=450,
+        ingredients=[ing("pork_shoulder", 300), ing("onion", 120), ing("sunflower_oil", 25, "fat"), ing("paprika_ground", 8, "seasoning"), ing("wax_pepper", 100), ing("tomato", 120), ing("green_bean_missing", 300), ing("potato", 200), ing("sour_cream", 300, "thickener"), ing("wheat_flour", 20, "thickener"), ing("tarragon_missing", 3, "seasoning"), ing("lemon_missing", 15, "seasoning"), ing("water", 1700, "liquid")],
+        cooking=dict(method="covered simmer until tender", mass_change_g=-180, note="water yield is derived; unresolved food keys intentionally block seed"),
+        sources=[src("https://www.mindmegette.hu/recept/tarkonyos-palocleves", "2026-09-27"), src("https://www.mindmegette.hu/egytaletel/palocleves-mikszath-kedvence", "2026-09-27")]),
+    "jokai_bableves": dict(names={"hu": "Jókai-bableves", "de": "Jókai-Bohnensuppe", "en": "Jókai bean soup"}, matrix="liquid", servings_source=6, standard_serving_g=450,
+        ingredients=[ing("smoked_bacon", 120), ing("smoked_sausage", 250), ing("pork_shoulder", 400), ing("onion", 150), ing("white_bean_missing", 500), ing("carrot", 250), ing("parsley_root", 120), ing("celeriac", 100), ing("sour_cream", 250, "thickener"), ing("wheat_flour", 20, "thickener"), ing("paprika_ground", 8, "seasoning"), ing("water", 2600, "liquid")],
+        cooking=dict(method="soak beans and simmer until tender", mass_change_g=-300, note="white bean catalog identity unresolved; seed will skip this dish"),
+        sources=[src("https://www.mindmegette.hu/alapetelek/leves-gulyas-csorbaleves-husgombocleves-tarkonyos-csirke-krumplileves-bableves-eroleves", "2026-09-27"), src("https://www.mindmegette.hu/alapetelek/11-kiados-magyaros-leves-ami-foetelnek-is-beillik/", "2026-09-27")]),
+})
+DISHES += [
+    dict(id="hu_palocleves", countries=["HU"], category="traditional", part_refs=[("palocleves", 450)], served_in="deep_plate", tags=["soup", "traditional"], aliases={"hu": ["palócleves", "palóc leves"], "de": ["palóc suppe"], "de-AT": [], "en": ["paloc soup"]}),
+    dict(id="hu_jokai_bableves", countries=["HU"], category="traditional", part_refs=[("jokai_bableves", 450)], served_in="deep_plate", tags=["soup", "traditional"], aliases={"hu": ["Jókai-bableves", "jokai bableves"], "de": ["Jókai-Bohnensuppe"], "de-AT": [], "en": ["Jokai bean soup"]}),
+]
