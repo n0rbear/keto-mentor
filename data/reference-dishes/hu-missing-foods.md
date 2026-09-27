@@ -6,6 +6,9 @@ a hivatalos forrásból (BLS xlsx, `BlsAdapter`) külön migrációban kell impo
 | food_key | Név | Kell ehhez | Megjegyzés |
 |---|---|---|---|
 | `tarragon_dried` | tárkony (szárított) / Estragon getrocknet / dried tarragon | hu_palocleves (1 ek per 5 adag, seasoning) | BLS 4.0 has no Estragon record and the production catalog has none; left out of the batch (about 2 g). Candidate: USDA FDC 'Spices, tarragon, dried' via a reviewed import. |
+| `dry_red_wine` | száraz vörösbor / Rotwein trocken / dry red wine | hu_lasagne (1,25 dl per 4 adag) | cat.py 'Rotwein' finds only Rotwein süß / lieblich and punches; no dry red wine record. Left out (most alcohol evaporates while simmering). Candidate: BLS 4.0 Rotwein (if present under another name) or USDA 'Alcoholic beverage, wine, table, red'. |
+| `pickled_cucumber` | ecetes uborka (savanyú uborka) / Gewürzgurke / Essiggurke / pickled gherkin | hu_franciasalata (10 dkg per 4 adag) | cat.py 'Gewürzgurke|Essiggurke|Gurke.*gesäuert' finds only Honiggurke and Senfgurke gesäuert (sweeter, different foods). Left out. Candidate: USDA 'Pickles, cucumber, dill or kosher dill' (usda_fdc 324653 is already listed in the production catalog). |
+| `pork_cracklings` | tepertő (darált) / Grieben / Grammeln / pork cracklings | hu_tepertos_pogacsa (25 dkg darált tepertő per 50 dkg liszt, ~1/4 of the dough) | BLS 4.0 has no Grieben/Grammeln record (searched Griebe|Grammel|Speck) and the production catalog has none. It is the defining ingredient, so tepertős pogácsa was NOT built (stays in the inventory). Candidate: USDA FDC 'Pork skins/cracklings' via a reviewed import, or a Hungarian label. |
 | `pork_trotter` | sertésköröm / Schweinefuß / Spitzbein / pork trotter | hu_koromporkolt (core, ~1-2 kg per 4-6 adag) | BLS 4.0 has no Schweinefuß/Spitzbein/Pfötchen record (searched Fuß, Pfote, Spitzbein, Schwarte); körömpörkölt NOT built. Candidate: USDA FDC 'Pork, fresh, variety meats and by-products, feet, raw' via a reviewed import. |
 | `dry_red_wine` | száraz vörösbor / Rotwein trocken / dry red wine | hu_marhaporkolt (3 dl per 12 adag), hu_vadporkolt (3 dl per 8 adag) | BLS has only Rotwein süß/lieblich (P2A1000/P2A2000); no dry red wine. Left out; most alcohol evaporates, small kcal underestimate. Candidate: USDA 'Alcoholic beverage, wine, table, red'. |
 | `dry_white_wine` | száraz fehérbor / Weißwein trocken / dry white wine | hu_bakonyi_sertesszelet (0,5 dl per 4 adag), hu_vadas_marha (1,5 dl per 4 adag), hu_tokany (1 dl per 5 adag) | BLS has only Weißwein süß/lieblich/Beerenauslese; no dry white wine. Left out. Candidate: USDA 'Alcoholic beverage, wine, table, white'. |
@@ -17,66 +20,7 @@ a hivatalos forrásból (BLS xlsx, `BlsAdapter`) külön migrációban kell impo
 | `cooking_cream_20` | főzőtejszín (20%) / Kochsahne 20 % / cooking cream 20% | hu_tarkonyos_raguleves (alternative recipes: 1,5-2 dl), hu_meggyleves (alternative recipe: 2,5 dl) | BLS has Kaffeesahne 10 % and Schlagsahne 30/36 % only; no 20 % cooking cream. Built dishes use recipes with tejföl / habtejszín instead. Candidate: USDA 'Cream, fluid, light (coffee cream or table cream)' (~19 % fat) via a reviewed import. |
 | `inventory-only` | körömpörkölt | traditional | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | juhászos tokány | traditional | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | tükörtojás | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | főtt tojás | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | tojásos nokedli | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | bundás kenyér | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | melegszendvics | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | sonkás szendvics | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | sajtos szendvics | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | felvágottas szendvics | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | zsíros kenyér | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | körözöttes kenyér | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | tejbegríz | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | zabkása | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | müzli joghurttal | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | joghurt gyümölccsel | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | túrós reggeli | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | virsli mustárral | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | debreceni mustárral | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | sült kolbász | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | párizsis zsemle | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | sonkás kifli | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | sajtos pogácsa | everyday | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | tepertős pogácsa | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | túrós táska | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | kakaós csiga | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | lekváros bukta | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | fánk | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | palacsinta | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | túrós palacsinta | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | lekváros palacsinta | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | tejfölös tészta | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | pesto pasta | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | spaghetti bolognese | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | carbonara | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | lasagne | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | pizza margherita | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | sonkás pizza | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | görög saláta | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | cézársaláta | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | uborkasaláta | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | paradicsomsaláta | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | káposztasaláta | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | franciasaláta | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | majonézes kukoricasaláta | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | rizs csirkemellel | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | gombás rizottó | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | zöldséges kuszkusz | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | sült csirkecomb | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | sült csirkemell | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | rakott tészta | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | zöldborsófőzelék | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | tökfőzelék | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | krumplifőzelék | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | lencsefőzelék | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | spenótfőzelék | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | finomfőzelék | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | paradicsomos káposzta | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | sárgaborsó-főzelék | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | kelkáposzta-főzelék | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | rántott csirkemell | everyday | inventory identity; recipe/ingredient mapping still required |
-| `inventory-only` | chili con carne | everyday | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | fokhagymás lángos | street_food | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | sajtos-tejfölös lángos | street_food | inventory identity; recipe/ingredient mapping still required |
 | `inventory-only` | töltött lángos | street_food | inventory identity; recipe/ingredient mapping still required |

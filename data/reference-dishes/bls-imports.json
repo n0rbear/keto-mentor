@@ -32,5 +32,19 @@
   {"sourceId": "R160000", "names": {"hu": "sűrített paradicsom (paradicsompüré)", "en": "tomato paste"}},
   {"sourceId": "R161200", "names": {"hu": "paradicsomlé / passata", "en": "tomato passata"}},
   {"sourceId": "M505600", "names": {"hu": "trappista sajt", "en": "Trappist cheese"}},
-  {"sourceId": "G482100", "names": {"hu": "újhagyma", "en": "spring onion"}}
+  {"sourceId": "G482100", "names": {"hu": "újhagyma", "en": "spring onion"}},
+  {"sourceId": "B251000", "names": {"hu": "fehér kenyér (búza-rozs keverék)", "en": "white bread (wheat-rye mix)"}},
+  {"sourceId": "W254000", "names": {"hu": "felvágott (olasz/bécsi típusú)", "en": "cold cuts (Brühwurst with meat pieces)"}},
+  {"sourceId": "M771600", "names": {"hu": "lapkasajt (ömlesztett)", "en": "processed cheese slices"}},
+  {"sourceId": "C538000", "names": {"hu": "müzli (gyümölcsös)", "en": "muesli with dried fruit, sweetened"}},
+  {"sourceId": "C514400", "names": {"hu": "granola (ropogós müzli)", "en": "granola (crunchy muesli)"}},
+  {"sourceId": "S161000", "names": {"hu": "szilvalekvár", "en": "plum butter (lekvár)"}},
+  {"sourceId": "C119200", "names": {"hu": "kuszkusz (száraz)", "en": "couscous, dry"}},
+  {"sourceId": "H520800", "names": {"hu": "fekete olívabogyó", "en": "black olives"}},
+  {"sourceId": "G570902", "names": {"hu": "csemegekukorica (konzerv)", "en": "sweet corn, canned, drained"}},
+  {"sourceId": "W423000", "names": {"hu": "füstölt főtt sonka", "en": "smoked cooked ham"}},
+  {"sourceId": "G560600", "names": {"hu": "paradicsomlé", "en": "tomato juice"}},
+  {"sourceId": "H320100", "names": {"hu": "fenyőmag", "en": "pine nuts"}},
+  {"sourceId": "H742902", "names": {"hu": "vörösbab (konzerv)", "en": "kidney beans, canned, drained"}},
+  {"sourceId": "P161000", "names": {"hu": "világos sör", "en": "lager beer"}}
 ]
