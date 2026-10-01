@@ -2,6 +2,7 @@ import {
   validateExternalCandidate, isRelevantExternalCandidate, collapseEquivalentCandidates, preferReferenceSourceSurvivors, findDuplicate, persistCandidate,
   decideSurvivorAcceptance, type ExternalFoodCandidate, type StructuredFoodLookupAdapter, type ResolutionPrisma
 } from "./external-food.js";
+import { withoutDryFormsForDrink } from "./prepared-drink-guard.js";
 import { learnSearchAlias, resolveFoodConcept, type ResolveFromSearchTermDeps } from "./dynamic-food-resolution.js";
 import { hasIdentityCoverage, hasSemanticCoverage } from "./food-search.js";
 import { normalizeSearch } from "./normalize.js";
@@ -174,8 +175,8 @@ export async function resolveManyAuthoritativeFoods(
       outcomes.set(p.id, { status: "unresolved", reason: "invalid_external_data" });
       return { pending: p, candidates: [] };
     }
-    const relevant = structurallyValid
-      .filter((c) => isRelevantExternalCandidate(p.canonicalIdentity, c.normalizedName))
+    const relevant = withoutDryFormsForDrink([p.canonicalIdentity, p.rawIngredient], structurallyValid
+      .filter((c) => isRelevantExternalCandidate(p.canonicalIdentity, c.normalizedName)))
       .sort((a, b) => b.confidence - a.confidence);
     if (!relevant.length) {
       outcomes.set(p.id, { status: "unresolved", reason: "not_found" });

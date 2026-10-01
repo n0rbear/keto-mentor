@@ -25,7 +25,8 @@ describe("quantity estimation boundary", () => {
     const estimate = vi.fn();
     const result = await resolveQuantity(parsed, { ...food, servings: [{ id: "s", key: "piece", unit: "piece", labels: {}, grams: 28, isEstimated: method === "estimated", confidence: 1, provenance: { method } }] }, { id: "spy", estimate });
     expect(result.grams).toBe(56);
-    expect(result.requiresConfirmation).toBe(method === "estimated");
+    expect(result.requiresConfirmation).toBe(false);
+    expect(result.estimated).toBe(method === "estimated");
     expect(estimate).not.toHaveBeenCalled();
   });
   it("prioritizes authoritative over higher-confidence curated serving", async () => {

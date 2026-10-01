@@ -80,6 +80,17 @@ describe("authoritative food resolution", () => {
     expect(lookup).not.toHaveBeenCalled();
   });
 
+  // Live 2026-09-27: "presszó kávé" was offered the Jacobs "Mokka" powder.
+  it("never offers the dry form of a drink the user means (coffee / tea)", async () => {
+    const powder = offCandidate({ sourceId: "8714599106280", originalName: "Mokka", name: "Mokka", names: { en: "Mokka" }, normalizedName: "mokka", kcalPer100g: 385, carbsPer100g: 68 });
+    const drink = candidate({ sourceId: "171891", originalName: "Mokka (coffee drink)", name: "Mokka (coffee drink)", normalizedName: "mokka coffee drink", kcalPer100g: 2, carbsPer100g: 0.3 });
+    const coffee = await resolveAuthoritativeFood(fakePrisma().prisma, "mokka", [{ source: "open_food_facts", sourceName: "OFF", lookup: async () => [powder, drink] } as any]);
+    expect(JSON.stringify(coffee)).not.toContain("8714599106280");
+    const teaPowder = offCandidate({ sourceId: "4000000000001", originalName: "Tea instant powder", name: "Tea instant powder", names: { en: "Tea instant powder" }, normalizedName: "tea instant powder", kcalPer100g: 380, carbsPer100g: 95 });
+    const tea = await resolveAuthoritativeFood(fakePrisma().prisma, "tea", [{ source: "open_food_facts", sourceName: "OFF", lookup: async () => [teaPowder] } as any]);
+    expect(tea).toMatchObject({ status: "unresolved", reason: "not_found" });
+  });
+
   it("returns an existing source mapping instead of overwriting it", async () => {
     const existing = { id: "existing", source: "usda_fdc", sourceId: "123", servings: [] };
     const { prisma, getCreated } = fakePrisma({ sourceDuplicate: existing });

@@ -1,6 +1,7 @@
 import { type PrismaClient } from "@prisma/client";
 import { normalizeSearch } from "./normalize.js";
 import { foodCandidateQuery, fuzzyCandidateQuery } from "./food-search-candidates.js";
+import { withoutDryFormsForDrink } from "./prepared-drink-guard.js";
 
 // Preparation-aware expansion. The base food "tojás"/"egg" must NOT be silently
 // bound to the fried-egg Food. Prepared forms expand to the SAME base food so
@@ -457,6 +458,7 @@ export async function searchFoods(prisma: CatalogPrisma, rawQuery: string, limit
   const rankingQuery = normalizeSearch(formEvidence?.rawIngredient ?? rawQuery);
   const aliasesByFood = new Map<string, AliasEntry[]>();
   const fuzzyIds = new Set<string>();
+  const drinkIdentities = [rawQuery, formEvidence?.rawIngredient];
 
   if (prisma.$queryRaw) {
     const candidates = await prisma.$queryRaw<any[]>(foodCandidateQuery(variants, rankingQuery, { forms: SEARCH_FORMS, compound: COMPOUND_FOOD }));
@@ -478,7 +480,8 @@ export async function searchFoods(prisma: CatalogPrisma, rawQuery: string, limit
       orderBy: { id: "asc" }
     });
     const byId = new Map(full.map(food => [food.id, food]));
-    return winners.filter(food => byId.has(food.id)).map(food => ({ ...byId.get(food.id)!, match: food.match }));
+    // A drink is never offered its powder/beans (see prepared-drink-guard.ts).
+    return withoutDryFormsForDrink(drinkIdentities, winners.filter(food => byId.has(food.id)).map(food => ({ ...byId.get(food.id)!, match: food.match })));
   }
 
   // Compatibility for the existing non-SQL projected catalog and unit-test
@@ -502,5 +505,5 @@ export async function searchFoods(prisma: CatalogPrisma, rawQuery: string, limit
   }
   const missingIds = [...new Set(aliases.map(alias => alias.foodId))].filter(id => !candidates.some(food => food.id === id));
   if (missingIds.length) candidates.push(...await prisma.food.findMany({ where: { id: { in: missingIds }, createdById: null }, orderBy: { id: "asc" }, take: 96 }));
-  return rankFoodCandidates(candidates, variants, aliasesByFood, fuzzyIds, rankingQuery).slice(0, take);
+  return withoutDryFormsForDrink(drinkIdentities, rankFoodCandidates(candidates, variants, aliasesByFood, fuzzyIds, rankingQuery).slice(0, take));
 }

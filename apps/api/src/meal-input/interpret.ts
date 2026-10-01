@@ -347,7 +347,10 @@ export function resolveQuantityLocally(parsed: ParsedNaturalFoodQuery, food: Res
     return {
       status: "resolved", grams: parsed.quantity * gramsPerUnit, gramsPerUnit, servingId: serving.id,
       method, confidence: serving.confidence, estimated: serving.isEstimated,
-      requiresConfirmation: serving.isEstimated || serving.confidence < 0.85, provenance
+      // Owner 2026-09-27: a known unit weight (catalog serving or typical
+      // weight below) is used directly, flagged as an estimate and editable
+      // afterwards; the user is never stopped to type grams for it.
+      requiresConfirmation: false, provenance
     };
   }
 
@@ -355,7 +358,7 @@ export function resolveQuantityLocally(parsed: ParsedNaturalFoodQuery, food: Res
   if (generic) {
     return {
       status: "resolved", grams: parsed.quantity * generic.grams, gramsPerUnit: generic.grams,
-      method: "curated", confidence: 0.8, estimated: true, requiresConfirmation: true,
+      method: "curated", confidence: 0.8, estimated: true, requiresConfirmation: false,
       provenance: { method: "generic_unit_weight", key: generic.key, unit: parsed.unit }
     };
   }

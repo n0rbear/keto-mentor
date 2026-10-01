@@ -173,9 +173,10 @@ describe("meal input interpretation", () => {
     // No per-egg FoodServing exists for scrambled egg. Owner requirement
     // (2026-09-26): the app must still know what N eggs weigh, so a typical
     // egg (50 g) is used, flagged as an estimate for the user to confirm —
-    // never the 100 g basis, never 500 g.
+    // never the 100 g basis, never 500 g. Owner 2026-09-27: known typical
+    // weights are used directly (still marked as an estimate, editable).
     expect(r.foodResolution).toBe("resolved");
-    expect(r.quantity).toMatchObject({ status: "resolved", grams: 250, estimated: true, requiresConfirmation: true, provenance: { method: "generic_unit_weight", key: "egg" } });
+    expect(r.quantity).toMatchObject({ status: "resolved", grams: 250, estimated: true, requiresConfirmation: false, provenance: { method: "generic_unit_weight", key: "egg" } });
   });
 
   it("főtt tojás -> does NOT confirm/silently use raw/fried/scrambled nutrition when boiled Food is unavailable", async () => {
@@ -302,14 +303,17 @@ describe("meal input interpretation", () => {
     }
   });
 
-  it("3 Gouda slices remain estimated because USDA has no generic Gouda slice portion", async () => {
+  // Owner 2026-09-27 ("Kochschinken meg Gouda ... súlyadatokat kért"): an
+  // estimated slice weight is used directly, never a grams prompt.
+  it("3 Gouda slices use the estimated slice weight without asking for grams", async () => {
     for (const input of ["3 szelet gouda", "3 Scheiben Gouda", "3 slices gouda"]) {
       const r = await interpretMealInput(prisma, input);
       expect(r.selectedFood?.id).toBe("catalog-gouda");
       expect(r.quantity?.grams).toBeCloseTo(85.05, 8);
       expect(r.quantity?.estimated).toBe(true);
-      expect(r.quantity?.requiresConfirmation).toBe(true);
-      expect(r.canConfirm).toBe(false);
+      expect(r.quantity?.requiresConfirmation).toBe(false);
+      expect(r.canConfirm).toBe(true);
+      expect(r.clarification).toBeUndefined();
     }
   });
 
@@ -354,7 +358,7 @@ describe("meal input interpretation", () => {
 
   it.each([
     ["2 tojás", "catalog-egg", 100, "authoritative", 0, false],
-    ["3 szelet Gouda", "catalog-gouda", 85.05, "estimated", 0, true],
+    ["3 szelet Gouda", "catalog-gouda", 85.05, "estimated", 0, false],
     ["egy marék mogyoró", "catalog-peanut", 30, "ai_estimated", 1, true],
     ["két merőkanál húsleves", "catalog-broth", 500, "ai_estimated", 1, true],
     ["fél grillcsirke", "catalog-roast-chicken", 400, "ai_estimated", 1, true],
@@ -434,12 +438,12 @@ describe("meal input interpretation", () => {
     expect(estimate).not.toHaveBeenCalled();
   });
 
-  it("half of an estimated piece preserves the confirmation requirement", async () => {
+  it("half of an estimated piece stays marked as an estimate", async () => {
     const r = await interpretMealInput(prisma, "fél kígyóuborka");
     expect(r.quantity?.grams).toBe(150);
     expect(r.quantity?.estimated).toBe(true);
-    expect(r.quantity?.requiresConfirmation).toBe(true);
-    expect(r.canConfirm).toBe(false);
+    expect(r.quantity?.requiresConfirmation).toBe(false);
+    expect(r.canConfirm).toBe(true);
   });
 
   it("1 kg conversion remains exactly 1000 g", async () => {
@@ -455,12 +459,13 @@ describe("meal input interpretation", () => {
     expect(r.canConfirm).toBe(true);
   });
 
-  it("estimated serving in multi-item cannot be silently logged", async () => {
+  it("estimated serving in multi-item is used without a grams prompt but stays marked", async () => {
     const r = await interpretMealInput(prisma, "1 db uborka és 1 kg cheddar");
     expect(r.foodResolution).toBe("multi");
-    expect(r.canConfirm).toBe(false);
+    expect(r.canConfirm).toBe(true);
+    expect(r.clarification).toBeUndefined();
     const cucumber = r.items?.find((it) => it.selectedFood?.id === "catalog-cucumber");
-    expect(cucumber?.quantity?.requiresConfirmation).toBe(true);
+    expect(cucumber?.quantity).toMatchObject({ estimated: true, requiresConfirmation: false });
   });
 
   it("unresolved item disables Log all", async () => {

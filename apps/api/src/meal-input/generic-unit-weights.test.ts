@@ -18,7 +18,7 @@ describe("typical slice weights without AI (owner request 2026-09-26)", () => {
 
   it("turns '4 szelet sajt' into grams, editable before saving", async () => {
     const result = await resolveQuantity(parseNaturalFoodQuery("4 szelet sajt"), food("Gouda", { hu: "Gouda sajt" }) as any);
-    expect(result).toMatchObject({ status: "resolved", grams: 80, gramsPerUnit: 20, requiresConfirmation: true, provenance: { method: "generic_unit_weight", key: "cheese" } });
+    expect(result).toMatchObject({ status: "resolved", grams: 80, gramsPerUnit: 20, estimated: true, requiresConfirmation: false, provenance: { method: "generic_unit_weight", key: "cheese" } });
   });
 
   it("counts eggs in an egg dish without its own egg serving ('Rántotta 3 tojásból')", async () => {
