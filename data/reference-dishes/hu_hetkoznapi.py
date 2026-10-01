@@ -1,7 +1,8 @@
 """Hungary phase 2: everyday mains, pasta, salads and főzelék (sources read 2026-09-27)."""
-from common import g, ing, src
+from common import boiled_uptake, breaded, g, ing, src
 
 PHASE2_RETRIEVED = "2026-09-27"
+_RANTOTT_CSIRKEMELL = breaded("chicken_breast", 400, 80)
 
 R = PHASE2_RETRIEVED
 
@@ -12,8 +13,8 @@ PARTS = {
         matrix="dry", bulk_density_g_ml=0.65, servings_source=8, standard_serving_g=350,
         ingredients=[ing("egg_pasta_dry", 1000, note="1 kg száraztészta, dry weight (Hungarian dry pasta is usually egg pasta)"),
                      ing("sour_cream", 370, note="370 g tejföl"), ing("smoked_bacon", 250, note="25 dkg füstölt szalonna, fried to pörc, poured on with its fat")],
-        cooking=dict(method="pasta boiled and drained, mixed with sour cream, fried bacon and its fat poured over", mass_change_g=1160,
-                     note="about +1200 g water taken up by the pasta (1.2 x dry weight), about -40 g bacon frying loss (estimates). "
+        cooking=dict(method="pasta boiled and drained, mixed with sour cream, fried bacon and its fat poured over", mass_change_g=boiled_uptake("egg_pasta_dry", 1000) - 40,
+                     note="water taken up by the drained pasta from the BLS cooked yield (common.BOILED_YIELD), about -40 g bacon frying loss (estimates). "
                           "3 ek olaj goes into the boiling water and drains away, so it is left out; salt left out. Source gives no yield: 8 portions (125 g dry pasta each) is an estimate"),
         flat_plate=dict(coverage=0.45, height_cm=3.0),
         sources=[src("https://picikonyha.blog.hu/2015/04/26/tejfolos_teszta_920", R, "batch recipe: 1 kg tészta, 370 g tejföl, 25 dkg füstölt szalonna (no yield given)"),
@@ -24,7 +25,7 @@ PARTS = {
         ingredients=[ing("pasta_durum_dry", 400, note="40 dkg tészta, dry weight"), ing("parmesan", 80, note="8 dkg reszelt parmezán"),
                      ing("basil_fresh", 40, "seasoning", "2 nagy marék bazsalikomlevél (40 g is an estimate)"), ing("pine_nuts", 30, note="3 dkg fenyőmag"),
                      ing("olive_oil", g(1, "dl_oil"), "fat", "1 dl extra szűz olívaolaj"), ing("garlic", g(2, "gerezd_garlic"), "seasoning", "2 gerezd")],
-        cooking=dict(method="pasta boiled al dente, tossed with raw blended pesto", mass_change_g=480, note="+480 g water taken up by the pasta (1.2 x dry weight, estimate); salt, pepper left out"),
+        cooking=dict(method="pasta boiled al dente, tossed with raw blended pesto", mass_change_g=boiled_uptake("pasta_durum_dry", 400), note="water taken up by the drained pasta from BLS cooked yield (common.BOILED_YIELD); salt, pepper left out"),
         flat_plate=dict(coverage=0.45, height_cm=3.0),
         sources=[src("https://sobors.hu/receptek/pesztos-parmezanos-teszta-recept", R, "batch recipe, 4 személyre"),
                  src("https://www.mindmegette.hu/recept/pestos-teszta", R, "cross-check: 40 dkg spagetti, 5 dkg parmezán, 1 ek fenyőmag, 3 ek olívaolaj, 4 adag")]),
@@ -35,8 +36,8 @@ PARTS = {
                      ing("smoked_bacon", 50, note="5 dkg szalonna"), ing("onion", g(1, "db_onion"), note="1 fej"), ing("carrot", g(1, "db_carrot"), note="1 db"),
                      ing("sunflower_oil", g(2, "ek_oil"), "fat", "1 ek + 1 evőkanál olaj"), ing("tomato_paste", 70, note="7 dkg paradicsompüré (sűrített)"),
                      ing("parmesan", 40, "garnish", "4 dkg reszelt parmezán"), ing("water", 300, "liquid", "water to stew the ragu: amount not given, estimate")],
-        cooking=dict(method="ragu stewed, spaghetti boiled separately, served together with parmesan", mass_change_g=280,
-                     note="+480 g water taken up by the pasta, about -200 g evaporation from the ragu (estimates). Bay leaf, zellerzöld, sugar, salt, pepper left out"),
+        cooking=dict(method="ragu stewed, spaghetti boiled separately, served together with parmesan", mass_change_g=boiled_uptake("pasta_durum_dry", 400) - 200,
+                     note="water taken up by the drained pasta from the BLS cooked yield (common.BOILED_YIELD), about -200 g evaporation from the ragu (estimates). Bay leaf, zellerzöld, sugar, salt, pepper left out"),
         flat_plate=dict(coverage=0.5, height_cm=3.0),
         sources=[src("https://www.mindmegette.hu/recept/bolognai-spagetti", R, "batch recipe, 4 adag"),
                  src("https://www.receptneked.hu/recept/bolognai-spagetti", R, "cross-check: 0,5 kg darált hús, 500 g paradicsompüré, 1 csomag spagetti, sajt, 8 adag")]),
@@ -45,8 +46,8 @@ PARTS = {
         matrix="dry", bulk_density_g_ml=0.65, servings_source=4, standard_serving_g=400,
         ingredients=[ing("pasta_durum_dry", 500, note="50 dkg spagetti, dry weight"), ing("egg", g(5, "db_egg"), note="5 db tojás"),
                      ing("parmesan", 200, note="20 dkg parmezán"), ing("smoked_bacon", 200, note="20 dkg kolozsvári szalonna (vagy pancetta)")],
-        cooking=dict(method="spaghetti boiled al dente, tossed off the heat with fried bacon, eggs and parmesan", mass_change_g=560,
-                     note="+600 g water taken up by the pasta, about -40 g bacon frying loss (estimates); a little cooking water added to the sauce is ignored; salt, pepper left out"),
+        cooking=dict(method="spaghetti boiled al dente, tossed off the heat with fried bacon, eggs and parmesan", mass_change_g=boiled_uptake("pasta_durum_dry", 500) - 40,
+                     note="water taken up by the drained pasta from the BLS cooked yield (common.BOILED_YIELD), about -40 g bacon frying loss (estimates); a little cooking water added to the sauce is ignored; salt, pepper left out"),
         flat_plate=dict(coverage=0.45, height_cm=3.0),
         sources=[src("https://www.mindmegette.hu/recept/carbonara-spagetti", R, "batch recipe, 4 adag"),
                  src("https://www.mindmegette.hu/recept/spagetti-carbonara", R, "cross-check: 25 dkg spagetti, 8 dkg pancetta, 2 tojás, 10 dkg parmezán, 2 adag")]),
@@ -71,8 +72,8 @@ PARTS = {
         ingredients=[ing("egg_pasta_dry", 500, note="50 dkg szarvacska tészta, dry weight"), ing("pork_minced", 500, note="50 dkg hús (darált sertés assumed)"),
                      ing("sour_cream", g(3, "dl_sour_cream"), note="3 dl tejföl"), ing("egg", g(3, "db_egg"), note="3 db tojás"),
                      ing("trappista", 200, note="20 dkg sajt (trappista assumed)")],
-        cooking=dict(method="pasta boiled, meat fried, layered with sour cream + eggs, cheese on top, baked", mass_change_g=400,
-                     note="+600 g water taken up by the pasta, about -100 g meat frying loss and -100 g baking loss (estimates); salt, pepper left out"),
+        cooking=dict(method="pasta boiled, meat fried, layered with sour cream + eggs, cheese on top, baked", mass_change_g=boiled_uptake("egg_pasta_dry", 500) - 200,
+                     note="water taken up by the drained pasta from the BLS cooked yield (common.BOILED_YIELD), about -100 g meat frying loss and -100 g baking loss (estimates); salt, pepper left out"),
         flat_plate=dict(coverage=0.35, height_cm=4.0),
         sources=[src("https://www.receptneked.hu/recept/rakott-teszta", R, "batch recipe, 8 adag"),
                  src("https://www.mindmegette.hu/recept/rakott-teszta", R, "cross-check: 50 dkg makaróni, 50 dkg darált hús, hagyma, paradicsom")]),
@@ -218,10 +219,8 @@ PARTS = {
     "rantott_csirkemell": dict(
         names={"hu": "Rántott csirkemell", "de": "Paniertes Hähnchenschnitzel", "en": "Breaded chicken breast"},
         matrix="dry", bulk_density_g_ml=0.85, servings_source=2, standard_serving_g=200,
-        ingredients=[ing("chicken_breast", 400, note="400 g csirkemell, 4 slices"), ing("wheat_flour", 20, "coating", "amount that sticks (80 g put out)"),
-                     ing("egg", 60, "coating", "2 eggs, amount that sticks"), ing("breadcrumbs", 55, "coating", "amount that sticks (80 g put out)"),
-                     ing("sunflower_oil", 43, "absorbed_fat", "absorbed while frying, ~8% of the breaded weight (estimate, as rantott_hus)")],
-        cooking=dict(method="fried in 180 °C oil ~2 min per side", mass_change_g=-80, note="meat loses ~20% of its weight while frying (estimate). The 500 ml garlic milk marinade is discarded; salt, pepper left out"),
+        ingredients=_RANTOTT_CSIRKEMELL[0],
+        cooking=dict(method="fried in 180 °C oil ~2 min per side", mass_change_g=_RANTOTT_CSIRKEMELL[1], note="400 g csirkemell, 4 slices; meat loses ~20% of its weight while frying (estimate). Coating and oil from common.BREADING. The 500 ml garlic milk marinade is discarded; salt, pepper left out"),
         flat_plate=dict(coverage=0.35, height_cm=1.8),
         sources=[src("https://streetkitchen.hu/receptek/a-tokeletes-rantott-csirkemell", R, "batch recipe, 2 főre"),
                  src("https://www.mindmegette.hu/recept/mustaros-rantott-csirkemell", R, "cross-check: 50 dkg csirkemell, 2 tojás, liszt, zsemlemorzsa, olaj, 2 adag")]),
@@ -355,7 +354,7 @@ DISHES = [
     dict(id="hu_carbonara", countries=["HU"], category="everyday", part_refs=[("carbonara", 400)], served_in="flat_plate", tags=["pasta", "higher-carb"],
          names={"hu": "carbonara", "de": "Spaghetti Carbonara", "en": "Spaghetti carbonara"},
          aliases={"hu": ["carbonara", "carbonara spagetti", "spagetti carbonara", "karbonára"], "de": ["spaghetti carbonara", "carbonara"], "de-AT": ["spaghetti carbonara"], "en": ["carbonara", "spaghetti carbonara"]},
-         reference_check=dict(catalog="bls:X740733", name="Eierteigwaren mit Carbonara Sauce", kcal=167, fat=6.01, protein=9.0, net_carbs=18.6),
+         reference_check=dict(catalog="bls:X740733", name="Eierteigwaren mit Carbonara Sauce", kcal=167, fat=6.01, protein=9.0, net_carbs=18.6, deviation="Recept: 20 dkg parmezán és 20 dkg bacon 50 dkg tésztához (mindmegette), jóval zsírosabb a BLS szószánál; a tészta vízfelvétele már a BLS-hozammal számolt."),
          review="A forrás 20 dkg parmezánt és 20 dkg szalonnát ad 4 adagra: zsírosabb a BLS-nél. Sok magyar változat főzőtejszínnel készül."),
     dict(id="hu_lasagne", countries=["HU"], category="everyday", part_refs=[("lasagne", 420)], served_in="flat_plate", tags=["pasta", "baked", "higher-carb"],
          names={"hu": "lasagne", "de": "Lasagne", "en": "Lasagne"},
@@ -365,7 +364,7 @@ DISHES = [
     dict(id="hu_pizza_margherita", countries=["HU"], category="everyday", part_refs=[("pizza_margherita", 410)], served_in="flat_plate", tags=["pizza", "vegetarian", "higher-carb"],
          names={"hu": "pizza margherita", "de": "Pizza Margherita", "en": "Pizza margherita"},
          aliases={"hu": ["pizza margherita", "margherita pizza", "margarita pizza", "margaréta pizza", "sajtos-paradicsomos pizza"], "de": ["pizza margherita", "margherita"], "de-AT": ["pizza margherita"], "en": ["pizza margherita", "margherita pizza"]},
-         reference_check=dict(catalog="bls:X912033", name="Pizza Margherita (mit Tomatensauce, Mozzarella)", kcal=238, fat=13.55, protein=7.77, net_carbs=20.0),
+         reference_check=dict(catalog="bls:X912033", name="Pizza Margherita (mit Tomatensauce, Mozzarella)", kcal=238, fat=13.55, protein=7.77, net_carbs=20.0, deviation="A Sóbors-recept pizzánként csak 6 dkg mozzarellát tesz rá (zsír 5,6 g vs. BLS 13,6 g); a tészta és a hozam rendben."),
          review="Adag = egy egész házi pizza (~410 g, a forrás 2 pizzájának fele). Pizzériás 32 cm-es pizza nehezebb; egy szelet pizza külön street food étel."),
     dict(id="hu_sonkas_pizza", countries=["HU"], category="everyday", part_refs=[("sonkas_pizza", 520)], served_in="flat_plate", tags=["pizza", "higher-carb"],
          names={"hu": "sonkás pizza", "de": "Pizza mit Schinken", "en": "Ham pizza"},
@@ -384,7 +383,7 @@ DISHES = [
     dict(id="hu_uborkasalata", countries=["HU"], category="everyday", part_refs=[("uborkasalata", 180)], served_in="deep_plate", tags=["salad", "side", "vegetarian", "low-carb-friendly"],
          names={"hu": "uborkasaláta", "de": "Gurkensalat", "en": "Cucumber salad"},
          aliases={"hu": ["uborkasaláta", "tejfölös uborkasaláta", "uborka saláta"], "de": ["gurkensalat", "gurkensalat mit sauerrahm"], "de-AT": ["gurkensalat"], "en": ["cucumber salad"]},
-         reference_check=dict(catalog="bls:X201740", name="Gurkensalat mit Saure-Sahne-Dressing", kcal=41, fat=2.3, protein=1.53, net_carbs=2.9),
+         reference_check=dict(catalog="bls:X201740", name="Gurkensalat mit Saure-Sahne-Dressing", kcal=41, fat=2.3, protein=1.53, net_carbs=2.9, deviation="2 dl 20%-os tejföl 70 dkg uborkára, a kinyomott lé után; a BLS öntete hígabb (zsír 2,3 g)."),
          review="Tejfölös változat; az ecetes (tejföl nélküli) uborkasaláta sokkal soványabb."),
     dict(id="hu_paradicsomsalata", countries=["HU"], category="everyday", part_refs=[("paradicsomsalata", 200)], served_in="deep_plate", tags=["salad", "side", "vegetarian"],
          names={"hu": "paradicsomsaláta", "de": "Tomatensalat", "en": "Tomato salad"},

@@ -559,20 +559,21 @@ def main():
         macros = f"{c['kcal']} | {c['fat']} | {c['protein']} | {c['net_carbs']}" if c else "nincs számolva | – | – | –"
         lines.append(f"| {p['names']['hu']} | {b['raw_total_g']} | {b['cooking']['mass_change_g']:+} | {b['finished_weight_g']} | {b['yield_factor']} | {p['density_g_per_ml']} | {macros} | {', '.join(p['derived_check']['incomplete_missing_food_keys']) or '–'} |")
     lines += ["", "## Makró-keresztellenőrzés nyilvános referenciával (100 g)", "",
-              "Számolt érték a katalógusrekordokból vs. egy nyilvános referencia (pl. BLS összetett étel). 15% feletti kcal-eltérés: ELLENŐRIZENDŐ.", "",
-              "| Étel | Referencia | kcal (számolt / ref.) | zsír | fehérje | nettó CH | kcal eltérés |", "|---|---|---:|---:|---:|---:|---|"]
+              "Számolt érték a katalógusrekordokból vs. egy nyilvános referencia (pl. BLS összetett étel). 15% feletti kcal-eltérés: ELLENŐRIZENDŐ,",
+              "kivéve ha az ételnél `reference_check.deviation` (átnézett receptkülönbség) indokolja: akkor RECEPTKÜLÖNBSÉG, az indoklással.", "",
+              "| Étel | Referencia | kcal (számolt / ref.) | zsír | fehérje | nettó CH | kcal eltérés | Indoklás |", "|---|---|---:|---:|---:|---:|---|---|"]
     for d, raw in zip(dishes, DISHES):
         ref = raw.get("reference_check")
         if not ref:
-            lines.append(f"| {d['names']['hu']} | nincs még | – | – | – | – | – |")
+            lines.append(f"| {d['names']['hu']} | nincs még | – | – | – | – | – | – |")
             continue
         calc = dish_per_100g(parts, d)
         if calc is None:
-            lines.append(f"| {d['names']['hu']} | {ref['catalog']} {ref['name']} | nincs számolva (hiányzó makró) | – | – | – | – |")
+            lines.append(f"| {d['names']['hu']} | {ref['catalog']} {ref['name']} | nincs számolva (hiányzó makró) | – | – | – | – | – |")
             continue
         dev = (calc["kcal"] - ref["kcal"]) / ref["kcal"] * 100
-        flag = "rendben" if abs(dev) <= 15 else "ELLENŐRIZENDŐ"
-        lines.append(f"| {d['names']['hu']} | {ref['catalog']} {ref['name']} | {calc['kcal']:.0f} / {ref['kcal']} | {calc['fat']:.1f} / {ref['fat']} | {calc['protein']:.1f} / {ref['protein']} | {calc['net_carbs']:.1f} / {ref['net_carbs']} | {dev:+.0f}% {flag} |")
+        flag = "rendben" if abs(dev) <= 15 else "RECEPTKÜLÖNBSÉG" if ref.get("deviation") else "ELLENŐRIZENDŐ"
+        lines.append(f"| {d['names']['hu']} | {ref['catalog']} {ref['name']} | {calc['kcal']:.0f} / {ref['kcal']} | {calc['fat']:.1f} / {ref['fat']} | {calc['protein']:.1f} / {ref['protein']} | {calc['net_carbs']:.1f} / {ref['net_carbs']} | {dev:+.0f}% {flag} | {ref.get('deviation', '–') if abs(dev) > 15 else '–'} |")
     lines += ["", "## Tányér → gramm (normál adag)", "",
               "Mély tányér: kapacitás × töltöttség × sűrűség. Lapos tányér: 0,8 × átmérő hasznos kör × lefedettség × magasság × sűrűség.", "",
               "| Étel | Országok | Kategória | Szokásos adag (g) | Mély 450 ml normál | Mély 650 ml normál | Lapos 24 cm | Lapos 26 cm | Lapos 28 cm |",

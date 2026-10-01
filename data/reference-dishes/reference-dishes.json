@@ -2684,42 +2684,41 @@
           {
             "food_key": "pork_loin",
             "raw_g": 600,
-            "role": "core",
-            "note": "4 x 150 g slices"
+            "role": "core"
           },
           {
             "food_key": "wheat_flour",
-            "raw_g": 30,
+            "raw_g": 18,
             "role": "coating",
-            "note": "amount that sticks, not the amount put out"
+            "note": "amount that sticks (common.BREADING)"
           },
           {
             "food_key": "egg",
-            "raw_g": 100,
+            "raw_g": 60,
             "role": "coating",
-            "note": "2 eggs, amount that sticks"
+            "note": "egg wash that sticks (common.BREADING)"
           },
           {
             "food_key": "breadcrumbs",
-            "raw_g": 100,
+            "raw_g": 54,
             "role": "coating",
-            "note": "amount that sticks (~150 g put out)"
+            "note": "amount that sticks (common.BREADING)"
           },
           {
             "food_key": "sunflower_oil",
-            "raw_g": 60,
+            "raw_g": 37,
             "role": "absorbed_fat",
-            "note": "absorbed during deep/shallow frying, ~8% of the breaded weight"
+            "note": "absorbed while frying, 6 % of the finished weight (common.BREADING)"
           }
         ],
-        "raw_total_g": 890,
+        "raw_total_g": 769,
         "cooking": {
           "method": "fried in 170-180 °C oil, 2-3 min per side",
           "mass_change_g": -150,
-          "note": "meat loses ~25% of its weight as water while frying"
+          "note": "meat (4 x 150 g slices) loses ~25% of its weight as water while frying; coating and oil from common.BREADING"
         },
-        "finished_weight_g": 740,
-        "yield_factor": 0.831
+        "finished_weight_g": 619,
+        "yield_factor": 0.805
       },
       "standard_serving_g": 185,
       "density_g_per_ml": 0.85,
@@ -2741,10 +2740,10 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 296.4,
-          "fat": 18.1,
-          "protein": 20.8,
-          "net_carbs": 12.1
+          "kcal": 278.4,
+          "fat": 17.0,
+          "protein": 23.0,
+          "net_carbs": 8.0
         },
         "incomplete_missing_food_keys": []
       }
@@ -5648,11 +5647,11 @@
         "raw_total_g": 1620,
         "cooking": {
           "method": "pasta boiled and drained, mixed with sour cream, fried bacon and its fat poured over",
-          "mass_change_g": 1160,
-          "note": "about +1200 g water taken up by the pasta (1.2 x dry weight), about -40 g bacon frying loss (estimates). 3 ek olaj goes into the boiling water and drains away, so it is left out; salt left out. Source gives no yield: 8 portions (125 g dry pasta each) is an estimate"
+          "mass_change_g": 1500,
+          "note": "water taken up by the drained pasta from the BLS cooked yield (common.BOILED_YIELD), about -40 g bacon frying loss (estimates). 3 ek olaj goes into the boiling water and drains away, so it is left out; salt left out. Source gives no yield: 8 portions (125 g dry pasta each) is an estimate"
         },
-        "finished_weight_g": 2780,
-        "yield_factor": 1.716
+        "finished_weight_g": 3120,
+        "yield_factor": 1.926
       },
       "standard_serving_g": 350,
       "density_g_per_ml": 0.65,
@@ -5676,10 +5675,10 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 176.0,
-          "fat": 5.5,
-          "protein": 6.6,
-          "net_carbs": 24.6
+          "kcal": 156.8,
+          "fat": 4.9,
+          "protein": 5.9,
+          "net_carbs": 21.9
         },
         "incomplete_missing_food_keys": []
       }
@@ -5735,11 +5734,11 @@
         "raw_total_g": 652,
         "cooking": {
           "method": "pasta boiled al dente, tossed with raw blended pesto",
-          "mass_change_g": 480,
-          "note": "+480 g water taken up by the pasta (1.2 x dry weight, estimate); salt, pepper left out"
+          "mass_change_g": 520,
+          "note": "water taken up by the drained pasta from BLS cooked yield (common.BOILED_YIELD); salt, pepper left out"
         },
-        "finished_weight_g": 1132,
-        "yield_factor": 1.736
+        "finished_weight_g": 1172,
+        "yield_factor": 1.798
       },
       "standard_serving_g": 280,
       "density_g_per_ml": 0.6,
@@ -5763,10 +5762,10 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 242.1,
-          "fat": 12.3,
-          "protein": 7.5,
-          "net_carbs": 24.5
+          "kcal": 233.9,
+          "fat": 11.9,
+          "protein": 7.2,
+          "net_carbs": 23.7
         },
         "incomplete_missing_food_keys": []
       }
@@ -5840,11 +5839,11 @@
         "raw_total_g": 1316,
         "cooking": {
           "method": "ragu stewed, spaghetti boiled separately, served together with parmesan",
-          "mass_change_g": 280,
-          "note": "+480 g water taken up by the pasta, about -200 g evaporation from the ragu (estimates). Bay leaf, zellerzöld, sugar, salt, pepper left out"
+          "mass_change_g": 320,
+          "note": "water taken up by the drained pasta from the BLS cooked yield (common.BOILED_YIELD), about -200 g evaporation from the ragu (estimates). Bay leaf, zellerzöld, sugar, salt, pepper left out"
         },
-        "finished_weight_g": 1596,
-        "yield_factor": 1.213
+        "finished_weight_g": 1636,
+        "yield_factor": 1.243
       },
       "standard_serving_g": 400,
       "density_g_per_ml": 0.7,
@@ -5868,10 +5867,10 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 163.5,
-          "fat": 6.1,
-          "protein": 7.8,
-          "net_carbs": 18.5
+          "kcal": 159.5,
+          "fat": 6.0,
+          "protein": 7.6,
+          "net_carbs": 18.1
         },
         "incomplete_missing_food_keys": []
       }
@@ -5915,11 +5914,11 @@
         "raw_total_g": 1150,
         "cooking": {
           "method": "spaghetti boiled al dente, tossed off the heat with fried bacon, eggs and parmesan",
-          "mass_change_g": 560,
-          "note": "+600 g water taken up by the pasta, about -40 g bacon frying loss (estimates); a little cooking water added to the sauce is ignored; salt, pepper left out"
+          "mass_change_g": 610,
+          "note": "water taken up by the drained pasta from the BLS cooked yield (common.BOILED_YIELD), about -40 g bacon frying loss (estimates); a little cooking water added to the sauce is ignored; salt, pepper left out"
         },
-        "finished_weight_g": 1710,
-        "yield_factor": 1.487
+        "finished_weight_g": 1760,
+        "yield_factor": 1.53
       },
       "standard_serving_g": 400,
       "density_g_per_ml": 0.65,
@@ -5943,10 +5942,10 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 202.2,
-          "fat": 8.1,
-          "protein": 11.7,
-          "net_carbs": 20.2
+          "kcal": 196.4,
+          "fat": 7.8,
+          "protein": 11.3,
+          "net_carbs": 19.7
         },
         "incomplete_missing_food_keys": []
       }
@@ -6125,14 +6124,14 @@
         "raw_total_g": 1656,
         "cooking": {
           "method": "pasta boiled, meat fried, layered with sour cream + eggs, cheese on top, baked",
-          "mass_change_g": 400,
-          "note": "+600 g water taken up by the pasta, about -100 g meat frying loss and -100 g baking loss (estimates); salt, pepper left out"
+          "mass_change_g": 570,
+          "note": "water taken up by the drained pasta from the BLS cooked yield (common.BOILED_YIELD), about -100 g meat frying loss and -100 g baking loss (estimates); salt, pepper left out"
         },
-        "finished_weight_g": 2056,
-        "yield_factor": 1.242
+        "finished_weight_g": 2226,
+        "yield_factor": 1.344
       },
       "standard_serving_g": 300,
-      "density_g_per_ml": 1.024,
+      "density_g_per_ml": 1.023,
       "density_method": "derived from components after cooking mass change",
       "flat_plate": {
         "coverage": 0.35,
@@ -6153,10 +6152,10 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 221.2,
-          "fat": 11.8,
-          "protein": 11.4,
-          "net_carbs": 16.9
+          "kcal": 204.3,
+          "fat": 10.9,
+          "protein": 10.5,
+          "net_carbs": 15.6
         },
         "incomplete_missing_food_keys": []
       }
@@ -7337,42 +7336,41 @@
           {
             "food_key": "chicken_breast",
             "raw_g": 400,
-            "role": "core",
-            "note": "400 g csirkemell, 4 slices"
+            "role": "core"
           },
           {
             "food_key": "wheat_flour",
-            "raw_g": 20,
+            "raw_g": 12,
             "role": "coating",
-            "note": "amount that sticks (80 g put out)"
+            "note": "amount that sticks (common.BREADING)"
           },
           {
             "food_key": "egg",
-            "raw_g": 60,
+            "raw_g": 40,
             "role": "coating",
-            "note": "2 eggs, amount that sticks"
+            "note": "egg wash that sticks (common.BREADING)"
           },
           {
             "food_key": "breadcrumbs",
-            "raw_g": 55,
+            "raw_g": 36,
             "role": "coating",
-            "note": "amount that sticks (80 g put out)"
+            "note": "amount that sticks (common.BREADING)"
           },
           {
             "food_key": "sunflower_oil",
-            "raw_g": 43,
+            "raw_g": 26,
             "role": "absorbed_fat",
-            "note": "absorbed while frying, ~8% of the breaded weight (estimate, as rantott_hus)"
+            "note": "absorbed while frying, 6 % of the finished weight (common.BREADING)"
           }
         ],
-        "raw_total_g": 578,
+        "raw_total_g": 514,
         "cooking": {
           "method": "fried in 180 °C oil ~2 min per side",
           "mass_change_g": -80,
-          "note": "meat loses ~20% of its weight while frying (estimate). The 500 ml garlic milk marinade is discarded; salt, pepper left out"
+          "note": "400 g csirkemell, 4 slices; meat loses ~20% of its weight while frying (estimate). Coating and oil from common.BREADING. The 500 ml garlic milk marinade is discarded; salt, pepper left out"
         },
-        "finished_weight_g": 498,
-        "yield_factor": 0.862
+        "finished_weight_g": 434,
+        "yield_factor": 0.844
       },
       "standard_serving_g": 200,
       "density_g_per_ml": 0.85,
@@ -7396,10 +7394,10 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 235.7,
-          "fat": 11.6,
-          "protein": 22.0,
-          "net_carbs": 10.4
+          "kcal": 206.6,
+          "fat": 8.8,
+          "protein": 23.9,
+          "net_carbs": 7.6
         },
         "incomplete_missing_food_keys": []
       }
@@ -13285,11 +13283,11 @@
         "raw_total_g": 1558,
         "cooking": {
           "method": "pasta boiled and drained, tossed with bacon fat, túró and sour cream, topped with cracklings",
-          "mass_change_g": 420,
-          "note": "+480 g water taken up by the pasta (1.2 x dry), about -60 g water lost from the bacon while rendering (estimates). Salt left out"
+          "mass_change_g": 556,
+          "note": "water taken up by the drained pasta from the BLS cooked yield (common.BOILED_YIELD), about -60 g water lost from the bacon while rendering (estimates). Salt left out"
         },
-        "finished_weight_g": 1978,
-        "yield_factor": 1.27
+        "finished_weight_g": 2114,
+        "yield_factor": 1.357
       },
       "standard_serving_g": 400,
       "density_g_per_ml": 0.7,
@@ -13313,10 +13311,10 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 175.1,
-          "fat": 8.7,
-          "protein": 8.5,
-          "net_carbs": 15.3
+          "kcal": 163.9,
+          "fat": 8.2,
+          "protein": 7.9,
+          "net_carbs": 14.4
         },
         "incomplete_missing_food_keys": []
       }
@@ -13360,11 +13358,11 @@
         "raw_total_g": 1573,
         "cooking": {
           "method": "grated cabbage salted, squeezed and fried slowly until brown; mixed with boiled pasta",
-          "mass_change_g": 200,
-          "note": "+600 g water taken up by the pasta, about -400 g water lost from the cabbage (squeezing and frying) (estimates). Salt and pepper left out"
+          "mass_change_g": 370,
+          "note": "water taken up by the drained pasta from the BLS cooked yield (common.BOILED_YIELD), about -400 g water lost from the cabbage (squeezing and frying) (estimates). Salt and pepper left out"
         },
-        "finished_weight_g": 1773,
-        "yield_factor": 1.127
+        "finished_weight_g": 1943,
+        "yield_factor": 1.235
       },
       "standard_serving_g": 350,
       "density_g_per_ml": 0.65,
@@ -13393,10 +13391,10 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 149.3,
-          "fat": 4.3,
-          "protein": 4.5,
-          "net_carbs": 21.7
+          "kcal": 136.2,
+          "fat": 4.0,
+          "protein": 4.1,
+          "net_carbs": 19.8
         },
         "incomplete_missing_food_keys": []
       }
@@ -13446,11 +13444,11 @@
         "raw_total_g": 1135,
         "cooking": {
           "method": "diced potatoes boiled, onion fried with paprika, mixed with boiled pasta",
-          "mass_change_g": 240,
-          "note": "+300 g water taken up by the pasta, about -60 g from frying the onion and boiling the potatoes (estimates). Salt and pepper left out"
+          "mass_change_g": 325,
+          "note": "water taken up by the drained pasta from the BLS cooked yield (common.BOILED_YIELD), about -60 g from frying the onion and boiling the potatoes (estimates). Salt and pepper left out"
         },
-        "finished_weight_g": 1375,
-        "yield_factor": 1.211
+        "finished_weight_g": 1460,
+        "yield_factor": 1.286
       },
       "standard_serving_g": 350,
       "density_g_per_ml": 0.7,
@@ -13474,10 +13472,10 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 155.8,
-          "fat": 6.2,
-          "protein": 3.5,
-          "net_carbs": 20.8
+          "kcal": 146.8,
+          "fat": 5.8,
+          "protein": 3.3,
+          "net_carbs": 19.6
         },
         "incomplete_missing_food_keys": []
       }
@@ -13515,11 +13513,11 @@
         "raw_total_g": 900,
         "cooking": {
           "method": "pasta boiled, drained, tossed with ground poppy seed and powdered sugar",
-          "mass_change_g": 600,
-          "note": "+600 g water taken up by the pasta (1.2 x dry, estimate). Salt left out"
+          "mass_change_g": 770,
+          "note": "water taken up by the drained pasta from the BLS cooked yield (common.BOILED_YIELD). Salt left out"
         },
-        "finished_weight_g": 1500,
-        "yield_factor": 1.667
+        "finished_weight_g": 1670,
+        "yield_factor": 1.856
       },
       "standard_serving_g": 350,
       "density_g_per_ml": 0.6,
@@ -13543,10 +13541,10 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 238.8,
-          "fat": 7.0,
-          "protein": 8.0,
-          "net_carbs": 34.1
+          "kcal": 214.5,
+          "fat": 6.3,
+          "protein": 7.2,
+          "net_carbs": 30.7
         },
         "incomplete_missing_food_keys": []
       }
@@ -13602,11 +13600,11 @@
         "raw_total_g": 686,
         "cooking": {
           "method": "pasta boiled, tossed with butter, walnut and sugar, jam on top",
-          "mass_change_g": 240,
-          "note": "+240 g water taken up by the pasta (1.2 x dry, estimate). Salt left out"
+          "mass_change_g": 308,
+          "note": "water taken up by the drained pasta from the BLS cooked yield (common.BOILED_YIELD). Salt left out"
         },
-        "finished_weight_g": 926,
-        "yield_factor": 1.35
+        "finished_weight_g": 994,
+        "yield_factor": 1.449
       },
       "standard_serving_g": 350,
       "density_g_per_ml": 0.6,
@@ -13630,10 +13628,10 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 361.9,
-          "fat": 22.7,
-          "protein": 6.4,
-          "net_carbs": 32.5
+          "kcal": 337.2,
+          "fat": 21.2,
+          "protein": 6.0,
+          "net_carbs": 30.2
         },
         "incomplete_missing_food_keys": []
       }
@@ -13683,11 +13681,11 @@
         "raw_total_g": 484,
         "cooking": {
           "method": "semolina toasted golden in oil, tossed with boiled pasta, sugar and jam on top",
-          "mass_change_g": 300,
-          "note": "+300 g water taken up by the pasta (1.2 x dry, estimate); the toasted semolina stays dry. Salt left out"
+          "mass_change_g": 385,
+          "note": "water taken up by the drained pasta from the BLS cooked yield (common.BOILED_YIELD); the toasted semolina stays dry. Salt left out"
         },
-        "finished_weight_g": 784,
-        "yield_factor": 1.62
+        "finished_weight_g": 869,
+        "yield_factor": 1.795
       },
       "standard_serving_g": 300,
       "density_g_per_ml": 0.6,
@@ -13716,10 +13714,10 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 223.5,
-          "fat": 4.1,
-          "protein": 5.3,
-          "net_carbs": 40.5
+          "kcal": 201.6,
+          "fat": 3.7,
+          "protein": 4.8,
+          "net_carbs": 36.5
         },
         "incomplete_missing_food_keys": []
       }
@@ -15271,14 +15269,14 @@
         "raw_total_g": 4655,
         "cooking": {
           "method": "fish and onion boiled hard 35-40 min, paprika after the foam; not passed; pasta cooked separately",
-          "mass_change_g": -460,
-          "note": "about -700 g evaporation on a hard boil and +240 g water taken up by the pasta (estimates); 4 dkg salt left out"
+          "mass_change_g": -392,
+          "note": "about -700 g evaporation on a hard boil (estimate) and water taken up by the separately boiled, drained pasta (common.BOILED_YIELD); 4 dkg salt left out"
         },
-        "finished_weight_g": 4195,
-        "yield_factor": 0.901
+        "finished_weight_g": 4263,
+        "yield_factor": 0.916
       },
       "standard_serving_g": 450,
-      "density_g_per_ml": 1.014,
+      "density_g_per_ml": 1.013,
       "density_method": "derived from components after cooking mass change",
       "sources": [
         {
@@ -15300,9 +15298,9 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 54.7,
+          "kcal": 53.8,
           "fat": 1.7,
-          "protein": 6.0,
+          "protein": 5.9,
           "net_carbs": 3.6
         },
         "incomplete_missing_food_keys": []
@@ -16182,11 +16180,11 @@
         "raw_total_g": 2370.4,
         "cooking": {
           "method": "meat and vegetables simmered in stock with pasta, thickened with sour cream, cream and flour",
-          "mass_change_g": -90,
-          "note": "about +60 g water taken up by the pasta, about -150 g evaporation (estimates). Tarragon/tárkonyecet (MISSING tarragon_dried) and white pepper left out"
+          "mass_change_g": -150,
+          "note": "the pasta takes its water from the soup (no mass change), about -150 g evaporation (estimate). Tarragon/tárkonyecet (MISSING tarragon_dried) and white pepper left out"
         },
-        "finished_weight_g": 2280.4,
-        "yield_factor": 0.962
+        "finished_weight_g": 2220.4,
+        "yield_factor": 0.937
       },
       "standard_serving_g": 450,
       "density_g_per_ml": 1.008,
@@ -16206,10 +16204,10 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 59.5,
-          "fat": 3.2,
-          "protein": 3.6,
-          "net_carbs": 3.8
+          "kcal": 61.1,
+          "fat": 3.3,
+          "protein": 3.7,
+          "net_carbs": 3.9
         },
         "incomplete_missing_food_keys": []
       }
@@ -16822,14 +16820,14 @@
         "raw_total_g": 2552.5,
         "cooking": {
           "method": "bacon rendered, pasta toasted in the fat, onion and paprika, potatoes simmered ~30 min",
-          "mass_change_g": -150,
-          "note": "about +100 g water taken up by the pasta, about -250 g evaporation (estimates); salt and 2 tk ételízesítő left out"
+          "mass_change_g": -250,
+          "note": "the pasta takes its water from the soup (no mass change), about -250 g evaporation (estimate); salt and 2 tk ételízesítő left out"
         },
-        "finished_weight_g": 2402.5,
-        "yield_factor": 0.941
+        "finished_weight_g": 2302.5,
+        "yield_factor": 0.902
       },
       "standard_serving_g": 450,
-      "density_g_per_ml": 1.009,
+      "density_g_per_ml": 1.01,
       "density_method": "derived from components after cooking mass change",
       "sources": [
         {
@@ -16846,10 +16844,10 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 35.7,
+          "kcal": 37.2,
           "fat": 1.2,
-          "protein": 1.4,
-          "net_carbs": 4.7
+          "protein": 1.5,
+          "net_carbs": 4.9
         },
         "incomplete_missing_food_keys": []
       }

@@ -344,7 +344,7 @@ DISHES = [
     dict(id="hu_birkaporkolt", countries=["HU"], category="traditional", part_refs=[("birkaporkolt", 300)], served_in="flat_plate", tags=["traditional", "low-carb-friendly"],
          names={"hu": "birkapörkölt", "de": "Hammelpörkölt", "en": "Hungarian mutton stew (pörkölt)"},
          side_options=PORKOLT_SIDES, alias_side=sides("birkapörkölt"),
-         reference_check=dict(catalog="bls:Y441133", name="Hammelgulasch", kcal=254, fat=23.3, protein=6.6, net_carbs=4.0),
+         reference_check=dict(catalog="bls:Y441133", name="Hammelgulasch", kcal=254, fat=23.3, protein=6.6, net_carbs=4.0, deviation="A BLS Hammelgulasch összetétele (fehérje 6,6 g, zsír 23 g) nem húsos pörkölt; a referencia nem összevethető, a recept 1 kg húsra épül."),
          aliases={"hu": ["birkapörkölt", "birka pörkölt", "ürüpörkölt"], "de": ["hammelpörkölt", "hammelgulasch"], "de-AT": ["schafgulasch"], "en": ["mutton stew", "mutton pörkölt"]},
          review="BLS 'Schaf Fleisch, grob entsehnt' (181 kcal) a nyers hús; csontos birkahúsnál az ehető rész kisebb. A BLS Hammelgulasch referencia fehérjéje szokatlanul alacsony, csak tájékoztató."),
     dict(id="hu_vadporkolt", countries=["HU"], category="traditional", part_refs=[("vadporkolt", 300)], served_in="flat_plate", tags=["traditional", "low-carb-friendly", "game"],

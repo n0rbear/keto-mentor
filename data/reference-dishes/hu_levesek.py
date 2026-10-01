@@ -1,5 +1,5 @@
 """Hungary phase 2: traditional soups (sources read 2026-09-27)."""
-from common import g, ing, src
+from common import boiled_uptake, g, ing, src
 
 PHASE2_RETRIEVED = "2026-09-27"
 
@@ -15,8 +15,8 @@ PARTS = {
                      ing("egg_pasta_dry", 200, note="20 dkg gyufatészta, dry weight, boiled separately and served in the soup"),
                      ing("water", 3000, "liquid", "3 liter víz")],
         not_eaten=[{"what": "halfej, szálka, uszony", "raw_g": 800, "note": "stays in the pot but left on the plate (estimate ~40% of the cleaned fish)"}],
-        cooking=dict(method="fish and onion boiled hard 35-40 min, paprika after the foam; not passed; pasta cooked separately", mass_change_g=-460,
-                     note="about -700 g evaporation on a hard boil and +240 g water taken up by the pasta (estimates); 4 dkg salt left out"),
+        cooking=dict(method="fish and onion boiled hard 35-40 min, paprika after the foam; not passed; pasta cooked separately", mass_change_g=boiled_uptake("egg_pasta_dry", 200) - 700,
+                     note="about -700 g evaporation on a hard boil (estimate) and water taken up by the separately boiled, drained pasta (common.BOILED_YIELD); 4 dkg salt left out"),
         sources=[src("https://mediaklikk.hu/csalad-barat-receptek/cikk/2021/10/28/bajai-halaszle-4-fore/", R, "batch recipe, 4 fő"),
                  src("https://www.haztartas-ma.hu/index.php/receptek/haletelek/bajai-halaszle/", R, "cross-check: 1,5 kg ponty + 0,5 kg kárász, 2 l víz, 20-25 dkg gyufatészta, 6-8 fő"),
                  src("https://www.mindmegette.hu/recept/bajai-halaszle", R, "cross-check: 3 kg hal, 1,1 l víz/kg, gyufatészta")]),
@@ -121,8 +121,8 @@ PARTS = {
                      ing("egg_pasta_dry", 50, note="5 dkg eperszalag tészta, dry weight"), ing("sunflower_oil", g(0.2, "dl_oil"), "fat", "0,2 dl olaj"),
                      ing("sour_cream", g(1, "dl_sour_cream"), "thickener", "1 dl tejföl"), ing("cream_30", g(1, "dl_cream"), "thickener", "1 dl habtejszín"),
                      ing("wheat_flour", 20, "thickener", "2 dkg"), ing("water", 1500, "liquid", "1,5 liter húsleves alaplé, counted as water (broth nutrition ignored)")],
-        cooking=dict(method="meat and vegetables simmered in stock with pasta, thickened with sour cream, cream and flour", mass_change_g=-90,
-                     note="about +60 g water taken up by the pasta, about -150 g evaporation (estimates). Tarragon/tárkonyecet (MISSING tarragon_dried) and white pepper left out"),
+        cooking=dict(method="meat and vegetables simmered in stock with pasta, thickened with sour cream, cream and flour", mass_change_g=-150,
+                     note="the pasta takes its water from the soup (no mass change), about -150 g evaporation (estimate). Tarragon/tárkonyecet (MISSING tarragon_dried) and white pepper left out"),
         sources=[src("https://www.receptneked.hu/recept/tarkonyos-pulykaraguleves", R, "batch recipe, 6 adag"),
                  src("https://www.mindmegette.hu/recept/tarkonyos-raguleves", R, "cross-check: 30 dkg pulykamell, gyökérzöldség, zöldborsó, 8 dl víz, 2 dl főzőtejszín, 4 adag")]),
     "gyumolcsleves": dict(
@@ -198,8 +198,8 @@ PARTS = {
         ingredients=[ing("egg_pasta_dry", 80, note="8 dkg lebbencs, dry weight, toasted in the bacon fat"), ing("water", 2000, "liquid", "2 liter víz"),
                      ing("potato", 300, note="30 dkg"), ing("smoked_bacon", 100, "fat", "10 dkg füstölt szalonna"),
                      ing("onion", 70, note="1 kis fej (estimate)"), ing("paprika_ground", g(1, "tk_spice"), "seasoning", "1 teáskanál")],
-        cooking=dict(method="bacon rendered, pasta toasted in the fat, onion and paprika, potatoes simmered ~30 min", mass_change_g=-150,
-                     note="about +100 g water taken up by the pasta, about -250 g evaporation (estimates); salt and 2 tk ételízesítő left out"),
+        cooking=dict(method="bacon rendered, pasta toasted in the fat, onion and paprika, potatoes simmered ~30 min", mass_change_g=-250,
+                     note="the pasta takes its water from the soup (no mass change), about -250 g evaporation (estimate); salt and 2 tk ételízesítő left out"),
         sources=[src("https://www.mindmegette.hu/recept/lebbencsleves", R, "batch recipe, 4 adag"),
                  src("https://www.receptneked.hu/recept/lebbencsleves", R, "cross-check: 15 dkg füstölt szalonna, 40 dkg burgonya, lebbencstészta, paradicsom, paprika, 4 adag")]),
 }
@@ -228,11 +228,11 @@ DISHES = [
     dict(id="hu_sargaborso_leves", countries=["HU"], category="traditional", part_refs=[("sargaborso_leves", 450)], served_in="deep_plate", tags=["soup", "traditional"],
          names={"hu": "sárgaborsó-leves", "de": "Gelbe Erbsensuppe", "en": "Yellow split pea soup"},
          aliases={"hu": ["sárgaborsó-leves", "sárgaborsóleves", "sárgaborsó leves", "sargaborso leves"], "de": ["gelbe erbsensuppe", "erbsensuppe"], "de-AT": ["erbsensuppe"], "en": ["yellow split pea soup", "split pea soup"]},
-         reference_check=dict(catalog="bls:X4A8020", name="Erbsensuppe mit Gemüsebrühe und Suppengrün", kcal=56, fat=1.4, protein=3.25, net_carbs=6.0)),
+         reference_check=dict(catalog="bls:X4A8020", name="Erbsensuppe mit Gemüsebrühe und Suppengrün", kcal=56, fat=1.4, protein=3.25, net_carbs=6.0, deviation="25 dkg száraz borsó 1,5 l levesre (receptneked), sűrűbb a BLS zöldséglevesalapú Erbsensuppe-nál.")),
     dict(id="hu_krumplileves", countries=["HU"], category="traditional", part_refs=[("krumplileves", 450)], served_in="deep_plate", tags=["soup", "traditional"],
          names={"hu": "krumplileves", "de": "Ungarische Kartoffelsuppe", "en": "Hungarian potato soup"},
          aliases={"hu": ["krumplileves", "burgonyaleves", "kolbászos krumplileves"], "de": ["ungarische kartoffelsuppe", "kartoffelsuppe mit wurst"], "de-AT": ["erdäpfelsuppe"], "en": ["hungarian potato soup", "potato soup with sausage"]},
-         reference_check=dict(catalog="bls:X450033", name="Kartoffelsuppe mit Gemüsebrühe und Brühwurst", kcal=93, fat=5.4, protein=2.95, net_carbs=8.0)),
+         reference_check=dict(catalog="bls:X450033", name="Kartoffelsuppe mit Gemüsebrühe und Brühwurst", kcal=93, fat=5.4, protein=2.95, net_carbs=8.0, deviation="A BLS változat több Brühwurstot és zsírt tartalmaz (zsír 5,4 g); itt 20 dkg kolbász jut 2,85 kg levesre.")),
     dict(id="hu_frankfurti_leves", countries=["HU"], category="traditional", part_refs=[("frankfurti_leves", 450)], served_in="deep_plate", tags=["soup", "traditional"],
          names={"hu": "frankfurti leves", "de": "Frankfurter Suppe", "en": "Frankfurter soup"},
          aliases={"hu": ["frankfurti leves", "frankfurti", "virslis kelkáposztaleves"], "de": ["frankfurter suppe", "wirsingsuppe mit würstchen"], "de-AT": ["frankfurter suppe", "kohlsuppe mit frankfurtern"], "en": ["frankfurter soup", "savoy cabbage sausage soup"]}),
@@ -246,11 +246,11 @@ DISHES = [
     dict(id="hu_meggyleves", countries=["HU"], category="traditional", part_refs=[("meggyleves", 300)], served_in="deep_plate", tags=["soup", "traditional", "sweet", "cold"],
          names={"hu": "meggyleves", "de": "Ungarische Sauerkirschsuppe", "en": "Hungarian sour cherry soup"},
          aliases={"hu": ["meggyleves", "hideg meggyleves", "tejszínes meggyleves"], "de": ["sauerkirschsuppe", "kalte kirschsuppe", "kirschkaltschale"], "de-AT": ["weichselsuppe"], "en": ["sour cherry soup", "cold cherry soup"]},
-         reference_check=dict(catalog="bls:X492143", name="Kirschkaltschale/Kirschsuppe, gebunden mit Stärke", kcal=66, fat=0.222, protein=0.671, net_carbs=15.1)),
+         reference_check=dict(catalog="bls:X492143", name="Kirschkaltschale/Kirschsuppe, gebunden mit Stärke", kcal=66, fat=0.222, protein=0.671, net_carbs=15.1, deviation="A BLS Kirschsuppe keményítővel sűrített és édesebb (nettó CH 15 g); a recept 45 dkg meggyhez 2 ek cukrot ad.")),
     dict(id="hu_sutotokkremleves", countries=["HU"], category="traditional", part_refs=[("sutotokkremleves", 450)], served_in="deep_plate", tags=["soup", "traditional", "vegetarian"],
          names={"hu": "sütőtökkrémleves", "de": "Kürbiscremesuppe", "en": "Cream of pumpkin soup"},
          aliases={"hu": ["sütőtökkrémleves", "sütőtök krémleves", "tökkrémleves", "sütőtökleves"], "de": ["kürbiscremesuppe", "kürbissuppe"], "de-AT": ["kürbiscremesuppe"], "en": ["pumpkin cream soup", "cream of pumpkin soup", "pumpkin soup"]},
-         reference_check=dict(catalog="bls:X445863", name="Kürbiscremesuppe", kcal=69, fat=5.2, protein=0.95, net_carbs=4.0),
+         reference_check=dict(catalog="bls:X445863", name="Kürbiscremesuppe", kcal=69, fat=5.2, protein=0.95, net_carbs=4.0, deviation="2 l víz 60 dkg sütőtökre és 45 dkg burgonyára, 2,5 dl tejszín; a BLS Kürbiscremesuppe tejszínesebb (zsír 5,2 g)."),
          review="Az erőleveskocka miatt nem szigorúan vegetáriánus; a 'vegetarian' címke ellenőrizendő."),
     dict(id="hu_gombakremleves", countries=["HU"], category="traditional", part_refs=[("gombakremleves", 450)], served_in="deep_plate", tags=["soup", "traditional", "vegetarian"],
          names={"hu": "gombakrémleves", "de": "Champignoncremesuppe", "en": "Cream of mushroom soup"},

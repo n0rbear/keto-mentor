@@ -65,6 +65,38 @@ MEASURE_G = {
 # fat (no drippings key).
 FAT_RETENTION = {"oven": 0.842, "pan": 0.956, "grill": 0.969}
 
+# Pasta boiled in plenty of water and drained: cooked weight / dry weight from
+# the BLS 4.0 raw -> "gekocht" pairs (protein ratio): E401000 -> E401032
+# Teigwaren eifrei 2.30, E432000 -> E432032 Eierteigwaren 2.54. Pasta cooked
+# inside a soup or steamed in its own listed water takes that water from the
+# batch, so it adds no mass there.
+BOILED_YIELD = {"pasta_durum_dry": 2.30, "egg_pasta_dry": 2.54}
+
+
+# Breaded, pan/deep-fried cutlets (rántott hús, rántott csirkemell): what
+# sticks and what is absorbed, per gram of raw meat, solved from BLS 4.0
+# Y332132 Schweineschnitzel paniert, gebraten and Y591112 Hähnchenbrustfilet
+# paniert, gebraten (carbohydrate -> flour + crumbs at 1:3, protein -> meat,
+# remaining fat -> frying oil): dry coating ~12 % of the meat (flour 3 %,
+# crumbs 9 %), oil ~6 % of the finished weight. Egg wash 10 % of the meat is
+# an assumption (BLS lists no split).
+BREADING = {"flour": 0.03, "crumbs": 0.09, "egg": 0.10, "oil_of_finished": 0.06}
+
+
+def breaded(meat_key, meat_g, meat_loss_g, oil_key="sunflower_oil"):
+    """Ingredients and mass change of a breaded cutlet batch (BREADING rule)."""
+    flour, crumbs, egg = (round(meat_g * BREADING[k]) for k in ("flour", "crumbs", "egg"))
+    base = meat_g + flour + crumbs + egg - meat_loss_g
+    oil = round(BREADING["oil_of_finished"] * base / (1 - BREADING["oil_of_finished"]))
+    return [ing(meat_key, meat_g), ing("wheat_flour", flour, "coating", "amount that sticks (common.BREADING)"),
+            ing("egg", egg, "coating", "egg wash that sticks (common.BREADING)"), ing("breadcrumbs", crumbs, "coating", "amount that sticks (common.BREADING)"),
+            ing(oil_key, oil, "absorbed_fat", "absorbed while frying, 6 % of the finished weight (common.BREADING)")], -meat_loss_g
+
+
+def boiled_uptake(key, dry_g):
+    """Water a drained, boiled pasta takes up (grams), from BOILED_YIELD."""
+    return round(dry_g * (BOILED_YIELD[key] - 1))
+
 def g(n, measure):
     """Grams for n household units, e.g. g(2, "ek_flour") -> 20."""
     return round(n * MEASURE_G[measure], 1)

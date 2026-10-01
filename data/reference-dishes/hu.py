@@ -4,7 +4,7 @@ The 10 pilot dishes (2026-09-26), then phase 2 (2026-09-27): the full Hungarian
 set. INVENTORY lists the phase-2 dishes still to build; a dish leaves it when
 its PARTS/DISHES entry (two dated sources, catalog-linked ingredients) lands.
 """
-from common import g, ing, src, srcs
+from common import breaded, g, ing, src, srcs
 
 # The pilot sources were read when the pilot was built (commit ac4416d).
 PILOT_RETRIEVED = "2026-09-26"
@@ -25,6 +25,8 @@ PILOT_RETRIEVED = "2026-09-26"
 # flat_plate: coverage of the plate's usable area and average food height at
 #   a "normal" portion (only for parts that are served on flat plates).
 # ---------------------------------------------------------------------------
+_RANTOTT_HUS = breaded("pork_loin", 600, 150)
+
 PARTS = {
     "gulyasleves": dict(
         names={"hu": "Gulyásleves", "de": "Gulaschsuppe", "en": "Hungarian goulash soup"},
@@ -102,10 +104,8 @@ PARTS = {
     "rantott_hus": dict(
         names={"hu": "Rántott hús (sertéskaraj)", "de": "Paniertes Schweineschnitzel", "en": "Breaded pork cutlet"},
         matrix="dry", bulk_density_g_ml=0.85, servings_source=4, standard_serving_g=185,
-        ingredients=[ing("pork_loin", 600, note="4 x 150 g slices"), ing("wheat_flour", 30, "coating", "amount that sticks, not the amount put out"),
-                     ing("egg", 100, "coating", "2 eggs, amount that sticks"), ing("breadcrumbs", 100, "coating", "amount that sticks (~150 g put out)"),
-                     ing("sunflower_oil", 60, "absorbed_fat", "absorbed during deep/shallow frying, ~8% of the breaded weight")],
-        cooking=dict(method="fried in 170-180 °C oil, 2-3 min per side", mass_change_g=-150, note="meat loses ~25% of its weight as water while frying"),
+        ingredients=_RANTOTT_HUS[0],
+        cooking=dict(method="fried in 170-180 °C oil, 2-3 min per side", mass_change_g=_RANTOTT_HUS[1], note="meat (4 x 150 g slices) loses ~25% of its weight as water while frying; coating and oil from common.BREADING"),
         flat_plate=dict(coverage=0.35, height_cm=1.8),
         sources=srcs(PILOT_RETRIEVED, ["https://foodandwine.hu/2010/10/05/a-rantott-szelet-keszitesenek-10-titka/", "https://kemenytojas.com/receptek/rantott-hus/"])),
     "petrezselymes_burgonya": dict(
@@ -163,6 +163,7 @@ DISHES = [
          review="Gyakran cérnametélttel eszik és a főtt hús külön kerül a tányérra; a 'csak leve' és a 'tésztával' változat későbbi bővítés."),
     dict(id="hu_rantott_hus", countries=["HU"], category="everyday", part_refs=[("rantott_hus", 185)], served_in="flat_plate", tags=["traditional", "fried"],
          side_options=[("petrezselymes_burgonya", 200), ("parolt_rizs", 180)], default_side=None,
+         reference_check=dict(catalog="bls:Y321012", name="Schweinekotelett paniert, gebraten", kcal=296, fat=19.22, protein=24.11, net_carbs=6.29),
          aliases={"hu": ["rántott hús", "rántott szelet", "bécsi szelet", "rántotthús"], "de": ["schnitzel", "wiener schnitzel vom schwein"], "en": ["breaded cutlet", "pork schnitzel"]},
          alias_side={"rántott hús krumplival": "petrezselymes_burgonya", "rántott hús petrezselymes krumplival": "petrezselymes_burgonya", "rántott hús rizzsel": "parolt_rizs"},
          review="A 'körettel' szó nem dönt a köretről: ha a felhasználó nem mondja meg, a rendszer kérdezzen (burgonya / rizs), ne találgasson. A hasábburgonya és a burgonyapüré későbbi köret."),
