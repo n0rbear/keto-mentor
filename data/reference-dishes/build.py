@@ -35,8 +35,8 @@ from pathlib import Path
 OUT = Path(__file__).resolve().parent
 sys.path.insert(0, str(OUT))
 
-from common import CATEGORIES, COUNTRIES, DEEP_FILL, FLAT_FILL, LANGUAGES, USABLE_DIAMETER_RATIO  # noqa: E402
-from foods import FOOD_KEYS  # noqa: E402
+from common import CATEGORIES, COUNTRIES, DEEP_FILL, FAT_RETENTION, FLAT_FILL, LANGUAGES, USABLE_DIAMETER_RATIO  # noqa: E402
+from foods import FOOD_KEYS, renders_fat  # noqa: E402
 import at  # noqa: E402
 import de  # noqa: E402
 import hu  # noqa: E402
@@ -199,6 +199,20 @@ def build_part(pid, p):
             continue
         for x in totals:
             totals[x] += n[x]
+    # Drippings that are not eaten: the rendered share of the meat's fat
+    # leaves the dish. mass_change_g stays the net weight change (it already
+    # includes this fat together with water lost or taken up).
+    fat_loss = 0.0
+    drippings = p["cooking"].get("drippings")
+    if drippings:
+        if drippings not in FAT_RETENTION:
+            raise SystemExit(f"part {pid}: cooking.drippings must be one of {sorted(FAT_RETENTION)}")
+        meat_fat = sum(FOOD_KEYS[i["food_key"]][6] * i["raw_g"] / 100 for i in p["ingredients"] if renders_fat(i["food_key"]))
+        fat_loss = round(meat_fat * (1 - FAT_RETENTION[drippings]), 1)
+        if fat_loss <= 0:
+            raise SystemExit(f"part {pid}: drippings declared but no meat fat renders out")
+        totals["fat"] -= fat_loss
+        totals["kcal"] -= 9 * fat_loss
     # A partial sum would under-count (e.g. 500 g beans counted as 0 kcal), so
     # the cross-check is only computed when every ingredient has macros.
     per100 = None if missing else {x: round(v / finished * 100, 1) for x, v in totals.items()}
@@ -212,6 +226,7 @@ def build_part(pid, p):
             "cooking": p["cooking"],
             "finished_weight_g": finished,
             "yield_factor": round(finished / raw_total, 3),
+            **({"fat_loss_g": fat_loss} if drippings else {}),
         },
         "standard_serving_g": p["standard_serving_g"],
         "density_g_per_ml": round(density, 3),
@@ -300,6 +315,7 @@ def build_variants(parts, dishes):
                         continue
                     grams[i["food_key"]] = grams.get(i["food_key"], 0) + i["raw_g"] * factor
                     roles.setdefault(i["food_key"], ROLE_MAP.get(i["role"], "core"))
+            fat_loss = sum(parts[pid]["batch"].get("fat_loss_g", 0) * serving / parts[pid]["batch"]["finished_weight_g"] for pid, serving in plist)
             serving_total = sum(g for _, g in plist)
             density = serving_total / sum(g / parts[pid]["density_g_per_ml"] for pid, g in plist)
             sources = {s["url"]: s for pid, _ in plist for s in parts[pid]["sources"]}
@@ -312,6 +328,7 @@ def build_variants(parts, dishes):
                 "servingGrams": serving_total, "densityGPerMl": round(density, 3), "servedIn": d["served_in"],
                 "parts": [{"part": pid, "grams": g, **({"flatPlate": parts[pid]["flat_plate"], "densityGPerMl": parts[pid]["density_g_per_ml"]} if parts[pid].get("flat_plate") else {"densityGPerMl": parts[pid]["density_g_per_ml"]})} for pid, g in plist],
                 "ingredients": [{"foodKey": k, "grams": round(v, 2), "role": roles[k]} for k, v in grams.items()],
+                **({"cookingFatLossGrams": round(fat_loss, 2)} if fat_loss else {}),
                 "sources": [{"url": u, "retrieved": sources[u]["retrieved"]} for u in sorted(sources)],
             })
             ids.append(vid)

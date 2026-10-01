@@ -54,6 +54,17 @@ MEASURE_G = {
 }
 
 
+# Fat that stays in roasted/fried/grilled meat when the drippings are NOT
+# eaten (cooking.drippings = "oven" | "pan" | "grill"). Medians of the BLS 4.0
+# raw -> cooked pairs of meat, poultry and sausage records (codes ...100 vs
+# ...162 "gebraten ohne Fett (Ofen)", ...182 "(Pfanne)", ...172 "gegrillt"):
+# retention = fat_cooked x (protein_raw / protein_cooked) / fat_raw, i.e. the
+# same retention factors BLS itself uses (101 / 70 / 47 records). Only fat from
+# meat-group ingredients renders out; added oil/lard is handled as uptake.
+# Stews, soups, casseroles and dishes served with their pan juices keep the
+# fat (no drippings key).
+FAT_RETENTION = {"oven": 0.842, "pan": 0.956, "grill": 0.969}
+
 def g(n, measure):
     """Grams for n household units, e.g. g(2, "ek_flour") -> 20."""
     return round(n * MEASURE_G[measure], 1)

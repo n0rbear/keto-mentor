@@ -187,3 +187,13 @@ FOOD_KEYS = {
     "hummus":             ("humusz", "Hummus", "hummus", "bls:H960000", "total", 324, 28.5, 5.9, 13.9, 5.9, 1.05, 1.05, None),
     "margarine":          ("margarin", "Pflanzenmargarine Vollfett", "margarine (full fat)", "bls:Q400000", "total", 718, 79.6, 0.11, 0.164, 0, 0.92, 0.92, None),
 }
+
+# Keys whose fat renders out when meat is roasted, pan-fried or grilled
+# (common.FAT_RETENTION): every BLS meat, poultry/offal and sausage record
+# (groups U, V, W) plus the USDA meat records below.
+RENDERS_FAT_USDA = ("beef_shank", "pork_shoulder")
+
+
+def renders_fat(key):
+    ref = FOOD_KEYS[key][3]
+    return (ref.startswith("bls:") and ref[4] in "UVW") or key in RENDERS_FAT_USDA

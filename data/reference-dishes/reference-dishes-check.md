@@ -26,18 +26,18 @@
 | Sonkával-sajttal töltött lángos | 1862.5 | -150 | 1712.5 | 0.919 | 1.031 | 270.3 | 13.8 | 10.4 | 24.8 | – |
 | Kürtőskalács (cukros) | 1107.5 | -110 | 997.5 | 0.901 | 1.068 | 315.1 | 7.2 | 8.0 | 53.4 | – |
 | Kenyér mustárral (hentes köret) | 100 | +0 | 100 | 1.0 | 0.35 | 239.8 | 3.8 | 8.1 | 41.0 | – |
-| Véres hurka (rizses, sütve) | 1993.5 | +70 | 2063.5 | 1.035 | 1.011 | 233.4 | 15.0 | 14.2 | 10.0 | – |
-| Májas hurka (rizses, sütve) | 995 | -205 | 790 | 0.794 | 1.014 | 225.3 | 14.4 | 15.5 | 8.1 | – |
+| Véres hurka (rizses, sütve) | 1993.5 | +70 | 2063.5 | 1.035 | 1.011 | 214.1 | 12.8 | 14.2 | 10.0 | – |
+| Májas hurka (rizses, sütve) | 995 | -205 | 790 | 0.794 | 1.014 | 204.9 | 12.2 | 15.5 | 8.1 | – |
 | Hot dog kifli | 1185.0 | -130 | 1055.0 | 0.89 | 1.015 | 286.0 | 10.6 | 7.9 | 38.5 | – |
 | Virsli mustárral, ketchuppal (lyukas kifliben) | 120 | +0 | 120 | 1.0 | 1.032 | 258.3 | 22.4 | 11.3 | 2.0 | – |
 | Hot dog töltelék (virsli, hagyma, mustár, ketchup) | 373 | -40 | 333 | 0.893 | 1.024 | 230.6 | 19.6 | 8.8 | 4.0 | – |
-| Gyros hús (sertés, sütve) | 1067 | -330 | 737 | 0.691 | 0.6 | 275.1 | 20.1 | 21.3 | 1.8 | – |
+| Gyros hús (sertés, sütve) | 1067 | -330 | 737 | 0.691 | 0.6 | 258.3 | 18.3 | 21.3 | 1.8 | – |
 | Gyros saláta tejfölös-fokhagymás öntettel | 1515 | +0 | 1515 | 1.0 | 0.7 | 83.5 | 6.8 | 1.6 | 3.0 | – |
 | Pita / török kenyér | 80 | +0 | 80 | 1.0 | 0.35 | 248.0 | 2.3 | 8.2 | 47.0 | – |
-| Csirke döner hús | 2593.5 | -700 | 1893.5 | 0.73 | 0.6 | 188.8 | 9.1 | 25.4 | 1.1 | – |
+| Csirke döner hús | 2593.5 | -700 | 1893.5 | 0.73 | 0.6 | 186.1 | 8.8 | 25.4 | 1.1 | – |
 | Falafel wrap | 1658.5 | -60 | 1598.5 | 0.964 | 0.928 | 153.7 | 7.1 | 5.2 | 15.1 | – |
 | Hamburger zsemle | 1054.5 | -120 | 934.5 | 0.886 | 1.021 | 284.0 | 4.1 | 9.8 | 50.2 | – |
-| Hamburger húspogácsa (marha) | 420 | -60 | 360 | 0.857 | 1.051 | 288.8 | 22.6 | 21.2 | 0.0 | – |
+| Hamburger húspogácsa (marha) | 420 | -60 | 360 | 0.857 | 1.051 | 281.5 | 21.8 | 21.2 | 0.0 | – |
 | Hamburger feltét (zöldség, szósz) | 688 | +0 | 688 | 1.0 | 0.98 | 44.7 | 2.2 | 1.3 | 3.9 | – |
 | Sajtszelet hamburgerbe | 20 | +0 | 20 | 1.0 | 1.08 | 345.0 | 26.8 | 25.1 | 0.0 | – |
 | Pulled pork (szálas sertés BBQ szószban) | 1844 | -480 | 1364 | 0.74 | 0.6 | 278.3 | 20.7 | 15.5 | 5.8 | – |
@@ -63,10 +63,10 @@
 | Káposztasaláta (ecetes) | 790 | +0 | 790 | 1.0 | 1.012 | 37.4 | 0.2 | 1.1 | 6.5 | – |
 | Franciasaláta | 1271 | -20 | 1251 | 0.984 | 0.993 | 115.6 | 7.3 | 2.4 | 8.5 | – |
 | Majonézes kukoricasaláta | 751 | +0 | 751 | 1.0 | 1.002 | 146.0 | 9.8 | 2.7 | 10.2 | – |
-| Sült csirkemell (natúr) | 526 | -125 | 401 | 0.762 | 0.85 | 194.2 | 8.7 | 29.0 | 0.0 | – |
+| Sült csirkemell (natúr) | 526 | -125 | 401 | 0.762 | 0.85 | 193.3 | 8.6 | 29.0 | 0.0 | – |
 | Gombás rizottó | 1337 | -200 | 1137 | 0.85 | 0.8 | 119.3 | 3.1 | 4.0 | 18.3 | – |
 | Zöldséges kuszkusz | 1947 | -150 | 1797 | 0.923 | 0.6 | 107.5 | 4.2 | 3.1 | 13.3 | – |
-| Sült csirkecomb | 1499 | -415 | 1084 | 0.723 | 0.7 | 253.8 | 18.8 | 20.7 | 0.6 | – |
+| Sült csirkecomb | 1499 | -415 | 1084 | 0.723 | 0.7 | 232.3 | 16.4 | 20.7 | 0.6 | – |
 | Rántott csirkemell | 578 | -80 | 498 | 0.862 | 0.85 | 235.7 | 11.6 | 22.0 | 10.4 | – |
 | Zöldborsófőzelék | 1368 | -150 | 1218 | 0.89 | 0.995 | 103.3 | 7.0 | 2.6 | 6.6 | – |
 | Tökfőzelék | 1974 | -100 | 1874 | 0.949 | 0.985 | 60.7 | 3.3 | 1.9 | 5.4 | – |
@@ -91,7 +91,7 @@
 | Párizsis zsemle | 110 | +0 | 110 | 1.0 | 0.379 | 280.5 | 12.6 | 11.1 | 29.6 | – |
 | Virsli mustárral | 120 | +0 | 120 | 1.0 | 1.025 | 259.3 | 23.0 | 11.7 | 0.5 | – |
 | Debreceni mustárral | 170 | +0 | 170 | 1.0 | 1.006 | 304.2 | 24.0 | 21.2 | 0.3 | – |
-| Sült kolbász | 1026 | -120 | 906 | 0.883 | 1.023 | 408.6 | 37.5 | 15.8 | 0.4 | – |
+| Sült kolbász | 1026 | -120 | 906 | 0.883 | 1.023 | 355.6 | 31.6 | 15.8 | 0.4 | – |
 | Tejbegríz | 596.5 | -40 | 556.5 | 0.933 | 1.073 | 116.3 | 4.4 | 4.2 | 14.8 | – |
 | Zabkása | 276 | -15 | 261 | 0.946 | 0.805 | 139.0 | 4.0 | 5.4 | 19.1 | – |
 | Müzli joghurttal | 195 | +0 | 195 | 1.0 | 0.794 | 128.8 | 4.0 | 5.2 | 15.9 | – |
@@ -117,8 +117,8 @@
 | Vadas marha (hús vadasmártással) | 3129.8 | -550 | 2579.8 | 0.824 | 1.016 | 97.5 | 5.1 | 7.7 | 4.6 | – |
 | Tokány (erdélyi marhatokány) | 1520 | -450 | 1070 | 0.704 | 1.046 | 135.9 | 6.5 | 17.1 | 1.8 | – |
 | Brassói aprópecsenye | 1522.5 | -350 | 1172.5 | 0.77 | 0.7 | 198.3 | 13.2 | 9.3 | 9.3 | – |
-| Cigánypecsenye (tarja sült szalonnával) | 1599 | -420 | 1179 | 0.737 | 0.9 | 300.1 | 22.3 | 24.1 | 0.3 | – |
-| Fasírt | 1115 | -150 | 965 | 0.865 | 0.85 | 267.8 | 19.1 | 12.5 | 10.6 | – |
+| Cigánypecsenye (tarja sült szalonnával) | 1599 | -420 | 1179 | 0.737 | 0.9 | 293.1 | 21.5 | 24.1 | 0.3 | – |
+| Fasírt | 1115 | -150 | 965 | 0.865 | 0.85 | 263.3 | 18.6 | 12.5 | 10.6 | – |
 | Töltött paprika (paradicsomszósszal) | 1711 | -100 | 1611 | 0.942 | 1.024 | 115.3 | 5.4 | 5.2 | 10.0 | – |
 | Rakott kel | 2204.5 | -150 | 2054.5 | 0.932 | 1.012 | 150.8 | 9.8 | 6.6 | 8.2 | – |
 | Rakott karfiol | 2992 | -200 | 2792 | 0.933 | 1.015 | 144.2 | 8.9 | 5.9 | 10.0 | – |
@@ -127,9 +127,9 @@
 | Rizses hús | 2452.5 | -600 | 1852.5 | 0.755 | 0.85 | 163.5 | 8.7 | 8.8 | 11.4 | – |
 | Tarhonyás hús | 3745.7 | -650 | 3095.7 | 0.826 | 0.8 | 115.9 | 2.9 | 9.9 | 11.9 | – |
 | Rántott sajt (trappista) | 560 | -30 | 530 | 0.946 | 0.95 | 379.3 | 27.1 | 20.5 | 12.4 | – |
-| Sült oldalas | 918 | -400 | 518 | 0.564 | 0.8 | 207.9 | 14.0 | 17.7 | 2.3 | – |
-| Sült csülök | 2665 | -900 | 1765 | 0.662 | 0.9 | 302.2 | 19.3 | 31.4 | 0.7 | – |
-| Tepsis csirke (sült csirkedarabok) | 746 | -175 | 571 | 0.765 | 0.8 | 300.5 | 23.4 | 22.5 | 0.0 | – |
+| Sült oldalas | 918 | -400 | 518 | 0.564 | 0.8 | 191.5 | 12.2 | 17.7 | 2.3 | – |
+| Sült csülök | 2665 | -900 | 1765 | 0.662 | 0.9 | 278.9 | 16.7 | 31.4 | 0.7 | – |
+| Tepsis csirke (sült csirkedarabok) | 746 | -175 | 571 | 0.765 | 0.8 | 278.6 | 21.0 | 22.5 | 0.0 | – |
 | Gombapaprikás | 1524.5 | -350 | 1174.5 | 0.77 | 0.996 | 128.9 | 10.1 | 4.0 | 5.5 | – |
 | Hortobágyi palacsinta | 3545.5 | -800 | 2745.5 | 0.774 | 1.02 | 187.7 | 14.1 | 8.7 | 6.4 | – |
 | Túrós csusza | 1558 | +420 | 1978 | 1.27 | 0.7 | 175.1 | 8.7 | 8.5 | 15.3 | – |
@@ -201,11 +201,11 @@ Számolt érték a katalógusrekordokból vs. egy nyilvános referencia (pl. BLS
 | hot dog | bls:Y021512 Hot Dog | 252 / 231 | 16.1 / 13.28 | 8.4 / 9.61 | 17.4 / 17.15 | +9% rendben |
 | gyros pita | nincs még | – | – | – | – | – |
 | gyros tál | nincs még | – | – | – | – | – |
-| döner | bls:Y921162 Döner Kebab, Fladenbrot gefüllt mit Grillfleisch (Geflügel), Rohkost und Sauce | 175 / 199 | 6.0 / 7.9 | 11.6 / 13.08 | 17.8 / 18.0 | -12% rendben |
+| döner | bls:Y921162 Döner Kebab, Fladenbrot gefüllt mit Grillfleisch (Geflügel), Rohkost und Sauce | 175 / 199 | 5.9 / 7.9 | 11.6 / 13.08 | 17.8 / 18.0 | -12% rendben |
 | döner tál | nincs még | – | – | – | – | – |
 | falafel wrap | nincs még | – | – | – | – | – |
-| hamburger | bls:Y911060 Hamburger | 175 / 190 | 7.7 / 7.31 | 8.7 / 10.01 | 16.7 / 19.72 | -8% rendben |
-| sajtos hamburger | bls:Y911160 Cheeseburger | 184 / 202 | 8.7 / 9.1 | 9.5 / 10.6 | 15.9 / 18.1 | -9% rendben |
+| hamburger | bls:Y911060 Hamburger | 173 / 190 | 7.5 / 7.31 | 8.7 / 10.01 | 16.7 / 19.72 | -9% rendben |
+| sajtos hamburger | bls:Y911160 Cheeseburger | 182 / 202 | 8.5 / 9.1 | 9.5 / 10.6 | 15.9 / 18.1 | -10% rendben |
 | pulled pork szendvics | nincs még | – | – | – | – | – |
 | szelet pizza | bls:X912412 Pizza Prosciutto (mit Tomatensauce, Kochschinken, Mozzarella) | 231 / 224 | 8.6 / 12.17 | 12.6 / 11.36 | 24.4 / 16.0 | +3% rendben |
 | tócsni | bls:X655032 Kartoffelpuffer/Reibekuchen (mit saurer Sahne und Grieß) gebraten | 185 / 185 | 9.5 / 8.9 | 3.6 / 3.6 | 20.4 / 21.6 | -0% rendben |
@@ -285,7 +285,7 @@ Számolt érték a katalógusrekordokból vs. egy nyilvános referencia (pl. BLS
 | tokány | nincs még | – | – | – | – | – |
 | brassói aprópecsenye | nincs még | – | – | – | – | – |
 | cigánypecsenye | nincs még | – | – | – | – | – |
-| fasírt | bls:Y396512 Frikadellen aus Schweinefleisch gebraten | 268 / 297 | 19.1 / 21.44 | 12.5 / 17.24 | 10.6 / 8.41 | -10% rendben |
+| fasírt | bls:Y396512 Frikadellen aus Schweinefleisch gebraten | 263 / 297 | 18.6 / 21.44 | 12.5 / 17.24 | 10.6 / 8.41 | -11% rendben |
 | töltött paprika | nincs még | – | – | – | – | – |
 | rakott kel | nincs még | – | – | – | – | – |
 | rakott karfiol | nincs még | – | – | – | – | – |
@@ -295,7 +295,7 @@ Számolt érték a katalógusrekordokból vs. egy nyilvános referencia (pl. BLS
 | tarhonyás hús | nincs még | – | – | – | – | – |
 | rántott sajt | nincs még | – | – | – | – | – |
 | sült oldalas | nincs még | – | – | – | – | – |
-| sült csülök | bls:Y362012 Schweinshaxe geschmort, ohne Sauce | 302 / 300 | 19.3 / 20.15 | 31.4 / 29.71 | 0.7 / 0.02 | +1% rendben |
+| sült csülök | bls:Y362012 Schweinshaxe geschmort, ohne Sauce | 279 / 300 | 16.7 / 20.15 | 31.4 / 29.71 | 0.7 / 0.02 | -7% rendben |
 | tepsis csirke | nincs még | – | – | – | – | – |
 | gombapaprikás | nincs még | – | – | – | – | – |
 | hortobágyi palacsinta | nincs még | – | – | – | – | – |

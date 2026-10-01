@@ -3799,10 +3799,12 @@
         "cooking": {
           "method": "rice half-cooked, mixed with meat, onion and blood, stuffed, poached 40-50 min, roasted/pan-crisped before serving",
           "mass_change_g": 70,
+          "drippings": "oven",
           "note": "+250 g water taken up by the half-cooked rice, -80 g poaching and -100 g roasting loss (estimates). Marjoram (MISSING), pepper, caraway, salt and casing left out"
         },
         "finished_weight_g": 2063.5,
-        "yield_factor": 1.035
+        "yield_factor": 1.035,
+        "fat_loss_g": 44.4
       },
       "standard_serving_g": 200,
       "density_g_per_ml": 1.011,
@@ -3826,8 +3828,8 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 233.4,
-          "fat": 15.0,
+          "kcal": 214.1,
+          "fat": 12.8,
           "protein": 14.2,
           "net_carbs": 10.0
         },
@@ -3904,10 +3906,12 @@
         "cooking": {
           "method": "offal and fatty parts poached soft, minced, mixed with rice cooked in broth, stuffed, poached 1-2 min, baked 15 min at 190 °C",
           "mass_change_g": -205,
+          "drippings": "oven",
           "note": "~25% poaching loss of the meat (-165 g) and ~5% baking loss (-40 g), estimates; the rice takes up the 2,5 dl broth. 2,5 dkg marjoram (MISSING), pepper, salt and casing left out"
         },
         "finished_weight_g": 790,
-        "yield_factor": 0.794
+        "yield_factor": 0.794,
+        "fat_loss_g": 17.9
       },
       "standard_serving_g": 200,
       "density_g_per_ml": 1.014,
@@ -3931,8 +3935,8 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 225.3,
-          "fat": 14.4,
+          "kcal": 204.9,
+          "fat": 12.2,
           "protein": 15.5,
           "net_carbs": 8.1
         },
@@ -4228,10 +4232,12 @@
         "cooking": {
           "method": "marinated overnight, roasted >1 h under foil, then uncovered until browned",
           "mass_change_g": -330,
+          "drippings": "oven",
           "note": "meat loses ~35%, onion ~25% (estimates). Source gives no yield; 4 portions is an estimate. Gyros spice mix, salt, pepper left out"
         },
         "finished_weight_g": 737,
-        "yield_factor": 0.691
+        "yield_factor": 0.691,
+        "fat_loss_g": 13.8
       },
       "standard_serving_g": 150,
       "density_g_per_ml": 0.6,
@@ -4255,8 +4261,8 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 275.1,
-          "fat": 20.1,
+          "kcal": 258.3,
+          "fat": 18.3,
           "protein": 21.3,
           "net_carbs": 1.8
         },
@@ -4473,10 +4479,12 @@
         "cooking": {
           "method": "marinated, stacked, roasted and sliced thin",
           "mass_change_g": -700,
+          "drippings": "oven",
           "note": "meat loses ~30% and part of the marinade drips off (estimate). Cumin, oregano, thyme, chili, marjoram, coriander, ginger, salt, pepper left out"
         },
         "finished_weight_g": 1893.5,
-        "yield_factor": 0.73
+        "yield_factor": 0.73,
+        "fat_loss_g": 5.7
       },
       "standard_serving_g": 150,
       "density_g_per_ml": 0.6,
@@ -4500,8 +4508,8 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 188.8,
-          "fat": 9.1,
+          "kcal": 186.1,
+          "fat": 8.8,
           "protein": 25.4,
           "net_carbs": 1.1
         },
@@ -4762,10 +4770,12 @@
         "cooking": {
           "method": "4 patties fried 2-2 min per side",
           "mass_change_g": -60,
+          "drippings": "pan",
           "note": "~15% frying loss (estimate); salt and pepper left out"
         },
         "finished_weight_g": 360,
-        "yield_factor": 0.857
+        "yield_factor": 0.857,
+        "fat_loss_g": 2.9
       },
       "standard_serving_g": 90,
       "density_g_per_ml": 1.051,
@@ -4785,8 +4795,8 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 288.8,
-          "fat": 22.6,
+          "kcal": 281.5,
+          "fat": 21.8,
           "protein": 21.2,
           "net_carbs": 0.0
         },
@@ -6996,10 +7006,12 @@
         "cooking": {
           "method": "seasoned fillets pan-fried / grilled",
           "mass_change_g": -125,
+          "drippings": "pan",
           "note": "chicken breast loses ~25% of its weight (estimate). Fűszersó, basil left out"
         },
         "finished_weight_g": 401,
-        "yield_factor": 0.762
+        "yield_factor": 0.762,
+        "fat_loss_g": 0.4
       },
       "standard_serving_g": 120,
       "density_g_per_ml": 0.85,
@@ -7023,8 +7035,8 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 194.2,
-          "fat": 8.7,
+          "kcal": 193.3,
+          "fat": 8.6,
           "protein": 29.0,
           "net_carbs": 0.0
         },
@@ -7274,10 +7286,12 @@
         "cooking": {
           "method": "spiced legs roasted in a tray at 200 °C ~1 h",
           "mass_change_g": -415,
+          "drippings": "oven",
           "note": "about -315 g roasting loss of the meat (25%) and -100 g of the stock evaporates (estimates). Paprika, garlic/onion powder, thyme, cumin, salt left out"
         },
         "finished_weight_g": 1084,
-        "yield_factor": 0.723
+        "yield_factor": 0.723,
+        "fat_loss_g": 25.9
       },
       "standard_serving_g": 180,
       "density_g_per_ml": 0.7,
@@ -7301,8 +7315,8 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 253.8,
-          "fat": 18.8,
+          "kcal": 232.3,
+          "fat": 16.4,
           "protein": 20.7,
           "net_carbs": 0.6
         },
@@ -9291,10 +9305,12 @@
         "cooking": {
           "method": "fresh sausage (sütnivaló kolbász) pricked and baked ~40 min at 180 °C",
           "mass_change_g": -120,
+          "drippings": "oven",
           "note": "~12% water loss (estimate); fat that drips into the tray is not subtracted, so fat is slightly overestimated; salt and pepper left out; casing ignored"
         },
         "finished_weight_g": 906,
-        "yield_factor": 0.883
+        "yield_factor": 0.883,
+        "fat_loss_g": 53.3
       },
       "standard_serving_g": 226,
       "density_g_per_ml": 1.023,
@@ -9318,8 +9334,8 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 408.6,
-          "fat": 37.5,
+          "kcal": 355.6,
+          "fat": 31.6,
           "protein": 15.8,
           "net_carbs": 0.4
         },
@@ -11749,10 +11765,12 @@
         "cooking": {
           "method": "marinated neck steaks pan-fried, bacon fried crisp",
           "mass_change_g": -420,
+          "drippings": "pan",
           "note": "estimate: meat loses ~25% water, bacon renders ~40%; the 1,5 kg burgonya side (hasábburgonya) is not in this part; pepper, salt left out"
         },
         "finished_weight_g": 1179,
-        "yield_factor": 0.737
+        "yield_factor": 0.737,
+        "fat_loss_g": 9.2
       },
       "standard_serving_g": 300,
       "density_g_per_ml": 0.9,
@@ -11776,8 +11794,8 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 300.1,
-          "fat": 22.3,
+          "kcal": 293.1,
+          "fat": 21.5,
           "protein": 24.1,
           "net_carbs": 0.3
         },
@@ -11854,10 +11872,12 @@
         "cooking": {
           "method": "shallow-fried patties",
           "mass_change_g": -150,
+          "drippings": "pan",
           "note": "estimate: ~15% frying loss; salt and pepper left out"
         },
         "finished_weight_g": 965,
-        "yield_factor": 0.865
+        "yield_factor": 0.865,
+        "fat_loss_g": 4.9
       },
       "standard_serving_g": 180,
       "density_g_per_ml": 0.85,
@@ -11881,8 +11901,8 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 267.8,
-          "fat": 19.1,
+          "kcal": 263.3,
+          "fat": 18.6,
           "protein": 12.5,
           "net_carbs": 10.6
         },
@@ -12808,10 +12828,12 @@
         "cooking": {
           "method": "roasted in the oven, first covered with water, then uncovered until brown",
           "mass_change_g": -400,
+          "drippings": "oven",
           "note": "estimate: the water evaporates, meat loses ~30%; the 4 db burgonya roasted alongside is not in this part; flekken spice mix and salt left out"
         },
         "finished_weight_g": 518,
-        "yield_factor": 0.564
+        "yield_factor": 0.564,
+        "fat_loss_g": 9.4
       },
       "standard_serving_g": 250,
       "density_g_per_ml": 0.8,
@@ -12835,8 +12857,8 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 207.9,
-          "fat": 14.0,
+          "kcal": 191.5,
+          "fat": 12.2,
           "protein": 17.7,
           "net_carbs": 2.3
         },
@@ -12883,10 +12905,12 @@
         "cooking": {
           "method": "boiled ~1.5 h, then roasted in the oven until the skin is crisp",
           "mass_change_g": -900,
+          "drippings": "oven",
           "note": "estimate: ~35% loss of the hock (water and rendered fat into the cooking water/tray); the 2 kg burgonya roasted around it is not in this part; bay leaf, vegeta, salt left out"
         },
         "finished_weight_g": 1765,
-        "yield_factor": 0.662
+        "yield_factor": 0.662,
+        "fat_loss_g": 45.7
       },
       "standard_serving_g": 450,
       "density_g_per_ml": 0.9,
@@ -12910,8 +12934,8 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 302.2,
-          "fat": 19.3,
+          "kcal": 278.9,
+          "fat": 16.7,
           "protein": 31.4,
           "net_carbs": 0.7
         },
@@ -12946,10 +12970,12 @@
         "cooking": {
           "method": "marinated in oil and spices, roasted in a tray",
           "mass_change_g": -175,
+          "drippings": "oven",
           "note": "estimate: ~25% roasting loss of the chicken; sült csirke fűszer and salt left out"
         },
         "finished_weight_g": 571,
-        "yield_factor": 0.765
+        "yield_factor": 0.765,
+        "fat_loss_g": 13.9
       },
       "standard_serving_g": 250,
       "density_g_per_ml": 0.8,
@@ -12973,8 +12999,8 @@
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
         "per_100g": {
-          "kcal": 300.5,
-          "fat": 23.4,
+          "kcal": 278.6,
+          "fat": 21.0,
           "protein": 22.5,
           "net_carbs": 0.0
         },

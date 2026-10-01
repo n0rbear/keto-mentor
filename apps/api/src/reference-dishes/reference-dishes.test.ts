@@ -199,6 +199,16 @@ function memoryPrisma() {
 }
 
 describe("reference seed", () => {
+  it("stores the rendered fat of roasted dishes for the nutrition calculator", async () => {
+    const roasted = REFERENCE_DATA.variants.find((variant) => variant.id === "hu_sult_kolbasz")!;
+    expect(roasted.cookingFatLossGrams).toBeGreaterThan(0);
+    expect(REFERENCE_DATA.variants.find((variant) => variant.id === "hu_gulyasleves")!.cookingFatLossGrams).toBeUndefined();
+    const db = memoryPrisma();
+    await seedReferenceDishes(db.prisma);
+    const recipe = db.recipes.find((row) => row.provenance.referenceVariantId === roasted.id);
+    expect(recipe.provenance.cookingFatLossGrams).toBe(roasted.cookingFatLossGrams);
+  });
+
   it("is idempotent: a second run writes nothing", async () => {
     const db = memoryPrisma();
     const first = await seedReferenceDishes(db.prisma);

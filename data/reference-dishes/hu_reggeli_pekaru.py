@@ -133,7 +133,7 @@ PARTS = {
         ingredients=[ing("pork_shoulder", 750, note="75 dkg sertéslapocka"), ing("pork_back_fat", 250, "fat", "25 dkg hátszalonna"),
                      ing("paprika_ground", 16, "seasoning", "1,6 dkg fűszerpaprika"), ing("caraway_seed", 5, "seasoning", "0,5 dkg őrölt kömény"),
                      ing("garlic", 5, "seasoning", "0,5 dkg fokhagyma")],
-        cooking=dict(method="fresh sausage (sütnivaló kolbász) pricked and baked ~40 min at 180 °C", mass_change_g=-120,
+        cooking=dict(method="fresh sausage (sütnivaló kolbász) pricked and baked ~40 min at 180 °C", mass_change_g=-120, drippings="oven",
                      note="~12% water loss (estimate); fat that drips into the tray is not subtracted, so fat is slightly overestimated; salt and pepper left out; casing ignored"),
         flat_plate=dict(coverage=0.20, height_cm=3.0),
         sources=[src(MM + "sutnivalo-kolbasz", R, "batch recipe (sütnivaló kolbász), 4 adag: 75 dkg lapocka, 25 dkg hátszalonna, fűszerek"),

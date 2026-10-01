@@ -12,6 +12,24 @@ function recipe() {
   } as any;
 }
 
+describe("cooking fat loss (drippings not eaten)", () => {
+  const withLoss = (grams: unknown) => {
+    const r = recipe();
+    r.provenance = { kind: "reference_dish", cookingFatLossGrams: grams };
+    r.ingredients[0].food.nutrients.push({ foodId: "f1", nutrientId: "n3", amountPer100g: 10, nutrient: { id: "n3", key: "total_fat", label: "Total fat", unit: "g", group: "macro" } });
+    return calculateRecipeNutrition(r);
+  };
+  it("removes the fat and its energy, nothing else", () => {
+    expect(withLoss(5).total.macros).toMatchObject({ fat: 20, kcal: 355, protein: 50, netCarbs: 22 });
+  });
+  it("scales the fat nutrients in proportion", () => expect(withLoss(5).total.nutrients.total_fat.amount).toBeCloseTo(16));
+  it("never removes more fat than the recipe has", () => expect(withLoss(100).total.macros.fat).toBe(0));
+  it("ignores a missing or invalid value", () => {
+    expect(withLoss(undefined).total.macros.fat).toBe(25);
+    expect(withLoss(-3).total.macros.fat).toBe(25);
+  });
+});
+
 describe("recipe nutrition calculator", () => {
   const result = calculateRecipeNutrition(recipe());
   it("sums ingredient weight", () => expect(result.ingredientWeightGrams).toBe(300));
