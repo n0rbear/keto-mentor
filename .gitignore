@@ -12,3 +12,4 @@ apps/web/.vite/
 apps/api/prisma/dev.db
 playwright-report/
 test-results/
+__pycache__/

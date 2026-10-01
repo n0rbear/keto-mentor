@@ -1,8 +1,10 @@
 import { randomBytes } from "node:crypto";
 import argon2 from "argon2";
 import type { Prisma, PrismaClient } from "@prisma/client";
-import { REFERENCE_DATA, REFERENCE_DATA_VERSION } from "./hu-pilot.data.js";
+import { REFERENCE_DATA, REFERENCE_DATA_VERSION } from "./reference-data.js";
 import type { ReferenceVariant } from "./types.js";
+import { buildSearchText } from "../catalog/normalize.js";
+import { upsertSeedServings } from "../../prisma/seed-servings.js";
 
 // Reference dishes (roadmap B, owner-approved 2026-09-26) live as ordinary
 // public recipes of one system account, so nutrition, meal logging and
@@ -10,10 +12,22 @@ import type { ReferenceVariant } from "./types.js";
 // outside what registration accepts, so no real user can own it.
 export const REFERENCE_USERNAME = "system:keto-mentor";
 
-type SeedReport = { seeded: number; unchanged: number; skipped: Array<{ variant: string; missingFoodKeys: string[] }> };
+type SeedReport = {
+  seeded: number;
+  unchanged: number;
+  skipped: Array<{ variant: string; missingFoodKeys: string[] }>;
+  servings: { seeded: number; unchanged: number; kept: string[]; missing: string[] };
+  aliases: { created: number; missing: string[] };
+  chainProducts: { seeded: number; unchanged: number };
+};
 
 export async function seedReferenceDishes(prisma: PrismaClient): Promise<SeedReport> {
-  const report: SeedReport = { seeded: 0, unchanged: 0, skipped: [] };
+  const report: SeedReport = {
+    seeded: 0, unchanged: 0, skipped: [],
+    servings: { seeded: 0, unchanged: 0, kept: [], missing: [] },
+    aliases: { created: 0, missing: [] },
+    chainProducts: { seeded: 0, unchanged: 0 }
+  };
   let owner = await prisma.user.findUnique({ where: { username: REFERENCE_USERNAME } });
   if (!owner) {
     // A real hash of a secret nobody knows: the account can never log in.
@@ -55,7 +69,72 @@ export async function seedReferenceDishes(prisma: PrismaClient): Promise<SeedRep
     }
     report.seeded += 1;
   }
+
+  await seedServings(prisma, foodIdByKey, report);
+  await seedFoodAliases(prisma, foodIdByKey, report);
+  await seedChainProducts(prisma, report);
   return report;
+}
+
+const isCurrent = (provenance: unknown) => (provenance as any)?.referenceVersion === REFERENCE_DATA_VERSION;
+
+// Unit weights on reviewed catalog records. A serving someone else owns
+// (a curated seed, an import) under the same key is never overwritten.
+async function seedServings(prisma: PrismaClient, foodIdByKey: Map<string, string>, report: SeedReport) {
+  for (const serving of REFERENCE_DATA.servings) {
+    const label = `${serving.foodKey}/${serving.key}`;
+    const foodId = foodIdByKey.get(serving.foodKey);
+    if (!foodId) { report.servings.missing.push(label); continue; }
+    const existing = await prisma.foodServing.findUnique({ where: { foodId_key: { foodId, key: serving.key } } });
+    if (existing && (existing.provenance as any)?.kind !== "reference_serving") { report.servings.kept.push(label); continue; }
+    if (existing && isCurrent(existing.provenance)) { report.servings.unchanged += 1; continue; }
+    await upsertSeedServings(prisma.foodServing, foodId, [{
+      key: serving.key, unit: serving.unit, labels: serving.labels, grams: serving.grams,
+      isEstimated: serving.isEstimated, confidence: serving.confidence,
+      provenance: { kind: "reference_serving", referenceVersion: REFERENCE_DATA_VERSION, countries: serving.countries, sources: serving.sources }
+    }]);
+    report.servings.seeded += 1;
+  }
+}
+
+// Regional vocabulary: insert-only, so an existing alias (any origin) stays.
+async function seedFoodAliases(prisma: PrismaClient, foodIdByKey: Map<string, string>, report: SeedReport) {
+  const data = [];
+  for (const alias of REFERENCE_DATA.foodAliases) {
+    const foodId = foodIdByKey.get(alias.foodKey);
+    if (!foodId) { if (!report.aliases.missing.includes(alias.foodKey)) report.aliases.missing.push(alias.foodKey); continue; }
+    data.push({
+      foodId, alias: alias.alias, normalizedAlias: alias.normalizedAlias, locale: alias.locale, kind: "regional_synonym", confidence: 1,
+      provenance: { kind: "reference_food_alias", source: "docs/REGIONAL_DATABASE_BRIEF.md" }
+    });
+  }
+  if (data.length) report.aliases.created = (await prisma.foodAlias.createMany({ data, skipDuplicates: true })).count;
+}
+
+// Chain products are Food rows of their own (source chain_official), one per
+// chain, product and country, with the piece as a FoodServing.
+async function seedChainProducts(prisma: PrismaClient, report: SeedReport) {
+  for (const product of REFERENCE_DATA.chainProducts) {
+    const where = { source_sourceId: { source: "chain_official" as const, sourceId: product.sourceId } };
+    const existing = await prisma.food.findUnique({ where, select: { id: true, provenance: true } });
+    if (existing && isCurrent(existing.provenance)) { report.chainProducts.unchanged += 1; continue; }
+    const values = {
+      name: product.name, names: product.names, synonyms: product.synonyms, brand: product.chain, category: product.category,
+      originalName: product.names.de ?? product.name,
+      searchText: buildSearchText({ name: product.name, names: product.names, synonyms: product.synonyms, brand: product.chain }),
+      servingUnit: product.serving.unit, servingGrams: product.serving.grams,
+      kcalPer100g: product.kcalPer100g, fatPer100g: product.fatPer100g, proteinPer100g: product.proteinPer100g,
+      carbsPer100g: product.carbsPer100g, fiberPer100g: product.fiberPer100g,
+      provenance: { ...product.provenance, kind: "reference_chain_product", referenceVersion: REFERENCE_DATA_VERSION } as Prisma.InputJsonValue
+    };
+    const food = await prisma.food.upsert({ where, update: values, create: { ...values, source: "chain_official", sourceId: product.sourceId }, select: { id: true } });
+    await upsertSeedServings(prisma.foodServing, food.id, [{
+      key: product.serving.key, unit: product.serving.unit, labels: product.serving.labels, grams: product.serving.grams,
+      isEstimated: product.serving.isEstimated, confidence: product.serving.confidence,
+      provenance: { kind: "reference_chain_product", method: "portion_kcal_over_kcal_per_100g", sourceUrl: product.provenance.sourceUrl, retrievedAt: product.provenance.retrievedAt }
+    }]);
+    report.chainProducts.seeded += 1;
+  }
 }
 
 function recipeData(variant: ReferenceVariant) {
@@ -76,6 +155,10 @@ function recipeData(variant: ReferenceVariant) {
       densityGPerMl: variant.densityGPerMl,
       servedIn: variant.servedIn,
       parts: variant.parts,
+      countries: variant.countries,
+      languages: variant.languages,
+      category: variant.category,
+      tags: variant.tags ?? [],
       sources: variant.sources
     } as Prisma.InputJsonValue
   };

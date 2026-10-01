@@ -33,6 +33,10 @@ enum FoodSource {
   /// PATCH /foods/:id) — it must never keep reading as an AI estimate once
   /// a human has corrected it. See ai-nutrition-estimation.ts.
   ai_estimated
+  /// Fast-food chain product (2026-09-27, regional database brief): values
+  /// from the chain's official per-country nutrition table, URL and date in
+  /// provenance. Seeded from data/reference-dishes; see reference-dishes/seed.ts.
+  chain_official
 }
 
 enum EntitlementPlan {

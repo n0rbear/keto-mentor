@@ -1,13 +1,15 @@
 {
-  "schema_version": "0.2-pilot",
-  "purpose": "Keto Mentor reference dishes - pilot (10 Hungarian traditional dishes)",
+  "schema_version": "0.3-regional",
+  "purpose": "Keto Mentor regional reference data (HU, AT, DE): dishes, unit weights, aliases, chain products",
   "generated_by": "data/reference-dishes/build.py",
   "rules": [
     "Ingredient grams are RAW, edible part, for the whole source batch (bones, shells and stock-only items excluded).",
     "finished_weight_g = raw_total_g + cooking.mass_change_g (evaporation/frying loss negative, absorption positive).",
     "Nutrition per 100 g = sum of ingredient nutrition from the linked catalog records / finished_weight_g. Nothing here is a nutrition source of truth.",
-    "Net carbs: 'total' sources (USDA) = carbs - fiber; 'available' sources (BLS) = carbs as stored.",
-    "density_g_per_ml is derived from the parts' components (intrinsic density in liquid/solid dishes, bulk density with air gaps for loose dry parts)."
+    "Net carbs: 'total' sources (USDA, BLS as stored in the catalog) = carbs - fiber; 'available' = carbs as stored.",
+    "density_g_per_ml is derived from the parts' components (intrinsic density in liquid/solid dishes, bulk density with air gaps for loose dry parts).",
+    "Chain products: official per-country table; available carbohydrate + fiber is stored as total (carbohydrateBasis total_from_available_plus_fiber).",
+    "Every source carries its URL and retrieved date; countries are HU/AT/DE, language tags hu/de/de-AT/en."
   ],
   "plate_model": {
     "deep_plate": "grams = capacity_ml x fill x density_g_per_ml",
@@ -390,6 +392,52 @@
       "density_intrinsic_g_ml": 1.0,
       "density_bulk_g_ml": 1.0,
       "note": "no nutrition; only mass/volume"
+    },
+    "clarified_butter": {
+      "names": {
+        "hu": "tisztított vaj (ghí)",
+        "de": "Butterschmalz",
+        "en": "clarified butter"
+      },
+      "catalog": "bls:Q683000",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 0.91,
+      "density_bulk_g_ml": 0.91
+    },
+    "wheat_roll": {
+      "names": {
+        "hu": "zsemle",
+        "de": "Weizenbrötchen / Semmel",
+        "en": "white bread roll"
+      },
+      "catalog": "bls:B511000",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 0.25,
+      "density_bulk_g_ml": 0.25,
+      "note": "density = whole roll (airy crumb); carbs stored as total"
+    },
+    "leberkaese": {
+      "names": {
+        "hu": "leberkäse (sütött hússajt)",
+        "de": "Leberkäse / Fleischkäse",
+        "en": "Leberkäse (baked meat loaf)"
+      },
+      "catalog": "bls:W233000",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.0,
+      "density_bulk_g_ml": 1.0,
+      "note": "BLS Fleischkäse einfach, fein / Bayerischer Leberkäse"
+    },
+    "mustard": {
+      "names": {
+        "hu": "mustár",
+        "de": "Senf mittelscharf",
+        "en": "mustard"
+      },
+      "catalog": "bls:R132000",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.05,
+      "density_bulk_g_ml": 1.05
     }
   },
   "parts": {
@@ -478,8 +526,14 @@
       "density_g_per_ml": 1.022,
       "density_method": "derived from components after cooking mass change",
       "sources": [
-        "https://www.mindmegette.hu/recept/hagyomanyos-gulyasleves-a-nagyi-is-igy-csinalta",
-        "https://streetkitchen.hu/receptek/klasszikus-gulyasleves"
+        {
+          "url": "https://www.mindmegette.hu/recept/hagyomanyos-gulyasleves-a-nagyi-is-igy-csinalta",
+          "retrieved": "2026-09-26"
+        },
+        {
+          "url": "https://streetkitchen.hu/receptek/klasszikus-gulyasleves",
+          "retrieved": "2026-09-26"
+        }
       ],
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
@@ -565,8 +619,14 @@
       "density_g_per_ml": 1.01,
       "density_method": "derived from components after cooking mass change",
       "sources": [
-        "https://www.mindmegette.hu/recept/halaszle-eredeti",
-        "https://terebess.hu/tiszaorveny/recept/halaszle.html"
+        {
+          "url": "https://www.mindmegette.hu/recept/halaszle-eredeti",
+          "retrieved": "2026-09-26"
+        },
+        {
+          "url": "https://terebess.hu/tiszaorveny/recept/halaszle.html",
+          "retrieved": "2026-09-26"
+        }
       ],
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
@@ -671,9 +731,18 @@
       "density_g_per_ml": 1.017,
       "density_method": "derived from components after cooking mass change",
       "sources": [
-        "https://sobors.hu/receptek/toltott-kaposzta-savanyu-kaposztabol-recept/",
-        "https://www.mindmegette.hu/recept/klasszikus-toltott-kaposzta",
-        "https://streetkitchen.hu/receptek/klasszikus-csaladi-toltott-kaposzta"
+        {
+          "url": "https://sobors.hu/receptek/toltott-kaposzta-savanyu-kaposztabol-recept/",
+          "retrieved": "2026-09-26"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/klasszikus-toltott-kaposzta",
+          "retrieved": "2026-09-26"
+        },
+        {
+          "url": "https://streetkitchen.hu/receptek/klasszikus-csaladi-toltott-kaposzta",
+          "retrieved": "2026-09-26"
+        }
       ],
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
@@ -761,8 +830,14 @@
         "height_cm": 2.0
       },
       "sources": [
-        "https://www.mindmegette.hu/recept/szaftos-paprikas-csirke-nokedlivel",
-        "https://sobors.hu/receptek/tejfolos-csirkepaprikas-recept/"
+        {
+          "url": "https://www.mindmegette.hu/recept/szaftos-paprikas-csirke-nokedlivel",
+          "retrieved": "2026-09-26"
+        },
+        {
+          "url": "https://sobors.hu/receptek/tejfolos-csirkepaprikas-recept/",
+          "retrieved": "2026-09-26"
+        }
       ],
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
@@ -820,7 +895,10 @@
         "height_cm": 2.5
       },
       "sources": [
-        "https://www.mindmegette.hu/recept/paprikas-csirke-nokedli"
+        {
+          "url": "https://www.mindmegette.hu/recept/paprikas-csirke-nokedli",
+          "retrieved": "2026-09-26"
+        }
       ],
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
@@ -907,8 +985,14 @@
         "height_cm": 2.0
       },
       "sources": [
-        "https://www.mindmegette.hu/recept/klasszikus-sertesporkolt",
-        "https://streetkitchen.hu/receptek/a-tokeletes-sertesporkolt"
+        {
+          "url": "https://www.mindmegette.hu/recept/klasszikus-sertesporkolt",
+          "retrieved": "2026-09-26"
+        },
+        {
+          "url": "https://streetkitchen.hu/receptek/a-tokeletes-sertesporkolt",
+          "retrieved": "2026-09-26"
+        }
       ],
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
@@ -986,8 +1070,14 @@
         "height_cm": 1.6
       },
       "sources": [
-        "https://sobors.hu/receptek/lecso-virslivel-recept/",
-        "https://sobors.hu/receptek/virslis-lecso-recept/"
+        {
+          "url": "https://sobors.hu/receptek/lecso-virslivel-recept/",
+          "retrieved": "2026-09-26"
+        },
+        {
+          "url": "https://sobors.hu/receptek/virslis-lecso-recept/",
+          "retrieved": "2026-09-26"
+        }
       ],
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
@@ -1056,8 +1146,14 @@
         "height_cm": 3.2
       },
       "sources": [
-        "https://streetkitchen.hu/receptek/szaftos-rakott-krumpli",
-        "https://www.mindmegette.hu/recept/rakott-krumpli"
+        {
+          "url": "https://streetkitchen.hu/receptek/szaftos-rakott-krumpli",
+          "retrieved": "2026-09-26"
+        },
+        {
+          "url": "https://www.mindmegette.hu/recept/rakott-krumpli",
+          "retrieved": "2026-09-26"
+        }
       ],
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
@@ -1142,8 +1238,14 @@
       "density_g_per_ml": 1.016,
       "density_method": "derived from components after cooking mass change",
       "sources": [
-        "https://falatozz.hu/recept/marhahusleves",
-        "https://mamakonyhaja.hu/receptek/marhahus-leves/"
+        {
+          "url": "https://falatozz.hu/recept/marhahusleves",
+          "retrieved": "2026-09-26"
+        },
+        {
+          "url": "https://mamakonyhaja.hu/receptek/marhahus-leves/",
+          "retrieved": "2026-09-26"
+        }
       ],
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
@@ -1215,8 +1317,14 @@
         "height_cm": 1.8
       },
       "sources": [
-        "https://foodandwine.hu/2010/10/05/a-rantott-szelet-keszitesenek-10-titka/",
-        "https://kemenytojas.com/receptek/rantott-hus/"
+        {
+          "url": "https://foodandwine.hu/2010/10/05/a-rantott-szelet-keszitesenek-10-titka/",
+          "retrieved": "2026-09-26"
+        },
+        {
+          "url": "https://kemenytojas.com/receptek/rantott-hus/",
+          "retrieved": "2026-09-26"
+        }
       ],
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
@@ -1273,8 +1381,14 @@
         "height_cm": 2.5
       },
       "sources": [
-        "https://falatozz.hu/recept/petrezselymes-burgonya",
-        "https://streetkitchen.hu/receptek/klasszik-petrezselymes-burgonya"
+        {
+          "url": "https://falatozz.hu/recept/petrezselymes-burgonya",
+          "retrieved": "2026-09-26"
+        },
+        {
+          "url": "https://streetkitchen.hu/receptek/klasszik-petrezselymes-burgonya",
+          "retrieved": "2026-09-26"
+        }
       ],
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
@@ -1337,8 +1451,14 @@
         "height_cm": 2.2
       },
       "sources": [
-        "https://tesco.hu/hello/receptek/parolt-rizs/278828/",
-        "https://borralfozok.hu/a-tokeletes-parolt-rizs/"
+        {
+          "url": "https://tesco.hu/hello/receptek/parolt-rizs/278828/",
+          "retrieved": "2026-09-26"
+        },
+        {
+          "url": "https://borralfozok.hu/a-tokeletes-parolt-rizs/",
+          "retrieved": "2026-09-26"
+        }
       ],
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
@@ -1426,8 +1546,14 @@
       "density_g_per_ml": 1.026,
       "density_method": "derived from components after cooking mass change",
       "sources": [
-        "https://www.mindmegette.hu/recept/szekelykaposzta",
-        "https://magyarkonyhaonline.hu/receptek/a-legfinomabb-szekelykaposzta"
+        {
+          "url": "https://www.mindmegette.hu/recept/szekelykaposzta",
+          "retrieved": "2026-09-26"
+        },
+        {
+          "url": "https://magyarkonyhaonline.hu/receptek/a-legfinomabb-szekelykaposzta",
+          "retrieved": "2026-09-26"
+        }
       ],
       "derived_check": {
         "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
@@ -1439,11 +1565,307 @@
         },
         "incomplete_missing_food_keys": []
       }
+    },
+    "schweinsbraten": {
+      "id": "schweinsbraten",
+      "names": {
+        "hu": "Sült sertéslapocka (Schweinsbraten)",
+        "de": "Schweinebraten",
+        "de-AT": "Schweinsbraten",
+        "en": "Roast pork shoulder"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "pork_shoulder",
+            "raw_g": 1250,
+            "role": "core",
+            "note": "Schweinsschulter mit Schwarte; the catalog record is shoulder without rind (see review note)"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 160,
+            "role": "core",
+            "note": "2 onions"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 12,
+            "role": "seasoning",
+            "note": "3-5 cloves"
+          },
+          {
+            "food_key": "caraway_seed",
+            "raw_g": 4,
+            "role": "seasoning",
+            "note": "ground, 1-2 tsp"
+          },
+          {
+            "food_key": "lard",
+            "raw_g": 30,
+            "role": "fat"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 400,
+            "role": "liquid",
+            "note": "klare Suppe for basting; clear stock carries almost no nutrition, modelled as water"
+          }
+        ],
+        "raw_total_g": 1856,
+        "cooking": {
+          "method": "roasted ~2-2.5 h at 160-180 °C, basted, Saft reduced",
+          "mass_change_g": -550,
+          "note": "roast pork loses ~30% of its weight (~375 g); about half of the basting liquid evaporates (~175 g)"
+        },
+        "finished_weight_g": 1306,
+        "yield_factor": 0.704
+      },
+      "standard_serving_g": 250,
+      "density_g_per_ml": 1.055,
+      "density_method": "derived from components after cooking mass change",
+      "flat_plate": {
+        "coverage": 0.44,
+        "height_cm": 1.6
+      },
+      "sources": [
+        {
+          "url": "https://www.gutekueche.at/omas-schweinsbratenrezept-rezept-19875",
+          "retrieved": "2026-09-27",
+          "note": "1.25 kg Schulter, 2 Zwiebeln, 5 Knoblauchzehen, 1 EL Kümmel, 40 g Schmalz, 400 ml Suppe, 4 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.at/saftiger-schweinsbraten-rezept-14744",
+          "retrieved": "2026-09-27",
+          "note": "1 kg Schulter, 2 Zwiebeln, 2 Knoblauchzehen, 1 TL Kümmel, 1 EL Schmalz, 500 ml Suppe, 6 Portionen"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 252.7,
+          "fat": 19.6,
+          "protein": 16.7,
+          "net_carbs": 0.8
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "bratkartoffeln": {
+      "id": "bratkartoffeln",
+      "names": {
+        "hu": "Pirított burgonya szalonnával és hagymával",
+        "de": "Bratkartoffeln mit Speck und Zwiebeln",
+        "de-AT": "Geröstete Erdäpfel mit Speck",
+        "en": "German fried potatoes with bacon and onion"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 2,
+        "ingredients": [
+          {
+            "food_key": "potato",
+            "raw_g": 500,
+            "role": "core",
+            "note": "waxy (festkochend), peeled"
+          },
+          {
+            "food_key": "smoked_bacon",
+            "raw_g": 90,
+            "role": "core",
+            "note": "durchwachsener Speck, 80-100 g"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 80,
+            "role": "core",
+            "note": "1 onion"
+          },
+          {
+            "food_key": "clarified_butter",
+            "raw_g": 10,
+            "role": "fat",
+            "note": "1 EL Butterschmalz"
+          }
+        ],
+        "raw_total_g": 680,
+        "cooking": {
+          "method": "pan-fried in bacon fat and Butterschmalz ~20 min until crisp",
+          "mass_change_g": -100,
+          "note": "frying drives ~15% of the potato and onion water off"
+        },
+        "finished_weight_g": 580,
+        "yield_factor": 0.853
+      },
+      "standard_serving_g": 250,
+      "density_g_per_ml": 0.65,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.45,
+        "height_cm": 2.5
+      },
+      "sources": [
+        {
+          "url": "https://www.essen-und-trinken.de/rezepte/55725-rzpt-klassische-bratkartoffeln",
+          "retrieved": "2026-09-27",
+          "note": "500 g Kartoffeln, 80 g Speck, 1 Zwiebel, 1 EL Butterschmalz, 1 EL Butter, 2 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.de/bratkartoffeln-mit-speck-und-zwiebel-rezept-28363",
+          "retrieved": "2026-09-27",
+          "note": "500 g Kartoffeln, 100 g Speck, 1 Zwiebel, 2 Portionen"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 138.9,
+          "fat": 5.9,
+          "protein": 4.4,
+          "net_carbs": 16.3
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "eierspeis": {
+      "id": "eierspeis",
+      "names": {
+        "hu": "Rántotta",
+        "de": "Rührei",
+        "de-AT": "Eierspeis",
+        "en": "Scrambled eggs"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "egg",
+            "raw_g": 150,
+            "role": "core",
+            "note": "3 medium eggs without shell"
+          },
+          {
+            "food_key": "butter",
+            "raw_g": 8,
+            "role": "fat",
+            "note": "1 tsp - 1 tbsp per portion"
+          }
+        ],
+        "raw_total_g": 158,
+        "cooking": {
+          "method": "stirred in butter over medium heat 3-5 min",
+          "mass_change_g": -8,
+          "note": "little steam loss; soft, not dried out"
+        },
+        "finished_weight_g": 150,
+        "yield_factor": 0.949
+      },
+      "standard_serving_g": 150,
+      "density_g_per_ml": 0.55,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.4,
+        "height_cm": 2.0
+      },
+      "sources": [
+        {
+          "url": "https://www.mindmegette.hu/recept/rantotta",
+          "retrieved": "2026-09-27",
+          "note": "3 tojás, 1 tk vaj, 0,5 tk olaj, 1 adag"
+        },
+        {
+          "url": "https://www.ichkoche.at/eierspeis-rezept-7727",
+          "retrieved": "2026-09-27",
+          "note": "4 Eier, 2 EL Butter, 2 Portionen"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 173.2,
+          "fat": 13.3,
+          "protein": 13.2,
+          "net_carbs": 0.3
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "leberkaessemmel": {
+      "id": "leberkaessemmel",
+      "names": {
+        "hu": "Leberkäsés zsemle",
+        "de": "Leberkäsbrötchen",
+        "de-AT": "Leberkässemmel",
+        "en": "Leberkäse roll"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "wheat_roll",
+            "raw_g": 62.5,
+            "role": "core",
+            "note": "one Semmel (see at.py SERVINGS)"
+          },
+          {
+            "food_key": "leberkaese",
+            "raw_g": 100,
+            "role": "core",
+            "note": "one thick hot slice as sold at the counter"
+          }
+        ],
+        "raw_total_g": 162.5,
+        "cooking": {
+          "method": "assembled, no cooking",
+          "mass_change_g": 0,
+          "note": "the Leberkäse is sold baked"
+        },
+        "finished_weight_g": 162.5,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 162.5,
+      "density_g_per_ml": 0.464,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.spar.at/produktwelt/spar-bio-kaisersemmel-60g-g-p2020001325436",
+          "retrieved": "2026-09-27",
+          "note": "Semmel 60 g"
+        },
+        {
+          "url": "https://shop.billa.at/produkte/ja-natuerlich-kaisersemmel-00480904",
+          "retrieved": "2026-09-27",
+          "note": "Semmel 65 g"
+        },
+        {
+          "url": "https://fddb.info/db/de/lebensmittel/durchschnittswert_leberkaessemmel_mit_100_gr_leberkaese/index.html",
+          "retrieved": "2026-09-27",
+          "note": "Durchschnittswert Leberkässemmel mit 100 g Leberkäse, Portion 165 g"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 281.2,
+          "fat": 16.0,
+          "protein": 12.2,
+          "net_carbs": 21.1
+        },
+        "incomplete_missing_food_keys": []
+      }
     }
   },
   "dishes": [
     {
       "id": "hu_gulyasleves",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
       "names": {
         "hu": "Gulyásleves",
         "de": "Gulaschsuppe",
@@ -1479,6 +1901,10 @@
     },
     {
       "id": "hu_halaszle",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
       "names": {
         "hu": "Halászlé (passzírozott alappal)",
         "de": "Ungarische Fischsuppe",
@@ -1515,6 +1941,10 @@
     },
     {
       "id": "hu_toltott_kaposzta",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
       "names": {
         "hu": "Töltött káposzta",
         "de": "Ungarisches gefülltes Kraut (Krautwickel)",
@@ -1553,6 +1983,10 @@
     },
     {
       "id": "hu_paprikas_csirke_nokedlivel",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
       "names": {
         "hu": "Paprikás csirke nokedlivel",
         "de": "Paprikahuhn mit Nockerln",
@@ -1589,6 +2023,10 @@
     },
     {
       "id": "hu_sertesporkolt",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
       "names": {
         "hu": "Sertéspörkölt",
         "de": "Ungarisches Schweinepörkölt (Schweinegulasch)",
@@ -1645,6 +2083,10 @@
     },
     {
       "id": "hu_lecso_virslivel",
+      "countries": [
+        "HU"
+      ],
+      "category": "everyday",
       "names": {
         "hu": "Lecsó virslivel",
         "de": "Letscho mit Wiener Würstchen",
@@ -1678,6 +2120,10 @@
     },
     {
       "id": "hu_rakott_krumpli",
+      "countries": [
+        "HU"
+      ],
+      "category": "everyday",
       "names": {
         "hu": "Rakott krumpli",
         "de": "Ungarischer Kartoffelauflauf",
@@ -1709,6 +2155,10 @@
     },
     {
       "id": "hu_marhahusleves",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
       "names": {
         "hu": "Marhahúsleves (hússal, zöldséggel)",
         "de": "Ungarische Rindfleischsuppe",
@@ -1745,6 +2195,10 @@
     },
     {
       "id": "hu_rantott_hus",
+      "countries": [
+        "HU"
+      ],
+      "category": "everyday",
       "names": {
         "hu": "Rántott hús (sertéskaraj)",
         "de": "Paniertes Schweineschnitzel",
@@ -1797,6 +2251,10 @@
     },
     {
       "id": "hu_szekelykaposzta",
+      "countries": [
+        "HU"
+      ],
+      "category": "traditional",
       "names": {
         "hu": "Székelykáposzta",
         "de": "Szegediner Gulasch",
@@ -1826,6 +2284,405 @@
         {
           "part": "szekelykaposzta",
           "standard_serving_g": 450
+        }
+      ]
+    },
+    {
+      "id": "at_schweinsbraten",
+      "countries": [
+        "AT",
+        "DE"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "Sült sertéslapocka (Schweinsbraten)",
+        "de": "Schweinebraten",
+        "de-AT": "Schweinsbraten",
+        "en": "Roast pork shoulder"
+      },
+      "aliases": {
+        "de-AT": [
+          "schweinsbraten",
+          "schweinsbratl"
+        ],
+        "de": [
+          "schweinebraten",
+          "schweinsbraten"
+        ],
+        "hu": [
+          "sült sertéslapocka",
+          "sertéssült"
+        ],
+        "en": [
+          "roast pork",
+          "pork roast"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "roast",
+        "low-carb-friendly"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "schweinsbraten",
+          "standard_serving_g": 250
+        }
+      ],
+      "review_note_hu": "Knödel és Sauerkraut köret a 3. fázisban (Semmelknödel katalógusrekord kell). A katalógusrekord bőr nélküli lapocka; a Schwarte zsírtöbblete miatt enyhe alulbecslés."
+    },
+    {
+      "id": "de_bratkartoffeln",
+      "countries": [
+        "DE"
+      ],
+      "category": "traditional",
+      "names": {
+        "hu": "Pirított burgonya szalonnával és hagymával",
+        "de": "Bratkartoffeln mit Speck und Zwiebeln",
+        "de-AT": "Geröstete Erdäpfel mit Speck",
+        "en": "German fried potatoes with bacon and onion"
+      },
+      "aliases": {
+        "de": [
+          "bratkartoffeln",
+          "bratkartoffeln mit speck",
+          "bratkartoffeln mit speck und zwiebeln"
+        ],
+        "de-AT": [
+          "geröstete erdäpfel"
+        ],
+        "hu": [
+          "pirított burgonya",
+          "pirított krumpli"
+        ],
+        "en": [
+          "german fried potatoes",
+          "fried potatoes with bacon"
+        ]
+      },
+      "tags": [
+        "traditional",
+        "fried",
+        "higher-carb"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "bratkartoffeln",
+          "standard_serving_g": 250
+        }
+      ]
+    },
+    {
+      "id": "xx_eierspeis",
+      "countries": [
+        "HU",
+        "AT",
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "Rántotta",
+        "de": "Rührei",
+        "de-AT": "Eierspeis",
+        "en": "Scrambled eggs"
+      },
+      "aliases": {
+        "hu": [
+          "rántotta",
+          "tojásrántotta"
+        ],
+        "de-AT": [
+          "eierspeis",
+          "eierspeise",
+          "eierspeis aus 3 eiern"
+        ],
+        "de": [
+          "rührei",
+          "rühreier"
+        ],
+        "en": [
+          "scrambled eggs",
+          "scrambled egg"
+        ]
+      },
+      "tags": [
+        "breakfast",
+        "eggs",
+        "low-carb-friendly"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "eierspeis",
+          "standard_serving_g": 150
+        }
+      ]
+    },
+    {
+      "id": "xx_leberkaessemmel",
+      "countries": [
+        "AT",
+        "DE"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "Leberkäsés zsemle",
+        "de": "Leberkäsbrötchen",
+        "de-AT": "Leberkässemmel",
+        "en": "Leberkäse roll"
+      },
+      "aliases": {
+        "de-AT": [
+          "leberkässemmel",
+          "leberkassemmel",
+          "leberkässemmerl",
+          "leberkäsesemmel"
+        ],
+        "de": [
+          "leberkäsbrötchen",
+          "leberkäsebrötchen",
+          "leberkässemmel",
+          "fleischkäsbrötchen",
+          "leberkäsweck"
+        ],
+        "hu": [
+          "leberkäsés zsemle",
+          "leberkäse zsemlében"
+        ],
+        "en": [
+          "leberkase roll",
+          "leberkaese sandwich"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "higher-carb"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "leberkaessemmel",
+          "standard_serving_g": 162.5
+        }
+      ],
+      "optional_toppings": [
+        {
+          "food_key": "mustard",
+          "g": 10,
+          "hu": "mustár"
+        }
+      ],
+      "review_note_hu": "A Leberkäse-szelet 100 g-ja becslés (fddb átlag), a pultnál kért szelet változó; a felhasználó felülírhatja."
+    }
+  ],
+  "servings": [
+    {
+      "food_key": "wheat_roll",
+      "key": "piece_at",
+      "unit": "piece",
+      "countries": [
+        "AT"
+      ],
+      "grams": 62.5,
+      "is_estimated": false,
+      "confidence": 0.85,
+      "labels": {
+        "hu": "zsemle",
+        "de": "Brötchen",
+        "de-AT": "Semmel",
+        "en": "bread roll"
+      },
+      "sources": [
+        {
+          "url": "https://www.spar.at/produktwelt/spar-bio-kaisersemmel-60g-g-p2020001325436",
+          "retrieved": "2026-09-27",
+          "note": "SPAR Natur*pur Bio-Kaisersemmel 60 g"
+        },
+        {
+          "url": "https://shop.billa.at/produkte/ja-natuerlich-kaisersemmel-00480904",
+          "retrieved": "2026-09-27",
+          "note": "Ja! Natürlich Kaisersemmel 65 g Stück"
+        }
+      ]
+    }
+  ],
+  "unit_classes": [
+    {
+      "key": "bread_roll_at",
+      "unit": "piece",
+      "grams": 62.5,
+      "countries": [
+        "AT"
+      ],
+      "whole_word": true,
+      "keywords": [
+        "semmel",
+        "semmeln",
+        "kaisersemmel",
+        "kaisersemmeln"
+      ],
+      "sources": [
+        {
+          "url": "https://www.spar.at/produktwelt/spar-bio-kaisersemmel-60g-g-p2020001325436",
+          "retrieved": "2026-09-27",
+          "note": "60 g"
+        },
+        {
+          "url": "https://shop.billa.at/produkte/ja-natuerlich-kaisersemmel-00480904",
+          "retrieved": "2026-09-27",
+          "note": "65 g"
+        }
+      ]
+    }
+  ],
+  "food_aliases": [
+    {
+      "food_key": "tomato",
+      "aliases": {
+        "de-AT": [
+          "Paradeiser"
+        ],
+        "de": [
+          "Tomate",
+          "Tomaten"
+        ],
+        "hu": [
+          "paradicsom",
+          "pari"
+        ],
+        "en": [
+          "tomato"
+        ]
+      }
+    },
+    {
+      "food_key": "potato",
+      "aliases": {
+        "de-AT": [
+          "Erdäpfel",
+          "Erdapfel"
+        ],
+        "de": [
+          "Kartoffel",
+          "Kartoffeln"
+        ],
+        "hu": [
+          "burgonya",
+          "krumpli"
+        ],
+        "en": [
+          "potato"
+        ]
+      }
+    },
+    {
+      "food_key": "frankfurter",
+      "aliases": {
+        "de-AT": [
+          "Frankfurter"
+        ],
+        "de": [
+          "Wiener Würstchen",
+          "Wiener"
+        ],
+        "hu": [
+          "virsli"
+        ],
+        "en": [
+          "frankfurter"
+        ]
+      }
+    },
+    {
+      "food_key": "wheat_roll",
+      "aliases": {
+        "de-AT": [
+          "Semmel",
+          "Kaisersemmel"
+        ],
+        "de": [
+          "Brötchen",
+          "Schrippe",
+          "Weck",
+          "Weckle",
+          "Semmel"
+        ],
+        "hu": [
+          "zsemle",
+          "zsömle"
+        ],
+        "en": [
+          "bread roll"
+        ]
+      }
+    }
+  ],
+  "chain_products": [
+    {
+      "id": "mcdonalds-at:big-mac",
+      "chain": "McDonald's",
+      "countries": [
+        "AT"
+      ],
+      "category": "burger",
+      "names": {
+        "hu": "Big Mac (McDonald's)",
+        "de": "Big Mac (McDonald's)",
+        "de-AT": "Big Mac (McDonald's)",
+        "en": "Big Mac (McDonald's)"
+      },
+      "aliases": {
+        "hu": [
+          "big mac",
+          "bigmac"
+        ],
+        "de": [
+          "big mac",
+          "bigmac"
+        ],
+        "de-AT": [
+          "big mac"
+        ],
+        "en": [
+          "big mac"
+        ]
+      },
+      "per_100g": {
+        "kcal": 231,
+        "fat": 12,
+        "protein": 11,
+        "carbs_available": 18,
+        "fiber": 1.7
+      },
+      "per_portion": {
+        "kcal": 544,
+        "kj": 2273,
+        "fat": 29,
+        "protein": 27,
+        "carbs_available": 42,
+        "fiber": 4
+      },
+      "per_100g_kj": 963,
+      "serving": {
+        "key": "piece",
+        "unit": "piece",
+        "labels": {
+          "hu": "darab",
+          "de": "Stück",
+          "de-AT": "Stück",
+          "en": "piece"
+        },
+        "is_estimated": true,
+        "confidence": 0.9
+      },
+      "sources": [
+        {
+          "url": "https://www.mcdonalds.at/produkt/big-mac",
+          "retrieved": "2026-09-27",
+          "note": "Nährwerte Portion und per 100g, McDonald's Österreich"
         }
       ]
     }

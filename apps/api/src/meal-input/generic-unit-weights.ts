@@ -1,4 +1,5 @@
 import { normalizeSearch } from "../catalog/normalize.js";
+import { GENERATED_UNIT_WEIGHTS } from "./generic-unit-weights.data.js";
 
 /**
  * Typical weight of one slice for common sliced foods, used only when the
@@ -10,7 +11,12 @@ import { normalizeSearch } from "../catalog/normalize.js";
  * Order matters: the first entry whose keyword appears in the food's names
  * wins, so the specific kinds (salami, bacon) come before the broad ones.
  */
-type SliceWeight = { key: string; grams: number; keywords: readonly string[] };
+type SliceWeight = { key: string; grams: number; keywords: readonly string[]; wholeWord?: boolean };
+
+// Regional classes generated from data/reference-dishes (each with its
+// sources there). They come after the hand-written entries, so they never
+// change an existing match; wholeWord keeps "semmel" off "Semmelbrösel".
+export type GeneratedUnitWeight = SliceWeight & { countries: readonly string[] };
 
 export const GENERIC_SLICE_WEIGHTS: readonly SliceWeight[] = [
   { key: "salami", grams: 8, keywords: ["szalami", "salami", "chorizo", "pepperoni", "teli szalami", "csabai", "gyulai", "kolbasz"] },
@@ -29,7 +35,10 @@ export const GENERIC_PIECE_WEIGHTS: readonly SliceWeight[] = [
   { key: "egg", grams: 50, keywords: ["tojas", "rantotta", "omlett", "egg", "eggs", "scrambled", "omelet", "omelette", "ei", "eier", "ruhrei", "spiegelei"] }
 ];
 
-const TABLES: Record<string, readonly SliceWeight[]> = { slice: GENERIC_SLICE_WEIGHTS, piece: GENERIC_PIECE_WEIGHTS };
+const TABLES: Record<string, readonly SliceWeight[]> = {
+  slice: [...GENERIC_SLICE_WEIGHTS, ...(GENERATED_UNIT_WEIGHTS.slice ?? [])],
+  piece: [...GENERIC_PIECE_WEIGHTS, ...(GENERATED_UNIT_WEIGHTS.piece ?? [])]
+};
 
 export function genericUnitWeight(unit: string, food: { name: string; searchText?: string; names?: Record<string, string> }): SliceWeight | null {
   const table = TABLES[unit];
@@ -37,6 +46,6 @@ export function genericUnitWeight(unit: string, food: { name: string; searchText
   const words = ` ${normalizeSearch([food.name, food.searchText ?? "", ...Object.values(food.names ?? {})].join(" "))} `;
   // Short keywords must be whole words ("ham" never matches "hamburger");
   // longer ones may carry a suffix ("sonkát", "szalámis").
-  const mentions = (keyword: string) => { const key = normalizeSearch(keyword); return words.includes(key.length <= 4 ? ` ${key} ` : ` ${key}`); };
-  return table.find((entry) => entry.keywords.some(mentions)) ?? null;
+  const mentions = (keyword: string, wholeWord = false) => { const key = normalizeSearch(keyword); return words.includes(wholeWord || key.length <= 4 ? ` ${key} ` : ` ${key}`); };
+  return table.find((entry) => entry.keywords.some((keyword) => mentions(keyword, entry.wholeWord))) ?? null;
 }

@@ -305,6 +305,7 @@ async function main() {
   // picked up by a later boot once the record exists).
   const reference = await seedReferenceDishes(prisma);
   console.log(`reference_dishes seeded=${reference.seeded} unchanged=${reference.unchanged} skipped=${reference.skipped.map((s) => `${s.variant}(${s.missingFoodKeys.join("+")})`).join(",") || "none"}`);
+  console.log(`reference_catalog servings seeded=${reference.servings.seeded} unchanged=${reference.servings.unchanged} kept=${reference.servings.kept.join(",") || "none"} missing=${reference.servings.missing.join(",") || "none"} aliases created=${reference.aliases.created} chain seeded=${reference.chainProducts.seeded} unchanged=${reference.chainProducts.unchanged}`);
 }
 
 main().finally(() => prisma.$disconnect());
