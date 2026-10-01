@@ -130,12 +130,18 @@ async function findRecipes(prisma: PrismaClient, query: string, normalized: stri
     .slice(0, MAX_RECIPES)
     .map((row) => ({ type: "recipe" as const, recipeId: row.id, title: row.title, source: "own" as const, servings: row.servings, servingGrams: servingGramsOf(row) }));
 
-  // Reference dishes by any alias or title containing the typed words.
-  const variantIds: string[] = [];
+  // Reference dishes by any alias or title containing the typed words. With a
+  // full regional set many aliases contain common words ("roast pork ribs"),
+  // so exact aliases come first, then aliases starting with the words, then
+  // the rest, each in data order, before the list is cut to MAX_RECIPES.
+  const ranked: Array<{ rank: number; ids: readonly string[] }> = [];
   for (const [alias, ids] of Object.entries(REFERENCE_DATA.aliases)) {
     if (!alias.includes(normalized) && !alias.includes(core) && !phraseMentionsDish(query, alias)) continue;
-    for (const id of ids) if (!variantIds.includes(id)) variantIds.push(id);
+    const rank = alias === normalized || alias === core ? 0 : alias.startsWith(normalized) || alias.startsWith(core) ? 1 : 2;
+    ranked.push({ rank, ids });
   }
+  const variantIds: string[] = [];
+  for (const { ids } of ranked.sort((a, b) => a.rank - b.rank)) for (const id of ids) if (!variantIds.includes(id)) variantIds.push(id);
   const referenceRows = await findReferenceRecipes<RecipeRow>(prisma, variantIds, {});
   const referenceHits = referenceRows.slice(0, MAX_RECIPES - Math.min(ownHits.length, MAX_RECIPES - 2))
     .map((row) => ({ type: "recipe" as const, recipeId: row.id, title: row.title, source: "reference" as const, servings: row.servings, servingGrams: servingGramsOf(row) }));

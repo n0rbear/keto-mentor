@@ -152,6 +152,7 @@ function recipeData(variant: ReferenceVariant) {
       referenceVersion: REFERENCE_DATA_VERSION,
       titles: variant.titles,
       servingGrams: variant.servingGrams,
+      ...(variant.cookingFatLossGrams ? { cookingFatLossGrams: variant.cookingFatLossGrams } : {}),
       densityGPerMl: variant.densityGPerMl,
       servedIn: variant.servedIn,
       parts: variant.parts,

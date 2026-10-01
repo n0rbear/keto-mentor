@@ -15,6 +15,9 @@ export type ReferenceVariant = {
   servedIn: "deep_plate" | "flat_plate" | "handheld";
   parts: Array<{ part: string; grams: number; densityGPerMl: number; flatPlate?: ReferenceFlatPlate }>;
   ingredients: Array<{ foodKey: string; grams: number; role: "core" | "seasoning" | "garnish" }>;
+  // Rendered meat fat per serving that is not eaten (roasted/fried without
+  // the drippings); calculateRecipeNutrition subtracts it.
+  cookingFatLossGrams?: number;
   sources: ReferenceSource[];
   countries: ReferenceCountry[];
   category: "traditional" | "everyday" | "street_food" | "chain";
@@ -65,4 +68,5 @@ export type ReferenceDishData = {
   servings: ReferenceServing[];
   foodAliases: ReferenceFoodAlias[];
   chainProducts: ReferenceChainProduct[];
+  inventory: Record<ReferenceCountry, Record<string, string[]>>;
 };

@@ -35,8 +35,8 @@ from pathlib import Path
 OUT = Path(__file__).resolve().parent
 sys.path.insert(0, str(OUT))
 
-from common import CATEGORIES, COUNTRIES, DEEP_FILL, FLAT_FILL, LANGUAGES, USABLE_DIAMETER_RATIO  # noqa: E402
-from foods import FOOD_KEYS  # noqa: E402
+from common import CATEGORIES, COUNTRIES, DEEP_FILL, FAT_RETENTION, FLAT_FILL, LANGUAGES, USABLE_DIAMETER_RATIO  # noqa: E402
+from foods import FOOD_KEYS, renders_fat  # noqa: E402
 import at  # noqa: E402
 import de  # noqa: E402
 import hu  # noqa: E402
@@ -72,6 +72,11 @@ SERVINGS = collect("SERVINGS")
 UNIT_CLASSES = collect("UNIT_CLASSES")
 FOOD_ALIASES = collect("FOOD_ALIASES")
 CHAIN_PRODUCTS = collect("CHAIN_PRODUCTS")
+INVENTORY = {
+    "HU": getattr(hu, "INVENTORY", {}),
+    "AT": getattr(at, "INVENTORY", {}),
+    "DE": getattr(de, "INVENTORY", {}),
+}
 
 
 # ---------------------------------------------------------------------------
@@ -97,6 +102,22 @@ def check_languages(owner, mapping):
 
 
 def validate():
+    # Phase-2 minimums (brief): new HU dishes on top of the 10 pilot dishes,
+    # side variants not counted. A dish still on INVENTORY is planned, not
+    # built; each promoted dish leaves the inventory, so both together must
+    # reach the minimum and no identity may appear twice.
+    hu_inventory = INVENTORY.get("HU", {})
+    pilot = set(getattr(hu, "PILOT_DISH_IDS", ()))
+    minimums = {"traditional": 60, "everyday": 60, "street_food": 25}
+    promoted = {c: [d for d in DISHES if "HU" in d["countries"] and d["category"] == c and d["id"] not in pilot] for c in minimums}
+    for category, minimum in minimums.items():
+        if len(promoted[category]) + len(hu_inventory.get(category, [])) < minimum:
+            raise SystemExit(f"HU {category}: built + planned dishes are below the phase-2 minimum {minimum}")
+    built_names = [n.casefold() for ds in promoted.values() for d in ds for n in [d.get("names", PARTS[d["part_refs"][0][0]]["names"])["hu"]]]
+    flat_inventory = [name.casefold() for names in hu_inventory.values() for name in names] + built_names
+    if len(flat_inventory) != len(set(flat_inventory)):
+        dupes = sorted({n for n in flat_inventory if flat_inventory.count(n) > 1})
+        raise SystemExit(f"HU dish identities appear twice (inventory and/or built): {dupes}")
     for pid, p in PARTS.items():
         check_sources(f"part {pid}", p["sources"])
         check_languages(f"part {pid}", p["names"])
@@ -178,7 +199,23 @@ def build_part(pid, p):
             continue
         for x in totals:
             totals[x] += n[x]
-    per100 = {x: round(v / finished * 100, 1) for x, v in totals.items()}
+    # Drippings that are not eaten: the rendered share of the meat's fat
+    # leaves the dish. mass_change_g stays the net weight change (it already
+    # includes this fat together with water lost or taken up).
+    fat_loss = 0.0
+    drippings = p["cooking"].get("drippings")
+    if drippings:
+        if drippings not in FAT_RETENTION:
+            raise SystemExit(f"part {pid}: cooking.drippings must be one of {sorted(FAT_RETENTION)}")
+        meat_fat = sum(FOOD_KEYS[i["food_key"]][6] * i["raw_g"] / 100 for i in p["ingredients"] if renders_fat(i["food_key"]))
+        fat_loss = round(meat_fat * (1 - FAT_RETENTION[drippings]), 1)
+        if fat_loss <= 0:
+            raise SystemExit(f"part {pid}: drippings declared but no meat fat renders out")
+        totals["fat"] -= fat_loss
+        totals["kcal"] -= 9 * fat_loss
+    # A partial sum would under-count (e.g. 500 g beans counted as 0 kcal), so
+    # the cross-check is only computed when every ingredient has macros.
+    per100 = None if missing else {x: round(v / finished * 100, 1) for x, v in totals.items()}
     out = {
         "id": pid, "names": p["names"], "matrix": p["matrix"],
         "batch": {
@@ -189,6 +226,7 @@ def build_part(pid, p):
             "cooking": p["cooking"],
             "finished_weight_g": finished,
             "yield_factor": round(finished / raw_total, 3),
+            **({"fat_loss_g": fat_loss} if drippings else {}),
         },
         "standard_serving_g": p["standard_serving_g"],
         "density_g_per_ml": round(density, 3),
@@ -222,6 +260,8 @@ def norm(value: str) -> str:
 
 
 def dish_per_100g(parts, dish):
+    if any(parts[x["part"]]["derived_check"]["per_100g"] is None for x in dish["parts"]):
+        return None
     total = sum(x["standard_serving_g"] for x in dish["parts"])
     out = {}
     for m in ("kcal", "fat", "protein", "net_carbs"):
@@ -275,6 +315,7 @@ def build_variants(parts, dishes):
                         continue
                     grams[i["food_key"]] = grams.get(i["food_key"], 0) + i["raw_g"] * factor
                     roles.setdefault(i["food_key"], ROLE_MAP.get(i["role"], "core"))
+            fat_loss = sum(parts[pid]["batch"].get("fat_loss_g", 0) * serving / parts[pid]["batch"]["finished_weight_g"] for pid, serving in plist)
             serving_total = sum(g for _, g in plist)
             density = serving_total / sum(g / parts[pid]["density_g_per_ml"] for pid, g in plist)
             sources = {s["url"]: s for pid, _ in plist for s in parts[pid]["sources"]}
@@ -287,6 +328,7 @@ def build_variants(parts, dishes):
                 "servingGrams": serving_total, "densityGPerMl": round(density, 3), "servedIn": d["served_in"],
                 "parts": [{"part": pid, "grams": g, **({"flatPlate": parts[pid]["flat_plate"], "densityGPerMl": parts[pid]["density_g_per_ml"]} if parts[pid].get("flat_plate") else {"densityGPerMl": parts[pid]["density_g_per_ml"]})} for pid, g in plist],
                 "ingredients": [{"foodKey": k, "grams": round(v, 2), "role": roles[k]} for k, v in grams.items()],
+                **({"cookingFatLossGrams": round(fat_loss, 2)} if fat_loss else {}),
                 "sources": [{"url": u, "retrieved": sources[u]["retrieved"]} for u in sorted(sources)],
             })
             ids.append(vid)
@@ -399,6 +441,18 @@ def emit_missing_foods(dishes_json):
             if k != "water" and catalog_ref(k) is None:
                 for c in d["countries"]:
                     per_country[c].append({"food_key": k, "names": {"hu": FOOD_KEYS[k][0], "de": FOOD_KEYS[k][1], "en": FOOD_KEYS[k][2]}, "needed_for": [d["id"]], "note": "no catalog record linked in foods.py"})
+    # Inventory identities are intentionally not promoted to recipes until a
+    # reviewed PARTS definition and authoritative ingredient mapping exists.
+    # Keep them visible in the generated gap report instead of inventing food
+    # weights or nutrition values.
+    # A name that already is a dish (title or alias) is no longer a gap.
+    covered = {norm(v) for d in DISHES if "HU" in d["countries"]
+               for v in [*(d.get("names") or PARTS[d["part_refs"][0][0]]["names"]).values(), *d["aliases"].get("hu", [])]}
+    for category, names in INVENTORY.get("HU", {}).items():
+        for name in names:
+            if norm(name) in covered:
+                continue
+            per_country["HU"].append({"food_key": "inventory-only", "names": {"hu": name}, "needed_for": [category], "note": "inventory identity; recipe/ingredient mapping still required"})
     for c, rows in per_country.items():
         lines = [f"# Hiányzó katalógusrekordok – {c} (generált)", "",
                  "Ezekhez az ételrészekhez nincs ellenőrzött katalógusrekord. Nem helyettesíthetők hasonlóval;",
@@ -477,12 +531,13 @@ def main():
         "unit_classes": UNIT_CLASSES,
         "food_aliases": FOOD_ALIASES,
         "chain_products": CHAIN_PRODUCTS,
+        "inventory": INVENTORY,
     }
     (OUT / "reference-dishes.json").write_text(json.dumps(doc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     variants, aliases = build_variants(parts, dishes)
     food_keys = {k: {"catalog": catalog_ref(k), "hu": v[0]} for k, v in FOOD_KEYS.items() if k != "water"}
     emit_reference_ts({"foodKeys": food_keys, "variants": variants, "aliases": aliases, "servings": servings,
-                       "foodAliases": food_aliases, "chainProducts": chain_products},
+                       "foodAliases": food_aliases, "chainProducts": chain_products, "inventory": INVENTORY},
                       API_SRC / "reference-dishes" / "reference-data.ts")
     emit_unit_classes_ts(API_SRC / "meal-input" / "generic-unit-weights.data.ts")
     emit_missing_foods(dishes)
@@ -501,19 +556,24 @@ def main():
              "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|"]
     for pid, p in parts.items():
         b = p["batch"]; c = p["derived_check"]["per_100g"]
-        lines.append(f"| {p['names']['hu']} | {b['raw_total_g']} | {b['cooking']['mass_change_g']:+} | {b['finished_weight_g']} | {b['yield_factor']} | {p['density_g_per_ml']} | {c['kcal']} | {c['fat']} | {c['protein']} | {c['net_carbs']} | {', '.join(p['derived_check']['incomplete_missing_food_keys']) or '–'} |")
+        macros = f"{c['kcal']} | {c['fat']} | {c['protein']} | {c['net_carbs']}" if c else "nincs számolva | – | – | –"
+        lines.append(f"| {p['names']['hu']} | {b['raw_total_g']} | {b['cooking']['mass_change_g']:+} | {b['finished_weight_g']} | {b['yield_factor']} | {p['density_g_per_ml']} | {macros} | {', '.join(p['derived_check']['incomplete_missing_food_keys']) or '–'} |")
     lines += ["", "## Makró-keresztellenőrzés nyilvános referenciával (100 g)", "",
-              "Számolt érték a katalógusrekordokból vs. egy nyilvános referencia (pl. BLS összetett étel). 15% feletti kcal-eltérés: ELLENŐRIZENDŐ.", "",
-              "| Étel | Referencia | kcal (számolt / ref.) | zsír | fehérje | nettó CH | kcal eltérés |", "|---|---|---:|---:|---:|---:|---|"]
+              "Számolt érték a katalógusrekordokból vs. egy nyilvános referencia (pl. BLS összetett étel). 15% feletti kcal-eltérés: ELLENŐRIZENDŐ,",
+              "kivéve ha az ételnél `reference_check.deviation` (átnézett receptkülönbség) indokolja: akkor RECEPTKÜLÖNBSÉG, az indoklással.", "",
+              "| Étel | Referencia | kcal (számolt / ref.) | zsír | fehérje | nettó CH | kcal eltérés | Indoklás |", "|---|---|---:|---:|---:|---:|---|---|"]
     for d, raw in zip(dishes, DISHES):
         ref = raw.get("reference_check")
         if not ref:
-            lines.append(f"| {d['names']['hu']} | nincs még | – | – | – | – | – |")
+            lines.append(f"| {d['names']['hu']} | nincs még | – | – | – | – | – | – |")
             continue
         calc = dish_per_100g(parts, d)
+        if calc is None:
+            lines.append(f"| {d['names']['hu']} | {ref['catalog']} {ref['name']} | nincs számolva (hiányzó makró) | – | – | – | – | – |")
+            continue
         dev = (calc["kcal"] - ref["kcal"]) / ref["kcal"] * 100
-        flag = "rendben" if abs(dev) <= 15 else "ELLENŐRIZENDŐ"
-        lines.append(f"| {d['names']['hu']} | {ref['catalog']} {ref['name']} | {calc['kcal']:.0f} / {ref['kcal']} | {calc['fat']:.1f} / {ref['fat']} | {calc['protein']:.1f} / {ref['protein']} | {calc['net_carbs']:.1f} / {ref['net_carbs']} | {dev:+.0f}% {flag} |")
+        flag = "rendben" if abs(dev) <= 15 else "RECEPTKÜLÖNBSÉG" if ref.get("deviation") else "ELLENŐRIZENDŐ"
+        lines.append(f"| {d['names']['hu']} | {ref['catalog']} {ref['name']} | {calc['kcal']:.0f} / {ref['kcal']} | {calc['fat']:.1f} / {ref['fat']} | {calc['protein']:.1f} / {ref['protein']} | {calc['net_carbs']:.1f} / {ref['net_carbs']} | {dev:+.0f}% {flag} | {ref.get('deviation', '–') if abs(dev) > 15 else '–'} |")
     lines += ["", "## Tányér → gramm (normál adag)", "",
               "Mély tányér: kapacitás × töltöttség × sűrűség. Lapos tányér: 0,8 × átmérő hasznos kör × lefedettség × magasság × sűrűség.", "",
               "| Étel | Országok | Kategória | Szokásos adag (g) | Mély 450 ml normál | Mély 650 ml normál | Lapos 24 cm | Lapos 26 cm | Lapos 28 cm |",

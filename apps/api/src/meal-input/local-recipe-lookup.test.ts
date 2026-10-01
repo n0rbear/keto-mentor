@@ -124,7 +124,7 @@ describe("reference dishes (roadmap B)", () => {
     expect(referenceVariantIdsFor("Pörkölt nokedlivel")).toEqual(["hu_sertesporkolt__nokedli"]);
     expect(referenceVariantIdsFor("rántott hús")).toEqual(["hu_rantott_hus", "hu_rantott_hus__petrezselymes_burgonya", "hu_rantott_hus__parolt_rizs"]);
     expect(referenceVariantIdsFor("virslis lecsó")).toEqual(["hu_lecso_virslivel"]);
-    expect(referenceVariantIdsFor("paprikás krumpli")).toEqual([]);
+    expect(referenceVariantIdsFor("sóskafőzelék")).toEqual([]);
   });
 
   it("returns the seeded recipe marked as reference, with its one-serving weight", async () => {

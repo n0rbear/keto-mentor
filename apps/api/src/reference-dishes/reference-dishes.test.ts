@@ -12,6 +12,12 @@ const { unifiedSearch, meaningTermsCache } = await import("../meal-input/unified
 const COUNTRIES = ["HU", "AT", "DE"];
 const LANGUAGES = ["hu", "de", "de-AT", "en"];
 const variantIds = REFERENCE_DATA.variants.map(({ id }) => id);
+// Dishes whose recipe is in, but some ingredient has no reviewed catalog record
+// yet (see data/reference-dishes/hu-missing-foods.md). The seed must skip
+// exactly these; a new gap has to be added here on purpose.
+// Currently none: a food the catalog lacks is imported (bls-imports.json) or
+// left out of the batch and listed on MISSING_FOODS.
+const GAPPED_VARIANTS: Record<string, string[]> = {};
 const isSource = (source: { url: string; retrieved: string }) => source.url.startsWith("https://") && /^\d{4}-\d{2}-\d{2}$/.test(source.retrieved);
 
 describe("reference data format (phase 1)", () => {
@@ -53,7 +59,7 @@ describe("reference data format (phase 1)", () => {
 
   it("points every ingredient, serving and alias at a reviewed catalog record", () => {
     const keys = [
-      ...REFERENCE_DATA.variants.flatMap((variant) => variant.ingredients.map(({ foodKey }) => foodKey)),
+      ...REFERENCE_DATA.variants.filter(({ id }) => !(id in GAPPED_VARIANTS)).flatMap((variant) => variant.ingredients.map(({ foodKey }) => foodKey)),
       ...REFERENCE_DATA.servings.map(({ foodKey }) => foodKey),
       ...REFERENCE_DATA.foodAliases.map(({ foodKey }) => foodKey)
     ];
@@ -193,11 +199,22 @@ function memoryPrisma() {
 }
 
 describe("reference seed", () => {
+  it("stores the rendered fat of roasted dishes for the nutrition calculator", async () => {
+    const roasted = REFERENCE_DATA.variants.find((variant) => variant.id === "hu_sult_kolbasz")!;
+    expect(roasted.cookingFatLossGrams).toBeGreaterThan(0);
+    expect(REFERENCE_DATA.variants.find((variant) => variant.id === "hu_gulyasleves")!.cookingFatLossGrams).toBeUndefined();
+    const db = memoryPrisma();
+    await seedReferenceDishes(db.prisma);
+    const recipe = db.recipes.find((row) => row.provenance.referenceVariantId === roasted.id);
+    expect(recipe.provenance.cookingFatLossGrams).toBe(roasted.cookingFatLossGrams);
+  });
+
   it("is idempotent: a second run writes nothing", async () => {
     const db = memoryPrisma();
     const first = await seedReferenceDishes(db.prisma);
-    expect(first.seeded).toBe(REFERENCE_DATA.variants.length);
-    expect(first.skipped).toEqual([]);
+    const gapped = Object.keys(GAPPED_VARIANTS).length;
+    expect(first.seeded).toBe(REFERENCE_DATA.variants.length - gapped);
+    expect(Object.fromEntries(first.skipped.map((s) => [s.variant, [...s.missingFoodKeys].sort()]))).toEqual(GAPPED_VARIANTS);
     expect(first.servings).toMatchObject({ seeded: REFERENCE_DATA.servings.length, kept: [], missing: [] });
     expect(first.aliases.created).toBe(REFERENCE_DATA.foodAliases.length);
     expect(first.chainProducts.seeded).toBe(REFERENCE_DATA.chainProducts.length);
@@ -205,7 +222,7 @@ describe("reference seed", () => {
 
     const second = await seedReferenceDishes(db.prisma);
     expect(second).toMatchObject({
-      seeded: 0, unchanged: REFERENCE_DATA.variants.length,
+      seeded: 0, unchanged: REFERENCE_DATA.variants.length - gapped,
       servings: { seeded: 0, unchanged: REFERENCE_DATA.servings.length },
       aliases: { created: 0 },
       chainProducts: { seeded: 0, unchanged: REFERENCE_DATA.chainProducts.length }

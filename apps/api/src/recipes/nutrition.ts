@@ -16,6 +16,14 @@ function scaleNutrients(nutrients: Record<string, NutrientTotal>, factor: number
   return Object.fromEntries(Object.entries(nutrients).map(([key, nutrient]) => [key, { ...nutrient, amount: nutrient.amount * factor }]));
 }
 
+const FAT_NUTRIENT_KEYS = ["total_fat", "saturated_fat", "monounsaturated_fat", "polyunsaturated_fat"];
+
+/** Grams of rendered fat a recipe declares as not eaten (provenance.cookingFatLossGrams). */
+export function cookingFatLossGrams(provenance: unknown): number {
+  const value = (provenance as { cookingFatLossGrams?: unknown } | null | undefined)?.cookingFatLossGrams;
+  return typeof value === "number" && Number.isFinite(value) && value > 0 ? value : 0;
+}
+
 export function calculateRecipeNutrition(recipe: RecipeWithIngredients) {
   let totals = emptyMacros();
   const nutrients: Record<string, NutrientTotal> = {};
@@ -58,6 +66,17 @@ export function calculateRecipeNutrition(recipe: RecipeWithIngredients) {
       existing.amount += value.amountPer100g * factor;
       nutrients[value.nutrient.key] = existing;
     }
+  }
+
+  // Fat that renders out of roasted/fried meat and is not eaten (reference
+  // dishes: data/reference-dishes, common.FAT_RETENTION). It leaves the fat,
+  // its energy and the fat-class nutrients in proportion.
+  const fatLoss = Math.min(cookingFatLossGrams(recipe.provenance), totals.fat);
+  if (fatLoss > 0) {
+    const keep = (totals.fat - fatLoss) / totals.fat;
+    totals = { ...totals, fat: totals.fat - fatLoss, kcal: Math.max(0, totals.kcal - 9 * fatLoss) };
+    for (const key of FAT_NUTRIENT_KEYS) if (nutrients[key]) nutrients[key] = { ...nutrients[key], amount: nutrients[key].amount * keep };
+    if (nutrients.energy_kcal) nutrients.energy_kcal = { ...nutrients.energy_kcal, amount: Math.max(0, nutrients.energy_kcal.amount - 9 * fatLoss) };
   }
 
   // scaleMacroTotals (never scaleMacros) here: `totals` is already an

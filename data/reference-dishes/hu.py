@@ -1,5 +1,10 @@
-"""Hungary (HU): reference dishes. The 10 pilot dishes (2026-09-26)."""
-from common import ing, srcs
+"""Hungary (HU): reference dishes.
+
+The 10 pilot dishes (2026-09-26), then phase 2 (2026-09-27): the full Hungarian
+set. INVENTORY lists the phase-2 dishes still to build; a dish leaves it when
+its PARTS/DISHES entry (two dated sources, catalog-linked ingredients) lands.
+"""
+from common import breaded, g, ing, src, srcs
 
 # The pilot sources were read when the pilot was built (commit ac4416d).
 PILOT_RETRIEVED = "2026-09-26"
@@ -20,6 +25,8 @@ PILOT_RETRIEVED = "2026-09-26"
 # flat_plate: coverage of the plate's usable area and average food height at
 #   a "normal" portion (only for parts that are served on flat plates).
 # ---------------------------------------------------------------------------
+_RANTOTT_HUS = breaded("pork_loin", 600, 150)
+
 PARTS = {
     "gulyasleves": dict(
         names={"hu": "Gulyásleves", "de": "Gulaschsuppe", "en": "Hungarian goulash soup"},
@@ -97,10 +104,8 @@ PARTS = {
     "rantott_hus": dict(
         names={"hu": "Rántott hús (sertéskaraj)", "de": "Paniertes Schweineschnitzel", "en": "Breaded pork cutlet"},
         matrix="dry", bulk_density_g_ml=0.85, servings_source=4, standard_serving_g=185,
-        ingredients=[ing("pork_loin", 600, note="4 x 150 g slices"), ing("wheat_flour", 30, "coating", "amount that sticks, not the amount put out"),
-                     ing("egg", 100, "coating", "2 eggs, amount that sticks"), ing("breadcrumbs", 100, "coating", "amount that sticks (~150 g put out)"),
-                     ing("sunflower_oil", 60, "absorbed_fat", "absorbed during deep/shallow frying, ~8% of the breaded weight")],
-        cooking=dict(method="fried in 170-180 °C oil, 2-3 min per side", mass_change_g=-150, note="meat loses ~25% of its weight as water while frying"),
+        ingredients=_RANTOTT_HUS[0],
+        cooking=dict(method="fried in 170-180 °C oil, 2-3 min per side", mass_change_g=_RANTOTT_HUS[1], note="meat (4 x 150 g slices) loses ~25% of its weight as water while frying; coating and oil from common.BREADING"),
         flat_plate=dict(coverage=0.35, height_cm=1.8),
         sources=srcs(PILOT_RETRIEVED, ["https://foodandwine.hu/2010/10/05/a-rantott-szelet-keszitesenek-10-titka/", "https://kemenytojas.com/receptek/rantott-hus/"])),
     "petrezselymes_burgonya": dict(
@@ -158,6 +163,7 @@ DISHES = [
          review="Gyakran cérnametélttel eszik és a főtt hús külön kerül a tányérra; a 'csak leve' és a 'tésztával' változat későbbi bővítés."),
     dict(id="hu_rantott_hus", countries=["HU"], category="everyday", part_refs=[("rantott_hus", 185)], served_in="flat_plate", tags=["traditional", "fried"],
          side_options=[("petrezselymes_burgonya", 200), ("parolt_rizs", 180)], default_side=None,
+         reference_check=dict(catalog="bls:Y321012", name="Schweinekotelett paniert, gebraten", kcal=296, fat=19.22, protein=24.11, net_carbs=6.29),
          aliases={"hu": ["rántott hús", "rántott szelet", "bécsi szelet", "rántotthús"], "de": ["schnitzel", "wiener schnitzel vom schwein"], "en": ["breaded cutlet", "pork schnitzel"]},
          alias_side={"rántott hús krumplival": "petrezselymes_burgonya", "rántott hús petrezselymes krumplival": "petrezselymes_burgonya", "rántott hús rizzsel": "parolt_rizs"},
          review="A 'körettel' szó nem dönt a köretről: ha a felhasználó nem mondja meg, a rendszer kérdezzen (burgonya / rizs), ne találgasson. A hasábburgonya és a burgonyapüré későbbi köret."),
@@ -170,3 +176,74 @@ SIDE_WITH = {
     "petrezselymes_burgonya": {"hu": "petrezselymes burgonyával", "de": "mit Petersilienkartoffeln", "en": "with parsley potatoes"},
     "parolt_rizs": {"hu": "párolt rizzsel", "de": "mit Reis", "en": "with rice"},
 }
+
+# Phase-2 inventory. These are reviewable dish identities, not nutrition data.
+# A row is promoted into PARTS/DISHES only after all ingredients resolve to an
+# authoritative record in foods.py; unresolved rows are emitted to the HU gap report.
+INVENTORY = {
+    "traditional": "körömpörkölt|juhászos tokány".split("|"),
+    "everyday": "tepertős pogácsa".split("|"),
+    "street_food": [],
+}
+MISSING_FOODS = [
+    dict(food_key="tarragon_dried", names={"hu": "tárkony (szárított)", "de": "Estragon getrocknet", "en": "dried tarragon"},
+         needed_for=["hu_palocleves (1 ek per 5 adag, seasoning)"],
+         note="BLS 4.0 has no Estragon record and the production catalog has none; left out of the batch (about 2 g). Candidate: USDA FDC 'Spices, tarragon, dried' via a reviewed import."),
+]
+
+PHASE2_RETRIEVED = "2026-09-27"
+
+PILOT_DISH_IDS = ("hu_gulyasleves", "hu_halaszle", "hu_toltott_kaposzta", "hu_paprikas_csirke_nokedlivel", "hu_sertesporkolt",
+                  "hu_lecso_virslivel", "hu_rakott_krumpli", "hu_marhahusleves", "hu_rantott_hus", "hu_szekelykaposzta")
+
+PARTS.update({
+    "palocleves": dict(
+        names={"hu": "Palócleves", "de": "Palóc-Suppe", "en": "Palóc soup"},
+        matrix="liquid", servings_source=5, standard_serving_g=450,
+        ingredients=[ing("sunflower_oil", g(0.5, "dl_oil"), "fat", "0,5 dl olaj"), ing("onion", g(1, "db_onion"), note="1 db"), ing("garlic", g(3, "gerezd_garlic"), note="3 gerezd"),
+                     ing("pork_shoulder", 300), ing("paprika_ground", g(1, "ek_paprika"), "seasoning", "1 ek"), ing("wax_pepper", g(1, "db_green_pepper"), note="1 db zöldpaprika"),
+                     ing("tomato", g(1, "db_tomato"), note="1 db"), ing("green_bean", 300), ing("potato", 200), ing("caraway_seed", 0.5, "seasoning", "1 csipet"),
+                     ing("sour_cream", g(3, "dl_sour_cream"), "thickener", "3 dl"), ing("wheat_flour", g(2, "ek_flour"), "thickener", "2 ek"),
+                     ing("parsley_leaf", 10, "seasoning", "1 csokor, apróra vágva"), ing("lemon_juice", g(0.25, "db_lemon_juice"), "seasoning", "1/4 citrom leve"),
+                     ing("water", 1600, "liquid", "kb. 1,5 l a zöldbabhoz + egy kevés a hús párolásához")],
+        cooking=dict(method="stew the meat covered, add beans, water, potatoes; thicken with sour cream roux", mass_change_g=-150,
+                     note="about 50 min covered simmer; evaporation is an estimate. 1 ek tarragon (MISSING_FOODS) and 2 bay leaves are left out of the mass"),
+        sources=[src("https://www.mindmegette.hu/recept/tarkonyos-palocleves", PHASE2_RETRIEVED, "batch recipe, 5 adag"),
+                 src("https://www.mindmegette.hu/recept/palocleves", PHASE2_RETRIEVED, "cross-check: sertéscomb, zöldbab, burgonya, tejföl + liszt, 8 adag")]),
+    "jokai_bableves": dict(
+        names={"hu": "Jókai-bableves", "de": "Jókai-Bohnensuppe", "en": "Jókai bean soup"},
+        matrix="liquid", servings_source=4, standard_serving_g=450,
+        ingredients=[ing("dry_bean", 400, note="40 dkg bab, dry weight, soaked overnight (Street Kitchen: 500 g)"),
+                     ing("smoked_pork_hock", 550, note="edible part of 1 kg bone-in smoked hock (both sources: 1 kg); ~55% edible share is an estimate"),
+                     ing("smoked_sausage", 100, note="10 dkg füstölt kolbász (Street Kitchen: 150 g)"), ing("onion", g(1, "db_onion"), note="1 fej"),
+                     ing("garlic", g(2, "gerezd_garlic"), "seasoning", "2 gerezd"), ing("carrot", 150), ing("parsley_root", 150),
+                     ing("sunflower_oil", g(1, "ek_oil"), "fat", "1 ek, rántás"), ing("wheat_flour", g(2, "ek_flour"), "thickener", "2 ek, rántás"),
+                     ing("paprika_ground", g(1, "mk_spice"), "seasoning", "1 mokkáskanál"), ing("parsley_leaf", 10, "garnish"),
+                     ing("wheat_flour", 100, note="csipetke: 10 dkg liszt"), ing("egg", g(1, "db_egg"), note="csipetke: 1 tojás"),
+                     ing("water", 2000, "liquid", "the hock's cooking water ('annyi, hogy ellepje') is the soup base")],
+        cooking=dict(method="hock cooked soft, beans and roots simmered in its broth, roux and csipetke at the end", mass_change_g=150,
+                     note="about +450 g water taken up by the dry beans, about -300 g evaporation over the long simmer (estimates)"),
+        sources=[src("https://www.mindmegette.hu/recept/jokai-bableves-fustolt-csulokkel", PHASE2_RETRIEVED, "batch recipe, 4 adag"),
+                 src("https://streetkitchen.hu/receptek/a-klasszikus-jokai-bableves", PHASE2_RETRIEVED, "cross-check: 1 kg smoked hock, 500 g beans, 150 g sausage, csipetke")]),
+})
+DISHES += [
+    dict(id="hu_palocleves", countries=["HU"], category="traditional", part_refs=[("palocleves", 450)], served_in="deep_plate", tags=["soup", "traditional"],
+         names={"hu": "Palócleves", "de": "Palóc-Suppe", "en": "Palóc soup"},
+         aliases={"hu": ["palócleves", "palóc leves", "tárkonyos palócleves"], "de": ["palóc-suppe", "palocsuppe"], "de-AT": ["palóc-suppe"], "en": ["palóc soup", "paloc soup"]},
+         review="Az eredeti (Mikszáth-féle) palócleves ürühússal készül; ez a sertéslapockás hétköznapi változat. Birkahúsos változat külön rész legyen, ha lesz ürü katalógusrekord."),
+    dict(id="hu_jokai_bableves", countries=["HU"], category="traditional", part_refs=[("jokai_bableves", 450)], served_in="deep_plate", tags=["soup", "traditional"],
+         names={"hu": "Jókai-bableves", "de": "Jókai-Bohnensuppe", "en": "Jókai bean soup"},
+         aliases={"hu": ["jókai-bableves", "jókai bableves", "jokai bableves", "csülkös bableves"], "de": ["jókai-bohnensuppe", "ungarische bohnensuppe mit eisbein"], "de-AT": ["jókai-bohnensuppe"], "en": ["jókai bean soup", "jokai bean soup"]}),
+]
+
+# Phase-2 dishes live in one module per group (hu_*.py), each with the same
+# PARTS / DISHES / MISSING layout as above.
+PHASE2_MODULES = ('hu_street_food', 'hu_hetkoznapi', 'hu_reggeli_pekaru', 'hu_husetelek', 'hu_tesztak_edessegek', 'hu_levesek', )
+for _name in PHASE2_MODULES:
+    _m = __import__(_name)
+    _clash = PARTS.keys() & _m.PARTS.keys()
+    if _clash:
+        raise SystemExit(f"{_name}: part ids already defined: {sorted(_clash)}")
+    PARTS.update(_m.PARTS)
+    DISHES += _m.DISHES
+    MISSING_FOODS += getattr(_m, "MISSING", [])
