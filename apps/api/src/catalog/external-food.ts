@@ -2,6 +2,7 @@ import type { FoodSource, PrismaClient } from "@prisma/client";
 import { z } from "zod";
 import type { Locale } from "@keto-mentor/shared";
 import { buildSearchText, normalizeSearch } from "./normalize.js";
+import { withoutDryFormsForDrink } from "./prepared-drink-guard.js";
 import { isTrustedLocalMatch, localFormMismatch, searchFoods } from "./food-search.js";
 import type { ImportFood, ImportNutrient } from "../importers/types.js";
 import { localizeCandidateNames, type CandidateLocalizationProvider, type LocalizationLocale } from "./candidate-localization.js";
@@ -416,7 +417,8 @@ export async function resolveAuthoritativeFood(prisma: ResolutionPrisma, query: 
   const structurallyValid = rawCandidates.map(validateExternalCandidate).filter((candidate): candidate is ExternalFoodCandidate => Boolean(candidate));
   if (!structurallyValid.length) return { status: "unresolved", candidates: [], reason: "invalid_external_data", rawCandidateCount: rawCandidates.length, structurallyValidCount: 0 };
   // Structurally valid is not the same as relevant — see isRelevantExternalCandidate.
-  let candidates = structurallyValid.filter((candidate) => isRelevantExternalCandidate(query, candidate.normalizedName)).sort((a, b) => b.confidence - a.confidence);
+  // A drink is never offered its powder/beans (see prepared-drink-guard.ts).
+  let candidates = withoutDryFormsForDrink([query, semanticGate?.originalIdentity, semanticGate?.rawIngredient], structurallyValid.filter((candidate) => isRelevantExternalCandidate(query, candidate.normalizedName))).sort((a, b) => b.confidence - a.confidence);
   if (!candidates.length) return { status: "unresolved", candidates: [], reason: "not_found", rawCandidateCount: rawCandidates.length, structurallyValidCount: structurallyValid.length };
 
   // Owner-beta blocker #9 (2026-09-11): isRelevantExternalCandidate above
