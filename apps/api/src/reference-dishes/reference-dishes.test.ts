@@ -107,7 +107,22 @@ describe("regional words in a sentence, with suffixes", () => {
     ["de-AT", "ein Teller Schweinsbraten", "at_schweinsbraten"],
     ["de", "Bratkartoffeln mit Speck zum Abendessen", "de_bratkartoffeln"],
     ["de", "zwei Rühreier", "xx_eierspeis"],
-    ["en", "I had scrambled eggs", "xx_eierspeis"]
+    ["en", "I had scrambled eggs", "xx_eierspeis"],
+    // Phase 3 (Austria)
+    ["de-AT", "Mittags ein Wiener Schnitzel mit Erdäpfelsalat", "at_wiener_schnitzel_kalb__erdaepfelsalat"],
+    ["de-AT", "zwei Käsekrainer mit Senf", "at_kaesekrainer"],
+    ["de-AT", "a Eitrige mit an Buckl", "at_kaesekrainer"],
+    ["de-AT", "zuerst eine Frittatensuppe", "at_frittatensuppe"],
+    ["de-AT", "drei Marillenknödel", "at_marillenknoedel"],
+    ["de-AT", "ein Paar Frankfurter mit Senf und Kren", "at_frankfurter_senf_semmel"],
+    ["de-AT", "Vogerlsalat mit Erdäpfeln und Kernöl", "at_erdaepfel_vogerlsalat"],
+    ["de-AT", "zwei Kornspitz zum Frühstück", "at_kornspitz"],
+    ["de", "Käsespätzle zum Abendessen", "at_kaesespaetzle"],
+    ["de", "zwei Berliner", "at_krapfen"],
+    ["hu", "Bécsben császármorzsát ettem", "at_kaiserschmarrn"],
+    ["hu", "ettem egy szelet sacher-tortát", "at_sachertorte"],
+    ["en", "I had apple strudel with cream", "at_apfelstrudel"],
+    ["en", "a bag of roasted chestnuts", "at_maroni"]
   ])("%s: %s", (_language, sentence, variant) => {
     expect(found(sentence)).toContain(variant);
   });
@@ -134,7 +149,12 @@ describe("unifiedSearch finds the regional samples", () => {
     ["Eierspeis", "xx_eierspeis"],
     ["2 Leberkässemmeln", "xx_leberkaessemmel"],
     ["Bratkartoffeln", "de_bratkartoffeln"],
-    ["roast pork", "at_schweinsbraten"]
+    ["roast pork", "at_schweinsbraten"],
+    ["Tafelspitz", "at_tafelspitz"],
+    ["Käsekrainer", "at_kaesekrainer"],
+    ["császármorzsa", "at_kaiserschmarrn"],
+    ["Zwiebelrostbraten", "at_zwiebelrostbraten"],
+    ["roast goose", "at_martinigansl"]
   ])("%s", async (query, variant) => {
     const result = await unifiedSearch(prisma, query, false, { userId: "u1", foodLocale: "hu" as any });
     if (result.kind !== "results") throw new Error("expected results");

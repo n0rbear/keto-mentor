@@ -2281,17 +2281,6 @@
       "density_bulk_g_ml": 0.6,
       "note": "grams = pitted"
     },
-    "marzipan": {
-      "names": {
-        "hu": "marcipán (nyersmassza)",
-        "de": "Marzipan Rohmasse",
-        "en": "marzipan paste"
-      },
-      "catalog": "bls:S421000",
-      "carb_basis": "total",
-      "density_intrinsic_g_ml": 1.2,
-      "density_bulk_g_ml": 1.2
-    },
     "pudding_powder_vanilla": {
       "names": {
         "hu": "vaníliás pudingpor",
@@ -2441,17 +2430,6 @@
       "density_intrinsic_g_ml": 1.0,
       "density_bulk_g_ml": 1.0
     },
-    "cornflakes": {
-      "names": {
-        "hu": "kukoricapehely",
-        "de": "Cornflakes ungesüßt",
-        "en": "cornflakes (unsweetened)"
-      },
-      "catalog": "bls:C515400",
-      "carb_basis": "total",
-      "density_intrinsic_g_ml": 0.12,
-      "density_bulk_g_ml": 0.12
-    },
     "capers": {
       "names": {
         "hu": "kapribogyó",
@@ -2532,28 +2510,6 @@
       "density_intrinsic_g_ml": 1.0,
       "density_bulk_g_ml": 0.8
     },
-    "curry_bratwurst": {
-      "names": {
-        "hu": "currykolbász",
-        "de": "Currybratwurst",
-        "en": "currywurst sausage"
-      },
-      "catalog": "bls:W221300",
-      "carb_basis": "total",
-      "density_intrinsic_g_ml": 1.0,
-      "density_bulk_g_ml": 0.8
-    },
-    "curry_ketchup": {
-      "names": {
-        "hu": "curry-ketchup",
-        "de": "Curry-Gewürzketchup",
-        "en": "curry ketchup"
-      },
-      "catalog": "bls:R141200",
-      "carb_basis": "total",
-      "density_intrinsic_g_ml": 1.14,
-      "density_bulk_g_ml": 1.14
-    },
     "baguette_roll": {
       "names": {
         "hu": "bagett zsemle",
@@ -2610,17 +2566,6 @@
       "density_intrinsic_g_ml": 1.0,
       "density_bulk_g_ml": 0.6,
       "note": "grams = peeled kernel"
-    },
-    "fried_onions": {
-      "names": {
-        "hu": "pirított hagyma (készen)",
-        "de": "Röstzwiebeln (Fertigprodukt)",
-        "en": "crispy fried onions"
-      },
-      "catalog": "bls:G860192",
-      "carb_basis": "total",
-      "density_intrinsic_g_ml": 0.3,
-      "density_bulk_g_ml": 0.3
     },
     "potato_starch": {
       "names": {

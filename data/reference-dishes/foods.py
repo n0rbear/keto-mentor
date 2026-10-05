@@ -228,7 +228,6 @@ FOOD_KEYS = {
     "almond":             ("mandula (darált)", "Mandel süß", "almond (ground)", "bls:H210100", "total", 544, 46.6, 22.333, 13.87, 10, 1.0, 0.45, None),  # BLS: Mandel süß
     "hazelnut":           ("mogyoró (darált)", "Haselnuss", "hazelnut (ground)", "bls:H130100", "total", 667, 63.3, 16.25, 11.8, 7.6, 1.0, 0.45, None),  # BLS: Haselnuss
     "apricot":            ("sárgabarack (Marille)", "Aprikose (Marille)", "apricot", "bls:F201100", "total", 42, 0.13, 0.8, 9.76, 1.54, 1.0, 0.6, "grams = pitted"),  # BLS: Aprikose roh
-    "marzipan":           ("marcipán (nyersmassza)", "Marzipan Rohmasse", "marzipan paste", "bls:S421000", "total", 415, 24.9, 8, 42.198, 4.988, 1.2, 1.2, None),  # BLS: Marzipan Rohmasse
     "pudding_powder_vanilla":("vaníliás pudingpor", "Puddingpulver Vanille, ungezuckert", "vanilla custard powder", "bls:R481100", "total", 344, 0.079, 0.426, 85.899, 0.988, 1.0, 0.6, None),  # BLS: Puddingpulver Vanille, ungezuckert
     "sacher_glaze":       ("csokoládémáz (Sacher)", "Sacherguss/Schokoladenglasur", "chocolate glaze", "bls:R9A5100", "total", 345, 15.75, 3.31, 49.6, 4.2, 1.3, 1.3, None),  # BLS: Sacherguss/Schokoladenglasur, für Gebäck/Torten
     "toast_bread":        ("toastkenyér", "Weizentoastbrot/Buttertoastbrot", "white toast bread", "bls:B314000", "total", 261, 3.59, 8.29, 50.747, 3.947, 0.3, 0.3, None),  # BLS: Weizentoastbrot/Buttertoastbrot
@@ -243,7 +242,6 @@ FOOD_KEYS = {
     "croissant":          ("croissant (vajas)", "Croissant (Hefeblätterteig/Plunderteig)", "croissant", "bls:D771600", "total", 426, 23.57, 8, 46.62, 2.62, 0.25, 0.25, None),  # BLS: Croissant (Hefeblätterteig/Plunderteig)
     "wiener_kipferl":     ("kifli (bécsi, kelt tésztás)", "Wiener Hörnchen (Hefeteig)", "Viennese crescent roll (Kipferl)", "bls:D740600", "total", 318, 10.5, 7.6, 49.3, 2.3, 0.3, 0.3, "Austrian Butterkipferl / Wiener Kipferl"),  # BLS: Wiener Hörnchen (Hefeteig)
     "puff_pastry":        ("leveles tészta (nyers)", "Blätterteig eifrei, roh", "puff pastry, raw", "bls:D072000", "total", 425, 32.19, 4.18, 30.77, 2.12, 1.0, 1.0, None),  # BLS: Blätterteig eifrei, roh
-    "cornflakes":         ("kukoricapehely", "Cornflakes ungesüßt", "cornflakes (unsweetened)", "bls:C515400", "total", 376, 0.84, 7.18, 87.09, 4.13, 0.12, 0.12, None),  # BLS: Cornflakes ungesüßt
     # at_alltag
     "capers":             ("kapribogyó", "Kapern gesäuert, abgetropft", "capers, drained", "bls:G012902", "total", 22, 0.42, 2.12, 2.4, 2.4, 1.0, 0.6, None),  # BLS: Kapern gesäuert, abgetropft
     "fish_fingers_fried": ("halrudacska (sütve)", "Fischstäbchen (Alaska-Seelachs) paniert, gebraten ohne Fett", "fish fingers, pan-fried", "bls:T930182", "total", 209, 9.437, 13.908, 17.42, 0.92, 0.8, 0.5, "cooked weight (BLS gebraten ohne Fett); frying oil is added separately"),  # BLS: Fischstäbchen (Alaska-Seelachs) paniert, tiefgefroren, gebraten ohne Fett (Pfanne)
@@ -253,14 +251,11 @@ FOOD_KEYS = {
     "lambs_lettuce":      ("galambbegysaláta (Vogerlsalat)", "Feldsalat (Vogerlsalat)", "lamb's lettuce", "bls:G104100", "total", 18, 0.36, 1.9, 2.608, 1.8, 0.95, 0.15, None),  # BLS: Feldsalat/Rapunzel, roh
     # at_streetfood
     "kaesekrainer":       ("sajtos kolbász (Käsekrainer)", "Käsekrainer/Käsewürstchen", "cheese-filled sausage (Käsekrainer)", "bls:W255300", "total", 192, 14.17, 15.9, 0.1, 0.04, 1.0, 0.8, None),  # BLS: Käsekrainer/Käsewürstchen
-    "curry_bratwurst":    ("currykolbász", "Currybratwurst", "currywurst sausage", "bls:W221300", "total", 215, 19.01, 10.92, 0.06, 0.02, 1.0, 0.8, None),  # BLS: Currybratwurst
-    "curry_ketchup":      ("curry-ketchup", "Curry-Gewürzketchup", "curry ketchup", "bls:R141200", "total", 98, 0.1, 1.4, 22.97, 1.81, 1.14, 1.14, None),  # BLS: Curry-Gewürzketchup
     "baguette_roll":      ("bagett zsemle", "Weizenbaguettebrötchen", "baguette roll", "bls:B781300", "total", 289, 1.51, 9.6, 61.25, 4.25, 0.25, 0.25, None),  # BLS: Weizenbaguettebrötchen
     "veal_shoulder":      ("borjúlapocka", "Kalb Bug/Schulter", "veal shoulder", "bls:U461100", "total", 94, 1.01, 21.2, 0, 0, 1.05, 0.8, None),  # BLS: Kalb Bug/Schulter, roh
     "mutton_fat":         ("birkafaggyú (Hammelspeck)", "Schaf Fettgewebe, intermuskulär", "mutton fat tissue", "bls:U805800", "total", 637, 68.5, 5.06, 0, 0, 0.92, 0.8, None),  # BLS: Schaf Fettgewebe, intermuskulär roh
     "mackerel":           ("makréla", "Makrele", "mackerel", "bls:T107100", "total", 149, 8.31, 18.6, 0, 0, 1.05, 0.8, "grams = edible part"),  # BLS: Makrele roh
     "chestnut":           ("gesztenye (Maroni)", "Edelkastanie/Marone", "sweet chestnut", "bls:H230100", "total", 210, 1.9, 2.925, 49.57, 8.37, 1.0, 0.6, "grams = peeled kernel"),  # BLS: Edelkastanie/Marone
-    "fried_onions":       ("pirított hagyma (készen)", "Röstzwiebeln (Fertigprodukt)", "crispy fried onions", "bls:G860192", "total", 575, 44.48, 5.9, 39.97, 5.6, 0.3, 0.3, None),  # BLS: Röstzwiebeln (Fertigprodukt)
     "potato_starch":      ("burgonyakeményítő", "Kartoffelstärke", "potato starch", "bls:K230000", "total", 338, 0.1, 0.614, 84.1, 1, 1.0, 0.6, None),  # BLS: Kartoffelstärke (Kartoffelmehl)
     "tomato_canned":      ("hámozott paradicsom (konzerv)", "Tomate geschält, Konserve", "canned peeled tomatoes", "bls:G568900", "total", 24, 0.3, 1.2, 4.15, 0.9, 1.02, 1.02, None),  # BLS: Tomate geschält, Konserve
     "banana":             ("banán", "Banane", "banana", "bls:F503100", "total", 79, 0.4, 1.319, 17.89, 2, 0.95, 0.6, "grams = peeled"),  # BLS: Banane roh
