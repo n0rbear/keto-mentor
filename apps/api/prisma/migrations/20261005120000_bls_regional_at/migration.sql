@@ -6361,7 +6361,7 @@ ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
 -- M172500 Sauerrahm/Saure Sahne, mind. 10 % Fett: 119 kcal, P 3.1, F 10, carbs(total) 4.1, fiber 0
 
 INSERT INTO "ketomentor"."Food" ("id", "name", "names", "synonyms", "source", "sourceId", "originalName", "category", "searchText", "provenance", "kcalPer100g", "fatPer100g", "proteinPer100g", "carbsPer100g", "fiberPer100g")
-VALUES ('bls-M172500', 'Sauerrahm/Saure Sahne, mind. 10 % Fett', '{"de":"Sauerrahm/Saure Sahne, mind. 10 % Fett","hu":"tejföl (Sauerrahm)","en":"sour cream (Sauerrahm)"}'::jsonb, '{"de-AT":["Sauerrahm","Rahm"]}'::jsonb, 'bls', 'M172500', 'Sauerrahm/Saure Sahne, mind. 10 % Fett', 'Dairy', 'sauerrahm saure sahne mind 10 fett sauerrahm saure sahne mind 10 fett de sauerrahm saure sahne mind 10 fett hu tejfol sauerrahm en sour cream sauerrahm de at sauerrahm rahm', '{"source":"Bundeslebensmittelschlüssel","version":"4.0 (2025)","sourceUrl":"https://blsdb.de/download","license":"CC-BY-4.0","attribution":"Max Rubner-Institut (2025): Bundeslebensmittelschlüssel (BLS), Version 4.0 - Deutsche Nährstoffdatenbank.","valuesPer":"100 g","carbohydrateBasis":"total_from_available_plus_fiber"}'::jsonb, 119, 10, 3.1, 4.1, 0)
+VALUES ('bls-M172500', 'Sauerrahm/Saure Sahne, mind. 10 % Fett', '{"de":"Sauerrahm/Saure Sahne, mind. 10 % Fett","hu":"tejföl (Sauerrahm)","en":"sour cream (Sauerrahm)"}'::jsonb, '{"de-AT":["Sauerrahm"]}'::jsonb, 'bls', 'M172500', 'Sauerrahm/Saure Sahne, mind. 10 % Fett', 'Dairy', 'sauerrahm saure sahne mind 10 fett sauerrahm saure sahne mind 10 fett de sauerrahm saure sahne mind 10 fett hu tejfol sauerrahm en sour cream sauerrahm de at sauerrahm', '{"source":"Bundeslebensmittelschlüssel","version":"4.0 (2025)","sourceUrl":"https://blsdb.de/download","license":"CC-BY-4.0","attribution":"Max Rubner-Institut (2025): Bundeslebensmittelschlüssel (BLS), Version 4.0 - Deutsche Nährstoffdatenbank.","valuesPer":"100 g","carbohydrateBasis":"total_from_available_plus_fiber"}'::jsonb, 119, 10, 3.1, 4.1, 0)
 ON CONFLICT ("source", "sourceId") DO NOTHING;
 
 INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
@@ -6381,11 +6381,6 @@ ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
 
 INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
 SELECT 'bls-M172500-de-AT-sauerrahm', f."id", 'Sauerrahm', 'sauerrahm', 'de-AT', 'synonym', 1, '{"method":"curated_import","source":"bls","sourceId":"M172500","via":"reviewed_migration_regional_at"}'::jsonb
-FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'M172500'
-ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
-
-INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
-SELECT 'bls-M172500-de-AT-rahm', f."id", 'Rahm', 'rahm', 'de-AT', 'synonym', 1, '{"method":"curated_import","source":"bls","sourceId":"M172500","via":"reviewed_migration_regional_at"}'::jsonb
 FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'M172500'
 ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
 
@@ -6578,7 +6573,7 @@ ON CONFLICT ("foodId", "nutrientId") DO NOTHING;
 -- M173900 Schlagsahne mind. 36 % Fett: 363 kcal, P 2.2, F 38, carbs(total) 3, fiber 0
 
 INSERT INTO "ketomentor"."Food" ("id", "name", "names", "synonyms", "source", "sourceId", "originalName", "category", "searchText", "provenance", "kcalPer100g", "fatPer100g", "proteinPer100g", "carbsPer100g", "fiberPer100g")
-VALUES ('bls-M173900', 'Schlagsahne mind. 36 % Fett', '{"de":"Schlagsahne mind. 36 % Fett","hu":"habtejszín (36%, Schlagobers)","en":"whipping cream 36% (Schlagobers)"}'::jsonb, '{"de-AT":["Schlagobers","Obers"]}'::jsonb, 'bls', 'M173900', 'Schlagsahne mind. 36 % Fett', 'Dairy', 'schlagsahne mind 36 fett schlagsahne mind 36 fett de schlagsahne mind 36 fett hu habtejszin 36 schlagobers en whipping cream 36 schlagobers de at schlagobers obers', '{"source":"Bundeslebensmittelschlüssel","version":"4.0 (2025)","sourceUrl":"https://blsdb.de/download","license":"CC-BY-4.0","attribution":"Max Rubner-Institut (2025): Bundeslebensmittelschlüssel (BLS), Version 4.0 - Deutsche Nährstoffdatenbank.","valuesPer":"100 g","carbohydrateBasis":"total_from_available_plus_fiber"}'::jsonb, 363, 38, 2.2, 3, 0)
+VALUES ('bls-M173900', 'Schlagsahne mind. 36 % Fett', '{"de":"Schlagsahne mind. 36 % Fett","hu":"habtejszín (36%, Schlagobers)","en":"whipping cream 36% (Schlagobers)"}'::jsonb, '{"de-AT":["Schlagobers"]}'::jsonb, 'bls', 'M173900', 'Schlagsahne mind. 36 % Fett', 'Dairy', 'schlagsahne mind 36 fett schlagsahne mind 36 fett de schlagsahne mind 36 fett hu habtejszin 36 schlagobers en whipping cream 36 schlagobers de at schlagobers', '{"source":"Bundeslebensmittelschlüssel","version":"4.0 (2025)","sourceUrl":"https://blsdb.de/download","license":"CC-BY-4.0","attribution":"Max Rubner-Institut (2025): Bundeslebensmittelschlüssel (BLS), Version 4.0 - Deutsche Nährstoffdatenbank.","valuesPer":"100 g","carbohydrateBasis":"total_from_available_plus_fiber"}'::jsonb, 363, 38, 2.2, 3, 0)
 ON CONFLICT ("source", "sourceId") DO NOTHING;
 
 INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
@@ -6598,11 +6593,6 @@ ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
 
 INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
 SELECT 'bls-M173900-de-AT-schlagobers', f."id", 'Schlagobers', 'schlagobers', 'de-AT', 'synonym', 1, '{"method":"curated_import","source":"bls","sourceId":"M173900","via":"reviewed_migration_regional_at"}'::jsonb
-FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'M173900'
-ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
-
-INSERT INTO "ketomentor"."FoodAlias" ("id", "foodId", "alias", "normalizedAlias", "locale", "kind", "confidence", "provenance")
-SELECT 'bls-M173900-de-AT-obers', f."id", 'Obers', 'obers', 'de-AT', 'synonym', 1, '{"method":"curated_import","source":"bls","sourceId":"M173900","via":"reviewed_migration_regional_at"}'::jsonb
 FROM "ketomentor"."Food" f WHERE f."source" = 'bls' AND f."sourceId" = 'M173900'
 ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING;
 

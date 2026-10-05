@@ -2062,6 +2062,16 @@ bauernkrapfen,Paraszt-fánk (Bauernkrapfen),16,clarified_butter,tisztított vaj 
 bauernkrapfen,Paraszt-fánk (Bauernkrapfen),16,powdered_sugar,porcukor,50,garnish,bls:S111100,1283,0.908,1.024,80
 maroni,Sült gesztenye (Maroni),4,chestnut,gesztenye (Maroni),800,core,bls:H230100,740,0.705,0.6,185
 maroni,Sült gesztenye (Maroni),4,water,víz,250,liquid,none,740,0.705,0.6,185
+langos_at,"Osztrák lángos (tejes-tojássárgás tészta, natúr)",8,wheat_flour,búzaliszt (BL55),500,core,bls:C214100,711,0.826,0.992,89
+langos_at,"Osztrák lángos (tejes-tojássárgás tészta, natúr)",8,egg_yolk,tojássárgája,36,core,bls:E112100,711,0.826,0.992,89
+langos_at,"Osztrák lángos (tejes-tojássárgás tészta, natúr)",8,milk_whole,"tej (3,5%)",129,liquid,bls:M111300,711,0.826,0.992,89
+langos_at,"Osztrák lángos (tejes-tojássárgás tészta, natúr)",8,water,víz,125,liquid,none,711,0.826,0.992,89
+langos_at,"Osztrák lángos (tejes-tojássárgás tészta, natúr)",8,yeast_dry,szárított élesztő (porélesztő),7,core,bls:R458000,711,0.826,0.992,89
+langos_at,"Osztrák lángos (tejes-tojássárgás tészta, natúr)",8,sunflower_oil,napraforgóolaj,64,absorbed_fat,bls:Q320000,711,0.826,0.992,89
+langos_at_knoblauch,Fokhagymás-olajos kenés osztrák lángosra,1,garlic,fokhagyma,5,seasoning,bls:G490100,18,1.0,0.941,18
+langos_at_knoblauch,Fokhagymás-olajos kenés osztrák lángosra,1,sunflower_oil,napraforgóolaj,13,fat,bls:Q320000,18,1.0,0.941,18
+langos_at_sauerrahm,Tejföl osztrák lángosra,8,sauerrahm,tejföl (Sauerrahm),175,core,bls:M172500,178,1.0,1.02,22
+langos_at_sauerrahm,Tejföl osztrák lángosra,8,chives,metélőhagyma,3,garnish,bls:G081100,178,1.0,1.02,22
 bratkartoffeln,Pirított burgonya szalonnával és hagymával,2,potato,burgonya,500,core,bls:K110100,580,0.853,0.65,250
 bratkartoffeln,Pirított burgonya szalonnával és hagymával,2,smoked_bacon,füstölt szalonna / bacon,90,core,bls:W415000,580,0.853,0.65,250
 bratkartoffeln,Pirított burgonya szalonnával és hagymával,2,onion,vöröshagyma,80,core,bls:G480100,580,0.853,0.65,250

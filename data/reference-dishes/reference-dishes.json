@@ -4071,11 +4071,6 @@
           "url": "https://www.mindmegette.hu/recept/fokhagymas-sajtos-tejfolos-langos",
           "retrieved": "2026-09-27",
           "note": "cross-check: 40 dkg kenyérliszt, 3,2 dl víz, 1 dkg élesztő, 1 l olaj a sütéshez, 4 adag"
-        },
-        {
-          "url": "https://www.gutekueche.at/langos-rezept-16734",
-          "retrieved": "2026-10-05",
-          "note": "AT cross-check (phase 3): 500 g Mehl, 1/8 l Milch, 1/8 l Wasser, Trockengerm, 2 Dotter, 8 Portionen - same fried yeast Langos"
         }
       ],
       "derived_check": {
@@ -30046,6 +30041,200 @@
         "incomplete_missing_food_keys": []
       }
     },
+    "langos_at": {
+      "id": "langos_at",
+      "names": {
+        "hu": "Osztrák lángos (tejes-tojássárgás tészta, natúr)",
+        "de": "Langos (österreichisch, frittiert, ohne Belag)",
+        "de-AT": "Langos (natur)",
+        "en": "Austrian langos (plain fried dough)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 8,
+        "ingredients": [
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 500,
+            "role": "core",
+            "note": "500 g Mehl, glatt"
+          },
+          {
+            "food_key": "egg_yolk",
+            "raw_g": 36,
+            "role": "core",
+            "note": "2 Stk Dotter"
+          },
+          {
+            "food_key": "milk_whole",
+            "raw_g": 129,
+            "role": "liquid",
+            "note": "0,125 l Milch"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 125,
+            "role": "liquid",
+            "note": "0,125 l Wasser, warm"
+          },
+          {
+            "food_key": "yeast_dry",
+            "raw_g": 7,
+            "role": "core",
+            "note": "1 Pk Trockengerm"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 64,
+            "role": "absorbed_fat",
+            "note": "oil taken up while deep-frying: ~9 % of the fried weight (estimate, the same rule as the HU lángos part)"
+          }
+        ],
+        "raw_total_g": 861,
+        "cooking": {
+          "method": "yeast dough, 8 pieces pulled flat, deep-fried ~2 min per side",
+          "mass_change_g": -150,
+          "note": "water lost while frying ~19 % of the dough (estimate, as the HU lángos part); salt left out"
+        },
+        "finished_weight_g": 711,
+        "yield_factor": 0.826
+      },
+      "standard_serving_g": 89,
+      "density_g_per_ml": 0.992,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.gutekueche.at/langos-rezept-16734",
+          "retrieved": "2026-10-05",
+          "note": "batch recipe: 2 Dotter, 500 g Mehl, 0,125 l Milch, 0,125 l Wasser, 1 Pk Trockengerm, Salz, 8 Portionen"
+        },
+        {
+          "url": "https://www.ichkoche.at/langos-rezept-12738",
+          "retrieved": "2026-10-05",
+          "note": "cross-check: 500 g Mehl, 100 ml Milch, 250 ml Wasser, 25 g Hefe, 20 g Zucker, Frittierfett, Knoblauch-Öl, 175 g Sauerrahm, 8 Portionen"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 357.7,
+          "fat": 11.9,
+          "protein": 9.2,
+          "net_carbs": 51.4
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "langos_at_knoblauch": {
+      "id": "langos_at_knoblauch",
+      "names": {
+        "hu": "Fokhagymás-olajos kenés osztrák lángosra",
+        "de": "Knoblauchöl für Langos",
+        "de-AT": "Knoblauch zum Bestreichen (Langos)",
+        "en": "Garlic oil brushed on langos"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "garlic",
+            "raw_g": 5,
+            "role": "seasoning",
+            "note": "'Knoblauch geschält und zerdrückt', no amount; 1 Zehe per Langos is an estimate"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 13,
+            "role": "fat",
+            "note": "'Öl', no amount; 1 EL per Langos is an estimate"
+          }
+        ],
+        "raw_total_g": 18,
+        "cooking": {
+          "method": "crushed garlic in oil, brushed on the hot Langos",
+          "mass_change_g": 0,
+          "note": "no cooking; salt left out"
+        },
+        "finished_weight_g": 18,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 18,
+      "density_g_per_ml": 0.941,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.ichkoche.at/langos-rezept-12738",
+          "retrieved": "2026-10-05",
+          "note": "Zum Bestreichen: Knoblauch geschält und zerdrückt, Salz, Öl"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 676.9,
+          "fat": 72.3,
+          "protein": 1.7,
+          "net_carbs": 0.8
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "langos_at_sauerrahm": {
+      "id": "langos_at_sauerrahm",
+      "names": {
+        "hu": "Tejföl osztrák lángosra",
+        "de": "Sauerrahm für Langos",
+        "de-AT": "Sauerrahm (Langos)",
+        "en": "Sour cream on langos"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 8,
+        "ingredients": [
+          {
+            "food_key": "sauerrahm",
+            "raw_g": 175,
+            "role": "core",
+            "note": "175 g Sauerrahm for 8 Langos"
+          },
+          {
+            "food_key": "chives",
+            "raw_g": 3,
+            "role": "garnish",
+            "note": "Schnittlauch; 3 g is an estimate"
+          }
+        ],
+        "raw_total_g": 178,
+        "cooking": {
+          "method": "spread on the Langos",
+          "mass_change_g": 0,
+          "note": "no cooking"
+        },
+        "finished_weight_g": 178,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 22,
+      "density_g_per_ml": 1.02,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.ichkoche.at/langos-rezept-12738",
+          "retrieved": "2026-10-05",
+          "note": "Zum Auftragen: 175 g Sauerrahm, Schnittlauch, 8 Portionen"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 117.5,
+          "fat": 9.8,
+          "protein": 3.1,
+          "net_carbs": 4.1
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
     "bratkartoffeln": {
       "id": "bratkartoffeln",
       "names": {
@@ -30767,8 +30956,7 @@
     {
       "id": "hu_fokhagymas_langos",
       "countries": [
-        "HU",
-        "AT"
+        "HU"
       ],
       "category": "street_food",
       "names": {
@@ -30814,8 +31002,7 @@
     {
       "id": "hu_sajtos_tejfolos_langos",
       "countries": [
-        "HU",
-        "AT"
+        "HU"
       ],
       "category": "street_food",
       "names": {
@@ -31819,8 +32006,7 @@
     {
       "id": "hu_langos",
       "countries": [
-        "HU",
-        "AT"
+        "HU"
       ],
       "category": "street_food",
       "names": {
@@ -44066,6 +44252,145 @@
         {
           "part": "maroni",
           "standard_serving_g": 185
+        }
+      ]
+    },
+    {
+      "id": "at_langos",
+      "countries": [
+        "AT"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "Osztrák lángos (tejes-tojássárgás tészta, natúr)",
+        "de": "Langos (österreichisch, frittiert, ohne Belag)",
+        "de-AT": "Langos (natur)",
+        "en": "Austrian langos (plain fried dough)"
+      },
+      "aliases": {
+        "de-AT": [
+          "langos",
+          "langos natur",
+          "langosch",
+          "ein langos"
+        ],
+        "de": [
+          "langos österreichisch"
+        ],
+        "hu": [
+          "osztrák lángos"
+        ],
+        "en": [
+          "austrian langos",
+          "langos"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "fried",
+        "higher-carb"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "langos_at",
+          "standard_serving_g": 89
+        }
+      ],
+      "review_note_hu": "Osztrák tészta (tej, tojássárgája, szárított élesztő); a magyar lángos (hu_langos) külön étel."
+    },
+    {
+      "id": "at_langos_knoblauch",
+      "countries": [
+        "AT"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "Fokhagymás osztrák lángos",
+        "de": "Langos mit Knoblauch (österreichisch)",
+        "de-AT": "Langos mit Knoblauch",
+        "en": "Austrian langos with garlic"
+      },
+      "aliases": {
+        "de-AT": [
+          "langos mit knoblauch",
+          "knoblauchlangos",
+          "knoblauch-langos",
+          "langos knoblauch"
+        ],
+        "de": [
+          "langos mit knoblauch österreichisch"
+        ],
+        "hu": [
+          "fokhagymás osztrák lángos"
+        ],
+        "en": [
+          "austrian garlic langos"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "fried",
+        "higher-carb"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "langos_at",
+          "standard_serving_g": 89
+        },
+        {
+          "part": "langos_at_knoblauch",
+          "standard_serving_g": 18
+        }
+      ]
+    },
+    {
+      "id": "at_langos_knoblauch_sauerrahm",
+      "countries": [
+        "AT"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "Fokhagymás-tejfölös osztrák lángos",
+        "de": "Langos mit Knoblauch und saurer Sahne",
+        "de-AT": "Langos mit Knoblauch und Sauerrahm",
+        "en": "Austrian langos with garlic and sour cream"
+      },
+      "aliases": {
+        "de-AT": [
+          "langos mit knoblauch und sauerrahm",
+          "langos mit sauerrahm",
+          "langos mit rahm"
+        ],
+        "de": [
+          "langos mit knoblauch und saurer sahne"
+        ],
+        "hu": [
+          "fokhagymás-tejfölös osztrák lángos"
+        ],
+        "en": [
+          "austrian langos with garlic and sour cream"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "fried",
+        "higher-carb"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "langos_at",
+          "standard_serving_g": 89
+        },
+        {
+          "part": "langos_at_knoblauch",
+          "standard_serving_g": 18
+        },
+        {
+          "part": "langos_at_sauerrahm",
+          "standard_serving_g": 22
         }
       ]
     },

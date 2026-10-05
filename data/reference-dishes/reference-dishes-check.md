@@ -304,6 +304,9 @@
 | Tócsni (osztrák Erdäpfelpuffer) | 1146 | -130 | 1016 | 0.887 | 0.7 | 144.8 | 7.1 | 2.4 | 17.2 | – |
 | Paraszt-fánk (Bauernkrapfen) | 1413 | -130 | 1283 | 0.908 | 1.024 | 365.2 | 17.3 | 8.1 | 42.6 | – |
 | Sült gesztenye (Maroni) | 1050 | -310 | 740 | 0.705 | 0.6 | 227.0 | 2.1 | 3.2 | 44.5 | – |
+| Osztrák lángos (tejes-tojássárgás tészta, natúr) | 861 | -150 | 711 | 0.826 | 0.992 | 357.7 | 11.9 | 9.2 | 51.4 | – |
+| Fokhagymás-olajos kenés osztrák lángosra | 18 | +0 | 18 | 1.0 | 0.941 | 676.9 | 72.3 | 1.7 | 0.8 | – |
+| Tejföl osztrák lángosra | 178 | +0 | 178 | 1.0 | 1.02 | 117.5 | 9.8 | 3.1 | 4.1 | – |
 | Pirított burgonya szalonnával és hagymával | 680 | -100 | 580 | 0.853 | 0.65 | 138.9 | 5.9 | 4.4 | 16.3 | – |
 | Rántotta | 158 | -8 | 150 | 0.949 | 0.55 | 173.2 | 13.3 | 13.2 | 0.3 | – |
 | Leberkäsés zsemle | 162.5 | +0 | 162.5 | 1.0 | 0.464 | 281.2 | 16.0 | 12.2 | 21.1 | – |
@@ -603,6 +606,9 @@ kivéve ha az ételnél `reference_check.deviation` (átnézett receptkülönbs�
 | Tócsni (osztrák Erdäpfelpuffer) | nincs még | – | – | – | – | – | – |
 | Paraszt-fánk (Bauernkrapfen) | nincs még | – | – | – | – | – | – |
 | Sült gesztenye (Maroni) | bls:H230162 Edelkastanie/Marone, gebacken | 227 / 229 | 2.1 / 2.065 | 3.2 / 3.179 | 44.5 / 44.783 | -1% rendben | – |
+| Osztrák lángos (tejes-tojássárgás tészta, natúr) | nincs még | – | – | – | – | – | – |
+| Fokhagymás osztrák lángos | nincs még | – | – | – | – | – | – |
+| Fokhagymás-tejfölös osztrák lángos | nincs még | – | – | – | – | – | – |
 | Pirított burgonya szalonnával és hagymával | nincs még | – | – | – | – | – | – |
 | Rántotta | bls:Y720163 Rührei gebraten in Butter | 173 / 172 | 13.3 / 12.99 | 13.2 / 13.31 | 0.3 / 0.42 | +1% rendben | – |
 | Leberkäsés zsemle | nincs még | – | – | – | – | – | – |
@@ -625,8 +631,8 @@ Mély tányér: kapacitás × töltöttség × sűrűség. Lapos tányér: 0,8 �
 | Székelykáposzta | HU | traditional | 450 | 346 | 500 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | Palócleves | HU | traditional | 450 | 341 | 493 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | Jókai-bableves | HU | traditional | 450 | 350 | 505 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
-| fokhagymás lángos | HU, AT | street_food | 144 | – (kézből) | – | – | – | – |
-| sajtos-tejfölös lángos | HU, AT | street_food | 213 | – (kézből) | – | – | – | – |
+| fokhagymás lángos | HU | street_food | 144 | – (kézből) | – | – | – | – |
+| sajtos-tejfölös lángos | HU | street_food | 213 | – (kézből) | – | – | – | – |
 | töltött lángos | HU | street_food | 175 | – (kézből) | – | – | – | – |
 | kürtőskalács | HU | street_food | 250 | – (kézből) | – | – | – | – |
 | sült kolbász kenyérrel | HU | street_food | 280 | 205 | 296 | 218 | 256 | 297 |
@@ -647,7 +653,7 @@ Mély tányér: kapacitás × töltöttség × sűrűség. Lapos tányér: 0,8 �
 | tócsni | HU | street_food | 200 | – (lapos tányéros étel) | – (lapos tányéros étel) | 91 | 107 | 124 |
 | lapcsánka | HU | street_food | 190 | – (lapos tányéros étel) | – (lapos tányéros étel) | 91 | 107 | 124 |
 | hekk | HU | street_food | 150 | – (lapos tányéros étel) | – (lapos tányéros étel) | 130 | 153 | 177 |
-| lángos | HU, AT | street_food | 130 | – (kézből) | – | – | – | – |
+| lángos | HU | street_food | 130 | – (kézből) | – | – | – | – |
 | hasábburgonya | HU, AT | street_food | 170 | – (lapos tányéros étel) | – (lapos tányéros étel) | 117 | 138 | 160 |
 | gofri | HU | street_food | 100 | – (kézből) | – | – | – | – |
 | tejfölös tészta | HU | everyday | 350 | – (lapos tányéros étel) | – (lapos tányéros étel) | 254 | 298 | 346 |
@@ -901,6 +907,9 @@ Mély tányér: kapacitás × töltöttség × sűrűség. Lapos tányér: 0,8 �
 | Tócsni (osztrák Erdäpfelpuffer) | AT | street_food | 250 | – (lapos tányéros étel) | – (lapos tányéros étel) | 213 | 250 | 290 |
 | Paraszt-fánk (Bauernkrapfen) | AT | street_food | 80 | – (kézből) | – | – | – | – |
 | Sült gesztenye (Maroni) | AT | street_food | 185 | – (kézből) | – | – | – | – |
+| Osztrák lángos (tejes-tojássárgás tészta, natúr) | AT | street_food | 89 | – (kézből) | – | – | – | – |
+| Fokhagymás osztrák lángos | AT | street_food | 107 | – (kézből) | – | – | – | – |
+| Fokhagymás-tejfölös osztrák lángos | AT | street_food | 129 | – (kézből) | – | – | – | – |
 | Pirított burgonya szalonnával és hagymával | DE | traditional | 250 | – (lapos tányéros étel) | – (lapos tányéros étel) | 212 | 248 | 288 |
 | Rántotta | HU, AT, DE | everyday | 150 | – (lapos tányéros étel) | – (lapos tányéros étel) | 127 | 150 | 173 |
 | Leberkäsés zsemle | AT, DE | street_food | 162.5 | – (kézből) | – | – | – | – |

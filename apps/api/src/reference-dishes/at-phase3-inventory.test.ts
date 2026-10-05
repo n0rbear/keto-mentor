@@ -52,6 +52,9 @@ describe("AT phase 3 inventory", () => {
     expect(referenceVariantIdsFor("Krautfleckerl")).toEqual(["at_krautfleckerl"]);
     // A Hungarian saying "bécsi szelet" still means rántott hús.
     expect(referenceVariantIdsFor("bécsi szelet").every((id) => id.startsWith("hu_rantott_hus"))).toBe(true);
+    // Austrian Langos is its own dish; the Hungarian lángos keeps its Hungarian phrases.
+    expect(referenceVariantIdsFor("Langos mit Knoblauch")).toEqual(["at_langos_knoblauch"]);
+    expect(referenceVariantIdsFor("fokhagymás lángos")).toEqual(["hu_fokhagymas_langos"]);
     // Equal claims stay a choice: "Berliner" (de) is both the HU fánk and the AT Krapfen.
     expect(referenceVariantIdsFor("Berliner")).toEqual(expect.arrayContaining(["hu_fank", "at_krapfen"]));
   });

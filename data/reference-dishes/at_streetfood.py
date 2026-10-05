@@ -237,6 +237,47 @@ DISHES = [
       reference_check=dict(catalog="bls:H230162", name="Edelkastanie/Marone, gebacken", kcal=229, fat=2.065, protein=3.179, net_carbs=44.783)),
 ]
 
+PARTS.update({
+    "langos_at": dict(
+        names={"hu": "Osztrák lángos (tejes-tojássárgás tészta, natúr)", "de": "Langos (österreichisch, frittiert, ohne Belag)", "de-AT": "Langos (natur)", "en": "Austrian langos (plain fried dough)"},
+        matrix="solid", servings_source=8, standard_serving_g=89,
+        ingredients=[ing("wheat_flour", 500, note="500 g Mehl, glatt"), ing("egg_yolk", 36, note="2 Stk Dotter"), ing("milk_whole", 129, "liquid", "0,125 l Milch"),
+                     ing("water", 125, "liquid", "0,125 l Wasser, warm"), ing("yeast_dry", g(1, "pkg_dry_yeast"), note="1 Pk Trockengerm"),
+                     ing("sunflower_oil", 64, "absorbed_fat", "oil taken up while deep-frying: ~9 % of the fried weight (estimate, the same rule as the HU lángos part)")],
+        cooking=dict(method="yeast dough, 8 pieces pulled flat, deep-fried ~2 min per side", mass_change_g=-150,
+                     note="water lost while frying ~19 % of the dough (estimate, as the HU lángos part); salt left out"),
+        sources=[src(GK + "langos-rezept-16734", R, "batch recipe: 2 Dotter, 500 g Mehl, 0,125 l Milch, 0,125 l Wasser, 1 Pk Trockengerm, Salz, 8 Portionen"),
+                 src(IK + "langos-rezept-12738", R, "cross-check: 500 g Mehl, 100 ml Milch, 250 ml Wasser, 25 g Hefe, 20 g Zucker, Frittierfett, Knoblauch-Öl, 175 g Sauerrahm, 8 Portionen")]),
+    "langos_at_knoblauch": dict(
+        names={"hu": "Fokhagymás-olajos kenés osztrák lángosra", "de": "Knoblauchöl für Langos", "de-AT": "Knoblauch zum Bestreichen (Langos)", "en": "Garlic oil brushed on langos"},
+        matrix="liquid", servings_source=1, standard_serving_g=18,
+        ingredients=[ing("garlic", g(1, "gerezd_garlic"), "seasoning", "'Knoblauch geschält und zerdrückt', no amount; 1 Zehe per Langos is an estimate"),
+                     ing("sunflower_oil", g(1, "ek_oil"), "fat", "'Öl', no amount; 1 EL per Langos is an estimate")],
+        cooking=dict(method="crushed garlic in oil, brushed on the hot Langos", mass_change_g=0, note="no cooking; salt left out"),
+        sources=[src(IK + "langos-rezept-12738", R, "Zum Bestreichen: Knoblauch geschält und zerdrückt, Salz, Öl")]),
+    "langos_at_sauerrahm": dict(
+        names={"hu": "Tejföl osztrák lángosra", "de": "Sauerrahm für Langos", "de-AT": "Sauerrahm (Langos)", "en": "Sour cream on langos"},
+        matrix="liquid", servings_source=8, standard_serving_g=22,
+        ingredients=[ing("sauerrahm", 175, note="175 g Sauerrahm for 8 Langos"), ing("chives", 3, "garnish", "Schnittlauch; 3 g is an estimate")],
+        cooking=dict(method="spread on the Langos", mass_change_g=0, note="no cooking"),
+        sources=[src(IK + "langos-rezept-12738", R, "Zum Auftragen: 175 g Sauerrahm, Schnittlauch, 8 Portionen")]),
+})
+
+DISHES += [
+    D("at_langos", [("langos_at", 89)],
+      {"de-AT": ["langos", "langos natur", "langosch", "ein langos"], "de": ["langos österreichisch"], "hu": ["osztrák lángos"], "en": ["austrian langos", "langos"]},
+      tags=("street_food", "fried", "higher-carb"),
+      review="Osztrák tészta (tej, tojássárgája, szárított élesztő); a magyar lángos (hu_langos) külön étel."),
+    D("at_langos_knoblauch", [("langos_at", 89), ("langos_at_knoblauch", 18)],
+      {"de-AT": ["langos mit knoblauch", "knoblauchlangos", "knoblauch-langos", "langos knoblauch"], "de": ["langos mit knoblauch österreichisch"], "hu": ["fokhagymás osztrák lángos"], "en": ["austrian garlic langos"]},
+      names={"hu": "Fokhagymás osztrák lángos", "de": "Langos mit Knoblauch (österreichisch)", "de-AT": "Langos mit Knoblauch", "en": "Austrian langos with garlic"},
+      tags=("street_food", "fried", "higher-carb")),
+    D("at_langos_knoblauch_sauerrahm", [("langos_at", 89), ("langos_at_knoblauch", 18), ("langos_at_sauerrahm", 22)],
+      {"de-AT": ["langos mit knoblauch und sauerrahm", "langos mit sauerrahm", "langos mit rahm"], "de": ["langos mit knoblauch und saurer sahne"], "hu": ["fokhagymás-tejfölös osztrák lángos"], "en": ["austrian langos with garlic and sour cream"]},
+      names={"hu": "Fokhagymás-tejfölös osztrák lángos", "de": "Langos mit Knoblauch und saurer Sahne", "de-AT": "Langos mit Knoblauch und Sauerrahm", "en": "Austrian langos with garlic and sour cream"},
+      tags=("street_food", "fried", "higher-carb")),
+]
+
 MISSING = [
     dict(food_key="curry_powder", names={"de-AT": "Currypulver", "hu": "curry fűszerpor", "en": "curry powder"}, needed_for=["bosna (a pinch)", "currywurst (2 TL)"],
          note="BLS 4.0 has curry only in composite foods (Curryketchup, Currysauce), no plain curry powder; left out."),
