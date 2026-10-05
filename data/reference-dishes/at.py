@@ -1,5 +1,14 @@
-"""Austria (AT): phase 1 format samples. The full Austrian set is phase 3."""
+"""Austria (AT): reference dishes.
+
+Phase 1 (2026-09-27): format samples. Phase 3 (2026-10-05): the full Austrian
+set, one module per group (at_*.py), loaded through PHASE3_MODULES below the
+same way hu.py loads its phase-2 modules. INVENTORY lists Austrian dishes that
+could not be built (no catalog record for an essential ingredient), with the
+reason.
+"""
 from common import ing, src
+
+SIDE_WITH = {}
 
 R = "2026-09-27"
 
@@ -19,11 +28,13 @@ PARTS = {
 
 DISHES = [
     dict(id="at_schweinsbraten", countries=["AT", "DE"], category="traditional", part_refs=[("schweinsbraten", 250)], served_in="flat_plate",
+         side_options=[("semmelknoedel", 200), ("sauerkraut_gedunstet", 150)], alias_side_locale="de-AT",
+         alias_side={"schweinsbraten mit knödel": "semmelknoedel", "schweinsbraten mit semmelknödel": "semmelknoedel", "schweinsbraten mit kraut": "sauerkraut_gedunstet", "schweinsbraten mit sauerkraut": "sauerkraut_gedunstet"},
          tags=["traditional", "roast", "low-carb-friendly"],
          aliases={"de-AT": ["schweinsbraten", "schweinsbratl"], "de": ["schweinebraten", "schweinsbraten"], "hu": ["sült sertéslapocka", "sertéssült"], "en": ["roast pork", "pork roast"]},
          # derived_check reference: BLS composite, production catalog read-only 2026-09-27.
          reference_check=dict(catalog="bls:Y352212", name="Schweinebraten ohne Sauce", kcal=264, fat=17.24, protein=27.24, net_carbs=0.0),
-         review="Knödel és Sauerkraut köret a 3. fázisban (Semmelknödel katalógusrekord kell). A katalógusrekord bőr nélküli lapocka; a Schwarte zsírtöbblete miatt enyhe alulbecslés."),
+         review="Knödel és Sauerkraut köret választható (3. fázis, at_traditionell). A katalógusrekord bőr nélküli lapocka; a Schwarte zsírtöbblete miatt enyhe alulbecslés."),
 ]
 
 # One Semmel = mean of two declared retail weights.
@@ -64,8 +75,28 @@ CHAIN_PRODUCTS = [
          sources=[src("https://www.mcdonalds.at/produkt/big-mac", R, "Nährwerte Portion und per 100g, McDonald's Österreich")]),
 ]
 
-MISSING_FOODS = [
-    dict(food_key="semmelknoedel", names={"de-AT": "Semmelknödel (gekocht)", "hu": "zsemlegombóc", "en": "bread dumpling"},
-         needed_for=["at_schweinsbraten (Knödel side, phase 3)"],
-         note="BLS E606200 'Semmelknödel getrocknet' is the dry mix, not the cooked dumpling; do not substitute. Candidate: import the cooked BLS record via BlsAdapter in its own migration."),
-]
+MISSING_FOODS = []
+
+# Phase-1 dishes; the phase-3 minimums count the dishes built on top of them.
+PHASE1_DISH_IDS = ("at_schweinsbraten", "xx_eierspeis", "xx_leberkaessemmel")
+
+# Austrian dishes that stay out until their essential ingredient has a
+# catalog record (name -> reason), like körömpörkölt in hu.py.
+INVENTORY = {"traditional": [], "everyday": [], "street_food": []}
+INVENTORY_REASONS = {}
+
+PHASE3_MODULES = ("at_traditionell", "at_knoedel_nudeln", "at_suppen", "at_mehlspeisen")
+for _name in PHASE3_MODULES:
+    _m = __import__(_name)
+    _clash = PARTS.keys() & _m.PARTS.keys()
+    if _clash:
+        raise SystemExit(f"{_name}: part ids already defined: {sorted(_clash)}")
+    PARTS.update(_m.PARTS)
+    DISHES += _m.DISHES
+    SERVINGS += getattr(_m, "SERVINGS", [])
+    FOOD_ALIASES += getattr(_m, "FOOD_ALIASES", [])
+    MISSING_FOODS += getattr(_m, "MISSING", [])
+    SIDE_WITH.update(getattr(_m, "SIDE_WITH", {}))
+    for _c, _names in getattr(_m, "INVENTORY", {}).items():
+        INVENTORY[_c] += _names
+    INVENTORY_REASONS.update(getattr(_m, "INVENTORY_REASONS", {}))

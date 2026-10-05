@@ -139,6 +139,10 @@ def validate():
         for pid in refs:
             if pid not in PARTS:
                 raise SystemExit(f"dish {d['id']}: unknown part {pid}")
+        sides = {pid for pid, _ in d.get("side_options", [])}
+        for phrase, side in d.get("alias_side", {}).items():
+            if side not in sides:
+                raise SystemExit(f"dish {d['id']}: alias_side '{phrase}' names side {side}, which is not in side_options")
         # Brief: every dish compares at least two recognised public sources.
         check_sources(f"dish {d['id']}", list({s["url"]: s for pid, _ in d["part_refs"] for s in PARTS[pid]["sources"]}.values()), minimum=2)
     for s in SERVINGS:
@@ -286,13 +290,27 @@ def side_title(titles, side):
 ROLE_MAP = {"core": "core", "seasoning": "seasoning", "garnish": "garnish"}
 
 
-def build_variants(parts, dishes):
-    variants, aliases = [], {}
+# The country whose speakers use a language tag natively. When two dishes
+# claim the same phrase, a dish eaten in that language's country wins over a
+# dish that only carries the phrase as a translation (an Austrian saying
+# "Krautfleckerl" means the Austrian dish, a Hungarian saying "bécsi szelet"
+# the Hungarian one). Claims of equal standing are merged (a choice), as before.
+NATIVE_COUNTRY = {"hu": "HU", "de-AT": "AT", "de": "DE"}
 
-    def add_alias(phrase, ids):
+
+def build_variants(parts, dishes):
+    variants, aliases, native = [], {}, {}
+
+    def add_alias(phrase, ids, loc=None, countries=()):
         key = norm(phrase)
         if not key:
             return
+        is_native = NATIVE_COUNTRY.get(loc) in countries
+        if native.get(key) and not is_native:
+            return
+        if is_native and not native.get(key):
+            aliases[key] = []
+            native[key] = True
         existing = aliases.setdefault(key, [])
         for i in ids:
             if i not in existing:
@@ -332,15 +350,15 @@ def build_variants(parts, dishes):
                 "sources": [{"url": u, "retrieved": sources[u]["retrieved"]} for u in sorted(sources)],
             })
             ids.append(vid)
-            for t in titles.values():
-                add_alias(t, [vid])
+            for loc, t in titles.items():
+                add_alias(t, [vid], loc, d["countries"])
         # Bare dish words: one variant, or a choice when a side is open.
         bare_targets = ids if d.get("side_required_question") else [ids[0]]
-        for loc_aliases in d["aliases"].values():
+        for loc, loc_aliases in d["aliases"].items():
             for a in loc_aliases:
-                add_alias(a, bare_targets)
+                add_alias(a, bare_targets, loc, d["countries"])
         for phrase, side in d.get("alias_side", {}).items():
-            add_alias(phrase, [f"{d['id']}__{side}"])
+            add_alias(phrase, [f"{d['id']}__{side}"], d.get("alias_side_locale", "hu"), d["countries"])
     return variants, aliases
 
 
