@@ -172,9 +172,9 @@ DISHES = [
 ]
 
 SIDE_WITH = {
-    "nokedli": {"hu": "nokedlivel", "de": "mit Nockerln", "en": "with dumplings"},
-    "petrezselymes_burgonya": {"hu": "petrezselymes burgonyával", "de": "mit Petersilienkartoffeln", "en": "with parsley potatoes"},
-    "parolt_rizs": {"hu": "párolt rizzsel", "de": "mit Reis", "en": "with rice"},
+    "nokedli": {"hu": "nokedlivel", "de": "mit Nockerln", "de-AT": "mit Nockerl", "en": "with dumplings"},
+    "petrezselymes_burgonya": {"hu": "petrezselymes burgonyával", "de": "mit Petersilienkartoffeln", "de-AT": "mit Petersilerdäpfeln", "en": "with parsley potatoes"},
+    "parolt_rizs": {"hu": "párolt rizzsel", "de": "mit Reis", "de-AT": "mit Reis", "en": "with rice"},
 }
 
 # Phase-2 inventory. These are reviewable dish identities, not nutrition data.
