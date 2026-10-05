@@ -16,15 +16,16 @@ Compact continuity state for the Master/worker workflow. Git, tests and this fil
 
 ## Open
 - **PR #53** docs-only community backlog (idle).
-- **`docs/regional-fix-list`** @ `449aca5`, no PR yet: `data/reference-dishes/JAVITASI-LISTA.md` + README pointer. Lists the 3 skipped HU dishes (körömpörkölt, juhászos tokány, tepertős pogácsa), 11 missing ingredients (HU-4…HU-14), code limits K-1…K-3 (fork drops `cookingFatLossGrams`, web editor live sum ignores fat loss, marked estimates), doc item D-1.
+- **PR #78** `docs/regional-fix-list` — fix list (3 skipped HU dishes, 11 missing ingredients, K-1…K-3, D-1). Docs only, awaiting owner.
+- **PR #79** `feat/regional-database-phase3` @ `c1e6330` — full AT set (65/62/26 vs 60/60/25; 22 reused HU dishes gained AT), migration `20261005120000_bls_regional_at` (67 BLS ids, insert-only; 28 already in prod → only qualified aliases added). API 2150, web 368, tsc clean, build deterministic. Owner decisions listed in the PR: Extrawurst/Kornspitz/Graukäse/Sauerrahm/Knödelbrot mappings, bare de-AT `Rahm`/`Obers` synonyms, Langos reuse. No staging check yet.
 
 ## Regional methodology (from #75/#76 — follow exactly)
 Source of truth = Python modules in `data/reference-dishes/` (`at.py`, `hu*.py`, `common.py`, `foods.py`); `build.py` validates/derives; generated TS data + idempotent seed. Every dish: countries, category, aliases per `hu`/`de`/`de-AT`/`en`, ≥2 dated recipe sources, every ingredient → existing BLS/USDA catalog record (BLS first, then USDA; OFF only branded, `chain_official` only chains). Never invent or hand-type nutrition; never substitute — missing record → `<country>-missing-foods.md`, or import from the official BLS 4.0 xlsx via `BlsAdapter`/`bls-migration-sql.ts` in an insert-only migration. Carbs stored total = available + fiber. Rules: `common.MEASURE_G`, `FAT_RETENTION` (drippings), `BOILED_YIELD`, `breaded()`. Per-dish BLS cross-check; >15 % needs a written reason. Minimums counted on built dishes only (no side variants). Build twice → byte-identical. API + web tests and `tsc` green.
 
 ## Next tasks
-1. Open a PR for `docs/regional-fix-list` (docs only).
-2. **Phase 3 — Austria** on branch `feat/regional-database-phase3`: ≥60 traditional, ≥60 everyday, ≥25 street food (brief lists: Wiener Schnitzel, Tafelspitz, Rindsgulasch, … ; Käsekrainer, Bosna, Burenwurst, …), same rules as HU. Prereqs OK: BLS 4.0 ZIP downloadable from blsdb.de; prod catalog read-only. Forbidden: any live DB write, any merge. Owner approves every PR. May split per category if too large.
-3. Later: fix-list items (USDA import migration for HU-1/3/4–12; K-1/K-2), phase 4 DE, phase 5 chains, phase 6 unit weights/aliases.
+1. Owner review of #78 and #79 (no merge by Master).
+2. Before staging verification: repoint staging services to the feature branch; staging DB expires 2026-10-13 (owner decision: upgrade or recreate).
+3. Later: fix-list items (USDA import migration for HU-1/3/4–12 + AT gaps; K-1/K-2; BlsAdapter "TR"/"<LOD" handling for dry wines), phase 4 DE, phase 5 chains, phase 6 unit weights/aliases.
 
 ## Known issues
 - `render.yaml` prod start runs migrate + seed on every boot (pre-existing).
@@ -37,5 +38,5 @@ Authoritative catalog data first; AI nutrition is a labelled, user-confirmable e
 
 ## Roadmap status
 - DONE: Phases 1–5, 6A (PWA), AI-estimate fallback, voice input, regional DB phases 1–2 (HU).
-- NEXT: regional phase 3 (AT).
+- IN REVIEW: regional phase 3 (AT) #79.
 - PLANNED: regional phases 4–6; dinner recommendation (no code yet); Phase 6B native apps; Phase 7 beta/release.
