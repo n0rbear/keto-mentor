@@ -19,7 +19,8 @@ PARTS = {
         cooking=dict(method="fried in butter in a pan", mass_change_g=-2, note="small steam loss (estimate)"),
         flat_plate=dict(coverage=0.25, height_cm=1.0),
         sources=[src(SB + "tukortojas-recept/", R, "batch recipe: 1 tojás, 5 g vaj, 1 adag"),
-                 src(MM + "tokeletes-tukortojas", R, "cross-check: 4 tojás, olaj, 2 adag = 2 tojás/adag (standard serving)")]),
+                 src(MM + "tokeletes-tukortojas", R, "cross-check: 4 tojás, olaj, 2 adag = 2 tojás/adag (standard serving)"),
+                 src("https://www.gutekueche.at/spiegelei-rezept-26778", "2026-10-05", "AT cross-check (phase 3): 1 Ei, 1 TL Butter - same Spiegelei")]),
     "fott_tojas": dict(
         names={"hu": "Főtt tojás", "de": "Gekochtes Ei", "en": "Boiled egg"},
         matrix="solid", servings_source=1, standard_serving_g=100,
@@ -27,7 +28,8 @@ PARTS = {
         cooking=dict(method="boiled in shell 8-10 min", mass_change_g=0, note="egg in shell keeps its mass (estimate)"),
         flat_plate=dict(coverage=0.12, height_cm=3.0),
         sources=[src("https://kemenytojas.com/receptek/fott-tojas/", R, "batch recipe: tojás, forrástól 8 perc"),
-                 src("https://www.mindmegette.hu/praktikus/tokeletes-fott-tojas-ilyen-lesz-ha-4-6-8-10-percig-fozod-video", R, "cross-check: 4-10 perc főzési idők")]),
+                 src("https://www.mindmegette.hu/praktikus/tokeletes-fott-tojas-ilyen-lesz-ha-4-6-8-10-percig-fozod-video", R, "cross-check: 4-10 perc főzési idők"),
+                 src("https://www.ichkoche.at/weiches-ei-rezept-7728", "2026-10-05", "AT cross-check (phase 3): 1 Ei boiled in water - same food (weiches/hartes Ei)")]),
     "tojasos_nokedli_tojas": dict(
         names={"hu": "Tojásos nokedli tojásrésze", "de": "Ei-Anteil der Eiernockerln", "en": "Egg part of egg dumplings"},
         matrix="dry", bulk_density_g_ml=0.55, servings_source=4, standard_serving_g=103,
@@ -108,7 +110,8 @@ PARTS = {
         ingredients=[ing("wheat_roll", 60, note="1 zsemle (~60 g, estimate)"), ing("parizsi", 50, note="~5 dkg párizsi (mindmegette: 25 dkg / 5 zsemle)")],
         cooking=dict(method="assembled, no cooking", mass_change_g=0, note="plain roll with sliced párizsi"),
         sources=[src("https://www.mindmegette.hu/parizerbol-parizsi-a-legendas-felvagott-48799/", R, "párizsival töltött zsemle: 5 zsemle, 25 dkg párizsi"),
-                 src("https://www.hajokonyha.hu/parizsis_melegszendvics", R, "cross-check: 30 dkg párizsi, 50 dkg kenyér, 10 adag")]),
+                 src("https://www.hajokonyha.hu/parizsis_melegszendvics", R, "cross-check: 30 dkg párizsi, 50 dkg kenyér, 10 adag"),
+                 src("https://www.spar.at/produktwelt/tann-extrawurst/p/5195275", "2026-10-05", "AT cross-check (phase 3): Extrawurst (TANN AMA-Extrawurst 150 g) on a Semmel - Extrawurstsemmel, same BLS Lyoner record")]),
     # ---------------- sausages ----------------
     "virsli_mustarral": dict(
         names={"hu": "Virsli mustárral", "de": "Wiener Würstchen mit Senf", "en": "Frankfurters with mustard"},
@@ -265,8 +268,8 @@ PARTS = {
                  src("https://www.receptneked.hu/recept/klasszikus-turos-palacsinta", R, "cross-check: 20 dkg túró, 10 dkg porcukor, vaníliás cukor")]),
 }
 
-def D(id, name_hu, de, en, parts, served_in, tags, al_hu, al_de, al_at, al_en, **kw):
-    return dict(id=id, countries=["HU"], category="everyday", part_refs=parts, served_in=served_in, tags=tags,
+def D(id, name_hu, de, en, parts, served_in, tags, al_hu, al_de, al_at, al_en, countries=("HU",), **kw):
+    return dict(id=id, countries=list(countries), category="everyday", part_refs=parts, served_in=served_in, tags=tags,
                 names={"hu": name_hu, "de": de, "en": en},
                 aliases={"hu": al_hu, "de": al_de, "de-AT": al_at, "en": al_en}, **kw)
 
@@ -276,10 +279,10 @@ DISHES = [
     D("hu_tukortojas", "tükörtojás", "Spiegelei", "Fried egg", [("tukortojas", 106)], "flat_plate", ["breakfast", "eggs", "low-carb-friendly"],
       ["tükörtojás", "tükör tojás", "tükörtojások"], ["spiegelei", "spiegeleier"], ["spiegelei", "ochsenauge"], ["fried egg", "fried eggs", "sunny side up egg"],
       reference_check=dict(catalog="bls:Y710162", name="Spiegelei gebraten in Butter", kcal=204, fat=16.615, protein=13.191, net_carbs=0.398),
-      review="Szokásos adag 2 tojás (a sóbors receptje 1 tojás/adag, a mindmegette 2)."),
+      review="Szokásos adag 2 tojás (a sóbors receptje 1 tojás/adag, a mindmegette 2).", countries=("HU", "AT")),
     D("hu_fott_tojas", "főtt tojás", "Gekochtes Ei", "Boiled egg", [("fott_tojas", 100)], "flat_plate", ["breakfast", "eggs", "low-carb-friendly"],
       ["főtt tojás", "kemény tojás", "keménytojás", "lágy tojás", "lágytojás"], ["gekochtes ei", "gekochte eier", "hartgekochtes ei", "weiches ei"], ["gekochtes ei", "weiches ei"], ["boiled egg", "boiled eggs", "hard boiled egg", "soft boiled egg"],
-      reference_check=dict(catalog="bls:E111132", name="Hühnerei gekocht", kcal=144, fat=9.6, protein=14.1, net_carbs=0.34)),
+      reference_check=dict(catalog="bls:E111132", name="Hühnerei gekocht", kcal=144, fat=9.6, protein=14.1, net_carbs=0.34), countries=("HU", "AT")),
     D("hu_tojasos_nokedli", "tojásos nokedli", "Eiernockerln", "Hungarian dumplings with egg", [("nokedli", 200), ("tojasos_nokedli_tojas", 103)], "flat_plate", ["eggs", "higher-carb"],
       ["tojásos nokedli", "tojásos galuska", "tojásos csipetke"], ["eiernockerl", "eierspätzle"], ["eiernockerl", "eiernockerln"], ["egg dumplings", "nokedli with egg"],
       review="A mindmegette nokedlitészta (40 dkg liszt, 2 tojás, 2 dl víz) a meglévő 'nokedli' résszel egyezik, ezért azt használja; a tojásrész külön."),
@@ -333,7 +336,7 @@ DISHES = [
       review="A kolbászt a mindmegette sütnivaló kolbász receptjéből (lapocka + hátszalonna) számolja, nem Bratwurst rekordból. A sütési veszteség (-12% víz) becslés; a kisült zsírt nem vonja le, így a zsír kissé felülbecsült. 'sült kolbász kenyérrel' street_food tétel külön."),
     D("hu_parizsis_zsemle", "párizsis zsemle", "Semmel mit Lyoner", "Roll with parizer", [("parizsis_zsemle", 110)], "handheld", ["breakfast", "higher-carb"],
       ["párizsis zsemle", "párizsis zsömle", "párizsis szendvics"], ["lyonerbrötchen", "fleischwurstbrötchen"], ["extrawurstsemmel", "extrawurst-semmel"], ["parizer roll", "bologna roll"],
-      review="Zsemle 60 g becslés (a meglévő AT Semmel adag 62,5 g). Vaj nélkül."),
+      review="Zsemle 60 g becslés (a meglévő AT Semmel adag 62,5 g). Vaj nélkül.", countries=("HU", "AT")),
     D("hu_sonkas_kifli", "sonkás kifli", "Schinkenkipferl", "Ham crescent roll", [("sonkas_kifli", 120)], "handheld", ["bakery", "higher-carb"],
       ["sonkás kifli", "sonkás kelt kifli", "sonkával töltött kifli"], ["schinkenhörnchen", "schinkenkipferl"], ["schinkenkipferl"], ["ham crescent", "ham croissant"],
       review="ELTÉRÉS A MEGBÍZÁSTÓL: a 'sonkás kifli' a magyar receptoldalakon (Street Kitchen, Sóbors, mindmegette) sonkával töltött, sütött kelt kifli, ezért így készült. Ha a vajas-sonkás vizes kifli (összeállított) kell, az külön étel legyen wheat_roll (BLS B511000 Weizenbrötchen) alapon."),
@@ -355,11 +358,11 @@ DISHES = [
     D("hu_palacsinta", "palacsinta", "Palatschinken", "Hungarian crêpes", [("palacsinta_hu", 149)], "flat_plate", ["sweet", "higher-carb"],
       ["palacsinta", "palacsinták", "sima palacsinta"], ["pfannkuchen", "crêpes", "eierkuchen"], ["palatschinken", "palatschinke"], ["crepes", "hungarian pancakes"],
       reference_check=dict(catalog="bls:Y891062", name="Pfannkuchen/Eierkuchen, mit Milch 3,5 % Fett, gebraten in Butter", kcal=266, fat=11.77, protein=8.2, net_carbs=31.11, deviation="Vékony magyar tészta szódavízzel, 9 palacsintára 2 cl olaj; a BLS Eierkuchen sűrűbb tészta vajban sütve (zsír 11,8 g). A sütési hozam (0,92) egyezik a BLS tészta→sült arányával (0,90)."),
-      review="A BLS Pfannkuchen (vastagabb német Eierkuchen) sűrűbb tésztából készül, ezért a -39% eltérés várható; a magyar palacsintatészta híg (150 g liszt / 400 ml folyadék). 2 db töltelék nélkül; a töltött változatok (lekváros, túrós) külön ételek. Ha a felhasználó csak 'palacsinta'-t mond, kérdezzen rá a töltelékre."),
+      review="A BLS Pfannkuchen (vastagabb német Eierkuchen) sűrűbb tésztából készül, ezért a -39% eltérés várható; a magyar palacsintatészta híg (150 g liszt / 400 ml folyadék). 2 db töltelék nélkül; a töltött változatok (lekváros, túrós) külön ételek. Ha a felhasználó csak 'palacsinta'-t mond, kérdezzen rá a töltelékre.", countries=("HU", "AT")),
     D("hu_lekvaros_palacsinta", "lekváros palacsinta", "Palatschinken mit Marmelade", "Crêpes with jam", [("palacsinta_hu", 149), ("palacsinta_lekvar_toltelek", 50)], "flat_plate", ["sweet", "higher-carb"],
       ["lekváros palacsinta", "baracklekváros palacsinta", "dzsemes palacsinta"], ["pfannkuchen mit marmelade", "crêpes mit marmelade"], ["marillenpalatschinken", "marmeladepalatschinken"], ["crepes with jam", "jam pancakes"],
       reference_check=dict(catalog="bls:Y818162", name="Pfannkuchen/Eierkuchen mit Milch 3,5 % Fett, gebraten, gefüllt mit Konfitüre", kcal=263, fat=10.8, protein=7.4, net_carbs=33.1, deviation="Ugyanaz a vékony palacsinta, mint a sima palacsintánál; a különbség a tésztából jön, nem a töltelékből."),
-      review="Lekvár 25 g/palacsinta becslés. A BLS-referencia vastag Eierkuchen, ezért alacsonyabb a számolt érték."),
+      review="Lekvár 25 g/palacsinta becslés. A BLS-referencia vastag Eierkuchen, ezért alacsonyabb a számolt érték.", countries=("HU", "AT")),
     D("hu_turos_palacsinta", "túrós palacsinta", "Palatschinken mit Quarkfüllung", "Crêpes with sweet túró", [("palacsinta_hu", 149), ("palacsinta_turo_toltelek", 84)], "flat_plate", ["sweet", "higher-carb"],
       ["túrós palacsinta", "túrótöltelékes palacsinta"], ["quarkpfannkuchen", "pfannkuchen mit quark"], ["topfenpalatschinken", "topfenpalatschinke"], ["crepes with cottage cheese", "cheese crepes"]),
 ]

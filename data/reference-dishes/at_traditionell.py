@@ -1,6 +1,7 @@
 """Austria phase 3: traditional meat and fish mains, their Austrian sides
 (sources read 2026-10-05). Same PARTS / DISHES / MISSING layout as hu_*.py."""
 from common import breaded, g, ing, src
+from at_knoedel_nudeln import broth
 
 R = "2026-10-05"
 GK = "https://www.gutekueche.at/"
@@ -406,4 +407,81 @@ MISSING = [
          note="No Muskat record in BLS 4.0 or the catalog; a pinch, left out."),
     dict(food_key="marjoram_dried", names={"de-AT": "Majoran gerebelt", "hu": "majoránna", "en": "dried marjoram"}, needed_for=["at_rindsgulasch", "at_geroestete_leber", "at_tiroler_groestl (a pinch each)"],
          note="No Majoran record in BLS 4.0 or the catalog (hu-missing-foods lists it too); a pinch, left out."),
+]
+
+# ---- more classics (sources read 2026-10-05) ----------------------------------------------
+SPAR = "https://www.spar.at/produktwelt/"
+PARTS.update({
+    "frankfurter_wuerstel": dict(
+        names={"hu": "Virsli (Frankfurter, 1 db, melegítve)", "de": "Wiener Würstchen (1 Stück, heiß)", "de-AT": "Frankfurter (1 Stück)", "en": "Frankfurter (1 piece, heated)"},
+        matrix="solid", servings_source=1, standard_serving_g=61.25,
+        ingredients=[ing("frankfurter", 61.25, note="one Frankfurter: mean of SPAR Natur*pur 4 x 60 g and TANN 2 Paar 250 g (62.5 g)")],
+        cooking=dict(method="heated in hot water, not boiled", mass_change_g=0, note="no mass change"),
+        sources=[src(SPAR + "spar-naturpur-bio-frankfurter-4-x-60g/p/6431648", R, "SPAR Natur*pur Bio-Frankfurter 4 x 60 g (SPAR product search)"),
+                 src(SPAR + "tann-frankfurter-2-paar-per-250g-packung/p/7771651", R, "TANN Frankfurter 2 Paar per 250 g-Packung (SPAR product search)")]),
+    "fiaker_garnitur": dict(
+        names={"hu": "Fiaker-feltét (virsli és tükörtojás)", "de": "Fiaker-Garnitur (Würstchen und Spiegelei)", "de-AT": "Fiaker-Garnitur (Frankfurter und Spiegelei)", "en": "Fiaker garnish (frankfurter and fried egg)"},
+        matrix="solid", servings_source=4, standard_serving_g=109,
+        ingredients=[ing("frankfurter", 245, note="2 Paar Frankfurter (4 x 61.25 g, see frankfurter_wuerstel)"), ing("egg", g(4, "db_egg"), note="4 Eier, as Spiegeleier"),
+                     ing("butter", 10, "fat", "'Butter für die Spiegeleier'; 10 g is an estimate")],
+        cooking=dict(method="Spiegeleier fried in butter, Würstel heated, fanned on the goulash", mass_change_g=-20, note="estimate: fried eggs lose ~10 % water. 4-5 Essiggurkerl (MISSING gherkin_plain) left out"),
+        sources=[src(IK + "fiakergulasch-rezept-1488", R, "garnish: 4-6 Eier, 5 Essiggurkerl, 2 Paar Sacherwürstel for 1 kg Wadschinken, 4 Portionen"),
+                 src(GK + "fiakergulasch-rezept-5098", R, "garnish: 4 Eier, 4 Essiggurkerl, 2 Paar Frankfurter for 1 kg Rindfleisch, 4 Portionen")]),
+    "wurzelfleisch": dict(
+        names={"hu": "Stájer gyökeres sertéshús (Wurzelfleisch)", "de": "Steirisches Wurzelfleisch", "de-AT": "Steirisches Wurzelfleisch", "en": "Styrian boiled pork with root vegetables"},
+        matrix="liquid", servings_source=4, standard_serving_g=330,
+        ingredients=[ing("pork_shoulder", 900, note="900 g Schweinsschulter oder Schopf"), ing("carrot", 150, note="300 g Wurzelgemüse (Sellerie, Karotten, Rüben): carrot 150, celeriac 150 g is an estimate"),
+                     ing("celeriac", 150), ing("garlic", g(2, "gerezd_garlic"), "seasoning", "2 Zehen Knoblauch"), ing("wine_vinegar", g(2, "ek_vinegar"), "seasoning", "2 EL Weißweinessig"),
+                     ing("horseradish", 30, "garnish", "3 EL Kren gerieben; 10 g per EL is an estimate"), ing("chives", 5, "garnish", "Schnittlauch; 5 g is an estimate"),
+                     ing("water", 1500, "liquid", "meat simmered covered in water ~1.5 h; amount is an estimate")],
+        cooking=dict(method="pork simmered with roots and vinegar, sliced, served with the julienned roots, some broth and Kren", mass_change_g=-1250,
+                     note="estimate: meat loses ~25 % water; about 1 l of the cooking liquid is not served (kept as soup) or evaporates, ~250 g broth goes on the plates. Bay leaf, pepper, salt and the bones left out"),
+        flat_plate=dict(coverage=0.45, height_cm=2.0),
+        sources=[src(IK + "steirisches-wurzelfleisch-rezept-2124", R, "batch recipe: 900 g Schweinsschulter, Schweinsknochen, 300 g Wurzelgemüse, 2 Knoblauchzehen, 2 EL Weißweinessig, 3 EL Kren, Schnittlauch, 4 Portionen"),
+                 src(GK + "grazer-wurzelfleisch-rezept-19900", R, "cross-check: 1 kg Schweineschulter, 100 g gelbe Rüben, 100 g Karotten, 100 g Wurzelpetersilie, 1 Zwiebel, Essig, 4 Portionen")]),
+    "rotkraut": dict(
+        names={"hu": "Párolt vöröskáposzta (Rotkraut)", "de": "Rotkohl (Apfelrotkohl)", "de-AT": "Rotkraut", "en": "Braised red cabbage"},
+        matrix="liquid", servings_source=6, standard_serving_g=150,
+        ingredients=[ing("red_cabbage", 1000, note="1 kg Rotkraut feinnudelig"), ing("apple", 300, note="2 Äpfel; 150 g each is an estimate"),
+                     ing("onion", g(1, "db_onion"), note="1 Zwiebel"), ing("lemon_juice", g(1, "db_lemon_juice"), "seasoning", "1 Zitrone (Saft)"),
+                     ing("lard", 80, "fat", "80 g Fett (Schmalz assumed)"), ing("sugar", 20, "seasoning", "20 g Zucker"), ing("vinegar", 10, "seasoning", "etwas Essig; 10 g is an estimate"),
+                     ing("caraway_seed", 1, "seasoning", "Kümmel, a pinch")],
+        cooking=dict(method="red cabbage braised with apple, onion and fat ~45 min", mass_change_g=-200,
+                     note="estimate: ~15 % water loss. The page yield reads '1 Portion' for 1 kg cabbage; 6 side portions are assumed. 125 ml Rotwein (MISSING dry_red_wine), salt, pepper left out"),
+        flat_plate=dict(coverage=0.25, height_cm=2.0),
+        sources=[src(IK + "rotkraut-rezept-114", R, "batch recipe: 1 kg Rotkraut, 2 Äpfel, 1 Zwiebel, 1 Zitrone, 80 g Fett, 20 g Zucker, Essig, Kümmel, 125 ml Rotwein"),
+                 src(IK + "rotkraut-rezept-2057", R, "cross-check: 500 g Rotkraut, 30 g Zucker, 30 g Rosinen, 1 Apfel, 500 ml Rotwein, Zimt, Nelken")]),
+    "martinigansl": dict(
+        names={"hu": "Márton-napi sült liba", "de": "Martinsgans (Gänsebraten)", "de-AT": "Martinigansl (Gansl)", "en": "Roast goose (Martinigansl)"},
+        matrix="solid", servings_source=6, standard_serving_g=250,
+        ingredients=[ing("goose_skin", 1800, note="4 kg kochfertige Gans; ~45 % edible meat and skin (no bones, no carcass fat) is an estimate"),
+                     ing("paprika_ground", g(1, "ek_paprika"), "seasoning", "1 EL Paprikapulver"), ing("clarified_butter", g(2, "ek_oil"), "fat", "2 EL Butterschmalz"),
+                     *broth("chicken_bouillon_powder", 1000, "1 l Hühnersuppe (klar) for basting and the sauce"),
+                     ing("wheat_flour", g(2, "ek_flour"), "thickener", "2 EL Mehl (sauce)"), ing("cream_36", g(5, "ek_cream"), "thickener", "5 EL Obers (sauce)"),
+                     ing("water", 125, "liquid", "125 ml Wasser")],
+        cooking=dict(method="goose roasted ~3.5 h, basted with Suppe; sauce from the roasting juices after skimming the fat", mass_change_g=-1450, drippings="oven",
+                     note="estimate: the goose loses ~35 % (water and fat), most of the Suppe evaporates. The 400 g apples and 3 onions roasted inside are not eaten; Majoran, cloves, bay, salt, pepper left out; Rotkraut, Maroni and Preiselbeeren are separate"),
+        flat_plate=dict(coverage=0.35, height_cm=2.5),
+        sources=[src(GK + "martinigans-rezept-4112", R, "batch recipe: 4 kg kochfertige Gans, 1 l Hühnersuppe, 1 EL Paprika, 400 g Äpfel, 3 Zwiebeln, 2 EL Butterschmalz, 2 EL Mehl, 5 EL Obers, 125 ml Wasser, Rotkraut, 600 g Maroni, 6 Portionen"),
+                 src(IK + "martinigansl-rezept-143140", R, "cross-check: 1 Gans 4-5 kg, Toastbrot-Apfel-Füllung, Honig, 250 ml Orangensaft, 4 Portionen")]),
+})
+
+DISHES += [
+    D("at_fiakergulasch", T, [("rindsgulasch", 300), ("fiaker_garnitur", 109)], "flat_plate", ["traditional", "stew", "beef"],
+      {"de-AT": ["fiakergulasch", "fiaker gulasch", "gulasch mit ei und würstel"], "de": ["fiakergulasch"], "hu": ["fiákergulyás", "bécsi gulyás virslivel és tükörtojással"], "en": ["fiaker goulash", "goulash with sausage and fried egg"]},
+      names={"hu": "Fiákergulyás (bécsi gulyás virslivel és tükörtojással)", "de": "Fiakergulasch", "de-AT": "Fiakergulasch", "en": "Fiaker goulash (with frankfurter and fried egg)"},
+      side_options=[("semmel", 62.5)], alias_side={"fiakergulasch mit semmel": "semmel"},
+      review="A gulyás az at_rindsgulasch része; a Fiaker-garnitúra 1 virsli és 1 tükörtojás adagonként (Essiggurkerl nélkül, MISSING)."),
+    D("at_wurzelfleisch", T, [("wurzelfleisch", 330)], "flat_plate", ["traditional", "boiled", "low-carb-friendly"],
+      {"de-AT": ["wurzelfleisch", "steirisches wurzelfleisch", "grazer wurzelfleisch", "krenfleisch"], "de": ["wurzelfleisch", "steirisches wurzelfleisch"], "hu": ["stájer gyökeres hús", "tormás főtt sertéshús"], "en": ["styrian root vegetable pork", "boiled pork with horseradish"]},
+      side_options=[("petrezselymes_burgonya", 200)], alias_side={"wurzelfleisch mit erdäpfeln": "petrezselymes_burgonya", "wurzelfleisch mit salzerdäpfeln": "petrezselymes_burgonya"}),
+    D("at_selchfleisch_kraut_knoedel", T, [("selchfleisch", 125), ("sauerkraut_gedunstet", 150), ("semmelknoedel", 200)], "flat_plate", ["traditional"],
+      {"de-AT": ["selchfleisch mit kraut und knödel", "geselchtes mit kraut und knödel", "selchfleisch mit sauerkraut und knödel", "geselchtes mit sauerkraut"],
+       "de": ["kasseler mit sauerkraut und knödel", "geselchtes mit kraut und knödel"], "hu": ["füstölt hús savanyú káposztával és gombóccal"], "en": ["smoked pork with sauerkraut and dumplings"]},
+      names={"hu": "Füstölt hús savanyú káposztával és zsemlegombóccal", "de": "Kasseler mit Sauerkraut und Semmelknödeln", "de-AT": "Selchfleisch mit Sauerkraut und Knödel", "en": "Smoked pork with sauerkraut and bread dumplings"}),
+    D("at_martinigansl", T, [("martinigansl", 250), ("rotkraut", 150)], "flat_plate", ["traditional", "roast"],
+      {"de-AT": ["martinigansl", "gansl", "ganslessen", "gänsebraten", "gansl mit rotkraut"], "de": ["martinsgans", "gänsebraten", "gänsebraten mit rotkohl"], "hu": ["márton-napi liba", "sült liba vöröskáposztával"], "en": ["roast goose", "martinmas goose"]},
+      names={"hu": "Márton-napi sült liba vöröskáposztával", "de": "Martinsgans mit Rotkohl", "de-AT": "Martinigansl mit Rotkraut", "en": "Roast goose with red cabbage"},
+      side_options=[("semmelknoedel", 200)], alias_side={"gansl mit knödel": "semmelknoedel", "martinigansl mit knödel": "semmelknoedel"},
+      review="Erdäpfelknödel és Maroni gyakori köret, még nincs külön rész; a zsemlegombóc választható."),
 ]

@@ -234,6 +234,23 @@ FOOD_KEYS = {
     "toast_bread":        ("toastkenyér", "Weizentoastbrot/Buttertoastbrot", "white toast bread", "bls:B314000", "total", 261, 3.59, 8.29, 50.747, 3.947, 0.3, 0.3, None),  # BLS: Weizentoastbrot/Buttertoastbrot
     "egg_white":          ("tojásfehérje", "Hühnerei Eiklar", "egg white", "bls:E113100", "total", 42, 0.03, 9.9, 0.41, 0, 1.03, 1.03, "1 egg white ~33 g"),  # BLS: Hühnerei Eiklar, roh
     "fondant":            ("fondán", "Fondant (Fondantmasse)", "fondant icing", "bls:S351000", "total", 339, 3.1, 0.7, 77, 0, 1.4, 1.4, None),  # BLS: Fondant (Fondantmasse)
+    "goose_skin":         ("liba (bőrrel)", "Gans Fleisch, mit Haut", "goose meat with skin", "bls:V474100", "total", 342, 31, 15.7, 0, 0, 1.0, 0.8, "grams = edible part"),  # BLS: Gans Fleisch, mit Haut, roh
+    # at_fruehstueck
+    "rye_mixed_bread":    ("rozsos vegyes kenyér", "Roggenmischbrot", "rye-wheat mixed bread", "bls:B271000", "total", 218, 0.97, 7.38, 48.06, 6.1, 0.3, 0.3, "Austrian Hausbrot / Bauernbrot type; density = sliced loaf"),  # BLS: Roggenmischbrot
+    "multigrain_roll":    ("magvas péksütemény (Kornspitz)", "Mehrkornbrötchen", "multigrain roll", "bls:B591000", "total", 302, 5.44, 9.8, 56.64, 6.64, 0.3, 0.3, "Austrian Kornspitz is a Mehrkornbrötchen"),  # BLS: Mehrkornbrötchen
+    "salt_caraway_roll":  ("sós-köményes zsemle (Salzstangerl)", "Weizenbrötchen mit Kümmel und Salz", "wheat roll with salt and caraway", "bls:B511100", "total", 291, 2.69, 9.3, 59.19, 4.19, 0.3, 0.3, "Austrian Salzstangerl"),  # BLS: Weizenbrötchen mit Kümmel und Salz
+    "pretzel_roll":       ("perec (lúgos)", "Laugengebäck", "lye pretzel", "bls:B723100", "total", 283, 4.145, 9.203, 53.775, 3.775, 0.35, 0.35, None),  # BLS: Laugengebäck (Hagelsalz entfernt)
+    "croissant":          ("croissant (vajas)", "Croissant (Hefeblätterteig/Plunderteig)", "croissant", "bls:D771600", "total", 426, 23.57, 8, 46.62, 2.62, 0.25, 0.25, None),  # BLS: Croissant (Hefeblätterteig/Plunderteig)
+    "wiener_kipferl":     ("kifli (bécsi, kelt tésztás)", "Wiener Hörnchen (Hefeteig)", "Viennese crescent roll (Kipferl)", "bls:D740600", "total", 318, 10.5, 7.6, 49.3, 2.3, 0.3, 0.3, "Austrian Butterkipferl / Wiener Kipferl"),  # BLS: Wiener Hörnchen (Hefeteig)
+    "puff_pastry":        ("leveles tészta (nyers)", "Blätterteig eifrei, roh", "puff pastry, raw", "bls:D072000", "total", 425, 32.19, 4.18, 30.77, 2.12, 1.0, 1.0, None),  # BLS: Blätterteig eifrei, roh
+    "cornflakes":         ("kukoricapehely", "Cornflakes ungesüßt", "cornflakes (unsweetened)", "bls:C515400", "total", 376, 0.84, 7.18, 87.09, 4.13, 0.12, 0.12, None),  # BLS: Cornflakes ungesüßt
+    # at_alltag
+    "capers":             ("kapribogyó", "Kapern gesäuert, abgetropft", "capers, drained", "bls:G012902", "total", 22, 0.42, 2.12, 2.4, 2.4, 1.0, 0.6, None),  # BLS: Kapern gesäuert, abgetropft
+    "fish_fingers_fried": ("halrudacska (sütve)", "Fischstäbchen (Alaska-Seelachs) paniert, gebraten ohne Fett", "fish fingers, pan-fried", "bls:T930182", "total", 209, 9.437, 13.908, 17.42, 0.92, 0.8, 0.5, "cooked weight (BLS gebraten ohne Fett); frying oil is added separately"),  # BLS: Fischstäbchen (Alaska-Seelachs) paniert, tiefgefroren, gebraten ohne Fett (Pfanne)
+    "bratwurst":          ("sütnivaló kolbász (Bratwurst)", "Bratwurst mittelgrob", "bratwurst (pork, medium coarse)", "bls:W222100", "total", 292, 25.6, 15.2, 0.13, 0.05, 1.0, 0.8, "Austrian Bratwürstel"),  # BLS: Bratwurst mittelgrob
+    "ajvar":              ("ajvár", "Ajvar Konserve", "ajvar (pepper relish)", "bls:G898400", "total", 68, 4.4, 0.9, 7.2, 2.2, 1.05, 1.05, None),  # BLS: Ajvar Konserve
+    "pineapple":          ("ananász", "Ananas", "pineapple", "bls:F501100", "total", 46, 0.1, 0.5, 10.8, 1.4, 1.0, 0.6, "fresh (ichkoche allows 'frisch oder aus der Dose')"),  # BLS: Ananas roh
+    "lambs_lettuce":      ("galambbegysaláta (Vogerlsalat)", "Feldsalat (Vogerlsalat)", "lamb's lettuce", "bls:G104100", "total", 18, 0.36, 1.9, 2.608, 1.8, 0.95, 0.15, None),  # BLS: Feldsalat/Rapunzel, roh
 }
 
 # Keys whose fat renders out when meat is roasted, pan-fried or grilled
