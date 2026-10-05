@@ -102,6 +102,8 @@ rekordból hiányzik a kötelező adat.
 
 ## Ismert hiányok és nyitott kérdések
 
+> A kimaradt ételek és a nyitott javítások aktuális listája: [`JAVITASI-LISTA.md`](JAVITASI-LISTA.md). Az alábbiak egy része a #65 óta javítva van (lásd ott, D-1).
+
 - **Korábban hiányzott a katalógusból, most pótolva** (migráció `20260926170000`, hivatalos BLS 4.0):
   - petrezselyemgyökér (G670100 Wurzelpetersilie roh) – a paszternák NEM ugyanaz;
   - zsemlemorzsa (B821000 Paniermehl);
