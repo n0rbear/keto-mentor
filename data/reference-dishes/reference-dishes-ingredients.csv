@@ -1982,6 +1982,86 @@ kraeutertopfen,Fűszeres túrókrém (Kräutertopfen),10,quark_20,tehéntúró (
 kraeutertopfen,Fűszeres túrókrém (Kräutertopfen),10,butter,vaj,100,fat,open_database:173430,515.5,1.0,1.018,40
 kraeutertopfen,Fűszeres túrókrém (Kräutertopfen),10,chives,metélőhagyma,15,seasoning,bls:G081100,515.5,1.0,1.018,40
 kraeutertopfen,Fűszeres túrókrém (Kräutertopfen),10,caraway_seed,kömény (egész/őrölt),0.5,seasoning,usda_fdc:170918,515.5,1.0,1.018,40
+topfencreme,Túrókrém gyümölccsel (Topfencreme),4,quark_20,tehéntúró (félzsíros),500,core,bls:M713300,1205.0,1.0,1.059,300
+topfencreme,Túrókrém gyümölccsel (Topfencreme),4,yogurt_plain,natúr joghurt,125.0,core,bls:M141300,1205.0,1.0,1.059,300
+topfencreme,Túrókrém gyümölccsel (Topfencreme),4,honey,méz,160,seasoning,bls:S120000,1205.0,1.0,1.059,300
+topfencreme,Túrókrém gyümölccsel (Topfencreme),4,banana,banán,120,core,bls:F503100,1205.0,1.0,1.059,300
+topfencreme,Túrókrém gyümölccsel (Topfencreme),4,kiwi,kivi,300,core,bls:F514100,1205.0,1.0,1.059,300
+kaesekrainer_gegrillt,Grillezett sajtos kolbász (Käsekrainer),1,kaesekrainer,sajtos kolbász (Käsekrainer),130,core,bls:W255300,107,0.823,1.0,107
+bosna,Bosna (kolbászos bagett hagymával és curryvel),2,baguette_roll,bagett zsemle,160,core,bls:B781300,456,0.919,0.49,230
+bosna,Bosna (kolbászos bagett hagymával és curryvel),2,bratwurst,sütnivaló kolbász (Bratwurst),220,core,bls:W222100,456,0.919,0.49,230
+bosna,Bosna (kolbászos bagett hagymával és curryvel),2,onion,vöröshagyma,50,core,bls:G480100,456,0.919,0.49,230
+bosna,Bosna (kolbászos bagett hagymával és curryvel),2,paprika_ground,őrölt pirospaprika,2,seasoning,usda_fdc:171329,456,0.919,0.49,230
+bosna,Bosna (kolbászos bagett hagymával és curryvel),2,ketchup,ketchup,34,seasoning,bls:R141100,456,0.919,0.49,230
+bosna,Bosna (kolbászos bagett hagymával és curryvel),2,mustard,mustár,30,seasoning,bls:R132000,456,0.919,0.49,230
+hotdog_broetchen,Hotdog-zsemle,1,wheat_roll,zsemle,62.5,core,bls:B511000,62.5,1.0,0.25,62.5
+hotdog_frankfurter,Hotdog virslivel,6,wheat_roll,zsemle,375,core,bls:B511000,967.5,0.942,0.466,150
+hotdog_frankfurter,Hotdog virslivel,6,frankfurter,virsli,367.5,core,bls:W211200,967.5,0.942,0.466,150
+hotdog_frankfurter,Hotdog virslivel,6,onion,vöröshagyma,150,core,bls:G480100,967.5,0.942,0.466,150
+hotdog_frankfurter,Hotdog virslivel,6,butter,vaj,15,fat,open_database:173430,967.5,0.942,0.466,150
+hotdog_frankfurter,Hotdog virslivel,6,ketchup,ketchup,60,seasoning,bls:R141100,967.5,0.942,0.466,150
+hotdog_frankfurter,Hotdog virslivel,6,mustard,mustár,60,seasoning,bls:R132000,967.5,0.942,0.466,150
+kebap_fleisch,Kebabhús (borjú),4,veal_shoulder,borjúlapocka,400,core,bls:U461100,372.0,0.686,0.7,100
+kebap_fleisch,Kebabhús (borjú),4,mutton_fat,birkafaggyú (Hammelspeck),100,core,bls:U805800,372.0,0.686,0.7,100
+kebap_fleisch,Kebabhús (borjú),4,garlic,fokhagyma,10,seasoning,bls:G490100,372.0,0.686,0.7,100
+kebap_fleisch,Kebabhús (borjú),4,olive_oil,olívaolaj,26,fat,bls:Q120000,372.0,0.686,0.7,100
+kebap_fleisch,Kebabhús (borjú),4,tomato_paste,sűrített paradicsom (paradicsompüré),5.0,seasoning,bls:R160000,372.0,0.686,0.7,100
+kebap_fleisch,Kebabhús (borjú),4,paprika_ground,őrölt pirospaprika,1,seasoning,usda_fdc:171329,372.0,0.686,0.7,100
+kebap_salat_sauce,Kebab-saláta és joghurtos szósz,4,tomato,paradicsom,500,core,bls:G561100,1515,1.0,0.5,150
+kebap_salat_sauce,Kebab-saláta és joghurtos szósz,4,onion,vöröshagyma,100,core,bls:G480100,1515,1.0,0.5,150
+kebap_salat_sauce,Kebab-saláta és joghurtos szósz,4,lettuce,fejes saláta,100,core,bls:G105100,1515,1.0,0.5,150
+kebap_salat_sauce,Kebab-saláta és joghurtos szósz,4,white_cabbage,fejes káposzta,100,core,bls:G342100,1515,1.0,0.5,150
+kebap_salat_sauce,Kebab-saláta és joghurtos szósz,4,cucumber,kígyóuborka / uborka,200,core,bls:G520100,1515,1.0,0.5,150
+kebap_salat_sauce,Kebab-saláta és joghurtos szósz,4,yogurt_greek_10,görög típusú joghurt (10%),500,core,bls:M141500,1515,1.0,0.5,150
+kebap_salat_sauce,Kebab-saláta és joghurtos szósz,4,garlic,fokhagyma,15,seasoning,bls:G490100,1515,1.0,0.5,150
+kebap_fladenbrot,Kebab-lepény (negyed török kenyér),4,flatbread,pita / török kenyér,440,core,bls:B782100,440,1.0,0.35,110
+duerum_fladen,Dürüm lepény (tortilla),1,tortilla,tortilla lap,69,core,bls:B783012,69,1.0,0.6,69
+schnitzelsemmel_belag,"Rántott szeletes zsemle feltétje (saláta, szószok)",3,lettuce,fejes saláta,30,core,bls:G105100,150,1.0,0.983,50
+schnitzelsemmel_belag,"Rántott szeletes zsemle feltétje (saláta, szószok)",3,ketchup,ketchup,30,seasoning,bls:R141100,150,1.0,0.983,50
+schnitzelsemmel_belag,"Rántott szeletes zsemle feltétje (saláta, szószok)",3,mayonnaise,majonéz,30,fat,bls:Q991000,150,1.0,0.983,50
+schnitzelsemmel_belag,"Rántott szeletes zsemle feltétje (saláta, szószok)",3,bell_pepper_red,piros kaliforniai paprika,60,core,bls:G543100,150,1.0,0.983,50
+currywurst,Currywurst (osztrák bódéból),4,bratwurst,sütnivaló kolbász (Bratwurst),480,core,bls:W222100,805,0.843,1.008,190
+currywurst,Currywurst (osztrák bódéból),4,sunflower_oil,napraforgóolaj,26,fat,bls:Q320000,805,0.843,1.008,190
+currywurst,Currywurst (osztrák bódéból),4,onion,vöröshagyma,100,core,bls:G480100,805,0.843,1.008,190
+currywurst,Currywurst (osztrák bódéból),4,butter,vaj,15,fat,open_database:173430,805,0.843,1.008,190
+currywurst,Currywurst (osztrák bódéból),4,tomato_canned,hámozott paradicsom (konzerv),300,core,bls:G568900,805,0.843,1.008,190
+currywurst,Currywurst (osztrák bódéból),4,ketchup,ketchup,34,seasoning,bls:R141100,805,0.843,1.008,190
+grillhendl,Grillcsirke (fél),4,chicken_whole_skin,"csirke (egész, csont nélkül, bőrrel)",840,core,bls:V414100,674,0.771,0.75,330
+grillhendl,Grillcsirke (fél),4,sunflower_oil,napraforgóolaj,26,fat,bls:Q320000,674,0.771,0.75,330
+grillhendl,Grillcsirke (fél),4,paprika_ground,őrölt pirospaprika,3,seasoning,usda_fdc:171329,674,0.771,0.75,330
+grillhendl,Grillcsirke (fél),4,garlic,fokhagyma,5,seasoning,bls:G490100,674,0.771,0.75,330
+steckerlfisch,Nyárson sült makréla (Steckerlfisch),4,mackerel,makréla,720,core,bls:T107100,617,0.815,1.058,150
+steckerlfisch,Nyárson sült makréla (Steckerlfisch),4,sunflower_oil,napraforgóolaj,15,fat,bls:Q320000,617,0.815,1.058,150
+steckerlfisch,Nyárson sült makréla (Steckerlfisch),4,lemon_juice,citromlé,22,seasoning,usda_fdc:167747,617,0.815,1.058,150
+lahmacun,Lahmacun (török pizza),4,wheat_flour,búzaliszt (BL55),500,core,bls:C214100,1501,0.857,1.013,380
+lahmacun,Lahmacun (török pizza),4,olive_oil,olívaolaj,26,fat,bls:Q120000,1501,0.857,1.013,380
+lahmacun,Lahmacun (török pizza),4,yeast_dry,szárított élesztő (porélesztő),7,core,bls:R458000,1501,0.857,1.013,380
+lahmacun,Lahmacun (török pizza),4,water,víz,250,liquid,none,1501,0.857,1.013,380
+lahmacun,Lahmacun (török pizza),4,sugar,kristálycukor,4,seasoning,bls:S111000,1501,0.857,1.013,380
+lahmacun,Lahmacun (török pizza),4,mixed_minced,vegyes darált hús (sertés-marha),500,core,bls:U050100,1501,0.857,1.013,380
+lahmacun,Lahmacun (török pizza),4,garlic,fokhagyma,20,seasoning,bls:G490100,1501,0.857,1.013,380
+lahmacun,Lahmacun (török pizza),4,parsley_leaf,petrezselyemzöld,10,seasoning,usda_fdc:170416,1501,0.857,1.013,380
+lahmacun,Lahmacun (török pizza),4,tomato,paradicsom,200,core,bls:G561100,1501,0.857,1.013,380
+lahmacun,Lahmacun (török pizza),4,tomato_paste,sűrített paradicsom (paradicsompüré),34,seasoning,bls:R160000,1501,0.857,1.013,380
+lahmacun,Lahmacun (török pizza),4,onion,vöröshagyma,200,core,bls:G480100,1501,0.857,1.013,380
+erdaepfelpuffer,Tócsni (osztrák Erdäpfelpuffer),4,potato,burgonya,800,core,bls:K110100,1016,0.887,0.7,250
+erdaepfelpuffer,Tócsni (osztrák Erdäpfelpuffer),4,potato_starch,burgonyakeményítő,30,core,bls:K230000,1016,0.887,0.7,250
+erdaepfelpuffer,Tócsni (osztrák Erdäpfelpuffer),4,egg,tojás,50,core,bls:E111100,1016,0.887,0.7,250
+erdaepfelpuffer,Tócsni (osztrák Erdäpfelpuffer),4,zucchini,cukkini / főzőtök,200,core,bls:G582100,1016,0.887,0.7,250
+erdaepfelpuffer,Tócsni (osztrák Erdäpfelpuffer),4,sunflower_oil,napraforgóolaj,26,fat,bls:Q320000,1016,0.887,0.7,250
+erdaepfelpuffer,Tócsni (osztrák Erdäpfelpuffer),4,sunflower_oil,napraforgóolaj,40,absorbed_fat,bls:Q320000,1016,0.887,0.7,250
+bauernkrapfen,Paraszt-fánk (Bauernkrapfen),16,wheat_flour,búzaliszt (BL55),600,core,bls:C214100,1283,0.908,1.024,80
+bauernkrapfen,Paraszt-fánk (Bauernkrapfen),16,butter,vaj,70,fat,open_database:173430,1283,0.908,1.024,80
+bauernkrapfen,Paraszt-fánk (Bauernkrapfen),16,egg_yolk,tojássárgája,18,core,bls:E112100,1283,0.908,1.024,80
+bauernkrapfen,Paraszt-fánk (Bauernkrapfen),16,egg,tojás,150,core,bls:E111100,1283,0.908,1.024,80
+bauernkrapfen,Paraszt-fánk (Bauernkrapfen),16,sugar,kristálycukor,50,core,bls:S111000,1283,0.908,1.024,80
+bauernkrapfen,Paraszt-fánk (Bauernkrapfen),16,yeast_fresh,friss élesztő,42,core,bls:R459000,1283,0.908,1.024,80
+bauernkrapfen,Paraszt-fánk (Bauernkrapfen),16,milk_whole,"tej (3,5%)",288,liquid,bls:M111300,1283,0.908,1.024,80
+bauernkrapfen,Paraszt-fánk (Bauernkrapfen),16,rum,rum,15,seasoning,bls:P741000,1283,0.908,1.024,80
+bauernkrapfen,Paraszt-fánk (Bauernkrapfen),16,clarified_butter,tisztított vaj (ghí),130,absorbed_fat,bls:Q683000,1283,0.908,1.024,80
+bauernkrapfen,Paraszt-fánk (Bauernkrapfen),16,powdered_sugar,porcukor,50,garnish,bls:S111100,1283,0.908,1.024,80
+maroni,Sült gesztenye (Maroni),4,chestnut,gesztenye (Maroni),800,core,bls:H230100,740,0.705,0.6,185
+maroni,Sült gesztenye (Maroni),4,water,víz,250,liquid,none,740,0.705,0.6,185
 bratkartoffeln,Pirított burgonya szalonnával és hagymával,2,potato,burgonya,500,core,bls:K110100,580,0.853,0.65,250
 bratkartoffeln,Pirított burgonya szalonnával és hagymával,2,smoked_bacon,füstölt szalonna / bacon,90,core,bls:W415000,580,0.853,0.65,250
 bratkartoffeln,Pirított burgonya szalonnával és hagymával,2,onion,vöröshagyma,80,core,bls:G480100,580,0.853,0.65,250

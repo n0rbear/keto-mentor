@@ -118,6 +118,21 @@ def validate():
     if len(flat_inventory) != len(set(flat_inventory)):
         dupes = sorted({n for n in flat_inventory if flat_inventory.count(n) > 1})
         raise SystemExit(f"HU dish identities appear twice (inventory and/or built): {dupes}")
+    # Phase-3 minimums (Austria): built dishes alone, on top of the phase-1
+    # samples; a dish shared with HU counts once it carries AT. Inventory
+    # names (dishes kept out for a missing catalog record) must not be built.
+    at_phase1 = set(getattr(at, "PHASE1_DISH_IDS", ()))
+    at_built = {c: [d for d in DISHES if "AT" in d["countries"] and d["category"] == c and d["id"] not in at_phase1] for c in minimums}
+    for category, minimum in minimums.items():
+        if len(at_built[category]) < minimum:
+            raise SystemExit(f"AT {category}: {len(at_built[category])} built dishes are below the phase-3 minimum {minimum}")
+    at_built_names = {norm(n) for ds in at_built.values() for d in ds for n in [*(d.get("names") or PARTS[d["part_refs"][0][0]]["names"]).values(), *d["aliases"].get("de-AT", [])]}
+    at_inventory = [n for names in INVENTORY.get("AT", {}).values() for n in names]
+    if any(norm(n) in at_built_names for n in at_inventory) or len(at_inventory) != len(set(at_inventory)):
+        raise SystemExit("AT inventory names must be unique and not built")
+    missing_reason = [n for n in at_inventory if n not in getattr(at, "INVENTORY_REASONS", {})]
+    if missing_reason:
+        raise SystemExit(f"AT inventory entries need a reason: {missing_reason}")
     for pid, p in PARTS.items():
         check_sources(f"part {pid}", p["sources"])
         check_languages(f"part {pid}", p["names"])
@@ -471,6 +486,9 @@ def emit_missing_foods(dishes_json):
             if norm(name) in covered:
                 continue
             per_country["HU"].append({"food_key": "inventory-only", "names": {"hu": name}, "needed_for": [category], "note": "inventory identity; recipe/ingredient mapping still required"})
+    for category, names in INVENTORY.get("AT", {}).items():
+        for name in names:
+            per_country["AT"].append({"food_key": "inventory-only", "names": {"de-AT": name}, "needed_for": [category], "note": getattr(at, "INVENTORY_REASONS", {}).get(name, "")})
     for c, rows in per_country.items():
         lines = [f"# Hiányzó katalógusrekordok – {c} (generált)", "",
                  "Ezekhez az ételrészekhez nincs ellenőrzött katalógusrekord. Nem helyettesíthetők hasonlóval;",

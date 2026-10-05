@@ -172,7 +172,8 @@ PARTS = {
         ingredients=[ing("yogurt_plain", 150, note="1 pohár natúr joghurt (~150 g, estimate)"), ing("strawberry", 75, note="5-10 dkg gyümölcs; eper as in the cross-check")],
         cooking=dict(method="assembled, no cooking", mass_change_g=0, note="honey optional (see topping)"),
         sources=[src("https://fozzkonnyen.hu/gyumolcsos-joghurt/", R, "batch recipe: személyenként 1 pohár natúr joghurt, 5-10 dkg gyümölcs"),
-                 src("https://eletemetelei.hu/2016/06/03/keszits-reggelire-gyumolcsjoghurtot/", R, "cross-check: 1 kis doboz natúr joghurt, 10-15 szem eper, 0,5-1 ek méz")]),
+                 src("https://eletemetelei.hu/2016/06/03/keszits-reggelire-gyumolcsjoghurtot/", R, "cross-check: 1 kis doboz natúr joghurt, 10-15 szem eper, 0,5-1 ek méz"),
+                 src("https://www.gutekueche.at/erdbeerjoghurt-rezept-19617", "2026-10-05", "AT cross-check (phase 3): 300 g Joghurt, 250 g Erdbeeren, 1 TL Honig, 2 EL Zitronensaft, 2 Portionen - same dish (Joghurt mit Erdbeeren)")]),
     "turos_reggeli": dict(
         names={"hu": "Túrós reggeli (tejfölös túró gyümölccsel)", "de": "Quark-Frühstück mit Sauerrahm und Obst", "en": "Túró breakfast bowl"},
         matrix="solid", servings_source=1, standard_serving_g=427,
@@ -318,7 +319,7 @@ DISHES = [
     D("hu_joghurt_gyumolccsel", "joghurt gyümölccsel", "Joghurt mit Obst", "Yogurt with fruit", [("joghurt_gyumolccsel", 225)], "deep_plate", ["breakfast"],
       ["joghurt gyümölccsel", "gyümölcsös joghurt", "joghurt eperrel"], ["joghurt mit obst", "joghurt mit früchten"], ["joghurt mit obst"], ["yogurt with fruit", "fruit yogurt bowl"],
       optional_toppings=[{"food_key": "honey", "g": 10, "hu": "méz"}],
-      review="A gyümölcs fajtája a forrásban szabad; az eper a keresztforrásból, más gyümölcs más szénhidrátot ad."),
+      review="A gyümölcs fajtája a forrásban szabad; az eper a keresztforrásból, más gyümölcs más szénhidrátot ad.", countries=("HU", "AT")),
     D("hu_turos_reggeli", "túrós reggeli", "Quark-Frühstück", "Túró breakfast bowl", [("turos_reggeli", 427)], "flat_plate", ["breakfast"],
       ["túrós reggeli", "tejfölös túró", "túró tejföllel", "tejfölös túró gyümölccsel"], ["quark-frühstück", "quark mit saurer sahne"], ["topfenfrühstück", "topfen mit sauerrahm"], ["quark breakfast", "cottage cheese breakfast"],
       review="A 'túrós reggeli' nem rögzített étel; a sóbors 'tejfölös túró tál reggelire' receptje szerint készült (túró + tejföl + alma + granola + méz)."),

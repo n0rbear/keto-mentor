@@ -21,7 +21,7 @@ PARTS = {
                      ing("olive_oil", g(3, "ek_oil"), "fat", "3 EL Olivenöl"), ing("parsley_leaf", g(2, "ek_chopped_herbs"), "garnish", "2 EL Petersilie gehackt")],
         cooking=dict(method="Fleckerl boiled and drained, tossed with ham, onion and the cream sauce", mass_change_g=boiled_uptake("egg_pasta_dry", 400) - 60,
                      note="drained Fleckerl from common.BOILED_YIELD (egg pasta 2.54x); ~60 g steam loss in the pan (estimate); salt, pepper left out"),
-        flat_plate=dict(coverage=0.40, height_cm=3.0),
+        flat_plate=dict(coverage=0.57, height_cm=3.0),
         sources=[src(IK + "schinkenfleckerl-rezept-760", R, "batch recipe: 400 g Fleckerl, 300 g Schinken, 2 Knoblauchzehen, 1 Zwiebel, 100 g Sauerrahm, 100 g Schlagobers, 3 EL Olivenöl, Petersilie, 4 Portionen"),
                  src(GK + "schinkenfleckerl-rezept-4907", R, "cross-check (überbacken): 400 g Fleckerl, 120 g Schinken, 100 g Käse, 1 Zwiebel, 1 Ei, 200 ml Schlagobers, 4 Portionen")]),
     "erdaepfelgulasch": dict(
@@ -43,7 +43,7 @@ PARTS = {
                      ing("wheat_flour", g(2, "ek_flour"), "thickener", "2 EL Mehl"), ing("cream_36", 200, "thickener", "200 ml Schlagobers"),
                      ing("onion", 60, note="1 Zwiebel (klein); 60 g is an estimate"), ing("sauerrahm", 102, "garnish", "100 ml Sauerrahm zum Garnieren")],
         cooking=dict(method="spinach blanched and chopped, bound with a butter-flour roux and Obers", mass_change_g=-350, note="estimate: blanched spinach loses ~35 % water; salt, pepper left out"),
-        flat_plate=dict(coverage=0.25, height_cm=2.0),
+        flat_plate=dict(coverage=0.29, height_cm=2.0),
         sources=[src(GK + "cremespinat-rezept-5106", R, "batch recipe: 1 kg Blattspinat, 30 g Butter, Knoblauch, 2 EL Mehl, 200 ml Schlagobers, 100 ml Sauerrahm, 1 kleine Zwiebel, 4 Portionen"),
                  src(IK + "cremespinat-rezept-1601", R, "cross-check: 1 kg Blattspinat, 1 Zwiebel, 250 ml Rindsuppe, 2 EL Butter, 2 EL Mehl, 2 EL Schlagobers, 4 Portionen")]),
     "gebackene_champignons": dict(
@@ -52,7 +52,7 @@ PARTS = {
         ingredients=_CHAMP[0],
         cooking=dict(method="mushrooms breaded (Mehl, Ei, Brösel) and deep-fried", mass_change_g=_CHAMP[1],
                      note="mushrooms lose ~20 % water while frying (estimate); coating and oil from common.BREADING (derived for meat; applied here as the same breading, estimate). Lemon and salt left out"),
-        flat_plate=dict(coverage=0.35, height_cm=3.0),
+        flat_plate=dict(coverage=0.31, height_cm=3.0),
         sources=[src(IK + "gebackene-champignons-rezept-13172", R, "batch recipe: 500 g Champignons, 100 g Mehl, 2 Eier, 100 g Semmelbrösel, Zitrone, 4 Portionen"),
                  src(IK + "gebackene-champignons-rezept-68428", R, "cross-check: Champignons, Mehl, 2 Eier, Semmelbrösel")]),
     "gebackener_emmentaler": dict(
@@ -61,7 +61,7 @@ PARTS = {
         ingredients=_EMMENT[0],
         cooking=dict(method="thick Emmentaler slices breaded twice and deep-fried briefly", mass_change_g=_EMMENT[1],
                      note="cheese loses ~5 % (fat and water) while frying (estimate); coating and oil from common.BREADING (estimate for cheese). The page states 1 Portion for 400 g Emmentaler; 4 portions of 100 g cheese are assumed"),
-        flat_plate=dict(coverage=0.30, height_cm=2.0),
+        flat_plate=dict(coverage=0.24, height_cm=2.0),
         sources=[src(IK + "gebackener-emmentaler-rezept-8373", R, "batch recipe: 400 g Emmentaler, 100 g Mehl, 2 Eier, 100 g Semmelbrösel, Pflanzenöl"),
                  src(IK + "gebackener-kaese-rezept-94213", R, "cross-check (Grillkäse variant): 300 g Feta/Halloumi, Olivenöl, 4 Portionen")]),
     "sauce_tartare": dict(
@@ -78,7 +78,7 @@ PARTS = {
         matrix="dry", bulk_density_g_ml=0.80, servings_source=4, standard_serving_g=135,
         ingredients=_PUTE[0],
         cooking=dict(method="breaded, deep-fried", mass_change_g=_PUTE[1], note="4 Putenschnitzel: 130 g each is an estimate; meat loses ~25 % water (estimate); coating and oil from common.BREADING; salt left out"),
-        flat_plate=dict(coverage=0.40, height_cm=1.2),
+        flat_plate=dict(coverage=0.41, height_cm=1.2),
         sources=[src(IK + "putenschnitzel-paniert-rezept-239106", R, "batch recipe: 4 Putenschnitzel, 1 Ei, 50 g Mehl, 80 g Brösel, Öl zum Frittieren, 4 Portionen"),
                  src(IK + "gebackenes-putenschnitzel-rezept-228720", R, "cross-check: 1 Putenroller, 2 Eier, Mehl, Brösel, Sonnenblumenöl zum Ausbacken")]),
     "gemueselaibchen": dict(
@@ -89,7 +89,7 @@ PARTS = {
                      ing("wheat_flour", g(3, "ek_flour"), "thickener", "3 EL Weizenmehl"), ing("zucchini", 150, note="1 kleine Zucchini, ca. 150 g"), ing("onion", 60, note="1 kleine Zwiebel; estimate"),
                      ing("sunflower_oil", g(1, "ek_oil"), "fat", "1 EL Öl for the pan"), ing("sunflower_oil", 40, "absorbed_fat", "4 EL Öl zum Braten; ~40 g taken up is an estimate")],
         cooking=dict(method="grated vegetables and potato bound with egg and flour, shallow-fried patties", mass_change_g=-140, note="estimate: ~15 % water loss; salt, pepper left out"),
-        flat_plate=dict(coverage=0.40, height_cm=2.0),
+        flat_plate=dict(coverage=0.84, height_cm=2.0),
         sources=[src(GK + "gemueselaibchen-rezept-6565", R, "batch recipe: 1 Ei, 2 Karotten, 400 g Kartoffeln, 60 g Mais, 80 g Sellerie, 1 Zucchini, 1 Zwiebel, 3 EL Mehl, 5 EL Öl, 2 Portionen"),
                  src(GK + "gemueselaibchen-rezept-5184", R, "cross-check: 1 Ei, 3 Karotten, 4 Kartoffeln, 2 Zucchini, 3 EL Mehl, 2 EL Sauerrahm, 1 Schalotte, Öl, 2 Portionen")]),
     "erdaepfelpueree": dict(
@@ -97,7 +97,7 @@ PARTS = {
         matrix="dry", bulk_density_g_ml=0.95, servings_source=4, standard_serving_g=200,
         ingredients=[ing("potato", 600, note="600 g Salzkartoffeln (mehlig)"), ing("butter", g(3, "ek_butter"), "fat", "3 EL Butter"), ing("milk_whole", 515, "liquid", "500 ml heiße Milch")],
         cooking=dict(method="boiled potatoes mashed with butter and hot milk", mass_change_g=-150, note="estimate: some milk is left over / steams off (the page says 500 ml for 600 g potatoes); nutmeg (MISSING), salt left out"),
-        flat_plate=dict(coverage=0.30, height_cm=2.5),
+        flat_plate=dict(coverage=0.25, height_cm=2.5),
         sources=[src(IK + "kartoffelpueree-rezept-55752", R, "batch recipe: 600 g mehlige Kartoffeln, 3 EL Butter, 500 ml heiße Milch, 4 Portionen"),
                  src(IK + "erdaepfelpueree-rezept-3692", R, "cross-check: 500 g Erdäpfel, 250 ml Schlagobers, 80 g Butter, 3 Portionen")]),
     "fischstaebchen": dict(
@@ -106,7 +106,7 @@ PARTS = {
         ingredients=[ing("fish_fingers_fried", 450, note="15 Fischstäbchen à 30 g (450 g pack), weight as BLS 'gebraten ohne Fett'"),
                      ing("sunflower_oil", 30, "absorbed_fat", "pan-fried in a little oil; ~30 g taken up per 15 pieces is an estimate")],
         cooking=dict(method="frozen fish fingers pan-fried", mass_change_g=0, note="the BLS record is already the pan-fried product; 5 pieces per portion"),
-        flat_plate=dict(coverage=0.30, height_cm=1.5),
+        flat_plate=dict(coverage=0.52, height_cm=1.5),
         sources=[src(SPAR + "spar-fischstaebchen/p/7033919", R, "SPAR Fischstäbchen 15 Stück 450 g"),
                  src(SPAR + "iglo-kaeptn-iglo-fischstaebchen-fangfrisch-blitzgefroren-15-stueck/p/1503612", R, "Iglo Käpt'n Iglo Fischstäbchen 15 Stück 450 g")]),
     "leberkaese_gebraten": dict(
@@ -115,7 +115,7 @@ PARTS = {
         ingredients=[ing("leberkaese", 200, note="2 Scheiben Leberkäse 15 mm dick; 100 g per slice as the phase-1 Leberkässemmel (fddb)"),
                      ing("sunflower_oil", g(1, "tk_oil"), "fat", "1 TL Öl / Fett für die Pfanne")],
         cooking=dict(method="slices fried in the pan", mass_change_g=-15, drippings="pan", note="estimate: ~7 % frying loss"),
-        flat_plate=dict(coverage=0.25, height_cm=1.5),
+        flat_plate=dict(coverage=0.19, height_cm=1.5),
         sources=[src(IK + "leberkaese-mit-spiegelei-rezept-223106", R, "batch recipe: 2 Scheiben Leberkäse 15 mm, 2 Eier, Fett für die Pfanne, 2 Portionen"),
                  src(IK + "leberkaese-mit-eierspeis-rezept-223237", R, "cross-check: 2 Scheiben Leberkäse, 2 Eier, 1 TL Öl, 2 Portionen"),
                  src("https://fddb.info/db/de/lebensmittel/durchschnittswert_leberkaessemmel_mit_100_gr_leberkaese/index.html", "2026-09-27", "Leberkäse slice 100 g")]),
@@ -124,7 +124,7 @@ PARTS = {
         matrix="solid", servings_source=2, standard_serving_g=110,
         ingredients=[ing("bratwurst", 240, note="4 x 60 g Bratwürstel (SPAR Natur*pur Bio-Bratwürstel 4 x 60 g)"), ing("sunflower_oil", g(1, "tk_oil"), "fat", "a little oil for the pan (estimate)")],
         cooking=dict(method="pan-fried until brown", mass_change_g=-25, drippings="pan", note="estimate: ~10 % frying loss (water and fat)"),
-        flat_plate=dict(coverage=0.25, height_cm=2.0),
+        flat_plate=dict(coverage=0.16, height_cm=2.0),
         sources=[src(SPAR + "spar-naturpur-bio-bratwuerstel-4-x-60g/p/2020004497512", R, "SPAR Natur*pur Bio-Bratwürstel 4 x 60 g"),
                  src(SPAR + "greisinger-schweinsbratwuerstel/p/2020003786853", R, "Greisinger Schweinsbratwürstel 400 g (cross-check of the product class)")]),
     "cevapcici": dict(
@@ -133,7 +133,7 @@ PARTS = {
         ingredients=[ing("mixed_minced", 1000, note="1 kg Faschiertes (Rind oder Lamm oder gemischt): mixed"), ing("garlic", g(2, "gerezd_garlic"), "seasoning", "2 Knoblauchzehen"),
                      ing("paprika_ground", g(1, "ek_paprika"), "seasoning", "1 EL Paprikapulver"), ing("sunflower_oil", g(2, "ek_oil"), "fat", "2 EL Pflanzenöl"), ing("onion", g(1, "db_onion"), note="1 Zwiebel")],
         cooking=dict(method="seasoned mince rolled into fingers, grilled", mass_change_g=-200, drippings="grill", note="estimate: ~20 % grilling loss (water and fat); Tabasco, salt, pepper left out"),
-        flat_plate=dict(coverage=0.30, height_cm=2.5),
+        flat_plate=dict(coverage=0.34, height_cm=2.5),
         sources=[src(IK + "cevapcici-rezept-11033", R, "batch recipe: 1 kg Faschiertes, 2 Knoblauchzehen, 1 EL Paprikapulver, 2 EL Öl, 1 Zwiebel, 4 Portionen"),
                  src(IK + "cevapcici-rezept-504", R, "cross-check: 1 kg Faschiertes (Lamm, Rind, Schwein), Speisesoda, 2 EL Öl, Zwiebeln, 8 Portionen")]),
     "milchreis": dict(
@@ -329,7 +329,8 @@ DISHES = [
       {"de-AT": ["erdäpfelsalat", "erdäpfelsalat mit zwiebeln", "erdapfelsalat", "kartoffelsalat"], "de": ["kartoffelsalat österreichisch", "kartoffelsalat mit essig und öl", "schwäbischer kartoffelsalat"],
        "hu": ["osztrák krumplisaláta", "ecetes krumplisaláta"], "en": ["austrian potato salad", "potato salad with vinegar"]},
       served_in="deep_plate", tags=("everyday", "salad", "vegan"),
-      reference_check=dict(catalog="bls:X1A2010", name="Kartoffelsalat mit Marinade (Gemüsebrühe)", kcal=83, fat=3.0, protein=1.52, net_carbs=11.42)),
+      reference_check=dict(catalog="bls:X1A2010", name="Kartoffelsalat mit Marinade (Gemüsebrühe)", kcal=83, fat=3.0, protein=1.52, net_carbs=11.42,
+                           deviation="RECEPTKÜLÖNBSÉG: a bécsi Erdäpfelsalat 6 cl olajat és Rindsuppét tesz 750 g burgonyára, a BLS-összetétel csak 3 % zsírral számol; nem hangoltuk.")),
 ]
 
 MISSING = [
@@ -349,7 +350,7 @@ PARTS.update({
                      ing("chives", 10, "garnish", "1 Handvoll Kräuter; 10 g is an estimate")],
         cooking=dict(method="Nockerl boiled, tossed in Butterschmalz, eggs poured over and set", mass_change_g=60,
                      note="estimate: the boiled dough takes up ~10 % water, the eggs lose a little while setting; nutmeg (MISSING), salt, pepper left out"),
-        flat_plate=dict(coverage=0.40, height_cm=3.0),
+        flat_plate=dict(coverage=0.42, height_cm=3.0),
         sources=[src(IK + "eiernockerln-rezept-1667", R, "batch recipe: 300 g Mehl, 3 Eier, 175 ml Milch, 60 g Butter, 2 EL Butterschmalz, 4 Eier, Kräuter, 4 Portionen"),
                  src(GK + "eiernockerl-rezept-1327", R, "cross-check: 300 g Mehl, 3 Eier, 150 ml Milch, 50 g Butter, 3 Eier zum Fertigstellen, 4 Portionen")]),
     "spaghetti_napoli": dict(
@@ -360,7 +361,7 @@ PARTS.update({
                      ing("parmesan", 20, "garnish", "Parmesan frisch gerieben; 5 g per portion is an estimate")],
         cooking=dict(method="spaghetti boiled and drained, tomato sauce simmered ~15 min", mass_change_g=round(500 * (2.30 - 1)) - 100,
                      note="drained spaghetti from common.BOILED_YIELD (durum 2.30x); the sauce reduces by ~100 g (estimate); herbs, sugar, salt, pepper left out"),
-        flat_plate=dict(coverage=0.40, height_cm=3.0),
+        flat_plate=dict(coverage=0.46, height_cm=3.0),
         sources=[src(IK + "spaghetti-napoli-rezept-194389", R, "batch recipe: 500 g Spaghetti, 1 Zwiebel, 500 g Tomaten passiert, 1 TL Suppenwürfel, Olivenöl, Parmesan, 4 Portionen"),
                  src(GK + "spaghetti-napoli-rezept-24456", R, "cross-check: 200 g Spaghetti, 400 g Cocktailtomaten, 0,125 l Gemüsesuppe, Knoblauch, 60 g Oliven, 3 EL Olivenöl, 2 Portionen")]),
     "fisolensalat": dict(
@@ -435,3 +436,16 @@ DISHES += [
       names={"hu": "Fűszeres túrókrémes kenyér", "de": "Brot mit Kräuterquark", "de-AT": "Kräutertopfenbrot", "en": "Bread with herb quark spread"},
       served_in="handheld", tags=("breakfast", "vegetarian")),
 ]
+
+PARTS["topfencreme"] = dict(
+    names={"hu": "Túrókrém gyümölccsel (Topfencreme)", "de": "Quarkcreme mit Obst", "de-AT": "Topfencreme mit Früchten", "en": "Sweet quark cream with fruit"},
+    matrix="solid", servings_source=4, standard_serving_g=300,
+    ingredients=[ing("quark_20", g(2, "becher_sour_cream"), note="2 Becher Topfen (250 g each)"), ing("yogurt_plain", g(0.5, "becher_yogurt"), note="0,5 Becher Joghurt"),
+                 ing("honey", g(8, "ek_honey"), "seasoning", "8 EL Honig"), ing("banana", 120, note="1 Stk Banane; 120 g peeled is an estimate"),
+                 ing("kiwi", 300, note="4 Stk Kiwi; 75 g peeled each is an estimate")],
+    cooking=dict(method="quark, yogurt and honey whipped, layered with sliced fruit", mass_change_g=0, note="no cooking; melissa leaves left out"),
+    sources=[src(GK + "topfencreme-rezept-8904", R, "batch recipe: 2 Becher Topfen, 0,5 Becher Joghurt, 8 EL Honig, 1 Banane, 4 Kiwi, 4 Portionen"),
+             src(IK + "topfencreme-rezept-6565", R, "cross-check: 250 g Magertopfen, 2 Pkg. QimiQ Vanille, 100 g Staubzucker, Vanillezucker, Zitrone, 1/4 Becher Schlagobers, 4 Portionen")])
+DISHES.append(D("at_topfencreme", [("topfencreme", 300)],
+                {"de-AT": ["topfencreme", "topfencreme mit früchten", "topfencreme mit obst"], "de": ["quarkcreme", "quarkspeise mit obst"], "hu": ["túrókrém gyümölccsel"], "en": ["quark cream with fruit", "sweet quark dessert"]},
+                served_in="deep_plate", tags=("everyday", "sweet", "vegetarian")))

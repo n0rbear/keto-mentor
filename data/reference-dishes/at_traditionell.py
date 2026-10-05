@@ -20,7 +20,7 @@ PARTS = {
         ingredients=_WSK[0],
         cooking=dict(method="breaded (Mehl, Ei, Brösel), fried floating in Butterschmalz at ~170 °C, 2-3 min per side", mass_change_g=_WSK[1],
                      note="4 Kalbsschnitzel à 160 g; the meat loses ~25 % of its weight as water while frying (estimate, as rántott hús). Coating and fat that stick from common.BREADING; the source's 500 g Butterschmalz, 300 g Brösel and 150 g Mehl are mostly left in the pan and plates. Lemon garnish and salt left out"),
-        flat_plate=dict(coverage=0.40, height_cm=1.2),
+        flat_plate=dict(coverage=0.51, height_cm=1.2),
         sources=[src(GK + "wiener-schnitzel-rezept-170", R, "batch recipe: 4 Kalbsschnitzel à 160 g (Nuss/Oberschale), 2 Eier, 150 g Mehl, 300 g Brösel, 500 g Butterschmalz, 4 Portionen"),
                  src(IK + "wiener-schnitzel-rezept-3094", R, "cross-check: 4 Kalbsschnitzel ca. 600 g, 2 Eier, 50 g Mehl, 150 g Semmelbrösel, 200 g Schmalz oder Öl, 4 Portionen")]),
     "wiener_schnitzel_schwein": dict(
@@ -29,7 +29,7 @@ PARTS = {
         ingredients=_WSS[0],
         cooking=dict(method="breaded, deep-fried in oil", mass_change_g=_WSS[1],
                      note="0,5 kg Schweinsschnitzel (Austrian Schnitzel cut = Schale/Oberschale of the leg, not the loin used for rántott hús); meat loses ~25 % water (estimate); coating and oil from common.BREADING. Milk splash, salt, pepper left out"),
-        flat_plate=dict(coverage=0.40, height_cm=1.2),
+        flat_plate=dict(coverage=0.4, height_cm=1.2),
         sources=[src(GK + "wienerschnitzel-vom-schwein-rezept-34210", R, "batch recipe: 0,5 kg Schweinsschnitzel, 4 Eier, 1 Tasse Mehl, 1 Tasse Brösel, 1 l Frittieröl, 4 Portionen"),
                  src(IK + "schweinsschnitzel-rezept-193505", R, "cross-check: 8 Schweinsschnitzel, Mehl, 4 Eier, Brösel, 125 ml Milch, Öl oder Schmalz, 4 Portionen")]),
     "cordon_bleu": dict(
@@ -39,7 +39,7 @@ PARTS = {
                                   ing("emmentaler", 160, note="8 Schb Emmentaler; 20 g per slice is an estimate")],
         cooking=dict(method="schnitzel filled with ham and cheese, breaded, fried in oil", mass_change_g=_CORDON[1],
                      note="4 Schweinsschnitzel, 1,5 cm thick: 150 g each is an estimate; meat loses ~25 % water (estimate); coating and oil from common.BREADING (ham and cheese inside lose nothing). Milk splash, salt and pepper left out"),
-        flat_plate=dict(coverage=0.40, height_cm=1.8),
+        flat_plate=dict(coverage=0.41, height_cm=1.8),
         sources=[src(GK + "cordon-bleu-rezept-3869", R, "batch recipe: 4 Schnitzel, 8 Schb Emmentaler, 8 Schb Schinken, 80 g Mehl, 1 Ei, 80 g Brösel, 0,25 l Öl, 4 Portionen"),
                  src(IK + "cordon-bleu-rezept-10027", R, "cross-check: 4 große Schnitzel (Schwein, Kalb oder Truthahn), 8 Scheiben Schinken, 4 Scheiben Emmentaler oder Gouda, panieren, 4 Portionen")]),
     "backhendl": dict(
@@ -48,7 +48,7 @@ PARTS = {
         ingredients=_BACKHENDL[0],
         cooking=dict(method="chicken pieces breaded, deep-fried in oil ~12-15 min", mass_change_g=_BACKHENDL[1],
                      note="2 junge Hühner à ca. 1,5 kg cut in pieces: ~70 % edible share (meat and skin, no bones) is an estimate, as in hu_tepsis_csirke; meat loses ~20 % water while frying (estimate, as rántott csirkemell); coating and oil from common.BREADING. Parsley and lemon garnish left out"),
-        flat_plate=dict(coverage=0.50, height_cm=3.0),
+        flat_plate=dict(coverage=0.67, height_cm=3.0),
         sources=[src(IK + "backhendl-rezept-3105", R, "batch recipe: 2 junge Hühner je ca. 1 1/2 kg, Mehl, 3 Eier, Semmelbrösel, Öl zum Herausbacken, 4 Portionen"),
                  src(GK + "backhendl-rezept-4319", R, "cross-check: 4 Hendlteile (Brust, Keule, Flügerl), Mehl, 4 Eier, Brösel, 0,5 l Öl, 4 Portionen")]),
     # ---- roasts, braises ---------------------------------------------------------------------
@@ -58,7 +58,7 @@ PARTS = {
         ingredients=[ing("beef_tafelspitz", 800, note="800 g Rindfleisch Tafelspitz")],
         cooking=dict(method="simmered ~2.5-3 h in salted water with root vegetables, onion and spices, served sliced", mass_change_g=-280,
                      note="boiled beef keeps ~65 % of its raw weight (estimate; BLS Rind Kochfleisch (Hüfte) roh 22.1 g -> gekocht 30.3 g protein gives 0.73). The vegetables, the 1,5 l water and the 2 EL oil make the Rindsuppe served before it, not this part"),
-        flat_plate=dict(coverage=0.30, height_cm=1.5),
+        flat_plate=dict(coverage=0.23, height_cm=1.5),
         sources=[src(IK + "tafelspitz-rezept-5288", R, "batch recipe: 800 g Tafelspitz, 100 g Gelbe Rüben, 100 g Pastinaken, 100 g Suppengemüse, 1/2 Zwiebel, 1,5 l Wasser, 4 Portionen"),
                  src(GK + "tafelspitz-rezept-31426", R, "cross-check: 800 g Tafelspitz, 1 Bund Suppengrün, 1 Zwiebel, Knoblauch, Lorbeer, Pfefferkörner, 4 Portionen")]),
     "rindsgulasch": dict(
@@ -71,7 +71,7 @@ PARTS = {
                      ing("beef_broth", 2000, "liquid", "2 l Suppe (notfalls auch Wasser)")],
         cooking=dict(method="onions fried golden in lard, paprika, paste, meat and Suppe; braised ~2.5-3 h until the juice is thick", mass_change_g=-1700,
                      note="estimate: meat loses ~25 % water (~500 g), ~60 % of the Suppe evaporates (~1200 g). Majoran, Lorbeer, Pfefferoni, salt, pepper left out; the optional flour slurry is not added"),
-        flat_plate=dict(coverage=0.45, height_cm=2.0),
+        flat_plate=dict(coverage=0.43, height_cm=2.0),
         sources=[src(IK + "rindsgulasch-rezept-2149", R, "batch recipe: 2 kg Wadschinken, 1 kg Zwiebeln, 200 g Schmalz, 2 EL Paradeismark, 2 EL Paprika, 2 l Suppe, 10 Portionen"),
                  src(IK + "saftgulasch-rezept-3126", R, "cross-check: 1 kg Wadschinken, 1 kg Zwiebeln, 200 g Schweineschmalz, 1 EL Paprika, 1 EL Tomatenmark, 1/2 l Wasser, Essig, 4 Portionen"),
                  src(GK + "saftgulasch-rezept-5789", R, "cross-check: 1 kg Rindfleisch, 2 Zwiebeln, 50 g Butter, 500 ml Fleischbrühe, 2 EL Paprika, 2 EL Tomatenmark, 4 Portionen")]),
@@ -84,7 +84,7 @@ PARTS = {
                      ing("water", 500, "liquid", "500 ml Kalbssuppe oder Wasser"), ing("cream_36", 125, "thickener", "125 ml Schlagobers"),
                      ing("wheat_flour", g(1, "ek_flour"), "thickener", "1 EL Mehl glatt")],
         cooking=dict(method="braised ~1.5 h, finished with Obers and flour", mass_change_g=-450, note="estimate: veal loses ~25 % water, part of the liquid evaporates; bay leaf, lemon zest, salt left out"),
-        flat_plate=dict(coverage=0.45, height_cm=2.0),
+        flat_plate=dict(coverage=0.36, height_cm=2.0),
         sources=[src(IK + "kalbsgulasch-rezept-2133", R, "batch recipe: 1 kg Kalbsvögerl, 250 g Zwiebeln, Öl, 1 EL Paradeismark, 1 EL Paprika, 500 ml Kalbssuppe, 125 ml Schlagobers, 1 EL Mehl, 6 Portionen"),
                  src(GK + "kalbsgulasch-rezept-4312", R, "cross-check: 800 g Kalbfleisch, 500 g Zwiebeln, 2 EL Butterschmalz, 2 EL Paprika, 1 EL Tomatenmark, 500 ml Kalbsfond, 4 Portionen")]),
     "zwiebelrostbraten": dict(
@@ -99,7 +99,7 @@ PARTS = {
                      ing("vinegar", 5, "seasoning", "1 Schuss Essig; 5 g is an estimate"), ing("beef_broth", 250, "liquid", "250 ml Rindsuppe (kräftig)")],
         cooking=dict(method="meat seared, sauce from Suppe reduced, topped with crisp fried onions", mass_change_g=-400,
                      note="estimate: meat loses ~25 % water, onions ~45 % while frying, half the Suppe evaporates. 200 ml Rotwein (MISSING dry_red_wine), bay leaf, salt, pepper left out"),
-        flat_plate=dict(coverage=0.40, height_cm=2.0),
+        flat_plate=dict(coverage=0.3, height_cm=2.0),
         sources=[src(GK + "zwiebelrostbraten-rezept-1865", R, "batch recipe: 4 Rostbraten à 140 g, 3 Zwiebeln, 2 EL Mehl, 1 EL Paprika, 500 ml Öl, 250 ml Rindsuppe, 200 ml Rotwein, 1 EL Senf, 1 EL Tomatenmark, 4 Portionen"),
                  src(IK + "zwiebelrostbraten-rezept-4560", R, "cross-check: 4 Scheiben Rostbraten, 1 EL Mehl, 2 EL Butterschmalz, 1/4 kg Zwiebeln, Öl zum Ausbacken, Suppe, Butter, 4 Portionen")]),
     "rahmschnitzel": dict(
@@ -111,7 +111,7 @@ PARTS = {
                      ing("cream_36", 80, "thickener", "80 ml Schlagobers"), ing("creme_fraiche", 45, "thickener", "3 EL Creme Fraiche")],
         cooking=dict(method="schnitzel dusted, pan-fried, sauce from Suppe, Obers and crème fraîche", mass_change_g=-300,
                      note="estimate: meat loses ~25 % water, the sauce reduces by about half. Weißwein Schuss (MISSING dry_white_wine), Majoran, salt, pepper left out"),
-        flat_plate=dict(coverage=0.40, height_cm=1.5),
+        flat_plate=dict(coverage=0.36, height_cm=1.5),
         sources=[src(GK + "rahmschnitzel-rezept-5110", R, "batch recipe: 4 Schweinsschnitzel, 50 g Mehl, Sonnenblumenöl, 300 ml Fleischsuppe, 80 ml Schlagobers, 3 EL Creme Fraiche, 4 Portionen"),
                  src(IK + "naturschnitzel-rezept-2136", R, "cross-check (Naturschnitzel): 4 Schnitzel à 180 g, Mehl zum Stauben, 125 ml Suppe, Butter, 4 Portionen")]),
     "faschierter_braten": dict(
@@ -124,7 +124,7 @@ PARTS = {
                      ing("beef_broth", 250, "liquid", "250 ml Rindsuppe zum Aufgießen"), ing("butter", 20, "fat", "'Butter kalt, zum Montieren der Sauce'; 20 g is an estimate")],
         cooking=dict(method="loaf roasted ~1 h at 180 °C, basted with Suppe; sauce finished with Obers and butter", mass_change_g=-250,
                      note="estimate: the loaf loses ~15 % and part of the Suppe evaporates. Weißwein Schuss (MISSING dry_white_wine), Muskat (MISSING), Kümmel, salt, pepper left out"),
-        flat_plate=dict(coverage=0.35, height_cm=2.5),
+        flat_plate=dict(coverage=0.4, height_cm=2.5),
         sources=[src(IK + "faschierter-braten-rezept-3102", R, "batch recipe: 500 g Faschiertes gemischt, 2 Semmeln, 125 ml Milch, 50 g Speck, 1 Ei, 1 Zwiebel, Petersilie, 2 EL Schlagobers, 250 ml Rindsuppe, 4 Portionen"),
                  src(GK + "faschierter-braten-rezept-4462", R, "cross-check: 500 g Faschiertes vom Rind, 1 Ei, 3 EL Semmelbrösel, 1 große Zwiebel, Suppengrün, 300 ml Rindsuppe, 2 Portionen")]),
     "faschierte_laibchen": dict(
@@ -137,7 +137,7 @@ PARTS = {
                      ing("sunflower_oil", 40, "absorbed_fat", "'Pflanzenöl zum Herausbraten'; ~40 g absorbed is an estimate")],
         cooking=dict(method="patties shallow-fried in Butterschmalz and oil", mass_change_g=-190, drippings="pan",
                      note="estimate: ~15 % frying loss; Majoran, Muskat (MISSING), Kümmel, salt, pepper left out"),
-        flat_plate=dict(coverage=0.30, height_cm=2.5),
+        flat_plate=dict(coverage=0.35, height_cm=2.5),
         sources=[src(IK + "faschierte-laibchen-rezept-5080", R, "batch recipe: 700 g Faschiertes gemischt, 2 Zwiebeln, 3 Knoblauchzehen, 100 g Semmelwürfel, 125 ml Milch, 2 Eier, Butterschmalz, Pflanzenöl, 4 Portionen"),
                  src(IK + "fleischlaibchen-rezept-21986", R, "cross-check: 400 g Rindsfaschiertes, 40 g Kalbsbrät, 1 Ei, 2 Scheiben Toastbrot, Petersilie, 4 Portionen")]),
     "schweinsstelze": dict(
@@ -148,7 +148,7 @@ PARTS = {
                      ing("sunflower_oil", g(4, "ek_oil"), "fat", "4 EL Öl")],
         cooking=dict(method="roasted ~3 h at 160-200 °C on bones until the rind crackles", mass_change_g=-315, drippings="oven",
                      note="estimate: the knuckle loses ~35 % (water and rendered fat into the tray); the 300 g Schweinsknochen are not eaten; salt left out"),
-        flat_plate=dict(coverage=0.40, height_cm=5.0),
+        flat_plate=dict(coverage=0.22, height_cm=5.0),
         sources=[src(GK + "gebratene-schweinsstelze-rezept-5868", R, "batch recipe: 1 Schweinsstelze, 5 Knoblauchzehen, 2 TL Kümmel, 4 EL Öl, 300 g Schweinsknochen, 2 Portionen"),
                  src(IK + "schweinsstelze-rezept-4791", R, "cross-check: 1 Stelze, Wurzelwerk, Kümmel, Majoran, 1 Apfel, 1/2 l Bier, 4 Portionen")]),
     "selchfleisch": dict(
@@ -156,7 +156,7 @@ PARTS = {
         matrix="solid", servings_source=4, standard_serving_g=125,
         ingredients=[ing("smoked_pork_neck", 1000, note="1 kg Selchfleisch (Kasseler)")],
         cooking=dict(method="simmered ~1.5 h with Suppengemüse, sliced", mass_change_g=-150, note="estimate: cured meat loses ~15 % while simmering; the vegetables stay in the cooking water"),
-        flat_plate=dict(coverage=0.30, height_cm=1.5),
+        flat_plate=dict(coverage=0.23, height_cm=1.5),
         sources=[src(GK + "selchfleisch-rezept-5376", R, "batch recipe: 1 kg Selchfleisch, 1 Bund Suppengemüse, Lorbeer, Pfefferkörner, 4 Portionen"),
                  src(GK + "bauernschmaus-rezept-6706", R, "cross-check: Bauernschmaus 500 g Bauchfleisch, 500 g Geselchtes, 400 g Sauerkraut, 4 Semmelknödel, 4 Frankfurter, 4 Portionen"),
                  src(IK + "bauernschmaus-rezept-3421", R, "cross-check: 800 g Schopfbraten, 800 g Geselchtes, 16 Frankfurter, 1 kg Sauerkraut, 16 kleine Semmelknödel, 16 Portionen")]),
@@ -168,7 +168,7 @@ PARTS = {
                      ing("clarified_butter", 20, "absorbed_fat", "80 g Butterschmalz for frying; ~20 g taken up is an estimate"),
                      ing("butter", 80, "fat", "80 g Butter frisch, browned and poured over"), ing("lemon_juice", 20, "seasoning", "2 Zitronen, mostly as wedges; ~20 g juice is an estimate")],
         cooking=dict(method="trout floured, fried in Butterschmalz, finished with brown butter", mass_change_g=-130, note="estimate: fish loses ~20 % water; salt and pepper left out"),
-        flat_plate=dict(coverage=0.40, height_cm=2.5),
+        flat_plate=dict(coverage=0.25, height_cm=2.5),
         sources=[src(IK + "forelle-muellerin-rezept-6555", R, "batch recipe: 4 Forellen je 250-300 g, 80 g Butterschmalz, Mehl, 80 g Butter, 2 Zitronen, 4 Portionen"),
                  src(GK + "forelle-muellerin-rezept-3638", R, "cross-check: 4 Forellen à 350 g, 80 g Mehl, 80 g Brösel, 4 EL Butter, Petersilie, Zitronensaft, 4 Portionen")]),
     "tiroler_groestl": dict(
@@ -179,7 +179,7 @@ PARTS = {
                      ing("sunflower_oil", g(2, "ek_oil"), "fat", "2 EL Sonnenblumenöl"), ing("butter", g(1, "tk_butter"), "fat", "1 TL Butter"),
                      ing("egg", g(4, "db_egg"), note="4 Eier, fried, one on each portion"), ing("chives", g(2, "ek_chopped_herbs"), "garnish", "2 EL Schnittlauch")],
         cooking=dict(method="potatoes, onion and beef roasted in the pan, topped with fried eggs", mass_change_g=-90, note="estimate: ~10 % of the potato water and some egg water steam off; Majoran, salt, pepper left out"),
-        flat_plate=dict(coverage=0.50, height_cm=2.5),
+        flat_plate=dict(coverage=0.58, height_cm=2.5),
         sources=[src(GK + "tiroler-groestl-rezept-742", R, "batch recipe: 600 g Kartoffeln, 250 g gekochtes Rindfleisch, 1 große Zwiebel, 2 EL Öl, 1 TL Butter, 4 Eier, 2 EL Schnittlauch, 4 Portionen"),
                  src(IK + "tiroler-groestl-rezept-1631", R, "cross-check: 300 g gekochtes Rindfleisch, 150 g Bergsteigerwurst, 300 g gekochte Erdäpfel, 1 Zwiebel, Butter oder Schmalz, 4 Portionen")]),
     "geroestete_leber": dict(
@@ -189,7 +189,7 @@ PARTS = {
                      ing("sunflower_oil", g(2, "ek_oil"), "fat", "2 EL Öl"), ing("onion", 120, note="2 Stk Zwiebel (klein); 60 g each is an estimate"),
                      ing("beef_broth", 250, "liquid", "0,25 l Suppe (klare Fleischsuppe)")],
         cooking=dict(method="onions and liver sautéed, dusted, short-braised in Suppe", mass_change_g=-180, note="estimate: liver loses ~20 % water, part of the Suppe evaporates; Majoran, Piment, salt, pepper left out"),
-        flat_plate=dict(coverage=0.40, height_cm=2.0),
+        flat_plate=dict(coverage=0.43, height_cm=2.0),
         sources=[src(GK + "geroestete-leber-rezept-5600", R, "batch recipe: 400 g Leber, 2 EL Mehl, 2 EL Öl, 2 kleine Zwiebeln, 0,25 l Suppe, 2 Portionen"),
                  src(IK + "geroestete-leber-rezept-194483", R, "cross-check: 500 g Leber, 50 ml Öl, 200 g Zwiebel, 1 EL Majoran, 125 ml Wasser, 4 Portionen")]),
     "salonbeuschel": dict(
@@ -205,7 +205,7 @@ PARTS = {
                      ing("parsley_leaf", 4, "garnish", "1 Prise Petersilie"), ing("sunflower_oil", g(3, "ek_oil"), "fat", "3 EL Rapsöl")],
         cooking=dict(method="lung and heart boiled with roots, cut in fine strips, bound with Einbrenn and part of the stock, soured, finished with cream", mass_change_g=-1000,
                      note="estimate: offal loses ~25 % while boiling; about half of the cooking liquid goes into the sauce, the rest (with spices) is discarded or evaporates. Garlic, Majoran, Thymian, Wacholder, lemon zest, sugar, salt, pepper left out"),
-        flat_plate=dict(coverage=0.45, height_cm=2.0),
+        flat_plate=dict(coverage=0.44, height_cm=2.0),
         sources=[src(GK + "beuschel-rezept-5185", R, "batch recipe: 500 g Kalbslunge, 1 Kalbsherz, Wurzelwerk, 40 g Butter, 40 g Mehl, 3 EL Sauerrahm, 3 EL Schlagobers, Sardellenfilet, Essig, Zitrone, 4 Portionen"),
                  src(IK + "salonbeuschel-rezept-1623", R, "cross-check: 600 g Kalbsbeuschel, 1 Kalbsherz, Wurzelwerk, 40 g Butterschmalz, 30 g Mehl, Kapern, Sardelle, Sauerrahm, Schlagobers, 4 Portionen")]),
     # ---- sides -------------------------------------------------------------------------------
@@ -228,7 +228,7 @@ PARTS = {
                      ing("butter", g(1, "tk_butter"), "fat", "1 TL Butter"), ing("garlic", g(1, "gerezd_garlic"), "seasoning", "1 Stk Knoblauchzehe"),
                      ing("caraway_seed", 0.5, "seasoning", "1 Prise Kümmel"), ing("sugar", 1, "seasoning", "1 Prise Zucker"), ing("beef_broth", 250, "liquid", "250 ml Rindsuppe (klar)")],
         cooking=dict(method="bacon and onion sweated, sauerkraut braised in Suppe ~30-40 min", mass_change_g=-200, note="estimate: most of the Suppe evaporates; bay leaf, juniper, salt, pepper left out"),
-        flat_plate=dict(coverage=0.25, height_cm=2.0),
+        flat_plate=dict(coverage=0.22, height_cm=2.0),
         sources=[src(GK + "sauerkraut-rezept-1548", R, "batch recipe: 500 g Sauerkraut, 60 g Speck, 1 Zwiebel, 1 TL Butter, 250 ml Rindsuppe, 4 Portionen"),
                  src(GK + "sauerkraut-rezept-4983", R, "cross-check: 600 g Sauerkraut, 1 Zwiebel, 1 Schuss Öl, 120 ml Fleischsuppe, Kümmel, 3 Portionen")]),
     "erdaepfelsalat": dict(
@@ -239,7 +239,7 @@ PARTS = {
                      ing("beef_broth", 80, "liquid", "5 EL Rindsuppe, ca. 8 cl, heiß"), ing("onion", 100, note="100 g Zwiebel"),
                      ing("mustard", g(1, "tk_mustard"), "seasoning", "1 TL Senf"), ing("chives", 5, "garnish", "Schnittlauch zum Garnieren; 5 g is an estimate")],
         cooking=dict(method="potatoes boiled in the skin, peeled, sliced warm and dressed", mass_change_g=-15, note="boiled potato keeps ~98 % of its weight (as petrezselymes burgonya); salt and pepper left out"),
-        flat_plate=dict(coverage=0.30, height_cm=2.5),
+        flat_plate=dict(coverage=0.39, height_cm=2.5),
         sources=[src(IK + "erdaepfelsalat-rezept-2065", R, "batch recipe: 750 g Erdäpfel speckig, 2 EL Mostessig (4 cl), 3 EL Öl (6 cl), 5 EL Rindsuppe (8 cl), 100 g Zwiebel, 1 TL Senf, 4 Portionen"),
                  src(GK + "erdaepfelsalat-rezept-5385", R, "cross-check: 6 Erdäpfel, 1 EL Essig, 2 EL Öl, 125 ml Suppenbrühe, 1 Zwiebel, 4 Portionen")]),
     "roesterdaepfel": dict(
@@ -247,7 +247,7 @@ PARTS = {
         matrix="dry", bulk_density_g_ml=0.65, servings_source=5, standard_serving_g=150,
         ingredients=[ing("potato", 600, note="600 g Kartoffeln, boiled the day before"), ing("sunflower_oil", g(5, "ek_oil"), "fat", "5 EL Öl"), ing("onion", 20, note="20 g Zwiebel")],
         cooking=dict(method="boiled potatoes sliced and roasted crisp in oil", mass_change_g=-60, note="estimate: ~10 % of the potato water evaporates; salt left out"),
-        flat_plate=dict(coverage=0.30, height_cm=2.5),
+        flat_plate=dict(coverage=0.27, height_cm=2.5),
         sources=[src(GK + "roesterdaepfel-rezept-17701", R, "batch recipe: 600 g Kartoffeln, 5 EL Öl, 20 g Zwiebel, 5 Portionen"),
                  src(IK + "roesterdaepfel-rezept-2014", R, "cross-check: 400 g speckige Kartoffeln am Vortag gekocht, Butter, Zwiebel, Majoran, 1 Portion")]),
     "apfelkren": dict(
@@ -342,7 +342,8 @@ DISHES = [
        "de": ["tafelspitz", "gekochter tafelspitz", "suppenfleisch"], "hu": ["tafelspitz", "főtt marhafartő", "főtt marhahús tormával"], "en": ["tafelspitz", "boiled beef", "viennese boiled beef"]},
       names={"hu": "Tafelspitz almás tormával és metélőhagymás mártással", "de": "Tafelspitz mit Apfelmeerrettich und Schnittlauchsauce", "de-AT": "Tafelspitz mit Apfelkren und Schnittlauchsauce", "en": "Tafelspitz with apple horseradish and chive sauce"},
       side_options=[("roesterdaepfel", 200)], alias_side={"tafelspitz mit rösterdäpfeln": "roesterdaepfel", "tafelspitz mit röstkartoffeln": "roesterdaepfel"},
-      reference_check=dict(catalog="bls:Y181132", name="Tafelspitz gekocht, mit Meerrettichsauce", kcal=126, fat=6.3, protein=15.07, net_carbs=2.07),
+      reference_check=dict(catalog="bls:Y181132", name="Tafelspitz gekocht, mit Meerrettichsauce", kcal=126, fat=6.3, protein=15.07, net_carbs=2.07,
+                           deviation="RECEPTKÜLÖNBSÉG: a bécsi tálalás olajjal kevert, zsemlés-tojásos Schnittlauchsaucét és Apfelkrent ad a 130 g főtt húshoz; a BLS-összetétel lisztes Meerrettichsauce-szal és több hússzaftal számol; nem hangoltuk."),
       review="A Rindsuppe (előétel) külön étel; a hús 130 g főtt (800 g nyers / 4)."),
     D("at_rindsgulasch", T, [("rindsgulasch", 300)], "flat_plate", ["traditional", "stew", "beef", "low-carb-friendly"],
       {"de-AT": ["rindsgulasch", "saftgulasch", "wiener saftgulasch", "fiakergulasch", "gulasch", "wiener gulasch"], "de": ["rindergulasch", "wiener saftgulasch", "gulasch"],
@@ -376,7 +377,8 @@ DISHES = [
       {"de-AT": ["stelze", "schweinsstelze", "stelzen", "gebratene stelze", "schweinsstelze gebraten"], "de": ["schweinshaxe", "haxe", "grillhaxe"],
        "hu": ["osztrák csülök", "stelze"], "en": ["pork knuckle", "roast pork knuckle", "stelze"]},
       side_options=[("sauerkraut_gedunstet", 150)], alias_side={"stelze mit sauerkraut": "sauerkraut_gedunstet", "stelze mit kraut": "sauerkraut_gedunstet"},
-      reference_check=dict(catalog="bls:Y362012", name="Schweinshaxe geschmort, ohne Sauce", kcal=300, fat=20.15, protein=29.71, net_carbs=0.02),
+      reference_check=dict(catalog="bls:Y362012", name="Schweinshaxe geschmort, ohne Sauce", kcal=300, fat=20.15, protein=29.71, net_carbs=0.02,
+                           deviation="RECEPTKÜLÖNBSÉG: az osztrák Stelze ropogósra sütött hátsó csülök bőrrel, a BLS-referencia párolt csülök (a zsír egy része a mártásban marad); nem hangoltuk."),
       review="Az osztrák Stelze nyersen sütött hátsó csülök (Hinterhaxe); a magyar sült csülök főzött-sütött mellső csülök, ezért külön."),
     D("at_bauernschmaus", T, [("schweinsbraten", 125), ("selchfleisch", 125), ("sauerkraut_gedunstet", 100), ("semmelknoedel", 100)], "flat_plate", ["traditional", "roast"],
       {"de-AT": ["bauernschmaus", "bauernschmaus mit knödel"], "de": ["bauernschmaus", "schlachtplatte österreichisch"], "hu": ["parasztlakoma", "bauernschmaus"], "en": ["farmer's feast platter", "bauernschmaus"]},
@@ -399,13 +401,13 @@ DISHES = [
 ]
 
 MISSING = [
-    dict(food_key="dry_red_wine", names={"de-AT": "Rotwein trocken", "hu": "száraz vörösbor", "en": "dry red wine"}, needed_for=["at_zwiebelrostbraten (200 ml per 4 Portionen)"],
+    dict(food_key="dry_red_wine", names={"de-AT": "Rotwein trocken", "hu": "száraz vörösbor", "en": "dry red wine"}, needed_for=["zwiebelrostbraten (200 ml / 4 Portionen)", "gulaschsuppe (125 ml / 2)", "rotkraut (125 ml)"],
          note="BLS 4.0 P2A3000 'Rotwein trocken' exists, but its fat field is 'TR' (trace), which BlsAdapter rejects as a missing required macro, so it cannot be imported unchanged. Left out (most alcohol evaporates). Candidate: a reviewed import that reads 'TR' as 0."),
-    dict(food_key="dry_white_wine", names={"de-AT": "Weißwein trocken", "hu": "száraz fehérbor", "en": "dry white wine"}, needed_for=["at_rahmschnitzel (Schuss)", "at_faschierter_braten (Schuss)"],
+    dict(food_key="dry_white_wine", names={"de-AT": "Weißwein trocken", "hu": "száraz fehérbor", "en": "dry white wine"}, needed_for=["rahmschnitzel (Schuss)", "faschierter_braten (Schuss)", "kuerbiscremesuppe (67 ml)", "linzer_torte (2 EL)"],
          note="BLS 4.0 P210000 'Weißwein trocken' exists, but its fat/protein fields are '<LOD'/'TR', which BlsAdapter rejects. Left out. Same candidate as dry_red_wine."),
-    dict(food_key="nutmeg", names={"de-AT": "Muskatnuss", "hu": "szerecsendió", "en": "nutmeg"}, needed_for=["at_faschierter_braten", "at_faschierte_laibchen", "at_semmelknoedel (a pinch)"],
+    dict(food_key="nutmeg", names={"de-AT": "Muskatnuss", "hu": "szerecsendió", "en": "nutmeg"}, needed_for=["semmelknoedel, faschierter_braten, faschierte_laibchen, kaesespaetzle, leberknoedel, griessnockerl, schwammerlsuppe, kuerbiscremesuppe, krautwickel, eiernockerl, erdaepfelpueree, erdaepfelpuffer (a pinch each)"],
          note="No Muskat record in BLS 4.0 or the catalog; a pinch, left out."),
-    dict(food_key="marjoram_dried", names={"de-AT": "Majoran gerebelt", "hu": "majoránna", "en": "dried marjoram"}, needed_for=["at_rindsgulasch", "at_geroestete_leber", "at_tiroler_groestl (a pinch each)"],
+    dict(food_key="marjoram_dried", names={"de-AT": "Majoran gerebelt", "hu": "majoránna", "en": "dried marjoram"}, needed_for=["rindsgulasch, geroestete_leber, tiroler_groestl, faschierte_laibchen, rahmschnitzel, reisfleisch, salonbeuschel, wiener_erdaepfelsuppe, schwammerlsuppe, klachelsuppe, kaspressknoedelsuppe, erdaepfelgulasch, grillhendl (a pinch each)"],
          note="No Majoran record in BLS 4.0 or the catalog (hu-missing-foods lists it too); a pinch, left out."),
 ]
 
@@ -436,7 +438,7 @@ PARTS.update({
                      ing("water", 1500, "liquid", "meat simmered covered in water ~1.5 h; amount is an estimate")],
         cooking=dict(method="pork simmered with roots and vinegar, sliced, served with the julienned roots, some broth and Kren", mass_change_g=-1250,
                      note="estimate: meat loses ~25 % water; about 1 l of the cooking liquid is not served (kept as soup) or evaporates, ~250 g broth goes on the plates. Bay leaf, pepper, salt and the bones left out"),
-        flat_plate=dict(coverage=0.45, height_cm=2.0),
+        flat_plate=dict(coverage=0.47, height_cm=2.0),
         sources=[src(IK + "steirisches-wurzelfleisch-rezept-2124", R, "batch recipe: 900 g Schweinsschulter, Schweinsknochen, 300 g Wurzelgemüse, 2 Knoblauchzehen, 2 EL Weißweinessig, 3 EL Kren, Schnittlauch, 4 Portionen"),
                  src(GK + "grazer-wurzelfleisch-rezept-19900", R, "cross-check: 1 kg Schweineschulter, 100 g gelbe Rüben, 100 g Karotten, 100 g Wurzelpetersilie, 1 Zwiebel, Essig, 4 Portionen")]),
     "rotkraut": dict(
@@ -448,7 +450,7 @@ PARTS.update({
                      ing("caraway_seed", 1, "seasoning", "Kümmel, a pinch")],
         cooking=dict(method="red cabbage braised with apple, onion and fat ~45 min", mass_change_g=-200,
                      note="estimate: ~15 % water loss. The page yield reads '1 Portion' for 1 kg cabbage; 6 side portions are assumed. 125 ml Rotwein (MISSING dry_red_wine), salt, pepper left out"),
-        flat_plate=dict(coverage=0.25, height_cm=2.0),
+        flat_plate=dict(coverage=0.23, height_cm=2.0),
         sources=[src(IK + "rotkraut-rezept-114", R, "batch recipe: 1 kg Rotkraut, 2 Äpfel, 1 Zwiebel, 1 Zitrone, 80 g Fett, 20 g Zucker, Essig, Kümmel, 125 ml Rotwein"),
                  src(IK + "rotkraut-rezept-2057", R, "cross-check: 500 g Rotkraut, 30 g Zucker, 30 g Rosinen, 1 Apfel, 500 ml Rotwein, Zimt, Nelken")]),
     "martinigansl": dict(
@@ -461,7 +463,7 @@ PARTS.update({
                      ing("water", 125, "liquid", "125 ml Wasser")],
         cooking=dict(method="goose roasted ~3.5 h, basted with Suppe; sauce from the roasting juices after skimming the fat", mass_change_g=-1450, drippings="oven",
                      note="estimate: the goose loses ~35 % (water and fat), most of the Suppe evaporates. The 400 g apples and 3 onions roasted inside are not eaten; Majoran, cloves, bay, salt, pepper left out; Rotkraut, Maroni and Preiselbeeren are separate"),
-        flat_plate=dict(coverage=0.35, height_cm=2.5),
+        flat_plate=dict(coverage=0.29, height_cm=2.5),
         sources=[src(GK + "martinigans-rezept-4112", R, "batch recipe: 4 kg kochfertige Gans, 1 l Hühnersuppe, 1 EL Paprika, 400 g Äpfel, 3 Zwiebeln, 2 EL Butterschmalz, 2 EL Mehl, 5 EL Obers, 125 ml Wasser, Rotkraut, 600 g Maroni, 6 Portionen"),
                  src(IK + "martinigansl-rezept-143140", R, "cross-check: 1 Gans 4-5 kg, Toastbrot-Apfel-Füllung, Honig, 250 ml Orangensaft, 4 Portionen")]),
 })

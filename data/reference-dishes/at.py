@@ -85,7 +85,7 @@ PHASE1_DISH_IDS = ("at_schweinsbraten", "xx_eierspeis", "xx_leberkaessemmel")
 INVENTORY = {"traditional": [], "everyday": [], "street_food": []}
 INVENTORY_REASONS = {}
 
-PHASE3_MODULES = ("at_traditionell", "at_knoedel_nudeln", "at_suppen", "at_mehlspeisen", "at_fruehstueck", "at_alltag")
+PHASE3_MODULES = ("at_traditionell", "at_knoedel_nudeln", "at_suppen", "at_mehlspeisen", "at_fruehstueck", "at_alltag", "at_streetfood")
 for _name in PHASE3_MODULES:
     _m = __import__(_name)
     _clash = PARTS.keys() & _m.PARTS.keys()

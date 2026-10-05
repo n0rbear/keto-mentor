@@ -2520,6 +2520,153 @@
       "carb_basis": "total",
       "density_intrinsic_g_ml": 0.95,
       "density_bulk_g_ml": 0.15
+    },
+    "kaesekrainer": {
+      "names": {
+        "hu": "sajtos kolbász (Käsekrainer)",
+        "de": "Käsekrainer/Käsewürstchen",
+        "en": "cheese-filled sausage (Käsekrainer)"
+      },
+      "catalog": "bls:W255300",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.0,
+      "density_bulk_g_ml": 0.8
+    },
+    "curry_bratwurst": {
+      "names": {
+        "hu": "currykolbász",
+        "de": "Currybratwurst",
+        "en": "currywurst sausage"
+      },
+      "catalog": "bls:W221300",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.0,
+      "density_bulk_g_ml": 0.8
+    },
+    "curry_ketchup": {
+      "names": {
+        "hu": "curry-ketchup",
+        "de": "Curry-Gewürzketchup",
+        "en": "curry ketchup"
+      },
+      "catalog": "bls:R141200",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.14,
+      "density_bulk_g_ml": 1.14
+    },
+    "baguette_roll": {
+      "names": {
+        "hu": "bagett zsemle",
+        "de": "Weizenbaguettebrötchen",
+        "en": "baguette roll"
+      },
+      "catalog": "bls:B781300",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 0.25,
+      "density_bulk_g_ml": 0.25
+    },
+    "veal_shoulder": {
+      "names": {
+        "hu": "borjúlapocka",
+        "de": "Kalb Bug/Schulter",
+        "en": "veal shoulder"
+      },
+      "catalog": "bls:U461100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.05,
+      "density_bulk_g_ml": 0.8
+    },
+    "mutton_fat": {
+      "names": {
+        "hu": "birkafaggyú (Hammelspeck)",
+        "de": "Schaf Fettgewebe, intermuskulär",
+        "en": "mutton fat tissue"
+      },
+      "catalog": "bls:U805800",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 0.92,
+      "density_bulk_g_ml": 0.8
+    },
+    "mackerel": {
+      "names": {
+        "hu": "makréla",
+        "de": "Makrele",
+        "en": "mackerel"
+      },
+      "catalog": "bls:T107100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.05,
+      "density_bulk_g_ml": 0.8,
+      "note": "grams = edible part"
+    },
+    "chestnut": {
+      "names": {
+        "hu": "gesztenye (Maroni)",
+        "de": "Edelkastanie/Marone",
+        "en": "sweet chestnut"
+      },
+      "catalog": "bls:H230100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.0,
+      "density_bulk_g_ml": 0.6,
+      "note": "grams = peeled kernel"
+    },
+    "fried_onions": {
+      "names": {
+        "hu": "pirított hagyma (készen)",
+        "de": "Röstzwiebeln (Fertigprodukt)",
+        "en": "crispy fried onions"
+      },
+      "catalog": "bls:G860192",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 0.3,
+      "density_bulk_g_ml": 0.3
+    },
+    "potato_starch": {
+      "names": {
+        "hu": "burgonyakeményítő",
+        "de": "Kartoffelstärke",
+        "en": "potato starch"
+      },
+      "catalog": "bls:K230000",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.0,
+      "density_bulk_g_ml": 0.6
+    },
+    "tomato_canned": {
+      "names": {
+        "hu": "hámozott paradicsom (konzerv)",
+        "de": "Tomate geschält, Konserve",
+        "en": "canned peeled tomatoes"
+      },
+      "catalog": "bls:G568900",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.02,
+      "density_bulk_g_ml": 1.02
+    },
+    "banana": {
+      "names": {
+        "hu": "banán",
+        "de": "Banane",
+        "en": "banana"
+      },
+      "catalog": "bls:F503100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 0.95,
+      "density_bulk_g_ml": 0.6,
+      "note": "grams = peeled"
+    },
+    "kiwi": {
+      "names": {
+        "hu": "kivi",
+        "de": "Kiwi",
+        "en": "kiwi"
+      },
+      "catalog": "bls:F514100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.0,
+      "density_bulk_g_ml": 0.6,
+      "note": "grams = peeled"
     }
   },
   "parts": {
@@ -10327,6 +10474,11 @@
           "url": "https://eletemetelei.hu/2016/06/03/keszits-reggelire-gyumolcsjoghurtot/",
           "retrieved": "2026-09-27",
           "note": "cross-check: 1 kis doboz natúr joghurt, 10-15 szem eper, 0,5-1 ek méz"
+        },
+        {
+          "url": "https://www.gutekueche.at/erdbeerjoghurt-rezept-19617",
+          "retrieved": "2026-10-05",
+          "note": "AT cross-check (phase 3): 300 g Joghurt, 250 g Erdbeeren, 1 TL Honig, 2 EL Zitronensaft, 2 Portionen - same dish (Joghurt mit Erdbeeren)"
         }
       ],
       "derived_check": {
@@ -17739,7 +17891,7 @@
       "density_g_per_ml": 0.8,
       "density_method": "cooked bulk density (loose pieces)",
       "flat_plate": {
-        "coverage": 0.4,
+        "coverage": 0.51,
         "height_cm": 1.2
       },
       "sources": [
@@ -17913,7 +18065,7 @@
       "density_g_per_ml": 0.85,
       "density_method": "cooked bulk density (loose pieces)",
       "flat_plate": {
-        "coverage": 0.4,
+        "coverage": 0.41,
         "height_cm": 1.8
       },
       "sources": [
@@ -17994,7 +18146,7 @@
       "density_g_per_ml": 0.7,
       "density_method": "cooked bulk density (loose pieces)",
       "flat_plate": {
-        "coverage": 0.5,
+        "coverage": 0.67,
         "height_cm": 3.0
       },
       "sources": [
@@ -18052,7 +18204,7 @@
       "density_g_per_ml": 1.095,
       "density_method": "derived from components after cooking mass change",
       "flat_plate": {
-        "coverage": 0.3,
+        "coverage": 0.23,
         "height_cm": 1.5
       },
       "sources": [
@@ -18152,7 +18304,7 @@
       "density_g_per_ml": 1.029,
       "density_method": "derived from components after cooking mass change",
       "flat_plate": {
-        "coverage": 0.45,
+        "coverage": 0.43,
         "height_cm": 2.0
       },
       "sources": [
@@ -18257,7 +18409,7 @@
       "density_g_per_ml": 1.032,
       "density_method": "derived from components after cooking mass change",
       "flat_plate": {
-        "coverage": 0.45,
+        "coverage": 0.36,
         "height_cm": 2.0
       },
       "sources": [
@@ -18375,7 +18527,7 @@
       "density_g_per_ml": 1.028,
       "density_method": "derived from components after cooking mass change",
       "flat_plate": {
-        "coverage": 0.4,
+        "coverage": 0.3,
         "height_cm": 2.0
       },
       "sources": [
@@ -18463,7 +18615,7 @@
       "density_g_per_ml": 1.037,
       "density_method": "derived from components after cooking mass change",
       "flat_plate": {
-        "coverage": 0.4,
+        "coverage": 0.36,
         "height_cm": 1.5
       },
       "sources": [
@@ -18575,7 +18727,7 @@
       "density_g_per_ml": 0.744,
       "density_method": "derived from components after cooking mass change",
       "flat_plate": {
-        "coverage": 0.35,
+        "coverage": 0.4,
         "height_cm": 2.5
       },
       "sources": [
@@ -18677,7 +18829,7 @@
       "density_g_per_ml": 0.85,
       "density_method": "cooked bulk density (loose pieces)",
       "flat_plate": {
-        "coverage": 0.3,
+        "coverage": 0.35,
         "height_cm": 2.5
       },
       "sources": [
@@ -18755,7 +18907,7 @@
       "density_g_per_ml": 0.9,
       "density_method": "cooked bulk density (loose pieces)",
       "flat_plate": {
-        "coverage": 0.4,
+        "coverage": 0.22,
         "height_cm": 5.0
       },
       "sources": [
@@ -18813,7 +18965,7 @@
       "density_g_per_ml": 1.059,
       "density_method": "derived from components after cooking mass change",
       "flat_plate": {
-        "coverage": 0.3,
+        "coverage": 0.23,
         "height_cm": 1.5
       },
       "sources": [
@@ -18900,7 +19052,7 @@
       "density_g_per_ml": 0.8,
       "density_method": "cooked bulk density (loose pieces)",
       "flat_plate": {
-        "coverage": 0.4,
+        "coverage": 0.25,
         "height_cm": 2.5
       },
       "sources": [
@@ -18994,7 +19146,7 @@
       "density_g_per_ml": 0.65,
       "density_method": "cooked bulk density (loose pieces)",
       "flat_plate": {
-        "coverage": 0.5,
+        "coverage": 0.58,
         "height_cm": 2.5
       },
       "sources": [
@@ -19076,7 +19228,7 @@
       "density_g_per_ml": 1.027,
       "density_method": "derived from components after cooking mass change",
       "flat_plate": {
-        "coverage": 0.4,
+        "coverage": 0.43,
         "height_cm": 2.0
       },
       "sources": [
@@ -19228,7 +19380,7 @@
       "density_g_per_ml": 1.007,
       "density_method": "derived from components after cooking mass change",
       "flat_plate": {
-        "coverage": 0.45,
+        "coverage": 0.44,
         "height_cm": 2.0
       },
       "sources": [
@@ -19428,7 +19580,7 @@
       "density_g_per_ml": 1.014,
       "density_method": "derived from components after cooking mass change",
       "flat_plate": {
-        "coverage": 0.25,
+        "coverage": 0.22,
         "height_cm": 2.0
       },
       "sources": [
@@ -19522,7 +19674,7 @@
       "density_g_per_ml": 0.75,
       "density_method": "cooked bulk density (loose pieces)",
       "flat_plate": {
-        "coverage": 0.3,
+        "coverage": 0.39,
         "height_cm": 2.5
       },
       "sources": [
@@ -19592,7 +19744,7 @@
       "density_g_per_ml": 0.65,
       "density_method": "cooked bulk density (loose pieces)",
       "flat_plate": {
-        "coverage": 0.3,
+        "coverage": 0.27,
         "height_cm": 2.5
       },
       "sources": [
@@ -20027,7 +20179,7 @@
       "density_g_per_ml": 1.041,
       "density_method": "derived from components after cooking mass change",
       "flat_plate": {
-        "coverage": 0.45,
+        "coverage": 0.47,
         "height_cm": 2.0
       },
       "sources": [
@@ -20127,7 +20279,7 @@
       "density_g_per_ml": 0.964,
       "density_method": "derived from components after cooking mass change",
       "flat_plate": {
-        "coverage": 0.25,
+        "coverage": 0.23,
         "height_cm": 2.0
       },
       "sources": [
@@ -20229,7 +20381,7 @@
       "density_g_per_ml": 0.998,
       "density_method": "derived from components after cooking mass change",
       "flat_plate": {
-        "coverage": 0.35,
+        "coverage": 0.29,
         "height_cm": 2.5
       },
       "sources": [
@@ -20341,7 +20493,7 @@
       "density_g_per_ml": 0.7,
       "density_method": "cooked bulk density (loose pieces)",
       "flat_plate": {
-        "coverage": 0.35,
+        "coverage": 0.42,
         "height_cm": 3.0
       },
       "sources": [
@@ -20440,7 +20592,7 @@
       "density_g_per_ml": 0.75,
       "density_method": "cooked bulk density (loose pieces)",
       "flat_plate": {
-        "coverage": 0.4,
+        "coverage": 0.43,
         "height_cm": 3.0
       },
       "sources": [
@@ -20539,7 +20691,7 @@
       "density_g_per_ml": 0.75,
       "density_method": "cooked bulk density (loose pieces)",
       "flat_plate": {
-        "coverage": 0.4,
+        "coverage": 0.37,
         "height_cm": 3.0
       },
       "sources": [
@@ -20632,7 +20784,7 @@
       "density_g_per_ml": 0.6,
       "density_method": "cooked bulk density (loose pieces)",
       "flat_plate": {
-        "coverage": 0.4,
+        "coverage": 0.49,
         "height_cm": 3.0
       },
       "sources": [
@@ -20732,7 +20884,7 @@
       "density_g_per_ml": 0.6,
       "density_method": "cooked bulk density (loose pieces)",
       "flat_plate": {
-        "coverage": 0.35,
+        "coverage": 0.4,
         "height_cm": 4.0
       },
       "sources": [
@@ -20950,7 +21102,7 @@
       "density_g_per_ml": 0.6,
       "density_method": "cooked bulk density (loose pieces)",
       "flat_plate": {
-        "coverage": 0.3,
+        "coverage": 0.37,
         "height_cm": 2.5
       },
       "sources": [
@@ -21146,7 +21298,7 @@
       "density_g_per_ml": 0.8,
       "density_method": "cooked bulk density (loose pieces)",
       "flat_plate": {
-        "coverage": 0.45,
+        "coverage": 0.47,
         "height_cm": 3.0
       },
       "sources": [
@@ -21276,7 +21428,7 @@
       "density_g_per_ml": 1.013,
       "density_method": "derived from components after cooking mass change",
       "flat_plate": {
-        "coverage": 0.4,
+        "coverage": 0.25,
         "height_cm": 3.5
       },
       "sources": [
@@ -22696,7 +22848,7 @@
       "density_g_per_ml": 0.45,
       "density_method": "cooked bulk density (loose pieces)",
       "flat_plate": {
-        "coverage": 0.45,
+        "coverage": 0.39,
         "height_cm": 3.0
       },
       "sources": [
@@ -22802,7 +22954,7 @@
       "density_g_per_ml": 0.7,
       "density_method": "cooked bulk density (loose pieces)",
       "flat_plate": {
-        "coverage": 0.3,
+        "coverage": 0.34,
         "height_cm": 4.0
       },
       "sources": [
@@ -22914,7 +23066,7 @@
       "density_g_per_ml": 0.948,
       "density_method": "derived from components after cooking mass change",
       "flat_plate": {
-        "coverage": 0.25,
+        "coverage": 0.14,
         "height_cm": 5.0
       },
       "sources": [
@@ -23032,7 +23184,7 @@
       "density_g_per_ml": 0.763,
       "density_method": "derived from components after cooking mass change",
       "flat_plate": {
-        "coverage": 0.2,
+        "coverage": 0.12,
         "height_cm": 5.0
       },
       "sources": [
@@ -23150,7 +23302,7 @@
       "density_g_per_ml": 0.45,
       "density_method": "cooked bulk density (loose pieces)",
       "flat_plate": {
-        "coverage": 0.3,
+        "coverage": 0.31,
         "height_cm": 6.0
       },
       "sources": [
@@ -23250,7 +23402,7 @@
       "density_g_per_ml": 0.3,
       "density_method": "cooked bulk density (loose pieces)",
       "flat_plate": {
-        "coverage": 0.4,
+        "coverage": 0.17,
         "height_cm": 6.0
       },
       "sources": [
@@ -23356,7 +23508,7 @@
       "density_g_per_ml": 1.194,
       "density_method": "derived from components after cooking mass change",
       "flat_plate": {
-        "coverage": 0.12,
+        "coverage": 0.04,
         "height_cm": 6.0
       },
       "sources": [
@@ -23456,7 +23608,7 @@
       "density_g_per_ml": 1.067,
       "density_method": "derived from components after cooking mass change",
       "flat_plate": {
-        "coverage": 0.12,
+        "coverage": 0.08,
         "height_cm": 3.0
       },
       "sources": [
@@ -23656,7 +23808,7 @@
       "density_g_per_ml": 0.65,
       "density_method": "cooked bulk density (loose pieces)",
       "flat_plate": {
-        "coverage": 0.4,
+        "coverage": 0.43,
         "height_cm": 2.5
       },
       "sources": [
@@ -23756,7 +23908,7 @@
       "density_g_per_ml": 0.473,
       "density_method": "derived from components after cooking mass change",
       "flat_plate": {
-        "coverage": 0.3,
+        "coverage": 0.4,
         "height_cm": 4.0
       },
       "sources": [
@@ -23838,7 +23990,7 @@
       "density_g_per_ml": 0.55,
       "density_method": "cooked bulk density (loose pieces)",
       "flat_plate": {
-        "coverage": 0.45,
+        "coverage": 0.62,
         "height_cm": 3.0
       },
       "sources": [
@@ -23944,7 +24096,7 @@
       "density_g_per_ml": 0.65,
       "density_method": "cooked bulk density (loose pieces)",
       "flat_plate": {
-        "coverage": 0.3,
+        "coverage": 0.28,
         "height_cm": 3.0
       },
       "sources": [
@@ -24134,7 +24286,7 @@
       "density_g_per_ml": 0.755,
       "density_method": "derived from components after cooking mass change",
       "flat_plate": {
-        "coverage": 0.3,
+        "coverage": 0.22,
         "height_cm": 4.0
       },
       "sources": [
@@ -24282,7 +24434,7 @@
       "density_g_per_ml": 1.072,
       "density_method": "derived from components after cooking mass change",
       "flat_plate": {
-        "coverage": 0.4,
+        "coverage": 0.28,
         "height_cm": 3.0
       },
       "sources": [
@@ -24508,7 +24660,7 @@
       "density_g_per_ml": 1.129,
       "density_method": "derived from components after cooking mass change",
       "flat_plate": {
-        "coverage": 0.12,
+        "coverage": 0.04,
         "height_cm": 6.0
       },
       "sources": [
@@ -25767,7 +25919,7 @@
       "density_g_per_ml": 1.075,
       "density_method": "derived from components after cooking mass change",
       "flat_plate": {
-        "coverage": 0.3,
+        "coverage": 0.13,
         "height_cm": 5.0
       },
       "sources": [
@@ -26171,7 +26323,7 @@
       "density_g_per_ml": 1.025,
       "density_method": "derived from components after cooking mass change",
       "flat_plate": {
-        "coverage": 0.4,
+        "coverage": 0.33,
         "height_cm": 1.5
       },
       "sources": [
@@ -26271,7 +26423,7 @@
       "density_g_per_ml": 0.6,
       "density_method": "cooked bulk density (loose pieces)",
       "flat_plate": {
-        "coverage": 0.4,
+        "coverage": 0.57,
         "height_cm": 3.0
       },
       "sources": [
@@ -26471,7 +26623,7 @@
       "density_g_per_ml": 0.999,
       "density_method": "derived from components after cooking mass change",
       "flat_plate": {
-        "coverage": 0.25,
+        "coverage": 0.29,
         "height_cm": 2.0
       },
       "sources": [
@@ -26552,7 +26704,7 @@
       "density_g_per_ml": 0.45,
       "density_method": "cooked bulk density (loose pieces)",
       "flat_plate": {
-        "coverage": 0.35,
+        "coverage": 0.31,
         "height_cm": 3.0
       },
       "sources": [
@@ -26633,7 +26785,7 @@
       "density_g_per_ml": 0.8,
       "density_method": "cooked bulk density (loose pieces)",
       "flat_plate": {
-        "coverage": 0.3,
+        "coverage": 0.24,
         "height_cm": 2.0
       },
       "sources": [
@@ -26804,7 +26956,7 @@
       "density_g_per_ml": 0.8,
       "density_method": "cooked bulk density (loose pieces)",
       "flat_plate": {
-        "coverage": 0.4,
+        "coverage": 0.41,
         "height_cm": 1.2
       },
       "sources": [
@@ -26922,7 +27074,7 @@
       "density_g_per_ml": 0.7,
       "density_method": "cooked bulk density (loose pieces)",
       "flat_plate": {
-        "coverage": 0.4,
+        "coverage": 0.84,
         "height_cm": 2.0
       },
       "sources": [
@@ -26992,7 +27144,7 @@
       "density_g_per_ml": 0.95,
       "density_method": "cooked bulk density (loose pieces)",
       "flat_plate": {
-        "coverage": 0.3,
+        "coverage": 0.25,
         "height_cm": 2.5
       },
       "sources": [
@@ -27056,7 +27208,7 @@
       "density_g_per_ml": 0.6,
       "density_method": "cooked bulk density (loose pieces)",
       "flat_plate": {
-        "coverage": 0.3,
+        "coverage": 0.52,
         "height_cm": 1.5
       },
       "sources": [
@@ -27122,7 +27274,7 @@
       "density_g_per_ml": 0.998,
       "density_method": "derived from components after cooking mass change",
       "flat_plate": {
-        "coverage": 0.25,
+        "coverage": 0.19,
         "height_cm": 1.5
       },
       "sources": [
@@ -27193,7 +27345,7 @@
       "density_g_per_ml": 0.998,
       "density_method": "derived from components after cooking mass change",
       "flat_plate": {
-        "coverage": 0.25,
+        "coverage": 0.16,
         "height_cm": 2.0
       },
       "sources": [
@@ -27277,7 +27429,7 @@
       "density_g_per_ml": 0.8,
       "density_method": "cooked bulk density (loose pieces)",
       "flat_plate": {
-        "coverage": 0.3,
+        "coverage": 0.34,
         "height_cm": 2.5
       },
       "sources": [
@@ -28132,7 +28284,7 @@
       "density_g_per_ml": 0.7,
       "density_method": "cooked bulk density (loose pieces)",
       "flat_plate": {
-        "coverage": 0.4,
+        "coverage": 0.42,
         "height_cm": 3.0
       },
       "sources": [
@@ -28220,7 +28372,7 @@
       "density_g_per_ml": 0.7,
       "density_method": "cooked bulk density (loose pieces)",
       "flat_plate": {
-        "coverage": 0.4,
+        "coverage": 0.46,
         "height_cm": 3.0
       },
       "sources": [
@@ -28626,6 +28778,1325 @@
           "fat": 19.7,
           "protein": 9.8,
           "net_carbs": 2.4
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "topfencreme": {
+      "id": "topfencreme",
+      "names": {
+        "hu": "Túrókrém gyümölccsel (Topfencreme)",
+        "de": "Quarkcreme mit Obst",
+        "de-AT": "Topfencreme mit Früchten",
+        "en": "Sweet quark cream with fruit"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "quark_20",
+            "raw_g": 500,
+            "role": "core",
+            "note": "2 Becher Topfen (250 g each)"
+          },
+          {
+            "food_key": "yogurt_plain",
+            "raw_g": 125.0,
+            "role": "core",
+            "note": "0,5 Becher Joghurt"
+          },
+          {
+            "food_key": "honey",
+            "raw_g": 160,
+            "role": "seasoning",
+            "note": "8 EL Honig"
+          },
+          {
+            "food_key": "banana",
+            "raw_g": 120,
+            "role": "core",
+            "note": "1 Stk Banane; 120 g peeled is an estimate"
+          },
+          {
+            "food_key": "kiwi",
+            "raw_g": 300,
+            "role": "core",
+            "note": "4 Stk Kiwi; 75 g peeled each is an estimate"
+          }
+        ],
+        "raw_total_g": 1205.0,
+        "cooking": {
+          "method": "quark, yogurt and honey whipped, layered with sliced fruit",
+          "mass_change_g": 0,
+          "note": "no cooking; melissa leaves left out"
+        },
+        "finished_weight_g": 1205.0,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 300,
+      "density_g_per_ml": 1.059,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.gutekueche.at/topfencreme-rezept-8904",
+          "retrieved": "2026-10-05",
+          "note": "batch recipe: 2 Becher Topfen, 0,5 Becher Joghurt, 8 EL Honig, 1 Banane, 4 Kiwi, 4 Portionen"
+        },
+        {
+          "url": "https://www.ichkoche.at/topfencreme-rezept-6565",
+          "retrieved": "2026-10-05",
+          "note": "cross-check: 250 g Magertopfen, 2 Pkg. QimiQ Vanille, 100 g Staubzucker, Vanillezucker, Zitrone, 1/4 Becher Schlagobers, 4 Portionen"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 116.1,
+          "fat": 2.6,
+          "protein": 5.9,
+          "net_carbs": 15.6
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "kaesekrainer_gegrillt": {
+      "id": "kaesekrainer_gegrillt",
+      "names": {
+        "hu": "Grillezett sajtos kolbász (Käsekrainer)",
+        "de": "Käsekrainer (gegrillt)",
+        "de-AT": "Käsekrainer",
+        "en": "Grilled cheese-filled sausage (Käsekrainer)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "kaesekrainer",
+            "raw_g": 130,
+            "role": "core",
+            "note": "1 Käsekrainer, 130 g (Ablinger Käsekrainer 3 Stk 390 g)"
+          }
+        ],
+        "raw_total_g": 130,
+        "cooking": {
+          "method": "grilled or fried at the Würstelstand until the cheese bubbles",
+          "mass_change_g": -23,
+          "drippings": "grill",
+          "note": "grilling loss from BLS 4.0 W255300 -> W255372 (protein 14.17 -> 17.36 g/100 g: yield 0.82)"
+        },
+        "finished_weight_g": 107,
+        "yield_factor": 0.823,
+        "fat_loss_g": 0.6
+      },
+      "standard_serving_g": 107,
+      "density_g_per_ml": 1.0,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.spar.at/produktwelt/ablinger-kaesekrainer-3-stk/p/5759880",
+          "retrieved": "2026-10-05",
+          "note": "Ablinger Käsekrainer 3 Stk 390 g"
+        },
+        {
+          "url": "https://www.ichkoche.at/kaesekrainer-gebraten-rezept-235095",
+          "retrieved": "2026-10-05",
+          "note": "cross-check: 2 Käsekrainer, Zwiebelsenf, Baguette, 2 Portionen (1 Käsekrainer each)"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 228.2,
+          "fat": 16.7,
+          "protein": 19.3,
+          "net_carbs": 0.1
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "bosna": {
+      "id": "bosna",
+      "names": {
+        "hu": "Bosna (kolbászos bagett hagymával és curryvel)",
+        "de": "Bosna (Bratwurst im Baguette mit Zwiebeln und Curry)",
+        "de-AT": "Bosna",
+        "en": "Bosna (bratwurst baguette with onion and curry)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 2,
+        "ingredients": [
+          {
+            "food_key": "baguette_roll",
+            "raw_g": 160,
+            "role": "core",
+            "note": "2 Baguettebrötchen; 80 g each is an estimate"
+          },
+          {
+            "food_key": "bratwurst",
+            "raw_g": 220,
+            "role": "core",
+            "note": "4 Bratwürste: thin Bosna sausages, 55 g each (Ablinger Bosna 2 Paar 220 g)"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 50,
+            "role": "core",
+            "note": "1/2 Zwiebel, chopped raw"
+          },
+          {
+            "food_key": "paprika_ground",
+            "raw_g": 2,
+            "role": "seasoning",
+            "note": "Paprikapulver edelsüß, a pinch"
+          },
+          {
+            "food_key": "ketchup",
+            "raw_g": 34,
+            "role": "seasoning",
+            "note": "Ketchup; 1 EL per Bosna is an estimate"
+          },
+          {
+            "food_key": "mustard",
+            "raw_g": 30,
+            "role": "seasoning",
+            "note": "Senf (gutekueche: 2 EL)"
+          }
+        ],
+        "raw_total_g": 496,
+        "cooking": {
+          "method": "sausages grilled, put in the toasted roll with onion, mustard, ketchup and curry/paprika",
+          "mass_change_g": -40,
+          "drippings": "grill",
+          "note": "estimate: the sausages lose ~18 % while grilling (BLS Bratwurst raw -> gegrillt); curry powder (no catalog record) left out"
+        },
+        "finished_weight_g": 456,
+        "yield_factor": 0.919,
+        "fat_loss_g": 1.7
+      },
+      "standard_serving_g": 230,
+      "density_g_per_ml": 0.49,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.ichkoche.at/bosna-rezept-10441",
+          "retrieved": "2026-10-05",
+          "note": "batch recipe: 4 Bratwürste, 1/2 Zwiebel, 2 Baguettebrötchen, Paprikapulver, Ketchup, 2 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.at/bosna-rezept-27624",
+          "retrieved": "2026-10-05",
+          "note": "cross-check: 4 Baguette, 4 Kalbsbratwürstel, 2 EL Öl, 1 Zwiebel, Curry, 1 EL Ketchup, 1 EL Röstzwiebel, 2 EL Senf, 3 Portionen"
+        },
+        {
+          "url": "https://www.spar.at/produktwelt/ablinger-bosna-2-paar/p/2020000944355",
+          "retrieved": "2026-10-05",
+          "note": "Ablinger Bosna 2 Paar 220 g (sausage weight)"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 258.5,
+          "fat": 13.0,
+          "protein": 11.4,
+          "net_carbs": 22.6
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "hotdog_broetchen": {
+      "id": "hotdog_broetchen",
+      "names": {
+        "hu": "Hotdog-zsemle",
+        "de": "Hotdog-Brötchen",
+        "de-AT": "Hotdog-Weckerl",
+        "en": "Hot dog bun"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "wheat_roll",
+            "raw_g": 62.5,
+            "role": "core",
+            "note": "1 Hot-Dog-Brötchen (S-BUDGET 4 Stück 250 g); BLS Weizenbrötchen"
+          }
+        ],
+        "raw_total_g": 62.5,
+        "cooking": {
+          "method": "warmed on the spike",
+          "mass_change_g": 0,
+          "note": "no mass change"
+        },
+        "finished_weight_g": 62.5,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 62.5,
+      "density_g_per_ml": 0.25,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.spar.at/produktwelt/s-budget-hot-dog-broetchen-4-stueck/p/2020003156977",
+          "retrieved": "2026-10-05",
+          "note": "S-BUDGET Hot Dog Brötchen 4 Stück 250 g"
+        },
+        {
+          "url": "https://www.ichkoche.at/hot-dogs-rezept-1192",
+          "retrieved": "2026-10-05",
+          "note": "6 Hot-Dog-Brötchen bzw. mittelgroße Baguettes for 6 Hot Dogs"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 280.0,
+          "fat": 1.8,
+          "protein": 10.1,
+          "net_carbs": 54.0
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "hotdog_frankfurter": {
+      "id": "hotdog_frankfurter",
+      "names": {
+        "hu": "Hotdog virslivel",
+        "de": "Hotdog mit Wiener Würstchen",
+        "de-AT": "Hotdog (mit Frankfurter)",
+        "en": "Hot dog with frankfurter"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 6,
+        "ingredients": [
+          {
+            "food_key": "wheat_roll",
+            "raw_g": 375,
+            "role": "core",
+            "note": "6 Hot-Dog-Brötchen à 62.5 g (S-BUDGET 4 Stück 250 g)"
+          },
+          {
+            "food_key": "frankfurter",
+            "raw_g": 367.5,
+            "role": "core",
+            "note": "6 Frankfurter Würstel à 61.25 g"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 150,
+            "role": "core",
+            "note": "1-2 Zwiebeln, browned"
+          },
+          {
+            "food_key": "butter",
+            "raw_g": 15,
+            "role": "fat",
+            "note": "Butter zum Anrösten; 15 g is an estimate"
+          },
+          {
+            "food_key": "ketchup",
+            "raw_g": 60,
+            "role": "seasoning",
+            "note": "Ketchup; 10 g per hot dog is an estimate"
+          },
+          {
+            "food_key": "mustard",
+            "raw_g": 60,
+            "role": "seasoning",
+            "note": "Senf; 10 g per hot dog is an estimate"
+          }
+        ],
+        "raw_total_g": 1027.5,
+        "cooking": {
+          "method": "onions browned in butter, Würstel heated, assembled",
+          "mass_change_g": -60,
+          "note": "estimate: browned onions lose ~40 % water"
+        },
+        "finished_weight_g": 967.5,
+        "yield_factor": 0.942
+      },
+      "standard_serving_g": 150,
+      "density_g_per_ml": 0.466,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.ichkoche.at/hot-dogs-rezept-1192",
+          "retrieved": "2026-10-05",
+          "note": "batch recipe: 6 Hot-Dog-Brötchen, 6 Frankfurter, 1-2 Zwiebeln, Butter, Ketchup, Senf, 6 Portionen"
+        },
+        {
+          "url": "https://www.spar.at/produktwelt/s-budget-hot-dog-broetchen-4-stueck/p/2020003156977",
+          "retrieved": "2026-10-05",
+          "note": "S-BUDGET Hot Dog Brötchen 4 Stück 250 g (bun weight)"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 247.7,
+          "fat": 12.4,
+          "protein": 9.4,
+          "net_carbs": 23.3
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "kebap_fleisch": {
+      "id": "kebap_fleisch",
+      "names": {
+        "hu": "Kebabhús (borjú)",
+        "de": "Dönerfleisch (Kalb)",
+        "de-AT": "Kebapfleisch (Kalb)",
+        "en": "Kebab meat (veal)"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "veal_shoulder",
+            "raw_g": 400,
+            "role": "core",
+            "note": "400 g Lammkeule oder Schulter; 'alternativ Kalb': veal shoulder (the usual Austrian Kebap meat)"
+          },
+          {
+            "food_key": "mutton_fat",
+            "raw_g": 100,
+            "role": "core",
+            "note": "100 g Speck vom Hammel (BLS Schaf Fettgewebe)"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 10,
+            "role": "seasoning",
+            "note": "2 Knoblauchzehen"
+          },
+          {
+            "food_key": "olive_oil",
+            "raw_g": 26,
+            "role": "fat",
+            "note": "2 EL Olivenöl"
+          },
+          {
+            "food_key": "tomato_paste",
+            "raw_g": 5.0,
+            "role": "seasoning",
+            "note": "1 TL Tomatenmark"
+          },
+          {
+            "food_key": "paprika_ground",
+            "raw_g": 1,
+            "role": "seasoning",
+            "note": "1/2 TL Paprikaschrot"
+          }
+        ],
+        "raw_total_g": 542.0,
+        "cooking": {
+          "method": "marinated, layered with the fat, roasted/grilled and shaved",
+          "mass_change_g": -170,
+          "drippings": "grill",
+          "note": "estimate: ~33 % loss while roasting (water and fat into the tray); allspice, cinnamon, cumin, thyme, salt, pepper left out"
+        },
+        "finished_weight_g": 372.0,
+        "yield_factor": 0.686,
+        "fat_loss_g": 2.2
+      },
+      "standard_serving_g": 100,
+      "density_g_per_ml": 0.7,
+      "density_method": "cooked bulk density (loose pieces)",
+      "sources": [
+        {
+          "url": "https://www.ichkoche.at/doener-kebab-rezept-145256",
+          "retrieved": "2026-10-05",
+          "note": "batch recipe: 400 g Lamm (alternativ Hühnerfleisch oder Kalb), 100 g Hammelspeck, Marinade (2 Knoblauch, 2 EL Olivenöl, 1 TL Tomatenmark, Paprikaschrot)"
+        },
+        {
+          "url": "https://www.ichkoche.at/kebap-rezept-3060",
+          "retrieved": "2026-10-05",
+          "note": "cross-check: 700 g Lammfleisch, 2 rote Zwiebeln, 3 Knoblauchzehen, 2 Paprika, Olivenöl, Joghurt, 4 Portionen"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 334.3,
+          "fat": 25.9,
+          "protein": 24.4,
+          "net_carbs": 0.3
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "kebap_salat_sauce": {
+      "id": "kebap_salat_sauce",
+      "names": {
+        "hu": "Kebab-saláta és joghurtos szósz",
+        "de": "Döner-Salat und Joghurtsauce",
+        "de-AT": "Kebap-Salat und Knoblauch-Joghurtsauce",
+        "en": "Kebab salad and garlic yogurt sauce"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "tomato",
+            "raw_g": 500,
+            "role": "core",
+            "note": "500 g Paradeiser"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 100,
+            "role": "core",
+            "note": "1 Zwiebel rot"
+          },
+          {
+            "food_key": "lettuce",
+            "raw_g": 100,
+            "role": "core",
+            "note": "1/4 Kopf Salat; 100 g is an estimate"
+          },
+          {
+            "food_key": "white_cabbage",
+            "raw_g": 100,
+            "role": "core",
+            "note": "Kraut gehobelt, nach Geschmack; 100 g is an estimate"
+          },
+          {
+            "food_key": "cucumber",
+            "raw_g": 200,
+            "role": "core",
+            "note": "1/2 Gurke; 200 g is an estimate"
+          },
+          {
+            "food_key": "yogurt_greek_10",
+            "raw_g": 500,
+            "role": "core",
+            "note": "500 g Joghurt türkisch, 10 % (BLS Sahnejoghurt 10 %)"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 15,
+            "role": "seasoning",
+            "note": "3 Knoblauchzehen"
+          }
+        ],
+        "raw_total_g": 1515,
+        "cooking": {
+          "method": "raw salad and garlic yogurt sauce",
+          "mass_change_g": 0,
+          "note": "no cooking. The page's yield field reads '1 Portion'; the salad and sauce for 400 g meat = 4 Kebap is assumed. Peperoncini, salt left out. ~150 g salad and sauce per Kebap"
+        },
+        "finished_weight_g": 1515,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 150,
+      "density_g_per_ml": 0.5,
+      "density_method": "cooked bulk density (loose pieces)",
+      "sources": [
+        {
+          "url": "https://www.ichkoche.at/doener-kebab-rezept-145256",
+          "retrieved": "2026-10-05",
+          "note": "salad and sauce: 500 g Paradeiser, 1 rote Zwiebel, 1/4 Kopf Salat, Kraut, 1/2 Gurke, 500 g türkischer Joghurt 10 %, 3 Knoblauchzehen"
+        },
+        {
+          "url": "https://www.ichkoche.at/kebap-rezept-3060",
+          "retrieved": "2026-10-05",
+          "note": "cross-check: Paprika, Zwiebeln, Petersilie, Joghurt zum Garnieren"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 56.8,
+          "fat": 3.4,
+          "protein": 1.9,
+          "net_carbs": 3.7
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "kebap_fladenbrot": {
+      "id": "kebap_fladenbrot",
+      "names": {
+        "hu": "Kebab-lepény (negyed török kenyér)",
+        "de": "Fladenbrot (Viertel, für Döner)",
+        "de-AT": "Kebap-Fladenbrot",
+        "en": "Turkish flatbread (quarter loaf, for kebab)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "flatbread",
+            "raw_g": 440,
+            "role": "core",
+            "note": "1 Fladenbrot 440 g (SPAR); a Kebap uses a quarter (estimate)"
+          }
+        ],
+        "raw_total_g": 440,
+        "cooking": {
+          "method": "warmed, cut open",
+          "mass_change_g": 0,
+          "note": "no mass change"
+        },
+        "finished_weight_g": 440,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 110,
+      "density_g_per_ml": 0.35,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.spar.at/produktwelt/spar-fladenbrot/p/1530322",
+          "retrieved": "2026-10-05",
+          "note": "SPAR Fladenbrot 440 g"
+        },
+        {
+          "url": "https://www.ichkoche.at/doener-kebab-rezept-145256",
+          "retrieved": "2026-10-05",
+          "note": "Döner im Fladenbrot"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 248.0,
+          "fat": 2.3,
+          "protein": 8.2,
+          "net_carbs": 47.0
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "duerum_fladen": {
+      "id": "duerum_fladen",
+      "names": {
+        "hu": "Dürüm lepény (tortilla)",
+        "de": "Dürüm-Fladen (Weizentortilla)",
+        "de-AT": "Dürüm-Fladen",
+        "en": "Dürüm wrap (wheat tortilla)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "tortilla",
+            "raw_g": 69,
+            "role": "core",
+            "note": "1 large wheat wrap: mean of La Fiesta XXL 468 g / 6 and Large 360 g / 6"
+          }
+        ],
+        "raw_total_g": 69,
+        "cooking": {
+          "method": "warmed on the grill",
+          "mass_change_g": 0,
+          "note": "no mass change"
+        },
+        "finished_weight_g": 69,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 69,
+      "density_g_per_ml": 0.6,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.spar.at/produktwelt/la-fiesta-mexico-soft-tortilla-wraps-weizen-xxl-6-stueck/p/2020004607850",
+          "retrieved": "2026-10-05",
+          "note": "La Fiesta Soft Tortilla Wraps Weizen XXL 6 Stück 468 g"
+        },
+        {
+          "url": "https://www.spar.at/produktwelt/la-fiesta-mexico-soft-tortilla-wraps-weizen-large-6-stueck/p/2020004607744",
+          "retrieved": "2026-10-05",
+          "note": "La Fiesta Soft Tortilla Wraps Weizen Large 6 Stück 360 g"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 296.0,
+          "fat": 7.8,
+          "protein": 8.8,
+          "net_carbs": 46.6
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "schnitzelsemmel_belag": {
+      "id": "schnitzelsemmel_belag",
+      "names": {
+        "hu": "Rántott szeletes zsemle feltétje (saláta, szószok)",
+        "de": "Belag fürs Schnitzelbrötchen",
+        "de-AT": "Schnitzelsemmel-Belag (Salat, Ketchup, Mayonnaise)",
+        "en": "Schnitzel roll toppings"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 3,
+        "ingredients": [
+          {
+            "food_key": "lettuce",
+            "raw_g": 30,
+            "role": "core",
+            "note": "3 Salatblätter; 10 g each is an estimate"
+          },
+          {
+            "food_key": "ketchup",
+            "raw_g": 30,
+            "role": "seasoning",
+            "note": "Ketchup; 10 g per roll is an estimate"
+          },
+          {
+            "food_key": "mayonnaise",
+            "raw_g": 30,
+            "role": "fat",
+            "note": "Mayonnaise; 10 g per roll is an estimate"
+          },
+          {
+            "food_key": "bell_pepper_red",
+            "raw_g": 60,
+            "role": "core",
+            "note": "12 Paprikastreifen; 5 g each is an estimate"
+          }
+        ],
+        "raw_total_g": 150,
+        "cooking": {
+          "method": "assembled",
+          "mass_change_g": 0,
+          "note": "no cooking"
+        },
+        "finished_weight_g": 150,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 50,
+      "density_g_per_ml": 0.983,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.ichkoche.at/schnitzelsemmel-rezept-234794",
+          "retrieved": "2026-10-05",
+          "note": "batch recipe: 3 kleine Schnitzel, 3 Semmeln, 3 Salatblätter, Ketchup, Mayonnaise, 12 Paprikastreifen, 3 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.at/wienerschnitzel-vom-schwein-rezept-34210",
+          "retrieved": "2026-10-05",
+          "note": "the Schnitzel (see wiener_schnitzel_schwein)"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 187.6,
+          "fat": 16.4,
+          "protein": 1.3,
+          "net_carbs": 7.5
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "currywurst": {
+      "id": "currywurst",
+      "names": {
+        "hu": "Currywurst (osztrák bódéból)",
+        "de": "Currywurst",
+        "de-AT": "Currywurst",
+        "en": "Currywurst"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "bratwurst",
+            "raw_g": 480,
+            "role": "core",
+            "note": "4 Bratwürste; 120 g each is an estimate"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 26,
+            "role": "fat",
+            "note": "2 EL Öl"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 100,
+            "role": "core",
+            "note": "1 Zwiebel"
+          },
+          {
+            "food_key": "butter",
+            "raw_g": 15,
+            "role": "fat",
+            "note": "1 EL Butter oder Margarine"
+          },
+          {
+            "food_key": "tomato_canned",
+            "raw_g": 300,
+            "role": "core",
+            "note": "300 g Paradeiser gewürfelt, aus der Dose"
+          },
+          {
+            "food_key": "ketchup",
+            "raw_g": 34,
+            "role": "seasoning",
+            "note": "2 EL Tomatenketchup"
+          }
+        ],
+        "raw_total_g": 955,
+        "cooking": {
+          "method": "sausages fried and sliced, tomato-curry sauce reduced, poured over",
+          "mass_change_g": -150,
+          "drippings": "pan",
+          "note": "estimate: sausages lose ~15 %, the sauce reduces; 2 TL Currypulver (no catalog record), salt, pepper left out"
+        },
+        "finished_weight_g": 805,
+        "yield_factor": 0.843,
+        "fat_loss_g": 5.4
+      },
+      "standard_serving_g": 190,
+      "density_g_per_ml": 1.008,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.ichkoche.at/currywurst-rezept-89404",
+          "retrieved": "2026-10-05",
+          "note": "batch recipe: 4 Bratwürste, 2 EL Öl, 1 Zwiebel, 1 EL Butter, 2 TL Currypulver, 300 g Paradeiser aus der Dose, 2 EL Ketchup, 4 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.at/currywurst-rezept-5118",
+          "retrieved": "2026-10-05",
+          "note": "cross-check: 4 Currywurst (720 g), 2 EL Rapsöl, 1 EL Currypulver, 500 ml Tomatenketchup, 4 Portionen"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 227.8,
+          "fat": 19.5,
+          "protein": 9.7,
+          "net_carbs": 2.9
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "grillhendl": {
+      "id": "grillhendl",
+      "names": {
+        "hu": "Grillcsirke (fél)",
+        "de": "Brathähnchen (halbes)",
+        "de-AT": "Grillhendl (halbes Hendl)",
+        "en": "Rotisserie chicken (half)"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "chicken_whole_skin",
+            "raw_g": 840,
+            "role": "core",
+            "note": "1 Grillhendl ~1.2 kg; ~70 % edible meat and skin is an estimate (as hu_tepsis_csirke)"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 26,
+            "role": "fat",
+            "note": "'Öl' for the spice paste; 2 EL is an estimate"
+          },
+          {
+            "food_key": "paprika_ground",
+            "raw_g": 3,
+            "role": "seasoning",
+            "note": "Paprikapulver"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 5,
+            "role": "seasoning",
+            "note": "Knoblauch"
+          }
+        ],
+        "raw_total_g": 874,
+        "cooking": {
+          "method": "spiced whole chicken roasted on the spit ~1 h",
+          "mass_change_g": -200,
+          "drippings": "grill",
+          "note": "estimate: ~24 % loss (BLS Hähnchen ganz roh -> gegrillt protein 18.37 -> 25.61 g gives 0.72 for the meat). The page gives 4 portions; the Hendlstation sells halves, so the standard serving is half the chicken. Majoran, rosemary, salt, pepper left out"
+        },
+        "finished_weight_g": 674,
+        "yield_factor": 0.771,
+        "fat_loss_g": 3.3
+      },
+      "standard_serving_g": 330,
+      "density_g_per_ml": 0.75,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.32,
+        "height_cm": 4.0
+      },
+      "sources": [
+        {
+          "url": "https://www.ichkoche.at/grillhendl-rezept-194528",
+          "retrieved": "2026-10-05",
+          "note": "batch recipe: 1 Grillhendl ganz, Paprika, Knoblauch, Majoran, Rosmarin, Öl, 4 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.at/brathendl-rezept-29371",
+          "retrieved": "2026-10-05",
+          "note": "cross-check: 1 Brathähnchen, 2 EL Öl, Knoblauch, Zwiebel, Äpfel, Kartoffeln, Schlagobers, 4 Portionen"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 264.1,
+          "fat": 19.0,
+          "protein": 23.0,
+          "net_carbs": 0.1
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "steckerlfisch": {
+      "id": "steckerlfisch",
+      "names": {
+        "hu": "Nyárson sült makréla (Steckerlfisch)",
+        "de": "Steckerlfisch (Makrele)",
+        "de-AT": "Steckerlfisch",
+        "en": "Grilled mackerel on a stick"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "mackerel",
+            "raw_g": 720,
+            "role": "core",
+            "note": "4 Makrelen küchenfertig ~300 g each; ~60 % edible is an estimate"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 15,
+            "role": "fat",
+            "note": "1 Schuss Sonnenblumenöl; 15 g is an estimate"
+          },
+          {
+            "food_key": "lemon_juice",
+            "raw_g": 22,
+            "role": "seasoning",
+            "note": "0,5 Zitrone (Saft)"
+          }
+        ],
+        "raw_total_g": 757,
+        "cooking": {
+          "method": "whole fish on sticks grilled over embers ~20 min",
+          "mass_change_g": -140,
+          "note": "estimate: BLS Makrele roh -> gegrillt protein 18.6 -> 23.7 g gives ~0.78 yield; salt, pepper left out"
+        },
+        "finished_weight_g": 617,
+        "yield_factor": 0.815
+      },
+      "standard_serving_g": 150,
+      "density_g_per_ml": 1.058,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.gutekueche.at/steckerlfisch-rezept-6002",
+          "retrieved": "2026-10-05",
+          "note": "batch recipe: 4 Makrelen, Öl oder Butter, 1/2 Zitrone, 4 Portionen"
+        },
+        {
+          "url": "https://www.ichkoche.at/steckerlfisch-rezept-3962",
+          "retrieved": "2026-10-05",
+          "note": "cross-check: 8 Weißfische on 50 cm sticks over embers, 8 Portionen"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 196.5,
+          "fat": 12.1,
+          "protein": 21.7,
+          "net_carbs": 0.2
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "lahmacun": {
+      "id": "lahmacun",
+      "names": {
+        "hu": "Lahmacun (török pizza)",
+        "de": "Lahmacun (türkische Pizza)",
+        "de-AT": "Lahmacun",
+        "en": "Lahmacun (Turkish pizza)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 500,
+            "role": "core",
+            "note": "500 g Mehl"
+          },
+          {
+            "food_key": "olive_oil",
+            "raw_g": 26,
+            "role": "fat",
+            "note": "1 + 1 EL Olivenöl"
+          },
+          {
+            "food_key": "yeast_dry",
+            "raw_g": 7,
+            "role": "core",
+            "note": "1 Pk Trockenhefe"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 250,
+            "role": "liquid",
+            "note": "1 Tasse Wasser (lauwarm); 250 ml is an estimate"
+          },
+          {
+            "food_key": "sugar",
+            "raw_g": 4,
+            "role": "seasoning",
+            "note": "1 TL Zucker"
+          },
+          {
+            "food_key": "mixed_minced",
+            "raw_g": 500,
+            "role": "core",
+            "note": "500 g Faschiertes (am besten vom Lamm): mixed mince, as the recipe allows"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 20,
+            "role": "seasoning",
+            "note": "4 Knoblauchzehen"
+          },
+          {
+            "food_key": "parsley_leaf",
+            "raw_g": 10,
+            "role": "seasoning",
+            "note": "0,5 Bund Petersilie"
+          },
+          {
+            "food_key": "tomato",
+            "raw_g": 200,
+            "role": "core",
+            "note": "2 Tomaten"
+          },
+          {
+            "food_key": "tomato_paste",
+            "raw_g": 34,
+            "role": "seasoning",
+            "note": "2 EL Tomatenmark"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 200,
+            "role": "core",
+            "note": "2 Zwiebeln"
+          }
+        ],
+        "raw_total_g": 1751,
+        "cooking": {
+          "method": "thin yeast dough spread with the raw meat paste, baked very hot",
+          "mass_change_g": -250,
+          "note": "estimate: ~13 % baking loss; bouillon pinch, salt, pepper left out"
+        },
+        "finished_weight_g": 1501,
+        "yield_factor": 0.857
+      },
+      "standard_serving_g": 380,
+      "density_g_per_ml": 1.013,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.gutekueche.at/lahmacun-rezept-15731",
+          "retrieved": "2026-10-05",
+          "note": "batch recipe: 500 g Mehl, Olivenöl, Trockenhefe, 1 Tasse Wasser, 500 g Faschiertes, 4 Knoblauchzehen, Petersilie, 2 Tomaten, 2 EL Tomatenmark, 2 Zwiebeln, 4 Portionen"
+        },
+        {
+          "url": "https://www.ichkoche.at/lahmacun-rezept-223396",
+          "retrieved": "2026-10-05",
+          "note": "cross-check: 300 g Mehl, 10 g Germ, Olivenöl, 200 g Lammfaschiertes, 2 Spitzpaprika, 1 Zwiebel, Paprikamark, 5 Portionen"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 223.6,
+          "fat": 8.1,
+          "protein": 10.4,
+          "net_carbs": 25.8
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "erdaepfelpuffer": {
+      "id": "erdaepfelpuffer",
+      "names": {
+        "hu": "Tócsni (osztrák Erdäpfelpuffer)",
+        "de": "Kartoffelpuffer",
+        "de-AT": "Erdäpfelpuffer",
+        "en": "Potato pancakes"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "potato",
+            "raw_g": 800,
+            "role": "core",
+            "note": "800 g Kartoffeln geschält, grated"
+          },
+          {
+            "food_key": "potato_starch",
+            "raw_g": 30,
+            "role": "core",
+            "note": "3 EL Kartoffelstärke; 10 g per EL is an estimate"
+          },
+          {
+            "food_key": "egg",
+            "raw_g": 50,
+            "role": "core",
+            "note": "1 Ei"
+          },
+          {
+            "food_key": "zucchini",
+            "raw_g": 200,
+            "role": "core",
+            "note": "1 Zucchini fein geraspelt; 200 g is an estimate"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 26,
+            "role": "fat",
+            "note": "2 EL Rapsöl"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 40,
+            "role": "absorbed_fat",
+            "note": "extra frying oil as at a market stall; ~40 g taken up is an estimate"
+          }
+        ],
+        "raw_total_g": 1146,
+        "cooking": {
+          "method": "grated potato batter fried in flat cakes",
+          "mass_change_g": -130,
+          "note": "estimate: ~12 % water loss; nutmeg (MISSING), salt, pepper left out"
+        },
+        "finished_weight_g": 1016,
+        "yield_factor": 0.887
+      },
+      "standard_serving_g": 250,
+      "density_g_per_ml": 0.7,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.7,
+        "height_cm": 1.5
+      },
+      "sources": [
+        {
+          "url": "https://www.ichkoche.at/kartoffelpuffer-rezept-15513",
+          "retrieved": "2026-10-05",
+          "note": "batch recipe: 800 g Kartoffeln, 3 EL Kartoffelstärke, 1 Ei, 1 Zucchini, 2 EL Rapsöl, 4 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.at/kartoffelpuffer-rezept-120",
+          "retrieved": "2026-10-05",
+          "note": "cross-check: 6 Kartoffeln, 2 Eier, 75 g Mehl, 50 g Parmesan, Öl zum Frittieren, 4 Portionen"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 144.8,
+          "fat": 7.1,
+          "protein": 2.4,
+          "net_carbs": 17.2
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "bauernkrapfen": {
+      "id": "bauernkrapfen",
+      "names": {
+        "hu": "Paraszt-fánk (Bauernkrapfen)",
+        "de": "Bauernkrapfen (Schmalzkrapfen)",
+        "de-AT": "Bauernkrapfen",
+        "en": "Farmer's doughnut (Bauernkrapfen)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 16,
+        "ingredients": [
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 600,
+            "role": "core",
+            "note": "600 g Weizenmehl"
+          },
+          {
+            "food_key": "butter",
+            "raw_g": 70,
+            "role": "fat",
+            "note": "70 g Butter"
+          },
+          {
+            "food_key": "egg_yolk",
+            "raw_g": 18,
+            "role": "core",
+            "note": "1 Eidotter"
+          },
+          {
+            "food_key": "egg",
+            "raw_g": 150,
+            "role": "core",
+            "note": "3 Eier"
+          },
+          {
+            "food_key": "sugar",
+            "raw_g": 50,
+            "role": "core",
+            "note": "50 g Feinkristallzucker"
+          },
+          {
+            "food_key": "yeast_fresh",
+            "raw_g": 42,
+            "role": "core",
+            "note": "1 Würfel Germ (42 g)"
+          },
+          {
+            "food_key": "milk_whole",
+            "raw_g": 288,
+            "role": "liquid",
+            "note": "280 ml Milch"
+          },
+          {
+            "food_key": "rum",
+            "raw_g": 15,
+            "role": "seasoning",
+            "note": "1 Schuss Rum; 15 g is an estimate"
+          },
+          {
+            "food_key": "clarified_butter",
+            "raw_g": 130,
+            "role": "absorbed_fat",
+            "note": "fried in 500 g Frittierfett oder Butterschmalz; ~130 g taken up is an estimate (as Krapfen)"
+          },
+          {
+            "food_key": "powdered_sugar",
+            "raw_g": 50,
+            "role": "garnish",
+            "note": "50 g Staubzucker zum Bestreuen"
+          }
+        ],
+        "raw_total_g": 1413,
+        "cooking": {
+          "method": "yeast dough pulled thin in the middle, fried, dusted (served plain or with jam)",
+          "mass_change_g": -130,
+          "note": "estimate: ~10 % water loss while frying; salt left out. 16 Stück"
+        },
+        "finished_weight_g": 1283,
+        "yield_factor": 0.908
+      },
+      "standard_serving_g": 80,
+      "density_g_per_ml": 1.024,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.gutekueche.at/bauernkrapfen-rezept-5598",
+          "retrieved": "2026-10-05",
+          "note": "batch recipe: 600 g Mehl, 70 g Butter, 1 Dotter, 3 Eier, 50 g Zucker, 42 g Germ, 280 ml Milch, Rum, 500 g Frittierfett, 50 g Staubzucker, 16 Stück"
+        },
+        {
+          "url": "https://www.ichkoche.at/bauernkrapfen-rezept-8880",
+          "retrieved": "2026-10-05",
+          "note": "cross-check: 1 kg Mehl, 2 Pkg. Germ, 50 g Zucker, 500 ml Milch, 70 g Butter, 6 Dotter, Schnaps, Rum, Backfett"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 365.2,
+          "fat": 17.3,
+          "protein": 8.1,
+          "net_carbs": 42.6
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "maroni": {
+      "id": "maroni",
+      "names": {
+        "hu": "Sült gesztenye (Maroni)",
+        "de": "Heiße Maroni (geröstete Esskastanien)",
+        "de-AT": "Maroni (gebratene Maroni)",
+        "en": "Roasted chestnuts"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "chestnut",
+            "raw_g": 800,
+            "role": "core",
+            "note": "1 kg Maroni in the shell; ~80 % peeled kernel is an estimate"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 250,
+            "role": "liquid",
+            "note": "250 ml Wasser in the tray"
+          }
+        ],
+        "raw_total_g": 1050,
+        "cooking": {
+          "method": "scored, roasted in the oven ~20 min with water",
+          "mass_change_g": -310,
+          "note": "the tray water evaporates; the kernels lose ~8 % (BLS Edelkastanie roh -> gebacken, protein 2.925 -> 3.179 g)"
+        },
+        "finished_weight_g": 740,
+        "yield_factor": 0.705
+      },
+      "standard_serving_g": 185,
+      "density_g_per_ml": 0.6,
+      "density_method": "cooked bulk density (loose pieces)",
+      "sources": [
+        {
+          "url": "https://www.gutekueche.at/maroni-braten-rezept-4887",
+          "retrieved": "2026-10-05",
+          "note": "batch recipe: 1 kg Maroni, 250 ml Wasser, 4 Portionen"
+        },
+        {
+          "url": "https://www.ichkoche.at/maroni-rezept-132922",
+          "retrieved": "2026-10-05",
+          "note": "cross-check: 500 g Maroni, 4 Portionen"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 227.0,
+          "fat": 2.1,
+          "protein": 3.2,
+          "net_carbs": 44.5
         },
         "incomplete_missing_food_keys": []
       }
@@ -32514,7 +33985,8 @@
     {
       "id": "hu_joghurt_gyumolccsel",
       "countries": [
-        "HU"
+        "HU",
+        "AT"
       ],
       "category": "everyday",
       "names": {
@@ -41707,6 +43179,952 @@
       ]
     },
     {
+      "id": "at_topfencreme",
+      "countries": [
+        "AT"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "Túrókrém gyümölccsel (Topfencreme)",
+        "de": "Quarkcreme mit Obst",
+        "de-AT": "Topfencreme mit Früchten",
+        "en": "Sweet quark cream with fruit"
+      },
+      "aliases": {
+        "de-AT": [
+          "topfencreme",
+          "topfencreme mit früchten",
+          "topfencreme mit obst"
+        ],
+        "de": [
+          "quarkcreme",
+          "quarkspeise mit obst"
+        ],
+        "hu": [
+          "túrókrém gyümölccsel"
+        ],
+        "en": [
+          "quark cream with fruit",
+          "sweet quark dessert"
+        ]
+      },
+      "tags": [
+        "everyday",
+        "sweet",
+        "vegetarian"
+      ],
+      "served_in": "deep_plate",
+      "parts": [
+        {
+          "part": "topfencreme",
+          "standard_serving_g": 300
+        }
+      ]
+    },
+    {
+      "id": "at_kaesekrainer",
+      "countries": [
+        "AT"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "Sajtos kolbász kenyérrel (Käsekrainer)",
+        "de": "Käsekrainer mit Brot",
+        "de-AT": "Käsekrainer mit Brot",
+        "en": "Cheese sausage with bread (Käsekrainer)"
+      },
+      "aliases": {
+        "de-AT": [
+          "käsekrainer",
+          "eitrige",
+          "käsekrainer mit senf",
+          "käsekrainer mit brot",
+          "a eitrige"
+        ],
+        "de": [
+          "käsekrainer",
+          "käsewurst"
+        ],
+        "hu": [
+          "sajtos kolbász",
+          "käsekrainer"
+        ],
+        "en": [
+          "cheese sausage",
+          "kaesekrainer"
+        ]
+      },
+      "tags": [
+        "street_food"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "kaesekrainer_gegrillt",
+          "standard_serving_g": 107
+        },
+        {
+          "part": "brotscheibe",
+          "standard_serving_g": 50
+        }
+      ],
+      "optional_toppings": [
+        {
+          "food_key": "mustard",
+          "g": 15,
+          "hu": "mustár"
+        },
+        {
+          "food_key": "horseradish",
+          "g": 5,
+          "hu": "torma"
+        }
+      ],
+      "review_note_hu": "Würstelstand-adag: 1 Käsekrainer és egy szelet kenyér; mustár, torma választható. 'Eitrige' a bécsi szleng neve."
+    },
+    {
+      "id": "at_bosna",
+      "countries": [
+        "AT"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "Bosna (kolbászos bagett hagymával és curryvel)",
+        "de": "Bosna (Bratwurst im Baguette mit Zwiebeln und Curry)",
+        "de-AT": "Bosna",
+        "en": "Bosna (bratwurst baguette with onion and curry)"
+      },
+      "aliases": {
+        "de-AT": [
+          "bosna",
+          "bosna mit zwiebel",
+          "salzburger bosna",
+          "bosner"
+        ],
+        "de": [
+          "bosna",
+          "bratwurst im baguette mit curry"
+        ],
+        "hu": [
+          "bosna",
+          "osztrák kolbászos szendvics"
+        ],
+        "en": [
+          "bosna",
+          "austrian bratwurst sandwich"
+        ]
+      },
+      "tags": [
+        "street_food"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "bosna",
+          "standard_serving_g": 230
+        }
+      ]
+    },
+    {
+      "id": "at_bratwurst_semmel",
+      "countries": [
+        "AT"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "Sült kolbászka zsemlével",
+        "de": "Bratwurst mit Brötchen",
+        "de-AT": "Bratwurst mit Semmel",
+        "en": "Bratwurst with a bread roll"
+      },
+      "aliases": {
+        "de-AT": [
+          "bratwurst mit semmel",
+          "bratwürstel mit senf",
+          "bratwurst vom würstelstand",
+          "bratwurst"
+        ],
+        "de": [
+          "bratwurst im brötchen",
+          "bratwurst mit brötchen und senf"
+        ],
+        "hu": [
+          "sült kolbász zsemlével"
+        ],
+        "en": [
+          "bratwurst in a roll"
+        ]
+      },
+      "tags": [
+        "street_food"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "bratwuerstel_gebraten",
+          "standard_serving_g": 110
+        },
+        {
+          "part": "semmel",
+          "standard_serving_g": 62.5
+        }
+      ],
+      "optional_toppings": [
+        {
+          "food_key": "mustard",
+          "g": 15,
+          "hu": "mustár"
+        }
+      ]
+    },
+    {
+      "id": "at_hotdog",
+      "countries": [
+        "AT"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "Hotdog virslivel",
+        "de": "Hotdog mit Wiener Würstchen",
+        "de-AT": "Hotdog (mit Frankfurter)",
+        "en": "Hot dog with frankfurter"
+      },
+      "aliases": {
+        "de-AT": [
+          "hotdog",
+          "hot dog",
+          "hotdog mit frankfurter",
+          "wiener hotdog"
+        ],
+        "de": [
+          "hotdog",
+          "hot dog mit würstchen"
+        ],
+        "hu": [
+          "hot dog osztrák",
+          "virslis hot dog"
+        ],
+        "en": [
+          "hot dog",
+          "hotdog"
+        ]
+      },
+      "tags": [
+        "street_food"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "hotdog_frankfurter",
+          "standard_serving_g": 150
+        }
+      ]
+    },
+    {
+      "id": "at_kaesekrainer_hotdog",
+      "countries": [
+        "AT"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "Sajtos kolbászos hot dog",
+        "de": "Hotdog mit Käsewurst",
+        "de-AT": "Käsekrainer-Hotdog",
+        "en": "Käsekrainer hot dog"
+      },
+      "aliases": {
+        "de-AT": [
+          "käsekrainer hotdog",
+          "hotdog mit käsekrainer",
+          "käsekrainer im weckerl",
+          "käsekrainer im brot"
+        ],
+        "de": [
+          "käsewurst im brötchen"
+        ],
+        "hu": [
+          "sajtos kolbászos hot dog"
+        ],
+        "en": [
+          "cheese sausage hot dog"
+        ]
+      },
+      "tags": [
+        "street_food"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "hotdog_broetchen",
+          "standard_serving_g": 62.5
+        },
+        {
+          "part": "kaesekrainer_gegrillt",
+          "standard_serving_g": 107
+        }
+      ],
+      "optional_toppings": [
+        {
+          "food_key": "mustard",
+          "g": 15,
+          "hu": "mustár"
+        },
+        {
+          "food_key": "ketchup",
+          "g": 15,
+          "hu": "ketchup"
+        }
+      ]
+    },
+    {
+      "id": "at_kebap",
+      "countries": [
+        "AT"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "Kebab borjúhússal (török kenyérben)",
+        "de": "Döner Kebab (Kalb) im Fladenbrot",
+        "de-AT": "Kebap (Kalb) im Fladenbrot",
+        "en": "Doner kebab (veal) in flatbread"
+      },
+      "aliases": {
+        "de-AT": [
+          "kebap",
+          "kebab",
+          "döner kebap",
+          "kebap mit kalbfleisch",
+          "kebap mit alles",
+          "döner"
+        ],
+        "de": [
+          "döner kebab",
+          "döner",
+          "dönerkebab"
+        ],
+        "hu": [
+          "kebab",
+          "borjúhúsos kebab",
+          "döner kebab"
+        ],
+        "en": [
+          "kebab",
+          "doner kebab",
+          "veal kebab"
+        ]
+      },
+      "tags": [
+        "street_food"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "kebap_fladenbrot",
+          "standard_serving_g": 110
+        },
+        {
+          "part": "kebap_fleisch",
+          "standard_serving_g": 100
+        },
+        {
+          "part": "kebap_salat_sauce",
+          "standard_serving_g": 150
+        }
+      ],
+      "review_note_hu": "A 'Hühnerkebap' a hu_doner (csirke) étel, amely AT-t is kapott."
+    },
+    {
+      "id": "at_duerum",
+      "countries": [
+        "AT"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "Dürüm (kebab tortillában)",
+        "de": "Dürüm Döner (im Weizenfladen)",
+        "de-AT": "Dürüm (Kebap im Fladen)",
+        "en": "Dürüm (kebab wrap)"
+      },
+      "aliases": {
+        "de-AT": [
+          "dürüm",
+          "dürüm kebap",
+          "durum",
+          "dürum"
+        ],
+        "de": [
+          "dürüm",
+          "dürüm döner",
+          "döner wrap"
+        ],
+        "hu": [
+          "dürüm",
+          "dürüm kebab"
+        ],
+        "en": [
+          "durum",
+          "durum kebab",
+          "kebab wrap"
+        ]
+      },
+      "tags": [
+        "street_food"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "duerum_fladen",
+          "standard_serving_g": 69
+        },
+        {
+          "part": "kebap_fleisch",
+          "standard_serving_g": 100
+        },
+        {
+          "part": "kebap_salat_sauce",
+          "standard_serving_g": 150
+        }
+      ]
+    },
+    {
+      "id": "at_kebap_box",
+      "countries": [
+        "AT"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "Kebab box (sült krumpli kebabhússal)",
+        "de": "Dönerbox mit Pommes",
+        "de-AT": "Kebap-Box",
+        "en": "Kebab box with fries"
+      },
+      "aliases": {
+        "de-AT": [
+          "kebap-box",
+          "kebapbox",
+          "dönerbox",
+          "döner box"
+        ],
+        "de": [
+          "dönerbox",
+          "döner box mit pommes"
+        ],
+        "hu": [
+          "kebab box",
+          "kebabos sült krumpli"
+        ],
+        "en": [
+          "kebab box",
+          "doner box"
+        ]
+      },
+      "tags": [
+        "street_food"
+      ],
+      "served_in": "deep_plate",
+      "parts": [
+        {
+          "part": "hasabburgonya",
+          "standard_serving_g": 170
+        },
+        {
+          "part": "kebap_fleisch",
+          "standard_serving_g": 100
+        },
+        {
+          "part": "kebap_salat_sauce",
+          "standard_serving_g": 80
+        }
+      ]
+    },
+    {
+      "id": "at_cevapcici_fladenbrot",
+      "countries": [
+        "AT"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "Csevapcsicsi lepényben",
+        "de": "Ćevapčići im Fladenbrot",
+        "de-AT": "Cevapcici im Fladenbrot",
+        "en": "Ćevapčići in flatbread"
+      },
+      "aliases": {
+        "de-AT": [
+          "cevapcici im fladenbrot",
+          "cevapcici im brot",
+          "cevapcici sandwich",
+          "lepinja mit cevapcici"
+        ],
+        "de": [
+          "cevapcici im fladenbrot"
+        ],
+        "hu": [
+          "csevapcsicsi lepényben"
+        ],
+        "en": [
+          "cevapcici in flatbread"
+        ]
+      },
+      "tags": [
+        "street_food"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "kebap_fladenbrot",
+          "standard_serving_g": 110
+        },
+        {
+          "part": "cevapcici",
+          "standard_serving_g": 230
+        }
+      ],
+      "optional_toppings": [
+        {
+          "food_key": "ajvar",
+          "g": 30,
+          "hu": "ajvár"
+        },
+        {
+          "food_key": "onion",
+          "g": 30,
+          "hu": "nyers hagyma"
+        }
+      ]
+    },
+    {
+      "id": "at_schnitzelsemmel",
+      "countries": [
+        "AT"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "Rántott szeletes zsemle",
+        "de": "Schnitzelbrötchen",
+        "de-AT": "Schnitzelsemmel",
+        "en": "Schnitzel roll"
+      },
+      "aliases": {
+        "de-AT": [
+          "schnitzelsemmel",
+          "schnitzelsemmerl",
+          "schnitzel in der semmel",
+          "schnitzelweckerl"
+        ],
+        "de": [
+          "schnitzelbrötchen",
+          "schnitzelweck"
+        ],
+        "hu": [
+          "rántott szeletes zsemle"
+        ],
+        "en": [
+          "schnitzel roll",
+          "schnitzel sandwich"
+        ]
+      },
+      "tags": [
+        "street_food"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "semmel",
+          "standard_serving_g": 62.5
+        },
+        {
+          "part": "wiener_schnitzel_schwein",
+          "standard_serving_g": 100
+        },
+        {
+          "part": "schnitzelsemmel_belag",
+          "standard_serving_g": 50
+        }
+      ],
+      "review_note_hu": "A forrás 'kleine Schnitzel'-t ír; 100 g kisütött sertésszelet (a teljes adag ~77 %-a) becslés."
+    },
+    {
+      "id": "at_laibchensemmel",
+      "countries": [
+        "AT"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "Fasírtos zsemle",
+        "de": "Frikadellenbrötchen",
+        "de-AT": "Fleischlaibchen-Semmel",
+        "en": "Meat patty in a bread roll"
+      },
+      "aliases": {
+        "de-AT": [
+          "laibchensemmel",
+          "fleischlaibchensemmel",
+          "fleischlaberlsemmel",
+          "faschiertes laibchen in der semmel"
+        ],
+        "de": [
+          "frikadellenbrötchen",
+          "bulettenbrötchen"
+        ],
+        "hu": [
+          "fasírtos zsemle"
+        ],
+        "en": [
+          "meat patty roll"
+        ]
+      },
+      "tags": [
+        "street_food"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "semmel",
+          "standard_serving_g": 62.5
+        },
+        {
+          "part": "faschierte_laibchen",
+          "standard_serving_g": 125
+        }
+      ],
+      "optional_toppings": [
+        {
+          "food_key": "mustard",
+          "g": 15,
+          "hu": "mustár"
+        }
+      ],
+      "review_note_hu": "1 Faschiertes Laibchen (~125 g, a forrás fél adagja) a zsemlében."
+    },
+    {
+      "id": "at_currywurst",
+      "countries": [
+        "AT"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "Currywurst (osztrák bódéból)",
+        "de": "Currywurst",
+        "de-AT": "Currywurst",
+        "en": "Currywurst"
+      },
+      "aliases": {
+        "de-AT": [
+          "currywurst",
+          "curry wurst",
+          "currywurst vom würstelstand"
+        ],
+        "de": [
+          "currywurst",
+          "currywurst ohne darm"
+        ],
+        "hu": [
+          "currywurst",
+          "curry kolbász"
+        ],
+        "en": [
+          "currywurst",
+          "curry sausage"
+        ]
+      },
+      "tags": [
+        "street_food"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "currywurst",
+          "standard_serving_g": 190
+        }
+      ],
+      "side_options": [
+        {
+          "part": "hasabburgonya",
+          "standard_serving_g": 170
+        },
+        {
+          "part": "semmel",
+          "standard_serving_g": 62.5
+        }
+      ],
+      "side_required_question": true,
+      "alias_side": {
+        "currywurst mit pommes": "hasabburgonya",
+        "currywurst mit semmel": "semmel"
+      }
+    },
+    {
+      "id": "at_grillhendl",
+      "countries": [
+        "AT"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "Grillcsirke (fél)",
+        "de": "Brathähnchen (halbes)",
+        "de-AT": "Grillhendl (halbes Hendl)",
+        "en": "Rotisserie chicken (half)"
+      },
+      "aliases": {
+        "de-AT": [
+          "grillhendl",
+          "halbes hendl",
+          "brathendl",
+          "ein halbes hendl",
+          "hendl vom grill"
+        ],
+        "de": [
+          "halbes hähnchen",
+          "brathähnchen",
+          "grillhähnchen"
+        ],
+        "hu": [
+          "grillcsirke",
+          "fél grillcsirke"
+        ],
+        "en": [
+          "rotisserie chicken",
+          "half a roast chicken"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "grilled",
+        "low-carb-friendly"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "grillhendl",
+          "standard_serving_g": 330
+        }
+      ]
+    },
+    {
+      "id": "at_steckerlfisch",
+      "countries": [
+        "AT"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "Nyárson sült makréla (Steckerlfisch)",
+        "de": "Steckerlfisch (Makrele)",
+        "de-AT": "Steckerlfisch",
+        "en": "Grilled mackerel on a stick"
+      },
+      "aliases": {
+        "de-AT": [
+          "steckerlfisch",
+          "steckerlfisch makrele",
+          "makrele vom grill"
+        ],
+        "de": [
+          "steckerlfisch",
+          "makrele am stock"
+        ],
+        "hu": [
+          "nyárson sült makréla"
+        ],
+        "en": [
+          "grilled mackerel on a stick",
+          "steckerlfisch"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "fish",
+        "grilled"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "steckerlfisch",
+          "standard_serving_g": 150
+        }
+      ]
+    },
+    {
+      "id": "at_lahmacun",
+      "countries": [
+        "AT"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "Lahmacun (török pizza)",
+        "de": "Lahmacun (türkische Pizza)",
+        "de-AT": "Lahmacun",
+        "en": "Lahmacun (Turkish pizza)"
+      },
+      "aliases": {
+        "de-AT": [
+          "lahmacun",
+          "türkische pizza"
+        ],
+        "de": [
+          "lahmacun",
+          "türkische pizza"
+        ],
+        "hu": [
+          "lahmacun",
+          "török pizza"
+        ],
+        "en": [
+          "lahmacun",
+          "turkish pizza"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "higher-carb"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "lahmacun",
+          "standard_serving_g": 380
+        }
+      ],
+      "review_note_hu": "A forrás adagja ~380 g (2 lahmacun)."
+    },
+    {
+      "id": "at_erdaepfelpuffer",
+      "countries": [
+        "AT"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "Tócsni (osztrák Erdäpfelpuffer)",
+        "de": "Kartoffelpuffer",
+        "de-AT": "Erdäpfelpuffer",
+        "en": "Potato pancakes"
+      },
+      "aliases": {
+        "de-AT": [
+          "erdäpfelpuffer",
+          "kartoffelpuffer",
+          "reiberdatschi",
+          "erdäpfelpuffer vom christkindlmarkt"
+        ],
+        "de": [
+          "kartoffelpuffer",
+          "reibekuchen",
+          "reiberdatschi"
+        ],
+        "hu": [
+          "tócsni osztrák módra",
+          "krumplilepény"
+        ],
+        "en": [
+          "potato pancakes",
+          "potato fritters"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "fried",
+        "vegetarian"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "erdaepfelpuffer",
+          "standard_serving_g": 250
+        }
+      ]
+    },
+    {
+      "id": "at_bauernkrapfen",
+      "countries": [
+        "AT"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "Paraszt-fánk (Bauernkrapfen)",
+        "de": "Bauernkrapfen (Schmalzkrapfen)",
+        "de-AT": "Bauernkrapfen",
+        "en": "Farmer's doughnut (Bauernkrapfen)"
+      },
+      "aliases": {
+        "de-AT": [
+          "bauernkrapfen",
+          "bauernkrapferl",
+          "schmalzkrapfen"
+        ],
+        "de": [
+          "bauernkrapfen",
+          "ausgezogene"
+        ],
+        "hu": [
+          "paraszt-fánk",
+          "bauernkrapfen"
+        ],
+        "en": [
+          "farmer's doughnut",
+          "bauernkrapfen"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "sweet",
+        "fried"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "bauernkrapfen",
+          "standard_serving_g": 80
+        }
+      ]
+    },
+    {
+      "id": "at_maroni",
+      "countries": [
+        "AT"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "Sült gesztenye (Maroni)",
+        "de": "Heiße Maroni (geröstete Esskastanien)",
+        "de-AT": "Maroni (gebratene Maroni)",
+        "en": "Roasted chestnuts"
+      },
+      "aliases": {
+        "de-AT": [
+          "maroni",
+          "heiße maroni",
+          "gebratene maroni",
+          "eine tüte maroni",
+          "maroni vom maronistand"
+        ],
+        "de": [
+          "maronen",
+          "heiße maronen",
+          "geröstete esskastanien"
+        ],
+        "hu": [
+          "sült gesztenye",
+          "gesztenye"
+        ],
+        "en": [
+          "roasted chestnuts",
+          "hot chestnuts"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "vegan",
+        "higher-carb"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "maroni",
+          "standard_serving_g": 185
+        }
+      ]
+    },
+    {
       "id": "de_bratkartoffeln",
       "countries": [
         "DE"
@@ -42073,9 +44491,15 @@
       "street_food": []
     },
     "AT": {
-      "traditional": [],
-      "everyday": [],
-      "street_food": []
+      "traditional": [
+        "Grammelknödel"
+      ],
+      "everyday": [
+        "Steirischer Käferbohnensalat"
+      ],
+      "street_food": [
+        "Burenwurst"
+      ]
     },
     "DE": {}
   }

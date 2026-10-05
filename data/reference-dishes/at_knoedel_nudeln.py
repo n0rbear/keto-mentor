@@ -25,7 +25,7 @@ PARTS = {
                      ing("butter", 40, "fat", "40 g Butter (onions sweated, poured over)")],
         cooking=dict(method="filled half-moon dumplings, crimped ('gekrendelt'), simmered ~10-15 min, served with brown butter", mass_change_g=60,
                      note="estimate: boiled dough takes up ~5 % water; salt left out (the cross-check sources add mint and chervil, which have no catalog record)"),
-        flat_plate=dict(coverage=0.35, height_cm=3.0),
+        flat_plate=dict(coverage=0.42, height_cm=3.0),
         sources=[src(GK + "kaerntner-kasnudeln-rezept-1790", R, "batch recipe: 250 g Mehl, 1 Ei, 6 EL Milch, 500 g Kartoffeln, 250 g Topfen, 2 kleine Zwiebeln, 40 g Butter, Petersilie, 4 Portionen"),
                  src(IK + "kaerntner-kasnudeln-rezept-96590", R, "cross-check: 350 g Mehl, 2 Eier, 120 g Erdäpfel, 250 g Topfen, 2 EL Sauerrahm, Minze, Kerbel, 4 Portionen"),
                  src(GK + "kasnudeln-rezept-20655", R, "cross-check: 450 g Mehl, 3 Eier, 3 Dotter, 300 g Erdäpfel, 600 g Topfen, 150 g Butter, Kerbel, Schnittlauch, 6 Portionen")]),
@@ -37,7 +37,7 @@ PARTS = {
                      ing("chives", 5, "garnish", "1 Prise Schnittlauch; 5 g is an estimate")],
         cooking=dict(method="Nockerl dough boiled, tossed in a pan with Schmalz, butter and cheese until melted", mass_change_g=120,
                      note="estimate: the boiled dough takes up ~15 % water (as nokedli); salt left out. Fried onions are a common topping but not in this source"),
-        flat_plate=dict(coverage=0.40, height_cm=3.0),
+        flat_plate=dict(coverage=0.43, height_cm=3.0),
         sources=[src(GK + "kasnocken-rezept-7647", R, "batch recipe: 400 g Mehl, 2 Eier, 250 ml Milch, 300 g Bergkäse, 60 g Butter, 60 g Schmalz, Schnittlauch, 4 Portionen"),
                  src(IK + "kasnocken-rezept-1675", R, "cross-check: 300 g Nockerlteig, 1 kleine Zwiebel, 50 g Butter, 100 g Pinzgauer Käse, Schnittlauch, 4 Portionen"),
                  src(GK + "kasnocken-rezept-9368", R, "cross-check: 0,5 kg Mehl, 4 Eier, 150 g Bergkäse, 0,125 l Suppe, 4 Portionen")]),
@@ -49,7 +49,7 @@ PARTS = {
                      ing("clarified_butter", g(1.5, "ek_oil"), "fat", "1 1/2 EL Butterschmalz"), ing("chives", 10, "garnish", "1/2 Bund Schnittlauch; 10 g is an estimate")],
         cooking=dict(method="Spätzle pressed into boiling water, layered with grated cheese and butter", mass_change_g=90,
                      note="estimate: boiled Spätzle take up ~15 % of the dough weight in water; nutmeg (MISSING), salt, pepper left out"),
-        flat_plate=dict(coverage=0.40, height_cm=3.0),
+        flat_plate=dict(coverage=0.37, height_cm=3.0),
         sources=[src(IK + "kaesespaetzle-rezept-6343", R, "batch recipe: 300 g Mehl, 3 Eier, 150 ml Milch, 60 g Butter, 300 g Bergkäse, 1 1/2 EL Butterschmalz, Schnittlauch, 4 Portionen"),
                  src(GK + "kaesknoepfle-rezept-164", R, "cross-check: 1 kg Mehl, 10 Eier, 250 ml Milch, 300 g Räßkäse oder Gouda, 300 g Bergkäse, 300 g Butter, 2 Zwiebeln, 6 Portionen"),
                  src(IK + "kaesknoepfle-rezept-4444", R, "cross-check: 1/2 kg Mehl, 2-3 Eier, 300 ml Wasser, 240 g Käse, 2 EL Butterschmalz, 1-2 Zwiebeln, 4 Portionen")]),
@@ -61,7 +61,7 @@ PARTS = {
                      ing("sunflower_oil", g(2, "ek_oil"), "fat", "2 EL Öl oder Schmalz"), ing("caraway_seed", g(0.5, "tk_spice"), "seasoning", "'Kümmel', no amount; 1/2 TL is an estimate (gutekueche: 1/2 TL)")],
         cooking=dict(method="sugar caramelised, onion and cabbage braised ~30 min, mixed with the boiled Fleckerl", mass_change_g=boiled_uptake("egg_pasta_dry", 200) - 150,
                      note="drained Fleckerl from common.BOILED_YIELD (egg pasta 2.54x); the cabbage loses ~25 % water while braising (estimate); salt, pepper left out"),
-        flat_plate=dict(coverage=0.40, height_cm=3.0),
+        flat_plate=dict(coverage=0.49, height_cm=3.0),
         sources=[src(IK + "krautfleckerln-rezept-2000", R, "batch recipe: 200 g Fleckerl, 600 g Weißkraut, 150 g Zwiebeln, 1 EL Kristallzucker, 2 EL Öl oder Schmalz, Kümmel, 4 Portionen"),
                  src(GK + "krautfleckerl-rezept-2632", R, "cross-check: 300 g Fleckerl, 1 Weißkrautkopf ca. 600 g, 1 Zwiebel, 1 TL Zucker, 1/2 TL Kümmel, 1 EL Speckwürfel, Butter, 2 Portionen")]),
     "spinatknoedel": dict(
@@ -74,7 +74,7 @@ PARTS = {
                      ing("parmesan", 15, "garnish", "3 EL Parmesan frisch gerieben; 5 g per EL is an estimate")],
         cooking=dict(method="spinach-bread dough shaped into Knödel, simmered ~15 min, served with brown butter and Parmesan", mass_change_g=-150,
                      note="estimate: blanched spinach loses ~35 % water before it goes in, the dumplings take a little water back; salt left out. Portion = half the source batch (~3 Knödel)"),
-        flat_plate=dict(coverage=0.35, height_cm=4.0),
+        flat_plate=dict(coverage=0.4, height_cm=4.0),
         sources=[src(GK + "spinatknoedel-rezept-5086", R, "batch recipe: 500 g Blattspinat, 350 g Semmelwürfel, 2 Eier, 125 ml Milch, 2 EL Mehl, 1 kleine Zwiebel, Butter, 3 EL Parmesan, 2 Portionen"),
                  src(IK + "spinatknoedel-rezept-2664", R, "cross-check: 400 g Blattspinat, 200 g Erdäpfel, 2 Eier, 100 g Semmelbrösel, 100 g Butter zum Übergießen, 60 g Parmesan, 4 Portionen")]),
     "speckknoedel": dict(
@@ -97,7 +97,7 @@ PARTS = {
                      ing("parsley_leaf", 10, "seasoning", "0,5 Bund Petersilie; estimate"), ing("chives", 10, "seasoning", "0,5 Bund Schnittlauch; estimate"),
                      ing("sunflower_oil", 30, "absorbed_fat", "3 EL Sonnenblumenöl zum Backen; ~30 g taken up is an estimate")],
         cooking=dict(method="cheese-bread dough pressed flat, fried golden on both sides", mass_change_g=-80, note="estimate: ~10 % frying loss; salt left out"),
-        flat_plate=dict(coverage=0.30, height_cm=2.5),
+        flat_plate=dict(coverage=0.37, height_cm=2.5),
         sources=[src(GK + "kaspressknoedel-rezept-2152", R, "batch recipe: 250 g Semmelwürfel, 4 Eier, 125 ml Milch, 250 g Käse (Graukäse und Bergkäse), 50 g Mehl, 50 g Zwiebel, 50 g Butter, 3 EL Öl, 4 Portionen"),
                  src(IK + "kaspressknoedel-rezept-1676", R, "cross-check: 4 Semmeln, 2 Eier, 250 ml Milch, 200 g Pinzgauer oder anderer Schnittkäse, 2 gekochte Erdäpfel, 1 Zwiebel, Öl, 4 Portionen")]),
     "schwammerlsauce": dict(
@@ -119,7 +119,7 @@ PARTS = {
                      *broth("veg_bouillon_powder", 700, "700 ml Gemüsesuppe (klar)")],
         cooking=dict(method="meat stewed in the paprika-onion base, rice and Suppe added, cooked covered until the rice has taken up the liquid", mass_change_g=-250,
                      note="estimate: the meat loses ~25 % water, the rice takes up almost all the Suppe, a little steams off; Majoran, salt, pepper left out"),
-        flat_plate=dict(coverage=0.45, height_cm=3.0),
+        flat_plate=dict(coverage=0.47, height_cm=3.0),
         sources=[src(GK + "reisfleisch-rezept-3897", R, "batch recipe: 500 g Schweinsschulter, 250 g Langkornreis, 2 Zwiebeln, 2 EL Öl, 1,5 EL Paprika, 1 EL Tomatenmark, 700 ml Gemüsesuppe, 4 Portionen"),
                  src(IK + "reisfleisch-rezept-2135", R, "cross-check: 600 g Kalbsschulter, 150 g Langkornreis, 200 g Zwiebeln, 80 g Öl, 2 EL Paprika, 1 1/2 l Kalbssuppe, Reibkäse, 4 Portionen")]),
     "krautwickel": dict(
@@ -133,7 +133,7 @@ PARTS = {
                      ing("water", 150, "liquid", "150 ml Wasser, zum Binden")],
         cooking=dict(method="rolls browned, braised ~45 min in the bouillon, sauce bound with flour", mass_change_g=-700,
                      note="estimate: the meat loses ~20 % water, about half of the bouillon evaporates or is left over; Muskat (MISSING), salt, pepper left out"),
-        flat_plate=dict(coverage=0.40, height_cm=3.5),
+        flat_plate=dict(coverage=0.25, height_cm=3.5),
         sources=[src(GK + "krautwickel-rezept-5584", R, "batch recipe: 21 Bl Kraut, 500 g Faschiertes, 1 Ei, 1 EL Brösel, 4 kleine Zwiebeln, Senf, Paprika, Ketchup, 1 l Gemüsebouillon, 1 EL Mehl, 7 Portionen"),
                  src(IK + "krautwickel-rezept-191461", R, "cross-check: 1 Kopf Kraut, 50 dag Faschiertes, 2 Semmeln, 1 Ei, Majoran, Knoblauch, Paprika, 1 Zwiebel, 4 Portionen")]),
     "linsen_mit_speck": dict(
@@ -204,6 +204,6 @@ DISHES = [
 ]
 
 MISSING = [
-    dict(food_key="gherkin_plain", names={"de-AT": "Essiggurkerl", "hu": "csemegeuborka", "en": "pickled gherkin"}, needed_for=["at_linsen_mit_speck_knoedel (50 g Gurkerl-Kapern-Sardellen)"],
+    dict(food_key="gherkin_plain", names={"de-AT": "Essiggurkerl", "hu": "csemegeuborka", "en": "pickled gherkin"}, needed_for=["linsen_mit_speck (50 g Gurkerl-Kapern-Sardellen)", "fiaker_garnitur (1 Essiggurkerl per portion)", "sauce_tartare (1 EL Cornichons)", "rindfleischsalat (2 Gurkerl, 6 EL Gurkenwasser)"],
          note="BLS 4.0 lists only Salzdillgurke (milchsauer, G890702) and sweet-sour Honig-/Senfgurke; an Austrian Essiggurkerl (vinegar-pickled) is none of these. Left out, as in hu-missing-foods."),
 ]

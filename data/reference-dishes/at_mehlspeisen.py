@@ -19,7 +19,7 @@ PARTS = {
                      ing("raisins", 10, note="1 EL Rosinen; 10 g is an estimate"), ing("butter", g(1, "ek_butter"), "fat", "1 EL Butter for the pan"),
                      ing("powdered_sugar", 10, "garnish", "1 Prise Staubzucker zum Bestreuen; 10 g is an estimate")],
         cooking=dict(method="thick pancake batter (beaten whites folded in) baked in butter, torn in pieces, caramelised", mass_change_g=-50, note="estimate: ~15 % of the batter water steams off; salt left out. Zwetschkenröster/Apfelmus served with it are not included"),
-        flat_plate=dict(coverage=0.45, height_cm=3.0),
+        flat_plate=dict(coverage=0.39, height_cm=3.0),
         sources=[src(GK + "kaiserschmarrn-rezept-180", R, "batch recipe: 3 Eier, 60 g Mehl, 125 ml Milch, 2 EL Kristallzucker, 1 Pk Vanillezucker, 1 EL Rosinen, 1 EL Butter, Staubzucker, 2 Portionen"),
                  src(GK + "kaiserschmarrn-rezept-1765", R, "cross-check: 4 Eier, 130 g Mehl, 300 ml Milch, 100 g Staubzucker, 80 g Rosinen, 100 g Butter, 1 EL Butterschmalz, Rum, 4 Portionen")]),
     "marillenknoedel": dict(
@@ -30,7 +30,7 @@ PARTS = {
                      ing("sugar", 18, note="6 Stk Würfelzucker; 3 g each is an estimate"), ing("butter", g(1, "ek_butter"), "fat", "1 EL Butter - " + BUTTERBROESEL),
                      ing("breadcrumbs", 140, "coating", "140 g Semmelbrösel - " + BUTTERBROESEL), ing("powdered_sugar", g(5, "ek_powdered_sugar"), "garnish", "5 EL Staubzucker zum Bestreuen")],
         cooking=dict(method="quark dough wrapped round apricots, simmered ~12 min, rolled in Butterbrösel", mass_change_g=25, note="estimate: dumplings take up ~5 % water; salt left out. 2 Knödel per portion"),
-        flat_plate=dict(coverage=0.30, height_cm=4.0),
+        flat_plate=dict(coverage=0.34, height_cm=4.0),
         sources=[src(GK + "marillenknoedel-mit-topfenteig-rezept-784", R, "batch recipe: 1 Ei, 250 g Magertopfen, 70 g Margarine/Butter, 130 g Mehl, 6 Marillen, 6 Würfelzucker, 1 EL Butter, 140 g Semmelbrösel, 5 EL Staubzucker, 3 Portionen"),
                  src(IK + "marillenknoedel-rezept-4270", R, "cross-check (Erdäpfelteig): 500 g Erdäpfel, 50 g Butter, 2 Dotter, 200 g Mehl, 50 g Grieß, 16-20 Marillen, Butterbrösel, Staubzucker")]),
     "apfelstrudel": dict(
@@ -41,7 +41,7 @@ PARTS = {
                      ing("powdered_sugar", 150, note="150 g Staubzucker"), ing("vanilla_sugar", 4, note="0,5 Pk Vanillezucker"), ing("lemon_juice", 22, "seasoning", "0,5 Zitrone (Saft)"),
                      ing("powdered_sugar", 5, "garnish", "1 Prise Staubzucker zum Bestreuen")],
         cooking=dict(method="stretched Strudelteig filled with apples, rolled, baked ~45 min at 180 °C", mass_change_g=-200, note="estimate: apples and dough lose ~13 % water while baking; cinnamon (MISSING), salt left out; the flour for the cloth is not eaten"),
-        flat_plate=dict(coverage=0.25, height_cm=5.0),
+        flat_plate=dict(coverage=0.14, height_cm=5.0),
         sources=[src(GK + "apfelstrudel-rezept-177", R, "batch recipe: 250 g Mehl, 1 EL Öl, 125 ml Wasser, 0,75 kg Äpfel, 80 g Mandeln, 150 g Rosinen, 150 g Staubzucker, 1/2 Pk Vanillezucker, 1/2 Zitrone, 6 Portionen"),
                  src(IK + "apfelstrudel-rezept-3159", R, "cross-check: 250 g Mehl, 1 Ei, 14 Äpfel, 50 g Rosinen, 100 g Walnüsse, 6 EL Semmelbrösel, 2 EL Butter, Staubzucker, Rum, Zimt, 4 Portionen")]),
     "topfenstrudel": dict(
@@ -53,7 +53,7 @@ PARTS = {
                      ing("sugar", 100, note="100 g Zucker"), ing("egg_yolk", 18, "coating", "1 Eidotter zum Bestreichen")],
         cooking=dict(method="stretched dough filled with sweet quark, rolled, baked ~40 min", mass_change_g=-120,
                      note="estimate: ~10 % baking loss. The page says 2 Portionen for one whole strudel; standard serving = one slice of ~150 g (about 1/7)"),
-        flat_plate=dict(coverage=0.20, height_cm=5.0),
+        flat_plate=dict(coverage=0.12, height_cm=5.0),
         sources=[src(GK + "topfenstrudel-rezept-3896", R, "batch recipe: 250 g Mehl, 60 ml Öl, 125 ml Wasser, 2 alte Semmeln, 100 g Butter, 3 Eier, Rosinen, 250 g Topfen, 1 Pk Vanillezucker, 100 g Zucker, 1 Eidotter"),
                  src(IK + "topfenstrudel-rezept-4564", R, "cross-check: 250 g Mehl, 1 Ei, 80 ml Wasser, 120 g Butter, 160 g Zucker, 6 Eier, 500 g Topfen 20 %, 225 ml Sauerrahm, 60 g Rosinen")]),
     "germknoedel": dict(
@@ -65,7 +65,7 @@ PARTS = {
                      ing("powdered_sugar", 100, "garnish", "100 g Staubzucker"), ing("poppy_seed_ground", 100, "garnish", "100 g Graumohn gerieben"),
                      ing("butter", 200, "fat", "200 g Butter flüssig, zum Beträufeln")],
         cooking=dict(method="yeast dough filled with Powidl, steamed ~15 min, drizzled with butter, sprinkled with poppy sugar", mass_change_g=-30, note="estimate: a little water steams off the dough; salt left out"),
-        flat_plate=dict(coverage=0.30, height_cm=6.0),
+        flat_plate=dict(coverage=0.31, height_cm=6.0),
         sources=[src(IK + "germknoedel-rezept-1822", R, "batch recipe: 120 ml Milch, 12 g Germ, 250 g Mehl, 3 EL Butter, 1 Ei, 1 Dotter, 1 EL Zucker, 120 g Powidl, 100 g Staubzucker, 100 g Graumohn, 200 g Butter, 4 Portionen"),
                  src(IK + "germknoedel-rezept-34865", R, "cross-check: 250 g Mehl, 10 g Germ, 25 g Butter, 62,5 ml Milch, 10 g Zucker, 1 Dotter, 100 g Powidl, 50 g Butter, 50 g Mohn, 6 Portionen")]),
     "salzburger_nockerl": dict(
@@ -76,7 +76,7 @@ PARTS = {
                      ing("sugar", g(3, "ek_sugar"), note="3 EL Kristallzucker"), ing("egg_yolk", 54, note="3 Eigelb; 18 g each"), ing("wheat_flour", g(2, "ek_flour"), note="2 EL Mehl glatt"),
                      ing("powdered_sugar", 10, "garnish", "Staubzucker zum Bestreuen; 10 g is an estimate")],
         cooking=dict(method="meringue with yolks and flour heaped on warm milk, baked ~12 min at 220 °C", mass_change_g=-45, note="estimate: ~10 % baking loss; orange zest and salt left out"),
-        flat_plate=dict(coverage=0.40, height_cm=6.0),
+        flat_plate=dict(coverage=0.17, height_cm=6.0),
         sources=[src(IK + "salzburger-nockerln-rezept-4104", R, "batch recipe: 125 ml Vollmilch, 1 EL Butter, 1 Pkg. Vanillezucker, 6 Eiweiß, 3 EL Kristallzucker, 3 Eigelb, 2 EL Mehl, Staubzucker, 4 Portionen"),
                  src(IK + "salzburger-nockerl-rezept-5981", R, "cross-check: 5 Eier, 3 EL Kristallzucker, 1 EL Vanillezucker, 1 EL Mehl, 2 Portionen")]),
     "sachertorte": dict(
@@ -87,7 +87,7 @@ PARTS = {
                      ing("sugar", 110, note="110 g Kristallzucker"), ing("wheat_flour", 130, note="130 g Mehl"), ing("jam", 160, note="8 EL Marillenmarmelade (BLS Konfitüre extra)"),
                      ing("sacher_glaze", 250, "coating", "2 Becher Schokoladenglasur; 125 g per Becher is an estimate")],
         cooking=dict(method="chocolate sponge baked ~50 min at 170 °C, brushed with apricot jam, glazed", mass_change_g=-90, note="estimate: ~10 % baking loss of the batter; butter and flour for the tin left out. 12 slices"),
-        flat_plate=dict(coverage=0.12, height_cm=6.0),
+        flat_plate=dict(coverage=0.04, height_cm=6.0),
         sources=[src(IK + "sachertorte-rezept-4574", R, "batch recipe: 6 Eier, 130 g Butter, 110 g Staubzucker, 130 g Bitterschokolade, 1 Pkg. Vanillezucker, 110 g Kristallzucker, 130 g Mehl, 8 EL Marillenmarmelade, 2 Becher Schokoladenglasur, 12 Portionen"),
                  src(IK + "sachertorte-rezept-10364", R, "cross-check: 200 g Butter, 300 g Staubzucker, 8 Eier, 200 g Schokolade, 100 g Mehl, Backpulver, Marillenmarmelade, Schokoglasur")]),
     "linzer_torte": dict(
@@ -98,7 +98,7 @@ PARTS = {
                      ing("almond", 300, note="300 g Nüsse gerieben, zB. Mandeln"), ing("jam", g(3, "ek_jam"), note="3 EL Ribiselmarmelade (BLS Konfitüre extra)")],
         cooking=dict(method="nut shortcrust, jam, lattice, baked ~1 h at 170 °C", mass_change_g=-90,
                      note="estimate: ~8 % baking loss. The page gives one cake without a slice count: 12 slices assumed. 2 EL Wein (MISSING dry_white_wine), lemon zest, cinnamon (MISSING) left out"),
-        flat_plate=dict(coverage=0.12, height_cm=3.0),
+        flat_plate=dict(coverage=0.08, height_cm=3.0),
         sources=[src(IK + "linzer-torte-rezept-100", R, "batch recipe: 150 g Mehl, 1 EL Backpulver, 200 g Zucker, 3 Dotter, 250 g Butter, 100 g Brösel, 300 g Nüsse (Mandeln), 3 EL Ribiselmarmelade, 1 Torte"),
                  src(IK + "linzer-torte-rezept-1764", R, "cross-check: 300 g Mehl, 300 g Haselnüsse, 220 g Zucker, 300 g Butter, 1 Ei, 1 Dotter, 1 Glas Ribiselmarmelade, 1 Torte")]),
     "topfenknoedel": dict(
@@ -108,7 +108,7 @@ PARTS = {
                      ing("toast_bread", 200, note="200 g Toastbrot entrindet"), ing("sauerrahm", 153, note="150 ml Sauerrahm"), ing("wheat_flour", 120, note="120 g Mehl"),
                      ing("butter", 100, "fat", "100 g Butter - " + BUTTERBROESEL), ing("breadcrumbs", 80, "coating", "80 g Semmelbrösel - " + BUTTERBROESEL)],
         cooking=dict(method="dough rested, Knödel simmered ~12 min, rolled in Butterbrösel", mass_change_g=50, note="estimate: ~5 % water uptake; lemon zest and salt left out"),
-        flat_plate=dict(coverage=0.30, height_cm=4.0),
+        flat_plate=dict(coverage=0.3, height_cm=4.0),
         sources=[src(IK + "topfenknoedel-rezept-4568", R, "batch recipe: 100 g Butter, 4 Eier, 200 g Topfen mager, 200 g Toastbrot, 150 ml Sauerrahm, 120 g Mehl, 100 g Butter, 80 g Semmelbrösel, 4 Portionen"),
                  src(IK + "topfenknoedel-rezept-1819", R, "cross-check: 2 Eier, 2 Dotter, 500 g Topfen 20 %, 180 g Toastbrot, 80 g Butter, 1 EL Maisstärke, Vanillezucker, Zuckerbrösel, 6 Portionen")]),
     "mohnnudeln": dict(
@@ -118,7 +118,7 @@ PARTS = {
                      ing("semolina_soft", 50, note="50 g Weizengrieß"), ing("wheat_flour", 100, note="100 g Weizenmehl (glatt, W480)"),
                      ing("butter", g(1, "ek_butter"), "fat", "1 EL Butter to toss"), ing("poppy_seed_ground", 100, note="100 g Mohn (gemahlen)"), ing("powdered_sugar", 80, note="80 g Staubzucker")],
         cooking=dict(method="potato dough rolled into finger noodles, simmered, tossed in butter, poppy seed and sugar", mass_change_g=20, note="estimate: ~2 % water uptake; salt left out"),
-        flat_plate=dict(coverage=0.40, height_cm=2.5),
+        flat_plate=dict(coverage=0.43, height_cm=2.5),
         sources=[src(GK + "mohnnudeln-rezept-179", R, "batch recipe: 50 g Butter, 1 Dotter, 500 g Kartoffeln, 50 g Weizengrieß, 100 g Mehl, 1 EL Butter, 100 g Mohn, 80 g Staubzucker, 4 Portionen"),
                  src(IK + "mohnnudeln-rezept-8475", R, "cross-check: 600 g Kartoffeln, 140 g Vollkornmehl, 2 Eier, 100 g Mohn gemahlen, 4 TL Staubzucker, 4 Portionen")]),
     "scheiterhaufen": dict(
@@ -128,7 +128,7 @@ PARTS = {
                      ing("sugar", 50, note="50 g Zucker"), ing("apple_peeled", 250, note="250 g Äpfel"), ing("hazelnut", 30, note="30 g Haselnüsse"),
                      ing("raisins", 30, note="30 g Rosinen"), ing("butter", 50, "fat", "50 g Butter")],
         cooking=dict(method="sliced Semmeln soaked in egg milk, layered with apples, baked ~45 min", mass_change_g=-115, note="estimate: ~10 % baking loss; salt left out. The meringue top of some versions is not in this source"),
-        flat_plate=dict(coverage=0.30, height_cm=4.0),
+        flat_plate=dict(coverage=0.4, height_cm=4.0),
         sources=[src(GK + "scheiterhaufen-rezept-1775", R, "batch recipe: 6 Semmeln, 0,25 l Milch, 2 Eier, 50 g Zucker, 250 g Äpfel, 30 g Haselnüsse, 30 g Rosinen, 50 g Butter, 4 Portionen"),
                  src(IK + "scheiterhaufen-rezept-2270", R, "cross-check: 10 Semmeln, 750 ml Milch, 4 Eier, 4 Dotter, 4 Eiklar, 160 g Kristallzucker, 1 kg Äpfel, 150 g Rosinen, 6 Portionen")]),
     "griessschmarrn": dict(
@@ -137,7 +137,7 @@ PARTS = {
         ingredients=[ing("milk_whole", 1030, "liquid", "1 l Milch"), ing("semolina_soft", 350, note="350 g Grieß"), ing("butter", 100, "fat", "100 g Butter"),
                      ing("raisins", 120, note="120 g Rosinen"), ing("vanilla_sugar", g(2, "pkg_vanilla_sugar"), note="2 EL Vanillezucker (~2 Pk)")],
         cooking=dict(method="semolina cooked thick in milk, then roasted in butter and torn into crumbs", mass_change_g=-240, note="estimate: ~15 % of the milk water steams off while roasting; salt left out"),
-        flat_plate=dict(coverage=0.45, height_cm=3.0),
+        flat_plate=dict(coverage=0.62, height_cm=3.0),
         sources=[src(GK + "griessschmarrn-rezept-11778", R, "batch recipe: 100 g Butter, 350 g Grieß, 1 l Milch, 120 g Rosinen, 2 EL Vanillezucker, 4 Portionen"),
                  src(IK + "griessschmarrn-rezept-34402", R, "cross-check: 60 g Grieß, 125 ml Milch, 2 Eier, 2 TL Zucker, 1 EL Butterschmalz, 4 Portionen")]),
     "powidltascherl": dict(
@@ -147,7 +147,7 @@ PARTS = {
                      ing("egg_white", 33, "coating", "1 Eiklar zum Bestreichen"), ing("semolina_soft", 50, note="50 g Weichweizengrieß"), ing("wheat_flour", 200, note="200 g Weizenmehl"),
                      ing("plum_butter", 150, note="150 g Powidl"), ing("rum", 10, "seasoning", "2 TL Rum"), ing("breadcrumbs", 200, "coating", "200 g Brösel, toasted, the Tascherl are rolled in them (estimate: all eaten)")],
         cooking=dict(method="potato dough filled with Powidl, simmered, rolled in toasted crumbs", mass_change_g=30, note="estimate: ~3 % water uptake; cinnamon (MISSING), salt left out"),
-        flat_plate=dict(coverage=0.30, height_cm=3.0),
+        flat_plate=dict(coverage=0.28, height_cm=3.0),
         sources=[src(GK + "powidltascherl-rezept-3459", R, "batch recipe: 200 g Brösel, 20 g Butter, 1 Eidotter, 1 Eiklar, 400 g Kartoffeln, 50 g Grieß, 200 g Mehl, 150 g Powidl, 2 TL Rum, 6 Portionen"),
                  src(IK + "powidltascherln-rezept-3164", R, "cross-check: 500 g Mehl, 3 Eier, Powidl, 150 g Butter, 130 g Semmelbrösel, Zimt und Zucker, 4 Portionen")]),
     "milchrahmstrudel": dict(
@@ -164,7 +164,7 @@ PARTS = {
                      ing("milk_whole", 258, "liquid", "250 ml Milch (Royale poured over)"), ing("sunflower_oil", 28, "fat", "30 ml Öl"),
                      ing("powdered_sugar", 50, "garnish", "50 g Staubzucker zum Bestreuen")],
         cooking=dict(method="strudel with soaked-Semmel milk-cream filling baked in milk Royale, served with vanilla sauce", mass_change_g=-250, note="estimate: ~10 % baking loss; lemon zest, salt left out. The vanilla sauce of the source is part of the serving"),
-        flat_plate=dict(coverage=0.30, height_cm=4.0),
+        flat_plate=dict(coverage=0.22, height_cm=4.0),
         sources=[src(GK + "millirahmstrudel-rezept-894", R, "batch recipe: Strudelteig (250 g Mehl, 1 Ei), filling (150 g Butter, 5 Eier, 50 g Zucker, 200 ml Sauerrahm, 200 ml Schlagobers, 5 Semmeln, 50 g Rosinen), Royale, Vanillesauce (500 ml Milch, 1 Pk Puddingpulver), 10 Portionen"),
                  src(IK + "milchrahmstrudel-rezept-4565", R, "cross-check: 1/4 kg Mehl, 8 Semmeln, 1/4 l Milch, 130 g Butter, 100 g Zucker, 4 Dotter, 150 ml Rahm, 100 g Topfen, 60 g Rosinen, Guss, Vanillecreme, 7 Portionen")]),
     "topfenpalatschinken": dict(
@@ -178,7 +178,7 @@ PARTS = {
                      ing("vanilla_sugar", g(1, "pkg_vanilla_sugar"), note="1 Pk Vanillezucker"), ing("sugar", g(1, "ek_sugar"), note="1 EL Zucker"),
                      ing("powdered_sugar", g(2, "ek_powdered_sugar"), "garnish", "2 EL Staubzucker zum Bestreuen")],
         cooking=dict(method="Palatschinken filled with sweet quark, covered with egg-milk Guss, baked ~25 min", mass_change_g=-140, note="estimate: ~10 % baking loss; lemon zest, salt left out"),
-        flat_plate=dict(coverage=0.40, height_cm=3.0),
+        flat_plate=dict(coverage=0.28, height_cm=3.0),
         sources=[src(GK + "topfenpalatschinken-rezept-972", R, "batch recipe: Palatschinken (2 Eier, 100 g Mehl, 250 ml Milch), Fülle (250 g Topfen, 30 g Butter, 120 g Zucker, 2 Eier, 50 g Rosinen, 1 EL Rum), Guss (1 Ei, 125 ml Milch, 125 ml Schlagobers), 4 Portionen"),
                  src(IK + "topfenpalatschinken-rezept-24371", R, "cross-check: 200 g Mehl, 250 ml Milch, 125 g Schlagobers, 3 Eier, Fülle 250 g Topfen, 40 g Butter, 60 g Zucker, 75 g Rosinen, Guss 250 ml Milch, 2 Portionen")]),
     "vanillekipferl": dict(
@@ -200,7 +200,7 @@ PARTS = {
                      ing("dark_chocolate", 50, "coating", "5 EL Schokolade (flüssig); ~10 g per EL is an estimate"), ing("almond", 200, "coating", "200 g Mandelblättchen (geröstet)")],
         cooking=dict(method="almond meringue layers baked, filled with butter cream, fondant top with chocolate feathering", mass_change_g=-150,
                      note="estimate: meringue layers and cream cook lose ~7 %. The page gives one cake: 16 slices assumed. 2 EL Kaffeelikör (no catalog record) left out"),
-        flat_plate=dict(coverage=0.12, height_cm=6.0),
+        flat_plate=dict(coverage=0.04, height_cm=6.0),
         sources=[src(GK + "esterhazytorte-rezept-6756", R, "batch recipe: 8 Eiklar, 220 g Mandeln, 240 g Staubzucker, 50 g Mehl, 250 g Butter, 8 Dotter, 80 g Zucker, 250 ml Milch, 300 g Fondant, 80 g Marillenmarmelade, 200 g Mandelblättchen, 1 Torte"),
                  src(IK + "esterhazytorte-rezept-3315", R, "cross-check: 6 Eiklar, 200 g Zucker, 200 g Mandeln, Fülle (6 Dotter, 80 g Zucker, 1/4 l Milch, 25 g Maisstärke, 200 g Butter), Glasur 350 g Staubzucker, 1 Torte")]),
 }
@@ -271,6 +271,8 @@ DISHES = [
 ]
 
 MISSING = [
-    dict(food_key="cinnamon", names={"de-AT": "Zimt", "hu": "fahéj", "en": "cinnamon"}, needed_for=["at_apfelstrudel", "at_linzer_torte", "at_powidltascherl (a pinch each)"],
+    dict(food_key="cinnamon", names={"de-AT": "Zimt", "hu": "fahéj", "en": "cinnamon"}, needed_for=["apfelstrudel, linzer_torte, powidltascherl, nussschnecke, milchreis, kebap_fleisch (a pinch each)"],
          note="No ground-cinnamon record in BLS 4.0 or the catalog (only composite foods 'mit Zimt'); left out, as in hu-missing-foods."),
+    dict(food_key="coffee_liqueur", names={"de-AT": "Kaffeelikör", "hu": "kávélikőr", "en": "coffee liqueur"}, needed_for=["esterhazytorte (2 EL)"],
+         note="No coffee-liqueur record in BLS 4.0 or the catalog; left out."),
 ]

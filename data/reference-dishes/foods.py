@@ -251,6 +251,20 @@ FOOD_KEYS = {
     "ajvar":              ("ajvár", "Ajvar Konserve", "ajvar (pepper relish)", "bls:G898400", "total", 68, 4.4, 0.9, 7.2, 2.2, 1.05, 1.05, None),  # BLS: Ajvar Konserve
     "pineapple":          ("ananász", "Ananas", "pineapple", "bls:F501100", "total", 46, 0.1, 0.5, 10.8, 1.4, 1.0, 0.6, "fresh (ichkoche allows 'frisch oder aus der Dose')"),  # BLS: Ananas roh
     "lambs_lettuce":      ("galambbegysaláta (Vogerlsalat)", "Feldsalat (Vogerlsalat)", "lamb's lettuce", "bls:G104100", "total", 18, 0.36, 1.9, 2.608, 1.8, 0.95, 0.15, None),  # BLS: Feldsalat/Rapunzel, roh
+    # at_streetfood
+    "kaesekrainer":       ("sajtos kolbász (Käsekrainer)", "Käsekrainer/Käsewürstchen", "cheese-filled sausage (Käsekrainer)", "bls:W255300", "total", 192, 14.17, 15.9, 0.1, 0.04, 1.0, 0.8, None),  # BLS: Käsekrainer/Käsewürstchen
+    "curry_bratwurst":    ("currykolbász", "Currybratwurst", "currywurst sausage", "bls:W221300", "total", 215, 19.01, 10.92, 0.06, 0.02, 1.0, 0.8, None),  # BLS: Currybratwurst
+    "curry_ketchup":      ("curry-ketchup", "Curry-Gewürzketchup", "curry ketchup", "bls:R141200", "total", 98, 0.1, 1.4, 22.97, 1.81, 1.14, 1.14, None),  # BLS: Curry-Gewürzketchup
+    "baguette_roll":      ("bagett zsemle", "Weizenbaguettebrötchen", "baguette roll", "bls:B781300", "total", 289, 1.51, 9.6, 61.25, 4.25, 0.25, 0.25, None),  # BLS: Weizenbaguettebrötchen
+    "veal_shoulder":      ("borjúlapocka", "Kalb Bug/Schulter", "veal shoulder", "bls:U461100", "total", 94, 1.01, 21.2, 0, 0, 1.05, 0.8, None),  # BLS: Kalb Bug/Schulter, roh
+    "mutton_fat":         ("birkafaggyú (Hammelspeck)", "Schaf Fettgewebe, intermuskulär", "mutton fat tissue", "bls:U805800", "total", 637, 68.5, 5.06, 0, 0, 0.92, 0.8, None),  # BLS: Schaf Fettgewebe, intermuskulär roh
+    "mackerel":           ("makréla", "Makrele", "mackerel", "bls:T107100", "total", 149, 8.31, 18.6, 0, 0, 1.05, 0.8, "grams = edible part"),  # BLS: Makrele roh
+    "chestnut":           ("gesztenye (Maroni)", "Edelkastanie/Marone", "sweet chestnut", "bls:H230100", "total", 210, 1.9, 2.925, 49.57, 8.37, 1.0, 0.6, "grams = peeled kernel"),  # BLS: Edelkastanie/Marone
+    "fried_onions":       ("pirított hagyma (készen)", "Röstzwiebeln (Fertigprodukt)", "crispy fried onions", "bls:G860192", "total", 575, 44.48, 5.9, 39.97, 5.6, 0.3, 0.3, None),  # BLS: Röstzwiebeln (Fertigprodukt)
+    "potato_starch":      ("burgonyakeményítő", "Kartoffelstärke", "potato starch", "bls:K230000", "total", 338, 0.1, 0.614, 84.1, 1, 1.0, 0.6, None),  # BLS: Kartoffelstärke (Kartoffelmehl)
+    "tomato_canned":      ("hámozott paradicsom (konzerv)", "Tomate geschält, Konserve", "canned peeled tomatoes", "bls:G568900", "total", 24, 0.3, 1.2, 4.15, 0.9, 1.02, 1.02, None),  # BLS: Tomate geschält, Konserve
+    "banana":             ("banán", "Banane", "banana", "bls:F503100", "total", 79, 0.4, 1.319, 17.89, 2, 0.95, 0.6, "grams = peeled"),  # BLS: Banane roh
+    "kiwi":               ("kivi", "Kiwi", "kiwi", "bls:F514100", "total", 61, 0.5, 0.9, 14, 3.9, 1.0, 0.6, "grams = peeled"),  # BLS: Kiwi roh
 }
 
 # Keys whose fat renders out when meat is roasted, pan-fried or grilled
