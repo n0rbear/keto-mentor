@@ -1,9 +1,25 @@
 # Referenciaételek – regionális katalógus (HU, AT, DE)
 
-Állapot: **1. fázis: formátum és generátor**, kategóriánként egy-két mintával. A teljes
-országos készletek a 2–4. fázisban (HU, AT, DE), a láncok az 5., az egységsúlyok és
-aliasok a 6. fázisban jönnek. Feladatleírás: `docs/REGIONAL_DATABASE_BRIEF.md`.
+Állapot: **3. fázis: Ausztria** kész (65 hagyományos, 62 mindennapi, 26 street food étel az
+1. fázis mintáin felül, köretváltozatok nélkül). A 2. fázis (HU) kész; DE a 4., a láncok az 5.,
+az egységsúlyok és aliasok a 6. fázisban jönnek. Feladatleírás: `docs/REGIONAL_DATABASE_BRIEF.md`.
 
+### 3. fázis (AT) röviden
+
+- Modulok: `at_traditionell.py` (húsételek, köretek), `at_knoedel_nudeln.py`, `at_suppen.py`,
+  `at_mehlspeisen.py`, `at_fruehstueck.py` (reggeli, Jause, pékáru), `at_alltag.py` (otthon, menza,
+  saláták), `at_streetfood.py`; az `at.py` tölti be őket (`PHASE3_MODULES`).
+- Források: gutekueche.at és ichkoche.at receptek dátummal; péksüteményeknél és virsliknél a darabsúly
+  két SPAR-termék átlaga (SPAR termékkereső), a tápérték a BLS pékáru-/húskészítmény-rekordja.
+- A magyarral azonos receptű ételek (pl. Palatschinken, Spiegelei, Hühnerschnitzel, Pommes, Langos,
+  Gyros, Döner) a meglévő HU ételt kapják meg `AT` országgal és egy AT-forrással; ahol az osztrák
+  recept más (Krautfleckerl, Topfenknödel, Mohnnudeln, Eiernockerl stb.), külön AT étel készült.
+- Alias-ütközés: ha két étel ugyanazt a kifejezést állítja, az nyer, amelyiket a nyelv országában
+  eszik (`de-AT` → AT, `hu` → HU, `de` → DE); egyenlő igény esetén választás marad (`build.NATIVE_COUNTRY`).
+- Hiányzó BLS-rekordok: `bls-imports-at.json` → migráció `20261005120000_bls_regional_at` (csak beszúrás).
+  Ami a BLS-ben sincs (bor 'TR' zsírértékkel, fűszerek, Essiggurkerl), az az `at-missing-foods.md`-ben;
+  a fő összetevő nélküli ételek (Burenwurst, Käferbohnensalat, Grammelknödel) az AT `INVENTORY`-ban, okkal.
+- Osztrák mértékegységek: `common.MEASURE_G` (dag, Pkg., Würfel, Becher, Msp., EL/TL).
 ## Formátumdöntés
 
 A kézzel írt igazságforrás **országonként egy Python-modul**, hogy egy átnéző egyszerre

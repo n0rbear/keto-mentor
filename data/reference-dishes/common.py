@@ -53,6 +53,23 @@ MEASURE_G = {
     "db_carrot": 80, "db_parsley_root": 70, "db_egg": 50, "db_lemon_juice": 45, "fej_kohlrabi": 250,
 }
 
+# Austrian recipe measures (gutekueche.at, ichkoche.at). EL/TL are the same
+# spoons as ek/tk, so they reuse the keys above; the note keeps the source's
+# own word ("2 EL Mehl"). Mass units: 1 dag (Dekagramm, "dkg") = 10 g. Packs
+# are the Austrian retail sizes: Vanillezucker 8 g, Backpulver 16 g, Germ
+# (Hefewürfel) 42 g, Trockengerm 7 g; a Becher of Sauerrahm, Schlagobers or
+# Joghurt is 250 g. Msp. (Messerspitze) of a spice ~0.5 g. One Semmel 62.5 g
+# (at.py SERVINGS). Spoon weights of other foods follow the same density
+# logic as above (1 EL ~ 15 ml).
+MEASURE_G.update({
+    "dag": 10, "ek_butter": 15, "ek_milk": 15, "ek_cream": 15, "ek_water": 15, "ek_breadcrumbs": 8, "ek_semolina": 12,
+    "ek_powdered_sugar": 8, "ek_honey": 20, "ek_mustard": 15, "ek_jam": 20, "ek_mayonnaise": 15, "ek_chopped_herbs": 4,
+    "ek_ketchup": 17, "tk_sugar": 4, "tk_oil": 4.5, "tk_butter": 5, "tk_mustard": 5, "msp_spice": 0.5,
+    "pkg_vanilla_sugar": 8, "pkg_baking_powder": 16, "wuerfel_yeast": 42, "pkg_dry_yeast": 7,
+    "becher_sour_cream": 250, "becher_cream": 250, "becher_yogurt": 250, "stk_semmel": 62.5,
+    "l_milk": 1030,
+})
+
 
 # Fat that stays in roasted/fried/grilled meat when the drippings are NOT
 # eaten (cooking.drippings = "oven" | "pan" | "grill"). Medians of the BLS 4.0

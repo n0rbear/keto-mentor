@@ -149,7 +149,8 @@ PARTS = {
         cooking=dict(method="marinated overnight, roasted >1 h under foil, then uncovered until browned", mass_change_g=-330, drippings="oven",
                      note="meat loses ~35%, onion ~25% (estimates). Source gives no yield; 4 portions is an estimate. Gyros spice mix, salt, pepper left out"),
         flat_plate=dict(coverage=0.30, height_cm=2.0),
-        sources=[src(U_GYROS_TAL, R, "batch recipe (meat part)"), src(U_GYROS_MM, R, "cross-check: 60 dkg színhús, görög fűszer, 2-3 ek olaj, serpenyőben pirítva")]),
+        sources=[src(U_GYROS_TAL, R, "batch recipe (meat part)"), src(U_GYROS_MM, R, "cross-check: 60 dkg színhús, görög fűszer, 2-3 ek olaj, serpenyőben pirítva"),
+                 src("https://www.gutekueche.at/gyros-rezept-38489", "2026-10-05", "AT cross-check (phase 3): Gyros (Fleisch, Zwiebel, Knoblauch, Öl, Gyrosgewürz), 2 Portionen - same dish class")]),
     "gyros_zoldseg_ontet": dict(
         names={"hu": "Gyros saláta tejfölös-fokhagymás öntettel", "de": "Gyros-Salat mit Knoblauch-Sauerrahm-Sauce", "en": "Gyros salad with garlic sour-cream sauce"},
         matrix="dry", bulk_density_g_ml=0.70, servings_source=4, standard_serving_g=150,
@@ -178,7 +179,8 @@ PARTS = {
                      note="meat loses ~30% and part of the marinade drips off (estimate). Cumin, oregano, thyme, chili, marjoram, coriander, ginger, salt, pepper left out"),
         flat_plate=dict(coverage=0.30, height_cm=2.0),
         sources=[src("https://sobors.hu/receptek/hazi-csirkes-doner-recept/", R, "batch recipe, 6 személy"),
-                 src("https://www.mindmegette.hu/recept/doner", R, "cross-check: 1 kg hús, gyros fűszer, fokhagyma, nyárson sütve, joghurtos-fokhagymás öntet")]),
+                 src("https://www.mindmegette.hu/recept/doner", R, "cross-check: 1 kg hús, gyros fűszer, fokhagyma, nyárson sütve, joghurtos-fokhagymás öntet"),
+                 src("https://www.ichkoche.at/doener-kebab-rezept-145256", "2026-10-05", "AT cross-check (phase 3): Döner Kebab, Fleisch (alternativ Hühnerfleisch), Paradeiser, Salat, Joghurtsauce - Hühnerkebap")]),
     # ---- falafel wrap -----------------------------------------------------------------------
     "falafel_wrap": dict(
         names={"hu": "Falafel wrap", "de": "Falafel-Wrap", "en": "Falafel wrap"},
@@ -299,7 +301,8 @@ PARTS = {
         cooking=dict(method="cut in finger-thick sticks, dried, deep-fried until golden", mass_change_g=-380, note="~38% water loss while frying (estimate); salt left out"),
         flat_plate=dict(coverage=0.30, height_cm=3.0),
         sources=[src("https://www.receptneked.hu/recept/hasabburgonya", R, "batch recipe, 4 adag"),
-                 src("https://falatozz.hu/recept/hasabburgonya", R, "cross-check: 1 kg burgonya, 1 liter napraforgóolaj")]),
+                 src("https://falatozz.hu/recept/hasabburgonya", R, "cross-check: 1 kg burgonya, 1 liter napraforgóolaj"),
+                 src("https://www.gutekueche.at/pommes-frites-rezept-1492", "2026-10-05", "AT cross-check (phase 3): 1 kg Kartoffeln, Fett, 4 Portionen - same Pommes frites")]),
     "gofri": dict(
         names={"hu": "Gofri", "de": "Waffel (Gofri)", "en": "Waffle (gofri)"},
         matrix="solid", servings_source=6, standard_serving_g=100,
@@ -310,8 +313,8 @@ PARTS = {
                  src("https://www.mindmegette.hu/recept/gofri", R, "cross-check: 30 dkg liszt, 4 dl tej, 2 tojás, 5 dkg margarin, élesztő, 4 adag")]),
 }
 
-def _d(id, hu, de, en, parts, served, tags, al, **kw):
-    return dict(id=id, countries=["HU"], category="street_food", part_refs=parts, served_in=served, tags=tags,
+def _d(id, hu, de, en, parts, served, tags, al, countries=("HU",), **kw):
+    return dict(id=id, countries=list(countries), category="street_food", part_refs=parts, served_in=served, tags=tags,
                 names={"hu": hu, "de": de, "en": en}, aliases=al, **kw)
 
 DISHES = [
@@ -357,18 +360,18 @@ DISHES = [
     _d("hu_gyros_pita", "gyros pita", "Gyros im Pitabrot", "Gyros pita", [("fladenbrot", 80), ("gyros_hus", 100), ("gyros_zoldseg_ontet", 120)], "handheld",
        ["street_food"],
        {"hu": ["gyros pita", "gyros pitában", "pitás gyros", "gyros"], "de": ["gyros pita", "gyros im pitabrot"], "de-AT": ["gyros pita"], "en": ["gyros pita", "gyro"]},
-       review="Sertés gyros; a csirke gyros külön rész lehet. Sok büfé hasábburgonyát is tesz a pitába: a felhasználó adhatja hozzá."),
+       review="Sertés gyros; a csirke gyros külön rész lehet. Sok büfé hasábburgonyát is tesz a pitába: a felhasználó adhatja hozzá.", countries=("HU", "AT")),
     _d("hu_gyros_tal", "gyros tál", "Gyrosteller", "Gyros plate", [("gyros_hus", 150), ("hasabburgonya", 200), ("gyros_zoldseg_ontet", 200)], "flat_plate",
        ["street_food", "higher-carb"],
-       {"hu": ["gyros tál", "gyrostál", "gyros tal", "gyros tál hasábburgonyával"], "de": ["gyrosteller", "gyros teller mit pommes"], "de-AT": ["gyrosteller"], "en": ["gyros plate", "gyros platter"]}),
+       {"hu": ["gyros tál", "gyrostál", "gyros tal", "gyros tál hasábburgonyával"], "de": ["gyrosteller", "gyros teller mit pommes"], "de-AT": ["gyrosteller"], "en": ["gyros plate", "gyros platter"]}, countries=("HU", "AT")),
     _d("hu_doner", "döner", "Döner Kebab (Hähnchen)", "Döner kebab (chicken)", [("fladenbrot", 130), ("doner_hus", 120), ("gyros_zoldseg_ontet", 120)], "handheld",
        ["street_food"],
        {"hu": ["döner", "döner kebab", "doner", "kebab", "csirke döner"], "de": ["döner", "döner kebab", "dönerkebab"], "de-AT": ["kebap", "döner"], "en": ["doner kebab", "doner"]},
        reference_check=dict(catalog="bls:Y921162", name="Döner Kebab, Fladenbrot gefüllt mit Grillfleisch (Geflügel), Rohkost und Sauce", kcal=199, fat=7.9, protein=13.08, net_carbs=18.0),
-       review="A döner kenyér (fél/negyed török kenyér) 130 g-ja becslés. Az öntet a gyros tejfölös-fokhagymás salátája; a boltok gyakran joghurtos szószt és lilakáposztát adnak."),
+       review="A döner kenyér (fél/negyed török kenyér) 130 g-ja becslés. Az öntet a gyros tejfölös-fokhagymás salátája; a boltok gyakran joghurtos szószt és lilakáposztát adnak.", countries=("HU", "AT")),
     _d("hu_doner_tal", "döner tál", "Dönerteller", "Döner plate", [("doner_hus", 150), ("hasabburgonya", 200), ("gyros_zoldseg_ontet", 200)], "flat_plate",
        ["street_food", "higher-carb"],
-       {"hu": ["döner tál", "dönertál", "kebab tál", "doner tal"], "de": ["dönerteller", "döner teller"], "de-AT": ["kebapteller", "dönerteller"], "en": ["doner plate", "kebab plate"]}),
+       {"hu": ["döner tál", "dönertál", "kebab tál", "doner tal"], "de": ["dönerteller", "döner teller"], "de-AT": ["kebapteller", "dönerteller"], "en": ["doner plate", "kebab plate"]}, countries=("HU", "AT")),
     _d("hu_falafel_wrap", "falafel wrap", "Falafel-Wrap", "Falafel wrap", [("falafel_wrap", 380)], "handheld", ["street_food", "vegetarian", "higher-carb"],
        {"hu": ["falafel wrap", "falafeles wrap", "falafeles tortilla", "falafel tekercs"], "de": ["falafel wrap", "falafel-wrap", "falafel dürüm"], "de-AT": ["falafel wrap"], "en": ["falafel wrap"]}),
     _d("hu_hamburger", "hamburger", "Hamburger", "Hamburger", [("hamburger_zsemle", 110), ("hamburger_pogacsa", 90), ("hamburger_feltet", 170)], "handheld",
@@ -403,7 +406,7 @@ DISHES = [
        reference_check=dict(catalog="bls:D7A6700", name="Langos (Hefeteig) frittiert, ungefüllt", kcal=340, fat=10.0, protein=8.63, net_carbs=52.0)),
     _d("hu_hasabburgonya", "hasábburgonya", "Pommes frites", "French fries", [("hasabburgonya", 170)], "flat_plate", ["street_food", "fried", "higher-carb"],
        {"hu": ["hasábburgonya", "sült krumpli", "hasáb", "sültkrumpli", "hasabburgonya"], "de": ["pommes frites", "pommes"], "de-AT": ["pommes frites", "pommes"], "en": ["french fries", "fries", "chips"]},
-       reference_check=dict(catalog="bls:K130492", name="Pommes frites tiefgefroren, frittiert", kcal=203, fat=9.04, protein=2.9, net_carbs=25.94)),
+       reference_check=dict(catalog="bls:K130492", name="Pommes frites tiefgefroren, frittiert", kcal=203, fat=9.04, protein=2.9, net_carbs=25.94), countries=("HU", "AT")),
     _d("hu_gofri", "gofri", "Waffel", "Waffle", [("gofri", 100)], "handheld", ["street_food", "sweet", "higher-carb"],
        {"hu": ["gofri", "sima gofri", "porcukros gofri"], "de": ["waffel", "waffeln"], "de-AT": ["waffel"], "en": ["waffle"]},
        review="Feltét nélkül; porcukor, lekvár, tejszínhab, nutella külön adható."),

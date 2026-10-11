@@ -186,6 +186,80 @@ FOOD_KEYS = {
     "chickpeas_canned":   ("csicseriborsó (konzerv, lecsepegtetve)", "Kichererbse Konserve, abgetropft", "chickpeas, canned, drained", "bls:H720902", "total", 136, 2.7, 7.5, 25.3, 9.8, 1.1, 0.75, None),
     "hummus":             ("humusz", "Hummus", "hummus", "bls:H960000", "total", 324, 28.5, 5.9, 13.9, 5.9, 1.05, 1.05, None),
     "margarine":          ("margarin", "Pflanzenmargarine Vollfett", "margarine (full fat)", "bls:Q400000", "total", 718, 79.6, 0.11, 0.164, 0, 0.92, 0.92, None),
+    # at_traditionell (phase 3, BLS 4.0 xlsx 2025; production presence to be confirmed read-only, imported by 20261005120000_bls_regional_at)
+    "veal_schnitzel":     ("borjúcomb (szelet)", "Kalb Schnitzel (Keule)", "veal leg cutlet", "bls:U342100", "total", 89, 0.72, 20.7, 0, 0, 1.05, 0.85, None),  # BLS: Kalb Schnitzel (Keule) roh
+    "beef_tafelspitz":    ("marha fartő (Tafelspitz)", "Rind Kochfleisch (Hüfte) / Tafelspitz", "beef rump (Tafelspitz)", "bls:U185100", "total", 110, 2.35, 22.1, 0, 0, 1.06, 0.85, "Austrian Tafelspitz is cut from the Hüfte (rump)"),  # BLS: Rind Kochfleisch (Hüfte) roh
+    "beef_boiled":        ("főtt marhahús (fartő)", "Rind Kochfleisch (Hüfte) gekocht", "boiled beef (rump)", "bls:U185132", "total", 181, 6.625, 30.3, 0, 0, 1.06, 0.85, "already cooked weight (Tiroler Gröstl uses leftover boiled beef)"),  # BLS: Rind Kochfleisch (Hüfte) gekocht
+    "beef_hind_shank":    ("marha hátsó lábszár", "Rind Hinterhesse (Wadschinken)", "beef hind shank", "bls:U291100", "total", 140, 6, 21.4, 0, 0, 1.06, 0.8, "Austrian Wadschinken / Wadl"),  # BLS: Rind Hinterhesse, roh
+    "beef_rostbraten":    ("marha rostélyos (Rostbraten)", "Rind Rostbraten", "beef sirloin (Rostbraten)", "bls:U175100", "total", 130, 4.45, 22.45, 0, 0, 1.05, 0.85, None),  # BLS: Rind Rostbraten, roh
+    "mixed_minced":       ("vegyes darált hús (sertés-marha)", "Rind/Schwein Hackfleisch gemischt", "mixed minced beef and pork", "bls:U050100", "total", 236, 17.83, 18.8, 0, 0, 1.05, 0.8, "Austrian Faschiertes gemischt"),  # BLS: Rind/Schwein, Hackfleisch gemischt, roh
+    "pork_hind_hock":     ("sertés hátsó csülök (Stelze)", "Schwein Hintereisbein/Hinterhaxe", "pork hind hock", "bls:U693100", "total", 222, 15.7, 20.12, 0, 0, 1.06, 0.8, "grams = edible part (meat, skin, fat), bone removed"),  # BLS: Schwein Hintereisbein/Hinterhaxe, roh
+    "veal_shank":         ("borjúlábszár", "Kalb Haxe", "veal shank", "bls:U471100", "total", 118, 4.51, 19.3, 0, 0, 1.05, 0.8, None),  # BLS: Kalb Haxe, roh
+    "veal_lung":          ("borjútüdő", "Kalb Lunge", "veal lung", "bls:V542100", "total", 90, 2.17, 17.5, 0, 0, 1.0, 0.7, None),  # BLS: Kalb Lunge, roh
+    "veal_heart":         ("borjúszív", "Kalb Herz", "veal heart", "bls:V512100", "total", 109, 5.06, 15.9, 0, 0, 1.05, 0.8, None),  # BLS: Kalb Herz, roh
+    "anchovy":            ("szardella", "Sardelle", "anchovy", "bls:T104100", "total", 204, 13.7, 20.1, 0, 0, 1.05, 0.8, None),  # BLS: Sardelle roh
+    "trout":              ("pisztráng", "Forelle", "trout", "bls:T422100", "total", 156, 7.63, 21.552, 0, 0, 1.05, 0.8, "grams = edible part (fillet with skin)"),  # BLS: Forelle roh
+    "emmentaler":         ("ementáli sajt", "Emmentaler mind. 45 % Fett i. Tr.", "Emmental cheese", "bls:M304600", "total", 374, 29.15, 27.5, 0, 0, 1.08, 0.4, None),  # BLS: Emmentaler mind. 45 % Fett i. Tr.
+    "bergkaese":          ("hegyi sajt (Bergkäse)", "Bergkäse mind. 45 % Fett i. Tr.", "mountain cheese (Bergkäse)", "bls:M302600", "total", 395, 30.805, 28.9, 0, 0, 1.08, 0.4, None),  # BLS: Bergkäse mind. 45 % Fett i. Tr.
+    "gouda":              ("gouda sajt", "Gouda 48 % Fett i. Tr.", "Gouda cheese", "bls:M402600", "total", 379, 31.58, 22.47, 0, 0, 1.08, 0.4, None),  # BLS: Gouda 48 % Fett i. Tr.
+    "quark_lean":         ("sovány túró (Magertopfen)", "Speisequark Magerstufe", "lean quark", "bls:M713100", "total", 66, 0.18, 11.85, 3.68, 0, 1.05, 0.8, None),  # BLS: Speisequark Magerstufe, Magerquark < 10 % Fett i. Tr.
+    "parsnip":            ("paszternák", "Pastinake", "parsnip", "bls:G640100", "total", 59, 0.43, 2.688, 11.83, 2.13, 1.03, 0.75, None),  # BLS: Pastinake roh
+    "shallot":            ("salottahagyma", "Schalotte", "shallot", "bls:G485100", "total", 33, 0.1, 2, 8.624, 5.424, 1.0, 0.8, None),  # BLS: Schalotte roh
+    "sauerrahm":          ("tejföl (Sauerrahm)", "Sauerrahm/Saure Sahne mind. 10 % Fett", "sour cream (Sauerrahm)", "bls:M172500", "total", 119, 10, 3.1, 4.1, 0, 1.02, 1.02, "Austrian Sauerrahm is sold at 15 % fat; the BLS record of the same food is 10 % (slight underestimate)"),  # BLS: Sauerrahm/Saure Sahne, mind. 10 % Fett
+    "cream_36":           ("habtejszín (36%, Schlagobers)", "Schlagsahne mind. 36 % Fett", "whipping cream 36% (Schlagobers)", "bls:M173900", "total", 363, 38, 2.2, 3, 0, 1.0, 1.0, None),  # BLS: Schlagsahne mind. 36 % Fett
+    "creme_fraiche":      ("crème fraîche", "Sauerrahm/Creme fraiche, 30 % Fett", "crème fraîche", "bls:M176800", "total", 265, 27.03, 2.4, 2.55, 0, 1.0, 1.0, None),  # BLS: Sauerrahm/Creme fraiche, 30 % Fett
+    "chives":             ("metélőhagyma", "Schnittlauch", "chives", "bls:G081100", "total", 29, 0.74, 2.6, 4.14, 2.6, 1.0, 0.3, None),  # BLS: Schnittlauch roh
+    "horseradish":        ("torma", "Meerrettich (Kren)", "horseradish", "bls:G630100", "total", 84, 0.3, 5.875, 15.957, 4.287, 1.0, 0.5, None),  # BLS: Meerrettich roh
+    "cider_vinegar":      ("almaecet", "Apfelessig (Mostessig)", "cider vinegar", "bls:R123100", "total", 18, 0, 0.2, 0.147, 0, 1.01, 1.01, None),  # BLS: Apfelessig
+    "wine_vinegar":       ("borecet", "Weinessig", "wine vinegar", "bls:R121000", "total", 25, 0, 0, 0, 0, 1.01, 1.01, None),  # BLS: Weinessig
+    # at_knoedel_nudeln
+    "chanterelle":        ("rókagomba", "Pfifferling (Eierschwammerl)", "chanterelle", "bls:K713100", "total", 26, 0.271, 3.91, 3.821, 3.27, 0.95, 0.5, None),  # BLS: Pfifferling roh
+    "sour_milk_cheese":   ("savanyútej-sajt (Graukäse)", "Sauermilchkäse < 10 % Fett i. Tr. (Graukäse)", "sour-milk cheese (Graukäse)", "bls:M730100", "total", 128, 0.473, 30.031, 0, 0, 1.08, 0.5, "Tyrolean Graukäse is a low-fat Sauermilchkäse"),  # BLS: Sauermilchkäse < 10 % Fett i. Tr.
+    "veg_bouillon_powder":("zöldségleveskocka / -por", "Gemüse Bouillon (Brühwürfel, Pulver)", "vegetable bouillon cube/powder", "bls:R821000", "total", 195, 5.8, 5.82, 30.81, 2.9, 1.0, 1.0, "values per 100 g powder; Austrian 'Gemüsesuppe (klar)' from a cube = ~2 g per 100 ml (1 Würfel per 0,5 l)"),  # BLS: Gemüse Bouillon/Brühe/Suppe (Brühwürfel, Pulver)
+    "chicken_bouillon_powder":("csirke leveskocka / -por", "Hühner Bouillon (Brühwürfel, Pulver)", "chicken bouillon cube/powder", "bls:R822000", "total", 201, 4.3, 6.96, 33.53, 0.78, 1.0, 1.0, "values per 100 g powder; ~2 g per 100 ml"),  # BLS: Hühner Bouillon/Brühe/Suppe (Brühwürfel, Pulver)
+    "red_cabbage":        ("vöröskáposzta", "Rotkohl (Rotkraut, Blaukraut)", "red cabbage", "bls:G341100", "total", 28, 0.18, 1.563, 6.232, 2.5, 1.0, 0.45, None),  # BLS: Rotkohl roh
+    # at_suppen
+    "calf_liver":         ("borjúmáj", "Kalb Leber", "calf liver", "bls:V532100", "total", 86, 1.15, 14.9, 4.1, 0, 1.05, 0.8, None),  # BLS: Kalb Leber, roh
+    "durum_semolina":     ("durumbúzadara", "Hartweizengrieß", "durum wheat semolina", "bls:C219300", "total", 352, 1.48, 13.36, 73.76, 4.84, 1.4, 0.7, None),  # BLS: Hartweizen Grieß
+    "pumpkin_seeds":      ("tökmag", "Kürbiskern", "pumpkin seeds", "bls:H310100", "total", 588, 46.34, 35.49, 11.47, 8.66, 1.0, 0.55, None),  # BLS: Kürbiskern
+    "pumpkin_seed_oil":   ("tökmagolaj", "Kürbiskernöl", "pumpkin seed oil", "bls:Q250000", "total", 900, 100, 0, 0, 0, 0.92, 0.92, "Styrian Kürbiskernöl"),  # BLS: Kürbiskernöl
+    "porcini_dried":      ("szárított vargánya", "Steinpilz getrocknet", "dried porcini", "bls:K718400", "total", 270, 2.332, 31.479, 54.153, 35.093, 1.0, 0.3, None),  # BLS: Steinpilz getrocknet
+    # at_mehlspeisen
+    "almond":             ("mandula (darált)", "Mandel süß", "almond (ground)", "bls:H210100", "total", 544, 46.6, 22.333, 13.87, 10, 1.0, 0.45, None),  # BLS: Mandel süß
+    "hazelnut":           ("mogyoró (darált)", "Haselnuss", "hazelnut (ground)", "bls:H130100", "total", 667, 63.3, 16.25, 11.8, 7.6, 1.0, 0.45, None),  # BLS: Haselnuss
+    "apricot":            ("sárgabarack (Marille)", "Aprikose (Marille)", "apricot", "bls:F201100", "total", 42, 0.13, 0.8, 9.76, 1.54, 1.0, 0.6, "grams = pitted"),  # BLS: Aprikose roh
+    "pudding_powder_vanilla":("vaníliás pudingpor", "Puddingpulver Vanille, ungezuckert", "vanilla custard powder", "bls:R481100", "total", 344, 0.079, 0.426, 85.899, 0.988, 1.0, 0.6, None),  # BLS: Puddingpulver Vanille, ungezuckert
+    "sacher_glaze":       ("csokoládémáz (Sacher)", "Sacherguss/Schokoladenglasur", "chocolate glaze", "bls:R9A5100", "total", 345, 15.75, 3.31, 49.6, 4.2, 1.3, 1.3, None),  # BLS: Sacherguss/Schokoladenglasur, für Gebäck/Torten
+    "toast_bread":        ("toastkenyér", "Weizentoastbrot/Buttertoastbrot", "white toast bread", "bls:B314000", "total", 261, 3.59, 8.29, 50.747, 3.947, 0.3, 0.3, None),  # BLS: Weizentoastbrot/Buttertoastbrot
+    "egg_white":          ("tojásfehérje", "Hühnerei Eiklar", "egg white", "bls:E113100", "total", 42, 0.03, 9.9, 0.41, 0, 1.03, 1.03, "1 egg white ~33 g"),  # BLS: Hühnerei Eiklar, roh
+    "fondant":            ("fondán", "Fondant (Fondantmasse)", "fondant icing", "bls:S351000", "total", 339, 3.1, 0.7, 77, 0, 1.4, 1.4, None),  # BLS: Fondant (Fondantmasse)
+    "goose_skin":         ("liba (bőrrel)", "Gans Fleisch, mit Haut", "goose meat with skin", "bls:V474100", "total", 342, 31, 15.7, 0, 0, 1.0, 0.8, "grams = edible part"),  # BLS: Gans Fleisch, mit Haut, roh
+    # at_fruehstueck
+    "rye_mixed_bread":    ("rozsos vegyes kenyér", "Roggenmischbrot", "rye-wheat mixed bread", "bls:B271000", "total", 218, 0.97, 7.38, 48.06, 6.1, 0.3, 0.3, "Austrian Hausbrot / Bauernbrot type; density = sliced loaf"),  # BLS: Roggenmischbrot
+    "multigrain_roll":    ("magvas péksütemény (Kornspitz)", "Mehrkornbrötchen", "multigrain roll", "bls:B591000", "total", 302, 5.44, 9.8, 56.64, 6.64, 0.3, 0.3, "Austrian Kornspitz is a Mehrkornbrötchen"),  # BLS: Mehrkornbrötchen
+    "salt_caraway_roll":  ("sós-köményes zsemle (Salzstangerl)", "Weizenbrötchen mit Kümmel und Salz", "wheat roll with salt and caraway", "bls:B511100", "total", 291, 2.69, 9.3, 59.19, 4.19, 0.3, 0.3, "Austrian Salzstangerl"),  # BLS: Weizenbrötchen mit Kümmel und Salz
+    "pretzel_roll":       ("perec (lúgos)", "Laugengebäck", "lye pretzel", "bls:B723100", "total", 283, 4.145, 9.203, 53.775, 3.775, 0.35, 0.35, None),  # BLS: Laugengebäck (Hagelsalz entfernt)
+    "croissant":          ("croissant (vajas)", "Croissant (Hefeblätterteig/Plunderteig)", "croissant", "bls:D771600", "total", 426, 23.57, 8, 46.62, 2.62, 0.25, 0.25, None),  # BLS: Croissant (Hefeblätterteig/Plunderteig)
+    "wiener_kipferl":     ("kifli (bécsi, kelt tésztás)", "Wiener Hörnchen (Hefeteig)", "Viennese crescent roll (Kipferl)", "bls:D740600", "total", 318, 10.5, 7.6, 49.3, 2.3, 0.3, 0.3, "Austrian Butterkipferl / Wiener Kipferl"),  # BLS: Wiener Hörnchen (Hefeteig)
+    "puff_pastry":        ("leveles tészta (nyers)", "Blätterteig eifrei, roh", "puff pastry, raw", "bls:D072000", "total", 425, 32.19, 4.18, 30.77, 2.12, 1.0, 1.0, None),  # BLS: Blätterteig eifrei, roh
+    # at_alltag
+    "capers":             ("kapribogyó", "Kapern gesäuert, abgetropft", "capers, drained", "bls:G012902", "total", 22, 0.42, 2.12, 2.4, 2.4, 1.0, 0.6, None),  # BLS: Kapern gesäuert, abgetropft
+    "fish_fingers_fried": ("halrudacska (sütve)", "Fischstäbchen (Alaska-Seelachs) paniert, gebraten ohne Fett", "fish fingers, pan-fried", "bls:T930182", "total", 209, 9.437, 13.908, 17.42, 0.92, 0.8, 0.5, "cooked weight (BLS gebraten ohne Fett); frying oil is added separately"),  # BLS: Fischstäbchen (Alaska-Seelachs) paniert, tiefgefroren, gebraten ohne Fett (Pfanne)
+    "bratwurst":          ("sütnivaló kolbász (Bratwurst)", "Bratwurst mittelgrob", "bratwurst (pork, medium coarse)", "bls:W222100", "total", 292, 25.6, 15.2, 0.13, 0.05, 1.0, 0.8, "Austrian Bratwürstel"),  # BLS: Bratwurst mittelgrob
+    "ajvar":              ("ajvár", "Ajvar Konserve", "ajvar (pepper relish)", "bls:G898400", "total", 68, 4.4, 0.9, 7.2, 2.2, 1.05, 1.05, None),  # BLS: Ajvar Konserve
+    "pineapple":          ("ananász", "Ananas", "pineapple", "bls:F501100", "total", 46, 0.1, 0.5, 10.8, 1.4, 1.0, 0.6, "fresh (ichkoche allows 'frisch oder aus der Dose')"),  # BLS: Ananas roh
+    "lambs_lettuce":      ("galambbegysaláta (Vogerlsalat)", "Feldsalat (Vogerlsalat)", "lamb's lettuce", "bls:G104100", "total", 18, 0.36, 1.9, 2.608, 1.8, 0.95, 0.15, None),  # BLS: Feldsalat/Rapunzel, roh
+    # at_streetfood
+    "kaesekrainer":       ("sajtos kolbász (Käsekrainer)", "Käsekrainer/Käsewürstchen", "cheese-filled sausage (Käsekrainer)", "bls:W255300", "total", 192, 14.17, 15.9, 0.1, 0.04, 1.0, 0.8, None),  # BLS: Käsekrainer/Käsewürstchen
+    "baguette_roll":      ("bagett zsemle", "Weizenbaguettebrötchen", "baguette roll", "bls:B781300", "total", 289, 1.51, 9.6, 61.25, 4.25, 0.25, 0.25, None),  # BLS: Weizenbaguettebrötchen
+    "veal_shoulder":      ("borjúlapocka", "Kalb Bug/Schulter", "veal shoulder", "bls:U461100", "total", 94, 1.01, 21.2, 0, 0, 1.05, 0.8, None),  # BLS: Kalb Bug/Schulter, roh
+    "mutton_fat":         ("birkafaggyú (Hammelspeck)", "Schaf Fettgewebe, intermuskulär", "mutton fat tissue", "bls:U805800", "total", 637, 68.5, 5.06, 0, 0, 0.92, 0.8, None),  # BLS: Schaf Fettgewebe, intermuskulär roh
+    "mackerel":           ("makréla", "Makrele", "mackerel", "bls:T107100", "total", 149, 8.31, 18.6, 0, 0, 1.05, 0.8, "grams = edible part"),  # BLS: Makrele roh
+    "chestnut":           ("gesztenye (Maroni)", "Edelkastanie/Marone", "sweet chestnut", "bls:H230100", "total", 210, 1.9, 2.925, 49.57, 8.37, 1.0, 0.6, "grams = peeled kernel"),  # BLS: Edelkastanie/Marone
+    "potato_starch":      ("burgonyakeményítő", "Kartoffelstärke", "potato starch", "bls:K230000", "total", 338, 0.1, 0.614, 84.1, 1, 1.0, 0.6, None),  # BLS: Kartoffelstärke (Kartoffelmehl)
+    "tomato_canned":      ("hámozott paradicsom (konzerv)", "Tomate geschält, Konserve", "canned peeled tomatoes", "bls:G568900", "total", 24, 0.3, 1.2, 4.15, 0.9, 1.02, 1.02, None),  # BLS: Tomate geschält, Konserve
+    "banana":             ("banán", "Banane", "banana", "bls:F503100", "total", 79, 0.4, 1.319, 17.89, 2, 0.95, 0.6, "grams = peeled"),  # BLS: Banane roh
+    "kiwi":               ("kivi", "Kiwi", "kiwi", "bls:F514100", "total", 61, 0.5, 0.9, 14, 3.9, 1.0, 0.6, "grams = peeled"),  # BLS: Kiwi roh
 }
 
 # Keys whose fat renders out when meat is roasted, pan-fried or grilled

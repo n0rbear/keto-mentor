@@ -198,7 +198,8 @@ PARTS = {
         cooking=dict(method="stuffed peppers simmered in tomato juice, sauce thickened with a roux", mass_change_g=-100,
                      note="estimate; rice absorbs sauce inside the filling (no mass change); pepper, salt left out"),
         sources=[src("https://www.mindmegette.hu/recept/klasszikus-toltott-paprika", PHASE2_RETRIEVED, "batch recipe, 6 adag"),
-                 src("https://www.mindmegette.hu/recept/toltott-paprika", PHASE2_RETRIEVED, "cross-check: darált hús, 6 TV paprika, 4 ek rizs, tojás, 5 dl paradicsompüré")]),
+                 src("https://www.mindmegette.hu/recept/toltott-paprika", PHASE2_RETRIEVED, "cross-check: darált hús, 6 TV paprika, 4 ek rizs, tojás, 5 dl paradicsompüré"),
+                 src("https://www.ichkoche.at/gefuellte-paprika-rezept-501", "2026-10-05", "AT cross-check (phase 3): 4 grüne Paprika, 500 g Faschiertes, 50 g Reis, 1 Ei, Zwiebel, passierte Tomaten - same dish")]),
     "rakott_kel": dict(
         names={"hu": "Rakott kel", "de": "Ungarischer Wirsingauflauf mit Hackfleisch und Reis", "en": "Hungarian layered savoy cabbage casserole"},
         matrix="solid", servings_source=6, standard_serving_g=350,
@@ -399,7 +400,7 @@ DISHES = [
          reference_check=dict(catalog="bls:Y396512", name="Frikadellen aus Schweinefleisch gebraten", kcal=297, fat=21.44, protein=17.24, net_carbs=8.41),
          aliases={"hu": ["fasírt", "fasírozott", "vagdalt", "fasirt"], "de": ["frikadellen", "buletten", "fleischpflanzerl"], "de-AT": ["fleischlaibchen", "faschierte laibchen"], "en": ["meat patties", "hungarian meatballs"]},
          review="Szokásos köretek: burgonyapüré, főzelék – még nem létező részek."),
-    dict(id="hu_toltott_paprika", countries=["HU"], category="traditional", part_refs=[("toltott_paprika", 400)], served_in="deep_plate", tags=["traditional"],
+    dict(id="hu_toltott_paprika", countries=["HU", "AT"], category="traditional", part_refs=[("toltott_paprika", 400)], served_in="deep_plate", tags=["traditional"],
          names={"hu": "töltött paprika", "de": "Gefüllte Paprika", "en": "Stuffed peppers"},
          side_options=[("petrezselymes_burgonya", 200)], alias_side={"töltött paprika krumplival": "petrezselymes_burgonya"},
          aliases={"hu": ["töltött paprika", "toltott paprika", "paradicsomos töltött paprika"], "de": ["gefüllte paprika", "paprika gefüllt"], "de-AT": ["gefüllte paprika"], "en": ["stuffed peppers", "stuffed paprika"]},

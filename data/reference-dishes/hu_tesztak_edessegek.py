@@ -98,7 +98,8 @@ PARTS = {
         flat_plate=dict(coverage=0.29, height_cm=4.0),
         sources=[src("https://www.mindmegette.hu/recept/szilvas-gomboc", PHASE2_RETRIEVED, "batch recipe, 4 adag"),
                  src("https://www.nosalty.hu/recept/szilvas-gomboc", PHASE2_RETRIEVED, "cross-check: 1 kg burgonya, 30 dkg liszt, 22 szilva, 25 dkg zsemlemorzsa, 4 adag"),
-                 src("https://sobors.hu/receptek/szilvas-gomboc-recept/", PHASE2_RETRIEVED, "cross-check: 1 kg krumpli, 300 g liszt, 200 g zsemlemorzsa, 6 adag")]),
+                 src("https://sobors.hu/receptek/szilvas-gomboc-recept/", PHASE2_RETRIEVED, "cross-check: 1 kg krumpli, 300 g liszt, 200 g zsemlemorzsa, 6 adag"),
+                 src("https://www.gutekueche.at/zwetschkenknoedel-rezept-846", "2026-10-05", "AT cross-check (phase 3): Erdäpfelteig (400 g Kartoffeln, 125 g Mehl, 1 Ei, 20 g Butter), Zwetschken mit Würfelzucker, Butterbrösel - same composition, 4 Portionen")]),
     "turogomboc": dict(
         names={"hu": "Túrógombóc", "de": "Topfenknödel (ungarisch)", "en": "Cottage cheese dumplings"},
         matrix="dry", bulk_density_g_ml=0.75, servings_source=4, standard_serving_g=250,
@@ -271,7 +272,7 @@ DISHES = [
     dict(id="hu_grizes_teszta", countries=["HU"], category="traditional", part_refs=[("grizes_teszta", 300)], served_in="flat_plate", tags=["traditional", "pasta", "sweet", "higher-carb"],
          names={"hu": "grízes tészta", "de": "Grießnudeln", "en": "Semolina pasta"},
          aliases={"hu": ["grízes tészta", "grizes teszta", "grízes metélt"], "de": ["grießnudeln", "griessnudeln"], "de-AT": ["grießnudeln"], "en": ["semolina pasta", "pasta with toasted semolina"]}),
-    dict(id="hu_szilvas_gomboc", countries=["HU"], category="traditional", part_refs=[("szilvas_gomboc", 300)], served_in="flat_plate", tags=["traditional", "sweet", "higher-carb"],
+    dict(id="hu_szilvas_gomboc", countries=["HU", "AT"], category="traditional", part_refs=[("szilvas_gomboc", 300)], served_in="flat_plate", tags=["traditional", "sweet", "higher-carb"],
          names={"hu": "szilvás gombóc", "de": "Zwetschgenknödel", "en": "Plum dumplings"},
          aliases={"hu": ["szilvás gombóc", "szilvas gomboc", "szilvásgombóc"], "de": ["zwetschgenknödel", "pflaumenknödel"], "de-AT": ["zwetschkenknödel", "zwetschgenknödel"], "en": ["plum dumplings"]},
          reference_check=dict(catalog="bls:X6A5020", name="Zwetschgenknödel mit Zucker und Zimt", kcal=165, fat=7.73, protein=2.28, net_carbs=20.89)),
