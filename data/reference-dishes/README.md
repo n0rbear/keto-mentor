@@ -1,8 +1,29 @@
 # Referenciaételek – regionális katalógus (HU, AT, DE)
 
-Állapot: **3. fázis: Ausztria** kész (65 hagyományos, 62 mindennapi, 26 street food étel az
-1. fázis mintáin felül, köretváltozatok nélkül). A 2. fázis (HU) kész; DE a 4., a láncok az 5.,
-az egységsúlyok és aliasok a 6. fázisban jönnek. Feladatleírás: `docs/REGIONAL_DATABASE_BRIEF.md`.
+Állapot: **4. fázis: Németország** kész (74 hagyományos, 62 mindennapi, 35 street food étel az
+1. fázis mintáin felül, köretváltozatok nélkül; ebből 102 új német étel, 69 a meglévő osztrák/magyar
+ételek közül, amelyek DE-t kaptak). A 2. (HU) és a 3. fázis (AT) kész; a láncok az 5., az egységsúlyok
+és aliasok a 6. fázisban jönnek. Feladatleírás: `docs/REGIONAL_DATABASE_BRIEF.md`.
+
+### 4. fázis (DE) röviden
+
+- Modulok: `de_suppen_eintopf.py`, `de_traditionell.py` (hús-, hal- és tájételek, köretek), `de_kuchen.py`,
+  `de_backwaren.py` (pékáru, Abendbrot, reggeli), `de_alltag.py` (otthon, menza, saláták), `de_streetfood.py`;
+  a `de.py` tölti be őket (`PHASE4_MODULES`).
+- Források: gutekueche.de és lecker.de receptek dátummal; péksüteményeknél és kolbászoknál a darabsúly
+  két kiskereskedelmi termék (REWE, supermarktcheck, knuspr stb.) alapján; sütési hozam a BLS nyers → gegrillt/
+  gebraten párjaiból.
+- Újrahasznosítás: a német módon is ugyanígy evett osztrák/magyar étel nem másolódik; a `de.REUSE` tábla
+  `DE`-t és egy dátumozott német forrást ad hozzá (a recept nem változik, az `at_*.py`/`hu_*.py` fájlok sem). A
+  build leáll, ha a hozzáadott forrás egy nem újrahasznosított HU/AT étel forráslistáját is megváltoztatná.
+  Ahol a német recept más (Krustenbraten, Schweinshaxe, Currywurst, Kartoffelsalat), külön `de_*` étel készült.
+- Kétértelmű szavak: a bare `Pfannkuchen` (Berlinben Berliner), `Kartoffelsalat` (északi/déli), `Currywurst`
+  (bőrrel/bőr nélkül), `Döner` (borjú/csirke), `Fischbrötchen` (Matjes/Bismarck/Backfisch) választás.
+- Hiányzó BLS-rekordok: `bls-imports-de.json` (65 rekord) → migráció `20261011120000_bls_regional_de` (csak
+  beszúrás). Ami a BLS-ben sincs (Gewürzgurke, bor 'TR' zsírértékkel, Muskat, Majoran, Currypulver, Krokant
+  stb.), az a `de-missing-foods.md`-ben; a fő összetevő nélküli étel (Frankfurter Kranz) a DE `INVENTORY`-ban.
+- Német mértékegységek: `common.MEASURE_G` (Becher 200 g, Bund Suppengrün, Stange Lauch, Bund Kräuter,
+  Prise, Tasse, Pk Puddingpulver/Sahnesteif, EL Kakao, TL Backpulver).
 
 ### 3. fázis (AT) röviden
 

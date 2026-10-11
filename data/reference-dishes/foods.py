@@ -260,6 +260,78 @@ FOOD_KEYS = {
     "tomato_canned":      ("hámozott paradicsom (konzerv)", "Tomate geschält, Konserve", "canned peeled tomatoes", "bls:G568900", "total", 24, 0.3, 1.2, 4.15, 0.9, 1.02, 1.02, None),  # BLS: Tomate geschält, Konserve
     "banana":             ("banán", "Banane", "banana", "bls:F503100", "total", 79, 0.4, 1.319, 17.89, 2, 0.95, 0.6, "grams = peeled"),  # BLS: Banane roh
     "kiwi":               ("kivi", "Kiwi", "kiwi", "bls:F514100", "total", 61, 0.5, 0.9, 14, 3.9, 1.0, 0.6, "grams = peeled"),  # BLS: Kiwi roh
+    # de (phase 4, BLS 4.0 xlsx 2025; imported by 20261011120000_bls_regional_de) BEGIN
+    # de_suppen_eintopf
+    "kochmettwurst": ("főzőkolbász (Kochmettwurst, Mettenden)", "Mettwurst gekocht", "cooked smoked sausage (Kochmettwurst)", "bls:W331000", "total", 315, 27.42, 16.32, 0.26, 0, 1.0, 0.8, 'German Kochwurst/Mettenden for Eintopf'),  # BLS: Mettwurst gekocht
+    "swede": ("karórépa (Steckrübe)", "Kohlrübe/Steckrübe, roh", "swede / rutabaga", "bls:G611100", "total", 22, 0.16, 1.25, 5.2, 2.9, 1.03, 0.75, None),  # BLS: Kohlrübe/Steckrübe, roh
+    "beef_brisket": ("marha szegy", "Rind Brustkern/Mittelbrust, roh", "beef brisket", "bls:U255100", "total", 200, 13.993, 18.585, 0, 0, 1.06, 0.8, None),  # BLS: Rind Brustkern/Mittelbrust, roh
+    "lamb_shoulder": ("bárány lapocka", "Lamm Bug/Schulter, roh", "lamb shoulder", "bls:U867100", "total", 121, 4.6, 19.8, 0, 0, 1.05, 0.8, None),  # BLS: Lamm Bug/Schulter, roh
+    "beef_leg": ("marhacomb", "Rind Keule, roh", "beef leg (Keule)", "bls:U281100", "total", 148, 7.1, 21, 0, 0, 1.06, 0.85, None),  # BLS: Rind Keule, roh
+    "chicken_broth": ("tyúkhúsleves-alaplé (szűrt)", "Hühnerbrühe", "chicken broth (strained)", "bls:X411243", "total", 5, 0.3, 0.5, 0, 0, 1.0, 1.0, 'BLS composite Hühnerbrühe: the strained broth, the hen itself is not eaten'),  # BLS: Hühnerbrühe
+    "celery_stalk": ("szárzeller", "Bleichsellerie roh", "celery stalk", "bls:G220100", "total", 17, 0.1, 1.2, 4.053, 2.553, 1.0, 0.4, None),  # BLS: Bleichsellerie roh
+    "maple_syrup": ("juharszirup", "Ahornsirup", "maple syrup", "bls:S151100", "total", 240, 0.06, 0.04, 59.9, 0, 1.32, 1.32, None),  # BLS: Ahornsirup
+    "rapeseed_oil": ("repceolaj", "Rapsöl/Rüböl", "rapeseed oil", "bls:Q180000", "total", 900, 100, 0, 0, 0, 0.92, 0.92, None),  # BLS: Rapsöl/Rüböl
+    "asparagus": ("spárga (fehér)", "Spargel roh", "asparagus", "bls:G450100", "total", 28, 0.156, 1.96, 5.38, 1.4, 1.0, 0.5, 'grams = peeled'),  # BLS: Spargel roh
+    # de_traditionell
+    "beef_roulade": ("marha rolád (felsál)", "Rind Roulade (Oberschale) roh", "beef roulade cut (topside)", "bls:U163100", "total", 124, 4.527, 20.86, 0, 0, 1.06, 0.85, None),  # BLS: Rind Roulade (Oberschale) roh
+    "pork_shoulder_rind": ("sertéslapocka bőrrel és zsírral", "Schwein Dicker Bug (mit Fett und Schwarte) roh", "pork shoulder with fat and rind", "bls:U664100", "total", 198, 12.92, 20.4, 0, 0, 1.06, 0.8, 'grams = edible part, bone removed'),  # BLS: Schwein Dicker Bug (mit Fett und Schwarte) roh
+    "cured_pork_hock": ("pácolt sertéscsülök (Eisbein, nem füstölt)", "Schwein Vordereisbein/Vorderhaxe, Kochpökelware", "cured pork hock (Eisbein), unsmoked", "bls:U672800", "total", 155, 8.2, 19.74, 0.439, 0, 1.06, 0.8, 'grams = edible part (meat, rind, fat), bone removed'),  # BLS: Schwein Vordereisbein/Vorderhaxe, Kochpökelware
+    "veal_minced": ("darált borjúhús", "Kalb Hackfleisch, roh", "minced veal", "bls:U030100", "total", 189, 12.515, 19.112, 0, 0, 1.05, 0.8, None),  # BLS: Kalb Hackfleisch, roh
+    "pinkel": ("Pinkel (brémai darakolbász)", "Bremer Pinkel (Grützwurst)", "Pinkel (Bremen groat sausage)", "bls:W383700", "total", 123, 7.77, 5.1, 9, 1.6, 1.0, 0.8, None),  # BLS: Bremer Pinkel (Grützwurst)
+    "kale": ("fodros kel (Grünkohl)", "Grünkohl roh", "kale", "bls:G322100", "total", 53, 0.67, 4.16, 11.71, 8.39, 1.0, 0.3, None),  # BLS: Grünkohl roh
+    "corned_beef": ("corned beef", "Corned Beef", "corned beef", "bls:W520000", "total", 142, 6, 21.7, 0.37, 0.09, 1.05, 0.8, None),  # BLS: Corned Beef
+    "beetroot_cooked": ("főtt cékla", "Rote Rübe/Rote Bete, gekocht", "beetroot, cooked", "bls:G613132", "total", 58, 0.3, 1.6, 13.6, 2.6, 1.03, 0.7, None),  # BLS: Rote Rübe/Rote Bete, gekocht
+    "rollmops": ("rollmopsz (ecetes heringtekercs)", "Rollmops Konserve, abgetropft", "rollmops (pickled herring roll)", "bls:T113902", "total", 99, 4.426, 8, 5.81, 0.19, 1.03, 0.7, 'drained'),  # BLS: Rollmops Konserve, abgetropft
+    "peas_canned": ("zöldborsó (konzerv)", "Erbse grün, Konserve, abgetropft", "green peas, canned, drained", "bls:G760902", "total", 61, 0.485, 4.985, 11.818, 5.19, 1.0, 0.7, None),  # BLS: Erbse grün, Konserve, abgetropft
+    "meat_fond": ("húsalaplé (Fond)", "Fleischfond Konserve", "meat stock (fond)", "bls:U981700", "total", 8, 0.22, 1.48, 0, 0, 1.0, 1.0, 'BLS has no veal-specific fond; generic Fleischfond'),  # BLS: Fleischfond Konserve
+    "bratwurst_braet": ("kolbásztöltelék (Bratwurstbrät)", "Bratwurst-Grundbrät", "bratwurst sausage meat (Brät)", "bls:W221100", "total", 267, 24.1, 12.47, 0.14, 0.05, 1.0, 0.8, None),  # BLS: Bratwurst-Grundbrät
+    "salad_mayonnaise": ("salátamajonéz (50%)", "Salatmayonnaise (Fertigprodukt)", "salad mayonnaise (~50% fat)", "bls:Q993000", "total", 490, 50.751, 0.4, 7.323, 0.028, 0.95, 0.95, None),  # BLS: Salatmayonnaise (Fertigprodukt)
+    "weisswurst": ("müncheni fehérkolbász (Weißwurst)", "Münchner Weißwurst", "Munich white sausage (Weißwurst)", "bls:W224000", "total", 292, 27.225, 11.7, 0.16, 0.08, 1.0, 0.8, None),  # BLS: Münchner Weißwurst
+    "sweet_mustard": ("édes mustár (bajor)", "Senf süß", "sweet mustard (Bavarian)", "bls:R135000", "total", 177, 5.37, 4.25, 28.6, 3.5, 1.1, 1.1, None),  # BLS: Senf süß
+    "plaice": ("lepényhal (Scholle)", "Goldbutt/Scholle, roh", "plaice", "bls:T305100", "total", 76, 0.8, 17.2, 0, 0, 1.05, 0.8, 'grams = edible part'),  # BLS: Goldbutt/Scholle, roh
+    "cod": ("tőkehal", "Dorsch/Kabeljau, roh", "cod", "bls:T204100", "total", 79, 0.84, 17.8, 0, 0, 1.05, 0.8, 'grams = fillet'),  # BLS: Dorsch/Kabeljau, roh
+    "redfish": ("vörös sügér (Rotbarsch)", "Rotbarsch/Goldbarsch, roh", "redfish (ocean perch)", "bls:T615100", "total", 92, 3.47, 15.3, 0, 0, 1.05, 0.8, 'grams = fillet'),  # BLS: Rotbarsch/Goldbarsch, roh
+    "matjes": ("matjeshering filé", "Matjesfilet (Heringsfilet) nordische Art", "matjes herring fillet", "bls:T811100", "total", 177, 12.6, 14.64, 0, 0, 1.03, 0.8, None),  # BLS: Matjesfilet (Heringsfilet) nordische Art
+    "bismarck_herring": ("Bismarck-hering", "Bismarckhering Präserve, abgetropft", "Bismarck herring (marinated)", "bls:T820802", "total", 225, 16, 16.5, 2.815, 0.135, 1.03, 0.8, 'drained'),  # BLS: Bismarckhering Präserve, abgetropft
+    "cress": ("kerti zsázsa", "Gartenkresse roh", "garden cress", "bls:G280100", "total", 31, 0.7, 4.2, 3.75, 3.52, 1.0, 0.2, None),  # BLS: Gartenkresse roh
+    "sorrel": ("sóska", "Sauerampfer roh", "sorrel", "bls:G263100", "total", 25, 0.36, 3.19, 3.11, 1.95, 1.0, 0.2, None),  # BLS: Sauerampfer roh
+    "schinkenspeck": ("füstölt sonkaszalonna (Schinkenspeck)", "Schwein Schinkenspeck, Rohpökelware, geräuchert", "smoked lean bacon (Schinkenspeck)", "bls:W410400", "total", 121, 3.95, 20.82, 0.492, 0, 1.05, 0.8, None),  # BLS: Schwein Schinkenspeck, Rohpökelware, geräuchert
+    "camembert": ("camembert (45%)", "Camembert mind. 45 % Fett i. Tr.", "Camembert 45% fat i.d.m.", "bls:M602600", "total", 257, 19.82, 19.58, 0.05, 0, 1.05, 0.6, None),  # BLS: Camembert mind. 45 % Fett i. Tr.
+    "cream_cheese_double": ("krémsajt (dupla krém)", "Frischkäsezubereitung Natur, mind. 60 % Fett i. Tr.", "cream cheese, full fat (Doppelrahmstufe)", "bls:M710800", "total", 252, 23.25, 6.6, 3.69, 0, 1.05, 0.8, None),  # BLS: Frischkäsezubereitung Natur, mind. 60 % Fett i. Tr.
+    "rostbratwurst": ("sütnivaló kolbász (Rostbratwurst)", "Rostbratwurst", "grilling sausage (Rostbratwurst)", "bls:W222600", "total", 178, 12.66, 15.9, 0.12, 0.04, 1.0, 0.8, 'Thuringian and Nuremberg Rostbratwurst; BLS has one record'),  # BLS: Rostbratwurst
+    "kasseler": ("füstölt pácolt karaj (Kasseler)", "Kasseler, Rohpökelware, geräuchert", "Kasseler (cured smoked pork loin)", "bls:W510000", "total", 107, 2.17, 21.97, 0, 0, 1.05, 0.8, None),  # BLS: Kasseler, Rohpökelware, geräuchert
+    # de_kuchen
+    "sour_cherry_jar": ("meggy (üveges, cukrozott, lecsepegtetve)", "Sauerkirsche gezuckert, Konserve, abgetropft", "sour cherries, jarred, sweetened, drained", "bls:F212902", "total", 52, 0.21, 0.84, 12.14, 1.08, 1.05, 0.6, None),  # BLS: Sauerkirsche gezuckert, Konserve, abgetropft
+    "sour_cherry_juice": ("meggylé", "Sauerkirschsaft", "sour cherry juice", "bls:F212600", "total", 62, 0.4, 0.81, 12.953, 0.1, 1.04, 1.04, None),  # BLS: Sauerkirschsaft
+    "fruit_brandy": ("gyümölcspálinka (Kirschwasser)", "Obstbrand/Obstwasser", "fruit brandy (Kirschwasser)", "bls:P752100", "total", 274, 0, 0, 0, 0, 0.95, 0.95, 'Kirschwasser is an Obstbrand'),  # BLS: Obstbrand/Obstwasser
+    "cream_stabilizer": ("tejszínhab-fixáló (Sahnesteif)", "Sahnestandmittel", "whipped cream stabiliser", "bls:R434000", "total", 369, 0.045, 0.067, 92.258, 0.201, 1.0, 0.6, None),  # BLS: Sahnestandmittel
+    "blueberry": ("kék áfonya", "Heidelbeere roh", "blueberry", "bls:F304100", "total", 61, 0.6, 0.5, 14.6, 4.9, 1.0, 0.6, None),  # BLS: Heidelbeere roh
+    "blackcurrant_juice": ("feketeribizli-lé", "Johannisbeersaft schwarz", "blackcurrant juice", "bls:F323600", "total", 55, 0.176, 1.238, 10.41, 0.4, 1.04, 1.04, None),  # BLS: Johannisbeersaft schwarz
+    "nut_nougat_cream": ("mogyorókrém (Nutella-típus)", "Nuss-Nougat-Creme", "chocolate hazelnut spread", "bls:S145000", "total", 530, 30.55, 6.9, 58.27, 3.52, 1.2, 1.2, None),  # BLS: Nuss-Nougat-Creme
+    # de_backwaren, de_alltag
+    "franzbroetchen": ("Franzbrötchen (fahéjas leveles péksütemény)", "Franzbrötchen (Plunderteig)", "Franzbrötchen (cinnamon pastry)", "bls:D7A7200", "total", 567, 34.85, 5.48, 58.71, 1.71, 0.3, 0.3, None),  # BLS: Franzbrötchen (Plunderteig)
+    "raisin_roll": ("mazsolás zsemle (Rosinenbrötchen)", "Rosinenbrötchen (Hefeteig)", "raisin bun", "bls:D7A5500", "total", 338, 9, 8.3, 57.5, 3.7, 0.3, 0.3, None),  # BLS: Rosinenbrötchen (Hefeteig)
+    "leberwurst": ("májas (Delikatess Leberwurst)", "Delikatess Leberwurst/Feine Leberwurst/Gutsleberwurst", "liver sausage (fine Leberwurst)", "bls:W310000", "total", 357, 33.15, 12.3, 2.05, 0, 1.05, 0.8, None),  # BLS: Delikatess Leberwurst/Feine Leberwurst/Gutsleberwurst
+    "teewurst": ("Teewurst (kenhető nyers kolbász)", "Teewurst fein/grob/Rügenwalder Art", "Teewurst (spreadable smoked sausage)", "bls:W121100", "total", 373, 35.6, 12.72, 0, 0, 1.05, 0.8, None),  # BLS: Teewurst fein/grob/Rügenwalder Art
+    "salami": ("szalámi (német)", "Salami", "salami (German)", "bls:W140000", "total", 374, 30.9, 23.54, 0, 0, 1.05, 0.6, None),  # BLS: Salami
+    "fleischwurst": ("Fleischwurst (vastag párizsi)", "Fleischwurst", "Fleischwurst (bologna-type sausage)", "bls:W234000", "total", 306, 28.3, 12.11, 0.25, 0, 1.0, 0.6, None),  # BLS: Fleischwurst
+    "fleischsalat": ("német húsaláta (Fleischsalat)", "Fleischsalat mit Salatmayonnaise und Gurke", "German meat salad (Fleischsalat)", "bls:W985000", "total", 290, 27.35, 4.2, 6.48, 0.3, 1.0, 0.8, None),  # BLS: Fleischsalat mit Salatmayonnaise und Gurke
+    "linseed_oil": ("lenmagolaj", "Leinöl", "linseed oil", "bls:Q160000", "total", 900, 100, 0, 0, 0, 0.92, 0.92, None),  # BLS: Leinöl
+    "bockwurst": ("Bockwurst (nagy virsli)", "Bockwurst", "Bockwurst (large frankfurter)", "bls:W211100", "total", 273, 24.5, 13.1, 0.06, 0.06, 1.02, 0.8, None),  # BLS: Bockwurst
+    "processed_cheese_spread": ("kenhető ömlesztett sajt (45-52%)", "Schmelzkäsezubereitung 45 - 52 % Fett i. Tr.", "processed cheese spread 45-52% fat i.d.m.", "bls:M810600", "total", 284, 23.7, 11.8, 5.3, 0, 1.05, 1.05, None),  # BLS: Schmelzkäsezubereitung 45 - 52 % Fett i. Tr.
+    "cornflakes": ("kukoricapehely (cukrozott)", "Cornflakes gesüßt", "cornflakes, sweetened", "bls:C515000", "total", 366, 1.75, 6.24, 83.54, 4.19, 0.12, 0.12, None),  # BLS: Cornflakes gesüßt
+    # de_streetfood
+    "currybratwurst": ("curry-kolbász (bőr nélküli berlini)", "Currybratwurst", "Berlin curry sausage (skinless)", "bls:W221300", "total", 215, 19.01, 10.92, 0.06, 0.02, 1.0, 0.8, None),  # BLS: Currybratwurst
+    "pollock_saithe": ("fekete tőkehal (Seelachs)", "Köhler/Seelachs, roh", "saithe / coley (Seelachs)", "bls:T207100", "total", 99, 2.39, 19.32, 0, 0, 1.05, 0.8, 'grams = fillet'),  # BLS: Köhler/Seelachs, roh
+    "shrimp_north_sea": ("északi-tengeri garnélarák (Nordseekrabben, főtt, hámozott)", "Garnele/Granat/Krabbe, Präserve", "North Sea brown shrimp, cooked peeled", "bls:T753800", "total", 93, 1.955, 18.938, 0, 0, 1.05, 0.8, None),  # BLS: Garnele/Granat/Krabbe, Präserve
+    "remoulade": ("remulád mártás", "Remoulade (Fertigprodukt)", "remoulade sauce", "bls:Q999000", "total", 567, 60.004, 0.8, 5.09, 0.1, 1.0, 1.0, None),  # BLS: Remoulade (Fertigprodukt)
+    "apple_sauce": ("almapüré (cukrozott)", "Apfelkompott/Apfelmus, gezuckert, Konserve", "apple sauce, sweetened", "bls:F921900", "total", 86, 0.1, 0.22, 22.147, 1.827, 1.05, 1.05, None),  # BLS: Apfelkompott/Apfelmus, gezuckert, Konserve
+    "beetroot_juice": ("céklalé", "Gemüsesaft aus Rote Rübe/Rote Bete", "beetroot juice", "bls:G613600", "total", 37, 0.08, 1.08, 7.96, 0.2, 1.04, 1.04, None),  # BLS: Gemüsesaft aus Rote Rübe/Rote Bete
+    "raspberry": ("málna", "Himbeere roh", "raspberry", "bls:F302100", "total", 43, 0.3, 1, 9.9, 4.7, 0.95, 0.6, None),  # BLS: Himbeere roh
+    "mango": ("mangó", "Mango roh", "mango", "bls:F516100", "total", 60, 0.45, 0.7, 13.7, 1.7, 1.0, 0.6, 'grams = peeled, stone removed'),  # BLS: Mango roh
+    "nectarine": ("nektarin", "Nektarine roh", "nectarine", "bls:F202100", "total", 48, 0.2, 1.06, 10.9, 1.7, 1.0, 0.6, 'grams = stone removed'),  # BLS: Nektarine roh
+    "watermelon": ("görögdinnye", "Wassermelone roh", "watermelon", "bls:F535100", "total", 35, 0.4, 0.6, 7.16, 0.2, 0.95, 0.6, 'grams = flesh without rind'),  # BLS: Wassermelone roh
+    # de (phase 4) END
 }
 
 # Keys whose fat renders out when meat is roasted, pan-fried or grilled

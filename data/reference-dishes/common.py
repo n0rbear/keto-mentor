@@ -70,6 +70,21 @@ MEASURE_G.update({
     "l_milk": 1030,
 })
 
+# German recipe measures (gutekueche.de, lecker.de, essen-und-trinken.de;
+# phase 4). EL/TL reuse the spoon keys above; the note keeps the source's
+# word. A German Becher of Sahne, Schmand or saure Sahne is 200 g (retail
+# size); 1 Stange Lauch ~200 g (lecker.de: "1 Stange (ca. 200 g) Lauch");
+# 1 Bund Suppengrün ~400 g, split by suppengruen() into Möhre 150 g,
+# Knollensellerie 150 g and Lauch 100 g (estimate; the parsley sprigs are
+# left out); a Bund of parsley, chives or dill ~15 g usable herb (estimate);
+# a Prise of a spice ~0.5 g; 1 Tasse ~150 ml; 1 TL Brühpulver ~4 g; 1 EL Kakao ~7 g;
+# 1 TL Backpulver ~3 g (estimates). Packs: Puddingpulver 37 g, Sahnesteif 8 g
+# (German retail sachets).
+MEASURE_G.update({
+    "becher_200": 200, "stg_lauch": 200, "bund_suppengruen": 400, "bund_herb": 15, "prise": 0.5, "tasse_ml": 150,
+    "tl_bouillon_powder": 4, "pkg_pudding_powder": 37, "pkg_sahnesteif": 8, "ek_cocoa": 7, "tl_baking_powder": 3,
+})
+
 
 # Fat that stays in roasted/fried/grilled meat when the drippings are NOT
 # eaten (cooking.drippings = "oven" | "pan" | "grill"). Medians of the BLS 4.0
