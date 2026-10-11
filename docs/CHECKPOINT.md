@@ -16,7 +16,7 @@ Compact continuity state for the Master/worker workflow. Git, tests and this fil
 
 ## Open
 - **PR #53** docs-only community backlog (idle).
-- **Phase 4 — Germany** in progress on `feat/regional-database-phase4` (worker, from `65ec0fa`); same rules as AT; owner precedents: reuse HU/AT dish only if recipe identical (Langos → separate AT variant), ambiguous bare words get a choice (túró/Quark/Rahm/Obers, Pfannkuchen).
+- **PR #80** `feat/regional-database-phase4` @ `b04f12e` — full DE set (74/62/35; 69 reused HU/AT via `REUSE` table in `de.py`), migration `20261011120000_bls_regional_de` (65 ids, insert-only; 24 already in prod). API 2186, web 368, tsc clean. Awaiting owner (mappings, Pfannkuchen/Döner/Fischbrötchen choices, AT/DE shared phrases).
 
 ## Regional methodology (from #75/#76 — follow exactly)
 Source of truth = Python modules in `data/reference-dishes/` (`at.py`, `hu*.py`, `common.py`, `foods.py`); `build.py` validates/derives; generated TS data + idempotent seed. Every dish: countries, category, aliases per `hu`/`de`/`de-AT`/`en`, ≥2 dated recipe sources, every ingredient → existing BLS/USDA catalog record (BLS first, then USDA; OFF only branded, `chain_official` only chains). Never invent or hand-type nutrition; never substitute — missing record → `<country>-missing-foods.md`, or import from the official BLS 4.0 xlsx via `BlsAdapter`/`bls-migration-sql.ts` in an insert-only migration. Carbs stored total = available + fiber. Rules: `common.MEASURE_G`, `FAT_RETENTION` (drippings), `BOILED_YIELD`, `breaded()`. Per-dish BLS cross-check; >15 % needs a written reason. Minimums counted on built dishes only (no side variants). Build twice → byte-identical. API + web tests and `tsc` green.
@@ -38,5 +38,5 @@ Authoritative catalog data first; AI nutrition is a labelled, user-confirmable e
 ## Roadmap status
 - DONE: Phases 1–5, 6A (PWA), AI-estimate fallback, voice input, regional DB phases 1–2 (HU).
 - DONE: regional phase 3 (AT) #79 (merged by owner 2026-10-11, no staging check — owner chose to merge directly).
-- IN PROGRESS: regional phase 4 (DE).
+- IN REVIEW: regional phase 4 (DE) #80.
 - PLANNED: regional phases 4–6; dinner recommendation (no code yet); Phase 6B native apps; Phase 7 beta/release.
