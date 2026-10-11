@@ -373,6 +373,32 @@
 | Vörös gyümölcskocsonya (Rote Grütze) | 780 | -30 | 750 | 0.962 | 1.033 | 74.7 | 0.4 | 0.9 | 15.3 | – |
 | Vaníliamártás | 649 | -30 | 619 | 0.954 | 1.067 | 131.7 | 5.6 | 4.3 | 15.8 | – |
 | Gőzgombóc (Dampfnudeln) | 1165 | -350 | 815 | 0.7 | 1.016 | 327.5 | 9.7 | 9.2 | 49.4 | – |
+| Német zsemle (Brötchen, Schrippe) | 60 | +0 | 60 | 1.0 | 0.25 | 280.0 | 1.8 | 10.1 | 54.0 | – |
+| Magvas zsemle (Körnerbrötchen) | 62.5 | +0 | 62.5 | 1.0 | 0.3 | 302.0 | 5.4 | 9.8 | 50.0 | – |
+| Hamburgi fahéjas péksütemény (Franzbrötchen) | 70 | +0 | 70 | 1.0 | 0.3 | 567.0 | 34.8 | 5.5 | 57.0 | – |
+| Mazsolás zsemle (Rosinenbrötchen) | 51 | +0 | 51 | 1.0 | 0.3 | 338.0 | 9.0 | 8.3 | 53.8 | – |
+| Vajas kenyér (rozsos vegyes kenyérből) | 63 | +0 | 63 | 1.0 | 0.336 | 297.2 | 13.7 | 6.3 | 35.3 | – |
+| Májaskenyér | 83 | +0 | 83 | 1.0 | 0.404 | 268.2 | 12.6 | 9.2 | 27.5 | – |
+| Teewurst-os kenyér | 83 | +0 | 83 | 1.0 | 0.404 | 274.0 | 13.5 | 9.3 | 26.8 | – |
+| Zsíros kenyér rozsos kenyérből (Schmalzbrot) | 68 | +0 | 68 | 1.0 | 0.352 | 368.9 | 22.8 | 5.8 | 32.7 | – |
+| Szalámis zsemle | 100 | +0 | 100 | 1.0 | 0.358 | 351.9 | 18.5 | 13.2 | 32.4 | – |
+| Mogyorókrémes zsemle | 88 | +0 | 88 | 1.0 | 0.332 | 376.5 | 15.6 | 8.5 | 49.2 | – |
+| Húsalátás zsemle (Fleischsalat) | 110 | +0 | 110 | 1.0 | 0.379 | 284.5 | 13.4 | 7.4 | 32.2 | – |
+| Nyers darált sertéshúsos zsemle (Mettbrötchen) | 919.25 | +0 | 919.25 | 1.0 | 0.392 | 257.8 | 10.1 | 11.6 | 28.9 | – |
+| Sonkás-tükörtojásos kenyér (Strammer Max) | 677.5 | -20 | 657.5 | 0.97 | 0.589 | 223.6 | 12.7 | 13.2 | 13.1 | – |
+| Parasztreggeli (sült krumpli tojással és szalonnával) | 1820.5 | -150 | 1670.5 | 0.918 | 1.056 | 98.7 | 2.8 | 5.7 | 11.9 | – |
+| Bundás kenyér cukorral (Arme Ritter) | 716 | -40 | 676 | 0.944 | 0.558 | 215.9 | 8.6 | 8.1 | 25.8 | – |
+| Német tojásos palacsinta (Eierpfannkuchen) | 456 | -40 | 416 | 0.912 | 1.024 | 251.3 | 14.1 | 8.6 | 21.8 | – |
+| Sonkás-sajtos rakott tészta tejszínnel (Nudelauflauf) | 1742 | -120 | 1622 | 0.931 | 1.009 | 188.5 | 10.4 | 7.3 | 15.6 | – |
+| Tejszínes rakott burgonya sajttal (Kartoffelgratin) | 809 | -80 | 729 | 0.901 | 1.061 | 154.1 | 9.2 | 3.7 | 13.6 | – |
+| Német tésztasaláta Fleischwursttal (Nudelsalat) | 822 | +0 | 822 | 1.0 | 0.65 | 275.1 | 19.7 | 6.5 | 17.3 | – |
+| Tojássaláta majonézzel | 529 | +0 | 529 | 1.0 | 1.004 | 367.0 | 35.9 | 8.3 | 2.0 | – |
+| Tejszínes-mustáros pulykaragu (Putengeschnetzeltes) | 1175.0 | -180 | 995.0 | 0.847 | 1.024 | 150.8 | 9.9 | 13.1 | 2.1 | – |
+| Héjában főtt burgonya túrókrémmel és lenmagolajjal | 2461 | +0 | 2461 | 1.0 | 1.052 | 108.4 | 5.2 | 4.0 | 10.6 | – |
+| Sajtos-póréhagymás leves darált hússal (Käse-Lauch-Suppe) | 2341.0 | -150 | 2191.0 | 0.936 | 1.019 | 128.3 | 9.7 | 7.1 | 2.7 | – |
+| Bockwurst (nagy virsli) | 95 | +0 | 95 | 1.0 | 1.02 | 273.0 | 24.5 | 13.1 | 0.0 | – |
+| Müzli tejjel | 169 | +0 | 169 | 1.0 | 0.789 | 126.6 | 4.1 | 4.9 | 16.1 | – |
+| Kukoricapehely tejjel | 159 | +0 | 159 | 1.0 | 0.424 | 119.4 | 3.2 | 4.1 | 18.2 | – |
 | Rántotta | 158 | -8 | 150 | 0.949 | 0.55 | 173.2 | 13.3 | 13.2 | 0.3 | – |
 | Leberkäsés zsemle | 162.5 | +0 | 162.5 | 1.0 | 0.464 | 281.2 | 16.0 | 12.2 | 21.1 | – |
 
@@ -731,6 +757,34 @@ kivéve ha az ételnél `reference_check.deviation` (átnézett receptkülönbs�
 | Duna-hullám sütemény (Donauwelle) | nincs még | – | – | – | – | – | – |
 | Vörös gyümölcskocsonya vaníliamártással (Rote Grütze) | bls:Y855743 Rote Grütze mit Vanillesauce | 95 / 95 | 2.2 / 1.8 | 2.1 / 2.1 | 15.5 / 16.2 | -0% rendben | – |
 | Gőzgombóc vaníliamártással (Dampfnudeln) | nincs még | – | – | – | – | – | – |
+| Német zsemle (Brötchen, Schrippe) | nincs még | – | – | – | – | – | – |
+| Magvas zsemle (Körnerbrötchen) | nincs még | – | – | – | – | – | – |
+| Hamburgi fahéjas péksütemény (Franzbrötchen) | bls:D7A7200 Franzbrötchen (Plunderteig) | 567 / 567 | 34.8 / 34.85 | 5.5 / 5.48 | 57.0 / 57.0 | +0% rendben | – |
+| Mazsolás zsemle (Rosinenbrötchen) | nincs még | – | – | – | – | – | – |
+| Vajas kenyér (rozsos vegyes kenyérből) | nincs még | – | – | – | – | – | – |
+| Májaskenyér | nincs még | – | – | – | – | – | – |
+| Teewurst-os kenyér | nincs még | – | – | – | – | – | – |
+| Zsíros kenyér rozsos kenyérből (Schmalzbrot) | nincs még | – | – | – | – | – | – |
+| Szalámis zsemle | nincs még | – | – | – | – | – | – |
+| Mogyorókrémes zsemle | nincs még | – | – | – | – | – | – |
+| Húsalátás zsemle (Fleischsalat) | nincs még | – | – | – | – | – | – |
+| Nyers darált sertéshúsos zsemle (Mettbrötchen) | nincs még | – | – | – | – | – | – |
+| Sonkás-tükörtojásos kenyér (Strammer Max) | nincs még | – | – | – | – | – | – |
+| Parasztreggeli (sült krumpli tojással és szalonnával) | nincs még | – | – | – | – | – | – |
+| Bundás kenyér cukorral (Arme Ritter) | bls:Y812962 Arme Ritter gebraten, mit Zucker und Zimt | 216 / 284 | 8.6 / 12.59 | 8.1 / 7.1 | 25.8 / 34.43 | -24% RECEPTKÜLÖNBSÉG | RECEPTKÜLÖNBSÉG: a gutekueche-recept 8 szelet kenyeret csak 2 EL Butterschmalzban süt, a BLS-összetétel több zsírt szív fel; nem hangoltuk. |
+| Német tojásos palacsinta (Eierpfannkuchen) | bls:X929212 Pfannkuchen/Eierkuchen, ungesüßt, mit Milch 3,5 % Fett, gebraten | 251 / 267 | 14.1 / 12.12 | 8.6 / 8.34 | 21.8 / 30.1 | -6% rendben | – |
+| Két virsli majonézes krumplisalátával | nincs még | – | – | – | – | – | – |
+| Sonkás-sajtos rakott tészta tejszínnel (Nudelauflauf) | nincs még | – | – | – | – | – | – |
+| Tejszínes rakott burgonya sajttal (Kartoffelgratin) | nincs még | – | – | – | – | – | – |
+| Német tésztasaláta Fleischwursttal (Nudelsalat) | bls:X1A3020 Salat aus Eierteigwaren, würzig, mit Mayonnaise, gestreckt mit Joghurt | 275 / 141 | 19.7 / 9.17 | 6.5 / 2.6 | 17.3 / 11.0 | +95% RECEPTKÜLÖNBSÉG | RECEPTKÜLÖNBSÉG: a recept házi majonézt kever 125 ml olajból, a BLS-referencia joghurttal hígított majonézzel készül; nem hangoltuk. |
+| Tojássaláta majonézzel | nincs még | – | – | – | – | – | – |
+| Tejszínes-mustáros pulykaragu (Putengeschnetzeltes) | nincs még | – | – | – | – | – | – |
+| Héjában főtt burgonya túrókrémmel és lenmagolajjal | nincs még | – | – | – | – | – | – |
+| Sajtos-póréhagymás leves darált hússal (Käse-Lauch-Suppe) | nincs még | – | – | – | – | – | – |
+| Bockwurst majonézes krumplisalátával | nincs még | – | – | – | – | – | – |
+| Müzli tejjel | nincs még | – | – | – | – | – | – |
+| Kukoricapehely tejjel | nincs még | – | – | – | – | – | – |
+| Pirított burgonya szalonnával és tükörtojással | nincs még | – | – | – | – | – | – |
 | Rántotta | bls:Y720163 Rührei gebraten in Butter | 173 / 172 | 13.3 / 12.99 | 13.2 / 13.31 | 0.3 / 0.42 | +1% rendben | – |
 | Leberkäsés zsemle | nincs még | – | – | – | – | – | – |
 
@@ -779,13 +833,13 @@ Mély tányér: kapacitás × töltöttség × sűrűség. Lapos tányér: 0,8 �
 | gofri | HU | street_food | 100 | – (kézből) | – | – | – | – |
 | tejfölös tészta | HU | everyday | 350 | – (lapos tányéros étel) | – (lapos tányéros étel) | 254 | 298 | 346 |
 | pesto pasta | HU | everyday | 280 | – (lapos tányéros étel) | – (lapos tányéros étel) | 235 | 275 | 319 |
-| spaghetti bolognese | HU, AT | everyday | 400 | – (lapos tányéros étel) | – (lapos tányéros étel) | 304 | 357 | 414 |
-| carbonara | HU | everyday | 400 | – (lapos tányéros étel) | – (lapos tányéros étel) | 254 | 298 | 346 |
-| lasagne | HU, AT | everyday | 420 | 345 | 498 | 444 | 521 | 604 |
-| pizza margherita | HU, AT | everyday | 410 | 340 | 491 | 315 | 370 | 429 |
+| spaghetti bolognese | HU, AT, DE | everyday | 400 | – (lapos tányéros étel) | – (lapos tányéros étel) | 304 | 357 | 414 |
+| carbonara | HU, DE | everyday | 400 | – (lapos tányéros étel) | – (lapos tányéros étel) | 254 | 298 | 346 |
+| lasagne | HU, AT, DE | everyday | 420 | 345 | 498 | 444 | 521 | 604 |
+| pizza margherita | HU, AT, DE | everyday | 410 | 340 | 491 | 315 | 370 | 429 |
 | sonkás pizza | HU | everyday | 520 | 345 | 498 | 373 | 438 | 507 |
-| görög saláta | HU, AT | everyday | 250 | – (lapos tányéros étel) | – (lapos tányéros étel) | 334 | 392 | 455 |
-| cézársaláta | HU | everyday | 350 | – (lapos tányéros étel) | – (lapos tányéros étel) | 284 | 333 | 386 |
+| görög saláta | HU, AT, DE | everyday | 250 | – (lapos tányéros étel) | – (lapos tányéros étel) | 334 | 392 | 455 |
+| cézársaláta | HU, DE | everyday | 350 | – (lapos tányéros étel) | – (lapos tányéros étel) | 284 | 333 | 386 |
 | uborkasaláta | HU | everyday | 180 | 329 | 475 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | paradicsomsaláta | HU | everyday | 200 | 339 | 489 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | káposztasaláta | HU | everyday | 150 | 342 | 493 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
@@ -806,9 +860,9 @@ Mély tányér: kapacitás × töltöttség × sűrűség. Lapos tányér: 0,8 �
 | paradicsomos káposzta | HU | everyday | 400 | 341 | 492 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | sárgaborsó-főzelék | HU | everyday | 350 | 362 | 524 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | kelkáposzta-főzelék | HU | everyday | 350 | 341 | 493 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
-| rántott csirkemell | HU, AT | everyday | 200 | – (lapos tányéros étel) | – (lapos tányéros étel) | 155 | 182 | 211 |
-| chili con carne | HU | everyday | 350 | 351 | 507 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
-| tükörtojás | HU, AT | everyday | 106 | 344 | 496 | 74 | 86 | 100 |
+| rántott csirkemell | HU, AT, DE | everyday | 200 | – (lapos tányéros étel) | – (lapos tányéros étel) | 155 | 182 | 211 |
+| chili con carne | HU, DE | everyday | 350 | 351 | 507 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| tükörtojás | HU, AT, DE | everyday | 106 | 344 | 496 | 74 | 86 | 100 |
 | főtt tojás | HU, AT | everyday | 100 | 348 | 502 | 107 | 126 | 146 |
 | tojásos nokedli | HU | everyday | 303 | – (lapos tányéros étel) | – (lapos tányéros étel) | 238 | 279 | 324 |
 | bundás kenyér | HU | everyday | 128 | 148 | 214 | 80 | 94 | 109 |
@@ -818,7 +872,7 @@ Mély tányér: kapacitás × töltöttség × sűrűség. Lapos tányér: 0,8 �
 | felvágottas szendvics | HU | everyday | 120 | – (kézből) | – | – | – | – |
 | zsíros kenyér | HU | everyday | 89 | – (kézből) | – | – | – | – |
 | körözöttes kenyér | HU | everyday | 129 | – (kézből) | – | – | – | – |
-| tejbegríz | HU | everyday | 278 | 362 | 523 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| tejbegríz | HU, DE | everyday | 278 | 362 | 523 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | zabkása | HU | everyday | 261 | 272 | 392 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | müzli joghurttal | HU | everyday | 195 | 268 | 387 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | joghurt gyümölccsel | HU, AT | everyday | 225 | 338 | 488 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
@@ -907,7 +961,7 @@ Mély tányér: kapacitás × töltöttség × sűrűség. Lapos tányér: 0,8 �
 | Hagymás rostélyos (Zwiebelrostbraten) | AT, DE | traditional | 210 | 347 | 501 | 179 | 210 | 243 |
 | Tejszínes sertésszelet (Rahmschnitzel) | AT | traditional | 190 | 350 | 506 | 162 | 190 | 221 |
 | Vagdalt hús (Faschierter Braten) | AT, DE | traditional | 250 | 251 | 363 | 215 | 253 | 293 |
-| Fasírt (osztrák, Faschierte Laibchen) | AT | traditional | 250 | – (lapos tányéros étel) | – (lapos tányéros étel) | 215 | 253 | 293 |
+| Fasírt (osztrák, Faschierte Laibchen) | AT, DE | traditional | 250 | – (lapos tányéros étel) | – (lapos tányéros étel) | 215 | 253 | 293 |
 | Sült sertéscsülök (Stelze) | AT | traditional | 330 | – (lapos tányéros étel) | – (lapos tányéros étel) | 287 | 336 | 390 |
 | Bauernschmaus (sült és füstölt hús, savanyú káposzta, gombóc) | AT | traditional | 450 | 303 | 437 | 624 | 732 | 849 |
 | Molnárné módra sült pisztráng | AT, DE | traditional | 170 | – (lapos tányéros étel) | – (lapos tányéros étel) | 145 | 170 | 197 |
@@ -961,51 +1015,51 @@ Mély tányér: kapacitás × töltöttség × sűrűség. Lapos tányér: 0,8 �
 | Vaníliás kifli | AT | traditional | 34 | – (kézből) | – | – | – | – |
 | Eszterházy-torta | AT | traditional | 100 | 381 | 550 | 78 | 92 | 107 |
 | Vajas-metélőhagymás kenyér | AT | everyday | 63 | – (kézből) | – | – | – | – |
-| Párizsis kenyér (Extrawurstbrot) | AT | everyday | 95 | – (kézből) | – | – | – | – |
-| Sajtos kenyér (ementáli) | AT | everyday | 98 | – (kézből) | – | – | – | – |
-| Sonkás zsemle (vajjal) | AT | everyday | 122.5 | – (kézből) | – | – | – | – |
-| Sajtos zsemle (gouda) | AT | everyday | 112.5 | – (kézből) | – | – | – | – |
-| Vajas-lekváros zsemle | AT | everyday | 92.5 | – (kézből) | – | – | – | – |
-| Sonkás-sajtos toast (osztrák) | AT | everyday | 135 | – (kézből) | – | – | – | – |
+| Párizsis kenyér (Extrawurstbrot) | AT, DE | everyday | 95 | – (kézből) | – | – | – | – |
+| Sajtos kenyér (ementáli) | AT, DE | everyday | 98 | – (kézből) | – | – | – | – |
+| Sonkás zsemle (vajjal) | AT, DE | everyday | 122.5 | – (kézből) | – | – | – | – |
+| Sajtos zsemle (gouda) | AT, DE | everyday | 112.5 | – (kézből) | – | – | – | – |
+| Vajas-lekváros zsemle | AT, DE | everyday | 92.5 | – (kézből) | – | – | – | – |
+| Sonkás-sajtos toast (osztrák) | AT, DE | everyday | 135 | – (kézből) | – | – | – | – |
 | Liptói körözöttes kenyér | AT | everyday | 90 | – (kézből) | – | – | – | – |
 | Kornspitz (magvas péksütemény) | AT | everyday | 67.5 | – (kézből) | – | – | – | – |
 | Sós-köményes rúd (Salzstangerl) | AT | everyday | 60 | – (kézből) | – | – | – | – |
 | Vajas kifli (bécsi) | AT | everyday | 65 | – (kézből) | – | – | – | – |
-| Lúgos perec | AT | everyday | 86 | – (kézből) | – | – | – | – |
-| Vajas croissant | AT | everyday | 60 | – (kézből) | – | – | – | – |
-| Farsangi fánk baracklekvárral (Krapfen) | AT | everyday | 80 | – (kézből) | – | – | – | – |
+| Lúgos perec | AT, DE | everyday | 86 | – (kézből) | – | – | – | – |
+| Vajas croissant | AT, DE | everyday | 60 | – (kézből) | – | – | – | – |
+| Farsangi fánk baracklekvárral (Krapfen) | AT, DE | everyday | 80 | – (kézből) | – | – | – | – |
 | Túrós batyu leveles tésztából (Topfengolatsche) | AT | everyday | 72 | – (kézből) | – | – | – | – |
 | Bukta szilvalekvárral (Buchteln) | AT | everyday | 245 | 363 | 524 | 202 | 237 | 275 |
 | Diós csiga | AT | everyday | 120 | – (kézből) | – | – | – | – |
 | Márványkuglóf | AT | everyday | 95 | – (kézből) | – | – | – | – |
-| Bircher-müzli | AT | everyday | 300 | 287 | 414 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
-| Sonkás-szalonnás tükörtojás (Ham and Eggs) | AT | everyday | 170 | 346 | 500 | 147 | 172 | 200 |
-| Egy pár virsli zsemlével | AT | everyday | 185.0 | 169 | 244 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Bircher-müzli | AT, DE | everyday | 300 | 287 | 414 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Sonkás-szalonnás tükörtojás (Ham and Eggs) | AT, DE | everyday | 170 | 346 | 500 | 147 | 172 | 200 |
+| Egy pár virsli zsemlével | AT, DE | everyday | 185.0 | 169 | 244 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | Sonkás kocka (Schinkenfleckerl) | AT | everyday | 350 | – (lapos tányéros étel) | – (lapos tányéros étel) | 297 | 349 | 404 |
 | Osztrák paprikás krumpli virslivel (Erdäpfelgulasch) | AT | everyday | 400 | 351 | 507 | 338 | 397 | 461 |
-| Tejszínes spenót tükörtojással és pirított burgonyával | AT | everyday | 456 | 288 | 415 | 368 | 432 | 502 |
+| Tejszínes spenót tükörtojással és pirított burgonyával | AT, DE | everyday | 456 | 288 | 415 | 368 | 432 | 502 |
 | Rántott gomba tartármártással | AT | everyday | 180 | 173 | 249 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | Rántott ementáli tartármártással | AT | everyday | 170 | 282 | 407 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | Rántott pulykamell | AT | everyday | 135 | – (lapos tányéros étel) | – (lapos tányéros étel) | 114 | 134 | 155 |
 | Zöldséges lepény (Gemüselaibchen) | AT | everyday | 400 | – (lapos tányéros étel) | – (lapos tányéros étel) | 340 | 400 | 463 |
-| Halrudacska burgonyapürével | AT | everyday | 360 | – (lapos tányéros étel) | – (lapos tányéros étel) | 307 | 361 | 418 |
-| Sült leberkäse tükörtojással | AT | everyday | 148 | 339 | 490 | 156 | 183 | 212 |
+| Halrudacska burgonyapürével | AT, DE | everyday | 360 | – (lapos tányéros étel) | – (lapos tányéros étel) | 307 | 361 | 418 |
+| Sült leberkäse tükörtojással | AT, DE | everyday | 148 | 339 | 490 | 156 | 183 | 212 |
 | Sült kolbászka savanyú káposztával és burgonyapürével | AT | everyday | 460 | 331 | 478 | 394 | 462 | 536 |
-| Csevapcsicsi | AT | everyday | 230 | – (lapos tányéros étel) | – (lapos tányéros étel) | 197 | 231 | 268 |
-| Tejberizs | AT | everyday | 300 | 357 | 516 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
-| Osztrák káposztasaláta köménnyel (Krautsalat) | AT | everyday | 150 | – (lapos tányéros étel) | – (lapos tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Csevapcsicsi | AT, DE | everyday | 230 | – (lapos tányéros étel) | – (lapos tányéros étel) | 197 | 231 | 268 |
+| Tejberizs | AT, DE | everyday | 300 | 357 | 516 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Osztrák káposztasaláta köménnyel (Krautsalat) | AT, DE | everyday | 150 | – (lapos tányéros étel) | – (lapos tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | Krumplis galambbegysaláta tökmagolajjal | AT | everyday | 200 | – (lapos tányéros étel) | – (lapos tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | Ecetes uborkasaláta (osztrák) | AT | everyday | 150 | – (lapos tányéros étel) | – (lapos tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | Tejfölös uborkasaláta | AT | everyday | 230 | – (lapos tányéros étel) | – (lapos tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
-| Párizsis saláta sajttal (Wurstsalat) | AT | everyday | 180 | – (lapos tányéros étel) | – (lapos tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Párizsis saláta sajttal (Wurstsalat) | AT, DE | everyday | 180 | – (lapos tányéros étel) | – (lapos tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | Stájer rántottcsirke-saláta tökmagolajjal | AT | everyday | 440 | – (lapos tányéros étel) | – (lapos tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | Zöldsaláta ecetes-olajos öntettel | AT | everyday | 110 | – (lapos tányéros étel) | – (lapos tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
-| Hawaii toast | AT | everyday | 220 | – (kézből) | – | – | – | – |
+| Hawaii toast | AT, DE | everyday | 220 | – (kézből) | – | – | – | – |
 | Osztrák krumplisaláta (Erdäpfelsalat) | AT | everyday | 250 | – (lapos tányéros étel) | – (lapos tányéros étel) | 212 | 248 | 288 |
 | Tojásos galuska (osztrák Eiernockerl) | AT | everyday | 300 | – (lapos tányéros étel) | – (lapos tányéros étel) | 255 | 300 | 348 |
-| Spagetti paradicsomszósszal (Napoli) | AT | everyday | 330 | – (lapos tányéros étel) | – (lapos tányéros étel) | 280 | 328 | 381 |
+| Spagetti paradicsomszósszal (Napoli) | AT, DE | everyday | 330 | – (lapos tányéros étel) | – (lapos tányéros étel) | 280 | 328 | 381 |
 | Zöldbabsaláta (Fisolensalat) | AT | everyday | 200 | – (lapos tányéros étel) | – (lapos tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
-| Paradicsomsaláta olajjal (osztrák) | AT | everyday | 190 | – (lapos tányéros étel) | – (lapos tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Paradicsomsaláta olajjal (osztrák) | AT, DE | everyday | 190 | – (lapos tányéros étel) | – (lapos tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | Marhahússaláta | AT | everyday | 200 | – (lapos tányéros étel) | – (lapos tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | Egy pár debreceni kenyérrel | AT | everyday | 170 | 200 | 289 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | Fűszeres túrókrémes kenyér | AT | everyday | 90 | – (kézből) | – | – | – | – |
@@ -1018,9 +1072,9 @@ Mély tányér: kapacitás × töltöttség × sűrűség. Lapos tányér: 0,8 �
 | Kebab borjúhússal (török kenyérben) | AT | street_food | 360 | – (kézből) | – | – | – | – |
 | Dürüm (kebab tortillában) | AT | street_food | 319 | – (kézből) | – | – | – | – |
 | Kebab box (sült krumpli kebabhússal) | AT | street_food | 350 | – (lapos tányéros étel) | – (lapos tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
-| Csevapcsicsi lepényben | AT | street_food | 340 | – (kézből) | – | – | – | – |
-| Rántott szeletes zsemle | AT | street_food | 212.5 | – (kézből) | – | – | – | – |
-| Fasírtos zsemle | AT | street_food | 187.5 | – (kézből) | – | – | – | – |
+| Csevapcsicsi lepényben | AT, DE | street_food | 340 | – (kézből) | – | – | – | – |
+| Rántott szeletes zsemle | AT, DE | street_food | 212.5 | – (kézből) | – | – | – | – |
+| Fasírtos zsemle | AT, DE | street_food | 187.5 | – (kézből) | – | – | – | – |
 | Currywurst (osztrák bódéból) | AT | street_food | 190 | 340 | 491 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | Grillcsirke (fél) | AT | street_food | 330 | – (lapos tányéros étel) | – (lapos tányéros étel) | 278 | 326 | 378 |
 | Nyárson sült makréla (Steckerlfisch) | AT | street_food | 150 | – (kézből) | – | – | – | – |
@@ -1088,6 +1142,34 @@ Mély tányér: kapacitás × töltöttség × sűrűség. Lapos tányér: 0,8 �
 | Duna-hullám sütemény (Donauwelle) | DE | traditional | 110 | 357 | 515 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | Vörös gyümölcskocsonya vaníliamártással (Rote Grütze) | DE | traditional | 230 | 353 | 509 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | Gőzgombóc vaníliamártással (Dampfnudeln) | DE | traditional | 300 | 348 | 503 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Német zsemle (Brötchen, Schrippe) | DE | everyday | 60 | – (kézből) | – | – | – | – |
+| Magvas zsemle (Körnerbrötchen) | DE | everyday | 62.5 | – (kézből) | – | – | – | – |
+| Hamburgi fahéjas péksütemény (Franzbrötchen) | DE | everyday | 70 | – (kézből) | – | – | – | – |
+| Mazsolás zsemle (Rosinenbrötchen) | DE | everyday | 51 | – (kézből) | – | – | – | – |
+| Vajas kenyér (rozsos vegyes kenyérből) | DE | everyday | 63 | – (kézből) | – | – | – | – |
+| Májaskenyér | DE | everyday | 83 | – (kézből) | – | – | – | – |
+| Teewurst-os kenyér | DE | everyday | 83 | – (kézből) | – | – | – | – |
+| Zsíros kenyér rozsos kenyérből (Schmalzbrot) | DE | everyday | 68 | – (kézből) | – | – | – | – |
+| Szalámis zsemle | DE | everyday | 100 | – (kézből) | – | – | – | – |
+| Mogyorókrémes zsemle | DE | everyday | 88 | – (kézből) | – | – | – | – |
+| Húsalátás zsemle (Fleischsalat) | DE | everyday | 110 | – (kézből) | – | – | – | – |
+| Nyers darált sertéshúsos zsemle (Mettbrötchen) | DE | everyday | 115 | – (kézből) | – | – | – | – |
+| Sonkás-tükörtojásos kenyér (Strammer Max) | DE | everyday | 165 | 199 | 287 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Parasztreggeli (sült krumpli tojással és szalonnával) | DE | everyday | 400 | 356 | 515 | 245 | 287 | 333 |
+| Bundás kenyér cukorral (Arme Ritter) | DE | everyday | 170 | 188 | 272 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Német tojásos palacsinta (Eierpfannkuchen) | DE | everyday | 200 | 346 | 499 | 107 | 125 | 145 |
+| Két virsli majonézes krumplisalátával | DE | everyday | 372.5 | 277 | 400 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Sonkás-sajtos rakott tészta tejszínnel (Nudelauflauf) | DE | everyday | 350 | 341 | 492 | 307 | 360 | 418 |
+| Tejszínes rakott burgonya sajttal (Kartoffelgratin) | DE | everyday | 250 | 358 | 517 | 301 | 353 | 410 |
+| Német tésztasaláta Fleischwursttal (Nudelsalat) | DE | everyday | 200 | – (lapos tányéros étel) | – (lapos tányéros étel) | 141 | 166 | 192 |
+| Tojássaláta majonézzel | DE | everyday | 125 | 339 | 489 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Tejszínes-mustáros pulykaragu (Putengeschnetzeltes) | DE | everyday | 300 | 346 | 499 | 222 | 261 | 303 |
+| Héjában főtt burgonya túrókrémmel és lenmagolajjal | DE | everyday | 450 | 355 | 513 | 292 | 343 | 398 |
+| Sajtos-póréhagymás leves darált hússal (Käse-Lauch-Suppe) | DE | everyday | 400 | 344 | 497 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Bockwurst majonézes krumplisalátával | DE | everyday | 345 | 273 | 394 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Müzli tejjel | DE | everyday | 169 | 266 | 385 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Kukoricapehely tejjel | DE | everyday | 159 | 143 | 207 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Pirított burgonya szalonnával és tükörtojással | DE | everyday | 356 | 246 | 355 | 285 | 335 | 388 |
 | Rántotta | HU, AT, DE | everyday | 150 | – (lapos tányéros étel) | – (lapos tányéros étel) | 127 | 150 | 173 |
 | Leberkäsés zsemle | AT, DE | street_food | 162.5 | – (kézből) | – | – | – | – |
 

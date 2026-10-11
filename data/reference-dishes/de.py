@@ -73,6 +73,46 @@ REUSE = {
     "at_huehnersuppe_nudeln": ("huehnersuppe_nudeln", src(GK_DE + "huehnersuppe-mit-nudeln-rezept-793", R4, "DE cross-check (phase 4): 1 Suppenhuhn (ca. 1.5 kg), Suppengrün, Möhren, Petersilienwurzel, Nudeln, 8 Portionen - same dish"), ["hühnersuppe mit nudeln", "hühnernudelsuppe"]),
     "at_zwiebelrostbraten": ("zwiebelrostbraten", src(GK_DE + "zwiebelrostbraten-rezept-2443", R4, "DE cross-check (phase 4): 800 g Rostbraten, 5 Zwiebeln, 3 EL Öl, 600 ml Rinderbrühe, Senf, Rotwein, 4 Portionen - same dish (Swabian Zwiebelrostbraten)"), ["schwäbischer zwiebelrostbraten"]),
     "at_gulaschsuppe": ("gulaschsuppe", src(GK_DE + "gulaschsuppe-rezept-100", R4, "DE cross-check (phase 4): 500 g Gulaschfleisch vom Rind, 300 g Kartoffeln, 3 Paprika, 2 EL Paprikapulver, 300 g Tomaten, 3 Zwiebeln, 1.75 l Wasser, 6 Portionen - same dish"), []),
+    # everyday
+    "hu_spaghetti_bolognese": ("spaghetti_bolognese", src(GK_DE + "spaghetti-bolognese-rezept-1810", R4, "DE cross-check (phase 4): 1 kg Hackfleisch, 500 g Spaghetti, passierte Tomaten, 2 Zwiebeln, Öl, 4 Portionen - same dish"), []),
+    "hu_lasagne": ("lasagne", src(GK_DE + "lasagne-bolognese-rezept-20", R4, "DE cross-check (phase 4): 250 g Lasagneblätter, 500 g Rinderhack, 100 g Speck, Suppengrün, 2 Dosen Tomaten, 4 Portionen - same dish"), []),
+    "hu_pizza_margherita": ("pizza_margherita", src(GK_DE + "pizza-margherita-rezept-22726", R4, "DE cross-check (phase 4): 250 g Mehl, 10 g Hefe, Olivenöl, 250 g Pizzatomaten, Mozzarella, Basilikum, 2 Portionen - same dish"), []),
+    "hu_gorog_salata": ("gorog_salata", src(GK_DE + "griechischer-salat-rezept-1594", R4, "DE cross-check (phase 4): Feta, Paprika, Salatgurke, 400 g Tomaten, Zwiebel, Olivenöl, 3 Portionen - same dish"), []),
+    "hu_tukortojas": ("tukortojas", src(GK_DE + "spiegelei-rezept-5771", R4, "DE cross-check (phase 4): 1 Ei, 1 TL Butter - same Spiegelei"), []),
+    "hu_carbonara": ("carbonara", src(GK_DE + "spaghetti-carbonara-rezept-1777", R4, "DE cross-check (phase 4): 500 g Spaghetti, 4 Eigelb, 100 g Parmesan, 200 g Schinken, 50 g Butter, 4 Portionen - same dish (ham instead of bacon)"), []),
+    "hu_cezarsalata": ("cezarsalata", src(GK_DE + "caesar-salad-rezept-1909", R4, "DE cross-check (phase 4): Römersalat, 80 g Bacon, 60 g Parmesan, Eigelb-Olivenöl-Dressing, Sardellen, 4 Portionen - same dish"), []),
+    "hu_chili_con_carne": ("chili_con_carne", src(GK_DE + "chili-con-carne-rezept-31", R4, "DE cross-check (phase 4): 500 g Rinderhack, 1 Dose Kidneybohnen, Schalotten, Knoblauch, 500 ml Rinderbrühe, Chili, 4 Portionen - same dish"), []),
+    "hu_tejbegriz": ("tejbegriz", src(GK_DE + "griessbrei-rezept-938", R4, "DE cross-check (phase 4): 1 l Milch, 100 g Weichweizengrieß, 6 EL Zucker, 4 Portionen - same dish"), []),
+    "hu_rantott_csirkemell": ("rantott_csirkemell", src(GK_DE + "haehnchenschnitzel-mit-kartoffeln-rezept-27618", R4, "DE cross-check (phase 4): Hähnchenschnitzel in Mehl, Ei und Semmelbröseln, in Öl gebraten - same dish"), []),
+    "at_toast_hawaii": ("toast_hawaii", src(GK_DE + "toast-hawaii-rezept-8273", R4, "DE cross-check (phase 4): 4 Schb Toastbrot, Butter, 4 Schb Kochschinken, 4 Ananasringe, 4 Schb Käse, Cocktailkirschen, 2 Portionen - same dish"), []),
+    "at_schinken_kaese_toast": ("schinken_kaese_toast", src(GK_DE + "schinken-kaese-toast-rezept-28067", R4, "DE cross-check (phase 4): 4 Schb Toastbrot, 2 Schb Gouda, 2 Schb Kochschinken, Butter, 2 Portionen - same dish"), []),
+    "at_birchermuesli": ("birchermuesli", src(GK_DE + "birchermuesli-rezept-4630", R4, "DE cross-check (phase 4): 75 g Haferflocken, 100 ml Milch, Joghurt, Apfel, Banane, Beeren, Mandeln, Honig, 2 Portionen - same dish"), []),
+    "at_milchreis": ("milchreis", src(GK_DE + "milchreis-rezept-4084", R4, "DE cross-check (phase 4): 1 l Milch, 250 g Milchreis, 3 EL Zucker, Vanillezucker, Butter, Zimt, 4 Portionen - same dish"), []),
+    "at_paradeisersalat": ("paradeisersalat", src(GK_DE + "tomatensalat-rezept-4886", R4, "DE cross-check (phase 4): 4 Tomaten, Lauchzwiebel, Essig, Olivenöl, Basilikum, 2 Portionen - same dish"), []),
+    "at_spinat_ei_erdaepfel": ("cremespinat", src(GK_DE + "spinat-mit-spiegelei-rezept-24249", R4, "DE cross-check (phase 4): 250 g Blattspinat, saure Sahne, Knoblauch, 2 Spiegeleier, 1 Portion - same dish"), ["spinat mit ei und kartoffeln", "spinat, spiegelei und kartoffeln"]),
+    "at_cevapcici": ("cevapcici", src(GK_DE + "cevapcici-rezept-398", R4, "DE cross-check (phase 4): 600 g Rinderhack, 200 g Kalbsbrät, Zwiebel, Knoblauch, Öl, 4 Portionen - same dish"), []),
+    "at_ham_and_eggs": ("ham_and_eggs", src(GK_DE + "bacon-and-eggs-rezept-5427", R4, "DE cross-check (phase 4): 8 Eier, 8 Schb Frühstücksspeck, 4 Portionen - same dish"), []),
+    "at_wurstsalat": ("wurstsalat", src(GK_DE + "schweizer-wurstsalat-rezept-284", R4, "DE cross-check (phase 4): 400 g Fleischwurst, 300 g Käse, Zwiebel, Essig-Öl-Marinade, 4 Portionen - same dish (Schweizer Wurstsalat)"), ["schweizer wurstsalat", "straßburger wurstsalat"]),
+    "at_krautsalat": ("krautsalat", src(GK_DE + "krautsalat-rezept-2235", R4, "DE cross-check (phase 4): 1 kleiner Weißkohl, 1/2 Tasse Rapsöl, 1/2 Tasse Weißweinessig, Zucker, Zwiebel, 5 Portionen - same dish"), []),
+    "at_faschierte_laibchen": ("faschierte_laibchen", src(GK_DE + "frikadellen-grundrezept-rezept-1763", R4, "DE cross-check (phase 4): 500 g Hackfleisch gemischt, 1 Brötchen, 1 Ei, 1 Zwiebel, Senf, Öl, 4 Portionen - same dish"),
+                               ["frikadellen", "frikadelle", "buletten", "bulette", "fleischküchle", "hackfleischbällchen gebraten"]),
+    "at_krapfen": ("krapfen", src(GK_DE + "berliner-rezept-4898", R4, "DE cross-check (phase 4): 500 g Mehl, 30 g Hefe, 250 ml Milch, 60 g Margarine, Ei, 40 g Zucker, 125 g Aprikosenkonfitüre, frittiert, 8 Stück - same pastry"),
+                   ["pfannkuchen", "berliner pfannkuchen", "kreppel", "berliner ballen", "krapfen mit marmelade"]),
+    "at_fischstaebchen_pueree": ("fischstaebchen", src("https://www.lecker.de/fischstaebchen-mit-kartoffelpueree-diaet-11125.html", R4, "DE cross-check (phase 4): Fischstäbchen mit Kartoffelpüree und Erbsen-Möhren - same dish"), []),
+    "at_laugenbrezel": ("laugenbrezel", src(GK_DE + "brezeln-selbst-gemacht-rezept-4060", R4, "DE cross-check (phase 4): Laugenbrezeln (Weizenteig, Natronlauge, Salz) - same pastry"), ["brezn", "bretzel", "laugenbrezn"]),
+    "at_croissant": ("croissant", src(GK_DE + "croissants-rezept-19", R4, "DE cross-check (phase 4): Buttercroissants (Hefe-Blätterteig) - same pastry"), []),
+    "at_kaesesemmel": ("kaesesemmel", src("https://www.supermarktcheck.de/product/181802-gut-guenstig-gute-laune-weizenbroetchen-360g", R4, "DE cross-check (phase 4): a German Weizenbrötchen weighs 60 g (vs 62.5 g Semmel) - same sandwich"), ["käsebrötchen", "käseschrippe", "käseweck"]),
+    "at_schinkensemmel": ("schinkensemmel", src("https://www.supermarktcheck.de/product/181802-gut-guenstig-gute-laune-weizenbroetchen-360g", R4, "DE cross-check (phase 4): a German Weizenbrötchen weighs 60 g (vs 62.5 g Semmel) - same sandwich"), ["schinkenschrippe", "schinkenweck"]),
+    "at_semmel_butter_marmelade": ("semmel_butter_marmelade", src("https://www.supermarktcheck.de/product/181802-gut-guenstig-gute-laune-weizenbroetchen-360g", R4, "DE cross-check (phase 4): a German Weizenbrötchen weighs 60 g (vs 62.5 g Semmel) - same breakfast"), ["brötchen mit marmelade", "marmeladenbrötchen mit butter"]),
+    "at_wurstbrot": ("wurstbrot", src("https://www.rewe.de/shop/p/harry-1688-steinofenbrot-500g/4923456", R4, "DE cross-check (phase 4): German Roggenmischbrot slice 56 g (vs 50 g) - same sandwich (Lyoner/Fleischwurst)"), ["wurststulle", "wurstbemme", "fleischwurstbrot"]),
+    "at_kaesebrot": ("kaesebrot", src("https://www.rewe.de/shop/p/harry-1688-steinofenbrot-500g/4923456", R4, "DE cross-check (phase 4): German Roggenmischbrot slice 56 g (vs 50 g) - same sandwich"), ["käsebemme"]),
+    "at_frankfurter_senf_semmel": (None, None, ["wiener mit senf", "wiener würstchen mit senf", "würstchen mit senf und brötchen", "bockwurst mit brötchen"]),
+    "at_leberkaese_spiegelei": (None, None, ["leberkäs mit spiegelei", "fleischkäse mit ei"]),
+    # street food
+    "at_cevapcici_fladenbrot": (None, None, []),
+    "at_laibchensemmel": (None, None, ["frikadelle im brötchen", "bulette mit schrippe", "frikadellenweck", "fleischpflanzerl in der semmel"]),
+    "at_schnitzelsemmel": (None, None, ["schnitzelweck", "schnitzel im brötchen", "schnitzelbrötchen mit senf"]),
+    "at_spaghetti_napoli": ("spaghetti_napoli", src(GK_DE + "spaghetti-mit-tomatensauce-rezept-27615", R4, "DE cross-check (phase 4): 75 g Spaghetti, 200 g Tomaten (Dose), Olivenöl, Knoblauch, Parmesan, 1 Portion - same dish"), ["nudeln mit tomatensoße", "spaghetti mit tomatensoße"]),
 }
 
 
@@ -80,7 +120,13 @@ def _apply_reuse():
     import at, hu, shared  # noqa: F401 - already loaded by build.py (at, shared) or loaded here (hu)
     dishes = {d["id"]: d for m in (hu, at, shared) for d in m.DISHES}
     parts = {**hu.PARTS, **at.PARTS, **shared.PARTS}
+    users = {}
+    for d in dishes.values():
+        for pid, _ in d["part_refs"] + d.get("side_options", []):
+            users.setdefault(pid, set()).add(d["id"])
     for did, (pid, source, extra) in REUSE.items():
+        if source and users.get(pid, set()) - set(REUSE):
+            raise SystemExit(f"REUSE {did}: part {pid} is also used by {sorted(users[pid] - set(REUSE))}; its sources would change")
         d = dishes[did]
         if "DE" not in d["countries"]:
             d["countries"] = list(d["countries"]) + ["DE"]
@@ -90,7 +136,7 @@ def _apply_reuse():
             d["aliases"] = {**d["aliases"], "de": list(d["aliases"].get("de", [])) + extra}
 
 
-PHASE4_MODULES = ("de_suppen_eintopf", "de_traditionell", "de_kuchen")
+PHASE4_MODULES = ("de_suppen_eintopf", "de_traditionell", "de_kuchen", "de_backwaren", "de_alltag")
 for _name in PHASE4_MODULES:
     _m = __import__(_name)
     _clash = PARTS.keys() & _m.PARTS.keys()

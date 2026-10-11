@@ -2530,6 +2530,114 @@ dampfnudeln,Gőzgombóc (Dampfnudeln),4,butter,vaj,75,fat,open_database:173430,8
 dampfnudeln,Gőzgombóc (Dampfnudeln),4,egg,tojás,100,core,bls:E111100,815,0.7,1.016,200
 dampfnudeln,Gőzgombóc (Dampfnudeln),4,sugar,kristálycukor,36,core,bls:S111000,815,0.7,1.016,200
 dampfnudeln,Gőzgombóc (Dampfnudeln),4,water,víz,300,liquid,none,815,0.7,1.016,200
+broetchen,"Német zsemle (Brötchen, Schrippe)",1,wheat_roll,zsemle,60,core,bls:B511000,60,1.0,0.25,60
+koernerbroetchen,Magvas zsemle (Körnerbrötchen),1,multigrain_roll,magvas péksütemény (Kornspitz),62.5,core,bls:B591000,62.5,1.0,0.3,62.5
+franzbroetchen,Hamburgi fahéjas péksütemény (Franzbrötchen),1,franzbroetchen,Franzbrötchen (fahéjas leveles péksütemény),70,core,bls:D7A7200,70,1.0,0.3,70
+rosinenbroetchen,Mazsolás zsemle (Rosinenbrötchen),1,raisin_roll,mazsolás zsemle (Rosinenbrötchen),51,core,bls:D7A5500,51,1.0,0.3,51
+butterbrot_de,Vajas kenyér (rozsos vegyes kenyérből),1,rye_mixed_bread,rozsos vegyes kenyér,53,core,bls:B271000,63,1.0,0.336,63
+butterbrot_de,Vajas kenyér (rozsos vegyes kenyérből),1,butter,vaj,10,fat,open_database:173430,63,1.0,0.336,63
+leberwurstbrot,Májaskenyér,1,rye_mixed_bread,rozsos vegyes kenyér,53,core,bls:B271000,83,1.0,0.404,83
+leberwurstbrot,Májaskenyér,1,leberwurst,májas (Delikatess Leberwurst),30,core,bls:W310000,83,1.0,0.404,83
+teewurstbrot,Teewurst-os kenyér,1,rye_mixed_bread,rozsos vegyes kenyér,53,core,bls:B271000,83,1.0,0.404,83
+teewurstbrot,Teewurst-os kenyér,1,teewurst,Teewurst (kenhető nyers kolbász),30,core,bls:W121100,83,1.0,0.404,83
+schmalzbrot_de,Zsíros kenyér rozsos kenyérből (Schmalzbrot),1,rye_mixed_bread,rozsos vegyes kenyér,53,core,bls:B271000,68,1.0,0.352,68
+schmalzbrot_de,Zsíros kenyér rozsos kenyérből (Schmalzbrot),1,lard,sertészsír,15,fat,usda_fdc:171401,68,1.0,0.352,68
+salamibroetchen,Szalámis zsemle,1,wheat_roll,zsemle,60,core,bls:B511000,100,1.0,0.358,100
+salamibroetchen,Szalámis zsemle,1,butter,vaj,10,fat,open_database:173430,100,1.0,0.358,100
+salamibroetchen,Szalámis zsemle,1,salami,szalámi (német),30,core,bls:W140000,100,1.0,0.358,100
+nutellabroetchen,Mogyorókrémes zsemle,1,wheat_roll,zsemle,60,core,bls:B511000,88,1.0,0.332,88
+nutellabroetchen,Mogyorókrémes zsemle,1,butter,vaj,8,fat,open_database:173430,88,1.0,0.332,88
+nutellabroetchen,Mogyorókrémes zsemle,1,nut_nougat_cream,mogyorókrém (Nutella-típus),20,core,bls:S145000,88,1.0,0.332,88
+fleischsalatbroetchen,Húsalátás zsemle (Fleischsalat),1,wheat_roll,zsemle,60,core,bls:B511000,110,1.0,0.379,110
+fleischsalatbroetchen,Húsalátás zsemle (Fleischsalat),1,fleischsalat,német húsaláta (Fleischsalat),50,core,bls:W985000,110,1.0,0.379,110
+mettbroetchen,Nyers darált sertéshúsos zsemle (Mettbrötchen),8,wheat_roll,zsemle,480,core,bls:B511000,919.25,1.0,0.392,115
+mettbroetchen,Nyers darált sertéshúsos zsemle (Mettbrötchen),8,butter,vaj,15,fat,open_database:173430,919.25,1.0,0.392,115
+mettbroetchen,Nyers darált sertéshúsos zsemle (Mettbrötchen),8,pork_minced,darált sertéshús,300,core,bls:U020100,919.25,1.0,0.392,115
+mettbroetchen,Nyers darált sertéshúsos zsemle (Mettbrötchen),8,egg_yolk,tojássárgája,18,core,bls:E112100,919.25,1.0,0.392,115
+mettbroetchen,Nyers darált sertéshúsos zsemle (Mettbrötchen),8,onion,vöröshagyma,100,core,bls:G480100,919.25,1.0,0.392,115
+mettbroetchen,Nyers darált sertéshúsos zsemle (Mettbrötchen),8,garlic,fokhagyma,5,seasoning,bls:G490100,919.25,1.0,0.392,115
+mettbroetchen,Nyers darált sertéshúsos zsemle (Mettbrötchen),8,caraway_seed,kömény (egész/őrölt),1.25,seasoning,usda_fdc:170918,919.25,1.0,0.392,115
+strammer_max,Sonkás-tükörtojásos kenyér (Strammer Max),4,rye_mixed_bread,rozsos vegyes kenyér,200,core,bls:B271000,657.5,0.97,0.589,165
+strammer_max,Sonkás-tükörtojásos kenyér (Strammer Max),4,butter,vaj,40,fat,open_database:173430,657.5,0.97,0.589,165
+strammer_max,Sonkás-tükörtojásos kenyér (Strammer Max),4,margarine,margarin,30,fat,bls:Q400000,657.5,0.97,0.589,165
+strammer_max,Sonkás-tükörtojásos kenyér (Strammer Max),4,ham_cooked,főtt sonka / szendvicssonka,200,core,bls:W424000,657.5,0.97,0.589,165
+strammer_max,Sonkás-tükörtojásos kenyér (Strammer Max),4,egg,tojás,200,core,bls:E111100,657.5,0.97,0.589,165
+strammer_max,Sonkás-tükörtojásos kenyér (Strammer Max),4,chives,metélőhagyma,7.5,garnish,bls:G081100,657.5,0.97,0.589,165
+bauernfruehstueck,Parasztreggeli (sült krumpli tojással és szalonnával),4,potato,burgonya,1000,core,bls:K110100,1670.5,0.918,1.056,400
+bauernfruehstueck,Parasztreggeli (sült krumpli tojással és szalonnával),4,egg,tojás,300,core,bls:E111100,1670.5,0.918,1.056,400
+bauernfruehstueck,Parasztreggeli (sült krumpli tojással és szalonnával),4,onion,vöröshagyma,250,core,bls:G480100,1670.5,0.918,1.056,400
+bauernfruehstueck,Parasztreggeli (sült krumpli tojással és szalonnával),4,spring_onion,újhagyma,100,core,bls:G482100,1670.5,0.918,1.056,400
+bauernfruehstueck,Parasztreggeli (sült krumpli tojással és szalonnával),4,schinkenspeck,füstölt sonkaszalonna (Schinkenspeck),150,core,bls:W410400,1670.5,0.918,1.056,400
+bauernfruehstueck,Parasztreggeli (sült krumpli tojással és szalonnával),4,rapeseed_oil,repceolaj,13,fat,bls:Q180000,1670.5,0.918,1.056,400
+bauernfruehstueck,Parasztreggeli (sült krumpli tojással és szalonnával),4,parsley_leaf,petrezselyemzöld,7.5,garnish,usda_fdc:170416,1670.5,0.918,1.056,400
+arme_ritter,Bundás kenyér cukorral (Arme Ritter),4,white_bread,fehér kenyér,240,core,bls:B311000,676,0.944,0.558,170
+arme_ritter,Bundás kenyér cukorral (Arme Ritter),4,egg,tojás,200,core,bls:E111100,676,0.944,0.558,170
+arme_ritter,Bundás kenyér cukorral (Arme Ritter),4,milk_whole,"tej (3,5%)",206,liquid,bls:M111300,676,0.944,0.558,170
+arme_ritter,Bundás kenyér cukorral (Arme Ritter),4,vanilla_sugar,vaníliás cukor,8,core,bls:S114000,676,0.944,0.558,170
+arme_ritter,Bundás kenyér cukorral (Arme Ritter),4,sugar,kristálycukor,36,core,bls:S111000,676,0.944,0.558,170
+arme_ritter,Bundás kenyér cukorral (Arme Ritter),4,clarified_butter,tisztított vaj (ghí),26,fat,bls:Q683000,676,0.944,0.558,170
+eierpfannkuchen,Német tojásos palacsinta (Eierpfannkuchen),2,egg,tojás,150,core,bls:E111100,416,0.912,1.024,200
+eierpfannkuchen,Német tojásos palacsinta (Eierpfannkuchen),2,milk_whole,"tej (3,5%)",155,liquid,bls:M111300,416,0.912,1.024,200
+eierpfannkuchen,Német tojásos palacsinta (Eierpfannkuchen),2,wheat_flour,búzaliszt (BL55),100,core,bls:C214100,416,0.912,1.024,200
+eierpfannkuchen,Német tojásos palacsinta (Eierpfannkuchen),2,sugar,kristálycukor,12,core,bls:S111000,416,0.912,1.024,200
+eierpfannkuchen,Német tojásos palacsinta (Eierpfannkuchen),2,sunflower_oil,napraforgóolaj,39,absorbed_fat,bls:Q320000,416,0.912,1.024,200
+nudelauflauf,Sonkás-sajtos rakott tészta tejszínnel (Nudelauflauf),6,pasta_durum_dry,"száraztészta (durum, tojás nélküli)",300,core,bls:E401000,1622,0.931,1.009,350
+nudelauflauf,Sonkás-sajtos rakott tészta tejszínnel (Nudelauflauf),6,water,víz,390,liquid,none,1622,0.931,1.009,350
+nudelauflauf,Sonkás-sajtos rakott tészta tejszínnel (Nudelauflauf),6,ham_cooked,főtt sonka / szendvicssonka,120,core,bls:W424000,1622,0.931,1.009,350
+nudelauflauf,Sonkás-sajtos rakott tészta tejszínnel (Nudelauflauf),6,green_peas,zöldborsó,260,core,bls:G760100,1622,0.931,1.009,350
+nudelauflauf,Sonkás-sajtos rakott tészta tejszínnel (Nudelauflauf),6,cream_30,habtejszín (30%),400,core,bls:M173800,1622,0.931,1.009,350
+nudelauflauf,Sonkás-sajtos rakott tészta tejszínnel (Nudelauflauf),6,emmentaler,ementáli sajt,100,core,bls:M304600,1622,0.931,1.009,350
+nudelauflauf,Sonkás-sajtos rakott tészta tejszínnel (Nudelauflauf),6,parmesan,parmezán,5,core,bls:M306400,1622,0.931,1.009,350
+nudelauflauf,Sonkás-sajtos rakott tészta tejszínnel (Nudelauflauf),6,tomato_paste,sűrített paradicsom (paradicsompüré),5,seasoning,bls:R160000,1622,0.931,1.009,350
+nudelauflauf,Sonkás-sajtos rakott tészta tejszínnel (Nudelauflauf),6,water,víz,150,liquid,none,1622,0.931,1.009,350
+nudelauflauf,Sonkás-sajtos rakott tészta tejszínnel (Nudelauflauf),6,parsley_leaf,petrezselyemzöld,12,garnish,usda_fdc:170416,1622,0.931,1.009,350
+kartoffelgratin,Tejszínes rakott burgonya sajttal (Kartoffelgratin),2,potato,burgonya,500,core,bls:K110100,729,0.901,1.061,250
+kartoffelgratin,Tejszínes rakott burgonya sajttal (Kartoffelgratin),2,milk_whole,"tej (3,5%)",129,liquid,bls:M111300,729,0.901,1.061,250
+kartoffelgratin,Tejszínes rakott burgonya sajttal (Kartoffelgratin),2,cream_30,habtejszín (30%),125,core,bls:M173800,729,0.901,1.061,250
+kartoffelgratin,Tejszínes rakott burgonya sajttal (Kartoffelgratin),2,emmentaler,ementáli sajt,35,core,bls:M304600,729,0.901,1.061,250
+kartoffelgratin,Tejszínes rakott burgonya sajttal (Kartoffelgratin),2,garlic,fokhagyma,5,seasoning,bls:G490100,729,0.901,1.061,250
+kartoffelgratin,Tejszínes rakott burgonya sajttal (Kartoffelgratin),2,butter,vaj,15,fat,open_database:173430,729,0.901,1.061,250
+nudelsalat,Német tésztasaláta Fleischwursttal (Nudelsalat),4,pasta_durum_dry,"száraztészta (durum, tojás nélküli)",200,core,bls:E401000,822,1.0,0.65,200
+nudelsalat,Német tésztasaláta Fleischwursttal (Nudelsalat),4,water,víz,260,liquid,none,822,1.0,0.65,200
+nudelsalat,Német tésztasaláta Fleischwursttal (Nudelsalat),4,fleischwurst,Fleischwurst (vastag párizsi),100,core,bls:W234000,822,1.0,0.65,200
+nudelsalat,Német tésztasaláta Fleischwursttal (Nudelsalat),4,egg,tojás,100,core,bls:E111100,822,1.0,0.65,200
+nudelsalat,Német tésztasaláta Fleischwursttal (Nudelsalat),4,egg_yolk,tojássárgája,18,core,bls:E112100,822,1.0,0.65,200
+nudelsalat,Német tésztasaláta Fleischwursttal (Nudelsalat),4,sunflower_oil,napraforgóolaj,115,fat,bls:Q320000,822,1.0,0.65,200
+nudelsalat,Német tésztasaláta Fleischwursttal (Nudelsalat),4,vinegar,ecet (10%-os),15,seasoning,bls:R122000,822,1.0,0.65,200
+nudelsalat,Német tésztasaláta Fleischwursttal (Nudelsalat),4,mustard,mustár,10,seasoning,bls:R132000,822,1.0,0.65,200
+nudelsalat,Német tésztasaláta Fleischwursttal (Nudelsalat),4,sugar,kristálycukor,4,seasoning,bls:S111000,822,1.0,0.65,200
+eiersalat,Tojássaláta majonézzel,4,egg,tojás,300,core,bls:E111100,529,1.0,1.004,125
+eiersalat,Tojássaláta majonézzel,4,mayonnaise,majonéz,200,core,bls:Q991000,529,1.0,1.004,125
+eiersalat,Tojássaláta majonézzel,4,mustard,mustár,5,seasoning,bls:R132000,529,1.0,1.004,125
+eiersalat,Tojássaláta majonézzel,4,soy_sauce,szójaszósz,15,seasoning,bls:R143000,529,1.0,1.004,125
+eiersalat,Tojássaláta majonézzel,4,garlic,fokhagyma,5,seasoning,bls:G490100,529,1.0,1.004,125
+eiersalat,Tojássaláta majonézzel,4,sugar,kristálycukor,4,seasoning,bls:S111000,529,1.0,1.004,125
+putengeschnetzeltes,Tejszínes-mustáros pulykaragu (Putengeschnetzeltes),4,turkey_breast,pulykamell,500,core,bls:V486100,995.0,0.847,1.024,300
+putengeschnetzeltes,Tejszínes-mustáros pulykaragu (Putengeschnetzeltes),4,rapeseed_oil,repceolaj,26,fat,bls:Q180000,995.0,0.847,1.024,300
+putengeschnetzeltes,Tejszínes-mustáros pulykaragu (Putengeschnetzeltes),4,onion,vöröshagyma,200,core,bls:G480100,995.0,0.847,1.024,300
+putengeschnetzeltes,Tejszínes-mustáros pulykaragu (Putengeschnetzeltes),4,mustard,mustár,45,core,bls:R132000,995.0,0.847,1.024,300
+putengeschnetzeltes,Tejszínes-mustáros pulykaragu (Putengeschnetzeltes),4,veg_bouillon_powder,zöldségleveskocka / -por,4.0,seasoning,bls:R821000,995.0,0.847,1.024,300
+putengeschnetzeltes,Tejszínes-mustáros pulykaragu (Putengeschnetzeltes),4,water,víz,200,liquid,none,995.0,0.847,1.024,300
+putengeschnetzeltes,Tejszínes-mustáros pulykaragu (Putengeschnetzeltes),4,cream_30,habtejszín (30%),200,core,bls:M173800,995.0,0.847,1.024,300
+pellkartoffeln_quark,Héjában főtt burgonya túrókrémmel és lenmagolajjal,4,potato,burgonya,1200,core,bls:K110100,2461,1.0,1.052,450
+pellkartoffeln_quark,Héjában főtt burgonya túrókrémmel és lenmagolajjal,4,quark_lean,sovány túró (Magertopfen),500,core,bls:M713100,2461,1.0,1.052,450
+pellkartoffeln_quark,Héjában főtt burgonya túrókrémmel és lenmagolajjal,4,sour_cream_20_bls,tejföl (20%),500,core,bls:M172700,2461,1.0,1.052,450
+pellkartoffeln_quark,Héjában főtt burgonya túrókrémmel és lenmagolajjal,4,linseed_oil,lenmagolaj,26,fat,bls:Q160000,2461,1.0,1.052,450
+pellkartoffeln_quark,Héjában főtt burgonya túrókrémmel és lenmagolajjal,4,onion,vöröshagyma,200,core,bls:G480100,2461,1.0,1.052,450
+pellkartoffeln_quark,Héjában főtt burgonya túrókrémmel és lenmagolajjal,4,chives,metélőhagyma,15,garnish,bls:G081100,2461,1.0,1.052,450
+pellkartoffeln_quark,Héjában főtt burgonya túrókrémmel és lenmagolajjal,4,lemon_juice,citromlé,20,seasoning,usda_fdc:167747,2461,1.0,1.052,450
+kaese_lauch_suppe,Sajtos-póréhagymás leves darált hússal (Käse-Lauch-Suppe),4,mixed_minced,vegyes darált hús (sertés-marha),500,core,bls:U050100,2191.0,0.936,1.019,400
+kaese_lauch_suppe,Sajtos-póréhagymás leves darált hússal (Käse-Lauch-Suppe),4,leek,póréhagyma,500,core,bls:G470100,2191.0,0.936,1.019,400
+kaese_lauch_suppe,Sajtos-póréhagymás leves darált hússal (Käse-Lauch-Suppe),4,onion,vöröshagyma,150,core,bls:G480100,2191.0,0.936,1.019,400
+kaese_lauch_suppe,Sajtos-póréhagymás leves darált hússal (Käse-Lauch-Suppe),4,rapeseed_oil,repceolaj,26,fat,bls:Q180000,2191.0,0.936,1.019,400
+kaese_lauch_suppe,Sajtos-póréhagymás leves darált hússal (Käse-Lauch-Suppe),4,veg_bouillon_powder,zöldségleveskocka / -por,15.0,seasoning,bls:R821000,2191.0,0.936,1.019,400
+kaese_lauch_suppe,Sajtos-póréhagymás leves darált hússal (Käse-Lauch-Suppe),4,water,víz,750,liquid,none,2191.0,0.936,1.019,400
+kaese_lauch_suppe,Sajtos-póréhagymás leves darált hússal (Käse-Lauch-Suppe),4,processed_cheese_spread,kenhető ömlesztett sajt (45-52%),400,core,bls:M810600,2191.0,0.936,1.019,400
+bockwurst,Bockwurst (nagy virsli),1,bockwurst,Bockwurst (nagy virsli),95,core,bls:W211100,95,1.0,1.02,95
+muesli_milch,Müzli tejjel,1,muesli,müzli (gyümölcsös),40,core,bls:C538000,169,1.0,0.789,169
+muesli_milch,Müzli tejjel,1,milk_whole,"tej (3,5%)",129,liquid,bls:M111300,169,1.0,0.789,169
+cornflakes_milch,Kukoricapehely tejjel,1,cornflakes,kukoricapehely (cukrozott),30,core,bls:C515000,159,1.0,0.424,159
+cornflakes_milch,Kukoricapehely tejjel,1,milk_whole,"tej (3,5%)",129,liquid,bls:M111300,159,1.0,0.424,159
 eierspeis,Rántotta,1,egg,tojás,150,core,bls:E111100,150,0.949,0.55,150
 eierspeis,Rántotta,1,butter,vaj,8,fat,open_database:173430,150,0.949,0.55,150
 leberkaessemmel,Leberkäsés zsemle,1,wheat_roll,zsemle,62.5,core,bls:B511000,162.5,1.0,0.464,162.5

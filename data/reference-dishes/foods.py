@@ -311,6 +311,18 @@ FOOD_KEYS = {
     "blackcurrant_juice": ("feketeribizli-lé", "Johannisbeersaft schwarz", "blackcurrant juice", "bls:F323600", "total", 55, 0.176, 1.238, 10.41, 0.4, 1.04, 1.04, None),  # BLS: Johannisbeersaft schwarz
     "nut_nougat_cream": ("mogyorókrém (Nutella-típus)", "Nuss-Nougat-Creme", "chocolate hazelnut spread", "bls:S145000", "total", 530, 30.55, 6.9, 58.27, 3.52, 1.2, 1.2, None),  # BLS: Nuss-Nougat-Creme
     "frankfurter_kranz": ("frankfurti koszorútorta (Frankfurter Kranz)", "Frankfurter Kranz (Sandmasse)", "Frankfurter Kranz (butter cream ring cake)", "bls:D441300", "total", 357, 20.8, 3.7, 38.7, 0.5, 0.6, 0.6, 'BLS bakery record of the whole cake slice'),  # BLS: Frankfurter Kranz (Sandmasse)
+    # de_backwaren, de_alltag
+    "franzbroetchen": ("Franzbrötchen (fahéjas leveles péksütemény)", "Franzbrötchen (Plunderteig)", "Franzbrötchen (cinnamon pastry)", "bls:D7A7200", "total", 567, 34.85, 5.48, 58.71, 1.71, 0.3, 0.3, None),  # BLS: Franzbrötchen (Plunderteig)
+    "raisin_roll": ("mazsolás zsemle (Rosinenbrötchen)", "Rosinenbrötchen (Hefeteig)", "raisin bun", "bls:D7A5500", "total", 338, 9, 8.3, 57.5, 3.7, 0.3, 0.3, None),  # BLS: Rosinenbrötchen (Hefeteig)
+    "leberwurst": ("májas (Delikatess Leberwurst)", "Delikatess Leberwurst/Feine Leberwurst/Gutsleberwurst", "liver sausage (fine Leberwurst)", "bls:W310000", "total", 357, 33.15, 12.3, 2.05, 0, 1.05, 0.8, None),  # BLS: Delikatess Leberwurst/Feine Leberwurst/Gutsleberwurst
+    "teewurst": ("Teewurst (kenhető nyers kolbász)", "Teewurst fein/grob/Rügenwalder Art", "Teewurst (spreadable smoked sausage)", "bls:W121100", "total", 373, 35.6, 12.72, 0, 0, 1.05, 0.8, None),  # BLS: Teewurst fein/grob/Rügenwalder Art
+    "salami": ("szalámi (német)", "Salami", "salami (German)", "bls:W140000", "total", 374, 30.9, 23.54, 0, 0, 1.05, 0.6, None),  # BLS: Salami
+    "fleischwurst": ("Fleischwurst (vastag párizsi)", "Fleischwurst", "Fleischwurst (bologna-type sausage)", "bls:W234000", "total", 306, 28.3, 12.11, 0.25, 0, 1.0, 0.6, None),  # BLS: Fleischwurst
+    "fleischsalat": ("német húsaláta (Fleischsalat)", "Fleischsalat mit Salatmayonnaise und Gurke", "German meat salad (Fleischsalat)", "bls:W985000", "total", 290, 27.35, 4.2, 6.48, 0.3, 1.0, 0.8, None),  # BLS: Fleischsalat mit Salatmayonnaise und Gurke
+    "linseed_oil": ("lenmagolaj", "Leinöl", "linseed oil", "bls:Q160000", "total", 900, 100, 0, 0, 0, 0.92, 0.92, None),  # BLS: Leinöl
+    "bockwurst": ("Bockwurst (nagy virsli)", "Bockwurst", "Bockwurst (large frankfurter)", "bls:W211100", "total", 273, 24.5, 13.1, 0.06, 0.06, 1.02, 0.8, None),  # BLS: Bockwurst
+    "processed_cheese_spread": ("kenhető ömlesztett sajt (45-52%)", "Schmelzkäsezubereitung 45 - 52 % Fett i. Tr.", "processed cheese spread 45-52% fat i.d.m.", "bls:M810600", "total", 284, 23.7, 11.8, 5.3, 0, 1.05, 1.05, None),  # BLS: Schmelzkäsezubereitung 45 - 52 % Fett i. Tr.
+    "cornflakes": ("kukoricapehely (cukrozott)", "Cornflakes gesüßt", "cornflakes, sweetened", "bls:C515000", "total", 366, 1.75, 6.24, 83.54, 4.19, 0.12, 0.12, None),  # BLS: Cornflakes gesüßt
     # de (phase 4) END
 }
 

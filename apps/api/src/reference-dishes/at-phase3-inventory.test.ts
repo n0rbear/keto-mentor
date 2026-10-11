@@ -55,7 +55,9 @@ describe("AT phase 3 inventory", () => {
     // Austrian Langos is its own dish; the Hungarian lángos keeps its Hungarian phrases.
     expect(referenceVariantIdsFor("Langos mit Knoblauch")).toEqual(["at_langos_knoblauch"]);
     expect(referenceVariantIdsFor("fokhagymás lángos")).toEqual(["hu_fokhagymas_langos"]);
-    // Equal claims stay a choice: "Berliner" (de) is both the HU fánk and the AT Krapfen.
-    expect(referenceVariantIdsFor("Berliner")).toEqual(expect.arrayContaining(["hu_fank", "at_krapfen"]));
+    // Equal claims stay a choice: "Gulasch" is native both in de-AT (Saftgulasch) and in de (German Rindergulasch).
+    expect(referenceVariantIdsFor("Gulasch")).toEqual(expect.arrayContaining(["at_rindsgulasch", "de_rindergulasch"]));
+    // Since phase 4 the Krapfen is also eaten in Germany (Berliner), so German "Berliner" no longer offers the HU fánk.
+    expect(referenceVariantIdsFor("Berliner")).toEqual(["at_krapfen"]);
   });
 });

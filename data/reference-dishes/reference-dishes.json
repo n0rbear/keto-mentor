@@ -3145,6 +3145,127 @@
       "density_intrinsic_g_ml": 0.6,
       "density_bulk_g_ml": 0.6,
       "note": "BLS bakery record of the whole cake slice"
+    },
+    "franzbroetchen": {
+      "names": {
+        "hu": "Franzbrötchen (fahéjas leveles péksütemény)",
+        "de": "Franzbrötchen (Plunderteig)",
+        "en": "Franzbrötchen (cinnamon pastry)"
+      },
+      "catalog": "bls:D7A7200",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 0.3,
+      "density_bulk_g_ml": 0.3
+    },
+    "raisin_roll": {
+      "names": {
+        "hu": "mazsolás zsemle (Rosinenbrötchen)",
+        "de": "Rosinenbrötchen (Hefeteig)",
+        "en": "raisin bun"
+      },
+      "catalog": "bls:D7A5500",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 0.3,
+      "density_bulk_g_ml": 0.3
+    },
+    "leberwurst": {
+      "names": {
+        "hu": "májas (Delikatess Leberwurst)",
+        "de": "Delikatess Leberwurst/Feine Leberwurst/Gutsleberwurst",
+        "en": "liver sausage (fine Leberwurst)"
+      },
+      "catalog": "bls:W310000",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.05,
+      "density_bulk_g_ml": 0.8
+    },
+    "teewurst": {
+      "names": {
+        "hu": "Teewurst (kenhető nyers kolbász)",
+        "de": "Teewurst fein/grob/Rügenwalder Art",
+        "en": "Teewurst (spreadable smoked sausage)"
+      },
+      "catalog": "bls:W121100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.05,
+      "density_bulk_g_ml": 0.8
+    },
+    "salami": {
+      "names": {
+        "hu": "szalámi (német)",
+        "de": "Salami",
+        "en": "salami (German)"
+      },
+      "catalog": "bls:W140000",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.05,
+      "density_bulk_g_ml": 0.6
+    },
+    "fleischwurst": {
+      "names": {
+        "hu": "Fleischwurst (vastag párizsi)",
+        "de": "Fleischwurst",
+        "en": "Fleischwurst (bologna-type sausage)"
+      },
+      "catalog": "bls:W234000",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.0,
+      "density_bulk_g_ml": 0.6
+    },
+    "fleischsalat": {
+      "names": {
+        "hu": "német húsaláta (Fleischsalat)",
+        "de": "Fleischsalat mit Salatmayonnaise und Gurke",
+        "en": "German meat salad (Fleischsalat)"
+      },
+      "catalog": "bls:W985000",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.0,
+      "density_bulk_g_ml": 0.8
+    },
+    "linseed_oil": {
+      "names": {
+        "hu": "lenmagolaj",
+        "de": "Leinöl",
+        "en": "linseed oil"
+      },
+      "catalog": "bls:Q160000",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 0.92,
+      "density_bulk_g_ml": 0.92
+    },
+    "bockwurst": {
+      "names": {
+        "hu": "Bockwurst (nagy virsli)",
+        "de": "Bockwurst",
+        "en": "Bockwurst (large frankfurter)"
+      },
+      "catalog": "bls:W211100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.02,
+      "density_bulk_g_ml": 0.8
+    },
+    "processed_cheese_spread": {
+      "names": {
+        "hu": "kenhető ömlesztett sajt (45-52%)",
+        "de": "Schmelzkäsezubereitung 45 - 52 % Fett i. Tr.",
+        "en": "processed cheese spread 45-52% fat i.d.m."
+      },
+      "catalog": "bls:M810600",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.05,
+      "density_bulk_g_ml": 1.05
+    },
+    "cornflakes": {
+      "names": {
+        "hu": "kukoricapehely (cukrozott)",
+        "de": "Cornflakes gesüßt",
+        "en": "cornflakes, sweetened"
+      },
+      "catalog": "bls:C515000",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 0.12,
+      "density_bulk_g_ml": 0.12
     }
   },
   "parts": {
@@ -7177,6 +7298,11 @@
           "url": "https://www.gutekueche.at/spaghetti-bolognese-rezept-3608",
           "retrieved": "2026-10-05",
           "note": "AT cross-check (phase 3): 500 g Spaghetti, 250 g Rindsfaschiertes, Tomaten, Parmesan, 4 Portionen - same dish"
+        },
+        {
+          "url": "https://www.gutekueche.de/spaghetti-bolognese-rezept-1810",
+          "retrieved": "2026-10-11",
+          "note": "DE cross-check (phase 4): 1 kg Hackfleisch, 500 g Spaghetti, passierte Tomaten, 2 Zwiebeln, Öl, 4 Portionen - same dish"
         }
       ],
       "derived_check": {
@@ -7252,6 +7378,11 @@
           "url": "https://www.mindmegette.hu/recept/spagetti-carbonara",
           "retrieved": "2026-09-27",
           "note": "cross-check: 25 dkg spagetti, 8 dkg pancetta, 2 tojás, 10 dkg parmezán, 2 adag"
+        },
+        {
+          "url": "https://www.gutekueche.de/spaghetti-carbonara-rezept-1777",
+          "retrieved": "2026-10-11",
+          "note": "DE cross-check (phase 4): 500 g Spaghetti, 4 Eigelb, 100 g Parmesan, 200 g Schinken, 50 g Butter, 4 Portionen - same dish (ham instead of bacon)"
         }
       ],
       "derived_check": {
@@ -7386,6 +7517,11 @@
           "url": "https://www.gutekueche.at/lasagne-rezept-27892",
           "retrieved": "2026-10-05",
           "note": "AT cross-check (phase 3): 250 g Teigblätter, 500 g Faschiertes, passierte Tomaten, Béchamel (80 g Butter, 80 g Mehl, 800 ml Milch), 4 Portionen - same dish"
+        },
+        {
+          "url": "https://www.gutekueche.de/lasagne-bolognese-rezept-20",
+          "retrieved": "2026-10-11",
+          "note": "DE cross-check (phase 4): 250 g Lasagneblätter, 500 g Rinderhack, 100 g Speck, Suppengrün, 2 Dosen Tomaten, 4 Portionen - same dish"
         }
       ],
       "derived_check": {
@@ -7577,6 +7713,11 @@
           "url": "https://www.gutekueche.at/pizza-margherita-rezept-30243",
           "retrieved": "2026-10-05",
           "note": "AT cross-check (phase 3): 300 g Mehl, Germ, passierte Tomaten, Mozzarella, Tomaten, 4 Portionen - same dish"
+        },
+        {
+          "url": "https://www.gutekueche.de/pizza-margherita-rezept-22726",
+          "retrieved": "2026-10-11",
+          "note": "DE cross-check (phase 4): 250 g Mehl, 10 g Hefe, Olivenöl, 250 g Pizzatomaten, Mozzarella, Basilikum, 2 Portionen - same dish"
         }
       ],
       "derived_check": {
@@ -7774,6 +7915,11 @@
           "url": "https://www.gutekueche.at/griechischer-salat-rezept-2115",
           "retrieved": "2026-10-05",
           "note": "AT cross-check (phase 3): Gurke, Tomaten, Zwiebel, Oliven, 50 g Schafskäse, 3 EL Olivenöl, 1 Portion - same salad"
+        },
+        {
+          "url": "https://www.gutekueche.de/griechischer-salat-rezept-1594",
+          "retrieved": "2026-10-11",
+          "note": "DE cross-check (phase 4): Feta, Paprika, Salatgurke, 400 g Tomaten, Zwiebel, Olivenöl, 3 Portionen - same dish"
         }
       ],
       "derived_check": {
@@ -7885,6 +8031,11 @@
           "url": "https://streetkitchen.hu/receptek/klasszikus-cezar-salata-csirkevel",
           "retrieved": "2026-09-27",
           "note": "cross-check: 1 csirkemellfilé, 1 fej római saláta, krutonok, tojássárgájás öntet, 20 g parmezán"
+        },
+        {
+          "url": "https://www.gutekueche.de/caesar-salad-rezept-1909",
+          "retrieved": "2026-10-11",
+          "note": "DE cross-check (phase 4): Römersalat, 80 g Bacon, 60 g Parmesan, Eigelb-Olivenöl-Dressing, Sardellen, 4 Portionen - same dish"
         }
       ],
       "derived_check": {
@@ -8729,6 +8880,11 @@
           "url": "https://www.gutekueche.at/huehnerschnitzel-rezept-15236",
           "retrieved": "2026-10-05",
           "note": "AT cross-check (phase 3): 400 g Hühnerbrustfilet, 2 Eier, 3 EL Mehl, 6 EL Brösel, Butterschmalz oder Öl, 2 Portionen - same Hühnerschnitzel"
+        },
+        {
+          "url": "https://www.gutekueche.de/haehnchenschnitzel-mit-kartoffeln-rezept-27618",
+          "retrieved": "2026-10-11",
+          "note": "DE cross-check (phase 4): Hähnchenschnitzel in Mehl, Ei und Semmelbröseln, in Öl gebraten - same dish"
         }
       ],
       "derived_check": {
@@ -9684,6 +9840,11 @@
           "url": "https://www.mindmegette.hu/recept/klasszikus-chili-con-carne",
           "retrieved": "2026-09-27",
           "note": "cross-check: 500 g darált marha, 400 g hámozott paradicsom, 400 g vörösbab, vörösbor"
+        },
+        {
+          "url": "https://www.gutekueche.de/chili-con-carne-rezept-31",
+          "retrieved": "2026-10-11",
+          "note": "DE cross-check (phase 4): 500 g Rinderhack, 1 Dose Kidneybohnen, Schalotten, Knoblauch, 500 ml Rinderbrühe, Chili, 4 Portionen - same dish"
         }
       ],
       "derived_check": {
@@ -9752,6 +9913,11 @@
           "url": "https://www.gutekueche.at/spiegelei-rezept-26778",
           "retrieved": "2026-10-05",
           "note": "AT cross-check (phase 3): 1 Ei, 1 TL Butter - same Spiegelei"
+        },
+        {
+          "url": "https://www.gutekueche.de/spiegelei-rezept-5771",
+          "retrieved": "2026-10-11",
+          "note": "DE cross-check (phase 4): 1 Ei, 1 TL Butter - same Spiegelei"
         }
       ],
       "derived_check": {
@@ -10759,6 +10925,11 @@
           "url": "https://www.receptneked.hu/recept/tejbegriz",
           "retrieved": "2026-09-27",
           "note": "cross-check: 5 dl tej, 2 ek cukor, 5 ek búzadara, 3 adag"
+        },
+        {
+          "url": "https://www.gutekueche.de/griessbrei-rezept-938",
+          "retrieved": "2026-10-11",
+          "note": "DE cross-check (phase 4): 1 l Milch, 100 g Weichweizengrieß, 6 EL Zucker, 4 Portionen - same dish"
         }
       ],
       "derived_check": {
@@ -19335,6 +19506,11 @@
           "url": "https://www.ichkoche.at/fleischlaibchen-rezept-21986",
           "retrieved": "2026-10-05",
           "note": "cross-check: 400 g Rindsfaschiertes, 40 g Kalbsbrät, 1 Ei, 2 Scheiben Toastbrot, Petersilie, 4 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.de/frikadellen-grundrezept-rezept-1763",
+          "retrieved": "2026-10-11",
+          "note": "DE cross-check (phase 4): 500 g Hackfleisch gemischt, 1 Brötchen, 1 Ei, 1 Zwiebel, Senf, Öl, 4 Portionen - same dish"
         }
       ],
       "derived_check": {
@@ -25368,6 +25544,11 @@
           "url": "https://www.spar.at/produktwelt/tann-extrawurst/p/5195275",
           "retrieved": "2026-10-05",
           "note": "TANN AMA-Extrawurst geschnitten 150 g"
+        },
+        {
+          "url": "https://www.rewe.de/shop/p/harry-1688-steinofenbrot-500g/4923456",
+          "retrieved": "2026-10-11",
+          "note": "DE cross-check (phase 4): German Roggenmischbrot slice 56 g (vs 50 g) - same sandwich (Lyoner/Fleischwurst)"
         }
       ],
       "derived_check": {
@@ -25439,6 +25620,11 @@
           "url": "https://www.spar.at/produktwelt/s-budget-emmentaler-in-scheiben/p/2020005507678",
           "retrieved": "2026-10-05",
           "note": "S-BUDGET Emmentaler in Scheiben 400 g"
+        },
+        {
+          "url": "https://www.rewe.de/shop/p/harry-1688-steinofenbrot-500g/4923456",
+          "retrieved": "2026-10-11",
+          "note": "DE cross-check (phase 4): German Roggenmischbrot slice 56 g (vs 50 g) - same sandwich"
         }
       ],
       "derived_check": {
@@ -25510,6 +25696,11 @@
           "url": "https://www.spar.at/produktwelt/berger-traditions-bein-schinken/p/6780005",
           "retrieved": "2026-10-05",
           "note": "Berger Traditions Beinschinken 100 g"
+        },
+        {
+          "url": "https://www.supermarktcheck.de/product/181802-gut-guenstig-gute-laune-weizenbroetchen-360g",
+          "retrieved": "2026-10-11",
+          "note": "DE cross-check (phase 4): a German Weizenbrötchen weighs 60 g (vs 62.5 g Semmel) - same sandwich"
         }
       ],
       "derived_check": {
@@ -25581,6 +25772,11 @@
           "url": "https://www.spar.at/produktwelt/s-budget-gouda-48-fit-in-scheiben/p/1407969",
           "retrieved": "2026-10-05",
           "note": "S-BUDGET Gouda 48 % F.i.T. in Scheiben 400 g"
+        },
+        {
+          "url": "https://www.supermarktcheck.de/product/181802-gut-guenstig-gute-laune-weizenbroetchen-360g",
+          "retrieved": "2026-10-11",
+          "note": "DE cross-check (phase 4): a German Weizenbrötchen weighs 60 g (vs 62.5 g Semmel) - same sandwich"
         }
       ],
       "derived_check": {
@@ -25652,6 +25848,11 @@
           "url": "https://www.spar.at/produktwelt/spar-konfituere-marille-naturrein/p/2020004164278",
           "retrieved": "2026-10-05",
           "note": "SPAR Konfitüre Marille naturrein 450 g"
+        },
+        {
+          "url": "https://www.supermarktcheck.de/product/181802-gut-guenstig-gute-laune-weizenbroetchen-360g",
+          "retrieved": "2026-10-11",
+          "note": "DE cross-check (phase 4): a German Weizenbrötchen weighs 60 g (vs 62.5 g Semmel) - same breakfast"
         }
       ],
       "derived_check": {
@@ -25729,6 +25930,11 @@
           "url": "https://www.spar.at/produktwelt/morato-pane-spa-american-sandwich-bianco-enthaelt-21-scheiben/p/2020005896239",
           "retrieved": "2026-10-05",
           "note": "Morato American Sandwich 21 Scheiben 750 g (slice weight)"
+        },
+        {
+          "url": "https://www.gutekueche.de/schinken-kaese-toast-rezept-28067",
+          "retrieved": "2026-10-11",
+          "note": "DE cross-check (phase 4): 4 Schb Toastbrot, 2 Schb Gouda, 2 Schb Kochschinken, Butter, 2 Portionen - same dish"
         }
       ],
       "derived_check": {
@@ -26105,6 +26311,11 @@
           "url": "https://www.spar.at/produktwelt/s-budget-laugenbreze/p/7904356",
           "retrieved": "2026-10-05",
           "note": "S-BUDGET Laugenbreze 90 g"
+        },
+        {
+          "url": "https://www.gutekueche.de/brezeln-selbst-gemacht-rezept-4060",
+          "retrieved": "2026-10-11",
+          "note": "DE cross-check (phase 4): Laugenbrezeln (Weizenteig, Natronlauge, Salz) - same pastry"
         }
       ],
       "derived_check": {
@@ -26159,6 +26370,11 @@
           "url": "https://www.spar.at/produktwelt/spar-naturpur-bio-buttercroissant/p/2020003902109",
           "retrieved": "2026-10-05",
           "note": "SPAR Natur*pur Bio-Buttercroissant 60 g"
+        },
+        {
+          "url": "https://www.gutekueche.de/croissants-rezept-19",
+          "retrieved": "2026-10-11",
+          "note": "DE cross-check (phase 4): Buttercroissants (Hefe-Blätterteig) - same pastry"
         }
       ],
       "derived_check": {
@@ -26283,6 +26499,11 @@
           "url": "https://www.spar.at/produktwelt/interspar-backstube-krapfen-marille/p/8077363",
           "retrieved": "2026-10-05",
           "note": "INTERSPAR Backstube Krapfen Marille 80 g (piece weight)"
+        },
+        {
+          "url": "https://www.gutekueche.de/berliner-rezept-4898",
+          "retrieved": "2026-10-11",
+          "note": "DE cross-check (phase 4): 500 g Mehl, 30 g Hefe, 250 ml Milch, 60 g Margarine, Ei, 40 g Zucker, 125 g Aprikosenkonfitüre, frittiert, 8 Stück - same pastry"
         }
       ],
       "derived_check": {
@@ -26802,6 +27023,11 @@
           "url": "https://www.gutekueche.at/bircher-muesli-rezept-8736",
           "retrieved": "2026-10-05",
           "note": "cross-check: 100 g Haferflocken, 0,25 l Milch, 2 Äpfel, 3 EL Cornflakes, 2 EL Rosinen, 50 g Zwetschgen, 4 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.de/birchermuesli-rezept-4630",
+          "retrieved": "2026-10-11",
+          "note": "DE cross-check (phase 4): 75 g Haferflocken, 100 ml Milch, Joghurt, Apfel, Banane, Beeren, Mandeln, Honig, 2 Portionen - same dish"
         }
       ],
       "derived_check": {
@@ -26889,6 +27115,11 @@
           "url": "https://www.ichkoche.at/ham-and-eggs-rezept-7731",
           "retrieved": "2026-10-05",
           "note": "cross-check: 1 Ei, 1/2 EL Butter, Frühstücksspeck, Frühlingszwiebel, 1 Portion"
+        },
+        {
+          "url": "https://www.gutekueche.de/bacon-and-eggs-rezept-5427",
+          "retrieved": "2026-10-11",
+          "note": "DE cross-check (phase 4): 8 Eier, 8 Schb Frühstücksspeck, 4 Portionen - same dish"
         }
       ],
       "derived_check": {
@@ -27189,6 +27420,11 @@
           "url": "https://www.ichkoche.at/cremespinat-rezept-1601",
           "retrieved": "2026-10-05",
           "note": "cross-check: 1 kg Blattspinat, 1 Zwiebel, 250 ml Rindsuppe, 2 EL Butter, 2 EL Mehl, 2 EL Schlagobers, 4 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.de/spinat-mit-spiegelei-rezept-24249",
+          "retrieved": "2026-10-11",
+          "note": "DE cross-check (phase 4): 250 g Blattspinat, saure Sahne, Knoblauch, 2 Spiegeleier, 1 Portion - same dish"
         }
       ],
       "derived_check": {
@@ -27774,6 +28010,11 @@
           "url": "https://www.spar.at/produktwelt/iglo-kaeptn-iglo-fischstaebchen-fangfrisch-blitzgefroren-15-stueck/p/1503612",
           "retrieved": "2026-10-05",
           "note": "Iglo Käpt'n Iglo Fischstäbchen 15 Stück 450 g"
+        },
+        {
+          "url": "https://www.lecker.de/fischstaebchen-mit-kartoffelpueree-diaet-11125.html",
+          "retrieved": "2026-10-11",
+          "note": "DE cross-check (phase 4): Fischstäbchen mit Kartoffelpüree und Erbsen-Möhren - same dish"
         }
       ],
       "derived_check": {
@@ -27995,6 +28236,11 @@
           "url": "https://www.ichkoche.at/cevapcici-rezept-504",
           "retrieved": "2026-10-05",
           "note": "cross-check: 1 kg Faschiertes (Lamm, Rind, Schwein), Speisesoda, 2 EL Öl, Zwiebeln, 8 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.de/cevapcici-rezept-398",
+          "retrieved": "2026-10-11",
+          "note": "DE cross-check (phase 4): 600 g Rinderhack, 200 g Kalbsbrät, Zwiebel, Knoblauch, Öl, 4 Portionen - same dish"
         }
       ],
       "derived_check": {
@@ -28061,6 +28307,11 @@
           "url": "https://www.gutekueche.at/milchreis-rezept-5382",
           "retrieved": "2026-10-05",
           "note": "cross-check: 150 ml Milch, 50 g Reis, 100 ml Wasser, Zimt, Zucker, 2 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.de/milchreis-rezept-4084",
+          "retrieved": "2026-10-11",
+          "note": "DE cross-check (phase 4): 1 l Milch, 250 g Milchreis, 3 EL Zucker, Vanillezucker, Butter, Zimt, 4 Portionen - same dish"
         }
       ],
       "derived_check": {
@@ -28145,6 +28396,11 @@
           "url": "https://www.ichkoche.at/krautsalat-rezept-6786",
           "retrieved": "2026-10-05",
           "note": "cross-check: 1 Kraut, 1 TL Kümmel, 100 g Speck, 1 TL Zucker, 1/4 l Apfelessig"
+        },
+        {
+          "url": "https://www.gutekueche.de/krautsalat-rezept-2235",
+          "retrieved": "2026-10-11",
+          "note": "DE cross-check (phase 4): 1 kleiner Weißkohl, 1/2 Tasse Rapsöl, 1/2 Tasse Weißweinessig, Zucker, Zwiebel, 5 Portionen - same dish"
         }
       ],
       "derived_check": {
@@ -28469,6 +28725,11 @@
           "url": "https://www.ichkoche.at/wurstsalat-rezept-8571",
           "retrieved": "2026-10-05",
           "note": "cross-check: 500 g Wurst, 200 g Käse, Essiggurkerl, Paradeiser, Gurke, Paprika, Mayonnaise, Senf, Essig, Öl, 4 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.de/schweizer-wurstsalat-rezept-284",
+          "retrieved": "2026-10-11",
+          "note": "DE cross-check (phase 4): 400 g Fleischwurst, 300 g Käse, Zwiebel, Essig-Öl-Marinade, 4 Portionen - same dish (Schweizer Wurstsalat)"
         }
       ],
       "derived_check": {
@@ -28756,6 +29017,11 @@
           "url": "https://www.gutekueche.at/toast-hawaii-rezept-7348",
           "retrieved": "2026-10-05",
           "note": "cross-check: 4 Schb Toastbrot, 4 Schb Schinken, 4 Schb Ananas, 4 Schb Käse, 1 EL Butter, 4 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.de/toast-hawaii-rezept-8273",
+          "retrieved": "2026-10-11",
+          "note": "DE cross-check (phase 4): 4 Schb Toastbrot, Butter, 4 Schb Kochschinken, 4 Ananasringe, 4 Schb Käse, Cocktailkirschen, 2 Portionen - same dish"
         }
       ],
       "derived_check": {
@@ -28938,6 +29204,11 @@
           "url": "https://www.gutekueche.at/spaghetti-napoli-rezept-24456",
           "retrieved": "2026-10-05",
           "note": "cross-check: 200 g Spaghetti, 400 g Cocktailtomaten, 0,125 l Gemüsesuppe, Knoblauch, 60 g Oliven, 3 EL Olivenöl, 2 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.de/spaghetti-mit-tomatensauce-rezept-27615",
+          "retrieved": "2026-10-11",
+          "note": "DE cross-check (phase 4): 75 g Spaghetti, 200 g Tomaten (Dose), Olivenöl, Knoblauch, Parmesan, 1 Portion - same dish"
         }
       ],
       "derived_check": {
@@ -29100,6 +29371,11 @@
           "url": "https://www.ichkoche.at/tomatensalat-rezept-2852",
           "retrieved": "2026-10-05",
           "note": "cross-check: 8 Tomaten, 2 Frühlingszwiebeln, 4 EL Balsamico, 8 EL Olivenöl, Basilikum, 4 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.de/tomatensalat-rezept-4886",
+          "retrieved": "2026-10-11",
+          "note": "DE cross-check (phase 4): 4 Tomaten, Lauchzwiebel, Essig, Olivenöl, Basilikum, 2 Portionen - same dish"
         }
       ],
       "derived_check": {
@@ -36922,6 +37198,1930 @@
         "incomplete_missing_food_keys": []
       }
     },
+    "broetchen": {
+      "id": "broetchen",
+      "names": {
+        "hu": "Német zsemle (Brötchen, Schrippe)",
+        "de": "Brötchen (Weizenbrötchen)",
+        "de-AT": "Semmel (deutsches Brötchen)",
+        "en": "German bread roll (Brötchen)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "wheat_roll",
+            "raw_g": 60,
+            "role": "core",
+            "note": "1 Weizenbrötchen = 60 g (two retail products); BLS Weizenbrötchen"
+          }
+        ],
+        "raw_total_g": 60,
+        "cooking": {
+          "method": "bought baked, eaten as is",
+          "mass_change_g": 0,
+          "note": "no cooking"
+        },
+        "finished_weight_g": 60,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 60,
+      "density_g_per_ml": 0.25,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.supermarktcheck.de/product/181802-gut-guenstig-gute-laune-weizenbroetchen-360g",
+          "retrieved": "2026-10-11",
+          "note": "Gut & Günstig Weizenbrötchen 360 g, 6 Stück (60 g)"
+        },
+        {
+          "url": "https://www.test.de/Aufbackbroetchen-Die-besten-zum-Fruehstueck-4206027-5707401/detail/330000012640!14/",
+          "retrieved": "2026-10-11",
+          "note": "Lidl Grafschafter Unsere besten Weizenbrötchen, 6 Stück 360 g (60 g)"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 280.0,
+          "fat": 1.8,
+          "protein": 10.1,
+          "net_carbs": 54.0
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "koernerbroetchen": {
+      "id": "koernerbroetchen",
+      "names": {
+        "hu": "Magvas zsemle (Körnerbrötchen)",
+        "de": "Körnerbrötchen (Mehrkornbrötchen)",
+        "de-AT": "Mehrkornweckerl",
+        "en": "Multigrain roll"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "multigrain_roll",
+            "raw_g": 62.5,
+            "role": "core",
+            "note": "1 Körnerbrötchen = mean of 50 g and 75 g; BLS Mehrkornbrötchen"
+          }
+        ],
+        "raw_total_g": 62.5,
+        "cooking": {
+          "method": "bought baked, eaten as is",
+          "mass_change_g": 0,
+          "note": "no cooking"
+        },
+        "finished_weight_g": 62.5,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 62.5,
+      "density_g_per_ml": 0.3,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.rewe.de/produkte/2795493/",
+          "retrieved": "2026-10-11",
+          "note": "Coppenrath & Wiese 6 Mehrkorn-Brötchen 300 g (50 g)"
+        },
+        {
+          "url": "https://www.memolife.de/herzberger-bio-mehrkornbroetchen-zum-aufbacken-4er-pack-h4735",
+          "retrieved": "2026-10-11",
+          "note": "Herzberger Bio-Mehrkornbrötchen, 4 Brötchen à 75 g"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 302.0,
+          "fat": 5.4,
+          "protein": 9.8,
+          "net_carbs": 50.0
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "franzbroetchen": {
+      "id": "franzbroetchen",
+      "names": {
+        "hu": "Hamburgi fahéjas péksütemény (Franzbrötchen)",
+        "de": "Franzbrötchen",
+        "de-AT": "Franzbrötchen (Zimtplunder)",
+        "en": "Franzbrötchen (Hamburg cinnamon pastry)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "franzbroetchen",
+            "raw_g": 70,
+            "role": "core",
+            "note": "1 Franzbrötchen = 70 g (one retail product; the home-made cross-check gives a similar size - estimate); BLS Franzbrötchen (Plunderteig)"
+          }
+        ],
+        "raw_total_g": 70,
+        "cooking": {
+          "method": "bought baked, eaten as is",
+          "mass_change_g": 0,
+          "note": "no cooking"
+        },
+        "finished_weight_g": 70,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 70,
+      "density_g_per_ml": 0.3,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.rewe.de/shop/p/back-bord-bio-2-stueck-franzbroetchen-140g/7347192",
+          "retrieved": "2026-10-11",
+          "note": "Back Bord Bio 2 Stück Franzbrötchen 140 g (70 g)"
+        },
+        {
+          "url": "https://utopia.de/ratgeber/franzbroetchen-rezept-so-machst-du-das-norddeutsche-zimtgebaeck-selber/",
+          "retrieved": "2026-10-11",
+          "note": "cross-check (home-made): 500 g Mehl dough for ca. 10 Franzbrötchen"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 567.0,
+          "fat": 34.8,
+          "protein": 5.5,
+          "net_carbs": 57.0
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "rosinenbroetchen": {
+      "id": "rosinenbroetchen",
+      "names": {
+        "hu": "Mazsolás zsemle (Rosinenbrötchen)",
+        "de": "Rosinenbrötchen",
+        "de-AT": "Rosinenweckerl",
+        "en": "Raisin bun"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "raisin_roll",
+            "raw_g": 51,
+            "role": "core",
+            "note": "1 Rosinenbrötchen = mean of 62.5 g and 40 g; BLS Rosinenbrötchen (Hefeteig)"
+          }
+        ],
+        "raw_total_g": 51,
+        "cooking": {
+          "method": "bought baked, eaten as is",
+          "mass_change_g": 0,
+          "note": "no cooking"
+        },
+        "finished_weight_g": 51,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 51,
+      "density_g_per_ml": 0.3,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.rewe.de/shop/p/harry-rosinen-brioche-broetchen-4-stueck-250g/9937246",
+          "retrieved": "2026-10-11",
+          "note": "Harry Rosinen Brioche Brötchen 4 Stück 250 g (62.5 g)"
+        },
+        {
+          "url": "https://fddb.info/db/de/lebensmittel/krakend_vers_bv_rosinen_broetchen_441199/index.html",
+          "retrieved": "2026-10-11",
+          "note": "Rosinenbrötchen, 1 Stück 40 g"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 338.0,
+          "fat": 9.0,
+          "protein": 8.3,
+          "net_carbs": 53.8
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "butterbrot_de": {
+      "id": "butterbrot_de",
+      "names": {
+        "hu": "Vajas kenyér (rozsos vegyes kenyérből)",
+        "de": "Butterbrot (Graubrot mit Butter)",
+        "de-AT": "Butterbrot",
+        "en": "Bread and butter (rye-wheat bread)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "rye_mixed_bread",
+            "raw_g": 53,
+            "role": "core",
+            "note": "1 Scheibe Graubrot (Roggenmischbrot), 53 g: mean of Harry 56 g and SPAR 50 g slices"
+          },
+          {
+            "food_key": "butter",
+            "raw_g": 10,
+            "role": "fat",
+            "note": "butter spread, 10 g per slice (estimate)"
+          }
+        ],
+        "raw_total_g": 63,
+        "cooking": {
+          "method": "assembled, no cooking",
+          "mass_change_g": 0,
+          "note": "no cooking"
+        },
+        "finished_weight_g": 63,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 63,
+      "density_g_per_ml": 0.336,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.rewe.de/shop/p/harry-1688-steinofenbrot-500g/4923456",
+          "retrieved": "2026-10-11",
+          "note": "Harry 1688 Steinofenbrot (Roggenmischbrot) 500 g: 1 Scheibe = 56 g"
+        },
+        {
+          "url": "https://www.spar.at/produktwelt/spar-vital-walnuss-vollkornbrot-5-scheiben/p/1595482",
+          "retrieved": "2026-10-05",
+          "note": "SPAR Vital Vollkornbrot 5 Scheiben 250 g: 50 g per slice (slice size, as at_fruehstueck)"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 297.2,
+          "fat": 13.7,
+          "protein": 6.3,
+          "net_carbs": 35.3
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "leberwurstbrot": {
+      "id": "leberwurstbrot",
+      "names": {
+        "hu": "Májaskenyér",
+        "de": "Leberwurstbrot",
+        "de-AT": "Leberwurstbrot",
+        "en": "Liver sausage sandwich"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "rye_mixed_bread",
+            "raw_g": 53,
+            "role": "core",
+            "note": "1 Scheibe Graubrot (Roggenmischbrot), 53 g: mean of Harry 56 g and SPAR 50 g slices"
+          },
+          {
+            "food_key": "leberwurst",
+            "raw_g": 30,
+            "role": "core",
+            "note": "Leberwurst spread, 30 g (estimate); BLS Delikatess Leberwurst"
+          }
+        ],
+        "raw_total_g": 83,
+        "cooking": {
+          "method": "assembled, no cooking",
+          "mass_change_g": 0,
+          "note": "no cooking"
+        },
+        "finished_weight_g": 83,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 83,
+      "density_g_per_ml": 0.404,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.rewe.de/shop/p/harry-1688-steinofenbrot-500g/4923456",
+          "retrieved": "2026-10-11",
+          "note": "Harry 1688 Steinofenbrot (Roggenmischbrot) 500 g: 1 Scheibe = 56 g"
+        },
+        {
+          "url": "https://www.spar.at/produktwelt/spar-vital-walnuss-vollkornbrot-5-scheiben/p/1595482",
+          "retrieved": "2026-10-05",
+          "note": "SPAR Vital Vollkornbrot 5 Scheiben 250 g: 50 g per slice (slice size, as at_fruehstueck)"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 268.2,
+          "fat": 12.6,
+          "protein": 9.2,
+          "net_carbs": 27.5
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "teewurstbrot": {
+      "id": "teewurstbrot",
+      "names": {
+        "hu": "Teewurst-os kenyér",
+        "de": "Teewurstbrot",
+        "de-AT": "Teewurstbrot",
+        "en": "Teewurst sandwich"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "rye_mixed_bread",
+            "raw_g": 53,
+            "role": "core",
+            "note": "1 Scheibe Graubrot (Roggenmischbrot), 53 g: mean of Harry 56 g and SPAR 50 g slices"
+          },
+          {
+            "food_key": "teewurst",
+            "raw_g": 30,
+            "role": "core",
+            "note": "Teewurst spread, 30 g (estimate)"
+          }
+        ],
+        "raw_total_g": 83,
+        "cooking": {
+          "method": "assembled, no cooking",
+          "mass_change_g": 0,
+          "note": "no cooking"
+        },
+        "finished_weight_g": 83,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 83,
+      "density_g_per_ml": 0.404,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.rewe.de/shop/p/harry-1688-steinofenbrot-500g/4923456",
+          "retrieved": "2026-10-11",
+          "note": "Harry 1688 Steinofenbrot (Roggenmischbrot) 500 g: 1 Scheibe = 56 g"
+        },
+        {
+          "url": "https://www.spar.at/produktwelt/spar-vital-walnuss-vollkornbrot-5-scheiben/p/1595482",
+          "retrieved": "2026-10-05",
+          "note": "SPAR Vital Vollkornbrot 5 Scheiben 250 g: 50 g per slice (slice size, as at_fruehstueck)"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 274.0,
+          "fat": 13.5,
+          "protein": 9.3,
+          "net_carbs": 26.8
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "schmalzbrot_de": {
+      "id": "schmalzbrot_de",
+      "names": {
+        "hu": "Zsíros kenyér rozsos kenyérből (Schmalzbrot)",
+        "de": "Schmalzbrot (Graubrot)",
+        "de-AT": "Schmalzbrot",
+        "en": "Lard sandwich on rye-wheat bread"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "rye_mixed_bread",
+            "raw_g": 53,
+            "role": "core",
+            "note": "1 Scheibe Graubrot (Roggenmischbrot), 53 g: mean of Harry 56 g and SPAR 50 g slices"
+          },
+          {
+            "food_key": "lard",
+            "raw_g": 15,
+            "role": "fat",
+            "note": "Schweineschmalz, 15 g (estimate)"
+          }
+        ],
+        "raw_total_g": 68,
+        "cooking": {
+          "method": "assembled, no cooking",
+          "mass_change_g": 0,
+          "note": "no cooking"
+        },
+        "finished_weight_g": 68,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 68,
+      "density_g_per_ml": 0.352,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.rewe.de/shop/p/harry-1688-steinofenbrot-500g/4923456",
+          "retrieved": "2026-10-11",
+          "note": "Harry 1688 Steinofenbrot (Roggenmischbrot) 500 g: 1 Scheibe = 56 g"
+        },
+        {
+          "url": "https://www.spar.at/produktwelt/spar-vital-walnuss-vollkornbrot-5-scheiben/p/1595482",
+          "retrieved": "2026-10-05",
+          "note": "SPAR Vital Vollkornbrot 5 Scheiben 250 g: 50 g per slice (slice size, as at_fruehstueck)"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 368.9,
+          "fat": 22.8,
+          "protein": 5.8,
+          "net_carbs": 32.7
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "salamibroetchen": {
+      "id": "salamibroetchen",
+      "names": {
+        "hu": "Szalámis zsemle",
+        "de": "Salamibrötchen",
+        "de-AT": "Salamisemmel",
+        "en": "Salami roll"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "wheat_roll",
+            "raw_g": 60,
+            "role": "core",
+            "note": "1 Brötchen (60 g)"
+          },
+          {
+            "food_key": "butter",
+            "raw_g": 10,
+            "role": "fat",
+            "note": "butter, 10 g (estimate)"
+          },
+          {
+            "food_key": "salami",
+            "raw_g": 30,
+            "role": "core",
+            "note": "5 Scheiben Salami ~30 g (estimate)"
+          }
+        ],
+        "raw_total_g": 100,
+        "cooking": {
+          "method": "assembled, no cooking",
+          "mass_change_g": 0,
+          "note": "no cooking"
+        },
+        "finished_weight_g": 100,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 100,
+      "density_g_per_ml": 0.358,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.supermarktcheck.de/product/181802-gut-guenstig-gute-laune-weizenbroetchen-360g",
+          "retrieved": "2026-10-11",
+          "note": "Gut & Günstig Weizenbrötchen 360 g, 6 Stück (60 g)"
+        },
+        {
+          "url": "https://www.test.de/Aufbackbroetchen-Die-besten-zum-Fruehstueck-4206027-5707401/detail/330000012640!14/",
+          "retrieved": "2026-10-11",
+          "note": "Lidl Grafschafter Unsere besten Weizenbrötchen, 6 Stück 360 g (60 g)"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 351.9,
+          "fat": 18.5,
+          "protein": 13.2,
+          "net_carbs": 32.4
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "nutellabroetchen": {
+      "id": "nutellabroetchen",
+      "names": {
+        "hu": "Mogyorókrémes zsemle",
+        "de": "Brötchen mit Nuss-Nougat-Creme",
+        "de-AT": "Semmel mit Nuss-Nougat-Creme",
+        "en": "Bread roll with chocolate hazelnut spread"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "wheat_roll",
+            "raw_g": 60,
+            "role": "core",
+            "note": "1 Brötchen (60 g)"
+          },
+          {
+            "food_key": "butter",
+            "raw_g": 8,
+            "role": "fat",
+            "note": "butter, 8 g (estimate)"
+          },
+          {
+            "food_key": "nut_nougat_cream",
+            "raw_g": 20,
+            "role": "core",
+            "note": "Nuss-Nougat-Creme, 1 EL ~20 g (estimate)"
+          }
+        ],
+        "raw_total_g": 88,
+        "cooking": {
+          "method": "assembled, no cooking",
+          "mass_change_g": 0,
+          "note": "no cooking"
+        },
+        "finished_weight_g": 88,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 88,
+      "density_g_per_ml": 0.332,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.supermarktcheck.de/product/181802-gut-guenstig-gute-laune-weizenbroetchen-360g",
+          "retrieved": "2026-10-11",
+          "note": "Gut & Günstig Weizenbrötchen 360 g, 6 Stück (60 g)"
+        },
+        {
+          "url": "https://www.test.de/Aufbackbroetchen-Die-besten-zum-Fruehstueck-4206027-5707401/detail/330000012640!14/",
+          "retrieved": "2026-10-11",
+          "note": "Lidl Grafschafter Unsere besten Weizenbrötchen, 6 Stück 360 g (60 g)"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 376.5,
+          "fat": 15.6,
+          "protein": 8.5,
+          "net_carbs": 49.2
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "fleischsalatbroetchen": {
+      "id": "fleischsalatbroetchen",
+      "names": {
+        "hu": "Húsalátás zsemle (Fleischsalat)",
+        "de": "Fleischsalatbrötchen",
+        "de-AT": "Semmel mit Fleischsalat",
+        "en": "German meat salad roll"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "wheat_roll",
+            "raw_g": 60,
+            "role": "core",
+            "note": "1 Brötchen (60 g)"
+          },
+          {
+            "food_key": "fleischsalat",
+            "raw_g": 50,
+            "role": "core",
+            "note": "Fleischsalat, 50 g (estimate); BLS Fleischsalat mit Salatmayonnaise und Gurke"
+          }
+        ],
+        "raw_total_g": 110,
+        "cooking": {
+          "method": "assembled, no cooking",
+          "mass_change_g": 0,
+          "note": "no cooking"
+        },
+        "finished_weight_g": 110,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 110,
+      "density_g_per_ml": 0.379,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.supermarktcheck.de/product/181802-gut-guenstig-gute-laune-weizenbroetchen-360g",
+          "retrieved": "2026-10-11",
+          "note": "Gut & Günstig Weizenbrötchen 360 g, 6 Stück (60 g)"
+        },
+        {
+          "url": "https://www.test.de/Aufbackbroetchen-Die-besten-zum-Fruehstueck-4206027-5707401/detail/330000012640!14/",
+          "retrieved": "2026-10-11",
+          "note": "Lidl Grafschafter Unsere besten Weizenbrötchen, 6 Stück 360 g (60 g)"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 284.5,
+          "fat": 13.4,
+          "protein": 7.4,
+          "net_carbs": 32.2
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "mettbroetchen": {
+      "id": "mettbroetchen",
+      "names": {
+        "hu": "Nyers darált sertéshúsos zsemle (Mettbrötchen)",
+        "de": "Mettbrötchen (Hackepeter)",
+        "de-AT": "Mettsemmel",
+        "en": "Raw minced pork roll (Mettbrötchen)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 8,
+        "ingredients": [
+          {
+            "food_key": "wheat_roll",
+            "raw_g": 480,
+            "role": "core",
+            "note": "8 Schrippen (Brötchen), 60 g each"
+          },
+          {
+            "food_key": "butter",
+            "raw_g": 15,
+            "role": "fat",
+            "note": "1 EL Butter für die Schrippen"
+          },
+          {
+            "food_key": "pork_minced",
+            "raw_g": 300,
+            "role": "core",
+            "note": "300 g Hackfleisch vom Schwein (raw, seasoned Mett)"
+          },
+          {
+            "food_key": "egg_yolk",
+            "raw_g": 18,
+            "role": "core",
+            "note": "1 Eigelb, frisch"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 100,
+            "role": "core",
+            "note": "1 Zwiebel, gelb"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 5,
+            "role": "seasoning",
+            "note": "1 Knoblauchzehe"
+          },
+          {
+            "food_key": "caraway_seed",
+            "raw_g": 1.25,
+            "role": "seasoning",
+            "note": "0.5 TL Kümmel, gemahlen"
+          }
+        ],
+        "raw_total_g": 919.25,
+        "cooking": {
+          "method": "seasoned raw pork spread on buttered roll halves with onion",
+          "mass_change_g": 0,
+          "note": "no cooking; salt, pepper left out. One roll (two halves) per serving"
+        },
+        "finished_weight_g": 919.25,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 115,
+      "density_g_per_ml": 0.392,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.gutekueche.de/hackepeter-rezept-1871",
+          "retrieved": "2026-10-11",
+          "note": "batch recipe: 1 EL Butter, 1 Eigelb, 300 g Schweinehack, Knoblauch, 0.5 TL Kümmel, 8 Schrippen, 1 Zwiebel, 4 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.de/mettbroetchen-rezept-17184",
+          "retrieved": "2026-10-11",
+          "note": "cross-check: 4 Brötchen, 80 g Butter, 400 g Schweinefleisch + 100 g Schweinebauch (minced), 4 Zwiebeln, Kümmel, 4 Portionen"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 257.8,
+          "fat": 10.1,
+          "protein": 11.6,
+          "net_carbs": 28.9
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "strammer_max": {
+      "id": "strammer_max",
+      "names": {
+        "hu": "Sonkás-tükörtojásos kenyér (Strammer Max)",
+        "de": "Strammer Max",
+        "de-AT": "Strammer Max (Schinkenbrot mit Spiegelei)",
+        "en": "Strammer Max (ham and fried egg on bread)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "rye_mixed_bread",
+            "raw_g": 200,
+            "role": "core",
+            "note": "4 Schb Mischbrot; 50 g each is an estimate"
+          },
+          {
+            "food_key": "butter",
+            "raw_g": 40,
+            "role": "fat",
+            "note": "40 g Butter (bread)"
+          },
+          {
+            "food_key": "margarine",
+            "raw_g": 30,
+            "role": "fat",
+            "note": "2 EL Margarine (frying)"
+          },
+          {
+            "food_key": "ham_cooked",
+            "raw_g": 200,
+            "role": "core",
+            "note": "200 g Schinken, gekocht"
+          },
+          {
+            "food_key": "egg",
+            "raw_g": 200,
+            "role": "core",
+            "note": "4 Eier"
+          },
+          {
+            "food_key": "chives",
+            "raw_g": 7.5,
+            "role": "garnish",
+            "note": "0.5 Bund Schnittlauch"
+          }
+        ],
+        "raw_total_g": 677.5,
+        "cooking": {
+          "method": "buttered bread with ham, topped with a fried egg",
+          "mass_change_g": -20,
+          "note": "estimate: the eggs lose ~10 % while frying; Gewürzgurken (MISSING), salt, pepper left out"
+        },
+        "finished_weight_g": 657.5,
+        "yield_factor": 0.97
+      },
+      "standard_serving_g": 165,
+      "density_g_per_ml": 0.589,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.gutekueche.de/strammer-max-rezept-8458",
+          "retrieved": "2026-10-11",
+          "note": "batch recipe: 40 g Butter, 4 Eier, 4 Gewürzgurken, 2 EL Margarine, 4 Schb Mischbrot, 200 g Schinken, Schnittlauch, 4 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.de/strammer-max-rezept-8024",
+          "retrieved": "2026-10-11",
+          "note": "cross-check: 4 TL Butter, 4 Eier, 4 Schb Gouda, 8 Schb Kochschinken, 4 Schb Schwarzbrot, 1 EL Rapsöl, 2 Portionen"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 223.6,
+          "fat": 12.7,
+          "protein": 13.2,
+          "net_carbs": 13.1
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "bauernfruehstueck": {
+      "id": "bauernfruehstueck",
+      "names": {
+        "hu": "Parasztreggeli (sült krumpli tojással és szalonnával)",
+        "de": "Bauernfrühstück",
+        "de-AT": "Bauernfrühstück (Gröstl mit Ei)",
+        "en": "Farmer's breakfast (fried potatoes with egg and bacon)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "potato",
+            "raw_g": 1000,
+            "role": "core",
+            "note": "1 kg festkochende Kartoffeln, boiled and sliced"
+          },
+          {
+            "food_key": "egg",
+            "raw_g": 300,
+            "role": "core",
+            "note": "6 Eier"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 250,
+            "role": "core",
+            "note": "1 Gemüsezwiebel; 250 g is an estimate"
+          },
+          {
+            "food_key": "spring_onion",
+            "raw_g": 100,
+            "role": "core",
+            "note": "1 Bund Lauchzwiebeln; 100 g is an estimate"
+          },
+          {
+            "food_key": "schinkenspeck",
+            "raw_g": 150,
+            "role": "core",
+            "note": "150 g Schinkenspeck"
+          },
+          {
+            "food_key": "rapeseed_oil",
+            "raw_g": 13,
+            "role": "fat",
+            "note": "1 EL Rapsöl"
+          },
+          {
+            "food_key": "parsley_leaf",
+            "raw_g": 7.5,
+            "role": "garnish",
+            "note": "0.5 Bund Petersilie"
+          }
+        ],
+        "raw_total_g": 1820.5,
+        "cooking": {
+          "method": "boiled potatoes fried with onions and bacon, eggs stirred in and set",
+          "mass_change_g": -150,
+          "note": "estimate: ~10 % frying loss; salt, pepper left out"
+        },
+        "finished_weight_g": 1670.5,
+        "yield_factor": 0.918
+      },
+      "standard_serving_g": 400,
+      "density_g_per_ml": 1.056,
+      "density_method": "derived from components after cooking mass change",
+      "flat_plate": {
+        "coverage": 0.32,
+        "height_cm": 2.5
+      },
+      "sources": [
+        {
+          "url": "https://www.gutekueche.de/bauernfruehstueck-rezept-4412",
+          "retrieved": "2026-10-11",
+          "note": "batch recipe: 6 Eier, 1 kg Kartoffeln, 1 Gemüsezwiebel, 1 Bund Lauchzwiebeln, Petersilie, 1 EL Rapsöl, 150 g Schinkenspeck, 4 Portionen"
+        },
+        {
+          "url": "https://www.lecker.de/bauernfruehstueck-30403.html",
+          "retrieved": "2026-10-11",
+          "note": "cross-check: 150 g Kartoffeln, 1 Zwiebel, 20 g Lachsschinken, 1 Gewürzgurke, 2 TL Öl, 1 Ei, 1 Person"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 98.7,
+          "fat": 2.8,
+          "protein": 5.7,
+          "net_carbs": 11.9
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "arme_ritter": {
+      "id": "arme_ritter",
+      "names": {
+        "hu": "Bundás kenyér cukorral (Arme Ritter)",
+        "de": "Arme Ritter (süß)",
+        "de-AT": "Pofesen (Arme Ritter, süß)",
+        "en": "French toast (Arme Ritter)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "white_bread",
+            "raw_g": 240,
+            "role": "core",
+            "note": "8 Schb Weißbrot; 30 g each is an estimate"
+          },
+          {
+            "food_key": "egg",
+            "raw_g": 200,
+            "role": "core",
+            "note": "4 Eier"
+          },
+          {
+            "food_key": "milk_whole",
+            "raw_g": 206,
+            "role": "liquid",
+            "note": "200 ml Milch"
+          },
+          {
+            "food_key": "vanilla_sugar",
+            "raw_g": 8,
+            "role": "core",
+            "note": "1 Pk Vanillinzucker"
+          },
+          {
+            "food_key": "sugar",
+            "raw_g": 36,
+            "role": "core",
+            "note": "3 EL Zucker"
+          },
+          {
+            "food_key": "clarified_butter",
+            "raw_g": 26,
+            "role": "fat",
+            "note": "2 EL Butterschmalz"
+          }
+        ],
+        "raw_total_g": 716,
+        "cooking": {
+          "method": "bread soaked in egg milk, fried in Butterschmalz, sprinkled with cinnamon sugar",
+          "mass_change_g": -40,
+          "note": "estimate: ~6 % frying loss; cinnamon (MISSING) left out"
+        },
+        "finished_weight_g": 676,
+        "yield_factor": 0.944
+      },
+      "standard_serving_g": 170,
+      "density_g_per_ml": 0.558,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.gutekueche.de/arme-ritter-rezept-585",
+          "retrieved": "2026-10-11",
+          "note": "batch recipe: 2 EL Butterschmalz, 4 Eier, 200 ml Milch, 1 Pk Vanillinzucker, 8 Schb Weißbrot, 1 TL Zimt, 3 EL Zucker, 4 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.de/arme-ritter-suess-rezept-1889",
+          "retrieved": "2026-10-11",
+          "note": "cross-check: 70 g Butter, 1 Ei, 4 Schb Toastbrot, 250 ml Vollmilch, Zimt, Zucker, 2 Portionen"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 215.9,
+          "fat": 8.6,
+          "protein": 8.1,
+          "net_carbs": 25.8
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "eierpfannkuchen": {
+      "id": "eierpfannkuchen",
+      "names": {
+        "hu": "Német tojásos palacsinta (Eierpfannkuchen)",
+        "de": "Eierpfannkuchen",
+        "de-AT": "Palatschinke (deutscher Eierpfannkuchen)",
+        "en": "German pancake (Eierpfannkuchen)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 2,
+        "ingredients": [
+          {
+            "food_key": "egg",
+            "raw_g": 150,
+            "role": "core",
+            "note": "3 Eier, Größe M"
+          },
+          {
+            "food_key": "milk_whole",
+            "raw_g": 155,
+            "role": "liquid",
+            "note": "150 ml Vollmilch"
+          },
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 100,
+            "role": "core",
+            "note": "100 g Weizenmehl, Type 405"
+          },
+          {
+            "food_key": "sugar",
+            "raw_g": 12,
+            "role": "core",
+            "note": "1 EL Zucker"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 39,
+            "role": "absorbed_fat",
+            "note": "6 EL Sonnenblumenöl für die Pfanne: about half (~39 g) is taken up (estimate)"
+          }
+        ],
+        "raw_total_g": 456,
+        "cooking": {
+          "method": "thick batter fried in oil, 2-3 pancakes per person",
+          "mass_change_g": -40,
+          "note": "estimate: ~10 % steam loss; salt left out"
+        },
+        "finished_weight_g": 416,
+        "yield_factor": 0.912
+      },
+      "standard_serving_g": 200,
+      "density_g_per_ml": 1.024,
+      "density_method": "derived from components after cooking mass change",
+      "flat_plate": {
+        "coverage": 0.3,
+        "height_cm": 1.2
+      },
+      "sources": [
+        {
+          "url": "https://www.gutekueche.de/eierpfannkuchen-grundrezept-rezept-1596",
+          "retrieved": "2026-10-11",
+          "note": "batch recipe: 3 Eier, 6 EL Sonnenblumenöl, 150 ml Vollmilch, 100 g Mehl, 1 EL Zucker, 2 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.de/pfannkuchen-grundrezept-rezept-9325",
+          "retrieved": "2026-10-11",
+          "note": "cross-check: 4 Eier, 400 ml Milch, 100 ml Mineralwasser, 2 EL Öl, 400 g Mehl, 4 Portionen"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 251.3,
+          "fat": 14.1,
+          "protein": 8.6,
+          "net_carbs": 21.8
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "nudelauflauf": {
+      "id": "nudelauflauf",
+      "names": {
+        "hu": "Sonkás-sajtos rakott tészta tejszínnel (Nudelauflauf)",
+        "de": "Nudelauflauf mit Schinken",
+        "de-AT": "Schinkennudelauflauf",
+        "en": "Pasta bake with ham and cheese"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 6,
+        "ingredients": [
+          {
+            "food_key": "pasta_durum_dry",
+            "raw_g": 300,
+            "role": "core",
+            "note": "300 g Nudeln (dry), boiled al dente"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 390,
+            "role": "liquid",
+            "note": "water taken up by the boiled pasta (common.BOILED_YIELD)"
+          },
+          {
+            "food_key": "ham_cooked",
+            "raw_g": 120,
+            "role": "core",
+            "note": "120 g Schinken, gekocht am Stück"
+          },
+          {
+            "food_key": "green_peas",
+            "raw_g": 260,
+            "role": "core",
+            "note": "2 Tassen Erbsen, TK; 130 g per Tasse is an estimate"
+          },
+          {
+            "food_key": "cream_30",
+            "raw_g": 400,
+            "role": "core",
+            "note": "2 Bch Sahne"
+          },
+          {
+            "food_key": "emmentaler",
+            "raw_g": 100,
+            "role": "core",
+            "note": "100 g Emmentaler, gerieben"
+          },
+          {
+            "food_key": "parmesan",
+            "raw_g": 5,
+            "role": "core",
+            "note": "1 EL Parmesan, gerieben"
+          },
+          {
+            "food_key": "tomato_paste",
+            "raw_g": 5,
+            "role": "seasoning",
+            "note": "1 TL Tomatenmark"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 150,
+            "role": "liquid",
+            "note": "1 Tasse Wasser"
+          },
+          {
+            "food_key": "parsley_leaf",
+            "raw_g": 12,
+            "role": "garnish",
+            "note": "3 EL Petersilie, gehackt"
+          }
+        ],
+        "raw_total_g": 1742,
+        "cooking": {
+          "method": "boiled pasta mixed with ham, peas and cream sauce, topped with cheese, baked ~30 min",
+          "mass_change_g": -120,
+          "note": "estimate: ~8 % baking loss; Kräuterbutter (1 TL, MISSING) left out"
+        },
+        "finished_weight_g": 1622,
+        "yield_factor": 0.931
+      },
+      "standard_serving_g": 350,
+      "density_g_per_ml": 1.009,
+      "density_method": "derived from components after cooking mass change",
+      "flat_plate": {
+        "coverage": 0.3,
+        "height_cm": 3.5
+      },
+      "sources": [
+        {
+          "url": "https://www.gutekueche.de/nudelauflauf-mit-schinken-rezept-2605",
+          "retrieved": "2026-10-11",
+          "note": "batch recipe: 100 g Emmentaler, 2 Tassen Erbsen, 1 TL Kräuterbutter, 300 g Nudeln, Parmesan, Petersilie, 2 Bch Sahne, 120 g Schinken, 1 TL Tomatenmark, 1 Tasse Wasser, 6 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.de/schinkennudeln-rezept-4387",
+          "retrieved": "2026-10-11",
+          "note": "cross-check: 500 g Spiralnudeln, 250 g Kochschinken, 200 ml Sahne, 300 ml Gemüsebrühe, 1 EL Mehl, Zwiebel, 4 Portionen"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 188.5,
+          "fat": 10.4,
+          "protein": 7.3,
+          "net_carbs": 15.6
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "kartoffelgratin": {
+      "id": "kartoffelgratin",
+      "names": {
+        "hu": "Tejszínes rakott burgonya sajttal (Kartoffelgratin)",
+        "de": "Kartoffelgratin",
+        "de-AT": "Erdäpfelgratin",
+        "en": "Potato gratin"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 2,
+        "ingredients": [
+          {
+            "food_key": "potato",
+            "raw_g": 500,
+            "role": "core",
+            "note": "500 g Kartoffeln, sliced raw"
+          },
+          {
+            "food_key": "milk_whole",
+            "raw_g": 129,
+            "role": "liquid",
+            "note": "125 ml Milch"
+          },
+          {
+            "food_key": "cream_30",
+            "raw_g": 125,
+            "role": "core",
+            "note": "125 ml Sahne"
+          },
+          {
+            "food_key": "emmentaler",
+            "raw_g": 35,
+            "role": "core",
+            "note": "5 EL Käse, gerieben, z.B. Emmentaler; 7 g per EL is an estimate"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 5,
+            "role": "seasoning",
+            "note": "1 Knoblauchzehe"
+          },
+          {
+            "food_key": "butter",
+            "raw_g": 15,
+            "role": "fat",
+            "note": "1 EL Butter für die Form"
+          }
+        ],
+        "raw_total_g": 809,
+        "cooking": {
+          "method": "potato slices layered in a buttered dish with garlic milk-cream, topped with cheese, baked ~50 min",
+          "mass_change_g": -80,
+          "note": "estimate: ~10 % baking loss; rosemary, nutmeg (MISSING), salt, pepper left out"
+        },
+        "finished_weight_g": 729,
+        "yield_factor": 0.901
+      },
+      "standard_serving_g": 250,
+      "density_g_per_ml": 1.061,
+      "density_method": "derived from components after cooking mass change",
+      "flat_plate": {
+        "coverage": 0.28,
+        "height_cm": 3.5
+      },
+      "sources": [
+        {
+          "url": "https://www.gutekueche.de/kartoffelgratin-mit-sahne-rezept-741",
+          "retrieved": "2026-10-11",
+          "note": "batch recipe: 1 EL Butter, 500 g Kartoffeln, 5 EL Käse, Knoblauch, 125 ml Milch, Muskat, Rosmarin, 125 ml Sahne, 2 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.de/kartoffelgratin-rezept-2677",
+          "retrieved": "2026-10-11",
+          "note": "cross-check: 6 große Kartoffeln, 4 Stg Lauch, 100 g Speck, 500 ml Schlagsahne, 1 Tasse Rinderbrühe, Käse, 4 Portionen"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 154.1,
+          "fat": 9.2,
+          "protein": 3.7,
+          "net_carbs": 13.6
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "nudelsalat": {
+      "id": "nudelsalat",
+      "names": {
+        "hu": "Német tésztasaláta Fleischwursttal (Nudelsalat)",
+        "de": "Nudelsalat (mit Fleischwurst und Mayonnaise)",
+        "de-AT": "Nudelsalat mit Extrawurst",
+        "en": "German pasta salad with sausage"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "pasta_durum_dry",
+            "raw_g": 200,
+            "role": "core",
+            "note": "200 g Nudeln (Hörnchen), dry, boiled"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 260,
+            "role": "liquid",
+            "note": "water taken up by the boiled pasta (common.BOILED_YIELD)"
+          },
+          {
+            "food_key": "fleischwurst",
+            "raw_g": 100,
+            "role": "core",
+            "note": "100 g Fleischwurst am Stück"
+          },
+          {
+            "food_key": "egg",
+            "raw_g": 100,
+            "role": "core",
+            "note": "2 Eier, hart gekocht"
+          },
+          {
+            "food_key": "egg_yolk",
+            "raw_g": 18,
+            "role": "core",
+            "note": "1 Eigelb (home-made mayonnaise)"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 115,
+            "role": "fat",
+            "note": "125 ml Salatöl (home-made mayonnaise)"
+          },
+          {
+            "food_key": "vinegar",
+            "raw_g": 15,
+            "role": "seasoning",
+            "note": "1 EL Essig"
+          },
+          {
+            "food_key": "mustard",
+            "raw_g": 10,
+            "role": "seasoning",
+            "note": "2 TL Senf, mittelscharf"
+          },
+          {
+            "food_key": "sugar",
+            "raw_g": 4,
+            "role": "seasoning",
+            "note": "1 TL Zucker"
+          }
+        ],
+        "raw_total_g": 822,
+        "cooking": {
+          "method": "boiled pasta, diced sausage and eggs folded into home-made mayonnaise",
+          "mass_change_g": 0,
+          "note": "no cooking after boiling; Gewürzgurken and Gurkenwasser (MISSING), salt left out"
+        },
+        "finished_weight_g": 822,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 200,
+      "density_g_per_ml": 0.65,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.25,
+        "height_cm": 3.0
+      },
+      "sources": [
+        {
+          "url": "https://www.gutekueche.de/klassischer-nudelsalat-rezept-2669",
+          "retrieved": "2026-10-11",
+          "note": "batch recipe: 2 Eier, 100 g Fleischwurst, 2 Gewürzgurken, 200 g Nudeln, 1 Eigelb, 1 EL Essig, 1 EL Gurkenwasser, 125 ml Salatöl, 2 TL Senf, 1 TL Zucker, 4 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.de/klassischer-nudelsalat-rezept-5673",
+          "retrieved": "2026-10-11",
+          "note": "cross-check: 300 g Fusilli, 150 g Fleischwurst, 200 g Erbsen, 150 g Mais, 1 Eigelb, 150 g Joghurt, 100 ml Sonnenblumenöl, 3 EL Essig, 4 Portionen"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 275.1,
+          "fat": 19.7,
+          "protein": 6.5,
+          "net_carbs": 17.3
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "eiersalat": {
+      "id": "eiersalat",
+      "names": {
+        "hu": "Tojássaláta majonézzel",
+        "de": "Eiersalat",
+        "de-AT": "Eiaufstrich (Eiersalat)",
+        "en": "Egg salad"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "egg",
+            "raw_g": 300,
+            "role": "core",
+            "note": "6 Eier, hart gekocht"
+          },
+          {
+            "food_key": "mayonnaise",
+            "raw_g": 200,
+            "role": "core",
+            "note": "200 g Mayonnaise"
+          },
+          {
+            "food_key": "mustard",
+            "raw_g": 5,
+            "role": "seasoning",
+            "note": "1 TL Senf"
+          },
+          {
+            "food_key": "soy_sauce",
+            "raw_g": 15,
+            "role": "seasoning",
+            "note": "1 EL Sojasauce"
+          },
+          {
+            "food_key": "garlic",
+            "raw_g": 5,
+            "role": "seasoning",
+            "note": "1 Knoblauchzehe"
+          },
+          {
+            "food_key": "sugar",
+            "raw_g": 4,
+            "role": "seasoning",
+            "note": "1 TL Zucker"
+          }
+        ],
+        "raw_total_g": 529,
+        "cooking": {
+          "method": "chopped hard-boiled eggs folded into seasoned mayonnaise",
+          "mass_change_g": 0,
+          "note": "no cooking; cayenne, salt left out"
+        },
+        "finished_weight_g": 529,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 125,
+      "density_g_per_ml": 1.004,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.gutekueche.de/eiersalat-rezept-1593",
+          "retrieved": "2026-10-11",
+          "note": "batch recipe: 6 Eier, 200 g Mayonnaise, 1 TL Senf, 1 EL Sojasauce, Knoblauch, 1 TL Zucker, Cayenne, 4 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.de/eiersalat-rezept-3686",
+          "retrieved": "2026-10-11",
+          "note": "cross-check: 5 Eier, 80 g Emmentaler, Paprika, Zwiebel, 3 EL Öl, 2 EL Weißweinessig, 4 Portionen"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 367.0,
+          "fat": 35.9,
+          "protein": 8.3,
+          "net_carbs": 2.0
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "putengeschnetzeltes": {
+      "id": "putengeschnetzeltes",
+      "names": {
+        "hu": "Tejszínes-mustáros pulykaragu (Putengeschnetzeltes)",
+        "de": "Putengeschnetzeltes in Rahmsoße",
+        "de-AT": "Putengeschnetzeltes in Rahmsauce",
+        "en": "Turkey strips in cream sauce"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "turkey_breast",
+            "raw_g": 500,
+            "role": "core",
+            "note": "500 g Putenbrustfilet, in strips"
+          },
+          {
+            "food_key": "rapeseed_oil",
+            "raw_g": 26,
+            "role": "fat",
+            "note": "2 EL Rapsöl"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 200,
+            "role": "core",
+            "note": "2 Zwiebeln"
+          },
+          {
+            "food_key": "mustard",
+            "raw_g": 45,
+            "role": "core",
+            "note": "3 EL Senf, mittelscharf"
+          },
+          {
+            "food_key": "veg_bouillon_powder",
+            "raw_g": 4.0,
+            "role": "seasoning",
+            "note": "200 ml Gemüsebrühe - bouillon powder, 2 g per 100 ml (1 Würfel / 0,5 l, estimate)"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 200,
+            "role": "liquid",
+            "note": "200 ml Gemüsebrühe - water"
+          },
+          {
+            "food_key": "cream_30",
+            "raw_g": 200,
+            "role": "core",
+            "note": "1 Bch Schlagsahne"
+          }
+        ],
+        "raw_total_g": 1175.0,
+        "cooking": {
+          "method": "turkey strips seared, onions sweated, deglazed with broth, simmered with cream and mustard",
+          "mass_change_g": -180,
+          "note": "estimate: turkey loses ~20 % (~100 g), ~80 g sauce reduces; white wine (MISSING), thyme, paprika, salt, pepper left out"
+        },
+        "finished_weight_g": 995.0,
+        "yield_factor": 0.847
+      },
+      "standard_serving_g": 300,
+      "density_g_per_ml": 1.024,
+      "density_method": "derived from components after cooking mass change",
+      "flat_plate": {
+        "coverage": 0.3,
+        "height_cm": 2.5
+      },
+      "sources": [
+        {
+          "url": "https://www.gutekueche.de/putengeschnetzeltes-rezept-1775",
+          "retrieved": "2026-10-11",
+          "note": "batch recipe: 500 g Putenbrustfilet, 2 EL Rapsöl, 3 EL Senf, 2 Zwiebeln, 200 ml Gemüsebrühe, 1 Bch Schlagsahne, 100 ml Weißwein, 4 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.de/rahmgeschnetzeltes-rezept-654",
+          "retrieved": "2026-10-11",
+          "note": "cross-check: 450 g Kalbsgeschnetzeltes, 300 g Champignons, 4 Schalotten, 1 Bch Schlagsahne, 2 EL Butterschmalz, 4 Portionen"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 150.8,
+          "fat": 9.9,
+          "protein": 13.1,
+          "net_carbs": 2.1
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "pellkartoffeln_quark": {
+      "id": "pellkartoffeln_quark",
+      "names": {
+        "hu": "Héjában főtt burgonya túrókrémmel és lenmagolajjal",
+        "de": "Pellkartoffeln mit Quark und Leinöl",
+        "de-AT": "Erdäpfel in der Schale mit Topfen und Leinöl",
+        "en": "Jacket potatoes with quark and linseed oil"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "potato",
+            "raw_g": 1200,
+            "role": "core",
+            "note": "1,2 kg festkochende Kartoffeln, boiled in their skin and peeled at the table"
+          },
+          {
+            "food_key": "quark_lean",
+            "raw_g": 500,
+            "role": "core",
+            "note": "500 g Magerquark"
+          },
+          {
+            "food_key": "sour_cream_20_bls",
+            "raw_g": 500,
+            "role": "core",
+            "note": "500 g Schmand"
+          },
+          {
+            "food_key": "linseed_oil",
+            "raw_g": 26,
+            "role": "fat",
+            "note": "2 EL Leinöl"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 200,
+            "role": "core",
+            "note": "2 Zwiebeln"
+          },
+          {
+            "food_key": "chives",
+            "raw_g": 15,
+            "role": "garnish",
+            "note": "1 Bund Schnittlauch"
+          },
+          {
+            "food_key": "lemon_juice",
+            "raw_g": 20,
+            "role": "seasoning",
+            "note": "Saft von 1/2 Zitrone"
+          }
+        ],
+        "raw_total_g": 2461,
+        "cooking": {
+          "method": "potatoes boiled in their skins; quark whipped with Schmand, onion, chives and lemon, drizzled with linseed oil",
+          "mass_change_g": 0,
+          "note": "no net mass change for the boiled potatoes (estimate); sugar, salt, pepper left out"
+        },
+        "finished_weight_g": 2461,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 450,
+      "density_g_per_ml": 1.052,
+      "density_method": "derived from components after cooking mass change",
+      "flat_plate": {
+        "coverage": 0.32,
+        "height_cm": 3.0
+      },
+      "sources": [
+        {
+          "url": "https://www.lecker.de/pellkartoffeln-mit-quark-2158.html",
+          "retrieved": "2026-10-11",
+          "note": "batch recipe: 1,2 kg Kartoffeln, 2 Zwiebeln, 500 g Magerquark, 500 g Schmand, 2 EL Leinöl, Schnittlauch, 1/2 Zitrone, 4 Personen"
+        },
+        {
+          "url": "https://www.gutekueche.de/pellkartoffeln-mit-quark-rezept-1658",
+          "retrieved": "2026-10-11",
+          "note": "cross-check: 1 kg Kartoffeln, 500 g Quark 20 %, 250 g Quark, Milch, 2 Zwiebeln, Schnittlauch, 4 Portionen"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 108.4,
+          "fat": 5.2,
+          "protein": 4.0,
+          "net_carbs": 10.6
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "kaese_lauch_suppe": {
+      "id": "kaese_lauch_suppe",
+      "names": {
+        "hu": "Sajtos-póréhagymás leves darált hússal (Käse-Lauch-Suppe)",
+        "de": "Käse-Lauch-Suppe mit Hackfleisch",
+        "de-AT": "Käse-Lauch-Suppe mit Faschiertem",
+        "en": "Cheese and leek soup with minced meat"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "mixed_minced",
+            "raw_g": 500,
+            "role": "core",
+            "note": "500 g Hackfleisch, gemischt"
+          },
+          {
+            "food_key": "leek",
+            "raw_g": 500,
+            "role": "core",
+            "note": "2 Stg Lauch, groß; 250 g each is an estimate"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 150,
+            "role": "core",
+            "note": "1 Zwiebel, groß; 150 g is an estimate"
+          },
+          {
+            "food_key": "rapeseed_oil",
+            "raw_g": 26,
+            "role": "fat",
+            "note": "2 EL Rapsöl"
+          },
+          {
+            "food_key": "veg_bouillon_powder",
+            "raw_g": 15.0,
+            "role": "seasoning",
+            "note": "750 ml Gemüsebrühe - bouillon powder, 2 g per 100 ml (1 Würfel / 0,5 l, estimate)"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 750,
+            "role": "liquid",
+            "note": "750 ml Gemüsebrühe - water"
+          },
+          {
+            "food_key": "processed_cheese_spread",
+            "raw_g": 400,
+            "role": "core",
+            "note": "400 g Schmelzkäse (BLS Schmelzkäsezubereitung 45-52 % F. i. Tr.)"
+          }
+        ],
+        "raw_total_g": 2341.0,
+        "cooking": {
+          "method": "mince browned with onion, leek simmered in broth, processed cheese melted in",
+          "mass_change_g": -150,
+          "note": "estimate: the mince loses ~15 % (~75 g) and ~75 g broth evaporates; salt, pepper left out"
+        },
+        "finished_weight_g": 2191.0,
+        "yield_factor": 0.936
+      },
+      "standard_serving_g": 400,
+      "density_g_per_ml": 1.019,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.gutekueche.de/kaese-lauch-suppe-mit-hackfleisch-rezept-19299",
+          "retrieved": "2026-10-11",
+          "note": "batch recipe: 750 ml Gemüsebrühe, 500 g Hackfleisch gemischt, 2 Stg Lauch, 2 EL Rapsöl, 400 g Schmelzkäse, 1 Zwiebel, 4 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.de/kaese-lauchsuppe-mit-hackfleisch-rezept-2265",
+          "retrieved": "2026-10-11",
+          "note": "cross-check: 1 l Gemüsebrühe, 500 g Hackfleisch, 3 Stg Lauch, 250 g Schmelzkäse, 200 g Crème fraîche, 3 Zwiebeln, 4 Portionen"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 128.3,
+          "fat": 9.7,
+          "protein": 7.1,
+          "net_carbs": 2.7
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "bockwurst": {
+      "id": "bockwurst",
+      "names": {
+        "hu": "Bockwurst (nagy virsli)",
+        "de": "Bockwurst",
+        "de-AT": "Bockwurst (Knacker-Art)",
+        "en": "Bockwurst (large frankfurter)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "bockwurst",
+            "raw_g": 95,
+            "role": "core",
+            "note": "1 Bockwurst = mean of Henrici 4 Stück ca. 440 g (110 g) and Halberstädter 5 Stück 400 g (80 g)"
+          }
+        ],
+        "raw_total_g": 95,
+        "cooking": {
+          "method": "heated in hot water",
+          "mass_change_g": 0,
+          "note": "no mass change"
+        },
+        "finished_weight_g": 95,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 95,
+      "density_g_per_ml": 1.02,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.rewe.de/shop/p/metzgerei-henrici-bockwurst-ca-440g-4-stueck/8631300",
+          "retrieved": "2026-10-11",
+          "note": "Metzgerei Henrici Bockwurst ca. 440 g, 4 Stück"
+        },
+        {
+          "url": "https://www.mein-deal.com/?p=1437789",
+          "retrieved": "2026-10-11",
+          "note": "Halberstädter Bockwurst, 5 Stück im Glas 400 g"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 273.0,
+          "fat": 24.5,
+          "protein": 13.1,
+          "net_carbs": 0.0
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "muesli_milch": {
+      "id": "muesli_milch",
+      "names": {
+        "hu": "Müzli tejjel",
+        "de": "Müsli mit Milch",
+        "de-AT": "Müsli mit Milch",
+        "en": "Muesli with milk"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "muesli",
+            "raw_g": 40,
+            "role": "core",
+            "note": "40 g Müsli: one portion as declared on Kölln Hafer-Müsli (BLS Müslimischung mit Trockenfrüchten, gesüßt)"
+          },
+          {
+            "food_key": "milk_whole",
+            "raw_g": 129,
+            "role": "liquid",
+            "note": "125 ml Milch, the usual label portion for breakfast cereal (whole milk is an estimate)"
+          }
+        ],
+        "raw_total_g": 169,
+        "cooking": {
+          "method": "assembled, no cooking",
+          "mass_change_g": 0,
+          "note": "no cooking"
+        },
+        "finished_weight_g": 169,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 169,
+      "density_g_per_ml": 0.789,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.rewe.de/shop/p/koelln-fruchtiges-hafer-muesli-1200g/9551252",
+          "retrieved": "2026-10-11",
+          "note": "Kölln Fruchtiges Hafer-Müsli: Portion 40 g"
+        },
+        {
+          "url": "https://www.fatsecret.fr/calories-nutrition/kelloggs/corn-flakes/1-portion-125-ml-de-lait-demi-ecreme",
+          "retrieved": "2026-10-11",
+          "note": "cross-check: 1 Portion Frühstücksflocken (30 g) mit 125 ml Milch"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 126.6,
+          "fat": 4.1,
+          "protein": 4.9,
+          "net_carbs": 16.1
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "cornflakes_milch": {
+      "id": "cornflakes_milch",
+      "names": {
+        "hu": "Kukoricapehely tejjel",
+        "de": "Cornflakes mit Milch",
+        "de-AT": "Cornflakes mit Milch",
+        "en": "Cornflakes with milk"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "cornflakes",
+            "raw_g": 30,
+            "role": "core",
+            "note": "30 g Cornflakes (label portion; BLS Cornflakes gesüßt)"
+          },
+          {
+            "food_key": "milk_whole",
+            "raw_g": 129,
+            "role": "liquid",
+            "note": "125 ml Milch (whole milk is an estimate; the label uses semi-skimmed)"
+          }
+        ],
+        "raw_total_g": 159,
+        "cooking": {
+          "method": "assembled, no cooking",
+          "mass_change_g": 0,
+          "note": "no cooking"
+        },
+        "finished_weight_g": 159,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 159,
+      "density_g_per_ml": 0.424,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.fatsecret.fr/calories-nutrition/kelloggs/corn-flakes/1-portion-125-ml-de-lait-demi-ecreme",
+          "retrieved": "2026-10-11",
+          "note": "Kellogg's Corn Flakes: 1 Portion 30 g mit 125 ml Milch"
+        },
+        {
+          "url": "https://fddb.info/db/de/lebensmittel/kelloggs_cornflakes_die_originalen/index.html",
+          "retrieved": "2026-10-11",
+          "note": "Kellogg's Cornflakes die Originalen: Portion 30 g"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 119.4,
+          "fat": 3.2,
+          "protein": 4.1,
+          "net_carbs": 18.2
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
     "eierspeis": {
       "id": "eierspeis",
       "names": {
@@ -38838,7 +41038,8 @@
       "id": "hu_spaghetti_bolognese",
       "countries": [
         "HU",
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "everyday",
       "names": {
@@ -38882,7 +41083,8 @@
     {
       "id": "hu_carbonara",
       "countries": [
-        "HU"
+        "HU",
+        "DE"
       ],
       "category": "everyday",
       "names": {
@@ -38926,7 +41128,8 @@
       "id": "hu_lasagne",
       "countries": [
         "HU",
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "everyday",
       "names": {
@@ -38971,7 +41174,8 @@
       "id": "hu_pizza_margherita",
       "countries": [
         "HU",
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "everyday",
       "names": {
@@ -39061,7 +41265,8 @@
       "id": "hu_gorog_salata",
       "countries": [
         "HU",
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "everyday",
       "names": {
@@ -39103,7 +41308,8 @@
     {
       "id": "hu_cezarsalata",
       "countries": [
-        "HU"
+        "HU",
+        "DE"
       ],
       "category": "everyday",
       "names": {
@@ -40042,7 +42248,8 @@
       "id": "hu_rantott_csirkemell",
       "countries": [
         "HU",
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "everyday",
       "names": {
@@ -40102,7 +42309,8 @@
     {
       "id": "hu_chili_con_carne",
       "countries": [
-        "HU"
+        "HU",
+        "DE"
       ],
       "category": "everyday",
       "names": {
@@ -40144,7 +42352,8 @@
       "id": "hu_tukortojas",
       "countries": [
         "HU",
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "everyday",
       "names": {
@@ -40588,7 +42797,8 @@
     {
       "id": "hu_tejbegriz",
       "countries": [
-        "HU"
+        "HU",
+        "DE"
       ],
       "category": "everyday",
       "names": {
@@ -45036,7 +47246,8 @@
     {
       "id": "at_faschierte_laibchen",
       "countries": [
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "traditional",
       "names": {
@@ -45055,7 +47266,13 @@
         ],
         "de": [
           "frikadellen österreichisch",
-          "fleischpflanzerl"
+          "fleischpflanzerl",
+          "frikadellen",
+          "frikadelle",
+          "buletten",
+          "bulette",
+          "fleischküchle",
+          "hackfleischbällchen gebraten"
         ],
         "hu": [
           "osztrák fasírt"
@@ -47626,7 +49843,8 @@
     {
       "id": "at_wurstbrot",
       "countries": [
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "everyday",
       "names": {
@@ -47644,7 +49862,10 @@
         ],
         "de": [
           "wurstbrot",
-          "lyonerbrot"
+          "lyonerbrot",
+          "wurststulle",
+          "wurstbemme",
+          "fleischwurstbrot"
         ],
         "hu": [
           "párizsis kenyér",
@@ -47671,7 +49892,8 @@
     {
       "id": "at_kaesebrot",
       "countries": [
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "everyday",
       "names": {
@@ -47688,7 +49910,8 @@
         ],
         "de": [
           "käsebrot",
-          "käsestulle"
+          "käsestulle",
+          "käsebemme"
         ],
         "hu": [
           "sajtos kenyér ementálival"
@@ -47713,7 +49936,8 @@
     {
       "id": "at_schinkensemmel",
       "countries": [
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "everyday",
       "names": {
@@ -47730,7 +49954,9 @@
         ],
         "de": [
           "schinkenbrötchen",
-          "brötchen mit schinken"
+          "brötchen mit schinken",
+          "schinkenschrippe",
+          "schinkenweck"
         ],
         "hu": [
           "sonkás zsemle"
@@ -47755,7 +49981,8 @@
     {
       "id": "at_kaesesemmel",
       "countries": [
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "everyday",
       "names": {
@@ -47772,7 +49999,10 @@
         ],
         "de": [
           "käsebrötchen",
-          "brötchen mit käse"
+          "brötchen mit käse",
+          "käsebrötchen",
+          "käseschrippe",
+          "käseweck"
         ],
         "hu": [
           "sajtos zsemle"
@@ -47796,7 +50026,8 @@
     {
       "id": "at_semmel_butter_marmelade",
       "countries": [
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "everyday",
       "names": {
@@ -47814,7 +50045,9 @@
         ],
         "de": [
           "brötchen mit butter und marmelade",
-          "marmeladenbrötchen"
+          "marmeladenbrötchen",
+          "brötchen mit marmelade",
+          "marmeladenbrötchen mit butter"
         ],
         "hu": [
           "vajas-lekváros zsemle",
@@ -47840,7 +50073,8 @@
     {
       "id": "at_schinken_kaese_toast",
       "countries": [
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "everyday",
       "names": {
@@ -48091,7 +50325,8 @@
     {
       "id": "at_laugenbrezel",
       "countries": [
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "everyday",
       "names": {
@@ -48112,7 +50347,10 @@
           "laugenbrezel",
           "brezel",
           "breze",
-          "brezn"
+          "brezn",
+          "brezn",
+          "bretzel",
+          "laugenbrezn"
         ],
         "hu": [
           "lúgos perec",
@@ -48146,7 +50384,8 @@
     {
       "id": "at_croissant",
       "countries": [
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "everyday",
       "names": {
@@ -48190,7 +50429,8 @@
     {
       "id": "at_krapfen",
       "countries": [
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "everyday",
       "names": {
@@ -48209,7 +50449,12 @@
         "de": [
           "berliner",
           "krapfen",
-          "pfannkuchen mit marmelade"
+          "pfannkuchen mit marmelade",
+          "pfannkuchen",
+          "berliner pfannkuchen",
+          "kreppel",
+          "berliner ballen",
+          "krapfen mit marmelade"
         ],
         "hu": [
           "farsangi fánk",
@@ -48421,7 +50666,8 @@
     {
       "id": "at_birchermuesli",
       "countries": [
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "everyday",
       "names": {
@@ -48465,7 +50711,8 @@
     {
       "id": "at_ham_and_eggs",
       "countries": [
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "everyday",
       "names": {
@@ -48512,7 +50759,8 @@
     {
       "id": "at_frankfurter_senf_semmel",
       "countries": [
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "everyday",
       "names": {
@@ -48531,7 +50779,11 @@
         ],
         "de": [
           "wiener würstchen mit senf und brötchen",
-          "würstchen mit brötchen"
+          "würstchen mit brötchen",
+          "wiener mit senf",
+          "wiener würstchen mit senf",
+          "würstchen mit senf und brötchen",
+          "bockwurst mit brötchen"
         ],
         "hu": [
           "virsli mustárral és zsemlével",
@@ -48661,7 +50913,8 @@
     {
       "id": "at_spinat_ei_erdaepfel",
       "countries": [
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "everyday",
       "names": {
@@ -48680,7 +50933,9 @@
         ],
         "de": [
           "rahmspinat mit spiegelei und bratkartoffeln",
-          "spinat mit spiegelei"
+          "spinat mit spiegelei",
+          "spinat mit ei und kartoffeln",
+          "spinat, spiegelei und kartoffeln"
         ],
         "hu": [
           "spenót tükörtojással és burgonyával",
@@ -48955,7 +51210,8 @@
     {
       "id": "at_fischstaebchen_pueree",
       "countries": [
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "everyday",
       "names": {
@@ -49004,7 +51260,8 @@
     {
       "id": "at_leberkaese_spiegelei",
       "countries": [
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "everyday",
       "names": {
@@ -49022,7 +51279,9 @@
         ],
         "de": [
           "leberkäse mit spiegelei",
-          "fleischkäse mit spiegelei"
+          "fleischkäse mit spiegelei",
+          "leberkäs mit spiegelei",
+          "fleischkäse mit ei"
         ],
         "hu": [
           "sült leberkäse tükörtojással"
@@ -49115,7 +51374,8 @@
     {
       "id": "at_cevapcici",
       "countries": [
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "everyday",
       "names": {
@@ -49189,7 +51449,8 @@
     {
       "id": "at_milchreis",
       "countries": [
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "everyday",
       "names": {
@@ -49232,7 +51493,8 @@
     {
       "id": "at_krautsalat",
       "countries": [
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "everyday",
       "names": {
@@ -49409,7 +51671,8 @@
     {
       "id": "at_wurstsalat",
       "countries": [
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "everyday",
       "names": {
@@ -49427,7 +51690,9 @@
         ],
         "de": [
           "wurstsalat",
-          "wurstsalat mit käse"
+          "wurstsalat mit käse",
+          "schweizer wurstsalat",
+          "straßburger wurstsalat"
         ],
         "hu": [
           "párizsis saláta",
@@ -49546,7 +51811,8 @@
     {
       "id": "at_toast_hawaii",
       "countries": [
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "everyday",
       "names": {
@@ -49679,7 +51945,8 @@
     {
       "id": "at_spaghetti_napoli",
       "countries": [
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "everyday",
       "names": {
@@ -49697,7 +51964,9 @@
         ],
         "de": [
           "spaghetti napoli",
-          "spaghetti mit tomatensauce"
+          "spaghetti mit tomatensauce",
+          "nudeln mit tomatensoße",
+          "spaghetti mit tomatensoße"
         ],
         "hu": [
           "paradicsomos spagetti",
@@ -49766,7 +52035,8 @@
     {
       "id": "at_paradeisersalat",
       "countries": [
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "everyday",
       "names": {
@@ -50411,7 +52681,8 @@
     {
       "id": "at_cevapcici_fladenbrot",
       "countries": [
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "street_food",
       "names": {
@@ -50467,7 +52738,8 @@
     {
       "id": "at_schnitzelsemmel",
       "countries": [
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "street_food",
       "names": {
@@ -50485,7 +52757,10 @@
         ],
         "de": [
           "schnitzelbrötchen",
-          "schnitzelweck"
+          "schnitzelweck",
+          "schnitzelweck",
+          "schnitzel im brötchen",
+          "schnitzelbrötchen mit senf"
         ],
         "hu": [
           "rántott szeletes zsemle"
@@ -50518,7 +52793,8 @@
     {
       "id": "at_laibchensemmel",
       "countries": [
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "street_food",
       "names": {
@@ -50536,7 +52812,11 @@
         ],
         "de": [
           "frikadellenbrötchen",
-          "bulettenbrötchen"
+          "bulettenbrötchen",
+          "frikadelle im brötchen",
+          "bulette mit schrippe",
+          "frikadellenweck",
+          "fleischpflanzerl in der semmel"
         ],
         "hu": [
           "fasírtos zsemle"
@@ -53925,6 +56205,1305 @@
         }
       ],
       "review_note_hu": "Az osztrák Germknödel (at_germknoedel) mákkal és szilvalekvárral töltött; a pfalzi/bajor Dampfnudel sós-vajas kéreggel, vaníliamártással."
+    },
+    {
+      "id": "de_broetchen",
+      "countries": [
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "Német zsemle (Brötchen, Schrippe)",
+        "de": "Brötchen (Weizenbrötchen)",
+        "de-AT": "Semmel (deutsches Brötchen)",
+        "en": "German bread roll (Brötchen)"
+      },
+      "aliases": {
+        "de": [
+          "brötchen",
+          "schrippe",
+          "schrippen",
+          "weck",
+          "weckle",
+          "wecken",
+          "rundstück",
+          "semmel",
+          "weizenbrötchen",
+          "brötchen ohne belag"
+        ],
+        "de-AT": [
+          "semmel deutsch"
+        ],
+        "hu": [
+          "német zsemle",
+          "zsemle (brötchen)"
+        ],
+        "en": [
+          "bread roll",
+          "german bread roll",
+          "plain roll"
+        ]
+      },
+      "tags": [
+        "breakfast",
+        "bread",
+        "higher-carb"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "broetchen",
+          "standard_serving_g": 60
+        }
+      ],
+      "optional_toppings": [
+        {
+          "food_key": "butter",
+          "g": 10,
+          "hu": "vaj"
+        }
+      ],
+      "review_note_hu": "A regionális nevek (Schrippe Berlin, Weck/Weckle délnyugat, Rundstück Hamburg, Semmel Bajorország) mind ezt a zsemlét jelölik; osztrák (de-AT) 'Semmel' továbbra is az osztrák péksütemény-alias (wheat_roll FOOD_ALIASES)."
+    },
+    {
+      "id": "de_koernerbroetchen",
+      "countries": [
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "Magvas zsemle (Körnerbrötchen)",
+        "de": "Körnerbrötchen (Mehrkornbrötchen)",
+        "de-AT": "Mehrkornweckerl",
+        "en": "Multigrain roll"
+      },
+      "aliases": {
+        "de": [
+          "körnerbrötchen",
+          "mehrkornbrötchen",
+          "kernbrötchen",
+          "körnerweck"
+        ],
+        "de-AT": [
+          "mehrkornweckerl"
+        ],
+        "hu": [
+          "magvas zsemle",
+          "többmagvas zsemle"
+        ],
+        "en": [
+          "multigrain roll",
+          "seeded roll"
+        ]
+      },
+      "tags": [
+        "breakfast",
+        "bread",
+        "higher-carb"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "koernerbroetchen",
+          "standard_serving_g": 62.5
+        }
+      ],
+      "optional_toppings": [
+        {
+          "food_key": "butter",
+          "g": 10,
+          "hu": "vaj"
+        }
+      ]
+    },
+    {
+      "id": "de_franzbroetchen",
+      "countries": [
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "Hamburgi fahéjas péksütemény (Franzbrötchen)",
+        "de": "Franzbrötchen",
+        "de-AT": "Franzbrötchen (Zimtplunder)",
+        "en": "Franzbrötchen (Hamburg cinnamon pastry)"
+      },
+      "aliases": {
+        "de": [
+          "franzbrötchen",
+          "franzbroetchen",
+          "hamburger franzbrötchen"
+        ],
+        "de-AT": [
+          "franzbrötchen"
+        ],
+        "hu": [
+          "franzbrötchen",
+          "fahéjas hamburgi péksütemény"
+        ],
+        "en": [
+          "franzbrotchen",
+          "hamburg cinnamon pastry"
+        ]
+      },
+      "tags": [
+        "breakfast",
+        "pastry",
+        "sweet",
+        "higher-carb"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "franzbroetchen",
+          "standard_serving_g": 70
+        }
+      ]
+    },
+    {
+      "id": "de_rosinenbroetchen",
+      "countries": [
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "Mazsolás zsemle (Rosinenbrötchen)",
+        "de": "Rosinenbrötchen",
+        "de-AT": "Rosinenweckerl",
+        "en": "Raisin bun"
+      },
+      "aliases": {
+        "de": [
+          "rosinenbrötchen",
+          "rosinenweck",
+          "rosinenstuten-brötchen",
+          "korinthenbrötchen"
+        ],
+        "de-AT": [
+          "rosinenweckerl"
+        ],
+        "hu": [
+          "mazsolás zsemle",
+          "mazsolás kalács-zsemle"
+        ],
+        "en": [
+          "raisin bun",
+          "raisin roll"
+        ]
+      },
+      "tags": [
+        "breakfast",
+        "pastry",
+        "sweet",
+        "higher-carb"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "rosinenbroetchen",
+          "standard_serving_g": 51
+        }
+      ],
+      "optional_toppings": [
+        {
+          "food_key": "butter",
+          "g": 10,
+          "hu": "vaj"
+        }
+      ]
+    },
+    {
+      "id": "de_butterbrot",
+      "countries": [
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "Vajas kenyér (rozsos vegyes kenyérből)",
+        "de": "Butterbrot (Graubrot mit Butter)",
+        "de-AT": "Butterbrot",
+        "en": "Bread and butter (rye-wheat bread)"
+      },
+      "aliases": {
+        "de": [
+          "butterbrot",
+          "graubrot mit butter",
+          "stulle mit butter",
+          "bemme mit butter",
+          "brot mit butter"
+        ],
+        "de-AT": [
+          "butterbrot (graubrot)"
+        ],
+        "hu": [
+          "vajas rozsos kenyér",
+          "vajas graubrot"
+        ],
+        "en": [
+          "bread and butter",
+          "slice of bread with butter"
+        ]
+      },
+      "tags": [
+        "breakfast",
+        "bread",
+        "higher-carb"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "butterbrot_de",
+          "standard_serving_g": 63
+        }
+      ],
+      "review_note_hu": "Az osztrák at_butterbrot_schnittlauch metélőhagymás; a német Butterbrot csak vaj, Graubrotra. A 'butterbrot' a DE és az AT étel között választás marad."
+    },
+    {
+      "id": "de_leberwurstbrot",
+      "countries": [
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "Májaskenyér",
+        "de": "Leberwurstbrot",
+        "de-AT": "Leberwurstbrot",
+        "en": "Liver sausage sandwich"
+      },
+      "aliases": {
+        "de": [
+          "leberwurstbrot",
+          "brot mit leberwurst",
+          "leberwurststulle",
+          "leberwurstbemme"
+        ],
+        "de-AT": [
+          "leberwurstbrot"
+        ],
+        "hu": [
+          "májaskenyér",
+          "májkrémes kenyér"
+        ],
+        "en": [
+          "liverwurst sandwich",
+          "liver sausage on bread"
+        ]
+      },
+      "tags": [
+        "everyday",
+        "bread"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "leberwurstbrot",
+          "standard_serving_g": 83
+        }
+      ]
+    },
+    {
+      "id": "de_teewurstbrot",
+      "countries": [
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "Teewurst-os kenyér",
+        "de": "Teewurstbrot",
+        "de-AT": "Teewurstbrot",
+        "en": "Teewurst sandwich"
+      },
+      "aliases": {
+        "de": [
+          "teewurstbrot",
+          "brot mit teewurst",
+          "teewurststulle"
+        ],
+        "de-AT": [
+          "teewurstbrot"
+        ],
+        "hu": [
+          "teewurst-os kenyér",
+          "kenhető kolbászos kenyér"
+        ],
+        "en": [
+          "teewurst sandwich"
+        ]
+      },
+      "tags": [
+        "everyday",
+        "bread"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "teewurstbrot",
+          "standard_serving_g": 83
+        }
+      ]
+    },
+    {
+      "id": "de_schmalzbrot",
+      "countries": [
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "Zsíros kenyér rozsos kenyérből (Schmalzbrot)",
+        "de": "Schmalzbrot (Graubrot)",
+        "de-AT": "Schmalzbrot",
+        "en": "Lard sandwich on rye-wheat bread"
+      },
+      "aliases": {
+        "de": [
+          "schmalzbrot",
+          "schmalzstulle",
+          "griebenschmalzbrot",
+          "brot mit schmalz",
+          "fettbemme"
+        ],
+        "de-AT": [
+          "schmalzbrot"
+        ],
+        "hu": [
+          "zsíros kenyér rozsos kenyérből"
+        ],
+        "en": [
+          "lard sandwich",
+          "bread with dripping"
+        ]
+      },
+      "tags": [
+        "everyday",
+        "bread"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "schmalzbrot_de",
+          "standard_serving_g": 68
+        }
+      ],
+      "review_note_hu": "A magyar zsíros kenyér (hu_zsiros_kenyer) fehér kenyérrel, hagymával; a német Schmalzbrot Graubrotra kent zsír. A 'griebenschmalzbrot' alias tepertős zsírt jelent, amelyre nincs rekord (HU-3): itt sima zsírral számolva."
+    },
+    {
+      "id": "de_salamibroetchen",
+      "countries": [
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "Szalámis zsemle",
+        "de": "Salamibrötchen",
+        "de-AT": "Salamisemmel",
+        "en": "Salami roll"
+      },
+      "aliases": {
+        "de": [
+          "salamibrötchen",
+          "brötchen mit salami",
+          "salamiweck",
+          "salamisemmel"
+        ],
+        "de-AT": [
+          "salamisemmel"
+        ],
+        "hu": [
+          "szalámis zsemle"
+        ],
+        "en": [
+          "salami roll",
+          "salami sandwich"
+        ]
+      },
+      "tags": [
+        "breakfast",
+        "bread"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "salamibroetchen",
+          "standard_serving_g": 100
+        }
+      ]
+    },
+    {
+      "id": "de_nutellabroetchen",
+      "countries": [
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "Mogyorókrémes zsemle",
+        "de": "Brötchen mit Nuss-Nougat-Creme",
+        "de-AT": "Semmel mit Nuss-Nougat-Creme",
+        "en": "Bread roll with chocolate hazelnut spread"
+      },
+      "aliases": {
+        "de": [
+          "brötchen mit nutella",
+          "nutellabrötchen",
+          "brötchen mit nuss-nougat-creme",
+          "nutella-brötchen"
+        ],
+        "de-AT": [
+          "nutellasemmel"
+        ],
+        "hu": [
+          "nutellás zsemle",
+          "mogyorókrémes zsemle"
+        ],
+        "en": [
+          "nutella roll",
+          "roll with chocolate spread"
+        ]
+      },
+      "tags": [
+        "breakfast",
+        "sweet",
+        "higher-carb"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "nutellabroetchen",
+          "standard_serving_g": 88
+        }
+      ]
+    },
+    {
+      "id": "de_fleischsalatbroetchen",
+      "countries": [
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "Húsalátás zsemle (Fleischsalat)",
+        "de": "Fleischsalatbrötchen",
+        "de-AT": "Semmel mit Fleischsalat",
+        "en": "German meat salad roll"
+      },
+      "aliases": {
+        "de": [
+          "fleischsalatbrötchen",
+          "brötchen mit fleischsalat",
+          "fleischsalat-brötchen"
+        ],
+        "de-AT": [
+          "fleischsalatsemmel"
+        ],
+        "hu": [
+          "húsalátás zsemle"
+        ],
+        "en": [
+          "meat salad roll"
+        ]
+      },
+      "tags": [
+        "everyday",
+        "bread"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "fleischsalatbroetchen",
+          "standard_serving_g": 110
+        }
+      ]
+    },
+    {
+      "id": "de_mettbroetchen",
+      "countries": [
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "Nyers darált sertéshúsos zsemle (Mettbrötchen)",
+        "de": "Mettbrötchen (Hackepeter)",
+        "de-AT": "Mettsemmel",
+        "en": "Raw minced pork roll (Mettbrötchen)"
+      },
+      "aliases": {
+        "de": [
+          "mettbrötchen",
+          "hackepeter",
+          "hackepeterbrötchen",
+          "brötchen mit mett",
+          "mettbrötchen mit zwiebeln",
+          "zwiebelmett"
+        ],
+        "de-AT": [
+          "mettsemmel"
+        ],
+        "hu": [
+          "nyers darált húsos zsemle",
+          "mettbrötchen"
+        ],
+        "en": [
+          "raw pork roll",
+          "mett roll"
+        ]
+      },
+      "tags": [
+        "everyday",
+        "bread"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "mettbroetchen",
+          "standard_serving_g": 115
+        }
+      ],
+      "review_note_hu": "Nyers sertéshús (Mett): a darált sertés BLS-rekordja nyers; a fűszerezett Mett só- és fűszertartalma elhanyagolt."
+    },
+    {
+      "id": "de_strammer_max",
+      "countries": [
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "Sonkás-tükörtojásos kenyér (Strammer Max)",
+        "de": "Strammer Max",
+        "de-AT": "Strammer Max (Schinkenbrot mit Spiegelei)",
+        "en": "Strammer Max (ham and fried egg on bread)"
+      },
+      "aliases": {
+        "de": [
+          "strammer max",
+          "stramme max",
+          "schinkenbrot mit spiegelei",
+          "spiegelei auf schinkenbrot"
+        ],
+        "de-AT": [
+          "strammer max"
+        ],
+        "hu": [
+          "sonkás-tükörtojásos kenyér",
+          "strammer max"
+        ],
+        "en": [
+          "strammer max",
+          "ham and egg on bread"
+        ]
+      },
+      "tags": [
+        "everyday",
+        "eggs"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "strammer_max",
+          "standard_serving_g": 165
+        }
+      ]
+    },
+    {
+      "id": "de_bauernfruehstueck",
+      "countries": [
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "Parasztreggeli (sült krumpli tojással és szalonnával)",
+        "de": "Bauernfrühstück",
+        "de-AT": "Bauernfrühstück (Gröstl mit Ei)",
+        "en": "Farmer's breakfast (fried potatoes with egg and bacon)"
+      },
+      "aliases": {
+        "de": [
+          "bauernfrühstück",
+          "bauernfruehstueck",
+          "kartoffeln mit ei und speck",
+          "bratkartoffeln mit ei"
+        ],
+        "de-AT": [
+          "bauernfrühstück"
+        ],
+        "hu": [
+          "parasztreggeli",
+          "tojásos sült krumpli szalonnával"
+        ],
+        "en": [
+          "farmer's breakfast",
+          "german farmer's breakfast"
+        ]
+      },
+      "tags": [
+        "everyday",
+        "eggs",
+        "higher-carb"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "bauernfruehstueck",
+          "standard_serving_g": 400
+        }
+      ]
+    },
+    {
+      "id": "de_arme_ritter",
+      "countries": [
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "Bundás kenyér cukorral (Arme Ritter)",
+        "de": "Arme Ritter (süß)",
+        "de-AT": "Pofesen (Arme Ritter, süß)",
+        "en": "French toast (Arme Ritter)"
+      },
+      "aliases": {
+        "de": [
+          "arme ritter",
+          "armer ritter",
+          "fotzelschnitten",
+          "french toast"
+        ],
+        "de-AT": [
+          "arme ritter"
+        ],
+        "hu": [
+          "édes bundás kenyér",
+          "arme ritter"
+        ],
+        "en": [
+          "french toast",
+          "eggy bread with sugar"
+        ]
+      },
+      "tags": [
+        "breakfast",
+        "sweet",
+        "higher-carb"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "arme_ritter",
+          "standard_serving_g": 170
+        }
+      ],
+      "review_note_hu": "A magyar bundás kenyér (hu_bundas_kenyer) sós; a német Arme Ritter édes, fahéjas cukorral."
+    },
+    {
+      "id": "de_eierpfannkuchen",
+      "countries": [
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "Német tojásos palacsinta (Eierpfannkuchen)",
+        "de": "Eierpfannkuchen",
+        "de-AT": "Palatschinke (deutscher Eierpfannkuchen)",
+        "en": "German pancake (Eierpfannkuchen)"
+      },
+      "aliases": {
+        "de": [
+          "eierpfannkuchen",
+          "pfannkuchen",
+          "eierkuchen",
+          "pfannekuchen",
+          "pfannkuchen mit marmelade",
+          "pfannkuchen mit apfelmus"
+        ],
+        "de-AT": [
+          "eierpfannkuchen"
+        ],
+        "hu": [
+          "német palacsinta",
+          "vastag tojásos palacsinta"
+        ],
+        "en": [
+          "german pancake",
+          "pancake"
+        ]
+      },
+      "tags": [
+        "breakfast",
+        "sweet",
+        "higher-carb"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "eierpfannkuchen",
+          "standard_serving_g": 200
+        }
+      ],
+      "optional_toppings": [
+        {
+          "food_key": "jam",
+          "g": 20,
+          "hu": "lekvár"
+        },
+        {
+          "food_key": "sugar",
+          "g": 5,
+          "hu": "cukor"
+        }
+      ],
+      "review_note_hu": "Berlinben és keleten a 'Pfannkuchen' a Berliner fánkot jelenti: a bare 'pfannkuchen' és a 'pfannkuchen mit marmelade' ezért választás a német palacsinta és a Berliner (at_krapfen) között; csendben nem választunk. Lekvár/cukor választható feltét."
+    },
+    {
+      "id": "de_wiener_kartoffelsalat",
+      "countries": [
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "Két virsli majonézes krumplisalátával",
+        "de": "Wiener Würstchen mit Kartoffelsalat",
+        "de-AT": "Frankfurter mit Erdäpfelsalat",
+        "en": "Wiener sausages with potato salad"
+      },
+      "aliases": {
+        "de": [
+          "würstchen mit kartoffelsalat",
+          "wiener mit kartoffelsalat",
+          "wiener würstchen mit kartoffelsalat",
+          "kartoffelsalat mit würstchen"
+        ],
+        "de-AT": [
+          "frankfurter mit erdäpfelsalat"
+        ],
+        "hu": [
+          "virsli krumplisalátával",
+          "virsli majonézes krumplisalátával"
+        ],
+        "en": [
+          "sausages with potato salad",
+          "frankfurters with potato salad"
+        ]
+      },
+      "tags": [
+        "everyday",
+        "traditional"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "frankfurter_wuerstel",
+          "standard_serving_g": 122.5
+        },
+        {
+          "part": "kartoffelsalat_nord",
+          "standard_serving_g": 250
+        }
+      ],
+      "optional_toppings": [
+        {
+          "food_key": "mustard",
+          "g": 15,
+          "hu": "mustár"
+        }
+      ],
+      "review_note_hu": "Két virsli (2 x 61,25 g, at_alltag frankfurter_wuerstel) északi majonézes krumplisalátával; déli (ecetes) salátával is gyakori."
+    },
+    {
+      "id": "de_nudelauflauf",
+      "countries": [
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "Sonkás-sajtos rakott tészta tejszínnel (Nudelauflauf)",
+        "de": "Nudelauflauf mit Schinken",
+        "de-AT": "Schinkennudelauflauf",
+        "en": "Pasta bake with ham and cheese"
+      },
+      "aliases": {
+        "de": [
+          "nudelauflauf",
+          "nudelauflauf mit schinken",
+          "schinkennudelauflauf",
+          "nudelauflauf mit käse"
+        ],
+        "de-AT": [
+          "nudelauflauf"
+        ],
+        "hu": [
+          "sonkás rakott tészta",
+          "tejszínes rakott tészta"
+        ],
+        "en": [
+          "pasta bake",
+          "ham and cheese pasta bake"
+        ]
+      },
+      "tags": [
+        "everyday",
+        "higher-carb"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "nudelauflauf",
+          "standard_serving_g": 350
+        }
+      ]
+    },
+    {
+      "id": "de_kartoffelgratin",
+      "countries": [
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "Tejszínes rakott burgonya sajttal (Kartoffelgratin)",
+        "de": "Kartoffelgratin",
+        "de-AT": "Erdäpfelgratin",
+        "en": "Potato gratin"
+      },
+      "aliases": {
+        "de": [
+          "kartoffelgratin",
+          "gratin dauphinois",
+          "kartoffelauflauf mit sahne",
+          "überbackene kartoffeln"
+        ],
+        "de-AT": [
+          "erdäpfelgratin"
+        ],
+        "hu": [
+          "tejszínes rakott burgonya",
+          "burgonyagratin"
+        ],
+        "en": [
+          "potato gratin",
+          "gratin dauphinois"
+        ]
+      },
+      "tags": [
+        "everyday",
+        "vegetarian",
+        "higher-carb"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "kartoffelgratin",
+          "standard_serving_g": 250
+        }
+      ]
+    },
+    {
+      "id": "de_nudelsalat",
+      "countries": [
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "Német tésztasaláta Fleischwursttal (Nudelsalat)",
+        "de": "Nudelsalat (mit Fleischwurst und Mayonnaise)",
+        "de-AT": "Nudelsalat mit Extrawurst",
+        "en": "German pasta salad with sausage"
+      },
+      "aliases": {
+        "de": [
+          "nudelsalat",
+          "klassischer nudelsalat",
+          "nudelsalat mit fleischwurst",
+          "nudelsalat mit mayonnaise",
+          "omas nudelsalat"
+        ],
+        "de-AT": [
+          "nudelsalat"
+        ],
+        "hu": [
+          "tésztasaláta",
+          "majonézes tésztasaláta"
+        ],
+        "en": [
+          "pasta salad",
+          "german pasta salad"
+        ]
+      },
+      "tags": [
+        "everyday",
+        "salad",
+        "higher-carb"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "nudelsalat",
+          "standard_serving_g": 200
+        }
+      ]
+    },
+    {
+      "id": "de_eiersalat",
+      "countries": [
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "Tojássaláta majonézzel",
+        "de": "Eiersalat",
+        "de-AT": "Eiaufstrich (Eiersalat)",
+        "en": "Egg salad"
+      },
+      "aliases": {
+        "de": [
+          "eiersalat",
+          "eiersalat mit mayonnaise",
+          "eiersalatbrot"
+        ],
+        "de-AT": [
+          "eiaufstrich"
+        ],
+        "hu": [
+          "tojássaláta",
+          "majonézes tojássaláta"
+        ],
+        "en": [
+          "egg salad",
+          "egg mayonnaise"
+        ]
+      },
+      "tags": [
+        "everyday",
+        "eggs",
+        "low-carb-friendly"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "eiersalat",
+          "standard_serving_g": 125
+        }
+      ]
+    },
+    {
+      "id": "de_putengeschnetzeltes",
+      "countries": [
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "Tejszínes-mustáros pulykaragu (Putengeschnetzeltes)",
+        "de": "Putengeschnetzeltes in Rahmsoße",
+        "de-AT": "Putengeschnetzeltes in Rahmsauce",
+        "en": "Turkey strips in cream sauce"
+      },
+      "aliases": {
+        "de": [
+          "putengeschnetzeltes",
+          "putengeschnetzeltes in rahmsoße"
+        ],
+        "de-AT": [
+          "putengeschnetzeltes"
+        ],
+        "hu": [
+          "tejszínes pulykaragu",
+          "pulykacsíkok tejszínes mártásban"
+        ],
+        "en": [
+          "turkey strips in cream sauce",
+          "creamy turkey"
+        ]
+      },
+      "tags": [
+        "everyday",
+        "poultry",
+        "low-carb-friendly"
+      ],
+      "served_in": "deep_plate",
+      "parts": [
+        {
+          "part": "putengeschnetzeltes",
+          "standard_serving_g": 300
+        }
+      ],
+      "side_options": [
+        {
+          "part": "parolt_rizs",
+          "standard_serving_g": 180
+        },
+        {
+          "part": "spaetzle",
+          "standard_serving_g": 200
+        }
+      ],
+      "side_required_question": true,
+      "alias_side": {
+        "geschnetzeltes mit reis": "parolt_rizs",
+        "putengeschnetzeltes mit reis": "parolt_rizs",
+        "geschnetzeltes mit spätzle": "spaetzle"
+      },
+      "review_note_hu": "A bare 'Geschnetzeltes' (Zürcher, borjú) és a csirkés változat nem ide mutat: ez pulykamellből készül."
+    },
+    {
+      "id": "de_pellkartoffeln_quark",
+      "countries": [
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "Héjában főtt burgonya túrókrémmel és lenmagolajjal",
+        "de": "Pellkartoffeln mit Quark und Leinöl",
+        "de-AT": "Erdäpfel in der Schale mit Topfen und Leinöl",
+        "en": "Jacket potatoes with quark and linseed oil"
+      },
+      "aliases": {
+        "de": [
+          "pellkartoffeln mit quark",
+          "pellkartoffeln mit quark und leinöl",
+          "kartoffeln mit quark",
+          "quark mit leinöl und kartoffeln",
+          "kräuterquark mit kartoffeln"
+        ],
+        "de-AT": [
+          "erdäpfel mit topfen"
+        ],
+        "hu": [
+          "héjában főtt krumpli túróval",
+          "krumpli túrókrémmel"
+        ],
+        "en": [
+          "jacket potatoes with quark",
+          "potatoes with quark and linseed oil"
+        ]
+      },
+      "tags": [
+        "everyday",
+        "vegetarian"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "pellkartoffeln_quark",
+          "standard_serving_g": 450
+        }
+      ]
+    },
+    {
+      "id": "de_kaese_lauch_suppe",
+      "countries": [
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "Sajtos-póréhagymás leves darált hússal (Käse-Lauch-Suppe)",
+        "de": "Käse-Lauch-Suppe mit Hackfleisch",
+        "de-AT": "Käse-Lauch-Suppe mit Faschiertem",
+        "en": "Cheese and leek soup with minced meat"
+      },
+      "aliases": {
+        "de": [
+          "käse-lauch-suppe",
+          "käse lauch suppe",
+          "käse-lauch-suppe mit hackfleisch",
+          "partysuppe",
+          "käse-porree-suppe"
+        ],
+        "de-AT": [
+          "käse-lauch-suppe"
+        ],
+        "hu": [
+          "sajtos póréhagyma-leves",
+          "sajtos-darálthúsos leves"
+        ],
+        "en": [
+          "cheese leek soup",
+          "cheesy leek and mince soup"
+        ]
+      },
+      "tags": [
+        "everyday",
+        "soup",
+        "low-carb-friendly"
+      ],
+      "served_in": "deep_plate",
+      "parts": [
+        {
+          "part": "kaese_lauch_suppe",
+          "standard_serving_g": 400
+        }
+      ]
+    },
+    {
+      "id": "de_bockwurst_kartoffelsalat",
+      "countries": [
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "Bockwurst majonézes krumplisalátával",
+        "de": "Bockwurst mit Kartoffelsalat",
+        "de-AT": "Bockwurst mit Erdäpfelsalat",
+        "en": "Bockwurst with potato salad"
+      },
+      "aliases": {
+        "de": [
+          "bockwurst mit kartoffelsalat",
+          "bockwurst und kartoffelsalat"
+        ],
+        "de-AT": [
+          "bockwurst mit erdäpfelsalat"
+        ],
+        "hu": [
+          "bockwurst krumplisalátával"
+        ],
+        "en": [
+          "bockwurst with potato salad"
+        ]
+      },
+      "tags": [
+        "everyday"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "bockwurst",
+          "standard_serving_g": 95
+        },
+        {
+          "part": "kartoffelsalat_nord",
+          "standard_serving_g": 250
+        }
+      ],
+      "optional_toppings": [
+        {
+          "food_key": "mustard",
+          "g": 15,
+          "hu": "mustár"
+        }
+      ]
+    },
+    {
+      "id": "de_muesli_milch",
+      "countries": [
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "Müzli tejjel",
+        "de": "Müsli mit Milch",
+        "de-AT": "Müsli mit Milch",
+        "en": "Muesli with milk"
+      },
+      "aliases": {
+        "de": [
+          "müsli mit milch",
+          "müsli",
+          "schüssel müsli",
+          "früchtemüsli mit milch"
+        ],
+        "de-AT": [
+          "müsli mit milch"
+        ],
+        "hu": [
+          "müzli tejjel"
+        ],
+        "en": [
+          "muesli with milk",
+          "bowl of muesli"
+        ]
+      },
+      "tags": [
+        "breakfast",
+        "higher-carb"
+      ],
+      "served_in": "deep_plate",
+      "parts": [
+        {
+          "part": "muesli_milch",
+          "standard_serving_g": 169
+        }
+      ]
+    },
+    {
+      "id": "de_cornflakes_milch",
+      "countries": [
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "Kukoricapehely tejjel",
+        "de": "Cornflakes mit Milch",
+        "de-AT": "Cornflakes mit Milch",
+        "en": "Cornflakes with milk"
+      },
+      "aliases": {
+        "de": [
+          "cornflakes mit milch",
+          "cornflakes",
+          "schüssel cornflakes"
+        ],
+        "de-AT": [
+          "cornflakes mit milch"
+        ],
+        "hu": [
+          "kukoricapehely tejjel",
+          "cornflakes tejjel"
+        ],
+        "en": [
+          "cornflakes with milk",
+          "bowl of cornflakes"
+        ]
+      },
+      "tags": [
+        "breakfast",
+        "higher-carb"
+      ],
+      "served_in": "deep_plate",
+      "parts": [
+        {
+          "part": "cornflakes_milch",
+          "standard_serving_g": 159
+        }
+      ]
+    },
+    {
+      "id": "de_bratkartoffeln_spiegelei",
+      "countries": [
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "Pirított burgonya szalonnával és tükörtojással",
+        "de": "Bratkartoffeln mit Spiegelei",
+        "de-AT": "Geröstete Erdäpfel mit Spiegelei",
+        "en": "German fried potatoes with fried eggs"
+      },
+      "aliases": {
+        "de": [
+          "bratkartoffeln mit spiegelei",
+          "bratkartoffeln mit ei",
+          "bratkartoffeln mit spiegeleiern"
+        ],
+        "de-AT": [
+          "geröstete erdäpfel mit spiegelei"
+        ],
+        "hu": [
+          "pirított burgonya tükörtojással"
+        ],
+        "en": [
+          "fried potatoes with fried egg"
+        ]
+      },
+      "tags": [
+        "everyday",
+        "eggs",
+        "higher-carb"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "bratkartoffeln",
+          "standard_serving_g": 250
+        },
+        {
+          "part": "tukortojas",
+          "standard_serving_g": 106
+        }
+      ]
     },
     {
       "id": "xx_eierspeis",

@@ -14,3 +14,6 @@ a hivatalos forrásból (BLS xlsx, `BlsAdapter`) külön migrációban kell impo
 | `lovage_savory_thyme` | lestyán, borsikafű, kakukkfű / Liebstöckel, Bohnenkraut, Thymian / lovage, summer savory, thyme | linseneintopf (20 g Liebstöckel), bohneneintopf (1 Bund Bohnenkraut), pichelsteiner (0.5 TL Thymian) | No BLS 4.0 records for these herbs; left out. |
 | `curry_powder` | curry fűszerpor / Currypulver / curry powder | matjes_hausfrauen (a pinch) | BLS 4.0 has curry only in composite foods; left out (as in at-missing-foods). |
 | `blackcurrant_liqueur` | feketeribizli-likőr / Johannisbeerlikör / blackcurrant liqueur | rote_gruetze (4 cl) | No liqueur record of this kind in BLS 4.0 or the catalog; left out. |
+| `cinnamon` | fahéj / Zimt / cinnamon | arme_ritter (1 TL) | No ground-cinnamon record in BLS 4.0 or the catalog; left out (as in at-missing-foods). |
+| `gherkin_plain` | csemegeuborka / Gewürzgurke / pickled gherkin | strammer_max (4 Gewürzgurken) | No vinegar-pickled gherkin record (see de_traditionell). |
+| `herb_butter` | fűszervaj / Kräuterbutter / herb butter | nudelauflauf (1 TL) | No Kräuterbutter record in BLS 4.0 or the catalog; left out (not replaced by plain butter). |
