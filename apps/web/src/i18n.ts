@@ -29,6 +29,7 @@ export const dict = {
       }
     },
     onboarding: "Kezdő beállítások",
+    plateSetup: { kicker: "02 · Tányérok", title: "Milyen tányérjaid vannak?", lead: "Mérd le egyszer a tányérjaidat, így az „egy tányér …” adag pontosabb lesz. Ha nem adod meg, átlagos tányérmérettel számolunk.", done: "Mentés és tovább", skip: "Nem szeretném megadni", later: "A tányérjaidat később is módosíthatod a „Tányér alapján” gombbal.", failed: "Most nem sikerült menteni. Próbáld újra." },
     dashboard: "Napi áttekintés",
     loadingProfile: "Bejelentkezve, profil betöltése…",
     serverWakingUp: "A Keto Mentor szervere ébred — ez az első megnyitásnál néhány másodpercig tarthat.",
@@ -79,7 +80,7 @@ export const dict = {
         webDisabled: "A recept-keresés jelenleg nincs bekapcsolva.",
         webRateLimited: "Túl sok recept-keresés volt mostanában — próbáld később.",
         confirmAdd: "Hozzáadás étkezéshez", confirmAdding: "…",
-        confirmQuantity: "Mennyiség", confirmUnit: "Egység", confirmServingUnit: "adag", plateEstimate: "{n} tányér ({plate}, normál) ≈ {g} g – módosítható",
+        confirmQuantity: "Mennyiség", confirmUnit: "Egység", confirmServingUnit: "adag", plateEstimate: "{n} tányér ({plate}, normál) ≈ {g} g – módosítható", plateEstimateAverage: "{n} átlagos {kind} ({size}, normál) ≈ {g} g – módosítható", averageFlatPlate: "lapos tányér", averageDeepPlate: "mély tányér",
         blockedHeading: "Ezek az összetevők akasztják meg a mentést — javítsd kézzel:",
         blockingReasons: {
           food_not_found: "Nem találtuk az adatbázisban.",
@@ -253,6 +254,7 @@ export const dict = {
       }
     },
     onboarding: "Erste Einstellungen",
+    plateSetup: { kicker: "02 · Teller", title: "Welche Teller hast du?", lead: "Miss deine Teller einmal aus, dann wird „ein Teller …“ genauer. Wenn du sie nicht angibst, rechnen wir mit durchschnittlichen Tellergrößen.", done: "Speichern und weiter", skip: "Möchte ich nicht angeben", later: "Deine Teller kannst du später über „Nach Teller“ ändern.", failed: "Speichern gerade nicht möglich. Bitte erneut versuchen." },
     dashboard: "Tagesübersicht",
     loadingProfile: "Angemeldet, Profil wird geladen…",
     serverWakingUp: "Der Keto Mentor-Server wacht auf — das kann beim ersten Öffnen ein paar Sekunden dauern.",
@@ -303,7 +305,7 @@ export const dict = {
         webDisabled: "Die Rezeptsuche ist derzeit nicht aktiviert.",
         webRateLimited: "Zu viele Rezeptsuchen zuletzt — bitte später erneut versuchen.",
         confirmAdd: "Zur Mahlzeit hinzufügen", confirmAdding: "…",
-        confirmQuantity: "Menge", confirmUnit: "Einheit", confirmServingUnit: "Portion", plateEstimate: "{n} Teller ({plate}, normal) ≈ {g} g – anpassbar",
+        confirmQuantity: "Menge", confirmUnit: "Einheit", confirmServingUnit: "Portion", plateEstimate: "{n} Teller ({plate}, normal) ≈ {g} g – anpassbar", plateEstimateAverage: "{n} × durchschnittlicher {kind} ({size}, normal) ≈ {g} g – anpassbar", averageFlatPlate: "flacher Teller", averageDeepPlate: "tiefer Teller",
         blockedHeading: "Diese Zutaten blockieren das Speichern — bitte manuell korrigieren:",
         blockingReasons: {
           food_not_found: "Nicht in der Datenbank gefunden.",
@@ -477,6 +479,7 @@ export const dict = {
       }
     },
     onboarding: "Starter settings",
+    plateSetup: { kicker: "02 · Plates", title: "What plates do you have?", lead: "Measure your plates once and “a plate of …” gets more accurate. If you’d rather not, we use average plate sizes.", done: "Save and continue", skip: "I’d rather not say", later: "You can change your plates later with “By plate”.", failed: "Couldn’t save right now. Please try again." },
     dashboard: "Daily overview",
     loadingProfile: "Signed in, loading your profile…",
     serverWakingUp: "Keto Mentor's server is waking up — this can take a few seconds on first open.",
@@ -527,7 +530,7 @@ export const dict = {
         webDisabled: "Recipe search is not currently enabled.",
         webRateLimited: "Too many recipe searches recently — try again later.",
         confirmAdd: "Add to meal", confirmAdding: "…",
-        confirmQuantity: "Quantity", confirmUnit: "Unit", confirmServingUnit: "serving", plateEstimate: "{n} plate ({plate}, normal) ≈ {g} g – adjustable",
+        confirmQuantity: "Quantity", confirmUnit: "Unit", confirmServingUnit: "serving", plateEstimate: "{n} plate ({plate}, normal) ≈ {g} g – adjustable", plateEstimateAverage: "{n} × average {kind} ({size}, normal) ≈ {g} g – adjustable", averageFlatPlate: "flat plate", averageDeepPlate: "deep plate",
         blockedHeading: "These ingredients are blocking the save — fix them manually:",
         blockingReasons: {
           food_not_found: "Not found in the database.",

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { UtensilsCrossed, Trash2 } from "lucide-react";
 import { api, ApiError, type ApiState } from "./api";
 import type { Lang } from "./i18n";
@@ -8,7 +8,7 @@ import type { Lang } from "./i18n";
 // flat: rim-to-rim diameter) and saved. Later the user picks the plate and
 // how full it was; the server turns that into grams with the dish's density.
 
-type Plate = { id: string; name: string; kind: "deep" | "flat"; capacityMl: number | null; diameterMm: number | null };
+export type Plate = { id: string; name: string; kind: "deep" | "flat"; capacityMl: number | null; diameterMm: number | null };
 type Estimate = { grams: number; densityGPerMl: number; basis: "reference" | "default" };
 type Fill = "half" | "normal" | "full" | "small" | "heaped";
 
@@ -47,8 +47,15 @@ const texts = {
 
 const plateSize = (plate: Plate) => plate.kind === "deep" ? `${Math.round(plate.capacityMl ?? 0)} ml` : `Ø ${Math.round((plate.diameterMm ?? 0) / 10)} cm`;
 
-export function PlatePortion({ lang, state, recipeId, onEstimate }: { lang: Lang; state: ApiState; recipeId?: string; onEstimate: (grams: number) => void }) {
+// mode "manage" (the one-time plate question after registration) shows only
+// the same plate list + add/delete editor, already open, without the
+// fill/estimate part: one plate editor for both places.
+export function PlatePortion({ lang, state, recipeId, onEstimate, mode = "estimate", onPlatesChange }: {
+  lang: Lang; state: ApiState; recipeId?: string; onEstimate?: (grams: number) => void;
+  mode?: "estimate" | "manage"; onPlatesChange?: (plates: Plate[]) => void;
+}) {
   const t = texts[lang];
+  const manage = mode === "manage";
   const [open, setOpen] = useState(false);
   const [plates, setPlates] = useState<Plate[] | null>(null);
   const [plateId, setPlateId] = useState<string | null>(null);
@@ -58,6 +65,9 @@ export function PlatePortion({ lang, state, recipeId, onEstimate }: { lang: Lang
   const [failed, setFailed] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState<{ name: string; kind: "deep" | "flat"; size: string }>({ name: "", kind: "deep", size: "" });
+
+  useEffect(() => { if (manage) void start(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (plates) onPlatesChange?.(plates); }, [plates]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const selected = plates?.find((plate) => plate.id === plateId) ?? null;
   const fills: Fill[] = selected?.kind === "flat" ? ["small", "normal", "heaped"] : ["half", "normal", "full"];
@@ -100,18 +110,19 @@ export function PlatePortion({ lang, state, recipeId, onEstimate }: { lang: Lang
     if (!rest.length) setAdding(true);
   }
 
-  if (!open) return <button type="button" className="btn secondary plate-portion-open" onClick={() => { void start(); }}><UtensilsCrossed aria-hidden="true" size={16}/> {t.open}</button>;
+  if (!open && !manage) return <button type="button" className="btn secondary plate-portion-open" onClick={() => { void start(); }}><UtensilsCrossed aria-hidden="true" size={16}/> {t.open}</button>;
 
   return <div className="plate-portion">
-    <strong>{t.heading}</strong>
-    {!!plates?.length && <div className="plate-portion-list" role="radiogroup" aria-label={t.heading}>
-      {plates.map((plate) => <div key={plate.id} className="plate-portion-row">
-        <label><input type="radio" name="plate" checked={plateId === plate.id} onChange={() => { setPlateId(plate.id); setFill("normal"); setEstimate(null); }}/> {plate.name} · {plate.kind === "deep" ? t.deep : t.flat} · {plateSize(plate)}</label>
+    {!manage && <strong>{t.heading}</strong>}
+    {!!plates?.length && <div className="plate-portion-list" role={manage ? "list" : "radiogroup"} aria-label={manage ? undefined : t.heading}>
+      {plates.map((plate) => <div key={plate.id} className="plate-portion-row" role={manage ? "listitem" : undefined}>
+        {manage ? <span>{plate.name} · {plate.kind === "deep" ? t.deep : t.flat} · {plateSize(plate)}</span>
+          : <label><input type="radio" name="plate" checked={plateId === plate.id} onChange={() => { setPlateId(plate.id); setFill("normal"); setEstimate(null); }}/> {plate.name} · {plate.kind === "deep" ? t.deep : t.flat} · {plateSize(plate)}</label>}
         <button type="button" className="icon-button" aria-label={`${t.remove}: ${plate.name}`} onClick={() => { void removePlate(plate.id); }}><Trash2 aria-hidden="true" size={15}/></button>
       </div>)}
     </div>}
     {plates && !plates.length && !adding && <small>{t.none}</small>}
-    {selected && !adding && <>
+    {!manage && selected && !adding && <>
       <span>{t.fill}</span>
       <div className="plate-portion-fills" role="radiogroup" aria-label={t.fill}>
         {fills.map((value) => <label key={value}><input type="radio" name="fill" checked={fill === value} onChange={() => { setFill(value); setEstimate(null); }}/> {t.fills[value]}</label>)}
@@ -121,7 +132,7 @@ export function PlatePortion({ lang, state, recipeId, onEstimate }: { lang: Lang
     {estimate && <div className="plate-portion-result">
       <span>{t.result}: ≈ <b>{estimate.grams} g</b></span>
       {estimate.basis === "default" && <small>{t.basisDefault}</small>}
-      <button type="button" className="btn primary" onClick={() => { onEstimate(estimate.grams); setOpen(false); }}>{t.use}</button>
+      <button type="button" className="btn primary" onClick={() => { onEstimate?.(estimate.grams); setOpen(false); }}>{t.use}</button>
     </div>}
     {adding ? <div className="plate-portion-add">
       {plates && !plates.length && <small>{t.none}</small>}
@@ -138,6 +149,6 @@ export function PlatePortion({ lang, state, recipeId, onEstimate }: { lang: Lang
       </div>
     </div> : <button type="button" className="btn secondary" onClick={() => { setAdding(true); setEstimate(null); }}>{t.add}</button>}
     {failed && <small className="plate-portion-error">{failed}</small>}
-    <button type="button" className="btn secondary" onClick={() => setOpen(false)}>{t.cancel}</button>
+    {!manage && <button type="button" className="btn secondary" onClick={() => setOpen(false)}>{t.cancel}</button>}
   </div>;
 }

@@ -19,6 +19,31 @@ const DEFAULT_FLAT = { coverage: 0.5, heightCm: 2 };
 const GRAMS = { min: 5, max: 3000 };
 
 export type PlateInput = { kind: "deep"; capacityMl: number } | { kind: "flat"; diameterMm: number };
+
+/**
+ * Average plates, used when the user saved no plate of their own (skipped the
+ * plate question or never answered it). Owner decision 2026-10-11: "if they
+ * don't want to provide them, use average plate sizes".
+ *
+ * flat 26 cm: the plate the reference dishes are already calibrated on
+ *   (data/reference-dishes/README.md: "egy 26 cm-es lapos tányér normál adagja
+ *   a szokásos adagot adja"); matches common dinner plates, e.g. Holst
+ *   Porzellan "Teller flach 26 cm Basic" and "Teller flach 27 cm Harmony"
+ *   (holst-porzellan.com, checked 2026-10-11).
+ * deep 400 ml: a 23 cm soup plate as listed by manufacturers/retailers,
+ *   checked 2026-10-11:
+ *   - Holst Porzellan "Teller tief 23 cm Harmony": 0,40 l, D 23,0 cm; "Teller
+ *     tief 23,5 cm Basic": 0,40 l (holst-porzellan.com product pages);
+ *   - Bauscher (BHS tabletop) "dialog Teller tief Fahne 23 cm" 402-1925:
+ *     0,4 l (esmeyer-shop.de product page);
+ *   - Villeroy & Boch "Mariefleur Basic Suppenteller" 23 cm: 0,4 l
+ *     (kaufland.de product listing).
+ * Owner to confirm (open question in the plate-onboarding report).
+ */
+export const AVERAGE_PLATES = {
+  flat: { kind: "flat", diameterMm: 260 },
+  deep: { kind: "deep", capacityMl: 400 }
+} as const satisfies Record<"flat" | "deep", PlateInput>;
 export type DishPlateProfile = {
   densityGPerMl: number;
   // Present for reference dishes; one entry per part (main dish, side).

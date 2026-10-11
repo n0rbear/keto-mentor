@@ -2,14 +2,23 @@ import { afterEach, describe, expect, it } from "vitest";
 import express from "express";
 import type { AddressInfo } from "node:net";
 import { platesRouter } from "./plates.js";
-import { estimatePlatePortion, dishProfileFromProvenance } from "./plate-portion.js";
+import { estimatePlatePortion, dishProfileFromProvenance, AVERAGE_PLATES } from "./plate-portion.js";
 
 function fakePrisma(initialPlates: any[] = [], recipes: any[] = []) {
   const plates = [...initialPlates];
+  const profiles: any[] = [];
   const pick = (p: any) => ({ id: p.id, name: p.name, kind: p.kind, capacityMl: p.capacityMl ?? null, diameterMm: p.diameterMm ?? null });
   return {
     plates,
+    profiles,
     prisma: {
+      profile: {
+        upsert: async ({ where, update, create }: any) => {
+          const existing = profiles.find((p) => p.userId === where.userId);
+          if (existing) Object.assign(existing, update); else profiles.push({ ...create });
+          return { plateSetup: profiles.find((p) => p.userId === where.userId).plateSetup };
+        }
+      },
       userPlate: {
         findMany: async ({ where }: any) => plates.filter((p) => p.userId === where.userId).map(pick),
         findFirst: async ({ where }: any) => { const p = plates.find((x) => x.id === where.id && x.userId === where.userId); return p ? pick(p) : null; },
@@ -94,5 +103,38 @@ describe("saját tányérok API", () => {
     expect(plates).toHaveLength(2);
     await fetch(`${base}/me/plates/p1`, { method: "DELETE" });
     expect(plates.map((p) => p.id)).toEqual(["p2"]);
+  });
+});
+
+// Owner decision (2026-10-11, locked): no saved plate -> average plate sizes.
+describe("average plates (no saved plate)", () => {
+  it("one clearly named constant: flat 26 cm (the reference-dish calibration plate), deep 400 ml", () => {
+    expect(AVERAGE_PLATES).toEqual({ flat: { kind: "flat", diameterMm: 260 }, deep: { kind: "deep", capacityMl: 400 } });
+  });
+
+  it("estimates through the average flat / deep plate, with the recipe's density when visible", async () => {
+    const { prisma } = fakePrisma([], [{ id: "r1", userId: "system", visibility: "public", provenance: { ...referenceLecso, densityGPerMl: 1.022 } }, { id: "secret", userId: "user-2", visibility: "private", provenance: referenceLecso }]);
+    const base = await start(prisma);
+    expect(await (await fetch(`${base}/me/average-plate/portion`, json("POST", { kind: "flat" }))).json()).toEqual({ grams: 340, densityGPerMl: 1, basis: "default", plate: { kind: "flat", diameterMm: 260 } });
+    expect(await (await fetch(`${base}/me/average-plate/portion`, json("POST", { kind: "deep", recipeId: "r1" }))).json()).toEqual({ grams: 307, densityGPerMl: 1.022, basis: "reference", plate: { kind: "deep", capacityMl: 400 } });
+    expect((await (await fetch(`${base}/me/average-plate/portion`, json("POST", { kind: "flat", recipeId: "r1" }))).json()).grams).toBe(404);
+    expect((await (await fetch(`${base}/me/average-plate/portion`, json("POST", { kind: "flat", recipeId: "secret" }))).json()).basis).toBe("default");
+    expect((await fetch(`${base}/me/average-plate/portion`, json("POST", { kind: "deep", fill: "heaped" }))).status).toBe(400);
+    expect((await fetch(`${base}/me/average-plate/portion`, json("POST", { kind: "huge" }))).status).toBe(400);
+  });
+});
+
+describe("one-time plate question answer (PUT /me/plate-setup)", () => {
+  it("persists skipped or saved on the user's own profile; nothing else is accepted", async () => {
+    const { prisma, profiles } = fakePrisma();
+    const base = await start(prisma);
+    const skipped = await fetch(`${base}/me/plate-setup`, json("PUT", { answer: "skipped" }));
+    expect(skipped.status).toBe(200);
+    expect(await skipped.json()).toEqual({ plateSetup: "skipped" });
+    expect(profiles).toEqual([{ userId: "user-1", plateSetup: "skipped" }]);
+    expect((await fetch(`${base}/me/plate-setup`, json("PUT", { answer: "later" }))).status).toBe(400);
+    expect((await fetch(`${base}/me/plate-setup`, json("PUT", { answer: "saved", userId: "user-2" }))).status).toBe(400);
+    await fetch(`${base}/me/plate-setup`, json("PUT", { answer: "saved" }));
+    expect(profiles).toEqual([{ userId: "user-1", plateSetup: "saved" }]);
   });
 });

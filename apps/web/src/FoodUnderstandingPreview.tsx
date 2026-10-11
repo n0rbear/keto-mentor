@@ -147,17 +147,24 @@ export function statedPlates(parsed?: { quantity?: number; unit?: string }): { c
 }
 
 type SavedPlate = { id: string; name: string; kind: "deep" | "flat" };
+type AveragePlate = { kind: "deep"; capacityMl: number } | { kind: "flat"; diameterMm: number };
+type PlateGrams = { grams: number; plate: string } | { grams: number; average: AveragePlate };
 
 /**
  * A plate count of a saved recipe: the user's saved plate (a bowl prefers a
  * deep one) at normal fill, through the recipe's own density (roadmap D).
- * Without a saved plate one plate counts as one serving, matching how the
- * food understanding reads "egy tányér gulyásleves" (one soup portion).
+ * Without a saved plate (the plate question skipped or never answered) the
+ * average plate is used: an average flat plate for "tányér", an average deep
+ * plate for "tál"/bowl (owner decision 2026-10-11; sizes in the API's
+ * AVERAGE_PLATES). Never a grams prompt.
  */
-async function platePortionGrams(state: ApiState, recipeId: string, kind: "plate" | "bowl"): Promise<{ grams: number; plate: string } | null> {
+async function platePortionGrams(state: ApiState, recipeId: string, kind: "plate" | "bowl"): Promise<PlateGrams | null> {
   const plates = (await api<{ plates: SavedPlate[] }>("/me/plates", {}, state)).plates;
   const plate = (kind === "bowl" ? plates.find((candidate) => candidate.kind === "deep") : undefined) ?? plates[0];
-  if (!plate) return null;
+  if (!plate) {
+    const estimate = await api<{ grams: number; plate: AveragePlate }>("/me/average-plate/portion", { method: "POST", body: JSON.stringify({ kind: kind === "bowl" ? "deep" : "flat", fill: "normal", recipeId }) }, state);
+    return estimate.grams > 0 && estimate.plate ? { grams: estimate.grams, average: estimate.plate } : null;
+  }
   const estimate = await api<{ grams: number }>(`/me/plates/${encodeURIComponent(plate.id)}/portion`, { method: "POST", body: JSON.stringify({ fill: "normal", recipeId }) }, state);
   return estimate.grams > 0 ? { grams: estimate.grams, plate: plate.name } : null;
 }
@@ -264,6 +271,9 @@ export type FoodUnderstandingLabels = {
     confirmUnit: string;
     confirmServingUnit: string;
     plateEstimate: string;
+    plateEstimateAverage: string;
+    averageFlatPlate: string;
+    averageDeepPlate: string;
     blockedHeading: string;
     blockingReasons: Record<RecipeBlockingReason, string>;
     fixExclude: string;
@@ -712,10 +722,14 @@ export function LocalRecipePicker({ discovery, labels, busy, onConfirm, lang, po
       if (!current || !estimate) return;
       const grams = Math.round(estimate.grams * requestedPlates.count);
       setUnit("g"); setQuantity(grams);
-      setPlateNote(labels.plateEstimate.replace("{n}", String(requestedPlates.count)).replace("{plate}", estimate.plate).replace("{g}", String(grams)));
+      const n = String(requestedPlates.count);
+      setPlateNote("average" in estimate
+        ? labels.plateEstimateAverage.replace("{n}", n).replace("{kind}", estimate.average.kind === "deep" ? labels.averageDeepPlate : labels.averageFlatPlate)
+          .replace("{size}", estimate.average.kind === "deep" ? `${estimate.average.capacityMl} ml` : `Ø ${Math.round(estimate.average.diameterMm / 10)} cm`).replace("{g}", String(grams))
+        : labels.plateEstimate.replace("{n}", n).replace("{plate}", estimate.plate).replace("{g}", String(grams)));
     }).catch(() => { /* keep the serving-based amount */ });
     return () => { current = false; };
-  }, [pickedId, requestedPlates?.count, requestedPlates?.kind, portionState, labels.plateEstimate]);
+  }, [pickedId, requestedPlates?.count, requestedPlates?.kind, portionState, labels]);
   if (!options.length) return null;
   const pick = (option: LocalRecipeOption) => { setPicked(option); setUnit(option.servings ? "serving" : "g"); setQuantity(option.servings ? servingCount : 100); };
   return <div className="local-recipe-picker">

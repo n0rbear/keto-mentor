@@ -791,10 +791,35 @@ describe("plate amounts of a saved recipe (egy tányér babgulyás)", () => {
     await waitFor(() => expect(calls.some((call) => call.url.includes("/me/plates/deep/portion"))).toBe(true));
   });
 
-  it("without a saved plate one plate counts as one serving, never a grams prompt", async () => {
-    const calls = stubPlates([]);
+  // Owner decision (2026-10-11, locked): no saved plate (skipped or never
+  // answered) -> average plate sizes, never a grams prompt.
+  it.each([
+    ["hu", "plate", "flat", 1, /1 átlagos lapos tányér \(Ø 26 cm, normál\) ≈ 340 g – módosítható/],
+    ["hu", "bowl", "deep", 1, /1 átlagos mély tányér \(400 ml, normál\) ≈ 340 g – módosítható/],
+    ["de", "plate", "flat", 2, /2 × durchschnittlicher flacher Teller \(Ø 26 cm, normal\) ≈ 680 g – anpassbar/],
+    ["en", "bowl", "deep", 1, /1 × average deep plate \(400 ml, normal\) ≈ 340 g – adjustable/]
+  ] as const)("without a saved plate: %s %s -> the average %s plate (%d)", async (lang, unit, kind, count, note) => {
+    const calls: Array<{ url: string; body?: any }> = [];
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input); calls.push({ url, body: init?.body ? JSON.parse(String(init.body)) : undefined });
+      if (url.endsWith("/me/plates")) return new Response(JSON.stringify({ plates: [] }), { status: 200 });
+      const plate = kind === "deep" ? { kind: "deep", capacityMl: 400 } : { kind: "flat", diameterMm: 260 };
+      return new Response(JSON.stringify({ grams: 340, densityGPerMl: 1, basis: "default", plate }), { status: 200 });
+    }));
+    const onConfirm = render1({ foodQuery: "babgulyás", quantity: count, unit }, lang);
+    expect(await screen.findByText(note)).toBeTruthy();
+    expect(calls.find((call) => call.url.includes("/me/average-plate/portion"))?.body).toEqual({ kind, fill: "normal", recipeId: "bab" });
+    expect((screen.getByLabelText(dict[lang].foodUnderstanding.recipeDiscovery.confirmUnit) as HTMLSelectElement).value).toBe("g");
+    expect(screen.queryByText(/Hány grammot|Wie viele Gramm|How many grams/)).toBeNull();
+    fireEvent.click(screen.getByText(dict[lang].foodUnderstanding.recipeDiscovery.confirmAdd));
+    expect(onConfirm).toHaveBeenCalledWith(bab, 340 * count, "g");
+  });
+
+  it("if even the average estimate fails, one plate stays one adjustable serving (no grams prompt)", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => String(input).endsWith("/me/plates")
+      ? new Response(JSON.stringify({ plates: [] }), { status: 200 }) : new Response(JSON.stringify({ error: "x" }), { status: 500 })));
     const onConfirm = render1({ foodQuery: "babgulyás", quantity: 2, unit: "plate" });
-    await waitFor(() => expect(calls.length).toBe(1));
+    await waitFor(() => expect((fetch as any).mock.calls.length).toBe(2));
     expect((screen.getByLabelText(dict.hu.foodUnderstanding.recipeDiscovery.confirmUnit) as HTMLSelectElement).value).toBe("serving");
     fireEvent.click(screen.getByText(dict.hu.foodUnderstanding.recipeDiscovery.confirmAdd));
     expect(onConfirm).toHaveBeenCalledWith(bab, 2, "serving");

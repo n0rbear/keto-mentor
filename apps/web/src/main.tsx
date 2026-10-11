@@ -24,9 +24,10 @@ import { UpdateBanner } from "./UpdateBanner";
 import { OfflineBanner } from "./OfflineBanner";
 import { DiagnosticsPanel, type DiagnosticEvent } from "./DiagnosticsPanel";
 import { BuildInfo } from "./BuildInfo";
+import { PlateSetup, plateSetupPending } from "./PlateSetup";
 import type { QuantityClarification as Clarification } from "@keto-mentor/shared";
 
-type User = { id: string; username: string; locale: Lang; profile?: any };
+type User = { id: string; username: string; locale: Lang; profile?: any; _count?: { plates?: number } };
 export type Totals = { kcal: number; fat: number; protein: number; carbs: number; fiber: number; netCarbs: number };
 type Meal = { id: string; title: string; eatenAt: string; totals: Totals };
 export type FoodServing = { id: string; key: string; unit: string; labels?: Partial<Record<Lang, string>>; grams: number; isEstimated: boolean; confidence: number; provenance?: unknown };
@@ -697,6 +698,8 @@ export function App() {
               <button className="btn primary w-full">{t.save}</button>
             </div>
           </form>
+        ) : plateSetupPending(user) ? (
+          <PlateSetup lang={lang} state={state} onAnswered={(answer) => setUser((current) => current ? { ...current, profile: { ...current.profile, plateSetup: answer } } : current)}/>
         ) : (
           <div className="card welcome-panel"><p className="panel-kicker">{lang === "hu" ? "Mai fókusz" : lang === "de" ? "Heutiger Fokus" : "Today’s focus"}</p><h2>{t.dashboard}</h2><p>{t.explain}</p></div>
         )}
