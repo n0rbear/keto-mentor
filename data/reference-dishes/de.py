@@ -1,5 +1,15 @@
-"""Germany (DE): phase 1 format samples. The full German set is phase 4."""
+"""Germany (DE): reference dishes.
+
+Phase 1 (2026-09-27): format samples. Phase 4 (2026-10-11): the full German
+set, one module per group (de_*.py), loaded through PHASE4_MODULES below the
+same way at.py loads its phase-3 modules. Dishes eaten the same way in Austria
+or Hungary are not copied: the existing AT/HU dish gains DE (see README).
+INVENTORY lists German dishes that could not be built (no catalog record for
+an essential ingredient), with the reason.
+"""
 from common import ing, src
+
+SIDE_WITH = {}
 
 R = "2026-09-27"
 
@@ -22,3 +32,31 @@ DISHES = [
          aliases={"de": ["bratkartoffeln", "bratkartoffeln mit speck", "bratkartoffeln mit speck und zwiebeln"], "de-AT": ["geröstete erdäpfel"],
                   "hu": ["pirított burgonya", "pirított krumpli"], "en": ["german fried potatoes", "fried potatoes with bacon"]}),
 ]
+
+SERVINGS = []
+FOOD_ALIASES = []
+MISSING_FOODS = []
+
+# Phase-1 dishes carrying DE; the phase-4 minimums count the dishes built on top of them.
+PHASE1_DISH_IDS = ("de_bratkartoffeln", "at_schweinsbraten", "xx_eierspeis", "xx_leberkaessemmel")
+
+# German dishes that stay out until their essential ingredient has a catalog
+# record (name -> reason), like Burenwurst in at.py.
+INVENTORY = {"traditional": [], "everyday": [], "street_food": []}
+INVENTORY_REASONS = {}
+
+PHASE4_MODULES = ("de_suppen_eintopf", "de_traditionell")
+for _name in PHASE4_MODULES:
+    _m = __import__(_name)
+    _clash = PARTS.keys() & _m.PARTS.keys()
+    if _clash:
+        raise SystemExit(f"{_name}: part ids already defined: {sorted(_clash)}")
+    PARTS.update(_m.PARTS)
+    DISHES += _m.DISHES
+    SERVINGS += getattr(_m, "SERVINGS", [])
+    FOOD_ALIASES += getattr(_m, "FOOD_ALIASES", [])
+    MISSING_FOODS += getattr(_m, "MISSING", [])
+    SIDE_WITH.update(getattr(_m, "SIDE_WITH", {}))
+    for _c, _names in getattr(_m, "INVENTORY", {}).items():
+        INVENTORY[_c] += _names
+    INVENTORY_REASONS.update(getattr(_m, "INVENTORY_REASONS", {}))

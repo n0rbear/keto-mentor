@@ -308,6 +308,61 @@
 | Fokhagymás-olajos kenés osztrák lángosra | 18 | +0 | 18 | 1.0 | 0.941 | 676.9 | 72.3 | 1.7 | 0.8 | – |
 | Tejföl osztrák lángosra | 178 | +0 | 178 | 1.0 | 1.02 | 117.5 | 9.8 | 3.1 | 4.1 | – |
 | Pirított burgonya szalonnával és hagymával | 680 | -100 | 580 | 0.853 | 0.65 | 138.9 | 5.9 | 4.4 | 16.3 | – |
+| Német sárgaborsó-főzelékleves virslivel (Erbseneintopf) | 5637.5 | -700 | 4937.5 | 0.876 | 1.041 | 107.2 | 5.6 | 6.2 | 6.5 | – |
+| Német lencsefőzelékleves virslivel (Linseneintopf) | 2956 | -250 | 2706 | 0.915 | 1.063 | 111.4 | 3.3 | 5.8 | 12.7 | – |
+| Tejszínes burgonyakrémleves (Kartoffelsuppe) | 2031.0 | -100 | 1931.0 | 0.951 | 1.031 | 77.0 | 4.0 | 1.2 | 8.6 | – |
+| Virsli levesbetétnek (2 db) | 100 | +0 | 100 | 1.0 | 1.02 | 289.0 | 26.2 | 12.9 | 0.0 | – |
+| Karórépás egytálétel kolbásszal (Steckrübeneintopf) | 3225.5 | -200 | 3025.5 | 0.938 | 1.02 | 64.7 | 3.6 | 2.7 | 4.4 | – |
+| Zöldbabos egytálétel marhaszegyvel (Bohneneintopf) | 5035 | -800 | 4235 | 0.841 | 1.027 | 77.5 | 4.0 | 5.7 | 4.2 | – |
+| Gaisburgi marhahúsos egytál spätzlével és burgonyával (Gaisburger Marsch) | 3480 | -500 | 2980 | 0.856 | 1.024 | 80.9 | 3.6 | 4.4 | 7.2 | – |
+| Lakodalmi húsleves fasírtgombóccal és tojáspudinggal (Hochzeitssuppe) | 2702 | +0 | 2702 | 1.0 | 1.011 | 44.0 | 2.8 | 3.6 | 0.8 | – |
+| Pichelsteini egytál háromféle hússal (Pichelsteiner) | 3688.0 | -525 | 3163.0 | 0.858 | 1.024 | 71.9 | 3.0 | 6.8 | 3.8 | – |
+| Vesztfáliai borsos marharagu (Pfefferpotthast) | 2465 | -455 | 2010 | 0.815 | 1.022 | 104.6 | 5.8 | 9.7 | 3.2 | – |
+| Vesztfáliai babos-gyümölcsös egytál szalonnával (Blindhuhn) | 3007.5 | -300 | 2707.5 | 0.9 | 1.014 | 92.3 | 4.1 | 4.7 | 7.7 | – |
+| Almás párolt vöröskáposzta (Rotkohl) | 1730 | -150 | 1580 | 0.913 | 0.75 | 63.3 | 3.4 | 1.2 | 5.9 | – |
+| Burgonyagombóc (Kartoffelklöße) | 878 | +0 | 878 | 1.0 | 0.75 | 123.2 | 5.1 | 2.4 | 16.5 | – |
+| Sós főtt burgonya | 800 | +0 | 800 | 1.0 | 0.7 | 83.0 | 0.1 | 1.9 | 17.9 | – |
+| Burgonyapüré | 1255 | -50 | 1205 | 0.96 | 0.95 | 136.4 | 7.3 | 2.1 | 15.4 | – |
+| Sváb galuska (Spätzle) | 430 | +86 | 516 | 1.2 | 0.6 | 187.2 | 3.8 | 9.2 | 27.9 | – |
+| Észak-német majonézes krumplisaláta | 1201 | +0 | 1201 | 1.0 | 0.75 | 140.0 | 7.9 | 3.6 | 12.9 | – |
+| Sváb krumplisaláta (ecetes-olajos, húslevessel) | 1505.2 | -60 | 1445.2 | 0.96 | 0.8 | 102.4 | 4.6 | 1.5 | 12.9 | – |
+| Német marharolád szalonnával (Rinderrouladen) | 2475.5 | -650 | 1825.5 | 0.737 | 1.036 | 115.3 | 5.5 | 13.6 | 2.5 | – |
+| Ecetes pácolt marhasült (Sauerbraten) | 2030 | -450 | 1580 | 0.778 | 1.036 | 184.4 | 12.8 | 14.3 | 2.2 | – |
+| Ropogós bőrű sertéssült (Krustenbraten) | 2861.0 | -760 | 2101.0 | 0.734 | 1.038 | 128.6 | 7.8 | 12.1 | 1.8 | – |
+| Főtt pácolt sertéscsülök (Eisbein) | 910 | -130 | 780 | 0.857 | 1.071 | 180.8 | 9.6 | 23.0 | 0.5 | – |
+| Ropogósra sült sertéscsülök (Schweinshaxe) | 910 | -237 | 673 | 0.74 | 1.082 | 268.5 | 17.7 | 27.0 | 0.0 | – |
+| Frank sült sertéslapocka csonttal (Schäufele) | 2019.25 | -510 | 1509.25 | 0.747 | 1.049 | 164.4 | 9.6 | 16.5 | 1.8 | – |
+| Füstölt karaj savanyú káposztával (Kasseler) | 1581.0 | -170 | 1411.0 | 0.892 | 1.03 | 80.9 | 3.1 | 11.4 | 0.9 | – |
+| Königsbergi húsgombóc kapribogyós mártásban | 1725.0 | -60 | 1665.0 | 0.965 | 0.923 | 154.4 | 11.7 | 7.8 | 4.2 | – |
+| Német marhagulyás (Rindergulasch) | 2511 | -600 | 1911 | 0.761 | 1.036 | 127.3 | 7.4 | 11.4 | 3.2 | – |
+| Vadász szelet gombamártással (Jägerschnitzel) | 1026 | -200 | 826 | 0.805 | 1.019 | 123.2 | 7.6 | 11.8 | 1.8 | – |
+| Borjúmáj berlini módra (almával és hagymával) | 1135 | -160 | 975 | 0.859 | 0.971 | 113.7 | 4.6 | 9.7 | 8.0 | – |
+| Tojás mustármártásban (Senfeier) | 1995.0 | -150 | 1845.0 | 0.925 | 1.003 | 109.5 | 7.8 | 4.6 | 5.0 | – |
+| Csirkefrikasszé zöldborsóval és répával | 2266 | -450 | 1816 | 0.801 | 1.019 | 106.8 | 6.3 | 9.2 | 2.9 | – |
+| Almás burgonyapüré sült kolbásszal (Himmel und Erde) | 1884 | -170 | 1714 | 0.91 | 1.001 | 139.6 | 7.5 | 5.2 | 12.2 | – |
+| Nürnbergi kolbászkák savanyú káposztával | 2203 | -240 | 1963 | 0.891 | 0.99 | 93.8 | 5.9 | 5.6 | 3.0 | – |
+| Meleg Leberkäse-szelet | 150 | +0 | 150 | 1.0 | 1.0 | 282.0 | 24.9 | 13.5 | 0.6 | – |
+| Két müncheni fehérkolbász (Weißwurst) | 155 | +0 | 155 | 1.0 | 1.0 | 292.0 | 27.2 | 11.7 | 0.1 | – |
+| Édes mustár (bajor) | 30 | +0 | 30 | 1.0 | 1.1 | 177.0 | 5.4 | 4.2 | 25.1 | – |
+| Párolt fodros kel Pinkel-kolbásszal (Grünkohl mit Pinkel) | 1589 | -150 | 1439 | 0.906 | 0.998 | 91.0 | 5.3 | 3.9 | 4.3 | – |
+| Labskaus (corned beef-es burgonyapüré tükörtojással és rollmopsszal) | 1203 | -40 | 1163 | 0.967 | 1.046 | 120.2 | 5.5 | 8.7 | 8.4 | – |
+| Sváb lencsefőzelék virslivel (Linsen mit Saiten) | 2380.5 | -350 | 2030.5 | 0.853 | 1.053 | 138.6 | 6.2 | 7.2 | 11.1 | – |
+| Sült lepényhal szalonnával (Finkenwerder módra) | 1054.5 | -230 | 824.5 | 0.782 | 1.046 | 178.9 | 8.9 | 20.9 | 3.6 | – |
+| Hamburgi serpenyős hal mustármártással (Pannfisch) | 1186 | -150 | 1036 | 0.874 | 1.025 | 136.7 | 9.1 | 10.5 | 3.2 | – |
+| Matjeshering háziasszony módra (tejszínes-almás mártásban) | 1320 | +0 | 1320 | 1.0 | 0.952 | 137.9 | 10.1 | 5.2 | 5.5 | – |
+| Rajnai heringsaláta tejfölös mártásban (Heringsstipp) | 1422.5 | +0 | 1422.5 | 1.0 | 0.977 | 131.8 | 9.2 | 5.8 | 5.5 | – |
+| Főtt fehér spárga | 1200 | +0 | 1200 | 1.0 | 0.55 | 28.0 | 0.2 | 2.0 | 4.0 | – |
+| Hollandi mártás | 309 | -20 | 289 | 0.935 | 0.926 | 685.1 | 76.0 | 3.7 | 0.2 | – |
+| Főtt sonka (köret) | 80 | +0 | 80 | 1.0 | 1.05 | 130.0 | 3.7 | 22.5 | 0.7 | – |
+| Lipcsei vegyes zöldség (Leipziger Allerlei) | 1430.6 | -60 | 1370.6 | 0.958 | 0.55 | 62.0 | 3.2 | 2.3 | 5.3 | – |
+| Frankfurti zöld mártás (hét fűszernövény) | 656 | +0 | 656 | 1.0 | 1.016 | 123.0 | 10.1 | 4.6 | 2.9 | – |
+| Két főtt tojás | 100 | +0 | 100 | 1.0 | 1.03 | 135.0 | 9.0 | 13.2 | 0.3 | – |
+| Hesseni savanyútej-sajt hagymás pácban (Handkäs mit Musik) | 1260.5 | +0 | 1260.5 | 1.0 | 1.026 | 124.2 | 6.5 | 12.4 | 2.4 | – |
+| Bajor camembert-krém (Obatzda) | 446.2 | +0 | 446.2 | 1.0 | 1.026 | 229.2 | 19.6 | 10.7 | 2.3 | – |
+| Sváb töltött tésztatáska (Maultaschen) | 1347 | +60 | 1407 | 1.045 | 0.65 | 179.3 | 7.1 | 6.5 | 21.3 | – |
+| Vajban pirított hagyma (Schmelze) | 526 | -160 | 366 | 0.696 | 0.993 | 110.2 | 7.3 | 1.6 | 8.2 | – |
+| Sváb burgonyás nudli savanyú káposztával és szalonnával | 2490 | -150 | 2340 | 0.94 | 1.017 | 201.0 | 10.1 | 5.5 | 20.6 | – |
+| Sváb hagymás lepény szalonnával (Zwiebelkuchen) | 2639.5 | -400 | 2239.5 | 0.848 | 1.002 | 223.3 | 12.3 | 6.6 | 20.8 | – |
 | Rántotta | 158 | -8 | 150 | 0.949 | 0.55 | 173.2 | 13.3 | 13.2 | 0.3 | – |
 | Leberkäsés zsemle | 162.5 | +0 | 162.5 | 1.0 | 0.464 | 281.2 | 16.0 | 12.2 | 21.1 | – |
 
@@ -610,6 +665,53 @@ kivéve ha az ételnél `reference_check.deviation` (átnézett receptkülönbs�
 | Fokhagymás osztrák lángos | nincs még | – | – | – | – | – | – |
 | Fokhagymás-tejfölös osztrák lángos | nincs még | – | – | – | – | – | – |
 | Pirított burgonya szalonnával és hagymával | nincs még | – | – | – | – | – | – |
+| Német sárgaborsó-főzelékleves virslivel (Erbseneintopf) | bls:X464433 Erbsensuppe mit Gemüsebrühe, Suppengrün, Speck und Wiener Würstchen | 107 / 103 | 5.6 / 6.3 | 6.2 / 5.38 | 6.5 / 5.0 | +4% rendben | – |
+| Német lencsefőzelékleves virslivel (Linseneintopf) | bls:X461913 Linsen-Eintopf mit Suppengemüse und Kartoffeln | 111 / 122 | 3.3 / 2 | 5.8 / 6.84 | 12.7 / 16.2 | -9% rendben | – |
+| Tejszínes burgonyakrémleves (Kartoffelsuppe) | bls:X449023 Kartoffelsuppe mit Gemüsebrühe | 77 / 57 | 4.0 / 1.8 | 1.2 / 1.01 | 8.6 / 9.0 | +35% RECEPTKÜLÖNBSÉG | RECEPTKÜLÖNBSÉG: a gutekueche-recept 200 g tejszínnel és kevés lével készül (sűrű krémleves); a BLS-összetétel tejszín nélküli híg leves; nem hangoltuk. |
+| Karórépás egytálétel kolbásszal (Steckrübeneintopf) | bls:X461243 Kohlrüben-Eintopf mit Kasseler und Kartoffeln | 65 / 76 | 3.6 / 2.7 | 2.7 / 6.8 | 4.4 / 5.34 | -15% rendben | – |
+| Zöldbabos egytálétel marhaszegyvel (Bohneneintopf) | bls:X465713 Grüne-Bohnen-Eintopf mit Gemüsebrühe und Kartoffeln | 78 / 46 | 4.0 / 0.6 | 5.7 / 1.5 | 4.2 / 8.0 | +68% RECEPTKÜLÖNBSÉG | RECEPTKÜLÖNBSÉG: a forrás 1 kg marhaszegyet és füstölt szalonnát főz bele, a BLS-összetétel hús nélküli zöldbab-egytál; nem hangoltuk. |
+| Gaisburgi marhahúsos egytál spätzlével és burgonyával (Gaisburger Marsch) | bls:X468713 Gaisburger Marsch | 81 / 79 | 3.6 / 2.6 | 4.4 / 6.75 | 7.2 / 6.7 | +2% rendben | – |
+| Lakodalmi húsleves fasírtgombóccal és tojáspudinggal (Hochzeitssuppe) | nincs még | – | – | – | – | – | – |
+| Pichelsteini egytál háromféle hússal (Pichelsteiner) | bls:X462023 Gemüse-Eintopf/Gemüsepichelsteiner, mit Rind- und Schweinefleisch | 72 / 94 | 3.0 / 5.1 | 6.8 / 5.17 | 3.8 / 6.0 | -24% RECEPTKÜLÖNBSÉG | RECEPTKÜLÖNBSÉG: a forrás sovány húsokat (sovány bárány, sertésszelet, marha) és sok levet használ, a BLS-összetétel zsírosabb húsokkal és kevesebb lével számol; nem hangoltuk. |
+| Vesztfáliai borsos marharagu (Pfefferpotthast) | bls:Y146113 Westfälischer Pfefferpotthast mit Rindfleisch und Sauce | 105 / 122 | 5.8 / 6.2 | 9.7 / 12.45 | 3.2 / 3.44 | -14% rendben | – |
+| Vesztfáliai babos-gyümölcsös egytál szalonnával (Blindhuhn) | bls:X468453 Westfälischer Bohnen-Eintopf (mit weißen und grünen Bohnen, Kartoffeln, Speck, Kernobst) | 92 / 98 | 4.1 / 3 | 4.7 / 5.29 | 7.7 / 10.1 | -6% rendben | – |
+| Német marharolád szalonnával (Rinderrouladen) | bls:Y151112 Rinderroulade geschmort, mit Sauce | 115 / 133 | 5.5 / 8.5 | 13.6 / 12 | 2.5 / 1.8 | -13% rendben | – |
+| Ecetes pácolt marhasült (Sauerbraten) | bls:Y162113 Rheinischer Sauerbraten vom Rind, mit Sauce | 184 / 158 | 12.8 / 6.6 | 14.3 / 16 | 2.2 / 6.1 | +17% RECEPTKÜLÖNBSÉG | RECEPTKÜLÖNBSÉG: a forrás 120 g zsíros szalonnán pirítja a húst és tejszínnel fejezi be a mártást, a BLS rajnai Sauerbratenje soványabb; nem hangoltuk. |
+| Ropogós bőrű sertéssült (Krustenbraten) | bls:Y352212 Schweinebraten ohne Sauce | 129 / 264 | 7.8 / 17.24 | 12.1 / 27.24 | 1.8 / 0.0 | -51% RECEPTKÜLÖNBSÉG | RECEPTKÜLÖNBSÉG: a referencia mártás nélküli sült hús, az étel adagja a sült zöldséget és a mártást is tartalmazza (a hús ~40 %-a az adagnak); nem hangoltuk. |
+| Főtt pácolt csülök savanyú káposztával (Eisbein) | bls:Y301122 Eisbein gepökelt, gekocht | 126 / 196 | 6.8 / 11.29 | 14.2 / 23.03 | 1.0 / 0.579 | -36% RECEPTKÜLÖNBSÉG | RECEPTKÜLÖNBSÉG: a referencia csak a hús; az étel 150 g párolt savanyú káposztával együtt van számolva; nem hangoltuk. |
+| Ropogósra sült sertéscsülök (Schweinshaxe) | bls:Y362012 Schweinshaxe geschmort, ohne Sauce | 268 / 300 | 17.7 / 20.15 | 27.0 / 29.71 | 0.0 / 0.02 | -10% rendben | – |
+| Frank sült sertéslapocka csonttal (Schäufele) | nincs még | – | – | – | – | – | – |
+| Füstölt karaj savanyú káposztával (Kasseler) | nincs még | – | – | – | – | – | – |
+| Königsbergi húsgombóc kapribogyós mártásban | bls:Y036322 Königsberger Klopse | 154 / 192 | 11.7 / 12.2 | 7.8 / 16.49 | 4.2 / 3.64 | -20% RECEPTKÜLÖNBSÉG | RECEPTKÜLÖNBSÉG: a lecker-recept sovány borjúhúst és sok kapribogyós mártást használ, a BLS-összetétel zsírosabb vegyes darált hússal számol; nem hangoltuk. |
+| Német marhagulyás (Rindergulasch) | bls:Y1A1000 Gulasch (mit Rindfleisch) | 127 / 124 | 7.4 / 5.9 | 11.4 / 12.95 | 3.2 / 4.2 | +3% rendben | – |
+| Vadász szelet gombamártással (Jägerschnitzel) | nincs még | – | – | – | – | – | – |
+| Borjúmáj berlini módra (almával és hagymával) | bls:Y273012 Kalbsleber gebraten, mit gebratenen Zwiebeln | 114 / 118 | 4.6 / 2.59 | 9.7 / 13.83 | 8.0 / 9.25 | -4% rendben | – |
+| Tojás mustármártásban (Senfeier) | nincs még | – | – | – | – | – | – |
+| Csirkefrikasszé zöldborsóval és répával | nincs még | – | – | – | – | – | – |
+| Almás burgonyapüré sült kolbásszal (Himmel und Erde) | nincs még | – | – | – | – | – | – |
+| Nürnbergi kolbászkák savanyú káposztával | nincs még | – | – | – | – | – | – |
+| Meleg Leberkäse sváb krumplisalátával | nincs még | – | – | – | – | – | – |
+| Bajor fehérkolbász-reggeli (2 Weißwurst, perec, édes mustár) | nincs még | – | – | – | – | – | – |
+| Két müncheni fehérkolbász (Weißwurst) | nincs még | – | – | – | – | – | – |
+| Párolt fodros kel Pinkel-kolbásszal (Grünkohl mit Pinkel) | nincs még | – | – | – | – | – | – |
+| Labskaus (corned beef-es burgonyapüré tükörtojással és rollmopsszal) | nincs még | – | – | – | – | – | – |
+| Sváb lencse spätzlével és virslivel | bls:X463453 Linsen-Eintopf mit Wurst und Eier-Frischteigwaren Spätzle | 153 / 152 | 5.5 / 5.7 | 7.8 / 7.8 | 16.1 / 15.0 | +1% rendben | – |
+| Sváb galuska (Spätzle) | nincs még | – | – | – | – | – | – |
+| Sváb töltött tésztatáska húslevesben | nincs még | – | – | – | – | – | – |
+| Sváb töltött tésztatáska pirított hagymával (geschmälzt) | bls:X760112 Maultaschen Schwäbische Art (mit Hackfleisch) gegart | 161 / 132 | 7.2 / 6.02 | 5.2 / 10.4 | 17.8 / 8.032 | +22% RECEPTKÜLÖNBSÉG | RECEPTKÜLÖNBSÉG: a referencia csak a főtt Maultasche, az étel vajban pirított hagymával (Schmelze) együtt van számolva; nem hangoltuk. |
+| Észak-német majonézes krumplisaláta | bls:X1A2020 Kartoffelsalat mit Mayonnaise | 140 / 154 | 7.9 / 11.4 | 3.6 / 1.6 | 12.9 / 10.14 | -9% rendben | – |
+| Sváb krumplisaláta (ecetes-olajos, húslevessel) | bls:X1A2010 Kartoffelsalat mit Marinade (Gemüsebrühe) | 102 / 83 | 4.6 / 3 | 1.5 / 1.52 | 12.9 / 11.42 | +23% RECEPTKÜLÖNBSÉG | RECEPTKÜLÖNBSÉG: a gutekueche-recept 5 EL olajat tesz 1 kg burgonyára, a BLS-marinád kevesebb zsírral számol; nem hangoltuk. |
+| Sült lepényhal szalonnával (Finkenwerder módra) | bls:Y632132 Hamburger Speckscholle, gebraten | 179 / 156 | 8.9 / 7.8 | 20.9 / 18.9 | 3.6 / 2.12 | +15% rendben | – |
+| Hamburgi serpenyős hal mustármártással és pirított burgonyával | nincs még | – | – | – | – | – | – |
+| Matjeshering háziasszony módra (tejszínes-almás mártásban) | bls:Y611012 Matjesfilet nach Hausfrauenart | 138 / 160 | 10.1 / 12.7 | 5.2 / 7.82 | 5.5 / 2.8 | -14% rendben | – |
+| Rajnai heringsaláta tejfölös mártásban (Heringsstipp) | bls:Y611410 Sahnehering | 132 / 156 | 9.2 / 11.3 | 5.8 / 10.44 | 5.5 / 2.1 | -16% RECEPTKÜLÖNBSÉG | RECEPTKÜLÖNBSÉG: a recept sok almát és hagymát tesz a Bismarck-heringhez, a BLS Sahnehering csak hal és tejszínes mártás; nem hangoltuk. |
+| Fehér spárga hollandi mártással | nincs még | – | – | – | – | – | – |
+| Lipcsei vegyes zöldség (Leipziger Allerlei) | bls:X518133 Leipziger Allerlei gedünstet | 62 / 75 | 3.2 / 3.7 | 2.3 / 2.5 | 5.3 / 6.36 | -17% RECEPTKÜLÖNBSÉG | RECEPTKÜLÖNBSÉG: a gutekueche-recept 1,3 kg zöldségre csak 50 g vajat tesz, a BLS-összetétel zsírosabb; nem hangoltuk. |
+| Frankfurti zöld mártás főtt tojással és burgonyával | nincs még | – | – | – | – | – | – |
+| Hesseni savanyútej-sajt hagymás pácban (Handkäs mit Musik) | nincs még | – | – | – | – | – | – |
+| Bajor camembert-krém (Obatzda) | nincs még | – | – | – | – | – | – |
+| Sváb burgonyás nudli savanyú káposztával és szalonnával | nincs még | – | – | – | – | – | – |
+| Sváb hagymás lepény szalonnával (Zwiebelkuchen) | bls:X916163 Zwiebelkuchen schwäbisch, mit Speck | 223 / 180 | 12.3 / 9.4 | 6.6 / 5.7 | 20.8 / 17.0 | +24% RECEPTKÜLÖNBSÉG | RECEPTKÜLÖNBSÉG: a gutekueche-recept 210 g vajat és 200 ml tejszínt tesz egy tepsire, a BLS sváb Zwiebelkuchenje soványabb; nem hangoltuk. |
 | Rántotta | bls:Y720163 Rührei gebraten in Butter | 173 / 172 | 13.3 / 12.99 | 13.2 / 13.31 | 0.3 / 0.42 | +1% rendben | – |
 | Leberkäsés zsemle | nincs még | – | – | – | – | – | – |
 
@@ -911,6 +1013,53 @@ Mély tányér: kapacitás × töltöttség × sűrűség. Lapos tányér: 0,8 �
 | Fokhagymás osztrák lángos | AT | street_food | 107 | – (kézből) | – | – | – | – |
 | Fokhagymás-tejfölös osztrák lángos | AT | street_food | 129 | – (kézből) | – | – | – | – |
 | Pirított burgonya szalonnával és hagymával | DE | traditional | 250 | – (lapos tányéros étel) | – (lapos tányéros étel) | 212 | 248 | 288 |
+| Német sárgaborsó-főzelékleves virslivel (Erbseneintopf) | DE | traditional | 450 | 351 | 507 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Német lencsefőzelékleves virslivel (Linseneintopf) | DE | traditional | 450 | 359 | 518 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Tejszínes burgonyakrémleves (Kartoffelsuppe) | DE | traditional | 400 | 348 | 503 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Karórépás egytálétel kolbásszal (Steckrübeneintopf) | DE | traditional | 450 | 344 | 497 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Zöldbabos egytálétel marhaszegyvel (Bohneneintopf) | DE | traditional | 450 | 347 | 501 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Gaisburgi marhahúsos egytál spätzlével és burgonyával (Gaisburger Marsch) | DE | traditional | 450 | 346 | 499 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Lakodalmi húsleves fasírtgombóccal és tojáspudinggal (Hochzeitssuppe) | DE | traditional | 350 | 341 | 493 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Pichelsteini egytál háromféle hússal (Pichelsteiner) | DE | traditional | 450 | 346 | 499 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Vesztfáliai borsos marharagu (Pfefferpotthast) | DE | traditional | 350 | 345 | 498 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Vesztfáliai babos-gyümölcsös egytál szalonnával (Blindhuhn) | DE | traditional | 450 | 342 | 494 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Német marharolád szalonnával (Rinderrouladen) | DE | traditional | 230 | 350 | 505 | 225 | 264 | 306 |
+| Ecetes pácolt marhasült (Sauerbraten) | DE | traditional | 250 | 350 | 505 | 180 | 211 | 245 |
+| Ropogós bőrű sertéssült (Krustenbraten) | DE | traditional | 350 | 350 | 506 | 180 | 212 | 245 |
+| Főtt pácolt csülök savanyú káposztával (Eisbein) | DE | traditional | 350 | 353 | 510 | 362 | 425 | 492 |
+| Ropogósra sült sertéscsülök (Schweinshaxe) | DE | traditional | 330 | 365 | 527 | 376 | 441 | 512 |
+| Frank sült sertéslapocka csonttal (Schäufele) | DE | traditional | 350 | 354 | 511 | 273 | 321 | 372 |
+| Füstölt karaj savanyú káposztával (Kasseler) | DE | traditional | 330 | 348 | 502 | 224 | 262 | 304 |
+| Königsbergi húsgombóc kapribogyós mártásban | DE | traditional | 300 | 312 | 450 | 200 | 235 | 273 |
+| Német marhagulyás (Rindergulasch) | DE | traditional | 300 | 350 | 505 | 210 | 246 | 286 |
+| Vadász szelet gombamártással (Jägerschnitzel) | DE | traditional | 250 | 344 | 497 | 177 | 208 | 241 |
+| Borjúmáj berlini módra (almával és hagymával) | DE | traditional | 220 | 328 | 473 | 169 | 198 | 230 |
+| Tojás mustármártásban (Senfeier) | DE | traditional | 300 | 339 | 489 | 218 | 256 | 296 |
+| Csirkefrikasszé zöldborsóval és répával | DE | traditional | 300 | 344 | 497 | 221 | 260 | 301 |
+| Almás burgonyapüré sült kolbásszal (Himmel und Erde) | DE | traditional | 350 | 338 | 488 | 278 | 327 | 379 |
+| Nürnbergi kolbászkák savanyú káposztával | DE | traditional | 300 | 334 | 483 | 215 | 252 | 293 |
+| Meleg Leberkäse sváb krumplisalátával | DE | traditional | 400 | 292 | 422 | 240 | 281 | 326 |
+| Bajor fehérkolbász-reggeli (2 Weißwurst, perec, édes mustár) | DE | traditional | 271 | 214 | 309 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Két müncheni fehérkolbász (Weißwurst) | DE | traditional | 155 | 338 | 488 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Párolt fodros kel Pinkel-kolbásszal (Grünkohl mit Pinkel) | DE | traditional | 350 | 337 | 487 | 260 | 305 | 354 |
+| Labskaus (corned beef-es burgonyapüré tükörtojással és rollmopsszal) | DE | traditional | 450 | 353 | 510 | 291 | 341 | 396 |
+| Sváb lencse spätzlével és virslivel | DE | traditional | 500 | 290 | 419 | 343 | 403 | 467 |
+| Sváb galuska (Spätzle) | DE | traditional | 250 | – (lapos tányéros étel) | – (lapos tányéros étel) | 115 | 135 | 156 |
+| Sváb töltött tésztatáska húslevesben | DE | traditional | 550 | 271 | 392 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Sváb töltött tésztatáska pirított hagymával (geschmälzt) | DE | traditional | 340 | 241 | 349 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Észak-német majonézes krumplisaláta | DE | traditional | 250 | – (lapos tányéros étel) | – (lapos tányéros étel) | 143 | 168 | 195 |
+| Sváb krumplisaláta (ecetes-olajos, húslevessel) | DE | traditional | 250 | – (lapos tányéros étel) | – (lapos tányéros étel) | 153 | 179 | 208 |
+| Sült lepényhal szalonnával (Finkenwerder módra) | DE | traditional | 230 | 353 | 510 | 194 | 227 | 264 |
+| Hamburgi serpenyős hal mustármártással és pirított burgonyával | DE | traditional | 450 | 262 | 378 | 378 | 444 | 514 |
+| Matjeshering háziasszony módra (tejszínes-almás mártásban) | DE | traditional | 330 | 321 | 464 | 193 | 226 | 263 |
+| Rajnai heringsaláta tejfölös mártásban (Heringsstipp) | DE | traditional | 330 | 330 | 476 | 198 | 232 | 270 |
+| Fehér spárga hollandi mártással | DE | traditional | 370 | 201 | 290 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Lipcsei vegyes zöldség (Leipziger Allerlei) | DE | traditional | 250 | – (lapos tányéros étel) | – (lapos tányéros étel) | 119 | 140 | 163 |
+| Frankfurti zöld mártás főtt tojással és burgonyával | DE | traditional | 500 | 280 | 405 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Hesseni savanyútej-sajt hagymás pácban (Handkäs mit Musik) | DE | traditional | 300 | 346 | 500 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Bajor camembert-krém (Obatzda) | DE | traditional | 100 | 346 | 500 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Sváb burgonyás nudli savanyú káposztával és szalonnával | DE | traditional | 400 | 343 | 496 | 265 | 311 | 361 |
+| Sváb hagymás lepény szalonnával (Zwiebelkuchen) | DE | traditional | 200 | – (kézből) | – | – | – | – |
 | Rántotta | HU, AT, DE | everyday | 150 | – (lapos tányéros étel) | – (lapos tányéros étel) | 127 | 150 | 173 |
 | Leberkäsés zsemle | AT, DE | street_food | 162.5 | – (kézből) | – | – | – | – |
 

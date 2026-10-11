@@ -2076,6 +2076,376 @@ bratkartoffeln,Pirított burgonya szalonnával és hagymával,2,potato,burgonya,
 bratkartoffeln,Pirított burgonya szalonnával és hagymával,2,smoked_bacon,füstölt szalonna / bacon,90,core,bls:W415000,580,0.853,0.65,250
 bratkartoffeln,Pirított burgonya szalonnával és hagymával,2,onion,vöröshagyma,80,core,bls:G480100,580,0.853,0.65,250
 bratkartoffeln,Pirított burgonya szalonnával és hagymával,2,clarified_butter,tisztított vaj (ghí),10,fat,bls:Q683000,580,0.853,0.65,250
+erbsensuppe,Német sárgaborsó-főzelékleves virslivel (Erbseneintopf),6,split_peas_dry,sárgaborsó (száraz),500,core,bls:G760400,4937.5,0.876,1.041,450
+erbsensuppe,Német sárgaborsó-főzelékleves virslivel (Erbseneintopf),6,potato,burgonya,500,core,bls:K110100,4937.5,0.876,1.041,450
+erbsensuppe,Német sárgaborsó-főzelékleves virslivel (Erbseneintopf),6,carrot,sárgarépa,250,core,bls:G620100,4937.5,0.876,1.041,450
+erbsensuppe,Német sárgaborsó-főzelékleves virslivel (Erbseneintopf),6,celeriac,zellergumó,150,core,bls:G660100,4937.5,0.876,1.041,450
+erbsensuppe,Német sárgaborsó-főzelékleves virslivel (Erbseneintopf),6,onion,vöröshagyma,150,core,bls:G480100,4937.5,0.876,1.041,450
+erbsensuppe,Német sárgaborsó-főzelékleves virslivel (Erbseneintopf),6,pork_shoulder,sertéslapocka,500,core,usda_fdc:167843,4937.5,0.876,1.041,450
+erbsensuppe,Német sárgaborsó-főzelékleves virslivel (Erbseneintopf),6,kochmettwurst,"főzőkolbász (Kochmettwurst, Mettenden)",200,core,bls:W331000,4937.5,0.876,1.041,450
+erbsensuppe,Német sárgaborsó-főzelékleves virslivel (Erbseneintopf),6,butter,vaj,30,fat,open_database:173430,4937.5,0.876,1.041,450
+erbsensuppe,Német sárgaborsó-főzelékleves virslivel (Erbseneintopf),6,beef_broth,marhahúsleves-alaplé,3000,liquid,bls:Y183013,4937.5,0.876,1.041,450
+erbsensuppe,Német sárgaborsó-főzelékleves virslivel (Erbseneintopf),6,parsley_leaf,petrezselyemzöld,7.5,garnish,usda_fdc:170416,4937.5,0.876,1.041,450
+erbsensuppe,Német sárgaborsó-főzelékleves virslivel (Erbseneintopf),6,frankfurter,virsli,350,core,bls:W211200,4937.5,0.876,1.041,450
+linseneintopf,Német lencsefőzelékleves virslivel (Linseneintopf),4,lentils_dry,lencse (száraz),500,core,bls:H725100,2706,0.915,1.063,450
+linseneintopf,Német lencsefőzelékleves virslivel (Linseneintopf),4,carrot,sárgarépa,200,core,bls:G620100,2706,0.915,1.063,450
+linseneintopf,Német lencsefőzelékleves virslivel (Linseneintopf),4,potato,burgonya,450,core,bls:K110100,2706,0.915,1.063,450
+linseneintopf,Német lencsefőzelékleves virslivel (Linseneintopf),4,rapeseed_oil,repceolaj,26,fat,bls:Q180000,2706,0.915,1.063,450
+linseneintopf,Német lencsefőzelékleves virslivel (Linseneintopf),4,celery_stalk,szárzeller,80,core,bls:G220100,2706,0.915,1.063,450
+linseneintopf,Német lencsefőzelékleves virslivel (Linseneintopf),4,water,víz,1250,liquid,none,2706,0.915,1.063,450
+linseneintopf,Német lencsefőzelékleves virslivel (Linseneintopf),4,frankfurter,virsli,200,core,bls:W211200,2706,0.915,1.063,450
+linseneintopf,Német lencsefőzelékleves virslivel (Linseneintopf),4,onion,vöröshagyma,200,core,bls:G480100,2706,0.915,1.063,450
+linseneintopf,Német lencsefőzelékleves virslivel (Linseneintopf),4,cider_vinegar,almaecet,30,seasoning,bls:R123100,2706,0.915,1.063,450
+linseneintopf,Német lencsefőzelékleves virslivel (Linseneintopf),4,maple_syrup,juharszirup,20,seasoning,bls:S151100,2706,0.915,1.063,450
+kartoffelsuppe,Tejszínes burgonyakrémleves (Kartoffelsuppe),4,potato,burgonya,800,core,bls:K110100,1931.0,0.951,1.031,400
+kartoffelsuppe,Tejszínes burgonyakrémleves (Kartoffelsuppe),4,onion,vöröshagyma,200,core,bls:G480100,1931.0,0.951,1.031,400
+kartoffelsuppe,Tejszínes burgonyakrémleves (Kartoffelsuppe),4,butter,vaj,15,fat,open_database:173430,1931.0,0.951,1.031,400
+kartoffelsuppe,Tejszínes burgonyakrémleves (Kartoffelsuppe),4,veg_bouillon_powder,zöldségleveskocka / -por,16.0,seasoning,bls:R821000,1931.0,0.951,1.031,400
+kartoffelsuppe,Tejszínes burgonyakrémleves (Kartoffelsuppe),4,water,víz,800,liquid,none,1931.0,0.951,1.031,400
+kartoffelsuppe,Tejszínes burgonyakrémleves (Kartoffelsuppe),4,cream_30,habtejszín (30%),200,core,bls:M173800,1931.0,0.951,1.031,400
+wiener_einlage,Virsli levesbetétnek (2 db),1,frankfurter,virsli,100,core,bls:W211200,100,1.0,1.02,100
+steckruebeneintopf,Karórépás egytálétel kolbásszal (Steckrübeneintopf),4,swede,karórépa (Steckrübe),800,core,bls:G611100,3025.5,0.938,1.02,450
+steckruebeneintopf,Karórépás egytálétel kolbásszal (Steckrübeneintopf),4,onion,vöröshagyma,200,core,bls:G480100,3025.5,0.938,1.02,450
+steckruebeneintopf,Karórépás egytálétel kolbásszal (Steckrübeneintopf),4,carrot,sárgarépa,200,core,bls:G620100,3025.5,0.938,1.02,450
+steckruebeneintopf,Karórépás egytálétel kolbásszal (Steckrübeneintopf),4,potato,burgonya,400,core,bls:K110100,3025.5,0.938,1.02,450
+steckruebeneintopf,Karórépás egytálétel kolbásszal (Steckrübeneintopf),4,sunflower_oil,napraforgóolaj,13,fat,bls:Q320000,3025.5,0.938,1.02,450
+steckruebeneintopf,Karórépás egytálétel kolbásszal (Steckrübeneintopf),4,smoked_bacon,füstölt szalonna / bacon,100,core,bls:W415000,3025.5,0.938,1.02,450
+steckruebeneintopf,Karórépás egytálétel kolbásszal (Steckrübeneintopf),4,veg_bouillon_powder,zöldségleveskocka / -por,20.0,seasoning,bls:R821000,3025.5,0.938,1.02,450
+steckruebeneintopf,Karórépás egytálétel kolbásszal (Steckrübeneintopf),4,water,víz,1000,liquid,none,3025.5,0.938,1.02,450
+steckruebeneintopf,Karórépás egytálétel kolbásszal (Steckrübeneintopf),4,leek,póréhagyma,200,core,bls:G470100,3025.5,0.938,1.02,450
+steckruebeneintopf,Karórépás egytálétel kolbásszal (Steckrübeneintopf),4,kochmettwurst,"főzőkolbász (Kochmettwurst, Mettenden)",240,core,bls:W331000,3025.5,0.938,1.02,450
+steckruebeneintopf,Karórépás egytálétel kolbásszal (Steckrübeneintopf),4,parsley_leaf,petrezselyemzöld,7.5,garnish,usda_fdc:170416,3025.5,0.938,1.02,450
+steckruebeneintopf,Karórépás egytálétel kolbásszal (Steckrübeneintopf),4,vinegar,ecet (10%-os),45,seasoning,bls:R122000,3025.5,0.938,1.02,450
+bohneneintopf,Zöldbabos egytálétel marhaszegyvel (Bohneneintopf),4,smoked_bacon,füstölt szalonna / bacon,100,core,bls:W415000,4235,0.841,1.027,450
+bohneneintopf,Zöldbabos egytálétel marhaszegyvel (Bohneneintopf),4,green_bean,zöldbab,700,core,bls:G710100,4235,0.841,1.027,450
+bohneneintopf,Zöldbabos egytálétel marhaszegyvel (Bohneneintopf),4,potato,burgonya,600,core,bls:K110100,4235,0.841,1.027,450
+bohneneintopf,Zöldbabos egytálétel marhaszegyvel (Bohneneintopf),4,wheat_flour,búzaliszt (BL55),20,thickener,bls:C214100,4235,0.841,1.027,450
+bohneneintopf,Zöldbabos egytálétel marhaszegyvel (Bohneneintopf),4,parsley_leaf,petrezselyemzöld,15,garnish,usda_fdc:170416,4235,0.841,1.027,450
+bohneneintopf,Zöldbabos egytálétel marhaszegyvel (Bohneneintopf),4,beef_brisket,marha szegy,1000,core,bls:U255100,4235,0.841,1.027,450
+bohneneintopf,Zöldbabos egytálétel marhaszegyvel (Bohneneintopf),4,carrot,sárgarépa,150,core,bls:G620100,4235,0.841,1.027,450
+bohneneintopf,Zöldbabos egytálétel marhaszegyvel (Bohneneintopf),4,celeriac,zellergumó,150,core,bls:G660100,4235,0.841,1.027,450
+bohneneintopf,Zöldbabos egytálétel marhaszegyvel (Bohneneintopf),4,leek,póréhagyma,100,core,bls:G470100,4235,0.841,1.027,450
+bohneneintopf,Zöldbabos egytálétel marhaszegyvel (Bohneneintopf),4,water,víz,2000,liquid,none,4235,0.841,1.027,450
+bohneneintopf,Zöldbabos egytálétel marhaszegyvel (Bohneneintopf),4,onion,vöröshagyma,200,core,bls:G480100,4235,0.841,1.027,450
+gaisburger_marsch,Gaisburgi marhahúsos egytál spätzlével és burgonyával (Gaisburger Marsch),4,onion,vöröshagyma,400,core,bls:G480100,2980,0.856,1.024,450
+gaisburger_marsch,Gaisburgi marhahúsos egytál spätzlével és burgonyával (Gaisburger Marsch),4,beef_brisket,marha szegy,500,core,bls:U255100,2980,0.856,1.024,450
+gaisburger_marsch,Gaisburgi marhahúsos egytál spätzlével és burgonyával (Gaisburger Marsch),4,carrot,sárgarépa,150,core,bls:G620100,2980,0.856,1.024,450
+gaisburger_marsch,Gaisburgi marhahúsos egytál spätzlével és burgonyával (Gaisburger Marsch),4,celeriac,zellergumó,150,core,bls:G660100,2980,0.856,1.024,450
+gaisburger_marsch,Gaisburgi marhahúsos egytál spätzlével és burgonyával (Gaisburger Marsch),4,leek,póréhagyma,100,core,bls:G470100,2980,0.856,1.024,450
+gaisburger_marsch,Gaisburgi marhahúsos egytál spätzlével és burgonyával (Gaisburger Marsch),4,potato,burgonya,500,core,bls:K110100,2980,0.856,1.024,450
+gaisburger_marsch,Gaisburgi marhahúsos egytál spätzlével és burgonyával (Gaisburger Marsch),4,egg_pasta_dry,"száraz tojásos tészta (gyufatészta, lebbencs, eperlevél)",125,core,bls:E432000,2980,0.856,1.024,450
+gaisburger_marsch,Gaisburgi marhahúsos egytál spätzlével és burgonyával (Gaisburger Marsch),4,parsley_leaf,petrezselyemzöld,15,garnish,usda_fdc:170416,2980,0.856,1.024,450
+gaisburger_marsch,Gaisburgi marhahúsos egytál spätzlével és burgonyával (Gaisburger Marsch),4,butter,vaj,40,fat,open_database:173430,2980,0.856,1.024,450
+gaisburger_marsch,Gaisburgi marhahúsos egytál spätzlével és burgonyával (Gaisburger Marsch),4,water,víz,1500,liquid,none,2980,0.856,1.024,450
+hochzeitssuppe,Lakodalmi húsleves fasírtgombóccal és tojáspudinggal (Hochzeitssuppe),7,chicken_broth,tyúkhúsleves-alaplé (szűrt),1750,liquid,bls:X411243,2702,1.0,1.011,350
+hochzeitssuppe,Lakodalmi húsleves fasírtgombóccal és tojáspudinggal (Hochzeitssuppe),7,carrot,sárgarépa,150,core,bls:G620100,2702,1.0,1.011,350
+hochzeitssuppe,Lakodalmi húsleves fasírtgombóccal és tojáspudinggal (Hochzeitssuppe),7,celeriac,zellergumó,150,core,bls:G660100,2702,1.0,1.011,350
+hochzeitssuppe,Lakodalmi húsleves fasírtgombóccal és tojáspudinggal (Hochzeitssuppe),7,leek,póréhagyma,100,core,bls:G470100,2702,1.0,1.011,350
+hochzeitssuppe,Lakodalmi húsleves fasírtgombóccal és tojáspudinggal (Hochzeitssuppe),7,egg,tojás,250,core,bls:E111100,2702,1.0,1.011,350
+hochzeitssuppe,Lakodalmi húsleves fasírtgombóccal és tojáspudinggal (Hochzeitssuppe),7,milk_whole,"tej (3,5%)",52,liquid,bls:M111300,2702,1.0,1.011,350
+hochzeitssuppe,Lakodalmi húsleves fasírtgombóccal és tojáspudinggal (Hochzeitssuppe),7,mixed_minced,vegyes darált hús (sertés-marha),250,core,bls:U050100,2702,1.0,1.011,350
+pichelsteiner,Pichelsteini egytál háromféle hússal (Pichelsteiner),4,bouillon_cube,leveskocka / erőleveskocka,24.0,seasoning,bls:R811000,3163.0,0.858,1.024,450
+pichelsteiner,Pichelsteini egytál háromféle hússal (Pichelsteiner),4,water,víz,1200,liquid,none,3163.0,0.858,1.024,450
+pichelsteiner,Pichelsteini egytál háromféle hússal (Pichelsteiner),4,potato,burgonya,300,core,bls:K110100,3163.0,0.858,1.024,450
+pichelsteiner,Pichelsteini egytál háromféle hússal (Pichelsteiner),4,celeriac,zellergumó,200,core,bls:G660100,3163.0,0.858,1.024,450
+pichelsteiner,Pichelsteini egytál háromféle hússal (Pichelsteiner),4,lamb_shoulder,bárány lapocka,200,core,bls:U867100,3163.0,0.858,1.024,450
+pichelsteiner,Pichelsteini egytál háromféle hússal (Pichelsteiner),4,leek,póréhagyma,250,core,bls:G470100,3163.0,0.858,1.024,450
+pichelsteiner,Pichelsteini egytál háromféle hússal (Pichelsteiner),4,carrot,sárgarépa,200,core,bls:G620100,3163.0,0.858,1.024,450
+pichelsteiner,Pichelsteini egytál háromféle hússal (Pichelsteiner),4,sunflower_oil,napraforgóolaj,52,fat,bls:Q320000,3163.0,0.858,1.024,450
+pichelsteiner,Pichelsteini egytál háromféle hússal (Pichelsteiner),4,parsley_leaf,petrezselyemzöld,12,garnish,usda_fdc:170416,3163.0,0.858,1.024,450
+pichelsteiner,Pichelsteini egytál háromféle hússal (Pichelsteiner),4,beef_chuck,marhalapocka,350,core,bls:U261100,3163.0,0.858,1.024,450
+pichelsteiner,Pichelsteini egytál háromféle hússal (Pichelsteiner),4,pork_leg,sertéscomb,350,core,bls:U687000,3163.0,0.858,1.024,450
+pichelsteiner,Pichelsteini egytál háromféle hússal (Pichelsteiner),4,white_cabbage,fejes káposzta,250,core,bls:G342100,3163.0,0.858,1.024,450
+pichelsteiner,Pichelsteini egytál háromféle hússal (Pichelsteiner),4,onion,vöröshagyma,300,core,bls:G480100,3163.0,0.858,1.024,450
+pfefferpotthast,Vesztfáliai borsos marharagu (Pfefferpotthast),4,clarified_butter,tisztított vaj (ghí),52,fat,bls:Q683000,2010,0.815,1.022,350
+pfefferpotthast,Vesztfáliai borsos marharagu (Pfefferpotthast),4,beef_broth,marhahúsleves-alaplé,1000,liquid,bls:Y183013,2010,0.815,1.022,350
+pfefferpotthast,Vesztfáliai borsos marharagu (Pfefferpotthast),4,breadcrumbs,zsemlemorzsa,48,thickener,bls:B821000,2010,0.815,1.022,350
+pfefferpotthast,Vesztfáliai borsos marharagu (Pfefferpotthast),4,beef_leg,marhacomb,850,core,bls:U281100,2010,0.815,1.022,350
+pfefferpotthast,Vesztfáliai borsos marharagu (Pfefferpotthast),4,onion,vöröshagyma,500,core,bls:G480100,2010,0.815,1.022,350
+pfefferpotthast,Vesztfáliai borsos marharagu (Pfefferpotthast),4,lemon_juice,citromlé,15,seasoning,usda_fdc:167747,2010,0.815,1.022,350
+blindhuhn,Vesztfáliai babos-gyümölcsös egytál szalonnával (Blindhuhn),4,dry_bean,"szárazbab (tarkabab, vörösbab)",200,core,bls:H739400,2707.5,0.9,1.014,450
+blindhuhn,Vesztfáliai babos-gyümölcsös egytál szalonnával (Blindhuhn),4,water,víz,1200,liquid,none,2707.5,0.9,1.014,450
+blindhuhn,Vesztfáliai babos-gyümölcsös egytál szalonnával (Blindhuhn),4,smoked_bacon,füstölt szalonna / bacon,400,core,bls:W415000,2707.5,0.9,1.014,450
+blindhuhn,Vesztfáliai babos-gyümölcsös egytál szalonnával (Blindhuhn),4,green_bean,zöldbab,300,core,bls:G710100,2707.5,0.9,1.014,450
+blindhuhn,Vesztfáliai babos-gyümölcsös egytál szalonnával (Blindhuhn),4,potato,burgonya,250,core,bls:K110100,2707.5,0.9,1.014,450
+blindhuhn,Vesztfáliai babos-gyümölcsös egytál szalonnával (Blindhuhn),4,carrot,sárgarépa,250,core,bls:G620100,2707.5,0.9,1.014,450
+blindhuhn,Vesztfáliai babos-gyümölcsös egytál szalonnával (Blindhuhn),4,apple_peeled,alma (hámozva),200,core,bls:F120100,2707.5,0.9,1.014,450
+blindhuhn,Vesztfáliai babos-gyümölcsös egytál szalonnával (Blindhuhn),4,pear,körte,200,core,bls:F130100,2707.5,0.9,1.014,450
+blindhuhn,Vesztfáliai babos-gyümölcsös egytál szalonnával (Blindhuhn),4,parsley_leaf,petrezselyemzöld,7.5,garnish,usda_fdc:170416,2707.5,0.9,1.014,450
+rotkohl,Almás párolt vöröskáposzta (Rotkohl),4,red_cabbage,vöröskáposzta,1000,core,bls:G341100,1580,0.913,0.75,150
+rotkohl,Almás párolt vöröskáposzta (Rotkohl),4,apple,alma,300,core,bls:F110100,1580,0.913,0.75,150
+rotkohl,Almás párolt vöröskáposzta (Rotkohl),4,onion,vöröshagyma,100,core,bls:G480100,1580,0.913,0.75,150
+rotkohl,Almás párolt vöröskáposzta (Rotkohl),4,lard,sertészsír,50,fat,usda_fdc:171401,1580,0.913,0.75,150
+rotkohl,Almás párolt vöröskáposzta (Rotkohl),4,water,víz,250,liquid,none,1580,0.913,0.75,150
+rotkohl,Almás párolt vöröskáposzta (Rotkohl),4,sugar,kristálycukor,12,seasoning,bls:S111000,1580,0.913,0.75,150
+rotkohl,Almás párolt vöröskáposzta (Rotkohl),4,cider_vinegar,almaecet,15,seasoning,bls:R123100,1580,0.913,0.75,150
+rotkohl,Almás párolt vöröskáposzta (Rotkohl),4,wheat_flour,búzaliszt (BL55),3,thickener,bls:C214100,1580,0.913,0.75,150
+kartoffelkloesse,Burgonyagombóc (Kartoffelklöße),4,potato,burgonya,800,core,bls:K110100,878,1.0,0.75,200
+kartoffelkloesse,Burgonyagombóc (Kartoffelklöße),4,butter,vaj,40,fat,open_database:173430,878,1.0,0.75,200
+kartoffelkloesse,Burgonyagombóc (Kartoffelklöße),4,egg_yolk,tojássárgája,36,core,bls:E112100,878,1.0,0.75,200
+kartoffelkloesse,Burgonyagombóc (Kartoffelklöße),4,potato_starch,burgonyakeményítő,2,thickener,bls:K230000,878,1.0,0.75,200
+salzkartoffeln,Sós főtt burgonya,4,potato,burgonya,800,core,bls:K110100,800,1.0,0.7,200
+kartoffelpueree,Burgonyapüré,4,potato,burgonya,1000,core,bls:K110100,1205,0.96,0.95,200
+kartoffelpueree,Burgonyapüré,4,butter,vaj,100,fat,open_database:173430,1205,0.96,0.95,200
+kartoffelpueree,Burgonyapüré,4,milk_whole,"tej (3,5%)",155,liquid,bls:M111300,1205,0.96,0.95,200
+spaetzle,Sváb galuska (Spätzle),2,wheat_flour,búzaliszt (BL55),200,core,bls:C214100,516,1.2,0.6,200
+spaetzle,Sváb galuska (Spätzle),2,egg,tojás,200,core,bls:E111100,516,1.2,0.6,200
+spaetzle,Sváb galuska (Spätzle),2,water,víz,30,liquid,none,516,1.2,0.6,200
+kartoffelsalat_nord,Észak-német majonézes krumplisaláta,4,potato,burgonya,800,core,bls:K110100,1201,1.0,0.75,250
+kartoffelsalat_nord,Észak-német majonézes krumplisaláta,4,egg,tojás,200,core,bls:E111100,1201,1.0,0.75,250
+kartoffelsalat_nord,Észak-német majonézes krumplisaláta,4,salad_mayonnaise,salátamajonéz (50%),150,core,bls:Q993000,1201,1.0,0.75,250
+kartoffelsalat_nord,Észak-német majonézes krumplisaláta,4,cider_vinegar,almaecet,45,seasoning,bls:R123100,1201,1.0,0.75,250
+kartoffelsalat_nord,Észak-német majonézes krumplisaláta,4,parsley_leaf,petrezselyemzöld,5,garnish,usda_fdc:170416,1201,1.0,0.75,250
+kartoffelsalat_nord,Észak-német majonézes krumplisaláta,4,veg_bouillon_powder,zöldségleveskocka / -por,1,seasoning,bls:R821000,1201,1.0,0.75,250
+kartoffelsalat_sued,"Sváb krumplisaláta (ecetes-olajos, húslevessel)",4,potato,burgonya,1000,core,bls:K110100,1445.2,0.96,0.8,250
+kartoffelsalat_sued,"Sváb krumplisaláta (ecetes-olajos, húslevessel)",4,veg_bouillon_powder,zöldségleveskocka / -por,5.2,seasoning,bls:R821000,1445.2,0.96,0.8,250
+kartoffelsalat_sued,"Sváb krumplisaláta (ecetes-olajos, húslevessel)",4,water,víz,260,liquid,none,1445.2,0.96,0.8,250
+kartoffelsalat_sued,"Sváb krumplisaláta (ecetes-olajos, húslevessel)",4,sunflower_oil,napraforgóolaj,65,fat,bls:Q320000,1445.2,0.96,0.8,250
+kartoffelsalat_sued,"Sváb krumplisaláta (ecetes-olajos, húslevessel)",4,wine_vinegar,borecet,60,seasoning,bls:R121000,1445.2,0.96,0.8,250
+kartoffelsalat_sued,"Sváb krumplisaláta (ecetes-olajos, húslevessel)",4,onion,vöröshagyma,100,core,bls:G480100,1445.2,0.96,0.8,250
+kartoffelsalat_sued,"Sváb krumplisaláta (ecetes-olajos, húslevessel)",4,parsley_leaf,petrezselyemzöld,15,garnish,usda_fdc:170416,1445.2,0.96,0.8,250
+rinderrouladen,Német marharolád szalonnával (Rinderrouladen),4,beef_roulade,marha rolád (felsál),1080,core,bls:U163100,1825.5,0.737,1.036,230
+rinderrouladen,Német marharolád szalonnával (Rinderrouladen),4,mustard,mustár,15,seasoning,bls:R132000,1825.5,0.737,1.036,230
+rinderrouladen,Német marharolád szalonnával (Rinderrouladen),4,smoked_bacon,füstölt szalonna / bacon,90,core,bls:W415000,1825.5,0.737,1.036,230
+rinderrouladen,Német marharolád szalonnával (Rinderrouladen),4,onion,vöröshagyma,400,core,bls:G480100,1825.5,0.737,1.036,230
+rinderrouladen,Német marharolád szalonnával (Rinderrouladen),4,carrot,sárgarépa,80,core,bls:G620100,1825.5,0.737,1.036,230
+rinderrouladen,Német marharolád szalonnával (Rinderrouladen),4,clarified_butter,tisztított vaj (ghí),26,fat,bls:Q683000,1825.5,0.737,1.036,230
+rinderrouladen,Német marharolád szalonnával (Rinderrouladen),4,tomato_paste,sűrített paradicsom (paradicsompüré),17,seasoning,bls:R160000,1825.5,0.737,1.036,230
+rinderrouladen,Német marharolád szalonnával (Rinderrouladen),4,water,víz,750,liquid,none,1825.5,0.737,1.036,230
+rinderrouladen,Német marharolád szalonnával (Rinderrouladen),4,wheat_flour,búzaliszt (BL55),17.5,thickener,bls:C214100,1825.5,0.737,1.036,230
+sauerbraten,Ecetes pácolt marhasült (Sauerbraten),4,beef_leg,marhacomb,1000,core,bls:U281100,1580,0.778,1.036,250
+sauerbraten,Ecetes pácolt marhasült (Sauerbraten),4,pork_back_fat,sertés hátszalonna (nyers),120,fat,bls:W412000,1580,0.778,1.036,250
+sauerbraten,Ecetes pácolt marhasült (Sauerbraten),4,carrot,sárgarépa,150,core,bls:G620100,1580,0.778,1.036,250
+sauerbraten,Ecetes pácolt marhasült (Sauerbraten),4,celeriac,zellergumó,150,core,bls:G660100,1580,0.778,1.036,250
+sauerbraten,Ecetes pácolt marhasült (Sauerbraten),4,leek,póréhagyma,100,core,bls:G470100,1580,0.778,1.036,250
+sauerbraten,Ecetes pácolt marhasült (Sauerbraten),4,onion,vöröshagyma,100,core,bls:G480100,1580,0.778,1.036,250
+sauerbraten,Ecetes pácolt marhasült (Sauerbraten),4,beef_broth,marhahúsleves-alaplé,250,liquid,bls:Y183013,1580,0.778,1.036,250
+sauerbraten,Ecetes pácolt marhasült (Sauerbraten),4,wine_vinegar,borecet,50,liquid,bls:R121000,1580,0.778,1.036,250
+sauerbraten,Ecetes pácolt marhasült (Sauerbraten),4,wheat_flour,búzaliszt (BL55),10,thickener,bls:C214100,1580,0.778,1.036,250
+sauerbraten,Ecetes pácolt marhasült (Sauerbraten),4,cream_30,habtejszín (30%),100,core,bls:M173800,1580,0.778,1.036,250
+krustenbraten,Ropogós bőrű sertéssült (Krustenbraten),6,pork_shoulder_rind,sertéslapocka bőrrel és zsírral,1200,core,bls:U664100,2101.0,0.734,1.038,350
+krustenbraten,Ropogós bőrű sertéssült (Krustenbraten),6,carrot,sárgarépa,240,core,bls:G620100,2101.0,0.734,1.038,350
+krustenbraten,Ropogós bőrű sertéssült (Krustenbraten),6,celeriac,zellergumó,150,core,bls:G660100,2101.0,0.734,1.038,350
+krustenbraten,Ropogós bőrű sertéssült (Krustenbraten),6,onion,vöröshagyma,200,core,bls:G480100,2101.0,0.734,1.038,350
+krustenbraten,Ropogós bőrű sertéssült (Krustenbraten),6,garlic,fokhagyma,20,seasoning,bls:G490100,2101.0,0.734,1.038,350
+krustenbraten,Ropogós bőrű sertéssült (Krustenbraten),6,sunflower_oil,napraforgóolaj,31,fat,bls:Q320000,2101.0,0.734,1.038,350
+krustenbraten,Ropogós bőrű sertéssült (Krustenbraten),6,veg_bouillon_powder,zöldségleveskocka / -por,20.0,seasoning,bls:R821000,2101.0,0.734,1.038,350
+krustenbraten,Ropogós bőrű sertéssült (Krustenbraten),6,water,víz,1000,liquid,none,2101.0,0.734,1.038,350
+eisbein,Főtt pácolt sertéscsülök (Eisbein),4,cured_pork_hock,"pácolt sertéscsülök (Eisbein, nem füstölt)",910,core,bls:U672800,780,0.857,1.071,200
+schweinshaxe,Ropogósra sült sertéscsülök (Schweinshaxe),2,pork_hind_hock,sertés hátsó csülök (Stelze),900,core,bls:U693100,673,0.74,1.082,330
+schweinshaxe,Ropogósra sült sertéscsülök (Schweinshaxe),2,garlic,fokhagyma,10,seasoning,bls:G490100,673,0.74,1.082,330
+schaeufele,Frank sült sertéslapocka csonttal (Schäufele),4,pork_shoulder_rind,sertéslapocka bőrrel és zsírral,1200,core,bls:U664100,1509.25,0.747,1.049,350
+schaeufele,Frank sült sertéslapocka csonttal (Schäufele),4,beer_lager,világos sör,200,liquid,bls:P161000,1509.25,0.747,1.049,350
+schaeufele,Frank sült sertéslapocka csonttal (Schäufele),4,carrot,sárgarépa,150,core,bls:G620100,1509.25,0.747,1.049,350
+schaeufele,Frank sült sertéslapocka csonttal (Schäufele),4,onion,vöröshagyma,200,core,bls:G480100,1509.25,0.747,1.049,350
+schaeufele,Frank sült sertéslapocka csonttal (Schäufele),4,garlic,fokhagyma,5,seasoning,bls:G490100,1509.25,0.747,1.049,350
+schaeufele,Frank sült sertéslapocka csonttal (Schäufele),4,caraway_seed,kömény (egész/őrölt),1.25,seasoning,usda_fdc:170918,1509.25,0.747,1.049,350
+schaeufele,Frank sült sertéslapocka csonttal (Schäufele),4,lard,sertészsír,13,fat,usda_fdc:171401,1509.25,0.747,1.049,350
+schaeufele,Frank sült sertéslapocka csonttal (Schäufele),4,water,víz,250,liquid,none,1509.25,0.747,1.049,350
+kasseler_sauerkraut,Füstölt karaj savanyú káposztával (Kasseler),4,kasseler,füstölt pácolt karaj (Kasseler),700,core,bls:W510000,1411.0,0.892,1.03,330
+kasseler_sauerkraut,Füstölt karaj savanyú káposztával (Kasseler),4,sauerkraut,savanyú káposzta,500,core,bls:G345100,1411.0,0.892,1.03,330
+kasseler_sauerkraut,Füstölt karaj savanyú káposztával (Kasseler),4,onion,vöröshagyma,100,core,bls:G480100,1411.0,0.892,1.03,330
+kasseler_sauerkraut,Füstölt karaj savanyú káposztával (Kasseler),4,sunflower_oil,napraforgóolaj,26,fat,bls:Q320000,1411.0,0.892,1.03,330
+kasseler_sauerkraut,Füstölt karaj savanyú káposztával (Kasseler),4,veg_bouillon_powder,zöldségleveskocka / -por,5.0,seasoning,bls:R821000,1411.0,0.892,1.03,330
+kasseler_sauerkraut,Füstölt karaj savanyú káposztával (Kasseler),4,water,víz,250,liquid,none,1411.0,0.892,1.03,330
+koenigsberger_klopse,Königsbergi húsgombóc kapribogyós mártásban,4,veal_minced,darált borjúhús,500,core,bls:U030100,1665.0,0.965,0.923,300
+koenigsberger_klopse,Königsbergi húsgombóc kapribogyós mártásban,4,wheat_roll,zsemle,55,core,bls:B511000,1665.0,0.965,0.923,300
+koenigsberger_klopse,Königsbergi húsgombóc kapribogyós mártásban,4,milk_whole,"tej (3,5%)",103,liquid,bls:M111300,1665.0,0.965,0.923,300
+koenigsberger_klopse,Königsbergi húsgombóc kapribogyós mártásban,4,anchovy,szardella,16,seasoning,bls:T104100,1665.0,0.965,0.923,300
+koenigsberger_klopse,Königsbergi húsgombóc kapribogyós mártásban,4,shallot,salottahagyma,50,core,bls:G485100,1665.0,0.965,0.923,300
+koenigsberger_klopse,Königsbergi húsgombóc kapribogyós mártásban,4,butter,vaj,35,fat,open_database:173430,1665.0,0.965,0.923,300
+koenigsberger_klopse,Königsbergi húsgombóc kapribogyós mártásban,4,egg_yolk,tojássárgája,54,core,bls:E112100,1665.0,0.965,0.923,300
+koenigsberger_klopse,Königsbergi húsgombóc kapribogyós mártásban,4,bouillon_cube,leveskocka / erőleveskocka,10.0,seasoning,bls:R811000,1665.0,0.965,0.923,300
+koenigsberger_klopse,Königsbergi húsgombóc kapribogyós mártásban,4,water,víz,500,liquid,none,1665.0,0.965,0.923,300
+koenigsberger_klopse,Königsbergi húsgombóc kapribogyós mártásban,4,capers,kapribogyó,100,core,bls:G012902,1665.0,0.965,0.923,300
+koenigsberger_klopse,Königsbergi húsgombóc kapribogyós mártásban,4,wheat_flour,búzaliszt (BL55),30,thickener,bls:C214100,1665.0,0.965,0.923,300
+koenigsberger_klopse,Königsbergi húsgombóc kapribogyós mártásban,4,cream_30,habtejszín (30%),250,core,bls:M173800,1665.0,0.965,0.923,300
+koenigsberger_klopse,Königsbergi húsgombóc kapribogyós mártásban,4,lemon_juice,citromlé,22,seasoning,usda_fdc:167747,1665.0,0.965,0.923,300
+rindergulasch,Német marhagulyás (Rindergulasch),4,beef_chuck,marhalapocka,1000,core,bls:U261100,1911,0.761,1.036,300
+rindergulasch,Német marhagulyás (Rindergulasch),4,onion,vöröshagyma,500,core,bls:G480100,1911,0.761,1.036,300
+rindergulasch,Német marhagulyás (Rindergulasch),4,clarified_butter,tisztított vaj (ghí),70,fat,bls:Q683000,1911,0.761,1.036,300
+rindergulasch,Német marhagulyás (Rindergulasch),4,garlic,fokhagyma,10,seasoning,bls:G490100,1911,0.761,1.036,300
+rindergulasch,Német marhagulyás (Rindergulasch),4,paprika_ground,őrölt pirospaprika,7,seasoning,usda_fdc:171329,1911,0.761,1.036,300
+rindergulasch,Német marhagulyás (Rindergulasch),4,mustard,mustár,30,seasoning,bls:R132000,1911,0.761,1.036,300
+rindergulasch,Német marhagulyás (Rindergulasch),4,tomato_canned,hámozott paradicsom (konzerv),280,core,bls:G568900,1911,0.761,1.036,300
+rindergulasch,Német marhagulyás (Rindergulasch),4,tomato_paste,sűrített paradicsom (paradicsompüré),51,seasoning,bls:R160000,1911,0.761,1.036,300
+rindergulasch,Német marhagulyás (Rindergulasch),4,sugar,kristálycukor,12,seasoning,bls:S111000,1911,0.761,1.036,300
+rindergulasch,Német marhagulyás (Rindergulasch),4,creme_fraiche,crème fraîche,51,core,bls:M176800,1911,0.761,1.036,300
+rindergulasch,Német marhagulyás (Rindergulasch),4,water,víz,500,liquid,none,1911,0.761,1.036,300
+jaegerschnitzel,Vadász szelet gombamártással (Jägerschnitzel),2,veal_schnitzel,borjúcomb (szelet),400,core,bls:U342100,826,0.805,1.019,250
+jaegerschnitzel,Vadász szelet gombamártással (Jägerschnitzel),2,clarified_butter,tisztított vaj (ghí),40,fat,bls:Q683000,826,0.805,1.019,250
+jaegerschnitzel,Vadász szelet gombamártással (Jägerschnitzel),2,mushroom,csiperkegomba,240,core,bls:K701100,826,0.805,1.019,250
+jaegerschnitzel,Vadász szelet gombamártással (Jägerschnitzel),2,shallot,salottahagyma,30,core,bls:G485100,826,0.805,1.019,250
+jaegerschnitzel,Vadász szelet gombamártással (Jägerschnitzel),2,meat_fond,húsalaplé (Fond),250,liquid,bls:U981700,826,0.805,1.019,250
+jaegerschnitzel,Vadász szelet gombamártással (Jägerschnitzel),2,corn_starch,étkezési keményítő,6,thickener,bls:C446000,826,0.805,1.019,250
+jaegerschnitzel,Vadász szelet gombamártással (Jägerschnitzel),2,cream_30,habtejszín (30%),60,core,bls:M173800,826,0.805,1.019,250
+kalbsleber_berliner,Borjúmáj berlini módra (almával és hagymával),4,calf_liver,borjúmáj,600,core,bls:V532100,975,0.859,0.971,220
+kalbsleber_berliner,Borjúmáj berlini módra (almával és hagymával),4,wheat_flour,búzaliszt (BL55),10,coating,bls:C214100,975,0.859,0.971,220
+kalbsleber_berliner,Borjúmáj berlini módra (almával és hagymával),4,butter,vaj,45,fat,open_database:173430,975,0.859,0.971,220
+kalbsleber_berliner,Borjúmáj berlini módra (almával és hagymával),4,apple,alma,300,core,bls:F110100,975,0.859,0.971,220
+kalbsleber_berliner,Borjúmáj berlini módra (almával és hagymával),4,onion,vöröshagyma,180,core,bls:G480100,975,0.859,0.971,220
+senfeier,Tojás mustármártásban (Senfeier),5,egg,tojás,500,core,bls:E111100,1845.0,0.925,1.003,300
+senfeier,Tojás mustármártásban (Senfeier),5,butter,vaj,115,fat,open_database:173430,1845.0,0.925,1.003,300
+senfeier,Tojás mustármártásban (Senfeier),5,veg_bouillon_powder,zöldségleveskocka / -por,20.0,seasoning,bls:R821000,1845.0,0.925,1.003,300
+senfeier,Tojás mustármártásban (Senfeier),5,water,víz,1000,liquid,none,1845.0,0.925,1.003,300
+senfeier,Tojás mustármártásban (Senfeier),5,wheat_flour,búzaliszt (BL55),100,thickener,bls:C214100,1845.0,0.925,1.003,300
+senfeier,Tojás mustármártásban (Senfeier),5,mustard,mustár,60,core,bls:R132000,1845.0,0.925,1.003,300
+senfeier,Tojás mustármártásban (Senfeier),5,onion,vöröshagyma,200,core,bls:G480100,1845.0,0.925,1.003,300
+huehnerfrikassee,Csirkefrikasszé zöldborsóval és répával,4,chicken_breast,csirkemellfilé,600,core,bls:V416100,1816,0.801,1.019,300
+huehnerfrikassee,Csirkefrikasszé zöldborsóval és répával,4,chicken_broth,tyúkhúsleves-alaplé (szűrt),1000,liquid,bls:X411243,1816,0.801,1.019,300
+huehnerfrikassee,Csirkefrikasszé zöldborsóval és répával,4,carrot,sárgarépa,200,core,bls:G620100,1816,0.801,1.019,300
+huehnerfrikassee,Csirkefrikasszé zöldborsóval és répával,4,peas_canned,zöldborsó (konzerv),150,core,bls:G760902,1816,0.801,1.019,300
+huehnerfrikassee,Csirkefrikasszé zöldborsóval és répával,4,butter,vaj,30,fat,open_database:173430,1816,0.801,1.019,300
+huehnerfrikassee,Csirkefrikasszé zöldborsóval és répával,4,wheat_flour,búzaliszt (BL55),30,thickener,bls:C214100,1816,0.801,1.019,300
+huehnerfrikassee,Csirkefrikasszé zöldborsóval és répával,4,cream_30,habtejszín (30%),200,core,bls:M173800,1816,0.801,1.019,300
+huehnerfrikassee,Csirkefrikasszé zöldborsóval és répával,4,egg_yolk,tojássárgája,36,core,bls:E112100,1816,0.801,1.019,300
+huehnerfrikassee,Csirkefrikasszé zöldborsóval és répával,4,lemon_juice,citromlé,20,seasoning,usda_fdc:167747,1816,0.801,1.019,300
+himmel_und_erde,Almás burgonyapüré sült kolbásszal (Himmel und Erde),4,potato,burgonya,750,core,bls:K110100,1714,0.91,1.001,350
+himmel_und_erde,Almás burgonyapüré sült kolbásszal (Himmel und Erde),4,apple_peeled,alma (hámozva),350,core,bls:F120100,1714,0.91,1.001,350
+himmel_und_erde,Almás burgonyapüré sült kolbásszal (Himmel und Erde),4,sugar,kristálycukor,24,seasoning,bls:S111000,1714,0.91,1.001,350
+himmel_und_erde,Almás burgonyapüré sült kolbásszal (Himmel und Erde),4,bratwurst,sütnivaló kolbász (Bratwurst),300,core,bls:W222100,1714,0.91,1.001,350
+himmel_und_erde,Almás burgonyapüré sült kolbásszal (Himmel und Erde),4,smoked_bacon,füstölt szalonna / bacon,150,core,bls:W415000,1714,0.91,1.001,350
+himmel_und_erde,Almás burgonyapüré sült kolbásszal (Himmel und Erde),4,onion,vöröshagyma,300,core,bls:G480100,1714,0.91,1.001,350
+himmel_und_erde,Almás burgonyapüré sült kolbásszal (Himmel und Erde),4,sunflower_oil,napraforgóolaj,10,fat,bls:Q320000,1714,0.91,1.001,350
+nuernberger_sauerkraut,Nürnbergi kolbászkák savanyú káposztával,4,rostbratwurst,sütnivaló kolbász (Rostbratwurst),600,core,bls:W222600,1963,0.891,0.99,300
+nuernberger_sauerkraut,Nürnbergi kolbászkák savanyú káposztával,4,clarified_butter,tisztított vaj (ghí),26,fat,bls:Q683000,1963,0.891,0.99,300
+nuernberger_sauerkraut,Nürnbergi kolbászkák savanyú káposztával,4,sauerkraut,savanyú káposzta,850,core,bls:G345100,1963,0.891,0.99,300
+nuernberger_sauerkraut,Nürnbergi kolbászkák savanyú káposztával,4,apple,alma,200,core,bls:F110100,1963,0.891,0.99,300
+nuernberger_sauerkraut,Nürnbergi kolbászkák savanyú káposztával,4,onion,vöröshagyma,300,core,bls:G480100,1963,0.891,0.99,300
+nuernberger_sauerkraut,Nürnbergi kolbászkák savanyú káposztával,4,sunflower_oil,napraforgóolaj,13,fat,bls:Q320000,1963,0.891,0.99,300
+nuernberger_sauerkraut,Nürnbergi kolbászkák savanyú káposztával,4,beef_broth,marhahúsleves-alaplé,200,liquid,bls:Y183013,1963,0.891,0.99,300
+nuernberger_sauerkraut,Nürnbergi kolbászkák savanyú káposztával,4,sugar,kristálycukor,8,seasoning,bls:S111000,1963,0.891,0.99,300
+nuernberger_sauerkraut,Nürnbergi kolbászkák savanyú káposztával,4,parsley_leaf,petrezselyemzöld,2,garnish,usda_fdc:170416,1963,0.891,0.99,300
+nuernberger_sauerkraut,Nürnbergi kolbászkák savanyú káposztával,4,chives,metélőhagyma,4,garnish,bls:G081100,1963,0.891,0.99,300
+leberkaese_scheibe,Meleg Leberkäse-szelet,1,leberkaese,leberkäse (sütött hússajt),150,core,bls:W233000,150,1.0,1.0,150
+weisswurst_paar,Két müncheni fehérkolbász (Weißwurst),1,weisswurst,müncheni fehérkolbász (Weißwurst),155,core,bls:W224000,155,1.0,1.0,155
+suesser_senf,Édes mustár (bajor),1,sweet_mustard,édes mustár (bajor),30,core,bls:R135000,30,1.0,1.1,30
+gruenkohl_pinkel,Párolt fodros kel Pinkel-kolbásszal (Grünkohl mit Pinkel),4,kale,fodros kel (Grünkohl),800,core,bls:G322100,1439,0.906,0.998,350
+gruenkohl_pinkel,Párolt fodros kel Pinkel-kolbásszal (Grünkohl mit Pinkel),4,pinkel,Pinkel (brémai darakolbász),400,core,bls:W383700,1439,0.906,0.998,350
+gruenkohl_pinkel,Párolt fodros kel Pinkel-kolbásszal (Grünkohl mit Pinkel),4,lard,sertészsír,39,fat,usda_fdc:171401,1439,0.906,0.998,350
+gruenkohl_pinkel,Párolt fodros kel Pinkel-kolbásszal (Grünkohl mit Pinkel),4,onion,vöröshagyma,100,core,bls:G480100,1439,0.906,0.998,350
+gruenkohl_pinkel,Párolt fodros kel Pinkel-kolbásszal (Grünkohl mit Pinkel),4,beef_broth,marhahúsleves-alaplé,250,liquid,bls:Y183013,1439,0.906,0.998,350
+labskaus,Labskaus (corned beef-es burgonyapüré tükörtojással és rollmopsszal),2,corned_beef,corned beef,300,core,bls:W520000,1163,0.967,1.046,450
+labskaus,Labskaus (corned beef-es burgonyapüré tükörtojással és rollmopsszal),2,potato,burgonya,400,core,bls:K110100,1163,0.967,1.046,450
+labskaus,Labskaus (corned beef-es burgonyapüré tükörtojással és rollmopsszal),2,onion,vöröshagyma,120,core,bls:G480100,1163,0.967,1.046,450
+labskaus,Labskaus (corned beef-es burgonyapüré tükörtojással és rollmopsszal),2,butter,vaj,20,fat,open_database:173430,1163,0.967,1.046,450
+labskaus,Labskaus (corned beef-es burgonyapüré tükörtojással és rollmopsszal),2,sunflower_oil,napraforgóolaj,13,fat,bls:Q320000,1163,0.967,1.046,450
+labskaus,Labskaus (corned beef-es burgonyapüré tükörtojással és rollmopsszal),2,milk_whole,"tej (3,5%)",30,liquid,bls:M111300,1163,0.967,1.046,450
+labskaus,Labskaus (corned beef-es burgonyapüré tükörtojással és rollmopsszal),2,egg,tojás,100,core,bls:E111100,1163,0.967,1.046,450
+labskaus,Labskaus (corned beef-es burgonyapüré tükörtojással és rollmopsszal),2,rollmops,rollmopsz (ecetes heringtekercs),140,core,bls:T113902,1163,0.967,1.046,450
+labskaus,Labskaus (corned beef-es burgonyapüré tükörtojással és rollmopsszal),2,beetroot_cooked,főtt cékla,80,core,bls:G613132,1163,0.967,1.046,450
+linsen_saiten,Sváb lencsefőzelék virslivel (Linsen mit Saiten),4,lentils_dry,lencse (száraz),400,core,bls:H725100,2030.5,0.853,1.053,350
+linsen_saiten,Sváb lencsefőzelék virslivel (Linsen mit Saiten),4,onion,vöröshagyma,100,core,bls:G480100,2030.5,0.853,1.053,350
+linsen_saiten,Sváb lencsefőzelék virslivel (Linsen mit Saiten),4,smoked_bacon,füstölt szalonna / bacon,100,core,bls:W415000,2030.5,0.853,1.053,350
+linsen_saiten,Sváb lencsefőzelék virslivel (Linsen mit Saiten),4,sunflower_oil,napraforgóolaj,13,fat,bls:Q320000,2030.5,0.853,1.053,350
+linsen_saiten,Sváb lencsefőzelék virslivel (Linsen mit Saiten),4,carrot,sárgarépa,150,core,bls:G620100,2030.5,0.853,1.053,350
+linsen_saiten,Sváb lencsefőzelék virslivel (Linsen mit Saiten),4,celeriac,zellergumó,150,core,bls:G660100,2030.5,0.853,1.053,350
+linsen_saiten,Sváb lencsefőzelék virslivel (Linsen mit Saiten),4,leek,póréhagyma,100,core,bls:G470100,2030.5,0.853,1.053,350
+linsen_saiten,Sváb lencsefőzelék virslivel (Linsen mit Saiten),4,veg_bouillon_powder,zöldségleveskocka / -por,20.0,seasoning,bls:R821000,2030.5,0.853,1.053,350
+linsen_saiten,Sváb lencsefőzelék virslivel (Linsen mit Saiten),4,water,víz,1000,liquid,none,2030.5,0.853,1.053,350
+linsen_saiten,Sváb lencsefőzelék virslivel (Linsen mit Saiten),4,butter,vaj,30,fat,open_database:173430,2030.5,0.853,1.053,350
+linsen_saiten,Sváb lencsefőzelék virslivel (Linsen mit Saiten),4,wheat_flour,búzaliszt (BL55),20,thickener,bls:C214100,2030.5,0.853,1.053,350
+linsen_saiten,Sváb lencsefőzelék virslivel (Linsen mit Saiten),4,wine_vinegar,borecet,90,seasoning,bls:R121000,2030.5,0.853,1.053,350
+linsen_saiten,Sváb lencsefőzelék virslivel (Linsen mit Saiten),4,frankfurter,virsli,200,core,bls:W211200,2030.5,0.853,1.053,350
+linsen_saiten,Sváb lencsefőzelék virslivel (Linsen mit Saiten),4,parsley_leaf,petrezselyemzöld,7.5,garnish,usda_fdc:170416,2030.5,0.853,1.053,350
+scholle_finkenwerder,Sült lepényhal szalonnával (Finkenwerder módra),4,plaice,lepényhal (Scholle),800,core,bls:T305100,824.5,0.782,1.046,230
+scholle_finkenwerder,Sült lepényhal szalonnával (Finkenwerder módra),4,wheat_flour,búzaliszt (BL55),40,coating,bls:C214100,824.5,0.782,1.046,230
+scholle_finkenwerder,Sült lepényhal szalonnával (Finkenwerder módra),4,clarified_butter,tisztított vaj (ghí),19.5,fat,bls:Q683000,824.5,0.782,1.046,230
+scholle_finkenwerder,Sült lepényhal szalonnával (Finkenwerder módra),4,smoked_bacon,füstölt szalonna / bacon,180,core,bls:W415000,824.5,0.782,1.046,230
+scholle_finkenwerder,Sült lepényhal szalonnával (Finkenwerder módra),4,parsley_leaf,petrezselyemzöld,15,garnish,usda_fdc:170416,824.5,0.782,1.046,230
+pannfisch,Hamburgi serpenyős hal mustármártással (Pannfisch),4,cod,tőkehal,300,core,bls:T204100,1036,0.874,1.025,200
+pannfisch,Hamburgi serpenyős hal mustármártással (Pannfisch),4,redfish,vörös sügér (Rotbarsch),300,core,bls:T615100,1036,0.874,1.025,200
+pannfisch,Hamburgi serpenyős hal mustármártással (Pannfisch),4,wheat_flour,búzaliszt (BL55),30,coating,bls:C214100,1036,0.874,1.025,200
+pannfisch,Hamburgi serpenyős hal mustármártással (Pannfisch),4,clarified_butter,tisztított vaj (ghí),26,fat,bls:Q683000,1036,0.874,1.025,200
+pannfisch,Hamburgi serpenyős hal mustármártással (Pannfisch),4,butter,vaj,35,fat,open_database:173430,1036,0.874,1.025,200
+pannfisch,Hamburgi serpenyős hal mustármártással (Pannfisch),4,lemon_juice,citromlé,40,seasoning,usda_fdc:167747,1036,0.874,1.025,200
+pannfisch,Hamburgi serpenyős hal mustármártással (Pannfisch),4,onion,vöröshagyma,100,core,bls:G480100,1036,0.874,1.025,200
+pannfisch,Hamburgi serpenyős hal mustármártással (Pannfisch),4,beef_broth,marhahúsleves-alaplé,250,liquid,bls:Y183013,1036,0.874,1.025,200
+pannfisch,Hamburgi serpenyős hal mustármártással (Pannfisch),4,cream_30,habtejszín (30%),75,core,bls:M173800,1036,0.874,1.025,200
+pannfisch,Hamburgi serpenyős hal mustármártással (Pannfisch),4,mustard,mustár,30,core,bls:R132000,1036,0.874,1.025,200
+matjes_hausfrauen,Matjeshering háziasszony módra (tejszínes-almás mártásban),4,matjes,matjeshering filé,400,core,bls:T811100,1320,1.0,0.952,330
+matjes_hausfrauen,Matjeshering háziasszony módra (tejszínes-almás mártásban),4,apple,alma,450,core,bls:F110100,1320,1.0,0.952,330
+matjes_hausfrauen,Matjeshering háziasszony módra (tejszínes-almás mártásban),4,onion,vöröshagyma,200,core,bls:G480100,1320,1.0,0.952,330
+matjes_hausfrauen,Matjeshering háziasszony módra (tejszínes-almás mártásban),4,cream_30,habtejszín (30%),250,core,bls:M173800,1320,1.0,0.952,330
+matjes_hausfrauen,Matjeshering háziasszony módra (tejszínes-almás mártásban),4,mustard,mustár,10,seasoning,bls:R132000,1320,1.0,0.952,330
+matjes_hausfrauen,Matjeshering háziasszony módra (tejszínes-almás mártásban),4,wine_vinegar,borecet,10,seasoning,bls:R121000,1320,1.0,0.952,330
+heringsstipp,Rajnai heringsaláta tejfölös mártásban (Heringsstipp),4,bismarck_herring,Bismarck-hering,400,core,bls:T820802,1422.5,1.0,0.977,330
+heringsstipp,Rajnai heringsaláta tejfölös mártásban (Heringsstipp),4,onion,vöröshagyma,300,core,bls:G480100,1422.5,1.0,0.977,330
+heringsstipp,Rajnai heringsaláta tejfölös mártásban (Heringsstipp),4,apple,alma,300,core,bls:F110100,1422.5,1.0,0.977,330
+heringsstipp,Rajnai heringsaláta tejfölös mártásban (Heringsstipp),4,sour_cream_20_bls,tejföl (20%),250,core,bls:M172700,1422.5,1.0,0.977,330
+heringsstipp,Rajnai heringsaláta tejfölös mártásban (Heringsstipp),4,sauerrahm,tejföl (Sauerrahm),150,core,bls:M172500,1422.5,1.0,0.977,330
+heringsstipp,Rajnai heringsaláta tejfölös mártásban (Heringsstipp),4,lemon_juice,citromlé,15,seasoning,usda_fdc:167747,1422.5,1.0,0.977,330
+heringsstipp,Rajnai heringsaláta tejfölös mártásban (Heringsstipp),4,chives,metélőhagyma,7.5,garnish,bls:G081100,1422.5,1.0,0.977,330
+spargel,Főtt fehér spárga,4,asparagus,spárga (fehér),1200,core,bls:G450100,1200,1.0,0.55,300
+hollandaise,Hollandi mártás,4,butter,vaj,250,fat,open_database:173430,289,0.935,0.926,70
+hollandaise,Hollandi mártás,4,egg_yolk,tojássárgája,54,core,bls:E112100,289,0.935,0.926,70
+hollandaise,Hollandi mártás,4,lemon_juice,citromlé,5,seasoning,usda_fdc:167747,289,0.935,0.926,70
+kochschinken_beilage,Főtt sonka (köret),1,ham_cooked,főtt sonka / szendvicssonka,80,core,bls:W424000,80,1.0,1.05,80
+leipziger_allerlei,Lipcsei vegyes zöldség (Leipziger Allerlei),4,cauliflower,karfiol,600,core,bls:G311100,1370.6,0.958,0.55,250
+leipziger_allerlei,Lipcsei vegyes zöldség (Leipziger Allerlei),4,kohlrabi,karalábé,250,core,bls:G331100,1370.6,0.958,0.55,250
+leipziger_allerlei,Lipcsei vegyes zöldség (Leipziger Allerlei),4,carrot,sárgarépa,130,core,bls:G620100,1370.6,0.958,0.55,250
+leipziger_allerlei,Lipcsei vegyes zöldség (Leipziger Allerlei),4,green_peas,zöldborsó,130,core,bls:G760100,1370.6,0.958,0.55,250
+leipziger_allerlei,Lipcsei vegyes zöldség (Leipziger Allerlei),4,asparagus,spárga (fehér),130,core,bls:G450100,1370.6,0.958,0.55,250
+leipziger_allerlei,Lipcsei vegyes zöldség (Leipziger Allerlei),4,butter,vaj,50,fat,open_database:173430,1370.6,0.958,0.55,250
+leipziger_allerlei,Lipcsei vegyes zöldség (Leipziger Allerlei),4,veg_bouillon_powder,zöldségleveskocka / -por,2.6,seasoning,bls:R821000,1370.6,0.958,0.55,250
+leipziger_allerlei,Lipcsei vegyes zöldség (Leipziger Allerlei),4,water,víz,130,liquid,none,1370.6,0.958,0.55,250
+leipziger_allerlei,Lipcsei vegyes zöldség (Leipziger Allerlei),4,parsley_leaf,petrezselyemzöld,8,garnish,usda_fdc:170416,1370.6,0.958,0.55,250
+gruene_sosse,Frankfurti zöld mártás (hét fűszernövény),4,sauerrahm,tejföl (Sauerrahm),250,core,bls:M172500,656,1.0,1.016,150
+gruene_sosse,Frankfurti zöld mártás (hét fűszernövény),4,yogurt_plain,natúr joghurt,150,core,bls:M141300,656,1.0,1.016,150
+gruene_sosse,Frankfurti zöld mártás (hét fűszernövény),4,egg,tojás,100,core,bls:E111100,656,1.0,1.016,150
+gruene_sosse,Frankfurti zöld mártás (hét fűszernövény),4,sunflower_oil,napraforgóolaj,26,fat,bls:Q320000,656,1.0,1.016,150
+gruene_sosse,Frankfurti zöld mártás (hét fűszernövény),4,vinegar,ecet (10%-os),15,seasoning,bls:R122000,656,1.0,1.016,150
+gruene_sosse,Frankfurti zöld mártás (hét fűszernövény),4,chives,metélőhagyma,40,core,bls:G081100,656,1.0,1.016,150
+gruene_sosse,Frankfurti zöld mártás (hét fűszernövény),4,parsley_leaf,petrezselyemzöld,40,core,usda_fdc:170416,656,1.0,1.016,150
+gruene_sosse,Frankfurti zöld mártás (hét fűszernövény),4,cress,kerti zsázsa,20,core,bls:G280100,656,1.0,1.016,150
+gruene_sosse,Frankfurti zöld mártás (hét fűszernövény),4,sorrel,sóska,15,core,bls:G263100,656,1.0,1.016,150
+eier_hart,Két főtt tojás,1,egg,tojás,100,core,bls:E111100,100,1.0,1.03,100
+handkaes_musik,Hesseni savanyútej-sajt hagymás pácban (Handkäs mit Musik),4,sour_milk_cheese,savanyútej-sajt (Graukäse),500,core,bls:M730100,1260.5,1.0,1.026,300
+handkaes_musik,Hesseni savanyútej-sajt hagymás pácban (Handkäs mit Musik),4,onion,vöröshagyma,500,core,bls:G480100,1260.5,1.0,1.026,300
+handkaes_musik,Hesseni savanyútej-sajt hagymás pácban (Handkäs mit Musik),4,vinegar,ecet (10%-os),180,liquid,bls:R122000,1260.5,1.0,1.026,300
+handkaes_musik,Hesseni savanyútej-sajt hagymás pácban (Handkäs mit Musik),4,rapeseed_oil,repceolaj,78,fat,bls:Q180000,1260.5,1.0,1.026,300
+handkaes_musik,Hesseni savanyútej-sajt hagymás pácban (Handkäs mit Musik),4,caraway_seed,kömény (egész/őrölt),2.5,seasoning,usda_fdc:170918,1260.5,1.0,1.026,300
+obatzda,Bajor camembert-krém (Obatzda),4,camembert,camembert (45%),200,core,bls:M602600,446.2,1.0,1.026,100
+obatzda,Bajor camembert-krém (Obatzda),4,cream_cheese_double,krémsajt (dupla krém),100,core,bls:M710800,446.2,1.0,1.026,100
+obatzda,Bajor camembert-krém (Obatzda),4,butter,vaj,30,fat,open_database:173430,446.2,1.0,1.026,100
+obatzda,Bajor camembert-krém (Obatzda),4,onion,vöröshagyma,100,core,bls:G480100,446.2,1.0,1.026,100
+obatzda,Bajor camembert-krém (Obatzda),4,paprika_ground,őrölt pirospaprika,1.2,seasoning,usda_fdc:171329,446.2,1.0,1.026,100
+obatzda,Bajor camembert-krém (Obatzda),4,chives,metélőhagyma,15,garnish,bls:G081100,446.2,1.0,1.026,100
+maultaschen,Sváb töltött tésztatáska (Maultaschen),4,wheat_flour,búzaliszt (BL55),300,core,bls:C214100,1407,1.045,0.65,250
+maultaschen,Sváb töltött tésztatáska (Maultaschen),4,egg,tojás,50,core,bls:E111100,1407,1.045,0.65,250
+maultaschen,Sváb töltött tésztatáska (Maultaschen),4,rapeseed_oil,repceolaj,13,fat,bls:Q180000,1407,1.045,0.65,250
+maultaschen,Sváb töltött tésztatáska (Maultaschen),4,egg_white,tojásfehérje,33,coating,bls:E113100,1407,1.045,0.65,250
+maultaschen,Sváb töltött tésztatáska (Maultaschen),4,spinach,spenót,200,core,bls:G211100,1407,1.045,0.65,250
+maultaschen,Sváb töltött tésztatáska (Maultaschen),4,bratwurst_braet,kolbásztöltelék (Bratwurstbrät),150,core,bls:W221100,1407,1.045,0.65,250
+maultaschen,Sváb töltött tésztatáska (Maultaschen),4,wheat_roll,zsemle,110,core,bls:B511000,1407,1.045,0.65,250
+maultaschen,Sváb töltött tésztatáska (Maultaschen),4,milk_whole,"tej (3,5%)",103,liquid,bls:M111300,1407,1.045,0.65,250
+maultaschen,Sváb töltött tésztatáska (Maultaschen),4,onion,vöröshagyma,300,core,bls:G480100,1407,1.045,0.65,250
+maultaschen,Sváb töltött tésztatáska (Maultaschen),4,smoked_bacon,füstölt szalonna / bacon,50,core,bls:W415000,1407,1.045,0.65,250
+maultaschen,Sváb töltött tésztatáska (Maultaschen),4,butter,vaj,30,fat,open_database:173430,1407,1.045,0.65,250
+maultaschen,Sváb töltött tésztatáska (Maultaschen),4,parsley_leaf,petrezselyemzöld,4,seasoning,usda_fdc:170416,1407,1.045,0.65,250
+maultaschen,Sváb töltött tésztatáska (Maultaschen),4,chives,metélőhagyma,4,garnish,bls:G081100,1407,1.045,0.65,250
+schmelzzwiebeln,Vajban pirított hagyma (Schmelze),4,onion,vöröshagyma,500,core,bls:G480100,366,0.696,0.993,90
+schmelzzwiebeln,Vajban pirított hagyma (Schmelze),4,clarified_butter,tisztított vaj (ghí),26,fat,bls:Q683000,366,0.696,0.993,90
+schupfnudeln_sauerkraut,Sváb burgonyás nudli savanyú káposztával és szalonnával,4,potato,burgonya,500,core,bls:K110100,2340,0.94,1.017,400
+schupfnudeln_sauerkraut,Sváb burgonyás nudli savanyú káposztával és szalonnával,4,wheat_flour,búzaliszt (BL55),510,core,bls:C214100,2340,0.94,1.017,400
+schupfnudeln_sauerkraut,Sváb burgonyás nudli savanyú káposztával és szalonnával,4,egg,tojás,120,core,bls:E111100,2340,0.94,1.017,400
+schupfnudeln_sauerkraut,Sváb burgonyás nudli savanyú káposztával és szalonnával,4,rapeseed_oil,repceolaj,52,fat,bls:Q180000,2340,0.94,1.017,400
+schupfnudeln_sauerkraut,Sváb burgonyás nudli savanyú káposztával és szalonnával,4,sauerkraut,savanyú káposzta,500,core,bls:G345100,2340,0.94,1.017,400
+schupfnudeln_sauerkraut,Sváb burgonyás nudli savanyú káposztával és szalonnával,4,lard,sertészsír,100,fat,usda_fdc:171401,2340,0.94,1.017,400
+schupfnudeln_sauerkraut,Sváb burgonyás nudli savanyú káposztával és szalonnával,4,smoked_bacon,füstölt szalonna / bacon,250,core,bls:W415000,2340,0.94,1.017,400
+schupfnudeln_sauerkraut,Sváb burgonyás nudli savanyú káposztával és szalonnával,4,onion,vöröshagyma,200,core,bls:G480100,2340,0.94,1.017,400
+schupfnudeln_sauerkraut,Sváb burgonyás nudli savanyú káposztával és szalonnával,4,beef_broth,marhahúsleves-alaplé,250,liquid,bls:Y183013,2340,0.94,1.017,400
+schupfnudeln_sauerkraut,Sváb burgonyás nudli savanyú káposztával és szalonnával,4,sugar,kristálycukor,8,seasoning,bls:S111000,2340,0.94,1.017,400
+zwiebelkuchen,Sváb hagymás lepény szalonnával (Zwiebelkuchen),12,wheat_flour,búzaliszt (BL55),520,core,bls:C214100,2239.5,0.848,1.002,200
+zwiebelkuchen,Sváb hagymás lepény szalonnával (Zwiebelkuchen),12,yeast_fresh,friss élesztő,42,core,bls:R459000,2239.5,0.848,1.002,200
+zwiebelkuchen,Sváb hagymás lepény szalonnával (Zwiebelkuchen),12,milk_whole,"tej (3,5%)",309,liquid,bls:M111300,2239.5,0.848,1.002,200
+zwiebelkuchen,Sváb hagymás lepény szalonnával (Zwiebelkuchen),12,butter,vaj,210,fat,open_database:173430,2239.5,0.848,1.002,200
+zwiebelkuchen,Sváb hagymás lepény szalonnával (Zwiebelkuchen),12,sugar,kristálycukor,8,seasoning,bls:S111000,2239.5,0.848,1.002,200
+zwiebelkuchen,Sváb hagymás lepény szalonnával (Zwiebelkuchen),12,onion,vöröshagyma,1000,core,bls:G480100,2239.5,0.848,1.002,200
+zwiebelkuchen,Sváb hagymás lepény szalonnával (Zwiebelkuchen),12,schinkenspeck,füstölt sonkaszalonna (Schinkenspeck),150,core,bls:W410400,2239.5,0.848,1.002,200
+zwiebelkuchen,Sváb hagymás lepény szalonnával (Zwiebelkuchen),12,egg,tojás,200,core,bls:E111100,2239.5,0.848,1.002,200
+zwiebelkuchen,Sváb hagymás lepény szalonnával (Zwiebelkuchen),12,cream_30,habtejszín (30%),200,core,bls:M173800,2239.5,0.848,1.002,200
+zwiebelkuchen,Sváb hagymás lepény szalonnával (Zwiebelkuchen),12,caraway_seed,kömény (egész/őrölt),0.5,seasoning,usda_fdc:170918,2239.5,0.848,1.002,200
 eierspeis,Rántotta,1,egg,tojás,150,core,bls:E111100,150,0.949,0.55,150
 eierspeis,Rántotta,1,butter,vaj,8,fat,open_database:173430,150,0.949,0.55,150
 leberkaessemmel,Leberkäsés zsemle,1,wheat_roll,zsemle,62.5,core,bls:B511000,162.5,1.0,0.464,162.5
