@@ -690,3 +690,60 @@ describe("saved-recipe match: add or choose (roadmap B/C1)", () => {
     expect(onConfirmLocalRecipe).toHaveBeenCalledWith(option, 450, "g");
   });
 });
+
+// Owner report (2026-10-11, real iPhone use): "2 adag lángos" showed no way to
+// add the matched reference dish, or opened it at 1 portion. These use the
+// exact shape the API returns for a single named dish: the match sits at the
+// top level next to one unresolved dish item.
+describe("a stated portion count is kept for the matched recipe (2 adag lángos)", () => {
+  const huLangos = { recipeId: "r-hu", title: "Lángos", source: "reference", servings: 1, servingGrams: 200 };
+  const atLangos = { recipeId: "r-at", title: "Langos (osztrák)", source: "reference", servings: 1, servingGrams: 180 };
+  const apiShape = (recipeDiscovery: any, parsed: any = { foodQuery: "lángos", quantity: 2, unit: "portion" }): FoodUnderstandingPreviewValue => ({
+    input: "2 adag lángos", parsed, foodResolution: "compound", selectedFood: null, candidates: [], quantity: null, canConfirm: false, interpretationSource: "ai_assisted",
+    semantic: { kind: "compound_dish", dishName: "lángos", dishQuantity: 2, dishUnit: "portion", clarificationNeeded: false },
+    recipeDiscovery,
+    items: [{ parsed, foodResolution: "unresolved", selectedFood: null, candidates: [], quantity: null, canConfirm: false, interpretationSource: "ai_assisted", semanticItem: { canonicalName: "lángos", evidence: "explicit" } }]
+  } as any);
+
+  it("the HU/AT tie is offered, and the chosen variant is added as the 2 stated portions", () => {
+    const onConfirmLocalRecipe = vi.fn();
+    render(<FoodUnderstandingPreview value={apiShape({ status: "confirmation_required", reason: "ambiguous_local_matches", localAlternatives: [huLangos, atLangos] })} lang="hu" labels={dict.hu.foodUnderstanding} busy={false} onConfirmAll={vi.fn()} onConfirmLocalRecipe={onConfirmLocalRecipe}/>);
+    fireEvent.click(screen.getByLabelText(/osztrák/));
+    expect((screen.getByLabelText(dict.hu.foodUnderstanding.recipeDiscovery.confirmQuantity) as HTMLInputElement).value).toBe("2");
+    expect((screen.getByLabelText(dict.hu.foodUnderstanding.recipeDiscovery.confirmUnit) as HTMLSelectElement).value).toBe("serving");
+    fireEvent.click(screen.getByLabelText("Lángos"));
+    fireEvent.click(screen.getByText(dict.hu.foodUnderstanding.recipeDiscovery.confirmAdd));
+    expect(onConfirmLocalRecipe).toHaveBeenCalledWith(huLangos, 2, "serving");
+  });
+
+  it.each([
+    ["hu", { foodQuery: "gulyásleves", quantity: 2, unit: "portion" }, 2],
+    ["hu", { foodQuery: "gulyásleves", quantity: 0.5, unit: "portion" }, 0.5],
+    ["de", { foodQuery: "Gulaschsuppe", quantity: 2, unit: "portion" }, 2],
+    ["en", { foodQuery: "goulash soup", quantity: 2, unit: "portion" }, 2],
+    ["hu", { foodQuery: "gulyásleves" }, 1]
+  ] as const)("a direct reference match starts at the stated portions (%s, %j)", (lang, parsed, expected) => {
+    const onConfirmLocalRecipe = vi.fn();
+    const gulyas = { recipeId: "r-g", title: "Gulyásleves", source: "reference", servings: 1, servingGrams: 450 };
+    render(<FoodUnderstandingPreview value={apiShape({ status: "local_match", localMatch: gulyas }, parsed)} lang={lang} labels={dict[lang].foodUnderstanding} busy={false} onConfirmAll={vi.fn()} onConfirmLocalRecipe={onConfirmLocalRecipe}/>);
+    fireEvent.click(screen.getByText(dict[lang].foodUnderstanding.recipeDiscovery.confirmAdd));
+    expect(onConfirmLocalRecipe).toHaveBeenCalledWith(gulyas, expected, "serving");
+  });
+
+  it("the AI calling it a single food: the match on the single result also starts at the stated portions", () => {
+    const onConfirmLocalRecipe = vi.fn();
+    const parsed = { foodQuery: "lángos", quantity: 2, unit: "portion" };
+    const value = { input: "2 adag lángos", parsed, foodResolution: "unresolved", selectedFood: null, candidates: [], quantity: null, canConfirm: false, interpretationSource: "ai_assisted",
+      semantic: { kind: "single_food", clarificationNeeded: false }, recipeDiscovery: { status: "confirmation_required", reason: "ambiguous_local_matches", localAlternatives: [huLangos, atLangos] } } as any;
+    render(<FoodUnderstandingPreview value={value} lang="hu" labels={dict.hu.foodUnderstanding} busy={false} onConfirmAll={vi.fn()} onConfirmLocalRecipe={onConfirmLocalRecipe}/>);
+    fireEvent.click(screen.getByLabelText(/osztrák/));
+    fireEvent.click(screen.getByText(dict.hu.foodUnderstanding.recipeDiscovery.confirmAdd));
+    expect(onConfirmLocalRecipe).toHaveBeenCalledWith(atLangos, 2, "serving");
+  });
+
+  it("a discovered web recipe with servings also starts at the stated portions", () => {
+    const candidate = { title: "Lángos", domain: "nosalty.hu", sourceUrl: "https://nosalty.hu/langos", servings: 4, extractionMethod: "schema_org_json_ld", importProof: "p", nutritionCalculable: true } as const;
+    render(<FoodUnderstandingPreview value={apiShape({ status: "confirmation_required", candidate })} lang="en" labels={dict.en.foodUnderstanding} busy={false} onConfirmAll={vi.fn()} onConfirmRecipe={vi.fn()}/>);
+    expect((screen.getByLabelText(dict.en.foodUnderstanding.recipeDiscovery.confirmQuantity) as HTMLInputElement).value).toBe("2");
+  });
+});

@@ -89,6 +89,7 @@ export function App() {
   // Single search field (roadmap G2): a recipe picked from the suggestions,
   // and a barcode typed into the field.
   const [pickedRecipe, setPickedRecipe] = useState<LocalRecipeOption | null>(null);
+  const [pickedRecipeServings, setPickedRecipeServings] = useState<number | undefined>();
   const [barcodeRequest, setBarcodeRequest] = useState<{ barcode: string; nonce: number } | undefined>(undefined);
   const [interpretation, setInterpretation] = useState<MealInterpretation | null>(null);
   const [interpreting, setInterpreting] = useState(false);
@@ -764,13 +765,13 @@ export function App() {
                 onPickFood={(food, amount) => { setSelectedFood(food); setPickedRecipe(null); setInterpretation(null); setGramsOverride("");
                   setMealMeasure(amount?.servingId ? `serving:${amount.servingId}` : "g");
                   if (amount) setMealQuantity(String(Math.round(amount.quantity * 10) / 10)); }}
-                onPickRecipe={(option) => { setPickedRecipe(option); setSelectedFood(null); setInterpretation(null); }}/>}
+                onPickRecipe={(option, servings) => { setPickedRecipe(option); setPickedRecipeServings(servings); setSelectedFood(null); setInterpretation(null); }}/>}
               <div className="natural-input-methods">
                 <VoiceInput lang={lang} state={state} onTranscribed={(text) => { setNaturalInput(text); setInterpretation(null); setSelectedFood(null); setMealQuantity("1"); setMealMeasure("g"); setGramsOverride(""); }}/>
                 <BarcodeLookup lang={lang} state={state} compact request={barcodeRequest} onFoodConfirmed={(food) => { setSelectedFood(food); setPickedRecipe(null); setMealMeasure("g"); setGramsOverride(""); }}/>
               </div>
               {pickedRecipe && <div className="selected-food-chip"><strong>{pickedRecipe.title}</strong><button type="button" className="btn secondary" onClick={() => setPickedRecipe(null)}>{lang === "hu" ? "Másik" : lang === "de" ? "Andere" : "Change"}</button></div>}
-              {pickedRecipe && <LocalRecipePicker key={pickedRecipe.recipeId} discovery={{ status: "local_match", localMatch: pickedRecipe }} labels={t.foodUnderstanding.recipeDiscovery} lang={lang} portionState={state}
+              {pickedRecipe && <LocalRecipePicker key={pickedRecipe.recipeId} discovery={{ status: "local_match", localMatch: pickedRecipe }} labels={t.foodUnderstanding.recipeDiscovery} lang={lang} portionState={state} requestedServings={pickedRecipeServings}
                 busy={confirmingRecipe || mealSaving} onConfirm={(option, quantity, unit) => { void confirmLocalRecipe(option, quantity, unit).then(() => setPickedRecipe(null)); }}/>}
               {interpreting && progressStage && <p className="natural-input-progress" role="status" aria-live="polite">{t.progress[progressStage] ?? t.progress.finalizing}</p>}
               {interpretation && <FoodUnderstandingPreview value={interpretation} lang={lang} labels={t.foodUnderstanding} busy={mealSaving || interpreting || !!confirmingExternalId || confirmingRecipe || confirmingAiEstimate} onConfirmAll={confirmMultiMeal} onConfirmExternal={confirmExternalCandidate} confirmingExternalId={confirmingExternalId} onConfirmRecipe={confirmRecipe} onConfirmLocalRecipe={confirmLocalRecipe} onAcceptAiEstimate={(estimate, quantityGrams) => acceptAiEstimate(estimate, quantityGrams)} onOverrideAiEstimate={(payload) => overrideAiEstimate(payload)} onSelectCandidate={selectCandidate} recipeFixServices={{ resolveExternal: resolveExternalForRecipe, acceptEstimate: acceptIngredientEstimateForRecipe, searchFoods: searchFoodsForRecipe, portionState: state }}/>}

@@ -33,8 +33,31 @@ describe("one search field (roadmap G2)", () => {
     expect(await screen.findByText("A legfinomabb pörkölt")).toBeTruthy();
     expect(screen.getByText(/Ételadatbázis · 1 adag ≈ 500 g/)).toBeTruthy();
     fireEvent.click(screen.getByText("Sertéspörkölt nokedlivel"));
-    expect(onPickRecipe).toHaveBeenCalledWith({ recipeId: "ref1", title: "Sertéspörkölt nokedlivel", source: "reference", servings: 1, servingGrams: 500 });
+    expect(onPickRecipe).toHaveBeenCalledWith({ recipeId: "ref1", title: "Sertéspörkölt nokedlivel", source: "reference", servings: 1, servingGrams: 500 }, undefined);
     expect(urls.every((u) => u.searchParams.get("meaning") !== "1")).toBe(true);
+  });
+
+  // Owner report (2026-10-11): "2 adag lángos" picked from the suggestions
+  // opened the dish at 1 portion.
+  it("a stated portion count travels with the picked recipe ('2 adag lángos' -> 2 portions)", async () => {
+    stub(() => ok({ kind: "results", query: "2 adag lángos", meaning: { tried: false, terms: [] }, quantity: { quantity: 2, unit: "portion" }, items: [
+      { type: "recipe", recipeId: "r-hu", title: "Lángos", source: "reference", servings: 1, servingGrams: 200 },
+      { type: "recipe", recipeId: "r-at", title: "Langos (AT)", source: "reference", servings: 1, servingGrams: 180 }
+    ] }));
+    const onPickRecipe = vi.fn();
+    render(<UnifiedFoodSearch lang="hu" state={state} value="2 adag lángos" onPickFood={vi.fn()} onPickRecipe={onPickRecipe}/>);
+    fireEvent.click(await screen.findByText("Langos (AT)"));
+    expect(onPickRecipe).toHaveBeenCalledWith(expect.objectContaining({ recipeId: "r-at" }), 2);
+  });
+
+  it("a piece count is not a portion count for a picked recipe", async () => {
+    stub(() => ok({ kind: "results", query: "2 db lángos", meaning: { tried: false, terms: [] }, quantity: { quantity: 2, unit: "piece" }, items: [
+      { type: "recipe", recipeId: "r-hu", title: "Lángos", source: "reference", servings: 1, servingGrams: 200 }
+    ] }));
+    const onPickRecipe = vi.fn();
+    render(<UnifiedFoodSearch lang="hu" state={state} value="2 db lángos" onPickFood={vi.fn()} onPickRecipe={onPickRecipe}/>);
+    fireEvent.click(await screen.findByText("Lángos"));
+    expect(onPickRecipe).toHaveBeenCalledWith(expect.objectContaining({ recipeId: "r-hu" }), undefined);
   });
 
   it("a spoken amount travels with the picked food ('négy tojás' -> 4 egg servings)", async () => {

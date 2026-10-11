@@ -459,9 +459,34 @@ async function runRecipeDiscovery(dishName: string, deps: RecipeDiscoveryFallbac
   };
 }
 
+/**
+ * Owner report (2026-10-11, "2 adag lángos"): the AI sometimes labels a known
+ * dish as a single food, which skipped the own-recipe/reference lookup and
+ * left only an estimate asking for grams. A single unresolved item whose name
+ * is one of the user's recipes or a reference dish still gets that zero-cost
+ * local lookup; web discovery stays reserved for compound dishes.
+ */
+function findLocalOnlyDishName(result: InterpretResult): string | null {
+  if (!result.semantic || result.semantic.kind === "compound_dish" || result.semantic.clarificationNeeded) return null;
+  if (result.items?.length || result.selectedFood) return null;
+  if (result.foodResolution !== "unresolved" && result.foodResolution !== "ai_estimate_pending") return null;
+  return (result.semanticItem?.canonicalName ?? result.parsed.foodQuery)?.trim() || null;
+}
+
 export async function attachRecipeDiscoveryFallback(result: InterpretResult, deps: RecipeDiscoveryFallbackDeps): Promise<InterpretResult> {
   const target = findEligibleDiscoveryTarget(result);
-  if (!target) return result;
+  if (!target) {
+    const localOnlyName = findLocalOnlyDishName(result);
+    if (!localOnlyName) return result;
+    deps.onProgress?.("local_recipe_search");
+    const own = await findTrustedLocalRecipe(deps.prisma, localOnlyName, deps.userId);
+    const local = own.status === "not_found" ? await findReferenceDish(deps.prisma, localOnlyName) : own;
+    if (local.status === "not_found") return result;
+    const base = { searchAttempted: false, resultCount: 0, candidatesAfterRelevanceFilter: 0, candidatesAttempted: 0 };
+    return applyPreview(result, { location: "result" }, local.status === "found"
+      ? { ...base, status: "local_match", localMatch: local }
+      : { ...base, status: "confirmation_required", reason: "ambiguous_local_matches", localAlternatives: local.candidates });
+  }
   const dishName = result.semantic?.dishName?.trim();
   if (!dishName) return result;
 

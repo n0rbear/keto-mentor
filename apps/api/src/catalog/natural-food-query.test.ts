@@ -3,6 +3,17 @@ import { parseNaturalFoodQuery } from "./natural-food-query.js";
 
 describe("natural food query parser", () => {
   it("parses Hungarian pieces", () => expect(parseNaturalFoodQuery("2 db tojás")).toEqual({ quantity: 2, unit: "piece", foodQuery: "tojas" }));
+  // Owner report (2026-10-11): the German and English portion words stayed
+  // glued to the dish name ("portionen gulaschsuppe", 2 pieces).
+  it.each([
+    ["2 adag lángos", { quantity: 2, unit: "portion", foodQuery: "langos" }],
+    ["fél adag lángos", { quantity: 0.5, unit: "portion", foodQuery: "langos" }],
+    ["2 Portionen Gulaschsuppe", { quantity: 2, unit: "portion", foodQuery: "gulaschsuppe" }],
+    ["zwei Portionen Gulaschsuppe", { quantity: 2, unit: "portion", foodQuery: "gulaschsuppe" }],
+    ["1 Portion Gulaschsuppe", { quantity: 1, unit: "portion", foodQuery: "gulaschsuppe" }],
+    ["2 servings of goulash soup", { quantity: 2, unit: "portion", foodQuery: "goulash soup" }],
+    ["1 serving goulash soup", { quantity: 1, unit: "portion", foodQuery: "goulash soup" }]
+  ])("parses portion counts in every language: %s", (text, expected) => expect(parseNaturalFoodQuery(text)).toMatchObject(expected));
   it("parses exact mass", () => expect(parseNaturalFoodQuery("250 g csirkemell")).toEqual({ quantity: 250, unit: "g", foodQuery: "csirkemell" }));
   it("parses length without pretending it is a weight", () => expect(parseNaturalFoodQuery("15 cm kígyóuborka")).toEqual({ quantity: 15, unit: "cm", foodQuery: "kigyouborka" }));
   it("parses with ékezet nélkül input", () => expect(parseNaturalFoodQuery("12 cm kigyóuborka")).toEqual({ quantity: 12, unit: "cm", foodQuery: "kigyouborka" }));

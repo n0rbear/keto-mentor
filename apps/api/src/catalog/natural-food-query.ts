@@ -56,7 +56,7 @@ const UNITS = new Map<string, NaturalQuantityUnit>([
   ["l", "l"], ["liter", "l"], ["liters", "l"], ["litre", "l"], ["litres", "l"],
   ["db", "piece"], ["darab", "piece"], ["piece", "piece"], ["pieces", "piece"], ["stuk", "piece"], ["stuck", "piece"], ["stucke", "piece"],
   ["whole", "piece"], ["egesz", "piece"], ["ganz", "piece"], ["ganze", "piece"], ["ganzen", "piece"],
-  ["szelet", "slice"], ["slice", "slice"], ["slices", "slice"], ["scheibe", "slice"], ["scheiben", "slice"], ["adag", "portion"], ["portion", "portion"],
+  ["szelet", "slice"], ["slice", "slice"], ["slices", "slice"], ["scheibe", "slice"], ["scheiben", "slice"], ["adag", "portion"], ["portion", "portion"], ["portionen", "portion"], ["serving", "portion"], ["servings", "portion"],
   ["ek", "tbsp"], ["el", "tbsp"], ["evokanal", "tbsp"], ["essloffel", "tbsp"], ["tbsp", "tbsp"], ["tablespoon", "tbsp"], ["tablespoons", "tbsp"],
   ["tk", "tsp"], ["tl", "tsp"], ["teaskanal", "tsp"], ["teeloffel", "tsp"], ["tsp", "tsp"], ["teaspoon", "tsp"], ["teaspoons", "tsp"],
   ["marek", "handful"], ["marok", "handful"], ["handful", "handful"], ["handvoll", "handful"], ["cm", "cm"],

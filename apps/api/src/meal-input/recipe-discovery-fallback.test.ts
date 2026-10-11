@@ -1188,3 +1188,59 @@ describe("attachRecipeDiscoveryFallback: control cases — ordinary foods still 
     expect(provider.search).not.toHaveBeenCalled();
   });
 });
+
+// Owner report (2026-10-11, real iPhone use): "2 adag lángos" either asked
+// for grams (the AI called lángos a single food, so no recipe was looked up)
+// or showed the reference dish and asked for the portion count again. The
+// stated count must stay on the result next to whichever saved recipe
+// resolves the dish.
+describe("a stated portion count reaches the saved-recipe match (2 adag lángos)", () => {
+  const referenceRow = (id: string, variant: string, title: string, grams: number) => ({ id, title, servings: 1, finishedWeightGrams: grams, provenance: { referenceVariantId: variant }, ingredients: [] });
+  function referencePrisma() {
+    const rows = [referenceRow("r-hu", "hu_langos", "Lángos", 200), referenceRow("r-at", "at_langos", "Langos", 180), referenceRow("r-gulyas", "hu_gulyasleves", "Gulyásleves", 450)];
+    return { ...emptyPrisma(), recipe: { findMany: async ({ where }: any) => where.userId ? [] : rows } } as any;
+  }
+  const understanding = (kind: FoodUnderstanding["kind"], name: string, text: string, onDish: boolean): FoodUnderstanding => ({
+    language: "hu", kind, ...(kind === "compound_dish" ? { dishName: name } : {}), ...(onDish ? { dishQuantity: 2, dishUnit: "portion" as const } : {}),
+    items: onDish ? [] : [{ originalText: text, canonicalName: name, quantity: 2, unit: "portion", evidence: "explicit", confidence: 0.9 }],
+    clarificationNeeded: false, confidence: 0.9
+  });
+
+  it.each([true, false])("compound dish, count on the dish (%s) or on its item: the HU/AT tie is offered with the 2 portions kept", async (onDish) => {
+    const provider = fakeSearchProvider([]);
+    const result = await interpretMealInput(referencePrisma(), "2 adag lángos", undefined, fakeAiProvider(understanding("compound_dish", "lángos", "2 adag lángos", onDish)));
+    const withMatch = await attachRecipeDiscoveryFallback(result, { ...discoveryDeps(provider), prisma: referencePrisma() });
+    expect(withMatch.recipeDiscovery).toMatchObject({ reason: "ambiguous_local_matches", localAlternatives: [{ recipeId: "r-hu", servings: 1 }, { recipeId: "r-at", servings: 1 }] });
+    expect(withMatch.parsed).toMatchObject({ quantity: 2, unit: "portion" });
+    expect(provider.search).not.toHaveBeenCalled();
+  });
+
+  it("the AI calling lángos a single food still reaches the reference dishes instead of only a grams estimate", async () => {
+    const provider = fakeSearchProvider([]);
+    const result = await interpretMealInput(referencePrisma(), "2 adag lángos", undefined, fakeAiProvider(understanding("single_food", "lángos", "2 adag lángos", false)));
+    expect(result.recipeDiscovery).toBeUndefined();
+    const withMatch = await attachRecipeDiscoveryFallback(result, { ...discoveryDeps(provider), prisma: referencePrisma() });
+    expect(withMatch.recipeDiscovery).toMatchObject({ status: "confirmation_required", reason: "ambiguous_local_matches", searchAttempted: false });
+    expect(withMatch.recipeDiscovery?.localAlternatives?.map((option) => option.recipeId)).toEqual(["r-hu", "r-at"]);
+    expect(withMatch.parsed).toMatchObject({ quantity: 2, unit: "portion" });
+    expect(withMatch.foodResolution).toBe(result.foodResolution);
+    expect(provider.search).not.toHaveBeenCalled();
+  });
+
+  it("a non-ambiguous reference dish (2 adag gulyásleves) is a direct match with the count kept, as a compound or a single food", async () => {
+    for (const kind of ["compound_dish", "single_food"] as const) {
+      const result = await interpretMealInput(referencePrisma(), "2 adag gulyásleves", undefined, fakeAiProvider(understanding(kind, "gulyásleves", "2 adag gulyásleves", false)));
+      const withMatch = await attachRecipeDiscoveryFallback(result, { ...discoveryDeps(), prisma: referencePrisma() });
+      expect(withMatch.recipeDiscovery).toMatchObject({ status: "local_match", localMatch: { recipeId: "r-gulyas", source: "reference", servings: 1, servingGrams: 450 } });
+      expect(withMatch.parsed).toMatchObject({ quantity: 2, unit: "portion" });
+    }
+  });
+
+  it("a single food with no saved recipe of that name is left exactly as it was, and the web is never searched for it", async () => {
+    const provider = fakeSearchProvider([]);
+    const result = await interpretMealInput(referencePrisma(), "2 adag ismeretlen", undefined, fakeAiProvider(understanding("single_food", "ismeretlen", "2 adag ismeretlen", false)));
+    const after = await attachRecipeDiscoveryFallback(result, { ...discoveryDeps(provider), prisma: referencePrisma() });
+    expect(after).toBe(result);
+    expect(provider.search).not.toHaveBeenCalled();
+  });
+});

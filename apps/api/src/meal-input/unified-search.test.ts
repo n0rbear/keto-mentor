@@ -90,3 +90,25 @@ describe("one search field (roadmap G1 + E4)", () => {
     expect(again.kind === "results" && again.meaning).toEqual({ tried: true, terms: ["sausage"] });
   });
 });
+
+// Owner report (2026-10-11): "2 adag lángos" typed into the search field.
+describe("a stated portion count travels with the search results", () => {
+  it.each([
+    ["2 adag lángos", ["hu_langos", "at_langos"], 2],
+    ["fél adag lángos", ["hu_langos", "at_langos"], 0.5],
+    ["2 Portionen Gulaschsuppe", ["at_gulaschsuppe"], 2],
+    ["2 servings of goulash soup", ["hu_gulyasleves"], 2]
+  ])("%s lists the reference dishes and returns the portion count", async (query, variants, count) => {
+    const result = await unifiedSearch(fakePrisma([], variants), query, false, deps());
+    if (result.kind !== "results") throw new Error("expected results");
+    expect(result.items.filter((i: any) => i.type === "recipe").map((i: any) => i.title)).toEqual(variants);
+    expect(result.quantity).toEqual({ quantity: count, unit: "portion" });
+  });
+
+  it("a catalog food with a portion serving gets the stated count in that serving", async () => {
+    foodsByQuery["toltott kaposzta"] = [{ id: "tk", name: "Töltött káposzta", match: { stage: "exact", score: 100 }, servings: [{ id: "tk-adag", key: "portion", unit: "adag", labels: { hu: "adag" }, grams: 350, isEstimated: false, confidence: 1, provenance: {} }] }];
+    const result = await unifiedSearch(fakePrisma([]), "2 adag töltött káposzta", false, deps());
+    if (result.kind !== "results") throw new Error("expected results");
+    expect(result.items.find((i: any) => i.food?.id === "tk")).toMatchObject({ amount: { quantity: 2, servingId: "tk-adag", grams: 700 } });
+  });
+});

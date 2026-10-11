@@ -1798,3 +1798,17 @@ describe("interpretMealInput: AI-estimate duplicate-resolution fix", () => {
     expect(estimateCallsByIdentity["karasz"]).toBe(1);
   });
 });
+
+// Owner report (2026-10-11): a catalog food with a portion serving takes the
+// stated count in that serving, in every language, without asking grams.
+describe("a stated portion count on a catalog food with a portion serving", () => {
+  const stew: Food = { id: "catalog-stew", name: "Stuffed cabbage", names: { hu: "Töltött káposzta", de: "Krautwickel", en: "Stuffed cabbage" }, synonyms: { hu: ["töltött káposzta"], de: ["krautwickel"], en: ["stuffed cabbage"] },
+    servings: [{ id: "stew-portion", key: "portion", unit: "portion", labels: { hu: "adag", de: "Portion", en: "serving" }, grams: 350, isEstimated: false, confidence: 1, provenance: { method: "curated" } }], kcalPer100g: 120 };
+  it.each(["2 adag töltött káposzta", "2 Portionen Krautwickel", "2 servings of stuffed cabbage"])("%s", async (text) => {
+    const result = await interpretMealInput(makePrisma([...baseFoods, stew]), text);
+    expect(result.selectedFood?.id).toBe("catalog-stew");
+    expect(result.quantity).toMatchObject({ status: "resolved", servingId: "stew-portion", grams: 700 });
+    expect(result.canConfirm).toBe(true);
+    expect(result.clarification).toBeUndefined();
+  });
+});
