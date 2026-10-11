@@ -13,3 +13,4 @@ a hivatalos forrásból (BLS xlsx, `BlsAdapter`) külön migrációban kell impo
 | `green_sauce_herbs` | borágó, turbolya, csabaíre / Borretsch, Kerbel, Pimpinelle / borage, chervil, salad burnet | gruene_sosse (20 g each) | No BLS 4.0 record for these three of the seven Grüne-Soße herbs; left out (parsley, chives, cress and sorrel are linked). |
 | `lovage_savory_thyme` | lestyán, borsikafű, kakukkfű / Liebstöckel, Bohnenkraut, Thymian / lovage, summer savory, thyme | linseneintopf (20 g Liebstöckel), bohneneintopf (1 Bund Bohnenkraut), pichelsteiner (0.5 TL Thymian) | No BLS 4.0 records for these herbs; left out. |
 | `curry_powder` | curry fűszerpor / Currypulver / curry powder | matjes_hausfrauen (a pinch) | BLS 4.0 has curry only in composite foods; left out (as in at-missing-foods). |
+| `blackcurrant_liqueur` | feketeribizli-likőr / Johannisbeerlikör / blackcurrant liqueur | rote_gruetze (4 cl) | No liqueur record of this kind in BLS 4.0 or the catalog; left out. |

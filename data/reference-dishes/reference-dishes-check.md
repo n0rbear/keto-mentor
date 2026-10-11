@@ -363,6 +363,16 @@
 | Vajban pirított hagyma (Schmelze) | 526 | -160 | 366 | 0.696 | 0.993 | 110.2 | 7.3 | 1.6 | 8.2 | – |
 | Sváb burgonyás nudli savanyú káposztával és szalonnával | 2490 | -150 | 2340 | 0.94 | 1.017 | 201.0 | 10.1 | 5.5 | 20.6 | – |
 | Sváb hagymás lepény szalonnával (Zwiebelkuchen) | 2639.5 | -400 | 2239.5 | 0.848 | 1.002 | 223.3 | 12.3 | 6.6 | 20.8 | – |
+| Fekete-erdei meggytorta | 2539 | -110 | 2429 | 0.957 | 1.048 | 253.2 | 15.4 | 3.1 | 20.6 | – |
+| Német túrótorta omlós tésztán (Käsekuchen) | 2437 | -190 | 2247 | 0.922 | 1.06 | 259.7 | 14.1 | 8.6 | 24.4 | – |
+| Méhcsípés torta (Bienenstich) | 2217.0 | -150 | 2067.0 | 0.932 | 1.067 | 354.7 | 20.7 | 7.4 | 33.8 | – |
+| Morzsás sütemény (Streuselkuchen) | 1616 | -150 | 1466 | 0.907 | 1.136 | 419.2 | 14.8 | 6.4 | 64.5 | – |
+| Szilvás lepény (Zwetschgendatschi) | 2084 | -180 | 1904 | 0.914 | 1.058 | 258.4 | 10.0 | 4.9 | 36.5 | – |
+| Fedett almás pite (gedeckter Apfelkuchen) | 1419.0 | -130 | 1289.0 | 0.908 | 0.92 | 255.0 | 13.2 | 3.3 | 30.0 | – |
+| Duna-hullám sütemény (Donauwelle) | 2365.0 | -200 | 2165.0 | 0.915 | 1.057 | 350.3 | 22.8 | 4.7 | 30.8 | – |
+| Vörös gyümölcskocsonya (Rote Grütze) | 780 | -30 | 750 | 0.962 | 1.033 | 74.7 | 0.4 | 0.9 | 15.3 | – |
+| Vaníliamártás | 649 | -30 | 619 | 0.954 | 1.067 | 131.7 | 5.6 | 4.3 | 15.8 | – |
+| Gőzgombóc (Dampfnudeln) | 1165 | -350 | 815 | 0.7 | 1.016 | 327.5 | 9.7 | 9.2 | 49.4 | – |
 | Rántotta | 158 | -8 | 150 | 0.949 | 0.55 | 173.2 | 13.3 | 13.2 | 0.3 | – |
 | Leberkäsés zsemle | 162.5 | +0 | 162.5 | 1.0 | 0.464 | 281.2 | 16.0 | 12.2 | 21.1 | – |
 
@@ -712,6 +722,15 @@ kivéve ha az ételnél `reference_check.deviation` (átnézett receptkülönbs�
 | Bajor camembert-krém (Obatzda) | nincs még | – | – | – | – | – | – |
 | Sváb burgonyás nudli savanyú káposztával és szalonnával | nincs még | – | – | – | – | – | – |
 | Sváb hagymás lepény szalonnával (Zwiebelkuchen) | bls:X916163 Zwiebelkuchen schwäbisch, mit Speck | 223 / 180 | 12.3 / 9.4 | 6.6 / 5.7 | 20.8 / 17.0 | +24% RECEPTKÜLÖNBSÉG | RECEPTKÜLÖNBSÉG: a gutekueche-recept 210 g vajat és 200 ml tejszínt tesz egy tepsire, a BLS sváb Zwiebelkuchenje soványabb; nem hangoltuk. |
+| Fekete-erdei meggytorta | nincs még | – | – | – | – | – | – |
+| Német túrótorta omlós tésztán (Käsekuchen) | bls:D480200 Käsekuchen/Quarkkuchen (Mürbeteig) | 260 / 261 | 14.1 / 12.1 | 8.6 / 8.4 | 24.4 / 28.9 | -0% rendben | – |
+| Méhcsípés torta (Bienenstich) | bls:D461300 Bienenstich (Hefeteig) | 355 / 332 | 20.7 / 19.34 | 7.4 / 6.44 | 33.8 / 32.0 | +7% rendben | – |
+| Morzsás sütemény (Streuselkuchen) | bls:D461500 Streuselkuchen (Hefeteig) | 419 / 425 | 14.8 / 17.97 | 6.4 / 7.27 | 64.5 / 57.0 | -1% rendben | – |
+| Szilvás lepény (Zwetschgendatschi) | bls:D482200 Zwetschgenkuchen (Mürbeteig) | 258 / 216 | 10.0 / 9.61 | 4.9 / 3.21 | 36.5 / 28.12 | +20% RECEPTKÜLÖNBSÉG | RECEPTKÜLÖNBSÉG: a gutekueche-recept vajas-joghurtos kevert tésztája vastag (550 g liszt, 200 g vaj 800 g szilvára), a BLS-referencia vékony omlós tészta több gyümölccsel; nem hangoltuk. |
+| Fedett almás pite (gedeckter Apfelkuchen) | bls:D181300 Apfelkuchen gedeckt (Mürbeteig) | 255 / 219 | 13.2 / 9.9 | 3.3 / 3.7 | 30.0 / 27.4 | +16% RECEPTKÜLÖNBSÉG | RECEPTKÜLÖNBSÉG: a recept gazdag omlós tésztát használ (200 g vaj 300 g lisztre), a BLS-referencia soványabb; nem hangoltuk. |
+| Duna-hullám sütemény (Donauwelle) | nincs még | – | – | – | – | – | – |
+| Vörös gyümölcskocsonya vaníliamártással (Rote Grütze) | bls:Y855743 Rote Grütze mit Vanillesauce | 95 / 95 | 2.2 / 1.8 | 2.1 / 2.1 | 15.5 / 16.2 | -0% rendben | – |
+| Gőzgombóc vaníliamártással (Dampfnudeln) | nincs még | – | – | – | – | – | – |
 | Rántotta | bls:Y720163 Rührei gebraten in Butter | 173 / 172 | 13.3 / 12.99 | 13.2 / 13.31 | 0.3 / 0.42 | +1% rendben | – |
 | Leberkäsés zsemle | nincs még | – | – | – | – | – | – |
 
@@ -1060,6 +1079,15 @@ Mély tányér: kapacitás × töltöttség × sűrűség. Lapos tányér: 0,8 �
 | Bajor camembert-krém (Obatzda) | DE | traditional | 100 | 346 | 500 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | Sváb burgonyás nudli savanyú káposztával és szalonnával | DE | traditional | 400 | 343 | 496 | 265 | 311 | 361 |
 | Sváb hagymás lepény szalonnával (Zwiebelkuchen) | DE | traditional | 200 | – (kézből) | – | – | – | – |
+| Fekete-erdei meggytorta | DE | traditional | 150 | 354 | 511 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Német túrótorta omlós tésztán (Käsekuchen) | DE | traditional | 185 | 358 | 517 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Méhcsípés torta (Bienenstich) | DE | traditional | 105 | 360 | 520 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Morzsás sütemény (Streuselkuchen) | DE | traditional | 90 | 383 | 554 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Szilvás lepény (Zwetschgendatschi) | DE | traditional | 160 | 357 | 516 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Fedett almás pite (gedeckter Apfelkuchen) | DE | traditional | 160 | 310 | 448 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Duna-hullám sütemény (Donauwelle) | DE | traditional | 110 | 357 | 515 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Vörös gyümölcskocsonya vaníliamártással (Rote Grütze) | DE | traditional | 230 | 353 | 509 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Gőzgombóc vaníliamártással (Dampfnudeln) | DE | traditional | 300 | 348 | 503 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | Rántotta | HU, AT, DE | everyday | 150 | – (lapos tányéros étel) | – (lapos tányéros étel) | 127 | 150 | 173 |
 | Leberkäsés zsemle | AT, DE | street_food | 162.5 | – (kézből) | – | – | – | – |
 

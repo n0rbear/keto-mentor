@@ -2446,6 +2446,90 @@ zwiebelkuchen,Sváb hagymás lepény szalonnával (Zwiebelkuchen),12,schinkenspe
 zwiebelkuchen,Sváb hagymás lepény szalonnával (Zwiebelkuchen),12,egg,tojás,200,core,bls:E111100,2239.5,0.848,1.002,200
 zwiebelkuchen,Sváb hagymás lepény szalonnával (Zwiebelkuchen),12,cream_30,habtejszín (30%),200,core,bls:M173800,2239.5,0.848,1.002,200
 zwiebelkuchen,Sváb hagymás lepény szalonnával (Zwiebelkuchen),12,caraway_seed,kömény (egész/őrölt),0.5,seasoning,usda_fdc:170918,2239.5,0.848,1.002,200
+schwarzwaelder_kirschtorte,Fekete-erdei meggytorta,16,egg,tojás,200,core,bls:E111100,2429,0.957,1.048,150
+schwarzwaelder_kirschtorte,Fekete-erdei meggytorta,16,sugar,kristálycukor,166,core,bls:S111000,2429,0.957,1.048,150
+schwarzwaelder_kirschtorte,Fekete-erdei meggytorta,16,wheat_flour,búzaliszt (BL55),80,core,bls:C214100,2429,0.957,1.048,150
+schwarzwaelder_kirschtorte,Fekete-erdei meggytorta,16,corn_starch,étkezési keményítő,110,core,bls:C446000,2429,0.957,1.048,150
+schwarzwaelder_kirschtorte,Fekete-erdei meggytorta,16,cocoa_powder,kakaópor (holland),25,core,bls:S711000,2429,0.957,1.048,150
+schwarzwaelder_kirschtorte,Fekete-erdei meggytorta,16,baking_powder,sütőpor,9,core,bls:R421100,2429,0.957,1.048,150
+schwarzwaelder_kirschtorte,Fekete-erdei meggytorta,16,water,víz,75,liquid,none,2429,0.957,1.048,150
+schwarzwaelder_kirschtorte,Fekete-erdei meggytorta,16,sour_cherry_jar,"meggy (üveges, cukrozott, lecsepegtetve)",350,core,bls:F212902,2429,0.957,1.048,150
+schwarzwaelder_kirschtorte,Fekete-erdei meggytorta,16,sour_cherry_juice,meggylé,250,liquid,bls:F212600,2429,0.957,1.048,150
+schwarzwaelder_kirschtorte,Fekete-erdei meggytorta,16,fruit_brandy,gyümölcspálinka (Kirschwasser),150,core,bls:P752100,2429,0.957,1.048,150
+schwarzwaelder_kirschtorte,Fekete-erdei meggytorta,16,cream_30,habtejszín (30%),1000,core,bls:M173800,2429,0.957,1.048,150
+schwarzwaelder_kirschtorte,Fekete-erdei meggytorta,16,cream_stabilizer,tejszínhab-fixáló (Sahnesteif),8,core,bls:R434000,2429,0.957,1.048,150
+schwarzwaelder_kirschtorte,Fekete-erdei meggytorta,16,vanilla_sugar,vaníliás cukor,16,core,bls:S114000,2429,0.957,1.048,150
+schwarzwaelder_kirschtorte,Fekete-erdei meggytorta,16,dark_chocolate,étcsokoládé (~50-60%),100,core,bls:S560000,2429,0.957,1.048,150
+kaesekuchen,Német túrótorta omlós tésztán (Käsekuchen),12,wheat_flour,búzaliszt (BL55),300,core,bls:C214100,2247,0.922,1.06,185
+kaesekuchen,Német túrótorta omlós tésztán (Käsekuchen),12,butter,vaj,200,fat,open_database:173430,2247,0.922,1.06,185
+kaesekuchen,Német túrótorta omlós tésztán (Käsekuchen),12,sugar,kristálycukor,250,core,bls:S111000,2247,0.922,1.06,185
+kaesekuchen,Német túrótorta omlós tésztán (Käsekuchen),12,egg,tojás,250,core,bls:E111100,2247,0.922,1.06,185
+kaesekuchen,Német túrótorta omlós tésztán (Käsekuchen),12,quark_lean,sovány túró (Magertopfen),1000,core,bls:M713100,2247,0.922,1.06,185
+kaesekuchen,Német túrótorta omlós tésztán (Käsekuchen),12,cream_30,habtejszín (30%),400,core,bls:M173800,2247,0.922,1.06,185
+kaesekuchen,Német túrótorta omlós tésztán (Käsekuchen),12,pudding_powder_vanilla,vaníliás pudingpor,37,core,bls:R481100,2247,0.922,1.06,185
+bienenstich,Méhcsípés torta (Bienenstich),20,wheat_flour,búzaliszt (BL55),375,core,bls:C214100,2067.0,0.932,1.067,105
+bienenstich,Méhcsípés torta (Bienenstich),20,egg,tojás,150,core,bls:E111100,2067.0,0.932,1.067,105
+bienenstich,Méhcsípés torta (Bienenstich),20,butter,vaj,225,fat,open_database:173430,2067.0,0.932,1.067,105
+bienenstich,Méhcsípés torta (Bienenstich),20,sugar,kristálycukor,274,core,bls:S111000,2067.0,0.932,1.067,105
+bienenstich,Méhcsípés torta (Bienenstich),20,vanilla_sugar,vaníliás cukor,8,core,bls:S114000,2067.0,0.932,1.067,105
+bienenstich,Méhcsípés torta (Bienenstich),20,baking_powder,sütőpor,8.0,core,bls:R421100,2067.0,0.932,1.067,105
+bienenstich,Méhcsípés torta (Bienenstich),20,cream_30,habtejszín (30%),225,core,bls:M173800,2067.0,0.932,1.067,105
+bienenstich,Méhcsípés torta (Bienenstich),20,honey,méz,100,core,bls:S120000,2067.0,0.932,1.067,105
+bienenstich,Méhcsípés torta (Bienenstich),20,almond,mandula (darált),300,core,bls:H210100,2067.0,0.932,1.067,105
+bienenstich,Méhcsípés torta (Bienenstich),20,milk_whole,"tej (3,5%)",515,liquid,bls:M111300,2067.0,0.932,1.067,105
+bienenstich,Méhcsípés torta (Bienenstich),20,pudding_powder_vanilla,vaníliás pudingpor,37,core,bls:R481100,2067.0,0.932,1.067,105
+streuselkuchen,Morzsás sütemény (Streuselkuchen),16,wheat_flour,búzaliszt (BL55),600,core,bls:C214100,1466,0.907,1.136,90
+streuselkuchen,Morzsás sütemény (Streuselkuchen),16,egg,tojás,200,core,bls:E111100,1466,0.907,1.136,90
+streuselkuchen,Morzsás sütemény (Streuselkuchen),16,sugar,kristálycukor,510,core,bls:S111000,1466,0.907,1.136,90
+streuselkuchen,Morzsás sütemény (Streuselkuchen),16,butter,vaj,200,fat,open_database:173430,1466,0.907,1.136,90
+streuselkuchen,Morzsás sütemény (Streuselkuchen),16,baking_powder,sütőpor,6,core,bls:R421100,1466,0.907,1.136,90
+streuselkuchen,Morzsás sütemény (Streuselkuchen),16,cream_30,habtejszín (30%),100,core,bls:M173800,1466,0.907,1.136,90
+pflaumenkuchen,Szilvás lepény (Zwetschgendatschi),12,wheat_flour,búzaliszt (BL55),550,core,bls:C214100,1904,0.914,1.058,160
+pflaumenkuchen,Szilvás lepény (Zwetschgendatschi),12,butter,vaj,200,fat,open_database:173430,1904,0.914,1.058,160
+pflaumenkuchen,Szilvás lepény (Zwetschgendatschi),12,egg,tojás,200,core,bls:E111100,1904,0.914,1.058,160
+pflaumenkuchen,Szilvás lepény (Zwetschgendatschi),12,yogurt_plain,natúr joghurt,120,core,bls:M141300,1904,0.914,1.058,160
+pflaumenkuchen,Szilvás lepény (Zwetschgendatschi),12,sugar,kristálycukor,200,core,bls:S111000,1904,0.914,1.058,160
+pflaumenkuchen,Szilvás lepény (Zwetschgendatschi),12,vanilla_sugar,vaníliás cukor,8,core,bls:S114000,1904,0.914,1.058,160
+pflaumenkuchen,Szilvás lepény (Zwetschgendatschi),12,baking_powder,sütőpor,6,core,bls:R421100,1904,0.914,1.058,160
+pflaumenkuchen,Szilvás lepény (Zwetschgendatschi),12,plum,szilva (magozott),800,core,bls:F223100,1904,0.914,1.058,160
+apfelkuchen_gedeckt,Fedett almás pite (gedeckter Apfelkuchen),8,wheat_flour,búzaliszt (BL55),300,core,bls:C214100,1289.0,0.908,0.92,160
+apfelkuchen_gedeckt,Fedett almás pite (gedeckter Apfelkuchen),8,butter,vaj,200,fat,open_database:173430,1289.0,0.908,0.92,160
+apfelkuchen_gedeckt,Fedett almás pite (gedeckter Apfelkuchen),8,sugar,kristálycukor,100,core,bls:S111000,1289.0,0.908,0.92,160
+apfelkuchen_gedeckt,Fedett almás pite (gedeckter Apfelkuchen),8,egg,tojás,50,core,bls:E111100,1289.0,0.908,0.92,160
+apfelkuchen_gedeckt,Fedett almás pite (gedeckter Apfelkuchen),8,vanilla_sugar,vaníliás cukor,4.0,core,bls:S114000,1289.0,0.908,0.92,160
+apfelkuchen_gedeckt,Fedett almás pite (gedeckter Apfelkuchen),8,apple_peeled,alma (hámozva),750,core,bls:F120100,1289.0,0.908,0.92,160
+apfelkuchen_gedeckt,Fedett almás pite (gedeckter Apfelkuchen),8,lemon_juice,citromlé,15,seasoning,usda_fdc:167747,1289.0,0.908,0.92,160
+donauwelle,Duna-hullám sütemény (Donauwelle),20,wheat_flour,búzaliszt (BL55),350,core,bls:C214100,2165.0,0.915,1.057,110
+donauwelle,Duna-hullám sütemény (Donauwelle),20,sugar,kristálycukor,199,core,bls:S111000,2165.0,0.915,1.057,110
+donauwelle,Duna-hullám sütemény (Donauwelle),20,egg,tojás,150,core,bls:E111100,2165.0,0.915,1.057,110
+donauwelle,Duna-hullám sütemény (Donauwelle),20,milk_whole,"tej (3,5%)",541,liquid,bls:M111300,2165.0,0.915,1.057,110
+donauwelle,Duna-hullám sütemény (Donauwelle),20,sunflower_oil,napraforgóolaj,174,fat,bls:Q320000,2165.0,0.915,1.057,110
+donauwelle,Duna-hullám sütemény (Donauwelle),20,baking_powder,sütőpor,8.0,core,bls:R421100,2165.0,0.915,1.057,110
+donauwelle,Duna-hullám sütemény (Donauwelle),20,cocoa_powder,kakaópor (holland),21,core,bls:S711000,2165.0,0.915,1.057,110
+donauwelle,Duna-hullám sütemény (Donauwelle),20,sour_cherry_jar,"meggy (üveges, cukrozott, lecsepegtetve)",350,core,bls:F212902,2165.0,0.915,1.057,110
+donauwelle,Duna-hullám sütemény (Donauwelle),20,butter,vaj,250,fat,open_database:173430,2165.0,0.915,1.057,110
+donauwelle,Duna-hullám sütemény (Donauwelle),20,pudding_powder_vanilla,vaníliás pudingpor,37,core,bls:R481100,2165.0,0.915,1.057,110
+donauwelle,Duna-hullám sütemény (Donauwelle),20,water,víz,45,liquid,none,2165.0,0.915,1.057,110
+donauwelle,Duna-hullám sütemény (Donauwelle),20,nut_nougat_cream,mogyorókrém (Nutella-típus),40,core,bls:S145000,2165.0,0.915,1.057,110
+donauwelle,Duna-hullám sütemény (Donauwelle),20,dark_chocolate,étcsokoládé (~50-60%),200,core,bls:S560000,2165.0,0.915,1.057,110
+rote_gruetze,Vörös gyümölcskocsonya (Rote Grütze),4,strawberry,eper,125,core,bls:F301100,750,0.962,1.033,150
+rote_gruetze,Vörös gyümölcskocsonya (Rote Grütze),4,blueberry,kék áfonya,125,core,bls:F304100,750,0.962,1.033,150
+rote_gruetze,Vörös gyümölcskocsonya (Rote Grütze),4,sweet_cherry,cseresznye,250,core,bls:F211100,750,0.962,1.033,150
+rote_gruetze,Vörös gyümölcskocsonya (Rote Grütze),4,sour_cherry_juice,meggylé,100,liquid,bls:F212600,750,0.962,1.033,150
+rote_gruetze,Vörös gyümölcskocsonya (Rote Grütze),4,blackcurrant_juice,feketeribizli-lé,150,liquid,bls:F323600,750,0.962,1.033,150
+rote_gruetze,Vörös gyümölcskocsonya (Rote Grütze),4,corn_starch,étkezési keményítő,6,thickener,bls:C446000,750,0.962,1.033,150
+rote_gruetze,Vörös gyümölcskocsonya (Rote Grütze),4,sugar,kristálycukor,24,core,bls:S111000,750,0.962,1.033,150
+vanillesauce,Vaníliamártás,4,milk_whole,"tej (3,5%)",515,liquid,bls:M111300,619,0.954,1.067,100
+vanillesauce,Vaníliamártás,4,egg_yolk,tojássárgája,54,core,bls:E112100,619,0.954,1.067,100
+vanillesauce,Vaníliamártás,4,corn_starch,étkezési keményítő,20,thickener,bls:C446000,619,0.954,1.067,100
+vanillesauce,Vaníliamártás,4,sugar,kristálycukor,60,core,bls:S111000,619,0.954,1.067,100
+dampfnudeln,Gőzgombóc (Dampfnudeln),4,wheat_flour,búzaliszt (BL55),500,core,bls:C214100,815,0.7,1.016,200
+dampfnudeln,Gőzgombóc (Dampfnudeln),4,yeast_fresh,friss élesztő,25,core,bls:R459000,815,0.7,1.016,200
+dampfnudeln,Gőzgombóc (Dampfnudeln),4,milk_whole,"tej (3,5%)",129,liquid,bls:M111300,815,0.7,1.016,200
+dampfnudeln,Gőzgombóc (Dampfnudeln),4,butter,vaj,75,fat,open_database:173430,815,0.7,1.016,200
+dampfnudeln,Gőzgombóc (Dampfnudeln),4,egg,tojás,100,core,bls:E111100,815,0.7,1.016,200
+dampfnudeln,Gőzgombóc (Dampfnudeln),4,sugar,kristálycukor,36,core,bls:S111000,815,0.7,1.016,200
+dampfnudeln,Gőzgombóc (Dampfnudeln),4,water,víz,300,liquid,none,815,0.7,1.016,200
 eierspeis,Rántotta,1,egg,tojás,150,core,bls:E111100,150,0.949,0.55,150
 eierspeis,Rántotta,1,butter,vaj,8,fat,open_database:173430,150,0.949,0.55,150
 leberkaessemmel,Leberkäsés zsemle,1,wheat_roll,zsemle,62.5,core,bls:B511000,162.5,1.0,0.464,162.5

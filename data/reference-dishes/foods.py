@@ -302,6 +302,15 @@ FOOD_KEYS = {
     "rostbratwurst": ("sütnivaló kolbász (Rostbratwurst)", "Rostbratwurst", "grilling sausage (Rostbratwurst)", "bls:W222600", "total", 178, 12.66, 15.9, 0.12, 0.04, 1.0, 0.8, 'Thuringian and Nuremberg Rostbratwurst; BLS has one record'),  # BLS: Rostbratwurst
     "kasseler": ("füstölt pácolt karaj (Kasseler)", "Kasseler, Rohpökelware, geräuchert", "Kasseler (cured smoked pork loin)", "bls:W510000", "total", 107, 2.17, 21.97, 0, 0, 1.05, 0.8, None),  # BLS: Kasseler, Rohpökelware, geräuchert
     "dark_beer": ("barna sör", "Lagerbier dunkel", "dark lager beer", "bls:P165000", "total", 27, 0, 0.4, 0.172, 0, 1.0, 1.0, 'alcohol mostly evaporates during cooking; energy slightly overstated'),  # BLS: Lagerbier dunkel
+    # de_kuchen
+    "sour_cherry_jar": ("meggy (üveges, cukrozott, lecsepegtetve)", "Sauerkirsche gezuckert, Konserve, abgetropft", "sour cherries, jarred, sweetened, drained", "bls:F212902", "total", 52, 0.21, 0.84, 12.14, 1.08, 1.05, 0.6, None),  # BLS: Sauerkirsche gezuckert, Konserve, abgetropft
+    "sour_cherry_juice": ("meggylé", "Sauerkirschsaft", "sour cherry juice", "bls:F212600", "total", 62, 0.4, 0.81, 12.953, 0.1, 1.04, 1.04, None),  # BLS: Sauerkirschsaft
+    "fruit_brandy": ("gyümölcspálinka (Kirschwasser)", "Obstbrand/Obstwasser", "fruit brandy (Kirschwasser)", "bls:P752100", "total", 274, 0, 0, 0, 0, 0.95, 0.95, 'Kirschwasser is an Obstbrand'),  # BLS: Obstbrand/Obstwasser
+    "cream_stabilizer": ("tejszínhab-fixáló (Sahnesteif)", "Sahnestandmittel", "whipped cream stabiliser", "bls:R434000", "total", 369, 0.045, 0.067, 92.258, 0.201, 1.0, 0.6, None),  # BLS: Sahnestandmittel
+    "blueberry": ("kék áfonya", "Heidelbeere roh", "blueberry", "bls:F304100", "total", 61, 0.6, 0.5, 14.6, 4.9, 1.0, 0.6, None),  # BLS: Heidelbeere roh
+    "blackcurrant_juice": ("feketeribizli-lé", "Johannisbeersaft schwarz", "blackcurrant juice", "bls:F323600", "total", 55, 0.176, 1.238, 10.41, 0.4, 1.04, 1.04, None),  # BLS: Johannisbeersaft schwarz
+    "nut_nougat_cream": ("mogyorókrém (Nutella-típus)", "Nuss-Nougat-Creme", "chocolate hazelnut spread", "bls:S145000", "total", 530, 30.55, 6.9, 58.27, 3.52, 1.2, 1.2, None),  # BLS: Nuss-Nougat-Creme
+    "frankfurter_kranz": ("frankfurti koszorútorta (Frankfurter Kranz)", "Frankfurter Kranz (Sandmasse)", "Frankfurter Kranz (butter cream ring cake)", "bls:D441300", "total", 357, 20.8, 3.7, 38.7, 0.5, 0.6, 0.6, 'BLS bakery record of the whole cake slice'),  # BLS: Frankfurter Kranz (Sandmasse)
     # de (phase 4) END
 }
 
