@@ -9,7 +9,7 @@ import { RecipeDiscoveryService, type RecipeDiscoveryCandidate, type RecipeDisco
 import { domainOf } from "../web-knowledge/web-knowledge-search-provider.js";
 import type { SafeFetcherDependencies } from "../recipes/safe-url-fetcher.js";
 import { classifyRecipeReview, computeTrustedNutrition, toIngredientReview, localizeResolvedFoodNames, type RecipeIngredientReview, type RecipeReviewSummary, type ReviewableIngredient } from "../recipes/recipe-ingredient-review.js";
-import { findReferenceDish, findTrustedLocalRecipe } from "./local-recipe-lookup.js";
+import { findReferenceDish, findTrustedLocalRecipe, withoutLeadingAmount, type LocalRecipeLookupResult } from "./local-recipe-lookup.js";
 import type { ProgressStage } from "./progress-bus.js";
 import type { RecipeIngredientNormalizationProvider } from "../recipes/recipe-ingredient-normalization.js";
 import type { RecipeQuantityEstimationProvider } from "../recipes/recipe-quantity-estimation.js";
@@ -473,14 +473,32 @@ function findLocalOnlyDishName(result: InterpretResult): string | null {
   return (result.semanticItem?.canonicalName ?? result.parsed.foodQuery)?.trim() || null;
 }
 
+/**
+ * Owner report (2026-10-11): "babgulyás" found the saved dish, "egy tányér
+ * babgulyás" did not — with a quantity the AI tends to translate the dish
+ * name ("bean goulash"), so a lookup by that name alone missed the user's
+ * own recipe and fell through to the web and a grams prompt. The user's own
+ * words, without their leading amount, are tried as well, so
+ * "<quantity> <dish>" finds exactly what "<dish>" finds.
+ */
+async function findLocalDish(deps: RecipeDiscoveryFallbackDeps, aiName: string | undefined, userText: string | undefined): Promise<LocalRecipeLookupResult> {
+  const names = [aiName?.trim(), userText ? withoutLeadingAmount(userText).trim() : undefined]
+    .filter((name, index, all): name is string => !!name && all.indexOf(name) === index);
+  for (const name of names) {
+    const own = await findTrustedLocalRecipe(deps.prisma, name, deps.userId);
+    const local = own.status === "not_found" ? await findReferenceDish(deps.prisma, name) : own;
+    if (local.status !== "not_found") return local;
+  }
+  return { status: "not_found" };
+}
+
 export async function attachRecipeDiscoveryFallback(result: InterpretResult, deps: RecipeDiscoveryFallbackDeps): Promise<InterpretResult> {
   const target = findEligibleDiscoveryTarget(result);
   if (!target) {
     const localOnlyName = findLocalOnlyDishName(result);
     if (!localOnlyName) return result;
     deps.onProgress?.("local_recipe_search");
-    const own = await findTrustedLocalRecipe(deps.prisma, localOnlyName, deps.userId);
-    const local = own.status === "not_found" ? await findReferenceDish(deps.prisma, localOnlyName) : own;
+    const local = await findLocalDish(deps, localOnlyName, result.input);
     if (local.status === "not_found") return result;
     const base = { searchAttempted: false, resultCount: 0, candidatesAfterRelevanceFilter: 0, candidatesAttempted: 0 };
     return applyPreview(result, { location: "result" }, local.status === "found"
@@ -494,8 +512,7 @@ export async function attachRecipeDiscoveryFallback(result: InterpretResult, dep
   // wins outright, at zero search/fetch/AI cost, before web discovery is
   // ever attempted.
   deps.onProgress?.("local_recipe_search");
-  const own = await findTrustedLocalRecipe(deps.prisma, dishName, deps.userId);
-  const local = own.status === "not_found" ? await findReferenceDish(deps.prisma, dishName) : own;
+  const local = await findLocalDish(deps, dishName, target.location === "result" ? result.input : result.items?.[target.index]?.semanticItem?.originalText);
   if (local.status === "found") {
     const preview: RecipeDiscoveryPreview = {
       status: "local_match",

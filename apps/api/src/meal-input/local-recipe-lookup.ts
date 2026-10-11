@@ -1,5 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
 import { normalizeSearch } from "../catalog/normalize.js";
+import { parseNaturalFoodQuery } from "../catalog/natural-food-query.js";
 import { calculateRecipeNutrition, type RecipeWithIngredients } from "../recipes/nutrition.js";
 import type { MacroTotals } from "../nutrition-core.js";
 import { findReferenceRecipes, referenceVariantIdsFor } from "../reference-dishes/lookup.js";
@@ -56,6 +57,24 @@ export function phraseMentionsDish(phrase: string, dishTitle: string): boolean {
   const phraseWords = normalizeSearch(phrase).split(" ").filter(Boolean);
   const last = phraseWords[phraseWords.length - 1];
   return dishWords.every((dishWord) => phraseWords.some((word) => word.startsWith(dishWord)) || (last != null && last.length >= 3 && dishWord.startsWith(last)));
+}
+
+/**
+ * The phrase without its leading amount: drops leading words that do not
+ * change what the parser reads as the food ("egy tányér babgulyás" ->
+ * "babgulyás", "a plate of goulash soup" -> "goulash soup"), so a stated
+ * quantity never changes which dish is found (owner report 2026-10-11).
+ */
+export function withoutLeadingAmount(query: string): string {
+  const parsed = parseNaturalFoodQuery(query);
+  const words = query.split(/\s+/).filter(Boolean);
+  let start = 0;
+  while (start < words.length - 1) {
+    const rest = parseNaturalFoodQuery(words.slice(start + 1).join(" "));
+    if (rest.foodQuery !== parsed.foodQuery || rest.preparation !== parsed.preparation) break;
+    start++;
+  }
+  return words.slice(start).join(" ");
 }
 
 const recipeLookupInclude = {

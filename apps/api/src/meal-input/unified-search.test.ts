@@ -112,3 +112,29 @@ describe("a stated portion count travels with the search results", () => {
     expect(result.items.find((i: any) => i.food?.id === "tk")).toMatchObject({ amount: { quantity: 2, servingId: "tk-adag", grams: 700 } });
   });
 });
+
+// Owner report (2026-10-11): "babgulyás" listed the saved dish, "egy tányér
+// babgulyás" did not. A quantity prefix must never change which recipes
+// match, nor their order.
+describe("a quantity prefix never changes which recipes are found", () => {
+  const ownAndReference = () => fakePrisma([{ id: "bab1", title: "Babgulyás csülökkel" }, { id: "bab2", title: "Babgulyás" }],
+    ["hu_rakott_krumpli", "hu_krumplifozelek", "hu_krumplileves", "hu_gulyasleves", "at_gulaschsuppe", "hu_toltott_kaposzta", "hu_kaposztasalata", "at_krautwickel", "hu_lecso_virslivel"]);
+  const recipeIds = async (query: string) => {
+    const result = await unifiedSearch(ownAndReference(), query, false, deps());
+    if (result.kind !== "results") throw new Error("expected results");
+    return result.items.filter((i: any) => i.type === "recipe").map((i: any) => i.recipeId);
+  };
+  it.each([
+    ["babgulyás", ["egy tányér babgulyás", "egy adag babgulyás", "1 tányér babgulyás", "1 adag babgulyás", "2 adag babgulyás"]],
+    ["rakott krumpli", ["egy tányér rakott krumpli", "2 adag rakott krumpli"]],
+    ["töltött káposzta", ["egy adag töltött káposzta", "egy tál töltött káposzta"]],
+    ["gulyásleves", ["egy tányér gulyásleves", "a bowl of gulyásleves"]],
+    ["lecsó", ["egy tányér lecsó"]],
+    ["Gulaschsuppe", ["ein Teller Gulaschsuppe", "eine Portion Gulaschsuppe", "2 Portionen Gulaschsuppe"]],
+    ["goulash soup", ["a plate of goulash soup", "a bowl of goulash soup", "2 servings of goulash soup"]]
+  ])("%s", async (dish, prefixed) => {
+    const plain = await recipeIds(dish);
+    expect(plain.length).toBeGreaterThan(0);
+    for (const query of prefixed) expect(await recipeIds(query)).toEqual(plain);
+  });
+});

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dishCoreKey, findReferenceDish, findTrustedLocalRecipe } from "./local-recipe-lookup.js";
+import { dishCoreKey, findReferenceDish, findTrustedLocalRecipe, withoutLeadingAmount } from "./local-recipe-lookup.js";
 import { referenceVariantIdsFor } from "../reference-dishes/lookup.js";
 import { REFERENCE_USERNAME } from "../reference-dishes/seed.js";
 
@@ -138,4 +138,13 @@ describe("reference dishes (roadmap B)", () => {
     expect(result.status).toBe("ambiguous");
     if (result.status === "ambiguous") expect(result.candidates.map((c) => c.title)).toEqual(["hu_rantott_hus", "hu_rantott_hus__parolt_rizs"]);
   });
+});
+
+describe("withoutLeadingAmount (owner report 2026-10-11)", () => {
+  it.each([
+    ["egy tányér babgulyás", "babgulyás"], ["1 adag babgulyás", "babgulyás"], ["2 adag rakott krumpli", "rakott krumpli"],
+    ["egy tál töltött káposzta", "töltött káposzta"], ["egy adag sült kolbász", "sült kolbász"], ["egy tányér rántott hús", "rántott hús"],
+    ["ein Teller Gulaschsuppe", "Gulaschsuppe"], ["2 Portionen Gulaschsuppe", "Gulaschsuppe"],
+    ["a plate of goulash soup", "goulash soup"], ["2 servings of goulash soup", "goulash soup"], ["babgulyás", "babgulyás"]
+  ])("%s -> %s", (text, dish) => expect(withoutLeadingAmount(text)).toBe(dish));
 });

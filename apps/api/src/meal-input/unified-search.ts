@@ -7,7 +7,7 @@ import type { UsageLimiter } from "../catalog/usage-budget.js";
 import { REFERENCE_DATA } from "../reference-dishes/reference-data.js";
 import { findReferenceRecipes } from "../reference-dishes/lookup.js";
 import { parseNaturalFoodQuery } from "../catalog/natural-food-query.js";
-import { dishCoreKey, phraseMentionsDish } from "./local-recipe-lookup.js";
+import { dishCoreKey, phraseMentionsDish, withoutLeadingAmount } from "./local-recipe-lookup.js";
 import { resolveQuantityLocally } from "./interpret.js";
 
 /**
@@ -72,8 +72,12 @@ export async function unifiedSearch(prisma: PrismaClient, rawQuery: string, mean
   // 4 pieces instead of asking for grams (owner report 2026-09-26).
   const parsed = parseNaturalFoodQuery(query);
   const foodTerm = parsed.foodQuery && parsed.foodQuery !== normalized ? parsed.foodQuery : null;
+  // Recipes are matched on the phrase without its leading amount ("egy
+  // tányér babgulyás" -> "babgulyás"), so a stated quantity never changes
+  // which recipes match or their order (owner report 2026-10-11).
+  const recipeQuery = parsed.quantity != null || parsed.unit ? withoutLeadingAmount(query) : query;
   const [recipes, sentenceFoods, termFoods] = await Promise.all([
-    findRecipes(prisma, query, normalized, deps.userId),
+    findRecipes(prisma, recipeQuery, normalizeSearch(recipeQuery), deps.userId),
     searchFoods(prisma, query, MAX_FOODS) as Promise<any[]>,
     foodTerm ? searchFoods(prisma, foodTerm, MAX_FOODS) as Promise<any[]> : Promise.resolve([] as any[])
   ]);
