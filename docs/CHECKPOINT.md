@@ -4,8 +4,8 @@ Compact continuity state for the Master/worker workflow. Git, tests and this fil
 
 - **Date:** 2026-10-11
 - **Checkpoint branch:** `claude/pensive-hamilton-ocsygi` (checkpoint-only; no product code)
-- **main HEAD:** `65ec0fa` (merge of PR #79, AT phase 3, 2026-10-11)
-- **Production:** `keto-mentor-api` / `-web` live at `65ec0fa` (2026-10-11 12:34 UTC). Migration `20261005120000_bls_regional_at` applied, `reference_dishes seeded=395`; read-only check: bls 617→656, 225 AT aliases, no bare rahm/obers/túró/quark/szalonna aliases. Prod catalog = shared `driverassistant` Postgres, schema `ketomentor`, read-only via Render MCP.
+- **main HEAD:** `bf4a97c` (merge of PR #80, DE phase 4, 2026-10-11)
+- **Production:** live at `bf4a97c` (2026-10-11 17:56 UTC). Migrations `..._bls_regional_at` and `..._bls_regional_de` applied; `reference_dishes seeded=541`; read-only: bls 697, no bare ambiguous aliases. Prod catalog = shared `driverassistant` Postgres, schema `ketomentor`, read-only via Render MCP.
 - **Staging DB:** `keto-mentor-staging-db` is a free-plan instance that **expires 2026-10-13**.
 - **Staging services** still track `fix/web-evidence-production-effectiveness` (merged, stale) — repoint to the next feature branch or `main` before staging verification. Staging start does NOT run migrations.
 - **Network:** general access. `*.onrender.com` (free-tier cold start: use ≥60 s timeouts), `api.telegram.org`, `blsdb.de` reachable. Render MCP: workspace `tea-d4233phr0fns738t559g`, read-only Postgres.
@@ -17,7 +17,6 @@ Compact continuity state for the Master/worker workflow. Git, tests and this fil
 ## Open
 - **PR #53** docs-only community backlog (idle).
 - **PR #81** `fix/portion-count-from-input` @ `54ec125` — owner defect "2 adag lángos": stated portion count carried through (API local lookup for single-food dish names; parser portionen/serving(s); web pickers start at stated count; top-level local match rendered). API 2170, web 378, tsc clean. Open: should "2 tányér/tál" count as recipe servings?
-- **PR #80** (owner: "egyelőre maradhat" — hold, do not merge) `feat/regional-database-phase4` @ `b04f12e` — full DE set (74/62/35; 69 reused HU/AT via `REUSE` table in `de.py`), migration `20261011120000_bls_regional_de` (65 ids, insert-only; 24 already in prod). API 2186, web 368, tsc clean. Awaiting owner (mappings, Pfannkuchen/Döner/Fischbrötchen choices, AT/DE shared phrases).
 
 ## Regional methodology (from #75/#76 — follow exactly)
 Source of truth = Python modules in `data/reference-dishes/` (`at.py`, `hu*.py`, `common.py`, `foods.py`); `build.py` validates/derives; generated TS data + idempotent seed. Every dish: countries, category, aliases per `hu`/`de`/`de-AT`/`en`, ≥2 dated recipe sources, every ingredient → existing BLS/USDA catalog record (BLS first, then USDA; OFF only branded, `chain_official` only chains). Never invent or hand-type nutrition; never substitute — missing record → `<country>-missing-foods.md`, or import from the official BLS 4.0 xlsx via `BlsAdapter`/`bls-migration-sql.ts` in an insert-only migration. Carbs stored total = available + fiber. Rules: `common.MEASURE_G`, `FAT_RETENTION` (drippings), `BOILED_YIELD`, `breaded()`. Per-dish BLS cross-check; >15 % needs a written reason. Minimums counted on built dishes only (no side variants). Build twice → byte-identical. API + web tests and `tsc` green.
@@ -39,5 +38,6 @@ Authoritative catalog data first; AI nutrition is a labelled, user-confirmable e
 ## Roadmap status
 - DONE: Phases 1–5, 6A (PWA), AI-estimate fallback, voice input, regional DB phases 1–2 (HU).
 - DONE: regional phase 3 (AT) #79 (merged by owner 2026-10-11, no staging check — owner chose to merge directly).
-- IN REVIEW: regional phase 4 (DE) #80.
+- DONE: regional phase 4 (DE) #80 (merged 2026-10-11).
+- IN PROGRESS: `feat/plate-onboarding` (stacked on #81): post-registration plate question, skip → average plate sizes (owner decision 2026-10-11).
 - PLANNED: regional phases 4–6; dinner recommendation (no code yet); Phase 6B native apps; Phase 7 beta/release.
