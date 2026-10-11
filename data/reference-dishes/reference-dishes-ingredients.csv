@@ -2626,6 +2626,20 @@ pellkartoffeln_quark,Héjában főtt burgonya túrókrémmel és lenmagolajjal,4
 pellkartoffeln_quark,Héjában főtt burgonya túrókrémmel és lenmagolajjal,4,onion,vöröshagyma,200,core,bls:G480100,2461,1.0,1.052,450
 pellkartoffeln_quark,Héjában főtt burgonya túrókrémmel és lenmagolajjal,4,chives,metélőhagyma,15,garnish,bls:G081100,2461,1.0,1.052,450
 pellkartoffeln_quark,Héjában főtt burgonya túrókrémmel és lenmagolajjal,4,lemon_juice,citromlé,20,seasoning,usda_fdc:167747,2461,1.0,1.052,450
+ofenkartoffel,Sült burgonya héjában (Ofenkartoffel),4,potato,burgonya,700,core,bls:K110100,624,0.85,1.086,150
+ofenkartoffel,Sült burgonya héjában (Ofenkartoffel),4,olive_oil,olívaolaj,26,fat,bls:Q120000,624,0.85,1.086,150
+ofenkartoffel,Sült burgonya héjában (Ofenkartoffel),4,parsley_leaf,petrezselyemzöld,8,garnish,usda_fdc:170416,624,0.85,1.086,150
+kraeuterquark,Snidlinges túrókrém (Kräuterquark),4,quark_40,tehéntúró (zsíros),250,core,bls:M713500,303.5,1.0,1.046,75
+kraeuterquark,Snidlinges túrókrém (Kräuterquark),4,milk_whole,"tej (3,5%)",46,liquid,bls:M111300,303.5,1.0,1.046,75
+kraeuterquark,Snidlinges túrókrém (Kräuterquark),4,chives,metélőhagyma,7.5,garnish,bls:G081100,303.5,1.0,1.046,75
+obstsalat,Gyümölcssaláta,4,pineapple,ananász,300,core,bls:F501100,1818,1.0,0.65,250
+obstsalat,Gyümölcssaláta,4,apple,alma,300,core,bls:F110100,1818,1.0,0.65,250
+obstsalat,Gyümölcssaláta,4,raspberry,málna,120,core,bls:F302100,1818,1.0,0.65,250
+obstsalat,Gyümölcssaláta,4,kiwi,kivi,160,core,bls:F514100,1818,1.0,0.65,250
+obstsalat,Gyümölcssaláta,4,mango,mangó,250,core,bls:F516100,1818,1.0,0.65,250
+obstsalat,Gyümölcssaláta,4,nectarine,nektarin,260,core,bls:F202100,1818,1.0,0.65,250
+obstsalat,Gyümölcssaláta,4,watermelon,görögdinnye,400,core,bls:F535100,1818,1.0,0.65,250
+obstsalat,Gyümölcssaláta,4,honey,méz,28,seasoning,bls:S120000,1818,1.0,0.65,250
 kaese_lauch_suppe,Sajtos-póréhagymás leves darált hússal (Käse-Lauch-Suppe),4,mixed_minced,vegyes darált hús (sertés-marha),500,core,bls:U050100,2191.0,0.936,1.019,400
 kaese_lauch_suppe,Sajtos-póréhagymás leves darált hússal (Käse-Lauch-Suppe),4,leek,póréhagyma,500,core,bls:G470100,2191.0,0.936,1.019,400
 kaese_lauch_suppe,Sajtos-póréhagymás leves darált hússal (Käse-Lauch-Suppe),4,onion,vöröshagyma,150,core,bls:G480100,2191.0,0.936,1.019,400
@@ -2638,6 +2652,79 @@ muesli_milch,Müzli tejjel,1,muesli,müzli (gyümölcsös),40,core,bls:C538000,1
 muesli_milch,Müzli tejjel,1,milk_whole,"tej (3,5%)",129,liquid,bls:M111300,169,1.0,0.789,169
 cornflakes_milch,Kukoricapehely tejjel,1,cornflakes,kukoricapehely (cukrozott),30,core,bls:C515000,159,1.0,0.424,159
 cornflakes_milch,Kukoricapehely tejjel,1,milk_whole,"tej (3,5%)",129,liquid,bls:M111300,159,1.0,0.424,159
+currysauce,"Curryszósz (ketchup alapú, Currywursthoz)",6,ketchup,ketchup,570,core,bls:R141100,805,0.931,1.102,80
+currysauce,"Curryszósz (ketchup alapú, Currywursthoz)",6,onion,vöröshagyma,200,core,bls:G480100,805,0.931,1.102,80
+currysauce,"Curryszósz (ketchup alapú, Currywursthoz)",6,olive_oil,olívaolaj,26,fat,bls:Q120000,805,0.931,1.102,80
+currysauce,"Curryszósz (ketchup alapú, Currywursthoz)",6,honey,méz,20,seasoning,bls:S120000,805,0.931,1.102,80
+currysauce,"Curryszósz (ketchup alapú, Currywursthoz)",6,soy_sauce,szójaszósz,10,seasoning,bls:R143000,805,0.931,1.102,80
+currysauce,"Curryszósz (ketchup alapú, Currywursthoz)",6,tomato_paste,sűrített paradicsom (paradicsompüré),5,seasoning,bls:R160000,805,0.931,1.102,80
+currysauce,"Curryszósz (ketchup alapú, Currywursthoz)",6,brown_sugar,barna cukor,4,seasoning,bls:S112000,805,0.931,1.102,80
+currysauce,"Curryszósz (ketchup alapú, Currywursthoz)",6,water,víz,30,liquid,none,805,0.931,1.102,80
+currywurst_ohne_darm,Berlini curry-kolbász bőr nélkül,1,currybratwurst,curry-kolbász (bőr nélküli berlini),100,core,bls:W221300,89,0.89,1.0,89.0
+currywurst_darm,Grillezett sütnivaló kolbász bőrrel (Currywursthoz),1,bratwurst,sütnivaló kolbász (Bratwurst),135,core,bls:W222100,120,0.889,1.0,120.0
+thueringer_rostbratwurst,Grillezett türingiai kolbász (Thüringer Rostbratwurst),1,rostbratwurst,sütnivaló kolbász (Rostbratwurst),100,core,bls:W222600,88,0.88,1.0,88.0
+nuernberger_drei,Három grillezett nürnbergi kolbászka,1,rostbratwurst,sütnivaló kolbász (Rostbratwurst),67.5,core,bls:W222600,59.5,0.881,1.0,59.5
+broetchen_street,Német zsemle (Brötchen),1,wheat_roll,zsemle,60,core,bls:B511000,60,1.0,0.25,60
+fischbroetchen_matjes,Matjesheringes zsemle hagymával,1,wheat_roll,zsemle,60,core,bls:B511000,135,1.0,0.431,135
+fischbroetchen_matjes,Matjesheringes zsemle hagymával,1,matjes,matjeshering filé,60,core,bls:T811100,135,1.0,0.431,135
+fischbroetchen_matjes,Matjesheringes zsemle hagymával,1,onion,vöröshagyma,15,core,bls:G480100,135,1.0,0.431,135
+fischbroetchen_bismarck,Bismarck-heringes zsemle hagymával,1,wheat_roll,zsemle,60,core,bls:B511000,135,1.0,0.431,135
+fischbroetchen_bismarck,Bismarck-heringes zsemle hagymával,1,bismarck_herring,Bismarck-hering,60,core,bls:T820802,135,1.0,0.431,135
+fischbroetchen_bismarck,Bismarck-heringes zsemle hagymával,1,onion,vöröshagyma,15,core,bls:G480100,135,1.0,0.431,135
+backfischbroetchen,Rántott halas zsemle (Backfischbrötchen),4,wheat_roll,zsemle,240,core,bls:B511000,1001,0.87,0.589,200
+backfischbroetchen,Rántott halas zsemle (Backfischbrötchen),4,pollock_saithe,fekete tőkehal (Seelachs),500,core,bls:T207100,1001,0.87,0.589,200
+backfischbroetchen,Rántott halas zsemle (Backfischbrötchen),4,egg,tojás,50,core,bls:E111100,1001,0.87,0.589,200
+backfischbroetchen,Rántott halas zsemle (Backfischbrötchen),4,wheat_flour,búzaliszt (BL55),75,core,bls:C214100,1001,0.87,0.589,200
+backfischbroetchen,Rántott halas zsemle (Backfischbrötchen),4,corn_starch,étkezési keményítő,30,core,bls:C446000,1001,0.87,0.589,200
+backfischbroetchen,Rántott halas zsemle (Backfischbrötchen),4,beer_lager,világos sör,125,liquid,bls:P161000,1001,0.87,0.589,200
+backfischbroetchen,Rántott halas zsemle (Backfischbrötchen),4,sunflower_oil,napraforgóolaj,65,absorbed_fat,bls:Q320000,1001,0.87,0.589,200
+backfischbroetchen,Rántott halas zsemle (Backfischbrötchen),4,creme_fraiche,crème fraîche,51,core,bls:M176800,1001,0.87,0.589,200
+backfischbroetchen,Rántott halas zsemle (Backfischbrötchen),4,beetroot_juice,céklalé,15,seasoning,bls:G613600,1001,0.87,0.589,200
+krabbenbroetchen,Északi-tengeri garnélás zsemle (Krabbenbrötchen),2,multigrain_roll,magvas péksütemény (Kornspitz),125,core,bls:B591000,497,1.0,0.635,245
+krabbenbroetchen,Északi-tengeri garnélás zsemle (Krabbenbrötchen),2,butter,vaj,30,fat,open_database:173430,497,1.0,0.635,245
+krabbenbroetchen,Északi-tengeri garnélás zsemle (Krabbenbrötchen),2,lettuce,fejes saláta,40,core,bls:G105100,497,1.0,0.635,245
+krabbenbroetchen,Északi-tengeri garnélás zsemle (Krabbenbrötchen),2,shrimp_north_sea,"északi-tengeri garnélarák (Nordseekrabben, főtt, hámozott)",240,core,bls:T753800,497,1.0,0.635,245
+krabbenbroetchen,Északi-tengeri garnélás zsemle (Krabbenbrötchen),2,remoulade,remulád mártás,60,core,bls:Q999000,497,1.0,0.635,245
+krabbenbroetchen,Északi-tengeri garnélás zsemle (Krabbenbrötchen),2,parsley_leaf,petrezselyemzöld,2,garnish,usda_fdc:170416,497,1.0,0.635,245
+butterbrezel,Vajas lúgos perec (Butterbrezel),1,pretzel_roll,perec (lúgos),86,core,bls:B723100,101,1.0,0.385,101
+butterbrezel,Vajas lúgos perec (Butterbrezel),1,butter,vaj,15,fat,open_database:173430,101,1.0,0.385,101
+reibekuchen,Rajnai burgonyalepény (Reibekuchen),4,potato,burgonya,1000,core,bls:K110100,882,0.652,1.085,200
+reibekuchen,Rajnai burgonyalepény (Reibekuchen),4,onion,vöröshagyma,120,core,bls:G480100,882,0.652,1.085,200
+reibekuchen,Rajnai burgonyalepény (Reibekuchen),4,egg,tojás,100,core,bls:E111100,882,0.652,1.085,200
+reibekuchen,Rajnai burgonyalepény (Reibekuchen),4,wheat_flour,búzaliszt (BL55),10,core,bls:C214100,882,0.652,1.085,200
+reibekuchen,Rajnai burgonyalepény (Reibekuchen),4,breadcrumbs,zsemlemorzsa,32,core,bls:B821000,882,0.652,1.085,200
+reibekuchen,Rajnai burgonyalepény (Reibekuchen),4,sunflower_oil,napraforgóolaj,90,absorbed_fat,bls:Q320000,882,0.652,1.085,200
+apfelmus,Almapüré,4,apple_sauce,almapüré (cukrozott),400,core,bls:F921900,400,1.0,1.05,100
+flammkuchen,Elzászi lepény (Flammkuchen),4,wheat_flour,búzaliszt (BL55),420,core,bls:C214100,1432,0.905,1.01,360
+flammkuchen,Elzászi lepény (Flammkuchen),4,yeast_fresh,friss élesztő,12,core,bls:R459000,1432,0.905,1.01,360
+flammkuchen,Elzászi lepény (Flammkuchen),4,water,víz,250,liquid,none,1432,0.905,1.01,360
+flammkuchen,Elzászi lepény (Flammkuchen),4,creme_fraiche,crème fraîche,200,core,bls:M176800,1432,0.905,1.01,360
+flammkuchen,Elzászi lepény (Flammkuchen),4,quark_40,tehéntúró (zsíros),300,core,bls:M713500,1432,0.905,1.01,360
+flammkuchen,Elzászi lepény (Flammkuchen),4,smoked_bacon,füstölt szalonna / bacon,150,core,bls:W415000,1432,0.905,1.01,360
+flammkuchen,Elzászi lepény (Flammkuchen),4,onion,vöröshagyma,250,core,bls:G480100,1432,0.905,1.01,360
+schaschlik,Saslik nyárs paradicsomos szószban (Imbiss),4,pork_neck,sertéstarja,1000,core,bls:U632100,2158,0.827,1.026,350
+schaschlik,Saslik nyárs paradicsomos szószban (Imbiss),4,bell_pepper_red,piros kaliforniai paprika,150,core,bls:G543100,2158,0.827,1.026,350
+schaschlik,Saslik nyárs paradicsomos szószban (Imbiss),4,yellow_bell_pepper,kaliforniai paprika (sárga),150,core,bls:G542100,2158,0.827,1.026,350
+schaschlik,Saslik nyárs paradicsomos szószban (Imbiss),4,onion,vöröshagyma,350,core,bls:G480100,2158,0.827,1.026,350
+schaschlik,Saslik nyárs paradicsomos szószban (Imbiss),4,olive_oil,olívaolaj,26,fat,bls:Q120000,2158,0.827,1.026,350
+schaschlik,Saslik nyárs paradicsomos szószban (Imbiss),4,tomato_canned,hámozott paradicsom (konzerv),400,core,bls:G568900,2158,0.827,1.026,350
+schaschlik,Saslik nyárs paradicsomos szószban (Imbiss),4,tomato_passata,paradicsomlé / passata,500,core,bls:R161200,2158,0.827,1.026,350
+schaschlik,Saslik nyárs paradicsomos szószban (Imbiss),4,ketchup,ketchup,17,seasoning,bls:R141100,2158,0.827,1.026,350
+schaschlik,Saslik nyárs paradicsomos szószban (Imbiss),4,mustard,mustár,15,seasoning,bls:R132000,2158,0.827,1.026,350
+crepe_nutella,"Mogyorókrémes palacsinta (crêpe, utcai)",6,wheat_flour,búzaliszt (BL55),250,core,bls:C214100,1206.5,0.889,1.015,200
+crepe_nutella,"Mogyorókrémes palacsinta (crêpe, utcai)",6,egg,tojás,200,core,bls:E111100,1206.5,0.889,1.015,200
+crepe_nutella,"Mogyorókrémes palacsinta (crêpe, utcai)",6,milk_whole,"tej (3,5%)",515,liquid,bls:M111300,1206.5,0.889,1.015,200
+crepe_nutella,"Mogyorókrémes palacsinta (crêpe, utcai)",6,butter,vaj,50,fat,open_database:173430,1206.5,0.889,1.015,200
+crepe_nutella,"Mogyorókrémes palacsinta (crêpe, utcai)",6,sunflower_oil,napraforgóolaj,13.5,fat,bls:Q320000,1206.5,0.889,1.015,200
+crepe_nutella,"Mogyorókrémes palacsinta (crêpe, utcai)",6,vanilla_sugar,vaníliás cukor,8,core,bls:S114000,1206.5,0.889,1.015,200
+crepe_nutella,"Mogyorókrémes palacsinta (crêpe, utcai)",6,nut_nougat_cream,mogyorókrém (Nutella-típus),80,core,bls:S145000,1206.5,0.889,1.015,200
+crepe_nutella,"Mogyorókrémes palacsinta (crêpe, utcai)",6,banana,banán,240,core,bls:F503100,1206.5,0.889,1.015,200
+gebrannte_mandeln,Pörkölt cukros mandula (gebrannte Mandeln),4,almond,mandula (darált),200,core,bls:H210100,408,0.758,1.233,100
+gebrannte_mandeln,Pörkölt cukros mandula (gebrannte Mandeln),4,sugar,kristálycukor,200,core,bls:S111000,408,0.758,1.233,100
+gebrannte_mandeln,Pörkölt cukros mandula (gebrannte Mandeln),4,vanilla_sugar,vaníliás cukor,8,core,bls:S114000,408,0.758,1.233,100
+gebrannte_mandeln,Pörkölt cukros mandula (gebrannte Mandeln),4,water,víz,130,liquid,none,408,0.758,1.233,100
+rot_weiss,Ketchup és majonéz (piros-fehér),1,ketchup,ketchup,20,core,bls:R141100,40,1.0,1.036,40
+rot_weiss,Ketchup és majonéz (piros-fehér),1,salad_mayonnaise,salátamajonéz (50%),20,core,bls:Q993000,40,1.0,1.036,40
 eierspeis,Rántotta,1,egg,tojás,150,core,bls:E111100,150,0.949,0.55,150
 eierspeis,Rántotta,1,butter,vaj,8,fat,open_database:173430,150,0.949,0.55,150
 leberkaessemmel,Leberkäsés zsemle,1,wheat_roll,zsemle,62.5,core,bls:B511000,162.5,1.0,0.464,162.5

@@ -323,6 +323,17 @@ FOOD_KEYS = {
     "bockwurst": ("Bockwurst (nagy virsli)", "Bockwurst", "Bockwurst (large frankfurter)", "bls:W211100", "total", 273, 24.5, 13.1, 0.06, 0.06, 1.02, 0.8, None),  # BLS: Bockwurst
     "processed_cheese_spread": ("kenhető ömlesztett sajt (45-52%)", "Schmelzkäsezubereitung 45 - 52 % Fett i. Tr.", "processed cheese spread 45-52% fat i.d.m.", "bls:M810600", "total", 284, 23.7, 11.8, 5.3, 0, 1.05, 1.05, None),  # BLS: Schmelzkäsezubereitung 45 - 52 % Fett i. Tr.
     "cornflakes": ("kukoricapehely (cukrozott)", "Cornflakes gesüßt", "cornflakes, sweetened", "bls:C515000", "total", 366, 1.75, 6.24, 83.54, 4.19, 0.12, 0.12, None),  # BLS: Cornflakes gesüßt
+    # de_streetfood
+    "currybratwurst": ("curry-kolbász (bőr nélküli berlini)", "Currybratwurst", "Berlin curry sausage (skinless)", "bls:W221300", "total", 215, 19.01, 10.92, 0.06, 0.02, 1.0, 0.8, None),  # BLS: Currybratwurst
+    "pollock_saithe": ("fekete tőkehal (Seelachs)", "Köhler/Seelachs, roh", "saithe / coley (Seelachs)", "bls:T207100", "total", 99, 2.39, 19.32, 0, 0, 1.05, 0.8, 'grams = fillet'),  # BLS: Köhler/Seelachs, roh
+    "shrimp_north_sea": ("északi-tengeri garnélarák (Nordseekrabben, főtt, hámozott)", "Garnele/Granat/Krabbe, Präserve", "North Sea brown shrimp, cooked peeled", "bls:T753800", "total", 93, 1.955, 18.938, 0, 0, 1.05, 0.8, None),  # BLS: Garnele/Granat/Krabbe, Präserve
+    "remoulade": ("remulád mártás", "Remoulade (Fertigprodukt)", "remoulade sauce", "bls:Q999000", "total", 567, 60.004, 0.8, 5.09, 0.1, 1.0, 1.0, None),  # BLS: Remoulade (Fertigprodukt)
+    "apple_sauce": ("almapüré (cukrozott)", "Apfelkompott/Apfelmus, gezuckert, Konserve", "apple sauce, sweetened", "bls:F921900", "total", 86, 0.1, 0.22, 22.147, 1.827, 1.05, 1.05, None),  # BLS: Apfelkompott/Apfelmus, gezuckert, Konserve
+    "beetroot_juice": ("céklalé", "Gemüsesaft aus Rote Rübe/Rote Bete", "beetroot juice", "bls:G613600", "total", 37, 0.08, 1.08, 7.96, 0.2, 1.04, 1.04, None),  # BLS: Gemüsesaft aus Rote Rübe/Rote Bete
+    "raspberry": ("málna", "Himbeere roh", "raspberry", "bls:F302100", "total", 43, 0.3, 1, 9.9, 4.7, 0.95, 0.6, None),  # BLS: Himbeere roh
+    "mango": ("mangó", "Mango roh", "mango", "bls:F516100", "total", 60, 0.45, 0.7, 13.7, 1.7, 1.0, 0.6, 'grams = peeled, stone removed'),  # BLS: Mango roh
+    "nectarine": ("nektarin", "Nektarine roh", "nectarine", "bls:F202100", "total", 48, 0.2, 1.06, 10.9, 1.7, 1.0, 0.6, 'grams = stone removed'),  # BLS: Nektarine roh
+    "watermelon": ("görögdinnye", "Wassermelone roh", "watermelon", "bls:F535100", "total", 35, 0.4, 0.6, 7.16, 0.2, 0.95, 0.6, 'grams = flesh without rind'),  # BLS: Wassermelone roh
     # de (phase 4) END
 }
 

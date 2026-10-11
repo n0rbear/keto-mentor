@@ -106,10 +106,26 @@ REUSE = {
     "at_semmel_butter_marmelade": ("semmel_butter_marmelade", src("https://www.supermarktcheck.de/product/181802-gut-guenstig-gute-laune-weizenbroetchen-360g", R4, "DE cross-check (phase 4): a German Weizenbrötchen weighs 60 g (vs 62.5 g Semmel) - same breakfast"), ["brötchen mit marmelade", "marmeladenbrötchen mit butter"]),
     "at_wurstbrot": ("wurstbrot", src("https://www.rewe.de/shop/p/harry-1688-steinofenbrot-500g/4923456", R4, "DE cross-check (phase 4): German Roggenmischbrot slice 56 g (vs 50 g) - same sandwich (Lyoner/Fleischwurst)"), ["wurststulle", "wurstbemme", "fleischwurstbrot"]),
     "at_kaesebrot": ("kaesebrot", src("https://www.rewe.de/shop/p/harry-1688-steinofenbrot-500g/4923456", R4, "DE cross-check (phase 4): German Roggenmischbrot slice 56 g (vs 50 g) - same sandwich"), ["käsebemme"]),
-    "at_frankfurter_senf_semmel": (None, None, ["wiener mit senf", "wiener würstchen mit senf", "würstchen mit senf und brötchen", "bockwurst mit brötchen"]),
+    "at_frankfurter_senf_semmel": (None, None, ["wiener mit senf", "wiener würstchen mit senf", "würstchen mit senf und brötchen"]),
     "at_leberkaese_spiegelei": (None, None, ["leberkäs mit spiegelei", "fleischkäse mit ei"]),
     # street food
     "at_cevapcici_fladenbrot": (None, None, []),
+    "hu_hasabburgonya": (None, None, ["fritten", "pommes rot", "pommes weiß"]),
+    "hu_gyros_pita": ("gyros_hus", src(GK_DE + "gyros-rezept-4312", R4, "DE cross-check (phase 4): 600 g Schweinenacken, Zwiebeln, Knoblauch, Olivenöl, Paprika, 4 Portionen - same pork gyros"), []),
+    "hu_gyros_tal": (None, None, ["gyros mit pommes"]),
+    "hu_doner": (None, None, ["hähnchendöner", "hähnchen-döner", "chicken döner"]),
+    "hu_doner_tal": (None, None, ["döner-teller", "dönerteller mit pommes"]),
+    "at_kebap": ("kebap_fleisch", src(GK_DE + "berliner-doener-rezept-7872", R4, "DE cross-check (phase 4): Berliner Döner: 600 g Kalbsschnitzel, Dönerbrot, Rotkohl, Eisbergsalat, Gurke, Tomate, Zwiebel, Joghurtsoße, 4 Portionen - same veal döner"), ["döner mit kalbfleisch", "kalbsdöner"]),
+    "at_duerum": (None, None, ["dürüm döner", "yufka döner"]),
+    "at_kebap_box": (None, None, ["döner box", "dönerbox mit pommes"]),
+    "hu_falafel_wrap": (None, None, []),
+    "hu_hamburger": ("hamburger_pogacsa", src(GK_DE + "cheeseburger-rezept-4568", R4, "DE cross-check (phase 4): 350 g Rinderhack, 6 Hamburger-Brötchen, Schmelzkäse, Zwiebel, Ketchup, Senf, 3 Portionen - same burger"), []),
+    "hu_sajtos_hamburger": (None, None, []),
+    "at_lahmacun": ("lahmacun", src(GK_DE + "lahmacun-rezept-4350", R4, "DE cross-check (phase 4): Hefeteig (1 kg Mehl), 500 g Lammhack + 500 g Rinderhack, Paprika, Tomaten, Zwiebeln, 10 Stück - same dish"), []),
+    "at_steckerlfisch": ("steckerlfisch", src(GK_DE + "steckerlfisch-rezept-2351", R4, "DE cross-check (phase 4): 4 Makrelen oder Heringe, Zitrone, 4 Portionen - same dish (Bavarian Steckerlfisch)"), []),
+    "at_grillhendl": ("grillhendl", src(GK_DE + "berliner-brathaehnchen-rezept-7807", R4, "DE cross-check (phase 4): 2 kg Hähnchen, Butterschmalz, Speck, 4 Portionen - same roast chicken (halbes Hähnchen)"), ["hendl", "wiesn hendl", "broiler", "goldbroiler"]),
+    "at_maroni": ("maroni", src(GK_DE + "maronen-selber-roesten-rezept-4086", R4, "DE cross-check (phase 4): 1 kg Maronen, geröstet, 4 Portionen - same dish"), []),
+    "at_bratwurst_semmel": (None, None, ["bratwurst", "rostbratwurst im brötchen mit senf", "bratwurstbrötchen", "grillwurst im brötchen"]),
     "at_laibchensemmel": (None, None, ["frikadelle im brötchen", "bulette mit schrippe", "frikadellenweck", "fleischpflanzerl in der semmel"]),
     "at_schnitzelsemmel": (None, None, ["schnitzelweck", "schnitzel im brötchen", "schnitzelbrötchen mit senf"]),
     "at_spaghetti_napoli": ("spaghetti_napoli", src(GK_DE + "spaghetti-mit-tomatensauce-rezept-27615", R4, "DE cross-check (phase 4): 75 g Spaghetti, 200 g Tomaten (Dose), Olivenöl, Knoblauch, Parmesan, 1 Portion - same dish"), ["nudeln mit tomatensoße", "spaghetti mit tomatensoße"]),
@@ -136,7 +152,7 @@ def _apply_reuse():
             d["aliases"] = {**d["aliases"], "de": list(d["aliases"].get("de", [])) + extra}
 
 
-PHASE4_MODULES = ("de_suppen_eintopf", "de_traditionell", "de_kuchen", "de_backwaren", "de_alltag")
+PHASE4_MODULES = ("de_suppen_eintopf", "de_traditionell", "de_kuchen", "de_backwaren", "de_alltag", "de_streetfood")
 for _name in PHASE4_MODULES:
     _m = __import__(_name)
     _clash = PARTS.keys() & _m.PARTS.keys()

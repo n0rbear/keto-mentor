@@ -16,4 +16,8 @@ a hivatalos forrásból (BLS xlsx, `BlsAdapter`) külön migrációban kell impo
 | `blackcurrant_liqueur` | feketeribizli-likőr / Johannisbeerlikör / blackcurrant liqueur | rote_gruetze (4 cl) | No liqueur record of this kind in BLS 4.0 or the catalog; left out. |
 | `cinnamon` | fahéj / Zimt / cinnamon | arme_ritter (1 TL) | No ground-cinnamon record in BLS 4.0 or the catalog; left out (as in at-missing-foods). |
 | `gherkin_plain` | csemegeuborka / Gewürzgurke / pickled gherkin | strammer_max (4 Gewürzgurken) | No vinegar-pickled gherkin record (see de_traditionell). |
+| `mint_lime_juice` | menta, limelé / Minze, Limettensaft / mint, lime juice | obstsalat (5 Bl Minze, 1 Limette) | No mint record and no lime-juice record in BLS 4.0 or the catalog (only the whole Limette); left out. |
 | `herb_butter` | fűszervaj / Kräuterbutter / herb butter | nudelauflauf (1 TL) | No Kräuterbutter record in BLS 4.0 or the catalog; left out (not replaced by plain butter). |
+| `curry_powder` | curry fűszerpor / Currypulver / curry powder | currysauce (2 EL), schaschlik (a pinch) | BLS 4.0 has curry only in composite foods (Curryketchup, Currysauce); left out (as in at-missing-foods). |
+| `balsamic_vinegar` | balzsamecet / Balsamico-Essig / balsamic vinegar | currysauce (3 EL) | No Aceto balsamico record in BLS 4.0 or the catalog; left out. |
+| `dill` | kapor / Dill / dill | backfischbroetchen (4 Stiel) | No dill record in BLS 4.0 or the catalog; left out. |

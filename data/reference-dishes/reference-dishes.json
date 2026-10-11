@@ -3266,6 +3266,120 @@
       "carb_basis": "total",
       "density_intrinsic_g_ml": 0.12,
       "density_bulk_g_ml": 0.12
+    },
+    "currybratwurst": {
+      "names": {
+        "hu": "curry-kolbász (bőr nélküli berlini)",
+        "de": "Currybratwurst",
+        "en": "Berlin curry sausage (skinless)"
+      },
+      "catalog": "bls:W221300",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.0,
+      "density_bulk_g_ml": 0.8
+    },
+    "pollock_saithe": {
+      "names": {
+        "hu": "fekete tőkehal (Seelachs)",
+        "de": "Köhler/Seelachs, roh",
+        "en": "saithe / coley (Seelachs)"
+      },
+      "catalog": "bls:T207100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.05,
+      "density_bulk_g_ml": 0.8,
+      "note": "grams = fillet"
+    },
+    "shrimp_north_sea": {
+      "names": {
+        "hu": "északi-tengeri garnélarák (Nordseekrabben, főtt, hámozott)",
+        "de": "Garnele/Granat/Krabbe, Präserve",
+        "en": "North Sea brown shrimp, cooked peeled"
+      },
+      "catalog": "bls:T753800",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.05,
+      "density_bulk_g_ml": 0.8
+    },
+    "remoulade": {
+      "names": {
+        "hu": "remulád mártás",
+        "de": "Remoulade (Fertigprodukt)",
+        "en": "remoulade sauce"
+      },
+      "catalog": "bls:Q999000",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.0,
+      "density_bulk_g_ml": 1.0
+    },
+    "apple_sauce": {
+      "names": {
+        "hu": "almapüré (cukrozott)",
+        "de": "Apfelkompott/Apfelmus, gezuckert, Konserve",
+        "en": "apple sauce, sweetened"
+      },
+      "catalog": "bls:F921900",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.05,
+      "density_bulk_g_ml": 1.05
+    },
+    "beetroot_juice": {
+      "names": {
+        "hu": "céklalé",
+        "de": "Gemüsesaft aus Rote Rübe/Rote Bete",
+        "en": "beetroot juice"
+      },
+      "catalog": "bls:G613600",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.04,
+      "density_bulk_g_ml": 1.04
+    },
+    "raspberry": {
+      "names": {
+        "hu": "málna",
+        "de": "Himbeere roh",
+        "en": "raspberry"
+      },
+      "catalog": "bls:F302100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 0.95,
+      "density_bulk_g_ml": 0.6
+    },
+    "mango": {
+      "names": {
+        "hu": "mangó",
+        "de": "Mango roh",
+        "en": "mango"
+      },
+      "catalog": "bls:F516100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.0,
+      "density_bulk_g_ml": 0.6,
+      "note": "grams = peeled, stone removed"
+    },
+    "nectarine": {
+      "names": {
+        "hu": "nektarin",
+        "de": "Nektarine roh",
+        "en": "nectarine"
+      },
+      "catalog": "bls:F202100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.0,
+      "density_bulk_g_ml": 0.6,
+      "note": "grams = stone removed"
+    },
+    "watermelon": {
+      "names": {
+        "hu": "görögdinnye",
+        "de": "Wassermelone roh",
+        "en": "watermelon"
+      },
+      "catalog": "bls:F535100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 0.95,
+      "density_bulk_g_ml": 0.6,
+      "note": "grams = flesh without rind"
     }
   },
   "parts": {
@@ -5676,6 +5790,11 @@
           "url": "https://www.gutekueche.at/gyros-rezept-38489",
           "retrieved": "2026-10-05",
           "note": "AT cross-check (phase 3): Gyros (Fleisch, Zwiebel, Knoblauch, Öl, Gyrosgewürz), 2 Portionen - same dish class"
+        },
+        {
+          "url": "https://www.gutekueche.de/gyros-rezept-4312",
+          "retrieved": "2026-10-11",
+          "note": "DE cross-check (phase 4): 600 g Schweinenacken, Zwiebeln, Knoblauch, Olivenöl, Paprika, 4 Portionen - same pork gyros"
         }
       ],
       "derived_check": {
@@ -6215,6 +6334,11 @@
           "url": "https://www.mindmegette.hu/recept/hazi-hamburger",
           "retrieved": "2026-09-27",
           "note": "cross-check: 50 dkg darált marhahús, 1 hagyma, 8 buci"
+        },
+        {
+          "url": "https://www.gutekueche.de/cheeseburger-rezept-4568",
+          "retrieved": "2026-10-11",
+          "note": "DE cross-check (phase 4): 350 g Rinderhack, 6 Hamburger-Brötchen, Schmelzkäse, Zwiebel, Ketchup, Senf, 3 Portionen - same burger"
         }
       ],
       "derived_check": {
@@ -30047,6 +30171,11 @@
           "url": "https://www.ichkoche.at/kebap-rezept-3060",
           "retrieved": "2026-10-05",
           "note": "cross-check: 700 g Lammfleisch, 2 rote Zwiebeln, 3 Knoblauchzehen, 2 Paprika, Olivenöl, Joghurt, 4 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.de/berliner-doener-rezept-7872",
+          "retrieved": "2026-10-11",
+          "note": "DE cross-check (phase 4): Berliner Döner: 600 g Kalbsschnitzel, Dönerbrot, Rotkohl, Eisbergsalat, Gurke, Tomate, Zwiebel, Joghurtsoße, 4 Portionen - same veal döner"
         }
       ],
       "derived_check": {
@@ -30481,6 +30610,11 @@
           "url": "https://www.gutekueche.at/brathendl-rezept-29371",
           "retrieved": "2026-10-05",
           "note": "cross-check: 1 Brathähnchen, 2 EL Öl, Knoblauch, Zwiebel, Äpfel, Kartoffeln, Schlagobers, 4 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.de/berliner-brathaehnchen-rezept-7807",
+          "retrieved": "2026-10-11",
+          "note": "DE cross-check (phase 4): 2 kg Hähnchen, Butterschmalz, Speck, 4 Portionen - same roast chicken (halbes Hähnchen)"
         }
       ],
       "derived_check": {
@@ -30547,6 +30681,11 @@
           "url": "https://www.ichkoche.at/steckerlfisch-rezept-3962",
           "retrieved": "2026-10-05",
           "note": "cross-check: 8 Weißfische on 50 cm sticks over embers, 8 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.de/steckerlfisch-rezept-2351",
+          "retrieved": "2026-10-11",
+          "note": "DE cross-check (phase 4): 4 Makrelen oder Heringe, Zitrone, 4 Portionen - same dish (Bavarian Steckerlfisch)"
         }
       ],
       "derived_check": {
@@ -30661,6 +30800,11 @@
           "url": "https://www.ichkoche.at/lahmacun-rezept-223396",
           "retrieved": "2026-10-05",
           "note": "cross-check: 300 g Mehl, 10 g Germ, Olivenöl, 200 g Lammfaschiertes, 2 Spitzpaprika, 1 Zwiebel, Paprikamark, 5 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.de/lahmacun-rezept-4350",
+          "retrieved": "2026-10-11",
+          "note": "DE cross-check (phase 4): Hefeteig (1 kg Mehl), 500 g Lammhack + 500 g Rinderhack, Paprika, Tomaten, Zwiebeln, 10 Stück - same dish"
         }
       ],
       "derived_check": {
@@ -30917,6 +31061,11 @@
           "url": "https://www.ichkoche.at/maroni-rezept-132922",
           "retrieved": "2026-10-05",
           "note": "cross-check: 500 g Maroni, 4 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.de/maronen-selber-roesten-rezept-4086",
+          "retrieved": "2026-10-11",
+          "note": "DE cross-check (phase 4): 1 kg Maronen, geröstet, 4 Portionen - same dish"
         }
       ],
       "derived_check": {
@@ -38858,6 +39007,234 @@
         "incomplete_missing_food_keys": []
       }
     },
+    "ofenkartoffel": {
+      "id": "ofenkartoffel",
+      "names": {
+        "hu": "Sült burgonya héjában (Ofenkartoffel)",
+        "de": "Ofenkartoffel",
+        "de-AT": "Ofenerdäpfel",
+        "en": "Baked potato"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "potato",
+            "raw_g": 700,
+            "role": "core",
+            "note": "700 g Kartoffeln, mehligkochend, with skin (counted as peeled potato)"
+          },
+          {
+            "food_key": "olive_oil",
+            "raw_g": 26,
+            "role": "fat",
+            "note": "2 EL Olivenöl"
+          },
+          {
+            "food_key": "parsley_leaf",
+            "raw_g": 8,
+            "role": "garnish",
+            "note": "2 EL Kräuter (parsley is an estimate)"
+          }
+        ],
+        "raw_total_g": 734,
+        "cooking": {
+          "method": "potatoes halved, brushed with oil and herbs, baked ~45 min",
+          "mass_change_g": -110,
+          "note": "estimate: ~15 % baking loss; salt left out"
+        },
+        "finished_weight_g": 624,
+        "yield_factor": 0.85
+      },
+      "standard_serving_g": 150,
+      "density_g_per_ml": 1.086,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.gutekueche.de/ofenkartoffeln-rezept-2260",
+          "retrieved": "2026-10-11",
+          "note": "batch recipe: 700 g mehligkochende Kartoffeln, 2 EL Kräuter, 2 EL Olivenöl, 2 TL Salz, 4 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.de/folienkartoffeln-rezept-1752",
+          "retrieved": "2026-10-11",
+          "note": "cross-check: 8 große Kartoffeln, 4 Knoblauchzehen, 8 TL Olivenöl, Rosmarin, 4 Portionen"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 131.0,
+          "fat": 4.3,
+          "protein": 2.2,
+          "net_carbs": 20.1
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "kraeuterquark": {
+      "id": "kraeuterquark",
+      "names": {
+        "hu": "Snidlinges túrókrém (Kräuterquark)",
+        "de": "Kräuterquark",
+        "de-AT": "Kräutertopfen",
+        "en": "Herb quark"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "quark_40",
+            "raw_g": 250,
+            "role": "core",
+            "note": "250 g Quark (40 %)"
+          },
+          {
+            "food_key": "milk_whole",
+            "raw_g": 46,
+            "role": "liquid",
+            "note": "45 ml Milch"
+          },
+          {
+            "food_key": "chives",
+            "raw_g": 7.5,
+            "role": "garnish",
+            "note": "0.5 Bund Schnittlauch"
+          }
+        ],
+        "raw_total_g": 303.5,
+        "cooking": {
+          "method": "quark stirred smooth with milk and chives",
+          "mass_change_g": 0,
+          "note": "no cooking; salt, pepper left out"
+        },
+        "finished_weight_g": 303.5,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 75,
+      "density_g_per_ml": 1.046,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.gutekueche.de/kraeuterquark-rezept-9333",
+          "retrieved": "2026-10-11",
+          "note": "batch recipe: 45 ml Milch, 250 g Quark (40 %), 0.5 Bund Schnittlauch, 4 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.de/pellkartoffeln-mit-quark-rezept-1658",
+          "retrieved": "2026-10-11",
+          "note": "cross-check: Quark mit Milch und Schnittlauch zu Kartoffeln, 4 Portionen"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 141.1,
+          "fat": 9.9,
+          "protein": 9.6,
+          "net_carbs": 2.8
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "obstsalat": {
+      "id": "obstsalat",
+      "names": {
+        "hu": "Gyümölcssaláta",
+        "de": "Obstsalat",
+        "de-AT": "Obstsalat",
+        "en": "Fruit salad"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "pineapple",
+            "raw_g": 300,
+            "role": "core",
+            "note": "300 g Ananas"
+          },
+          {
+            "food_key": "apple",
+            "raw_g": 300,
+            "role": "core",
+            "note": "2 Äpfel; 150 g each is an estimate"
+          },
+          {
+            "food_key": "raspberry",
+            "raw_g": 120,
+            "role": "core",
+            "note": "120 g Himbeeren"
+          },
+          {
+            "food_key": "kiwi",
+            "raw_g": 160,
+            "role": "core",
+            "note": "2 Kiwis; 80 g each peeled is an estimate"
+          },
+          {
+            "food_key": "mango",
+            "raw_g": 250,
+            "role": "core",
+            "note": "1 Mango; 250 g flesh is an estimate"
+          },
+          {
+            "food_key": "nectarine",
+            "raw_g": 260,
+            "role": "core",
+            "note": "2 Nektarinen; 130 g each is an estimate"
+          },
+          {
+            "food_key": "watermelon",
+            "raw_g": 400,
+            "role": "core",
+            "note": "400 g Wassermelone"
+          },
+          {
+            "food_key": "honey",
+            "raw_g": 28,
+            "role": "seasoning",
+            "note": "4 TL Honig; 7 g per TL is an estimate"
+          }
+        ],
+        "raw_total_g": 1818,
+        "cooking": {
+          "method": "fruit cut and mixed with honey and lime juice",
+          "mass_change_g": 0,
+          "note": "no cooking; lime juice and mint (MISSING) left out"
+        },
+        "finished_weight_g": 1818,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 250,
+      "density_g_per_ml": 0.65,
+      "density_method": "cooked bulk density (loose pieces)",
+      "sources": [
+        {
+          "url": "https://www.gutekueche.de/obstsalat-rezept-1456",
+          "retrieved": "2026-10-11",
+          "note": "batch recipe: 300 g Ananas, 2 Äpfel, 120 g Himbeeren, 4 TL Honig, 2 Kiwis, Limette, Mango, Minze, 2 Nektarinen, 400 g Wassermelone, 4 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.de/obstsalat-rezept-24062",
+          "retrieved": "2026-10-11",
+          "note": "cross-check: 1/2 Banane, 1 Kiwi, 30 g Johannisbeeren, 1 EL Dickmilch, 1 Portion"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 52.9,
+          "fat": 0.3,
+          "protein": 0.7,
+          "net_carbs": 10.4
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
     "kaese_lauch_suppe": {
       "id": "kaese_lauch_suppe",
       "names": {
@@ -39118,6 +39495,1321 @@
           "fat": 3.2,
           "protein": 4.1,
           "net_carbs": 18.2
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "currysauce": {
+      "id": "currysauce",
+      "names": {
+        "hu": "Curryszósz (ketchup alapú, Currywursthoz)",
+        "de": "Currysoße (für Currywurst)",
+        "de-AT": "Currysauce (für Currywurst)",
+        "en": "Curry ketchup sauce (for Currywurst)"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 6,
+        "ingredients": [
+          {
+            "food_key": "ketchup",
+            "raw_g": 570,
+            "role": "core",
+            "note": "500 ml Tomatenketchup (1.14 g/ml)"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 200,
+            "role": "core",
+            "note": "2 Zwiebeln, mittelgroß"
+          },
+          {
+            "food_key": "olive_oil",
+            "raw_g": 26,
+            "role": "fat",
+            "note": "2 EL Olivenöl"
+          },
+          {
+            "food_key": "honey",
+            "raw_g": 20,
+            "role": "seasoning",
+            "note": "1 EL Honig"
+          },
+          {
+            "food_key": "soy_sauce",
+            "raw_g": 10,
+            "role": "seasoning",
+            "note": "1 Schuss Sojasauce; 10 g is an estimate"
+          },
+          {
+            "food_key": "tomato_paste",
+            "raw_g": 5,
+            "role": "seasoning",
+            "note": "1 TL Tomatenmark"
+          },
+          {
+            "food_key": "brown_sugar",
+            "raw_g": 4,
+            "role": "seasoning",
+            "note": "1 TL Zucker, braun"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 30,
+            "role": "liquid",
+            "note": "1 Schuss Wasser; 30 ml is an estimate"
+          }
+        ],
+        "raw_total_g": 865,
+        "cooking": {
+          "method": "onions sweated in oil, simmered with ketchup and the seasonings",
+          "mass_change_g": -60,
+          "note": "estimate: ~7 % reduction; Currypulver (2 EL, MISSING), Balsamico (3 EL, MISSING), chili left out. ~80 g sauce on one Currywurst (estimate)"
+        },
+        "finished_weight_g": 805,
+        "yield_factor": 0.931
+      },
+      "standard_serving_g": 80,
+      "density_g_per_ml": 1.102,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.gutekueche.de/currysauce-fuer-die-currywurst-rezept-1796",
+          "retrieved": "2026-10-11",
+          "note": "batch recipe: 500 ml Tomatenketchup, 2 Zwiebeln, 2 EL Olivenöl, 2 EL Currypulver, 3 EL Balsamico, 1 EL Honig, Sojasauce, 1 TL Tomatenmark, 1 TL brauner Zucker, 6 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.de/currywurst-sauce-rezept-7754",
+          "retrieved": "2026-10-11",
+          "note": "cross-check: 500 g Tomaten (Dose), 2 EL Tomatenmark, 5 EL Öl, Currypulver, Ananassaft, Zwiebel, 6 Portionen"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 117.7,
+          "fat": 3.3,
+          "protein": 1.4,
+          "net_carbs": 18.9
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "currywurst_ohne_darm": {
+      "id": "currywurst_ohne_darm",
+      "names": {
+        "hu": "Berlini curry-kolbász bőr nélkül",
+        "de": "Currywurst ohne Darm (Berliner Art)",
+        "de-AT": "Currywurst ohne Darm",
+        "en": "Skinless Berlin curry sausage"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "currybratwurst",
+            "raw_g": 100,
+            "role": "core",
+            "note": "Mischau Berliner Currywurst ohne Darm 2 x 100 g"
+          }
+        ],
+        "raw_total_g": 100,
+        "cooking": {
+          "method": "grilled or pan-fried at the stand",
+          "mass_change_g": -11,
+          "note": "yield 0.889 from BLS W221300 -> W221372 gegrillt (protein 10.92 -> 12.28); the fat that renders out stays on the grill (drippings)",
+          "drippings": "grill"
+        },
+        "finished_weight_g": 89,
+        "yield_factor": 0.89,
+        "fat_loss_g": 0.6
+      },
+      "standard_serving_g": 89.0,
+      "density_g_per_ml": 1.0,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.rewe.de/shop/p/mischau-berliner-currywurst-ohne-darm-2x100g/7957159",
+          "retrieved": "2026-10-11",
+          "note": "Mischau Berliner Currywurst ohne Darm 2 x 100 g"
+        },
+        {
+          "url": "https://lebensmittelpraxis.de/fleisch/39699-ohne-darm-currywurst-unter-schutz.html",
+          "retrieved": "2026-10-11",
+          "note": "cross-check: 'Berliner Currywurst ohne Darm' is a protected Berlin Brühwurst (Mischau one of the producers)"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 235.5,
+          "fat": 20.7,
+          "protein": 12.3,
+          "net_carbs": 0.0
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "currywurst_darm": {
+      "id": "currywurst_darm",
+      "names": {
+        "hu": "Grillezett sütnivaló kolbász bőrrel (Currywursthoz)",
+        "de": "Bratwurst mit Darm (für Currywurst)",
+        "de-AT": "Bratwurst (für Currywurst)",
+        "en": "Grilled bratwurst with skin (for Currywurst)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "bratwurst",
+            "raw_g": 135,
+            "role": "core",
+            "note": "4 Bratwürste à ca. 150 g for Pommes Schranke mit Bratwurst; 135 g = mean with the next source"
+          }
+        ],
+        "raw_total_g": 135,
+        "cooking": {
+          "method": "grilled or pan-fried at the stand",
+          "mass_change_g": -15,
+          "note": "yield 0.889 from BLS W222100 -> W222172 gegrillt (protein 15.2 -> 17.1); the fat that renders out stays on the grill (drippings)",
+          "drippings": "grill"
+        },
+        "finished_weight_g": 120,
+        "yield_factor": 0.889,
+        "fat_loss_g": 1.1
+      },
+      "standard_serving_g": 120.0,
+      "density_g_per_ml": 1.0,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.lecker.de/pommes-schranke-mit-bratwurst-63294.html",
+          "retrieved": "2026-10-11",
+          "note": "4 Bratwürste à ca. 150 g for Pommes Schranke mit Bratwurst; 135 g = mean with the next source"
+        },
+        {
+          "url": "https://www.ichkoche.at/currywurst-rezept-89404",
+          "retrieved": "2026-10-05",
+          "note": "4 Bratwürste, 480 g, for 4 Currywurst (120 g each)"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 320.3,
+          "fat": 27.9,
+          "protein": 17.1,
+          "net_carbs": 0.1
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "thueringer_rostbratwurst": {
+      "id": "thueringer_rostbratwurst",
+      "names": {
+        "hu": "Grillezett türingiai kolbász (Thüringer Rostbratwurst)",
+        "de": "Thüringer Rostbratwurst (gegrillt)",
+        "de-AT": "Thüringer Rostbratwurst",
+        "en": "Grilled Thuringian sausage"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "rostbratwurst",
+            "raw_g": 100,
+            "role": "core",
+            "note": "Thüringer Original Thüringer Rostbratwurst 5 x 100 g"
+          }
+        ],
+        "raw_total_g": 100,
+        "cooking": {
+          "method": "grilled or pan-fried at the stand",
+          "mass_change_g": -12,
+          "note": "yield 0.879 from BLS W222600 -> W222672 gegrillt (protein 15.9 -> 18.09); the fat that renders out stays on the grill (drippings)",
+          "drippings": "grill"
+        },
+        "finished_weight_g": 88,
+        "yield_factor": 0.88,
+        "fat_loss_g": 0.4
+      },
+      "standard_serving_g": 88.0,
+      "density_g_per_ml": 1.0,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.rewe.de/shop/p/thueringer-original-thueringer-rostbratwurst-5x100g-500g/2229314",
+          "retrieved": "2026-10-11",
+          "note": "Thüringer Original Thüringer Rostbratwurst 5 x 100 g"
+        },
+        {
+          "url": "https://www.supermarktcheck.de/product/387294-die-thueringer-rostbratwurst-5-x100g",
+          "retrieved": "2026-10-11",
+          "note": "Die Thüringer Rostbratwurst 5 x 100 g"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 198.2,
+          "fat": 13.9,
+          "protein": 18.1,
+          "net_carbs": 0.1
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "nuernberger_drei": {
+      "id": "nuernberger_drei",
+      "names": {
+        "hu": "Három grillezett nürnbergi kolbászka",
+        "de": "Drei Nürnberger Rostbratwürstchen (gegrillt)",
+        "de-AT": "Drei Nürnberger Würstel",
+        "en": "Three grilled Nuremberg sausages"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "rostbratwurst",
+            "raw_g": 67.5,
+            "role": "core",
+            "note": "Nürnberger Rostbratwürstchen, 6 Stück 125 g (~21 g)"
+          }
+        ],
+        "raw_total_g": 67.5,
+        "cooking": {
+          "method": "grilled or pan-fried at the stand",
+          "mass_change_g": -8,
+          "note": "3 x 22.5 g; yield 0.879 from BLS W222600 -> W222672 gegrillt (the BLS Rostbratwurst record covers Nürnberger too); the fat that renders out stays on the grill (drippings)",
+          "drippings": "grill"
+        },
+        "finished_weight_g": 59.5,
+        "yield_factor": 0.881,
+        "fat_loss_g": 0.3
+      },
+      "standard_serving_g": 59.5,
+      "density_g_per_ml": 1.0,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://world.openfoodfacts.org/product/22152480/nurenberger-rostbradwurste-howe",
+          "retrieved": "2026-10-11",
+          "note": "Nürnberger Rostbratwürstchen, 6 Stück 125 g (~21 g)"
+        },
+        {
+          "url": "https://www.mf58.de/en/products/original-nuernberger-bratwurst",
+          "retrieved": "2026-10-11",
+          "note": "Original Nürnberger Rostbratwurst: 7-9 cm, 20-25 g per piece; 22.5 g = mean"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 197.4,
+          "fat": 13.9,
+          "protein": 18.0,
+          "net_carbs": 0.1
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "broetchen_street": {
+      "id": "broetchen_street",
+      "names": {
+        "hu": "Német zsemle (Brötchen)",
+        "de": "Brötchen",
+        "de-AT": "Semmel",
+        "en": "Bread roll"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "wheat_roll",
+            "raw_g": 60,
+            "role": "core",
+            "note": "1 Brötchen, 60 g (de_backwaren broetchen)"
+          }
+        ],
+        "raw_total_g": 60,
+        "cooking": {
+          "method": "bought baked",
+          "mass_change_g": 0,
+          "note": "no cooking"
+        },
+        "finished_weight_g": 60,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 60,
+      "density_g_per_ml": 0.25,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.supermarktcheck.de/product/181802-gut-guenstig-gute-laune-weizenbroetchen-360g",
+          "retrieved": "2026-10-11",
+          "note": "Gut & Günstig Weizenbrötchen 360 g, 6 Stück (60 g)"
+        },
+        {
+          "url": "https://www.test.de/Aufbackbroetchen-Die-besten-zum-Fruehstueck-4206027-5707401/detail/330000012640!14/",
+          "retrieved": "2026-10-11",
+          "note": "Lidl Grafschafter Weizenbrötchen, 6 Stück 360 g (60 g)"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 280.0,
+          "fat": 1.8,
+          "protein": 10.1,
+          "net_carbs": 54.0
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "fischbroetchen_matjes": {
+      "id": "fischbroetchen_matjes",
+      "names": {
+        "hu": "Matjesheringes zsemle hagymával",
+        "de": "Fischbrötchen mit Matjes",
+        "de-AT": "Matjessemmel",
+        "en": "Matjes herring roll"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "wheat_roll",
+            "raw_g": 60,
+            "role": "core",
+            "note": "1 Brötchen, 60 g (de_backwaren broetchen)"
+          },
+          {
+            "food_key": "matjes",
+            "raw_g": 60,
+            "role": "core",
+            "note": "1 Matjesfilet; 60 g is an estimate (4 Matjesfilets for 4 Brötchen in the source)"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 15,
+            "role": "core",
+            "note": "Zwiebelringe; 15 g is an estimate"
+          }
+        ],
+        "raw_total_g": 135,
+        "cooking": {
+          "method": "assembled, no cooking",
+          "mass_change_g": 0,
+          "note": "no cooking; lettuce, gherkin (MISSING) left out"
+        },
+        "finished_weight_g": 135,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 135,
+      "density_g_per_ml": 0.431,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.lecker.de/sylter-fischbroetchen-matjes-mit-sansibar-geheimnis-77221.html",
+          "retrieved": "2026-10-11",
+          "note": "4 Brötchen, 4 Matjesfilets, Salat, Gewürzgurken, 4 Stück"
+        },
+        {
+          "url": "https://www.lecker.de/fischbroetchen-selber-machen-so-gehts-59074.html",
+          "retrieved": "2026-10-11",
+          "note": "cross-check: Fischbrötchen mit Matjes oder Bismarckhering, Zwiebelringen und Salat"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 206.9,
+          "fat": 6.4,
+          "protein": 11.1,
+          "net_carbs": 24.7
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "fischbroetchen_bismarck": {
+      "id": "fischbroetchen_bismarck",
+      "names": {
+        "hu": "Bismarck-heringes zsemle hagymával",
+        "de": "Fischbrötchen mit Bismarckhering",
+        "de-AT": "Semmel mit Bismarckhering",
+        "en": "Bismarck herring roll"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "wheat_roll",
+            "raw_g": 60,
+            "role": "core",
+            "note": "1 Brötchen, 60 g (de_backwaren broetchen)"
+          },
+          {
+            "food_key": "bismarck_herring",
+            "raw_g": 60,
+            "role": "core",
+            "note": "1 Bismarckfilet; 60 g is an estimate"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 15,
+            "role": "core",
+            "note": "Zwiebelringe; 15 g is an estimate"
+          }
+        ],
+        "raw_total_g": 135,
+        "cooking": {
+          "method": "assembled, no cooking",
+          "mass_change_g": 0,
+          "note": "no cooking; lettuce, gherkin (MISSING) left out"
+        },
+        "finished_weight_g": 135,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 135,
+      "density_g_per_ml": 0.431,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.lecker.de/fischbroetchen-selber-machen-so-gehts-59074.html",
+          "retrieved": "2026-10-11",
+          "note": "Fischbrötchen mit Matjes oder Bismarckhering, Zwiebelringen und Salat"
+        },
+        {
+          "url": "https://www.lecker.de/rheinischer-heringsstipp-28593.html",
+          "retrieved": "2026-10-11",
+          "note": "cross-check: doppelte Bismarckherings-Filets (fillet size)"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 228.2,
+          "fat": 7.9,
+          "protein": 11.9,
+          "net_carbs": 25.8
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "backfischbroetchen": {
+      "id": "backfischbroetchen",
+      "names": {
+        "hu": "Rántott halas zsemle (Backfischbrötchen)",
+        "de": "Backfischbrötchen",
+        "de-AT": "Backfischsemmel",
+        "en": "Battered fish roll"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "wheat_roll",
+            "raw_g": 240,
+            "role": "core",
+            "note": "4 Brötchen, 60 g each"
+          },
+          {
+            "food_key": "pollock_saithe",
+            "raw_g": 500,
+            "role": "core",
+            "note": "500 g Fischfilet ohne Haut (Seelachs)"
+          },
+          {
+            "food_key": "egg",
+            "raw_g": 50,
+            "role": "core",
+            "note": "1 Ei (Bierteig)"
+          },
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 75,
+            "role": "core",
+            "note": "75 g Mehl (Bierteig)"
+          },
+          {
+            "food_key": "corn_starch",
+            "raw_g": 30,
+            "role": "core",
+            "note": "30 g Speisestärke (Bierteig)"
+          },
+          {
+            "food_key": "beer_lager",
+            "raw_g": 125,
+            "role": "liquid",
+            "note": "125 ml Bier (Bierteig)"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 65,
+            "role": "absorbed_fat",
+            "note": "4-6 EL Öl zum Ausbacken: 65 g, all taken up (estimate)"
+          },
+          {
+            "food_key": "creme_fraiche",
+            "raw_g": 51,
+            "role": "core",
+            "note": "3 EL Crème fraîche"
+          },
+          {
+            "food_key": "beetroot_juice",
+            "raw_g": 15,
+            "role": "seasoning",
+            "note": "3 TL Bete-Saft"
+          }
+        ],
+        "raw_total_g": 1151,
+        "cooking": {
+          "method": "fish pieces in beer batter fried, laid in the rolls with pink crème fraîche",
+          "mass_change_g": -150,
+          "note": "estimate: fish and batter lose ~15 % while frying; dill, lemon zest, salt left out. 1 Brötchen per serving"
+        },
+        "finished_weight_g": 1001,
+        "yield_factor": 0.87
+      },
+      "standard_serving_g": 200,
+      "density_g_per_ml": 0.589,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.lecker.de/sylter-fischbroetchen-backfisch-im-bierteig-77142.html",
+          "retrieved": "2026-10-11",
+          "note": "batch recipe: 1 Ei, 75 g Mehl, 30 g Speisestärke, 125 ml Bier, 500 g Seelachsfilet, 4-6 EL Öl, 3 EL Crème fraîche, 3 TL Bete-Saft, 4 Brötchen, 4 Stück"
+        },
+        {
+          "url": "https://www.lecker.de/knuspriger-backfisch-mit-remoulade-16688.html",
+          "retrieved": "2026-10-11",
+          "note": "cross-check: 700 g Kabeljau in Bierteig (1 Ei, 75 g Mehl, 50 g Stärke, 150-175 ml Bier), 150 ml Öl, Remoulade, 4 Personen"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 236.8,
+          "fat": 10.0,
+          "protein": 13.7,
+          "net_carbs": 21.4
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "krabbenbroetchen": {
+      "id": "krabbenbroetchen",
+      "names": {
+        "hu": "Északi-tengeri garnélás zsemle (Krabbenbrötchen)",
+        "de": "Krabbenbrötchen (Büsumer Art)",
+        "de-AT": "Krabbensemmel",
+        "en": "North Sea shrimp roll"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 2,
+        "ingredients": [
+          {
+            "food_key": "multigrain_roll",
+            "raw_g": 125,
+            "role": "core",
+            "note": "2 Mehrkorn- oder Roggenbrötchen; 62.5 g each (de_backwaren koernerbroetchen)"
+          },
+          {
+            "food_key": "butter",
+            "raw_g": 30,
+            "role": "fat",
+            "note": "2 EL Butter"
+          },
+          {
+            "food_key": "lettuce",
+            "raw_g": 40,
+            "role": "core",
+            "note": "4 Bl Kopfsalat; 10 g each is an estimate"
+          },
+          {
+            "food_key": "shrimp_north_sea",
+            "raw_g": 240,
+            "role": "core",
+            "note": "240 g Nordseekrabben"
+          },
+          {
+            "food_key": "remoulade",
+            "raw_g": 60,
+            "role": "core",
+            "note": "4 EL Remoulade"
+          },
+          {
+            "food_key": "parsley_leaf",
+            "raw_g": 2,
+            "role": "garnish",
+            "note": "2 zw Petersilie"
+          }
+        ],
+        "raw_total_g": 497,
+        "cooking": {
+          "method": "assembled, no cooking",
+          "mass_change_g": 0,
+          "note": "no cooking"
+        },
+        "finished_weight_g": 497,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 245,
+      "density_g_per_ml": 0.635,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.gutekueche.de/buesumer-krabbenbroetchen-rezept-16919",
+          "retrieved": "2026-10-11",
+          "note": "batch recipe: 2 EL Butter, 4 Bl Kopfsalat, 2 Mehrkorn- oder Roggenbrötchen, 240 g Nordseekrabben, Petersilie, 4 EL Remoulade, 2 Portionen"
+        },
+        {
+          "url": "https://www.lecker.de/krabbenbroetchen-75751.html",
+          "retrieved": "2026-10-11",
+          "note": "cross-check: 4 Brötchen, 40 g Butter, 400 g Nordsee-Krabbenfleisch, 150 g Salat-Mayonnaise, Salat, Gurke, 4 Personen"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 234.2,
+          "fat": 14.5,
+          "protein": 11.9,
+          "net_carbs": 13.3
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "butterbrezel": {
+      "id": "butterbrezel",
+      "names": {
+        "hu": "Vajas lúgos perec (Butterbrezel)",
+        "de": "Butterbrezel",
+        "de-AT": "Butterbreze",
+        "en": "Buttered soft pretzel"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "pretzel_roll",
+            "raw_g": 86,
+            "role": "core",
+            "note": "1 Laugenbrezel, 86 g (mean of SPAR 82 g and 90 g, at_fruehstueck)"
+          },
+          {
+            "food_key": "butter",
+            "raw_g": 15,
+            "role": "fat",
+            "note": "butter, sliced brezel spread; 15 g is an estimate"
+          }
+        ],
+        "raw_total_g": 101,
+        "cooking": {
+          "method": "sliced and buttered",
+          "mass_change_g": 0,
+          "note": "no cooking"
+        },
+        "finished_weight_g": 101,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 101,
+      "density_g_per_ml": 0.385,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.spar.at/produktwelt/spar-naturpur-bio-laugenbreze/p/2020003447693",
+          "retrieved": "2026-10-05",
+          "note": "SPAR Natur*pur Bio-Laugenbreze 82 g"
+        },
+        {
+          "url": "https://www.spar.at/produktwelt/s-budget-laugenbreze/p/7904356",
+          "retrieved": "2026-10-05",
+          "note": "S-BUDGET Laugenbreze 90 g"
+        },
+        {
+          "url": "https://www.gutekueche.de/brezeln-selbst-gemacht-rezept-4060",
+          "retrieved": "2026-10-11",
+          "note": "cross-check: Laugenbrezeln selbst gemacht"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 347.5,
+          "fat": 15.6,
+          "protein": 8.0,
+          "net_carbs": 42.6
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "reibekuchen": {
+      "id": "reibekuchen",
+      "names": {
+        "hu": "Rajnai burgonyalepény (Reibekuchen)",
+        "de": "Reibekuchen (Kartoffelpuffer)",
+        "de-AT": "Erdäpfelpuffer (Reibekuchen)",
+        "en": "Potato pancakes (Reibekuchen)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "potato",
+            "raw_g": 1000,
+            "role": "core",
+            "note": "1 kg Kartoffeln, überwiegend festkochend, grated"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 120,
+            "role": "core",
+            "note": "2 Zwiebeln, klein; 60 g each is an estimate"
+          },
+          {
+            "food_key": "egg",
+            "raw_g": 100,
+            "role": "core",
+            "note": "2 Eier, Gr. M"
+          },
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 10,
+            "role": "core",
+            "note": "1 EL Mehl"
+          },
+          {
+            "food_key": "breadcrumbs",
+            "raw_g": 32,
+            "role": "core",
+            "note": "2 + 2 EL Paniermehl"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 90,
+            "role": "absorbed_fat",
+            "note": "1 Schuss Pflanzenöl for shallow frying: ~90 g taken up is an estimate (BLS Reibekuchen gebraten ~12.6 % fat)"
+          }
+        ],
+        "raw_total_g": 1352,
+        "cooking": {
+          "method": "grated potato with onion, egg and crumbs, squeezed, fried in flat cakes",
+          "mass_change_g": -470,
+          "note": "estimate: the grated potato is squeezed and loses ~40 % water while frying; salt left out"
+        },
+        "finished_weight_g": 882,
+        "yield_factor": 0.652
+      },
+      "standard_serving_g": 200,
+      "density_g_per_ml": 1.085,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.gutekueche.de/kartoffelpuffer-mit-apfelmus-rezept-2017",
+          "retrieved": "2026-10-11",
+          "note": "batch recipe: 1 kg Kartoffeln, 2 Eier, 1 EL Mehl, 4 EL Paniermehl, Pflanzenöl, 2 Zwiebeln, 400 g Apfelmus, 4 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.de/reibekuchen-rezept-1867",
+          "retrieved": "2026-10-11",
+          "note": "cross-check: 1 kg Kartoffeln, 2 Eier, 1 EL Mehl, 1 Zwiebel, Öl, 3 Portionen"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 223.0,
+          "fat": 11.5,
+          "protein": 4.4,
+          "net_carbs": 24.4
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "apfelmus": {
+      "id": "apfelmus",
+      "names": {
+        "hu": "Almapüré",
+        "de": "Apfelmus",
+        "de-AT": "Apfelmus",
+        "en": "Apple sauce"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "apple_sauce",
+            "raw_g": 400,
+            "role": "core",
+            "note": "400 g Apfelmus (store-bought, sweetened: judgement)"
+          }
+        ],
+        "raw_total_g": 400,
+        "cooking": {
+          "method": "served cold",
+          "mass_change_g": 0,
+          "note": "no cooking"
+        },
+        "finished_weight_g": 400,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 100,
+      "density_g_per_ml": 1.05,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.gutekueche.de/kartoffelpuffer-mit-apfelmus-rezept-2017",
+          "retrieved": "2026-10-11",
+          "note": "400 g Apfelmus for 4 Portionen Kartoffelpuffer"
+        },
+        {
+          "url": "https://www.gutekueche.de/reibekuchen-rezept-1867",
+          "retrieved": "2026-10-11",
+          "note": "Reibekuchen (served with Apfelmus or Rübenkraut)"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 86.0,
+          "fat": 0.1,
+          "protein": 0.2,
+          "net_carbs": 20.3
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "flammkuchen": {
+      "id": "flammkuchen",
+      "names": {
+        "hu": "Elzászi lepény (Flammkuchen)",
+        "de": "Flammkuchen (Elsässer Art)",
+        "de-AT": "Flammkuchen",
+        "en": "Tarte flambée (Flammkuchen)"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 420,
+            "role": "core",
+            "note": "420 g Mehl"
+          },
+          {
+            "food_key": "yeast_fresh",
+            "raw_g": 12,
+            "role": "core",
+            "note": "12 g Hefe, frisch"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 250,
+            "role": "liquid",
+            "note": "250 ml Wasser, lauwarm"
+          },
+          {
+            "food_key": "creme_fraiche",
+            "raw_g": 200,
+            "role": "core",
+            "note": "200 g Crème fraîche"
+          },
+          {
+            "food_key": "quark_40",
+            "raw_g": 300,
+            "role": "core",
+            "note": "300 g Sahnequark (BLS Speisequark Fettstufe 40 % F. i. Tr.)"
+          },
+          {
+            "food_key": "smoked_bacon",
+            "raw_g": 150,
+            "role": "core",
+            "note": "150 g Speck"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 250,
+            "role": "core",
+            "note": "250 g Zwiebeln"
+          }
+        ],
+        "raw_total_g": 1582,
+        "cooking": {
+          "method": "thin yeast dough spread with crème fraîche and quark, topped with onion and bacon, baked very hot",
+          "mass_change_g": -150,
+          "note": "estimate: ~10 % baking loss; salt left out. One Flammkuchen (1/4) per serving"
+        },
+        "finished_weight_g": 1432,
+        "yield_factor": 0.905
+      },
+      "standard_serving_g": 360,
+      "density_g_per_ml": 1.01,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.gutekueche.de/original-franzoesischer-flammkuchen-rezept-856",
+          "retrieved": "2026-10-11",
+          "note": "batch recipe: 12 g Hefe, 420 g Mehl, 250 ml Wasser, 200 g Crème fraîche, 300 g Sahnequark, 150 g Speck, 250 g Zwiebeln, 4 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.de/flammkuchen-rezept-2133",
+          "retrieved": "2026-10-11",
+          "note": "cross-check: 200 g Mehl, 125 ml Milch, 150 g Speckwürfel, 150 g saure Sahne, Zwiebel, 2 EL Öl, 2 Portionen"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 211.2,
+          "fat": 9.2,
+          "protein": 7.8,
+          "net_carbs": 23.1
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "schaschlik": {
+      "id": "schaschlik",
+      "names": {
+        "hu": "Saslik nyárs paradicsomos szószban (Imbiss)",
+        "de": "Schaschlik in Soße",
+        "de-AT": "Schaschlik mit Sauce",
+        "en": "Schaschlik skewers in sauce"
+      },
+      "matrix": "liquid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "pork_neck",
+            "raw_g": 1000,
+            "role": "core",
+            "note": "1 kg Schweinefleisch (Schweinenacken)"
+          },
+          {
+            "food_key": "bell_pepper_red",
+            "raw_g": 150,
+            "role": "core",
+            "note": "2 Paprika, gelb und rot: one red"
+          },
+          {
+            "food_key": "yellow_bell_pepper",
+            "raw_g": 150,
+            "role": "core",
+            "note": "one yellow; 150 g each is an estimate"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 350,
+            "role": "core",
+            "note": "2 + 0.5 + 1 Zwiebeln"
+          },
+          {
+            "food_key": "olive_oil",
+            "raw_g": 26,
+            "role": "fat",
+            "note": "2 EL Olivenöl"
+          },
+          {
+            "food_key": "tomato_canned",
+            "raw_g": 400,
+            "role": "core",
+            "note": "1 Dose Tomaten, geschält (400 g)"
+          },
+          {
+            "food_key": "tomato_passata",
+            "raw_g": 500,
+            "role": "core",
+            "note": "1 Dose Tomaten, passiert (500 g)"
+          },
+          {
+            "food_key": "ketchup",
+            "raw_g": 17,
+            "role": "seasoning",
+            "note": "1 EL Ketchup"
+          },
+          {
+            "food_key": "mustard",
+            "raw_g": 15,
+            "role": "seasoning",
+            "note": "1 EL Senf"
+          }
+        ],
+        "raw_total_g": 2608,
+        "cooking": {
+          "method": "pork, pepper and onion skewers fried, then braised in a tomato sauce (Imbiss style)",
+          "mass_change_g": -450,
+          "note": "estimate: the pork loses ~25 % (~250 g) and ~200 g sauce reduces; curry powder (MISSING), salsa sauce, salt, pepper left out. 2 Spieße with sauce per serving"
+        },
+        "finished_weight_g": 2158,
+        "yield_factor": 0.827
+      },
+      "standard_serving_g": 350,
+      "density_g_per_ml": 1.026,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.gutekueche.de/schaschlik-rezept-1811",
+          "retrieved": "2026-10-11",
+          "note": "batch recipe: 1 kg Schweinenacken, 2 Paprika, 3.5 Zwiebeln, 2 EL Olivenöl, 1 Dose geschälte und 1 Dose passierte Tomaten, Ketchup, Senf, Curry, 4 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.de/schaschlik-spiesse-rezept-2688",
+          "retrieved": "2026-10-11",
+          "note": "cross-check: 2 kg Schweinenacken, 10 Schb Speck, 4 Paprika, 5 rote Zwiebeln, 2 EL Öl, Schaschlik-Sauce, 8 Portionen"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 114.6,
+          "fat": 6.4,
+          "protein": 9.8,
+          "net_carbs": 3.4
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "crepe_nutella": {
+      "id": "crepe_nutella",
+      "names": {
+        "hu": "Mogyorókrémes palacsinta (crêpe, utcai)",
+        "de": "Crêpe mit Nutella",
+        "de-AT": "Crêpe mit Nuss-Nougat-Creme",
+        "en": "Crêpe with chocolate hazelnut spread"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 6,
+        "ingredients": [
+          {
+            "food_key": "wheat_flour",
+            "raw_g": 250,
+            "role": "core",
+            "note": "250 g Mehl"
+          },
+          {
+            "food_key": "egg",
+            "raw_g": 200,
+            "role": "core",
+            "note": "4 Eier, Gr. M"
+          },
+          {
+            "food_key": "milk_whole",
+            "raw_g": 515,
+            "role": "liquid",
+            "note": "500 ml Milch"
+          },
+          {
+            "food_key": "butter",
+            "raw_g": 50,
+            "role": "fat",
+            "note": "50 g Butter"
+          },
+          {
+            "food_key": "sunflower_oil",
+            "raw_g": 13.5,
+            "role": "fat",
+            "note": "3 TL Pflanzenöl"
+          },
+          {
+            "food_key": "vanilla_sugar",
+            "raw_g": 8,
+            "role": "core",
+            "note": "1 Pk Vanillezucker"
+          },
+          {
+            "food_key": "nut_nougat_cream",
+            "raw_g": 80,
+            "role": "core",
+            "note": "4 EL Nutella (Schokocreme); 20 g each is an estimate"
+          },
+          {
+            "food_key": "banana",
+            "raw_g": 240,
+            "role": "core",
+            "note": "2 Bananen; 120 g each is an estimate"
+          }
+        ],
+        "raw_total_g": 1356.5,
+        "cooking": {
+          "method": "thin crêpes baked in butter, spread with Nutella and banana slices, folded",
+          "mass_change_g": -150,
+          "note": "estimate: ~11 % steam loss; salt left out"
+        },
+        "finished_weight_g": 1206.5,
+        "yield_factor": 0.889
+      },
+      "standard_serving_g": 200,
+      "density_g_per_ml": 1.015,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.gutekueche.de/crepes-mit-nutella-rezept-11184",
+          "retrieved": "2026-10-11",
+          "note": "batch recipe: 2 Bananen, 50 g Butter, 4 Eier, 250 g Mehl, 500 ml Milch, 4 EL Nutella, 3 TL Öl, 1 Pk Vanillezucker, 6 Portionen"
+        },
+        {
+          "url": "https://www.gutekueche.de/crepes-grundrezept-rezept-11178",
+          "retrieved": "2026-10-11",
+          "note": "cross-check: 1 Ei, 100 g Mehl, 200 ml Milch, Öl, 6 Portionen"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 214.2,
+          "fat": 9.8,
+          "protein": 6.6,
+          "net_carbs": 24.1
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "gebrannte_mandeln": {
+      "id": "gebrannte_mandeln",
+      "names": {
+        "hu": "Pörkölt cukros mandula (gebrannte Mandeln)",
+        "de": "Gebrannte Mandeln",
+        "de-AT": "Gebrannte Mandeln",
+        "en": "Candied roasted almonds"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 4,
+        "ingredients": [
+          {
+            "food_key": "almond",
+            "raw_g": 200,
+            "role": "core",
+            "note": "200 g Mandeln"
+          },
+          {
+            "food_key": "sugar",
+            "raw_g": 200,
+            "role": "core",
+            "note": "200 g Zucker"
+          },
+          {
+            "food_key": "vanilla_sugar",
+            "raw_g": 8,
+            "role": "core",
+            "note": "1 Pk Vanillezucker"
+          },
+          {
+            "food_key": "water",
+            "raw_g": 130,
+            "role": "liquid",
+            "note": "130 ml Wasser"
+          }
+        ],
+        "raw_total_g": 538,
+        "cooking": {
+          "method": "almonds boiled in sugar water until the sugar caramelises around them",
+          "mass_change_g": -130,
+          "note": "the water evaporates. One 100 g Tüte per serving (fairground bag size, estimate)"
+        },
+        "finished_weight_g": 408,
+        "yield_factor": 0.758
+      },
+      "standard_serving_g": 100,
+      "density_g_per_ml": 1.233,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.gutekueche.de/gebrannte-mandeln-rezept-2067",
+          "retrieved": "2026-10-11",
+          "note": "batch recipe: 200 g Mandeln, 1 Pk Vanillezucker, 130 ml Wasser, 200 g Zucker"
+        },
+        {
+          "url": "https://www.gutekueche.de/gebrannte-mandeln-rezept-1616",
+          "retrieved": "2026-10-11",
+          "note": "cross-check: 200 g Mandeln, 125 ml Wasser, 250 g Zucker, Zimt"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 470.6,
+          "fat": 22.8,
+          "protein": 10.9,
+          "net_carbs": 52.9
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "rot_weiss": {
+      "id": "rot_weiss",
+      "names": {
+        "hu": "Ketchup és majonéz (piros-fehér)",
+        "de": "Ketchup und Mayonnaise (rot-weiß)",
+        "de-AT": "Ketchup und Mayonnaise",
+        "en": "Ketchup and mayonnaise"
+      },
+      "matrix": "solid",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "ketchup",
+            "raw_g": 20,
+            "role": "core",
+            "note": "Ketchup, ~20 g (estimate)"
+          },
+          {
+            "food_key": "salad_mayonnaise",
+            "raw_g": 20,
+            "role": "core",
+            "note": "Salatmayonnaise, ~20 g (estimate; 4 EL for 4 portions in the source)"
+          }
+        ],
+        "raw_total_g": 40,
+        "cooking": {
+          "method": "served on the fries",
+          "mass_change_g": 0,
+          "note": "no cooking"
+        },
+        "finished_weight_g": 40,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 40,
+      "density_g_per_ml": 1.036,
+      "density_method": "derived from components after cooking mass change",
+      "sources": [
+        {
+          "url": "https://www.lecker.de/pommes-schranke-mit-bratwurst-63294.html",
+          "retrieved": "2026-10-11",
+          "note": "Pommes Schranke: 4 EL Salatmayonnaise and curry-ketchup sauce for 4 portions"
+        },
+        {
+          "url": "https://www.gutekueche.de/pommes-frites-rezept-6753",
+          "retrieved": "2026-10-11",
+          "note": "Pommes frites (served with Ketchup or Mayonnaise)"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 294.0,
+          "fat": 25.4,
+          "protein": 0.9,
+          "net_carbs": 14.2
         },
         "incomplete_missing_food_keys": []
       }
@@ -40234,7 +41926,8 @@
       "id": "hu_gyros_pita",
       "countries": [
         "HU",
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "street_food",
       "names": {
@@ -40285,7 +41978,8 @@
       "id": "hu_gyros_tal",
       "countries": [
         "HU",
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "street_food",
       "names": {
@@ -40302,7 +41996,8 @@
         ],
         "de": [
           "gyrosteller",
-          "gyros teller mit pommes"
+          "gyros teller mit pommes",
+          "gyros mit pommes"
         ],
         "de-AT": [
           "gyrosteller"
@@ -40336,7 +42031,8 @@
       "id": "hu_doner",
       "countries": [
         "HU",
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "street_food",
       "names": {
@@ -40355,7 +42051,10 @@
         "de": [
           "döner",
           "döner kebab",
-          "dönerkebab"
+          "dönerkebab",
+          "hähnchendöner",
+          "hähnchen-döner",
+          "chicken döner"
         ],
         "de-AT": [
           "kebap",
@@ -40390,7 +42089,8 @@
       "id": "hu_doner_tal",
       "countries": [
         "HU",
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "street_food",
       "names": {
@@ -40407,7 +42107,9 @@
         ],
         "de": [
           "dönerteller",
-          "döner teller"
+          "döner teller",
+          "döner-teller",
+          "dönerteller mit pommes"
         ],
         "de-AT": [
           "kebapteller",
@@ -40441,7 +42143,8 @@
     {
       "id": "hu_falafel_wrap",
       "countries": [
-        "HU"
+        "HU",
+        "DE"
       ],
       "category": "street_food",
       "names": {
@@ -40484,7 +42187,8 @@
     {
       "id": "hu_hamburger",
       "countries": [
-        "HU"
+        "HU",
+        "DE"
       ],
       "category": "street_food",
       "names": {
@@ -40536,7 +42240,8 @@
     {
       "id": "hu_sajtos_hamburger",
       "countries": [
-        "HU"
+        "HU",
+        "DE"
       ],
       "category": "street_food",
       "names": {
@@ -40860,7 +42565,8 @@
       "id": "hu_hasabburgonya",
       "countries": [
         "HU",
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "street_food",
       "names": {
@@ -40878,7 +42584,10 @@
         ],
         "de": [
           "pommes frites",
-          "pommes"
+          "pommes",
+          "fritten",
+          "pommes rot",
+          "pommes weiß"
         ],
         "de-AT": [
           "pommes frites",
@@ -50782,8 +52491,7 @@
           "würstchen mit brötchen",
           "wiener mit senf",
           "wiener würstchen mit senf",
-          "würstchen mit senf und brötchen",
-          "bockwurst mit brötchen"
+          "würstchen mit senf und brötchen"
         ],
         "hu": [
           "virsli mustárral és zsemlével",
@@ -52369,7 +54077,8 @@
     {
       "id": "at_bratwurst_semmel",
       "countries": [
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "street_food",
       "names": {
@@ -52387,7 +54096,11 @@
         ],
         "de": [
           "bratwurst im brötchen",
-          "bratwurst mit brötchen und senf"
+          "bratwurst mit brötchen und senf",
+          "bratwurst",
+          "rostbratwurst im brötchen mit senf",
+          "bratwurstbrötchen",
+          "grillwurst im brötchen"
         ],
         "hu": [
           "sült kolbász zsemlével"
@@ -52520,7 +54233,8 @@
     {
       "id": "at_kebap",
       "countries": [
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "street_food",
       "names": {
@@ -52541,7 +54255,9 @@
         "de": [
           "döner kebab",
           "döner",
-          "dönerkebab"
+          "dönerkebab",
+          "döner mit kalbfleisch",
+          "kalbsdöner"
         ],
         "hu": [
           "kebab",
@@ -52577,7 +54293,8 @@
     {
       "id": "at_duerum",
       "countries": [
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "street_food",
       "names": {
@@ -52596,7 +54313,9 @@
         "de": [
           "dürüm",
           "dürüm döner",
-          "döner wrap"
+          "döner wrap",
+          "dürüm döner",
+          "yufka döner"
         ],
         "hu": [
           "dürüm",
@@ -52630,7 +54349,8 @@
     {
       "id": "at_kebap_box",
       "countries": [
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "street_food",
       "names": {
@@ -52648,7 +54368,9 @@
         ],
         "de": [
           "dönerbox",
-          "döner box mit pommes"
+          "döner box mit pommes",
+          "döner box",
+          "dönerbox mit pommes"
         ],
         "hu": [
           "kebab box",
@@ -52908,7 +54630,8 @@
     {
       "id": "at_grillhendl",
       "countries": [
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "street_food",
       "names": {
@@ -52928,7 +54651,11 @@
         "de": [
           "halbes hähnchen",
           "brathähnchen",
-          "grillhähnchen"
+          "grillhähnchen",
+          "hendl",
+          "wiesn hendl",
+          "broiler",
+          "goldbroiler"
         ],
         "hu": [
           "grillcsirke",
@@ -52955,7 +54682,8 @@
     {
       "id": "at_steckerlfisch",
       "countries": [
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "street_food",
       "names": {
@@ -52998,7 +54726,8 @@
     {
       "id": "at_lahmacun",
       "countries": [
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "street_food",
       "names": {
@@ -53131,7 +54860,8 @@
     {
       "id": "at_maroni",
       "countries": [
-        "AT"
+        "AT",
+        "DE"
       ],
       "category": "street_food",
       "names": {
@@ -57461,6 +59191,94 @@
       ]
     },
     {
+      "id": "de_ofenkartoffel_kraeuterquark",
+      "countries": [
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "Sült burgonya snidlinges túrókrémmel",
+        "de": "Ofenkartoffel mit Kräuterquark",
+        "de-AT": "Ofenerdäpfel mit Kräutertopfen",
+        "en": "Baked potato with herb quark"
+      },
+      "aliases": {
+        "de": [
+          "ofenkartoffel mit kräuterquark",
+          "folienkartoffel mit kräuterquark",
+          "baked potato mit quark",
+          "ofenkartoffel mit quark",
+          "kartoffel mit kräuterquark"
+        ],
+        "de-AT": [
+          "ofenerdäpfel mit kräutertopfen"
+        ],
+        "hu": [
+          "sült krumpli snidlinges túrókrémmel"
+        ],
+        "en": [
+          "baked potato with herb quark",
+          "jacket potato with quark"
+        ]
+      },
+      "tags": [
+        "everyday",
+        "vegetarian"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "ofenkartoffel",
+          "standard_serving_g": 250
+        },
+        {
+          "part": "kraeuterquark",
+          "standard_serving_g": 100
+        }
+      ]
+    },
+    {
+      "id": "de_obstsalat",
+      "countries": [
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "Gyümölcssaláta",
+        "de": "Obstsalat",
+        "de-AT": "Obstsalat",
+        "en": "Fruit salad"
+      },
+      "aliases": {
+        "de": [
+          "obstsalat",
+          "fruchtsalat",
+          "frischer obstsalat"
+        ],
+        "de-AT": [
+          "obstsalat"
+        ],
+        "hu": [
+          "gyümölcssaláta"
+        ],
+        "en": [
+          "fruit salad"
+        ]
+      },
+      "tags": [
+        "everyday",
+        "sweet",
+        "vegetarian"
+      ],
+      "served_in": "deep_plate",
+      "parts": [
+        {
+          "part": "obstsalat",
+          "standard_serving_g": 250
+        }
+      ]
+    },
+    {
       "id": "de_bratkartoffeln_spiegelei",
       "countries": [
         "DE"
@@ -57502,6 +59320,795 @@
         {
           "part": "tukortojas",
           "standard_serving_g": 106
+        }
+      ]
+    },
+    {
+      "id": "de_currywurst",
+      "countries": [
+        "DE"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "Berlini currywurst (bőr nélkül, curryszósszal)",
+        "de": "Currywurst ohne Darm (Berliner Art)",
+        "de-AT": "Currywurst ohne Darm",
+        "en": "Berlin currywurst (skinless)"
+      },
+      "aliases": {
+        "de": [
+          "currywurst",
+          "currywurst ohne darm",
+          "berliner currywurst",
+          "curry ohne",
+          "eine currywurst",
+          "currywurst mit soße"
+        ],
+        "de-AT": [
+          "berliner currywurst"
+        ],
+        "hu": [
+          "currywurst",
+          "berlini currywurst"
+        ],
+        "en": [
+          "currywurst",
+          "berlin currywurst",
+          "curry sausage"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "low-carb-friendly"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "currywurst_ohne_darm",
+          "standard_serving_g": 89
+        },
+        {
+          "part": "currysauce",
+          "standard_serving_g": 80
+        }
+      ],
+      "side_options": [
+        {
+          "part": "hasabburgonya",
+          "standard_serving_g": 170
+        },
+        {
+          "part": "broetchen_street",
+          "standard_serving_g": 60
+        }
+      ],
+      "side_required_question": true,
+      "alias_side": {
+        "currywurst mit pommes": "hasabburgonya",
+        "currywurst pommes": "hasabburgonya",
+        "currywurst mit brötchen": "broetchen_street",
+        "curry pommes": "hasabburgonya"
+      },
+      "review_note_hu": "A bare 'currywurst' választás: a DE bőr nélküli és bőrös változat, valamint az osztrák at_currywurst (mind natív igény). Curry nélkül számolva (MISSING)."
+    },
+    {
+      "id": "de_currywurst_darm",
+      "countries": [
+        "DE"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "Currywurst bőrös sütnivaló kolbászból",
+        "de": "Currywurst mit Darm",
+        "de-AT": "Currywurst mit Darm",
+        "en": "Currywurst with skin (bratwurst)"
+      },
+      "aliases": {
+        "de": [
+          "currywurst mit darm",
+          "currywurst",
+          "ruhrpott currywurst",
+          "curry mit darm",
+          "bratwurst mit currysoße"
+        ],
+        "de-AT": [
+          "currywurst mit darm"
+        ],
+        "hu": [
+          "currywurst bőrrel"
+        ],
+        "en": [
+          "currywurst with skin",
+          "bratwurst currywurst"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "low-carb-friendly"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "currywurst_darm",
+          "standard_serving_g": 120
+        },
+        {
+          "part": "currysauce",
+          "standard_serving_g": 80
+        }
+      ],
+      "side_options": [
+        {
+          "part": "hasabburgonya",
+          "standard_serving_g": 170
+        },
+        {
+          "part": "broetchen_street",
+          "standard_serving_g": 60
+        }
+      ],
+      "side_required_question": true,
+      "alias_side": {
+        "currywurst mit darm und pommes": "hasabburgonya",
+        "currywurst mit darm mit pommes": "hasabburgonya"
+      }
+    },
+    {
+      "id": "de_pommes_rot_weiss",
+      "countries": [
+        "DE"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "Sült krumpli ketchuppal és majonézzel (rot-weiß)",
+        "de": "Pommes rot-weiß",
+        "de-AT": "Pommes mit Ketchup und Mayonnaise",
+        "en": "Fries with ketchup and mayonnaise"
+      },
+      "aliases": {
+        "de": [
+          "pommes rot-weiß",
+          "pommes rot weiß",
+          "pommes schranke",
+          "pommes mit ketchup und mayo",
+          "pommes mit mayo und ketchup",
+          "pommes spezial"
+        ],
+        "de-AT": [
+          "pommes mit ketchup und mayonnaise"
+        ],
+        "hu": [
+          "sült krumpli ketchuppal és majonézzel"
+        ],
+        "en": [
+          "fries with ketchup and mayonnaise"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "higher-carb"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "hasabburgonya",
+          "standard_serving_g": 170
+        },
+        {
+          "part": "rot_weiss",
+          "standard_serving_g": 40
+        }
+      ]
+    },
+    {
+      "id": "de_thueringer_broetchen",
+      "countries": [
+        "DE"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "Türingiai grillkolbász zsemlében",
+        "de": "Thüringer Rostbratwurst im Brötchen",
+        "de-AT": "Thüringer Rostbratwurst in der Semmel",
+        "en": "Thuringian sausage in a bread roll"
+      },
+      "aliases": {
+        "de": [
+          "thüringer rostbratwurst",
+          "thüringer",
+          "thüringer im brötchen",
+          "rostbratwurst im brötchen",
+          "thüringer bratwurst"
+        ],
+        "de-AT": [
+          "thüringer rostbratwurst"
+        ],
+        "hu": [
+          "türingiai kolbász zsemlében"
+        ],
+        "en": [
+          "thuringian sausage in a roll",
+          "thuringian bratwurst"
+        ]
+      },
+      "tags": [
+        "street_food"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "thueringer_rostbratwurst",
+          "standard_serving_g": 88
+        },
+        {
+          "part": "broetchen_street",
+          "standard_serving_g": 60
+        }
+      ],
+      "optional_toppings": [
+        {
+          "food_key": "mustard",
+          "g": 15,
+          "hu": "mustár"
+        }
+      ]
+    },
+    {
+      "id": "de_drei_im_weggla",
+      "countries": [
+        "DE"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "Három nürnbergi kolbászka zsemlében (Drei im Weggla)",
+        "de": "Drei im Weggla (Nürnberger im Brötchen)",
+        "de-AT": "Drei Nürnberger in der Semmel",
+        "en": "Three Nuremberg sausages in a roll"
+      },
+      "aliases": {
+        "de": [
+          "drei im weggla",
+          "3 im weggla",
+          "drei im weckla",
+          "nürnberger im brötchen",
+          "drei nürnberger im brötchen"
+        ],
+        "de-AT": [
+          "drei nürnberger in der semmel"
+        ],
+        "hu": [
+          "három nürnbergi kolbász zsemlében"
+        ],
+        "en": [
+          "three nuremberg sausages in a roll"
+        ]
+      },
+      "tags": [
+        "street_food"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "nuernberger_drei",
+          "standard_serving_g": 59.5
+        },
+        {
+          "part": "broetchen_street",
+          "standard_serving_g": 60
+        }
+      ],
+      "optional_toppings": [
+        {
+          "food_key": "mustard",
+          "g": 15,
+          "hu": "mustár"
+        }
+      ]
+    },
+    {
+      "id": "de_bockwurst_broetchen",
+      "countries": [
+        "DE"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "Bockwurst zsemlével",
+        "de": "Bockwurst mit Brötchen",
+        "de-AT": "Bockwurst mit Semmel",
+        "en": "Bockwurst with a bread roll"
+      },
+      "aliases": {
+        "de": [
+          "bockwurst mit brötchen",
+          "bockwurst im brötchen",
+          "bockwurst mit senf und brötchen"
+        ],
+        "de-AT": [
+          "bockwurst mit semmel"
+        ],
+        "hu": [
+          "bockwurst zsemlével"
+        ],
+        "en": [
+          "bockwurst with a roll"
+        ]
+      },
+      "tags": [
+        "street_food"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "bockwurst",
+          "standard_serving_g": 95
+        },
+        {
+          "part": "broetchen_street",
+          "standard_serving_g": 60
+        }
+      ],
+      "optional_toppings": [
+        {
+          "food_key": "mustard",
+          "g": 15,
+          "hu": "mustár"
+        }
+      ]
+    },
+    {
+      "id": "de_fischbroetchen_matjes",
+      "countries": [
+        "DE"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "Matjesheringes zsemle hagymával",
+        "de": "Fischbrötchen mit Matjes",
+        "de-AT": "Matjessemmel",
+        "en": "Matjes herring roll"
+      },
+      "aliases": {
+        "de": [
+          "fischbrötchen mit matjes",
+          "matjesbrötchen",
+          "matjes-brötchen",
+          "fischbrötchen",
+          "matjes im brötchen"
+        ],
+        "de-AT": [
+          "matjessemmel"
+        ],
+        "hu": [
+          "matjesheringes zsemle",
+          "halas zsemle"
+        ],
+        "en": [
+          "matjes herring roll",
+          "fish roll"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "fish"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "fischbroetchen_matjes",
+          "standard_serving_g": 135
+        }
+      ],
+      "review_note_hu": "A bare 'fischbrötchen' választás: Matjes, Bismarck vagy Backfisch."
+    },
+    {
+      "id": "de_fischbroetchen_bismarck",
+      "countries": [
+        "DE"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "Bismarck-heringes zsemle hagymával",
+        "de": "Fischbrötchen mit Bismarckhering",
+        "de-AT": "Semmel mit Bismarckhering",
+        "en": "Bismarck herring roll"
+      },
+      "aliases": {
+        "de": [
+          "fischbrötchen mit bismarckhering",
+          "bismarckbrötchen",
+          "bismarck-brötchen",
+          "fischbrötchen",
+          "brötchen mit bismarckhering"
+        ],
+        "de-AT": [
+          "semmel mit bismarckhering"
+        ],
+        "hu": [
+          "bismarck-heringes zsemle",
+          "halas zsemle"
+        ],
+        "en": [
+          "bismarck herring roll",
+          "fish roll"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "fish"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "fischbroetchen_bismarck",
+          "standard_serving_g": 135
+        }
+      ]
+    },
+    {
+      "id": "de_backfischbroetchen",
+      "countries": [
+        "DE"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "Rántott halas zsemle (Backfischbrötchen)",
+        "de": "Backfischbrötchen",
+        "de-AT": "Backfischsemmel",
+        "en": "Battered fish roll"
+      },
+      "aliases": {
+        "de": [
+          "backfischbrötchen",
+          "fischbrötchen mit backfisch",
+          "backfisch im brötchen",
+          "fischbrötchen"
+        ],
+        "de-AT": [
+          "backfischsemmel"
+        ],
+        "hu": [
+          "rántott halas zsemle"
+        ],
+        "en": [
+          "battered fish roll",
+          "fried fish sandwich",
+          "fish roll"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "fish",
+        "fried"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "backfischbroetchen",
+          "standard_serving_g": 200
+        }
+      ]
+    },
+    {
+      "id": "de_krabbenbroetchen",
+      "countries": [
+        "DE"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "Északi-tengeri garnélás zsemle (Krabbenbrötchen)",
+        "de": "Krabbenbrötchen (Büsumer Art)",
+        "de-AT": "Krabbensemmel",
+        "en": "North Sea shrimp roll"
+      },
+      "aliases": {
+        "de": [
+          "krabbenbrötchen",
+          "büsumer krabbenbrötchen",
+          "nordseekrabbenbrötchen",
+          "brötchen mit krabben"
+        ],
+        "de-AT": [
+          "krabbensemmel"
+        ],
+        "hu": [
+          "garnélás zsemle",
+          "északi-tengeri garnélás zsemle"
+        ],
+        "en": [
+          "shrimp roll",
+          "north sea shrimp roll"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "fish"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "krabbenbroetchen",
+          "standard_serving_g": 245
+        }
+      ]
+    },
+    {
+      "id": "de_butterbrezel",
+      "countries": [
+        "DE"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "Vajas lúgos perec (Butterbrezel)",
+        "de": "Butterbrezel",
+        "de-AT": "Butterbreze",
+        "en": "Buttered soft pretzel"
+      },
+      "aliases": {
+        "de": [
+          "butterbrezel",
+          "butterbrezn",
+          "brezel mit butter",
+          "brezn mit butter",
+          "butterbreze"
+        ],
+        "de-AT": [
+          "butterbreze"
+        ],
+        "hu": [
+          "vajas perec",
+          "vajas lúgos perec"
+        ],
+        "en": [
+          "buttered pretzel",
+          "pretzel with butter"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "breakfast",
+        "higher-carb"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "butterbrezel",
+          "standard_serving_g": 101
+        }
+      ]
+    },
+    {
+      "id": "de_reibekuchen",
+      "countries": [
+        "DE"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "Rajnai burgonyalepény almapürével",
+        "de": "Reibekuchen mit Apfelmus",
+        "de-AT": "Erdäpfelpuffer mit Apfelmus",
+        "en": "Potato pancakes with apple sauce"
+      },
+      "aliases": {
+        "de": [
+          "reibekuchen mit apfelmus",
+          "kartoffelpuffer mit apfelmus",
+          "reibekuchen",
+          "reibeplätzchen",
+          "rievkooche",
+          "kartoffelpuffer",
+          "reiberdatschi mit apfelmus"
+        ],
+        "de-AT": [
+          "erdäpfelpuffer mit apfelmus"
+        ],
+        "hu": [
+          "burgonyalepény almapürével",
+          "tócsni almaszósszal"
+        ],
+        "en": [
+          "potato pancakes with apple sauce",
+          "reibekuchen"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "fried",
+        "higher-carb"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "reibekuchen",
+          "standard_serving_g": 200
+        },
+        {
+          "part": "apfelmus",
+          "standard_serving_g": 100
+        }
+      ],
+      "review_note_hu": "A 'kartoffelpuffer' és 'reibekuchen' német alias korábban az osztrák at_erdaepfelpuffer-é volt (de alias, nem natív); most a DE étel natív igénye."
+    },
+    {
+      "id": "de_flammkuchen",
+      "countries": [
+        "DE"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "Elzászi lepény (Flammkuchen)",
+        "de": "Flammkuchen (Elsässer Art)",
+        "de-AT": "Flammkuchen",
+        "en": "Tarte flambée (Flammkuchen)"
+      },
+      "aliases": {
+        "de": [
+          "flammkuchen",
+          "elsässer flammkuchen",
+          "flammkuchen mit speck und zwiebeln",
+          "flammkuchen klassisch"
+        ],
+        "de-AT": [
+          "flammkuchen"
+        ],
+        "hu": [
+          "elzászi lepény",
+          "flammkuchen"
+        ],
+        "en": [
+          "tarte flambee",
+          "flammkuchen"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "higher-carb"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "flammkuchen",
+          "standard_serving_g": 360
+        }
+      ]
+    },
+    {
+      "id": "de_schaschlik",
+      "countries": [
+        "DE"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "Saslik nyárs paradicsomos szószban (Imbiss)",
+        "de": "Schaschlik in Soße",
+        "de-AT": "Schaschlik mit Sauce",
+        "en": "Schaschlik skewers in sauce"
+      },
+      "aliases": {
+        "de": [
+          "schaschlik",
+          "schaschlik in soße",
+          "schaschlikspieß",
+          "zigeunerspieß"
+        ],
+        "de-AT": [
+          "schaschlik"
+        ],
+        "hu": [
+          "saslik",
+          "saslik nyárs szósszal"
+        ],
+        "en": [
+          "shashlik",
+          "schaschlik skewer"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "low-carb-friendly"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "schaschlik",
+          "standard_serving_g": 350
+        }
+      ],
+      "side_options": [
+        {
+          "part": "hasabburgonya",
+          "standard_serving_g": 170
+        }
+      ],
+      "side_required_question": true,
+      "alias_side": {
+        "schaschlik mit pommes": "hasabburgonya"
+      }
+    },
+    {
+      "id": "de_crepe_nutella",
+      "countries": [
+        "DE"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "Mogyorókrémes palacsinta (crêpe, utcai)",
+        "de": "Crêpe mit Nutella",
+        "de-AT": "Crêpe mit Nuss-Nougat-Creme",
+        "en": "Crêpe with chocolate hazelnut spread"
+      },
+      "aliases": {
+        "de": [
+          "crêpe mit nutella",
+          "crepe mit nutella",
+          "crêpes mit nutella",
+          "nutella-crêpe",
+          "crêpe mit nutella und banane"
+        ],
+        "de-AT": [
+          "crêpe mit nutella"
+        ],
+        "hu": [
+          "nutellás palacsinta",
+          "nutellás crêpe"
+        ],
+        "en": [
+          "nutella crepe",
+          "crepe with nutella"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "sweet",
+        "higher-carb"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "crepe_nutella",
+          "standard_serving_g": 200
+        }
+      ]
+    },
+    {
+      "id": "de_gebrannte_mandeln",
+      "countries": [
+        "DE"
+      ],
+      "category": "street_food",
+      "names": {
+        "hu": "Pörkölt cukros mandula (gebrannte Mandeln)",
+        "de": "Gebrannte Mandeln",
+        "de-AT": "Gebrannte Mandeln",
+        "en": "Candied roasted almonds"
+      },
+      "aliases": {
+        "de": [
+          "gebrannte mandeln",
+          "tüte gebrannte mandeln",
+          "kandierte mandeln"
+        ],
+        "de-AT": [
+          "gebrannte mandeln"
+        ],
+        "hu": [
+          "pörkölt cukros mandula",
+          "égetett mandula"
+        ],
+        "en": [
+          "candied almonds",
+          "roasted sugared almonds"
+        ]
+      },
+      "tags": [
+        "street_food",
+        "sweet",
+        "higher-carb"
+      ],
+      "served_in": "handheld",
+      "parts": [
+        {
+          "part": "gebrannte_mandeln",
+          "standard_serving_g": 100
         }
       ]
     },

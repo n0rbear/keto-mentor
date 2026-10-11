@@ -395,10 +395,31 @@
 | Tojássaláta majonézzel | 529 | +0 | 529 | 1.0 | 1.004 | 367.0 | 35.9 | 8.3 | 2.0 | – |
 | Tejszínes-mustáros pulykaragu (Putengeschnetzeltes) | 1175.0 | -180 | 995.0 | 0.847 | 1.024 | 150.8 | 9.9 | 13.1 | 2.1 | – |
 | Héjában főtt burgonya túrókrémmel és lenmagolajjal | 2461 | +0 | 2461 | 1.0 | 1.052 | 108.4 | 5.2 | 4.0 | 10.6 | – |
+| Sült burgonya héjában (Ofenkartoffel) | 734 | -110 | 624 | 0.85 | 1.086 | 131.0 | 4.3 | 2.2 | 20.1 | – |
+| Snidlinges túrókrém (Kräuterquark) | 303.5 | +0 | 303.5 | 1.0 | 1.046 | 141.1 | 9.9 | 9.6 | 2.8 | – |
+| Gyümölcssaláta | 1818 | +0 | 1818 | 1.0 | 0.65 | 52.9 | 0.3 | 0.7 | 10.4 | – |
 | Sajtos-póréhagymás leves darált hússal (Käse-Lauch-Suppe) | 2341.0 | -150 | 2191.0 | 0.936 | 1.019 | 128.3 | 9.7 | 7.1 | 2.7 | – |
 | Bockwurst (nagy virsli) | 95 | +0 | 95 | 1.0 | 1.02 | 273.0 | 24.5 | 13.1 | 0.0 | – |
 | Müzli tejjel | 169 | +0 | 169 | 1.0 | 0.789 | 126.6 | 4.1 | 4.9 | 16.1 | – |
 | Kukoricapehely tejjel | 159 | +0 | 159 | 1.0 | 0.424 | 119.4 | 3.2 | 4.1 | 18.2 | – |
+| Curryszósz (ketchup alapú, Currywursthoz) | 865 | -60 | 805 | 0.931 | 1.102 | 117.7 | 3.3 | 1.4 | 18.9 | – |
+| Berlini curry-kolbász bőr nélkül | 100 | -11 | 89 | 0.89 | 1.0 | 235.5 | 20.7 | 12.3 | 0.0 | – |
+| Grillezett sütnivaló kolbász bőrrel (Currywursthoz) | 135 | -15 | 120 | 0.889 | 1.0 | 320.3 | 27.9 | 17.1 | 0.1 | – |
+| Grillezett türingiai kolbász (Thüringer Rostbratwurst) | 100 | -12 | 88 | 0.88 | 1.0 | 198.2 | 13.9 | 18.1 | 0.1 | – |
+| Három grillezett nürnbergi kolbászka | 67.5 | -8 | 59.5 | 0.881 | 1.0 | 197.4 | 13.9 | 18.0 | 0.1 | – |
+| Német zsemle (Brötchen) | 60 | +0 | 60 | 1.0 | 0.25 | 280.0 | 1.8 | 10.1 | 54.0 | – |
+| Matjesheringes zsemle hagymával | 135 | +0 | 135 | 1.0 | 0.431 | 206.9 | 6.4 | 11.1 | 24.7 | – |
+| Bismarck-heringes zsemle hagymával | 135 | +0 | 135 | 1.0 | 0.431 | 228.2 | 7.9 | 11.9 | 25.8 | – |
+| Rántott halas zsemle (Backfischbrötchen) | 1151 | -150 | 1001 | 0.87 | 0.589 | 236.8 | 10.0 | 13.7 | 21.4 | – |
+| Északi-tengeri garnélás zsemle (Krabbenbrötchen) | 497 | +0 | 497 | 1.0 | 0.635 | 234.2 | 14.5 | 11.9 | 13.3 | – |
+| Vajas lúgos perec (Butterbrezel) | 101 | +0 | 101 | 1.0 | 0.385 | 347.5 | 15.6 | 8.0 | 42.6 | – |
+| Rajnai burgonyalepény (Reibekuchen) | 1352 | -470 | 882 | 0.652 | 1.085 | 223.0 | 11.5 | 4.4 | 24.4 | – |
+| Almapüré | 400 | +0 | 400 | 1.0 | 1.05 | 86.0 | 0.1 | 0.2 | 20.3 | – |
+| Elzászi lepény (Flammkuchen) | 1582 | -150 | 1432 | 0.905 | 1.01 | 211.2 | 9.2 | 7.8 | 23.1 | – |
+| Saslik nyárs paradicsomos szószban (Imbiss) | 2608 | -450 | 2158 | 0.827 | 1.026 | 114.6 | 6.4 | 9.8 | 3.4 | – |
+| Mogyorókrémes palacsinta (crêpe, utcai) | 1356.5 | -150 | 1206.5 | 0.889 | 1.015 | 214.2 | 9.8 | 6.6 | 24.1 | – |
+| Pörkölt cukros mandula (gebrannte Mandeln) | 538 | -130 | 408 | 0.758 | 1.233 | 470.6 | 22.8 | 10.9 | 52.9 | – |
+| Ketchup és majonéz (piros-fehér) | 40 | +0 | 40 | 1.0 | 1.036 | 294.0 | 25.4 | 0.9 | 14.2 | – |
 | Rántotta | 158 | -8 | 150 | 0.949 | 0.55 | 173.2 | 13.3 | 13.2 | 0.3 | – |
 | Leberkäsés zsemle | 162.5 | +0 | 162.5 | 1.0 | 0.464 | 281.2 | 16.0 | 12.2 | 21.1 | – |
 
@@ -784,7 +805,25 @@ kivéve ha az ételnél `reference_check.deviation` (átnézett receptkülönbs�
 | Bockwurst majonézes krumplisalátával | nincs még | – | – | – | – | – | – |
 | Müzli tejjel | nincs még | – | – | – | – | – | – |
 | Kukoricapehely tejjel | nincs még | – | – | – | – | – | – |
+| Sült burgonya snidlinges túrókrémmel | nincs még | – | – | – | – | – | – |
+| Gyümölcssaláta | nincs még | – | – | – | – | – | – |
 | Pirított burgonya szalonnával és tükörtojással | nincs még | – | – | – | – | – | – |
+| Berlini currywurst (bőr nélkül, curryszósszal) | nincs még | – | – | – | – | – | – |
+| Currywurst bőrös sütnivaló kolbászból | nincs még | – | – | – | – | – | – |
+| Sült krumpli ketchuppal és majonézzel (rot-weiß) | nincs még | – | – | – | – | – | – |
+| Türingiai grillkolbász zsemlében | bls:Y945062 Rostbratwurst mit Brötchen und Senf | 231 / 222 | 9.0 / 10.28 | 14.9 / 15.27 | 22.0 / 16.36 | +4% rendben | – |
+| Három nürnbergi kolbászka zsemlében (Drei im Weggla) | nincs még | – | – | – | – | – | – |
+| Bockwurst zsemlével | nincs még | – | – | – | – | – | – |
+| Matjesheringes zsemle hagymával | bls:Y610512 Matjes-Brötchen | 207 / 187 | 6.4 / 8.21 | 11.1 / 11.87 | 24.7 / 15.2 | +11% rendben | – |
+| Bismarck-heringes zsemle hagymával | nincs még | – | – | – | – | – | – |
+| Rántott halas zsemle (Backfischbrötchen) | nincs még | – | – | – | – | – | – |
+| Északi-tengeri garnélás zsemle (Krabbenbrötchen) | nincs még | – | – | – | – | – | – |
+| Vajas lúgos perec (Butterbrezel) | nincs még | – | – | – | – | – | – |
+| Rajnai burgonyalepény almapürével | bls:X655022 Kartoffelpuffer/Reibekuchen, gebraten | 177 / 206 | 7.7 / 12.61 | 3.0 / 4.23 | 23.0 / 18.08 | -14% rendben | – |
+| Elzászi lepény (Flammkuchen) | bls:X934412 Flammkuchen Elsässer Art | 211 / 233 | 9.2 / 11.3 | 7.8 / 8.74 | 23.1 / 23.0 | -9% rendben | – |
+| Saslik nyárs paradicsomos szószban (Imbiss) | nincs még | – | – | – | – | – | – |
+| Mogyorókrémes palacsinta (crêpe, utcai) | nincs még | – | – | – | – | – | – |
+| Pörkölt cukros mandula (gebrannte Mandeln) | nincs még | – | – | – | – | – | – |
 | Rántotta | bls:Y720163 Rührei gebraten in Butter | 173 / 172 | 13.3 / 12.99 | 13.2 / 13.31 | 0.3 / 0.42 | +1% rendben | – |
 | Leberkäsés zsemle | nincs még | – | – | – | – | – | – |
 
@@ -816,20 +855,20 @@ Mély tányér: kapacitás × töltöttség × sűrűség. Lapos tányér: 0,8 �
 | májas hurka | HU | street_food | 200 | 342 | 494 | 206 | 241 | 280 |
 | budapesti hot dog | HU | street_food | 225 | – (kézből) | – | – | – | – |
 | hot dog | HU | street_food | 270 | – (kézből) | – | – | – | – |
-| gyros pita | HU, AT | street_food | 300 | – (kézből) | – | – | – | – |
-| gyros tál | HU, AT | street_food | 550 | – (lapos tányéros étel) | – (lapos tányéros étel) | 343 | 403 | 467 |
-| döner | HU, AT | street_food | 370 | – (kézből) | – | – | – | – |
-| döner tál | HU, AT | street_food | 550 | – (lapos tányéros étel) | – (lapos tányéros étel) | 343 | 403 | 467 |
-| falafel wrap | HU | street_food | 380 | – (kézből) | – | – | – | – |
-| hamburger | HU | street_food | 370 | – (kézből) | – | – | – | – |
-| sajtos hamburger | HU | street_food | 390 | – (kézből) | – | – | – | – |
+| gyros pita | HU, AT, DE | street_food | 300 | – (kézből) | – | – | – | – |
+| gyros tál | HU, AT, DE | street_food | 550 | – (lapos tányéros étel) | – (lapos tányéros étel) | 343 | 403 | 467 |
+| döner | HU, AT, DE | street_food | 370 | – (kézből) | – | – | – | – |
+| döner tál | HU, AT, DE | street_food | 550 | – (lapos tányéros étel) | – (lapos tányéros étel) | 343 | 403 | 467 |
+| falafel wrap | HU, DE | street_food | 380 | – (kézből) | – | – | – | – |
+| hamburger | HU, DE | street_food | 370 | – (kézből) | – | – | – | – |
+| sajtos hamburger | HU, DE | street_food | 390 | – (kézből) | – | – | – | – |
 | pulled pork szendvics | HU | street_food | 300 | – (kézből) | – | – | – | – |
 | szelet pizza | HU | street_food | 180 | – (kézből) | – | – | – | – |
 | tócsni | HU | street_food | 200 | – (lapos tányéros étel) | – (lapos tányéros étel) | 91 | 107 | 124 |
 | lapcsánka | HU | street_food | 190 | – (lapos tányéros étel) | – (lapos tányéros étel) | 91 | 107 | 124 |
 | hekk | HU | street_food | 150 | – (lapos tányéros étel) | – (lapos tányéros étel) | 130 | 153 | 177 |
 | lángos | HU | street_food | 130 | – (kézből) | – | – | – | – |
-| hasábburgonya | HU, AT | street_food | 170 | – (lapos tányéros étel) | – (lapos tányéros étel) | 117 | 138 | 160 |
+| hasábburgonya | HU, AT, DE | street_food | 170 | – (lapos tányéros étel) | – (lapos tányéros étel) | 117 | 138 | 160 |
 | gofri | HU | street_food | 100 | – (kézből) | – | – | – | – |
 | tejfölös tészta | HU | everyday | 350 | – (lapos tányéros étel) | – (lapos tányéros étel) | 254 | 298 | 346 |
 | pesto pasta | HU | everyday | 280 | – (lapos tányéros étel) | – (lapos tányéros étel) | 235 | 275 | 319 |
@@ -1066,22 +1105,22 @@ Mély tányér: kapacitás × töltöttség × sűrűség. Lapos tányér: 0,8 �
 | Túrókrém gyümölccsel (Topfencreme) | AT | everyday | 300 | 357 | 516 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | Sajtos kolbász kenyérrel (Käsekrainer) | AT | street_food | 157 | 194 | 280 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | Bosna (kolbászos bagett hagymával és curryvel) | AT | street_food | 230 | – (kézből) | – | – | – | – |
-| Sült kolbászka zsemlével | AT | street_food | 172.5 | – (kézből) | – | – | – | – |
+| Sült kolbászka zsemlével | AT, DE | street_food | 172.5 | – (kézből) | – | – | – | – |
 | Hotdog virslivel | AT | street_food | 150 | – (kézből) | – | – | – | – |
 | Sajtos kolbászos hot dog | AT | street_food | 169.5 | – (kézből) | – | – | – | – |
-| Kebab borjúhússal (török kenyérben) | AT | street_food | 360 | – (kézből) | – | – | – | – |
-| Dürüm (kebab tortillában) | AT | street_food | 319 | – (kézből) | – | – | – | – |
-| Kebab box (sült krumpli kebabhússal) | AT | street_food | 350 | – (lapos tányéros étel) | – (lapos tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Kebab borjúhússal (török kenyérben) | AT, DE | street_food | 360 | – (kézből) | – | – | – | – |
+| Dürüm (kebab tortillában) | AT, DE | street_food | 319 | – (kézből) | – | – | – | – |
+| Kebab box (sült krumpli kebabhússal) | AT, DE | street_food | 350 | – (lapos tányéros étel) | – (lapos tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | Csevapcsicsi lepényben | AT, DE | street_food | 340 | – (kézből) | – | – | – | – |
 | Rántott szeletes zsemle | AT, DE | street_food | 212.5 | – (kézből) | – | – | – | – |
 | Fasírtos zsemle | AT, DE | street_food | 187.5 | – (kézből) | – | – | – | – |
 | Currywurst (osztrák bódéból) | AT | street_food | 190 | 340 | 491 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
-| Grillcsirke (fél) | AT | street_food | 330 | – (lapos tányéros étel) | – (lapos tányéros étel) | 278 | 326 | 378 |
-| Nyárson sült makréla (Steckerlfisch) | AT | street_food | 150 | – (kézből) | – | – | – | – |
-| Lahmacun (török pizza) | AT | street_food | 380 | – (kézből) | – | – | – | – |
+| Grillcsirke (fél) | AT, DE | street_food | 330 | – (lapos tányéros étel) | – (lapos tányéros étel) | 278 | 326 | 378 |
+| Nyárson sült makréla (Steckerlfisch) | AT, DE | street_food | 150 | – (kézből) | – | – | – | – |
+| Lahmacun (török pizza) | AT, DE | street_food | 380 | – (kézből) | – | – | – | – |
 | Tócsni (osztrák Erdäpfelpuffer) | AT | street_food | 250 | – (lapos tányéros étel) | – (lapos tányéros étel) | 213 | 250 | 290 |
 | Paraszt-fánk (Bauernkrapfen) | AT | street_food | 80 | – (kézből) | – | – | – | – |
-| Sült gesztenye (Maroni) | AT | street_food | 185 | – (kézből) | – | – | – | – |
+| Sült gesztenye (Maroni) | AT, DE | street_food | 185 | – (kézből) | – | – | – | – |
 | Osztrák lángos (tejes-tojássárgás tészta, natúr) | AT | street_food | 89 | – (kézből) | – | – | – | – |
 | Fokhagymás osztrák lángos | AT | street_food | 107 | – (kézből) | – | – | – | – |
 | Fokhagymás-tejfölös osztrák lángos | AT | street_food | 129 | – (kézből) | – | – | – | – |
@@ -1169,7 +1208,25 @@ Mély tányér: kapacitás × töltöttség × sűrűség. Lapos tányér: 0,8 �
 | Bockwurst majonézes krumplisalátával | DE | everyday | 345 | 273 | 394 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | Müzli tejjel | DE | everyday | 169 | 266 | 385 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | Kukoricapehely tejjel | DE | everyday | 159 | 143 | 207 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Sült burgonya snidlinges túrókrémmel | DE | everyday | 350 | 363 | 524 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Gyümölcssaláta | DE | everyday | 250 | – (lapos tányéros étel) | – (lapos tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | Pirított burgonya szalonnával és tükörtojással | DE | everyday | 356 | 246 | 355 | 285 | 335 | 388 |
+| Berlini currywurst (bőr nélkül, curryszósszal) | DE | street_food | 169 | – (kézből) | – | – | – | – |
+| Currywurst bőrös sütnivaló kolbászból | DE | street_food | 200 | – (kézből) | – | – | – | – |
+| Sült krumpli ketchuppal és majonézzel (rot-weiß) | DE | street_food | 210 | – (kézből) | – | – | – | – |
+| Türingiai grillkolbász zsemlében | DE | street_food | 148 | – (kézből) | – | – | – | – |
+| Három nürnbergi kolbászka zsemlében (Drei im Weggla) | DE | street_food | 119.5 | – (kézből) | – | – | – | – |
+| Bockwurst zsemlével | DE | street_food | 155 | – (kézből) | – | – | – | – |
+| Matjesheringes zsemle hagymával | DE | street_food | 135 | – (kézből) | – | – | – | – |
+| Bismarck-heringes zsemle hagymával | DE | street_food | 135 | – (kézből) | – | – | – | – |
+| Rántott halas zsemle (Backfischbrötchen) | DE | street_food | 200 | – (kézből) | – | – | – | – |
+| Északi-tengeri garnélás zsemle (Krabbenbrötchen) | DE | street_food | 245 | – (kézből) | – | – | – | – |
+| Vajas lúgos perec (Butterbrezel) | DE | street_food | 101 | – (kézből) | – | – | – | – |
+| Rajnai burgonyalepény almapürével | DE | street_food | 300 | – (kézből) | – | – | – | – |
+| Elzászi lepény (Flammkuchen) | DE | street_food | 360 | – (kézből) | – | – | – | – |
+| Saslik nyárs paradicsomos szószban (Imbiss) | DE | street_food | 350 | 346 | 500 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| Mogyorókrémes palacsinta (crêpe, utcai) | DE | street_food | 200 | – (kézből) | – | – | – | – |
+| Pörkölt cukros mandula (gebrannte Mandeln) | DE | street_food | 100 | – (kézből) | – | – | – | – |
 | Rántotta | HU, AT, DE | everyday | 150 | – (lapos tányéros étel) | – (lapos tányéros étel) | 127 | 150 | 173 |
 | Leberkäsés zsemle | AT, DE | street_food | 162.5 | – (kézből) | – | – | – | – |
 

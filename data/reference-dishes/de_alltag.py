@@ -66,6 +66,28 @@ PARTS = {
         [src(LK + "pellkartoffeln-mit-quark-2158.html", R, "batch recipe: 1,2 kg Kartoffeln, 2 Zwiebeln, 500 g Magerquark, 500 g Schmand, 2 EL Leinöl, Schnittlauch, 1/2 Zitrone, 4 Personen"),
          src(GK + "pellkartoffeln-mit-quark-rezept-1658", R, "cross-check: 1 kg Kartoffeln, 500 g Quark 20 %, 250 g Quark, Milch, 2 Zwiebeln, Schnittlauch, 4 Portionen")],
         flat=(0.32, 3.0)),
+    "ofenkartoffel": part(
+        {"hu": "Sült burgonya héjában (Ofenkartoffel)", "de": "Ofenkartoffel", "de-AT": "Ofenerdäpfel", "en": "Baked potato"}, 4, 150,
+        [ing("potato", 700, note="700 g Kartoffeln, mehligkochend, with skin (counted as peeled potato)"), ing("olive_oil", g(2, "ek_oil"), "fat", "2 EL Olivenöl"),
+         ing("parsley_leaf", g(2, "ek_chopped_herbs"), "garnish", "2 EL Kräuter (parsley is an estimate)")],
+        -110, "potatoes halved, brushed with oil and herbs, baked ~45 min", "estimate: ~15 % baking loss; salt left out",
+        [src(GK + "ofenkartoffeln-rezept-2260", R, "batch recipe: 700 g mehligkochende Kartoffeln, 2 EL Kräuter, 2 EL Olivenöl, 2 TL Salz, 4 Portionen"),
+         src(GK + "folienkartoffeln-rezept-1752", R, "cross-check: 8 große Kartoffeln, 4 Knoblauchzehen, 8 TL Olivenöl, Rosmarin, 4 Portionen")]),
+    "kraeuterquark": part(
+        {"hu": "Snidlinges túrókrém (Kräuterquark)", "de": "Kräuterquark", "de-AT": "Kräutertopfen", "en": "Herb quark"}, 4, 75,
+        [ing("quark_40", 250, note="250 g Quark (40 %)"), ing("milk_whole", 46, "liquid", "45 ml Milch"), ing("chives", g(0.5, "bund_herb"), "garnish", "0.5 Bund Schnittlauch")],
+        0, "quark stirred smooth with milk and chives", "no cooking; salt, pepper left out",
+        [src(GK + "kraeuterquark-rezept-9333", R, "batch recipe: 45 ml Milch, 250 g Quark (40 %), 0.5 Bund Schnittlauch, 4 Portionen"),
+         src(GK + "pellkartoffeln-mit-quark-rezept-1658", R, "cross-check: Quark mit Milch und Schnittlauch zu Kartoffeln, 4 Portionen")]),
+    "obstsalat": part(
+        {"hu": "Gyümölcssaláta", "de": "Obstsalat", "de-AT": "Obstsalat", "en": "Fruit salad"}, 4, 250,
+        [ing("pineapple", 300, note="300 g Ananas"), ing("apple", 300, note="2 Äpfel; 150 g each is an estimate"), ing("raspberry", 120, note="120 g Himbeeren"),
+         ing("kiwi", 160, note="2 Kiwis; 80 g each peeled is an estimate"), ing("mango", 250, note="1 Mango; 250 g flesh is an estimate"), ing("nectarine", 260, note="2 Nektarinen; 130 g each is an estimate"),
+         ing("watermelon", 400, note="400 g Wassermelone"), ing("honey", 28, "seasoning", "4 TL Honig; 7 g per TL is an estimate")],
+        0, "fruit cut and mixed with honey and lime juice", "no cooking; lime juice and mint (MISSING) left out",
+        [src(GK + "obstsalat-rezept-1456", R, "batch recipe: 300 g Ananas, 2 Äpfel, 120 g Himbeeren, 4 TL Honig, 2 Kiwis, Limette, Mango, Minze, 2 Nektarinen, 400 g Wassermelone, 4 Portionen"),
+         src(GK + "obstsalat-rezept-24062", R, "cross-check: 1/2 Banane, 1 Kiwi, 30 g Johannisbeeren, 1 EL Dickmilch, 1 Portion")],
+        matrix="dry", bulk=0.65),
     "kaese_lauch_suppe": part(
         {"hu": "Sajtos-póréhagymás leves darált hússal (Käse-Lauch-Suppe)", "de": "Käse-Lauch-Suppe mit Hackfleisch", "de-AT": "Käse-Lauch-Suppe mit Faschiertem", "en": "Cheese and leek soup with minced meat"}, 4, 400,
         [ing("mixed_minced", 500, note="500 g Hackfleisch, gemischt"), ing("leek", 500, note="2 Stg Lauch, groß; 250 g each is an estimate"), ing("onion", 150, note="1 Zwiebel, groß; 150 g is an estimate"),
@@ -149,6 +171,14 @@ DISHES += [
     D("de_cornflakes_milch", [("cornflakes_milch", 159)],
       {"de": ["cornflakes mit milch", "cornflakes", "schüssel cornflakes"], "de-AT": ["cornflakes mit milch"], "hu": ["kukoricapehely tejjel", "cornflakes tejjel"], "en": ["cornflakes with milk", "bowl of cornflakes"]},
       served_in="deep_plate", tags=("breakfast", "higher-carb")),
+    D("de_ofenkartoffel_kraeuterquark", [("ofenkartoffel", 250), ("kraeuterquark", 100)],
+      {"de": ["ofenkartoffel mit kräuterquark", "folienkartoffel mit kräuterquark", "baked potato mit quark", "ofenkartoffel mit quark", "kartoffel mit kräuterquark"], "de-AT": ["ofenerdäpfel mit kräutertopfen"],
+       "hu": ["sült krumpli snidlinges túrókrémmel"], "en": ["baked potato with herb quark", "jacket potato with quark"]},
+      names={"hu": "Sült burgonya snidlinges túrókrémmel", "de": "Ofenkartoffel mit Kräuterquark", "de-AT": "Ofenerdäpfel mit Kräutertopfen", "en": "Baked potato with herb quark"},
+      tags=("everyday", "vegetarian")),
+    D("de_obstsalat", [("obstsalat", 250)],
+      {"de": ["obstsalat", "fruchtsalat", "frischer obstsalat"], "de-AT": ["obstsalat"], "hu": ["gyümölcssaláta"], "en": ["fruit salad"]},
+      served_in="deep_plate", tags=("everyday", "sweet", "vegetarian")),
     D("de_bratkartoffeln_spiegelei", [("bratkartoffeln", 250), ("tukortojas", 106)],
       {"de": ["bratkartoffeln mit spiegelei", "bratkartoffeln mit ei", "bratkartoffeln mit spiegeleiern"], "de-AT": ["geröstete erdäpfel mit spiegelei"], "hu": ["pirított burgonya tükörtojással"], "en": ["fried potatoes with fried egg"]},
       names={"hu": "Pirított burgonya szalonnával és tükörtojással", "de": "Bratkartoffeln mit Spiegelei", "de-AT": "Geröstete Erdäpfel mit Spiegelei", "en": "German fried potatoes with fried eggs"},
@@ -156,6 +186,8 @@ DISHES += [
 ]
 
 MISSING = [
+    dict(food_key="mint_lime_juice", names={"hu": "menta, limelé", "de": "Minze, Limettensaft", "en": "mint, lime juice"}, needed_for=["obstsalat (5 Bl Minze, 1 Limette)"],
+         note="No mint record and no lime-juice record in BLS 4.0 or the catalog (only the whole Limette); left out."),
     dict(food_key="herb_butter", names={"hu": "fűszervaj", "de": "Kräuterbutter", "en": "herb butter"}, needed_for=["nudelauflauf (1 TL)"],
          note="No Kräuterbutter record in BLS 4.0 or the catalog; left out (not replaced by plain butter)."),
 ]
