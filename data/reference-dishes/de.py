@@ -45,6 +45,51 @@ PHASE1_DISH_IDS = ("de_bratkartoffeln", "at_schweinsbraten", "xx_eierspeis", "xx
 INVENTORY = {"traditional": [], "everyday": [], "street_food": []}
 INVENTORY_REASONS = {}
 
+# Austrian and Hungarian dishes that Germans eat the same way: the existing
+# dish gains DE and one dated German cross-check source (on its own part, so
+# no other dish's sources change); its recipe, parts and grams stay as they
+# are. Kept here, not in the AT/HU modules, so those files stay unchanged; a
+# German recipe that differs is its own de_* dish instead (Krustenbraten,
+# Schweinshaxe, Döner, Currywurst...). A part shared with other AT dishes
+# (Semmelknödel) gets no extra source. Value: (part id or None, source, extra de aliases).
+R4 = "2026-10-11"
+GK_DE = "https://www.gutekueche.de/"
+REUSE = {
+    # traditional
+    "at_kaesespaetzle": ("kaesespaetzle", src(GK_DE + "allgaeuer-kaesespaetzle-rezept-69", R4, "DE cross-check (phase 4): 400 g Mehl, 4 Eier, 200 ml Wasser, 150 g Allgäuer Emmentaler, 50 g Butterschmalz, 2 Zwiebeln, Schnittlauch, 4 Portionen - same dish"), []),
+    "at_kaiserschmarrn": ("kaiserschmarrn", src(GK_DE + "kaiserschmarrn-rezept-1695", R4, "DE cross-check (phase 4): 3 Eier, 250 ml Milch, 120 g Mehl, 1 EL Zucker, 2 EL Butter, Puderzucker, 3 Portionen - same dish"), []),
+    "at_apfelstrudel": ("apfelstrudel", src(GK_DE + "apfelstrudel-rezept-12942", R4, "DE cross-check (phase 4): 100 g Mehl, Öl, Wasser, 750 g Äpfel, 50 g Zucker, 40 g Butter, 60 g Paniermehl, 6 Portionen - same dish"), []),
+    "at_semmelknoedel": (None, None, ["semmelknödel bayerisch"]),
+    "at_leberknoedelsuppe": ("leberknoedel", src(GK_DE + "leberknoedelsuppe-rezept-313", R4, "DE cross-check (phase 4): 2 Brötchen, 2 Eier, 125 ml Milch, 400 g Rinderleber, Zwiebel, Paniermehl, 1 l Fleischbrühe, 4 Portionen - same dish (beef instead of calf liver)"), []),
+    "at_frittatensuppe": ("frittaten", src(GK_DE + "flaedlesuppe-rezept-1915", R4, "DE cross-check (phase 4): 100 g Mehl, 250 ml Milch, 2 Eier, 60 g Butter, 1 l Gemüsebrühe, 4 Portionen - same dish (Flädlesuppe)"), ["flädle suppe", "schwäbische flädlesuppe"]),
+    "at_griessnockerlsuppe": ("griessnockerl", src(GK_DE + "traditionelle-griesskloesschensuppe-rezept-3236", R4, "DE cross-check (phase 4): 110 g Hartweizengrieß, 30 g Butter, 2 Eier, 100 ml Milch, 1 l Gemüsebrühe, 4 Portionen - same dish (Grießklößchen)"), []),
+    "at_martinigansl": ("martinigansl", src(GK_DE + "martinsgans-rezept-2542", R4, "DE cross-check (phase 4): 1 junge Gans à 4 kg, Äpfel, Birnen, Orange, Suppengrün, Beifuß, Majoran, Bier, 4 Portionen - same roast goose"), []),
+    "at_germknoedel": ("germknoedel", src(GK_DE + "germknoedel-rezept-11903", R4, "DE cross-check (phase 4): 250 g Mehl, 1/2 Würfel Hefe, Milch, 50 g Butter, Ei, Eigelb, 4 EL Pflaumenmus, 25 g Mohn, 50 g Butter, 4 Portionen - same dish"), []),
+    "at_wiener_schnitzel_schwein": ("wiener_schnitzel_schwein", src("https://www.lecker.de/schnitzel-wiener-art-15000.html", R4, "DE cross-check (phase 4): 4 Schweineschnitzel, 1 Ei, 5 EL Mehl, 75 g Paniermehl, Butterschmalz, 4 Personen - same breaded pork cutlet"), ["schnitzel", "paniertes schnitzel", "schweineschnitzel wiener art"]),
+    "at_cordon_bleu": ("cordon_bleu", src(GK_DE + "cordon-bleu-rezept-5775", R4, "DE cross-check (phase 4): Schnitzel mit Kochschinken und Käse gefüllt, paniert (Mehl, Ei, Semmelbrösel), in Butterschmalz, 4 Portionen - same dish"), []),
+    "at_forelle_muellerin": ("forelle_muellerin", src(GK_DE + "forelle-muellerin-rezept-1895", R4, "DE cross-check (phase 4): 4 Forellen, 40 g Mehl, 50 g Butter, Öl, Zitrone, 4 Portionen - same dish"), []),
+    "at_krautwickel": ("krautwickel", src(GK_DE + "omas-kohlrouladen-rezept-1903", R4, "DE cross-check (phase 4): 1 Weißkohl, 1 kg Hackfleisch gemischt, 2 Brötchen, Ei, 2 Zwiebeln, 250 ml Fleischbrühe, Mehl, Sahne, Tomatenmark, 6 Portionen - same dish"), ["kohlroulade", "omas kohlrouladen"]),
+    "at_faschierter_braten": ("faschierter_braten", src(GK_DE + "omas-hackbraten-rezept-865", R4, "DE cross-check (phase 4): 500 g Hackfleisch gemischt, 120 g Kalbsbrät, 2 Brötchen, Ei, 2 Zwiebeln, 500 ml Fleischbrühe, Crème fraîche, Sahne, 4 Portionen - same dish"), ["omas hackbraten"]),
+    "at_huehnersuppe_nudeln": ("huehnersuppe_nudeln", src(GK_DE + "huehnersuppe-mit-nudeln-rezept-793", R4, "DE cross-check (phase 4): 1 Suppenhuhn (ca. 1.5 kg), Suppengrün, Möhren, Petersilienwurzel, Nudeln, 8 Portionen - same dish"), ["hühnersuppe mit nudeln", "hühnernudelsuppe"]),
+    "at_zwiebelrostbraten": ("zwiebelrostbraten", src(GK_DE + "zwiebelrostbraten-rezept-2443", R4, "DE cross-check (phase 4): 800 g Rostbraten, 5 Zwiebeln, 3 EL Öl, 600 ml Rinderbrühe, Senf, Rotwein, 4 Portionen - same dish (Swabian Zwiebelrostbraten)"), ["schwäbischer zwiebelrostbraten"]),
+    "at_gulaschsuppe": ("gulaschsuppe", src(GK_DE + "gulaschsuppe-rezept-100", R4, "DE cross-check (phase 4): 500 g Gulaschfleisch vom Rind, 300 g Kartoffeln, 3 Paprika, 2 EL Paprikapulver, 300 g Tomaten, 3 Zwiebeln, 1.75 l Wasser, 6 Portionen - same dish"), []),
+}
+
+
+def _apply_reuse():
+    import at, hu, shared  # noqa: F401 - already loaded by build.py (at, shared) or loaded here (hu)
+    dishes = {d["id"]: d for m in (hu, at, shared) for d in m.DISHES}
+    parts = {**hu.PARTS, **at.PARTS, **shared.PARTS}
+    for did, (pid, source, extra) in REUSE.items():
+        d = dishes[did]
+        if "DE" not in d["countries"]:
+            d["countries"] = list(d["countries"]) + ["DE"]
+        if source:
+            parts[pid]["sources"] = list(parts[pid]["sources"]) + [source]
+        if extra:
+            d["aliases"] = {**d["aliases"], "de": list(d["aliases"].get("de", [])) + extra}
+
+
 PHASE4_MODULES = ("de_suppen_eintopf", "de_traditionell", "de_kuchen")
 for _name in PHASE4_MODULES:
     _m = __import__(_name)
@@ -60,3 +105,5 @@ for _name in PHASE4_MODULES:
     for _c, _names in getattr(_m, "INVENTORY", {}).items():
         INVENTORY[_c] += _names
     INVENTORY_REASONS.update(getattr(_m, "INVENTORY_REASONS", {}))
+
+_apply_reuse()
