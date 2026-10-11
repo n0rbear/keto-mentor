@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { UtensilsCrossed } from "lucide-react";
+import { UtensilsCrossed, X } from "lucide-react";
 import { api, type ApiState } from "./api";
 import { dict, type Lang } from "./i18n";
 import { PlatePortion, type Plate } from "./PlatePortion";
@@ -43,5 +43,21 @@ export function PlateSetup({ lang, state, onAnswered }: { lang: Lang; state: Api
     </div>
     <small className="plate-setup-later">{t.later}</small>
     {failed && <small className="plate-portion-error" role="alert">{t.failed}</small>}
+  </section>;
+}
+
+/** "Tányérjaim" (header entry): the same saved-plates editor, any time. */
+export function MyPlates({ lang, state, onClose }: { lang: Lang; state: ApiState; onClose: () => void }) {
+  const t = dict[lang].myPlates;
+  return <section className="card plate-setup-panel" aria-labelledby="my-plates-title">
+    <div className="auth-intro">
+      <p className="panel-kicker"><UtensilsCrossed aria-hidden="true" size={13}/> {t.open}</p>
+      <h2 id="my-plates-title">{t.open}</h2>
+      <p>{t.lead}</p>
+    </div>
+    <PlatePortion lang={lang} state={state} mode="manage"/>
+    <div className="plate-setup-actions">
+      <button type="button" className="btn secondary" onClick={onClose}><X aria-hidden="true" size={16}/> {t.close}</button>
+    </div>
   </section>;
 }

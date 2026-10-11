@@ -126,3 +126,30 @@ describe("plate question after registration (Milyen tányérjaid vannak?)", () =
     expect(dict.en.plateSetup.skip).toBe("I’d rather not say");
   });
 });
+
+describe("Tányérjaim (header entry to the saved-plates editor)", () => {
+  it("opens the existing plate manager any time and closes again", async () => {
+    stubServer({
+      me: () => ({ id: "u1", username: "alice", locale: "hu", profile: { ...onboarded, plateSetup: "skipped" }, _count: { plates: 1 } }),
+      plates: [{ id: "p1", name: "Mély", kind: "deep", capacityMl: 600, diameterMm: null }]
+    });
+    await login();
+    await screen.findByText("Napi áttekintés");
+    fireEvent.click(screen.getByRole("button", { name: dict.hu.myPlates.open }));
+    expect(await screen.findByText(/Mély · Mély tányér · 600 ml/)).toBeTruthy();
+    expect(screen.getByText("Új tányér")).toBeTruthy();
+    expect(screen.queryByText("Kiszámolom")).toBeNull();
+    fireEvent.click(screen.getByText(dict.hu.myPlates.close));
+    await waitFor(() => expect(screen.queryByText(/Mély · Mély tányér · 600 ml/)).toBeNull());
+  });
+
+  it("is not offered before login or before the first setup", async () => {
+    stubServer({ me: () => ({ id: "u1", username: "alice", locale: "hu", profile: null }) });
+    render(<App/>);
+    expect(screen.queryByRole("button", { name: dict.hu.myPlates.open })).toBeNull();
+  });
+
+  it("has HU/DE/EN labels", () => {
+    expect([dict.hu.myPlates.open, dict.de.myPlates.open, dict.en.myPlates.open]).toEqual(["Tányérjaim", "Meine Teller", "My plates"]);
+  });
+});

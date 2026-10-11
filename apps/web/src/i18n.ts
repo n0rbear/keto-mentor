@@ -29,6 +29,7 @@ export const dict = {
       }
     },
     onboarding: "Kezdő beállítások",
+    myPlates: { open: "Tányérjaim", lead: "A mentett tányérjaid. Ezekből számoljuk az „egy tányér …” adagot; ha nincs mentett tányér, átlagos tányérmérettel.", close: "Bezárás" },
     plateSetup: { kicker: "02 · Tányérok", title: "Milyen tányérjaid vannak?", lead: "Mérd le egyszer a tányérjaidat, így az „egy tányér …” adag pontosabb lesz. Ha nem adod meg, átlagos tányérmérettel számolunk.", done: "Mentés és tovább", skip: "Nem szeretném megadni", later: "A tányérjaidat később is módosíthatod a „Tányér alapján” gombbal.", failed: "Most nem sikerült menteni. Próbáld újra." },
     dashboard: "Napi áttekintés",
     loadingProfile: "Bejelentkezve, profil betöltése…",
@@ -254,6 +255,7 @@ export const dict = {
       }
     },
     onboarding: "Erste Einstellungen",
+    myPlates: { open: "Meine Teller", lead: "Deine gespeicherten Teller. Daraus berechnen wir „ein Teller …“; ohne gespeicherten Teller mit durchschnittlichen Tellergrößen.", close: "Schließen" },
     plateSetup: { kicker: "02 · Teller", title: "Welche Teller hast du?", lead: "Miss deine Teller einmal aus, dann wird „ein Teller …“ genauer. Wenn du sie nicht angibst, rechnen wir mit durchschnittlichen Tellergrößen.", done: "Speichern und weiter", skip: "Möchte ich nicht angeben", later: "Deine Teller kannst du später über „Nach Teller“ ändern.", failed: "Speichern gerade nicht möglich. Bitte erneut versuchen." },
     dashboard: "Tagesübersicht",
     loadingProfile: "Angemeldet, Profil wird geladen…",
@@ -479,6 +481,7 @@ export const dict = {
       }
     },
     onboarding: "Starter settings",
+    myPlates: { open: "My plates", lead: "Your saved plates. We use them for “a plate of …”; without a saved plate, average plate sizes.", close: "Close" },
     plateSetup: { kicker: "02 · Plates", title: "What plates do you have?", lead: "Measure your plates once and “a plate of …” gets more accurate. If you’d rather not, we use average plate sizes.", done: "Save and continue", skip: "I’d rather not say", later: "You can change your plates later with “By plate”.", failed: "Couldn’t save right now. Please try again." },
     dashboard: "Daily overview",
     loadingProfile: "Signed in, loading your profile…",
