@@ -2816,18 +2816,6 @@
       "density_intrinsic_g_ml": 1.03,
       "density_bulk_g_ml": 0.7
     },
-    "beetroot_pickled": {
-      "names": {
-        "hu": "savanyított cékla",
-        "de": "Rote Rübe/Rote Bete, gesäuert, abgetropft",
-        "en": "pickled beetroot"
-      },
-      "catalog": "bls:G613802",
-      "carb_basis": "total",
-      "density_intrinsic_g_ml": 1.03,
-      "density_bulk_g_ml": 0.7,
-      "note": "drained"
-    },
     "rollmops": {
       "names": {
         "hu": "rollmopsz (ecetes heringtekercs)",
@@ -3044,18 +3032,6 @@
       "density_intrinsic_g_ml": 1.05,
       "density_bulk_g_ml": 0.8
     },
-    "dark_beer": {
-      "names": {
-        "hu": "barna sör",
-        "de": "Lagerbier dunkel",
-        "en": "dark lager beer"
-      },
-      "catalog": "bls:P165000",
-      "carb_basis": "total",
-      "density_intrinsic_g_ml": 1.0,
-      "density_bulk_g_ml": 1.0,
-      "note": "alcohol mostly evaporates during cooking; energy slightly overstated"
-    },
     "sour_cherry_jar": {
       "names": {
         "hu": "meggy (üveges, cukrozott, lecsepegtetve)",
@@ -3133,18 +3109,6 @@
       "carb_basis": "total",
       "density_intrinsic_g_ml": 1.2,
       "density_bulk_g_ml": 1.2
-    },
-    "frankfurter_kranz": {
-      "names": {
-        "hu": "frankfurti koszorútorta (Frankfurter Kranz)",
-        "de": "Frankfurter Kranz (Sandmasse)",
-        "en": "Frankfurter Kranz (butter cream ring cake)"
-      },
-      "catalog": "bls:D441300",
-      "carb_basis": "total",
-      "density_intrinsic_g_ml": 0.6,
-      "density_bulk_g_ml": 0.6,
-      "note": "BLS bakery record of the whole cake slice"
     },
     "franzbroetchen": {
       "names": {
@@ -60447,7 +60411,9 @@
       ]
     },
     "DE": {
-      "traditional": [],
+      "traditional": [
+        "Frankfurter Kranz"
+      ],
       "everyday": [],
       "street_food": []
     }

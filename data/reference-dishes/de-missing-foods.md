@@ -21,3 +21,4 @@ a hivatalos forrásból (BLS xlsx, `BlsAdapter`) külön migrációban kell impo
 | `curry_powder` | curry fűszerpor / Currypulver / curry powder | currysauce (2 EL), schaschlik (a pinch) | BLS 4.0 has curry only in composite foods (Curryketchup, Currysauce); left out (as in at-missing-foods). |
 | `balsamic_vinegar` | balzsamecet / Balsamico-Essig / balsamic vinegar | currysauce (3 EL) | No Aceto balsamico record in BLS 4.0 or the catalog; left out. |
 | `dill` | kapor / Dill / dill | backfischbroetchen (4 Stiel) | No dill record in BLS 4.0 or the catalog; left out. |
+| `inventory-only` | Frankfurter Kranz | traditional | the butter-cream ring cake is covered with ~500 g Haselnusskrokant (gutekueche.de, lecker.de); BLS 4.0 has no Krokant record (only Sesam-Krokant) - not substituted |

@@ -42,8 +42,10 @@ PHASE1_DISH_IDS = ("de_bratkartoffeln", "at_schweinsbraten", "xx_eierspeis", "xx
 
 # German dishes that stay out until their essential ingredient has a catalog
 # record (name -> reason), like Burenwurst in at.py.
-INVENTORY = {"traditional": [], "everyday": [], "street_food": []}
-INVENTORY_REASONS = {}
+INVENTORY = {"traditional": ["Frankfurter Kranz"], "everyday": [], "street_food": []}
+INVENTORY_REASONS = {
+    "Frankfurter Kranz": "the butter-cream ring cake is covered with ~500 g Haselnusskrokant (gutekueche.de, lecker.de); BLS 4.0 has no Krokant record (only Sesam-Krokant) - not substituted",
+}
 
 # Austrian and Hungarian dishes that Germans eat the same way: the existing
 # dish gains DE and one dated German cross-check source (on its own part, so

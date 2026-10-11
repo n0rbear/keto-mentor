@@ -122,7 +122,31 @@ describe("regional words in a sentence, with suffixes", () => {
     ["hu", "Bécsben császármorzsát ettem", "at_kaiserschmarrn"],
     ["hu", "ettem egy szelet sacher-tortát", "at_sachertorte"],
     ["en", "I had apple strudel with cream", "at_apfelstrudel"],
-    ["en", "a bag of roasted chestnuts", "at_maroni"]
+    ["en", "a bag of roasted chestnuts", "at_maroni"],
+    // Phase 4 (Germany)
+    ["de", "Mittags Rouladen mit Klößen und Rotkohl", "de_rinderrouladen__kartoffelkloesse"],
+    ["de", "zum Frühstück zwei Schrippen", "de_broetchen"],
+    ["de", "eine Currywurst mit Pommes", "de_currywurst__hasabburgonya"],
+    ["de", "abends zwei Weißwürste mit Brezel und süßem Senf", "de_weisswurstfruehstueck"],
+    ["de", "ein Teller Labskaus", "de_labskaus"],
+    ["de", "Grünkohl mit Pinkel beim Kohlessen", "de_gruenkohl_pinkel"],
+    ["de", "drei im Weggla auf dem Christkindlesmarkt", "de_drei_im_weggla"],
+    ["de", "ein Stück Schwarzwälder Kirschtorte", "de_schwarzwaelder_kirschtorte"],
+    ["de", "Reibekuchen mit Apfelmus auf der Kirmes", "de_reibekuchen"],
+    ["de", "ein Fischbrötchen mit Matjes", "de_fischbroetchen_matjes"],
+    ["de", "Königsberger Klopse mit Kartoffeln", "de_koenigsberger_klopse__salzkartoffeln"],
+    ["de", "Maultaschen in der Brühe", "de_maultaschen_bruehe"],
+    ["de", "zwei Buletten", "at_faschierte_laibchen"],
+    ["de", "ein Berliner Pfannkuchen", "at_krapfen"],
+    ["de", "Käsespätzle wie im Allgäu", "at_kaesespaetzle"],
+    ["hu", "Berlinben currywurstot ettem", "de_currywurst"],
+    ["hu", "egy fekete-erdő torta szelet", "de_schwarzwaelder_kirschtorte"],
+    ["hu", "sváb krumplisalátát ettem", "de_kartoffelsalat_sued"],
+    ["en", "I had a black forest gateau", "de_schwarzwaelder_kirschtorte"],
+    ["en", "pork knuckle at the Oktoberfest", "de_schweinshaxe"],
+    ["en", "two weisswurst for breakfast", "de_weisswurst"],
+    ["de-AT", "ein Weißwurstfrühstück", "de_weisswurstfruehstueck"],
+    ["de-AT", "Thüringer Rostbratwurst", "de_thueringer_broetchen"]
   ])("%s: %s", (_language, sentence, variant) => {
     expect(found(sentence)).toContain(variant);
   });
@@ -154,7 +178,14 @@ describe("unifiedSearch finds the regional samples", () => {
     ["Käsekrainer", "at_kaesekrainer"],
     ["császármorzsa", "at_kaiserschmarrn"],
     ["Zwiebelrostbraten", "at_zwiebelrostbraten"],
-    ["roast goose", "at_martinigansl"]
+    ["roast goose", "at_martinigansl"],
+    ["Rinderrouladen", "de_rinderrouladen"],
+    ["Currywurst", "de_currywurst"],
+    ["Schrippe", "de_broetchen"],
+    ["Labskaus", "de_labskaus"],
+    ["fekete-erdő torta", "de_schwarzwaelder_kirschtorte"],
+    ["black forest gateau", "de_schwarzwaelder_kirschtorte"],
+    ["Weißwurstfrühstück", "de_weisswurstfruehstueck"]
   ])("%s", async (query, variant) => {
     const result = await unifiedSearch(prisma, query, false, { userId: "u1", foodLocale: "hu" as any });
     if (result.kind !== "results") throw new Error("expected results");

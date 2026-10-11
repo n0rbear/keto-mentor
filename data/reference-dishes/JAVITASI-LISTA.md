@@ -21,6 +21,14 @@ A 2. fázis minimumai ezek nélkül is teljesültek (62 hagyományos, 60 mindenn
 | HU-2 🔴 | **juhászos tokány** | hagyományos | Az alapanyagok nem hiányoznak; a 2. fázisban nem találtunk hozzá legalább két idézhető, datált nyilvános receptet, amit a feladatleírás ételenként megkövetel (a commit csak ennyit rögzít, a keresés részletei nincsenek dokumentálva). | Újra forrást keresni: klasszikus szakácskönyv és a szokásos oldalak (mindmegette, nosalty, Sóbors stb.). Ha két összevethető recept van, az étel a többi tokány mintájára felépíthető. Ha nincs, döntés kell: kikerül a listáról, vagy a tokány aliasa lesz. |
 | HU-3 🔴 | **tepertős pogácsa** | mindennapi | A tepertőre (Grieben / Grammeln) nincs rekord: a BLS 4.0-ban nincs (Griebe, Grammel, Speck keresésre), és az éles katalógusban sincs. A tészta kb. negyede darált tepertő, ez adja az étel lényegét, ezért szalonnával nem helyettesíthető. | USDA FDC „Pork skins / cracklings” importja (2. szakasz), vagy egy magyar termék címkéje átnézett rekordként. Ugyanez a rekord kell a tepertőkrémhez és a `grammelschmalzbrot` aliashoz is (a zsíros kenyérnél most kérdésesként jelölve). Az osztrák „Grammeln” (pl. Grammelknödel) is ezt használja majd. |
 
+## 1b. Kimaradt / nyitott német tételek (DE, 4. fázis)
+
+| # | Tétel | Miért | Javasolt javítás |
+|---|---|---|---|
+| DE-1 🔴 | **Frankfurter Kranz** (házi) | A koszorú ~500 g mogyorós Krokanttal borított; Krokant-rekord nincs (csak Sesam-Krokant). | Krokant (cukor + mogyoró) átnézett rekordként, vagy a BLS D441300 Frankfurter Kranz pékárurekord (még nincs importálva) darabsúllyal (két kiskereskedelmi forrás kell). |
+| DE-2 ⚪ | **Pfälzer Saumagen** | Nem épült meg, de a BLS-ben van rekord (V553100 Schwein Magen), tehát megépíthető. | Két dátumozott recepttel a többi DE étel mintájára. |
+| DE-3 🟠 | Gewürzgurke, Kräuterbutter, Currypulver, Balsamico, Muskat, Majoran, Dill, Liebstöckel, Bohnenkraut, Thymian, Borretsch/Kerbel/Pimpinelle, Minze, Limettensaft, száraz bor | Kihagyva a receptekből (lásd `de-missing-foods.md`), nem helyettesítve. | Ugyanaz az USDA-import, mint HU-4…HU-12; a bornál a 'TR' mezőt 0-nak olvasó átnézett import. |
+
 ## 2. Hiányzó alapanyagok, amelyek nélkül egy kész étel kissé alulszámolt
 
 Ezek az összetevők kimaradtak a receptből (nem lettek helyettesítve), mert sem a BLS 4.0,
