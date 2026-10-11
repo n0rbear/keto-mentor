@@ -22,28 +22,45 @@ export type PlateInput = { kind: "deep"; capacityMl: number } | { kind: "flat"; 
 
 /**
  * Average plates, used when the user saved no plate of their own (skipped the
- * plate question or never answered it). Owner decision 2026-10-11: "if they
- * don't want to provide them, use average plate sizes".
+ * plate question or never answered it). Owner decisions 2026-10-11: "if they
+ * don't want to provide them, use average plate sizes"; the average deep
+ * plate should give a usual soup portion at NORMAL fill.
  *
  * flat 26 cm: the plate the reference dishes are already calibrated on
  *   (data/reference-dishes/README.md: "egy 26 cm-es lapos tányér normál adagja
  *   a szokásos adagot adja"); matches common dinner plates, e.g. Holst
  *   Porzellan "Teller flach 26 cm Basic" and "Teller flach 27 cm Harmony"
  *   (holst-porzellan.com, checked 2026-10-11).
- * deep 400 ml: a 23 cm soup plate as listed by manufacturers/retailers,
- *   checked 2026-10-11:
- *   - Holst Porzellan "Teller tief 23 cm Harmony": 0,40 l, D 23,0 cm; "Teller
- *     tief 23,5 cm Basic": 0,40 l (holst-porzellan.com product pages);
- *   - Bauscher (BHS tabletop) "dialog Teller tief Fahne 23 cm" 402-1925:
- *     0,4 l (esmeyer-shop.de product page);
- *   - Villeroy & Boch "Mariefleur Basic Suppenteller" 23 cm: 0,4 l
- *     (kaufland.de product listing).
- * Owner to confirm (open question in the plate-onboarding report).
+ * deep 600 ml (brim, as the app measures: filled with water to the rim):
+ *   - usual soup portion: Gulyásleves 450 g, density 1.022 g/ml
+ *     (data/reference-dishes, reference-dishes-check.md). At normal fill
+ *     (0.75) that needs 450 / (0.75 x 1.022) = 587 ml -> 600 ml (460 g);
+ *   - inside the 450-650 ml deep-plate bracket the reference-dish check table
+ *     is calibrated on (reference-dishes-check.md "Mély 450 ml / 650 ml");
+ *   - listed deep-plate capacities, checked 2026-10-11 (manufacturers often
+ *     list a usable, not brim, volume, which is why 23 cm soup plates show
+ *     0.40 l): Holst Porzellan "Teller tief 21 cm Katja" 0,50 l, "Teller
+ *     tief 20 cm Maxima" 0,70 l (holst-porzellan.com); SÄNGER "New Port"
+ *     21 cm 450 ml (otto.de); Thomas "Trend Colour" 23,2 cm 0,830 l (retail
+ *     listing). Brim volumes cluster at 0.45-0.83 l.
+ * Owner to confirm.
  */
 export const AVERAGE_PLATES = {
   flat: { kind: "flat", diameterMm: 260 },
-  deep: { kind: "deep", capacityMl: 400 }
+  deep: { kind: "deep", capacityMl: 600 }
 } as const satisfies Record<"flat" | "deep", PlateInput>;
+
+/**
+ * Whether a dish is eaten from a deep plate (soups, főzelék, Eintopf), read
+ * from the reference-dish metadata "servedIn" — the recipe's own provenance,
+ * or the reference dish an own recipe was copied from. No word lists.
+ */
+export function dishServedIn(provenance: unknown): "deep_plate" | "flat_plate" | "handheld" | null {
+  const p = provenance as { kind?: string; servedIn?: unknown; sourceProvenance?: unknown } | null;
+  if (!p || typeof p !== "object") return null;
+  if (p.kind === "reference_dish") return p.servedIn === "deep_plate" || p.servedIn === "flat_plate" || p.servedIn === "handheld" ? p.servedIn : null;
+  return p.sourceProvenance ? dishServedIn(p.sourceProvenance) : null;
+}
 export type DishPlateProfile = {
   densityGPerMl: number;
   // Present for reference dishes; one entry per part (main dish, side).

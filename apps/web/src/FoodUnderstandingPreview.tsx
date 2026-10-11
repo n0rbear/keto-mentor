@@ -146,27 +146,22 @@ export function statedPlates(parsed?: { quantity?: number; unit?: string }): { c
   return (parsed?.unit === "plate" || parsed?.unit === "bowl") && parsed.quantity != null && parsed.quantity > 0 ? { count: parsed.quantity, kind: parsed.unit } : undefined;
 }
 
-type SavedPlate = { id: string; name: string; kind: "deep" | "flat" };
 type AveragePlate = { kind: "deep"; capacityMl: number } | { kind: "flat"; diameterMm: number };
 type PlateGrams = { grams: number; plate: string } | { grams: number; average: AveragePlate };
 
 /**
- * A plate count of a saved recipe: the user's saved plate (a bowl prefers a
- * deep one) at normal fill, through the recipe's own density (roadmap D).
- * Without a saved plate (the plate question skipped or never answered) the
- * average plate is used: an average flat plate for "tányér", an average deep
- * plate for "tál"/bowl (owner decision 2026-10-11; sizes in the API's
- * AVERAGE_PLATES). Never a grams prompt.
+ * A plate count of a saved recipe at normal fill, through the recipe's own
+ * density (roadmap D). The server picks the plate (owner decisions
+ * 2026-10-11): a soup/főzelék always on a deep plate; otherwise the user's
+ * saved plate (a bowl prefers a deep one); without a saved plate the
+ * average plate (flat for "tányér", deep for "tál"/bowl). Never a grams prompt.
  */
 async function platePortionGrams(state: ApiState, recipeId: string, kind: "plate" | "bowl"): Promise<PlateGrams | null> {
-  const plates = (await api<{ plates: SavedPlate[] }>("/me/plates", {}, state)).plates;
-  const plate = (kind === "bowl" ? plates.find((candidate) => candidate.kind === "deep") : undefined) ?? plates[0];
-  if (!plate) {
-    const estimate = await api<{ grams: number; plate: AveragePlate }>("/me/average-plate/portion", { method: "POST", body: JSON.stringify({ kind: kind === "bowl" ? "deep" : "flat", fill: "normal", recipeId }) }, state);
-    return estimate.grams > 0 && estimate.plate ? { grams: estimate.grams, average: estimate.plate } : null;
-  }
-  const estimate = await api<{ grams: number }>(`/me/plates/${encodeURIComponent(plate.id)}/portion`, { method: "POST", body: JSON.stringify({ fill: "normal", recipeId }) }, state);
-  return estimate.grams > 0 ? { grams: estimate.grams, plate: plate.name } : null;
+  const estimate = await api<{ grams: number; plate?: ({ source: "saved"; name: string } | { source: "average" }) & AveragePlate }>("/me/plate-portion", { method: "POST", body: JSON.stringify({ recipeId, unit: kind }) }, state);
+  if (!(estimate.grams > 0) || !estimate.plate) return null;
+  const { plate } = estimate;
+  if (plate.source === "saved") return { grams: estimate.grams, plate: plate.name };
+  return { grams: estimate.grams, average: plate.kind === "deep" ? { kind: "deep", capacityMl: plate.capacityMl } : { kind: "flat", diameterMm: plate.diameterMm } };
 }
 
 // A saved recipe the dish matched without any web search: the user's own
