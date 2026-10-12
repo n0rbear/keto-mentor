@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Lang } from "./i18n";
 import { CheckCircle2, CircleDashed, Sparkles } from "lucide-react";
 import { pickDisplayName } from "./food-display-name";
-import type { ApiState } from "./api";
+import { api, type ApiState } from "./api";
 import { PlatePortion } from "./PlatePortion";
 
 export type ExternalCandidate = {
@@ -133,6 +133,35 @@ export type RecipeDiscoveryPreviewValue = {
   localAlternatives?: LocalRecipeOption[];
 };
 
+// Owner report (2026-10-11, "2 adag lángos"): a portion count the sentence
+// already stated ("2 adag", "fél adag", "2 Portionen", "2 servings") is the
+// starting amount of whichever recipe resolves the dish, never asked again.
+export function statedServings(parsed?: { quantity?: number; unit?: string }): number | undefined {
+  return parsed?.unit === "portion" && parsed.quantity != null && parsed.quantity > 0 ? parsed.quantity : undefined;
+}
+
+// Owner decision (2026-10-11): "tányér"/"tál"/Teller/plate/bowl is an
+// adjustable amount of the same dish, never a reason to ask for grams.
+export function statedPlates(parsed?: { quantity?: number; unit?: string }): { count: number; kind: "plate" | "bowl" } | undefined {
+  return (parsed?.unit === "plate" || parsed?.unit === "bowl") && parsed.quantity != null && parsed.quantity > 0 ? { count: parsed.quantity, kind: parsed.unit } : undefined;
+}
+
+type SavedPlate = { id: string; name: string; kind: "deep" | "flat" };
+
+/**
+ * A plate count of a saved recipe: the user's saved plate (a bowl prefers a
+ * deep one) at normal fill, through the recipe's own density (roadmap D).
+ * Without a saved plate one plate counts as one serving, matching how the
+ * food understanding reads "egy tányér gulyásleves" (one soup portion).
+ */
+async function platePortionGrams(state: ApiState, recipeId: string, kind: "plate" | "bowl"): Promise<{ grams: number; plate: string } | null> {
+  const plates = (await api<{ plates: SavedPlate[] }>("/me/plates", {}, state)).plates;
+  const plate = (kind === "bowl" ? plates.find((candidate) => candidate.kind === "deep") : undefined) ?? plates[0];
+  if (!plate) return null;
+  const estimate = await api<{ grams: number }>(`/me/plates/${encodeURIComponent(plate.id)}/portion`, { method: "POST", body: JSON.stringify({ fill: "normal", recipeId }) }, state);
+  return estimate.grams > 0 ? { grams: estimate.grams, plate: plate.name } : null;
+}
+
 // A saved recipe the dish matched without any web search: the user's own
 // ("own") or a curated Keto Mentor reference dish ("reference").
 export type LocalRecipeOption = { recipeId: string; title: string; source?: "own" | "reference"; servings?: number | null; servingGrams?: number | null };
@@ -234,6 +263,7 @@ export type FoodUnderstandingLabels = {
     confirmQuantity: string;
     confirmUnit: string;
     confirmServingUnit: string;
+    plateEstimate: string;
     blockedHeading: string;
     blockingReasons: Record<RecipeBlockingReason, string>;
     fixExclude: string;
@@ -534,8 +564,8 @@ function BlockedIngredientFix({ ingredient, fix, lang, labels, busy, onChange, s
   </li>;
 }
 
-function RecipeCandidateReview({ candidate, lang, labels, busy, onConfirm, services }: {
-  candidate: RecipeDiscoveryCandidateValue; lang: Lang; labels: FoodUnderstandingLabels; busy: boolean;
+function RecipeCandidateReview({ candidate, lang, labels, busy, onConfirm, services, requestedServings }: {
+  candidate: RecipeDiscoveryCandidateValue; lang: Lang; labels: FoodUnderstandingLabels; busy: boolean; requestedServings?: number;
   onConfirm?: (candidate: RecipeDiscoveryCandidateValue, quantity: number, unit: "g" | "serving", overrides?: RecipeIngredientOverride[]) => void;
   services?: RecipeFixServices;
 }) {
@@ -551,7 +581,7 @@ function RecipeCandidateReview({ candidate, lang, labels, busy, onConfirm, servi
       <ul>{blocked.map(({ ingredient, index }) => <BlockedIngredientFix key={index} ingredient={ingredient} fix={fixes[index]} lang={lang} labels={labels.recipeDiscovery} busy={busy} services={services}
         onChange={(fix) => setFixes((current) => { const next = { ...current }; if (fix) next[index] = fix; else delete next[index]; return next; })}/>)}</ul>
     </section>}
-    {onConfirm && <RecipeConfirmControls candidate={candidate} lang={lang} labels={labels} busy={busy} portionState={services?.portionState}
+    {onConfirm && <RecipeConfirmControls candidate={candidate} lang={lang} labels={labels} busy={busy} portionState={services?.portionState} requestedServings={requestedServings}
       ready={candidate.nutritionCalculable || allFixed}
       onConfirm={(c, quantity, unit) => candidate.nutritionCalculable ? onConfirm(c, quantity, unit) : onConfirm(c, quantity, unit, overrides)}/>}
   </>;
@@ -560,13 +590,13 @@ function RecipeCandidateReview({ candidate, lang, labels, busy, onConfirm, servi
 // The portion photo stays reachable while blocked ingredients are still being
 // fixed (owner report 2026-09-25); the add button appears only once every
 // blocking ingredient is fixed, so partial nutrition is never saved.
-function RecipeConfirmControls({ candidate, lang, labels, busy, ready, onConfirm, portionState }: {
-  candidate: RecipeDiscoveryCandidateValue; lang: Lang; labels: FoodUnderstandingLabels; busy: boolean; ready: boolean;
+function RecipeConfirmControls({ candidate, lang, labels, busy, ready, onConfirm, portionState, requestedServings }: {
+  candidate: RecipeDiscoveryCandidateValue; lang: Lang; labels: FoodUnderstandingLabels; busy: boolean; ready: boolean; requestedServings?: number;
   onConfirm: (candidate: RecipeDiscoveryCandidateValue, quantity: number, unit: "g" | "serving") => void;
   portionState?: ApiState;
 }) {
   const [unit, setUnit] = useState<"g" | "serving">(candidate.servings ? "serving" : "g");
-  const [quantity, setQuantity] = useState(candidate.servings ? 1 : 100);
+  const [quantity, setQuantity] = useState(candidate.servings ? requestedServings ?? 1 : 100);
   return <div className="recipe-meal-controls">
     <input aria-label={labels.recipeDiscovery.confirmQuantity} className="field" type="number" min="0.1" step="0.1" value={quantity} onChange={(event) => setQuantity(Number(event.target.value))}/>
     <select aria-label={labels.recipeDiscovery.confirmUnit} className="field" value={unit} onChange={(event) => setUnit(event.target.value as "g" | "serving")}>
@@ -662,22 +692,39 @@ function AiEstimateCard({ estimate, labels, busy, onAccept, onOverride, onDeclin
 // note, with no way to add it or to pick between several matches. One
 // option: amount + add. Several (e.g. a reference dish with an open side):
 // pick first, then add.
-export function LocalRecipePicker({ discovery, labels, busy, onConfirm, lang, portionState }: {
-  discovery: RecipeDiscoveryPreviewValue; labels: FoodUnderstandingLabels["recipeDiscovery"]; busy: boolean; lang: Lang; portionState?: ApiState;
+export function LocalRecipePicker({ discovery, labels, busy, onConfirm, lang, portionState, requestedServings, requestedPlates }: {
+  discovery: RecipeDiscoveryPreviewValue; labels: FoodUnderstandingLabels["recipeDiscovery"]; busy: boolean; lang: Lang; portionState?: ApiState; requestedServings?: number;
+  requestedPlates?: { count: number; kind: "plate" | "bowl" };
   onConfirm: (option: LocalRecipeOption, quantity: number, unit: "g" | "serving") => void;
 }) {
   const options = discovery.status === "local_match" && discovery.localMatch ? [discovery.localMatch] : discovery.localAlternatives ?? [];
+  const servingCount = requestedServings ?? requestedPlates?.count ?? 1;
   const [picked, setPicked] = useState<LocalRecipeOption | null>(options.length === 1 ? options[0] : null);
-  const [quantity, setQuantity] = useState(picked && !picked.servings ? 100 : 1);
+  const [quantity, setQuantity] = useState(picked && !picked.servings ? 100 : servingCount);
   const [unit, setUnit] = useState<"g" | "serving">(picked?.servings ? "serving" : "g");
+  const [plateNote, setPlateNote] = useState<string | null>(null);
+  const pickedId = picked?.recipeId;
+  useEffect(() => {
+    setPlateNote(null);
+    if (!pickedId || !requestedPlates || !portionState) return;
+    let current = true;
+    platePortionGrams(portionState, pickedId, requestedPlates.kind).then((estimate) => {
+      if (!current || !estimate) return;
+      const grams = Math.round(estimate.grams * requestedPlates.count);
+      setUnit("g"); setQuantity(grams);
+      setPlateNote(labels.plateEstimate.replace("{n}", String(requestedPlates.count)).replace("{plate}", estimate.plate).replace("{g}", String(grams)));
+    }).catch(() => { /* keep the serving-based amount */ });
+    return () => { current = false; };
+  }, [pickedId, requestedPlates?.count, requestedPlates?.kind, portionState, labels.plateEstimate]);
   if (!options.length) return null;
-  const pick = (option: LocalRecipeOption) => { setPicked(option); setUnit(option.servings ? "serving" : "g"); setQuantity(option.servings ? 1 : 100); };
+  const pick = (option: LocalRecipeOption) => { setPicked(option); setUnit(option.servings ? "serving" : "g"); setQuantity(option.servings ? servingCount : 100); };
   return <div className="local-recipe-picker">
     {options.length > 1 && <div className="local-recipe-options" role="radiogroup">
       {options.map((option) => <label key={option.recipeId}><input type="radio" name="local-recipe" checked={picked?.recipeId === option.recipeId} onChange={() => pick(option)}/> {option.title}</label>)}
     </div>}
     {picked && <>
       <small>{picked.source === "reference" ? labels.sourceReference : labels.sourceOwn}{picked.servingGrams ? ` · ${labels.servingApprox.replace("{g}", String(Math.round(picked.servingGrams)))}` : ""}</small>
+      {plateNote && <small className="local-recipe-plate-estimate">{plateNote}</small>}
       <div className="recipe-meal-controls">
         <input aria-label={labels.confirmQuantity} className="field" type="number" min="0.1" step="0.1" value={quantity} onChange={(event) => setQuantity(Number(event.target.value))}/>
         <select aria-label={labels.confirmUnit} className="field" value={unit} onChange={(event) => setUnit(event.target.value as "g" | "serving")}>
@@ -690,6 +737,8 @@ export function LocalRecipePicker({ discovery, labels, busy, onConfirm, lang, po
     </>}
   </div>;
 }
+
+const isLocalRecipeDiscovery = (discovery: RecipeDiscoveryPreviewValue) => discovery.status === "local_match" || discovery.reason === "ambiguous_local_matches";
 
 function PreviewRow({ item, lang, labels, busy, confirmingId, onConfirmExternal, onConfirmRecipe, onConfirmLocalRecipe, onAcceptAiEstimate, onOverrideAiEstimate, onSelectCandidate, recipeFixServices }: {
   item: PreviewItem; lang: Lang; labels: FoodUnderstandingLabels; busy: boolean; confirmingId: string | null;
@@ -729,8 +778,8 @@ function PreviewRow({ item, lang, labels, busy, confirmingId, onConfirmExternal,
     {!isAiEstimatePending && <small className="understanding-resolution">{isTrusted ? <CheckCircle2 aria-hidden="true" size={13}/> : <CircleDashed aria-hidden="true" size={13}/>} {isTrusted ? labels.trusted : labels.unresolved}</small>}
     {item.quantity?.status === "resolved" && <small>{item.quantity.estimated ? "≈" : "="} {Math.round((item.quantity.grams ?? 0) * 10) / 10} g</small>}
     {item.recipeDiscovery && <small className="recipe-discovery-note">{recipeDiscoveryText(item.recipeDiscovery, labels)}</small>}
-    {item.recipeDiscovery?.candidate && <RecipeCandidateReview candidate={item.recipeDiscovery.candidate} lang={lang} labels={labels} busy={busy} onConfirm={onConfirmRecipe} services={recipeFixServices}/>}
-    {item.recipeDiscovery && onConfirmLocalRecipe && (item.recipeDiscovery.status === "local_match" || item.recipeDiscovery.reason === "ambiguous_local_matches") && <LocalRecipePicker discovery={item.recipeDiscovery} labels={labels.recipeDiscovery} busy={busy} onConfirm={onConfirmLocalRecipe} lang={lang} portionState={recipeFixServices?.portionState}/>}
+    {item.recipeDiscovery?.candidate && <RecipeCandidateReview candidate={item.recipeDiscovery.candidate} lang={lang} labels={labels} busy={busy} onConfirm={onConfirmRecipe} services={recipeFixServices} requestedServings={statedServings(item.parsed) ?? statedPlates(item.parsed)?.count}/>}
+    {item.recipeDiscovery && onConfirmLocalRecipe && isLocalRecipeDiscovery(item.recipeDiscovery) && <LocalRecipePicker discovery={item.recipeDiscovery} labels={labels.recipeDiscovery} busy={busy} onConfirm={onConfirmLocalRecipe} lang={lang} portionState={recipeFixServices?.portionState} requestedServings={statedServings(item.parsed)} requestedPlates={statedPlates(item.parsed)}/>}
     {hasCatalogCandidates && onSelectCandidate && <CatalogCandidateList candidates={item.candidates!} lang={lang} labels={labels} busy={busy} onSelect={onSelectCandidate}/>}
     {!!item.externalCandidates?.length && onConfirmExternal && <ExternalCandidateList candidates={item.externalCandidates} lang={lang} labels={labels} busy={busy} confirmingId={confirmingId} onConfirm={onConfirmExternal}/>}
     {isAiEstimatePending && onAcceptAiEstimate && onOverrideAiEstimate && <AiEstimateCard estimate={item.aiEstimate!} labels={labels.aiEstimate} busy={busy} onAccept={(quantityGrams) => onAcceptAiEstimate(item.aiEstimate!, quantityGrams)} onOverride={onOverrideAiEstimate} onDecline={() => setAiEstimateDeclined(true)}/>}
@@ -780,7 +829,10 @@ export function FoodUnderstandingPreview({ value, lang, labels, busy, onConfirmA
     {/* Live report (2026-09-25): a dish recognized as several items kept its
         discovered recipe here as display only, so "needs confirmation" had
         no button at all. It now gets the same fix + confirm controls. */}
-    {!!value.items?.length && value.recipeDiscovery?.candidate && <RecipeCandidateReview candidate={value.recipeDiscovery.candidate} lang={lang} labels={labels} busy={busy} onConfirm={onConfirmRecipe} services={recipeFixServices}/>}
+    {!!value.items?.length && value.recipeDiscovery?.candidate && <RecipeCandidateReview candidate={value.recipeDiscovery.candidate} lang={lang} labels={labels} busy={busy} onConfirm={onConfirmRecipe} services={recipeFixServices} requestedServings={statedServings(value.parsed) ?? statedPlates(value.parsed)?.count}/>}
+    {/* A single named dish carries its saved-recipe match at the top level
+        (owner report 2026-10-11: "2 adag lángos" showed no way to pick it). */}
+    {!!value.items?.length && value.recipeDiscovery && onConfirmLocalRecipe && isLocalRecipeDiscovery(value.recipeDiscovery) && <LocalRecipePicker discovery={value.recipeDiscovery} labels={labels.recipeDiscovery} busy={busy} onConfirm={onConfirmLocalRecipe} lang={lang} portionState={recipeFixServices?.portionState} requestedServings={statedServings(value.parsed)} requestedPlates={statedPlates(value.parsed)}/>}
     {(value.items?.length || value.interpretationSource === "ai_assisted" || isSingleAiEstimatePending) && <ul className="multi-preview-list">
       {rows.map((item, index) => <PreviewRow key={index} item={item} lang={lang} labels={labels} busy={busy} confirmingId={confirmingExternalId ?? null} onConfirmExternal={onConfirmExternal ? (candidate) => onConfirmExternal(candidate, value.items?.length ? index : undefined) : undefined} onConfirmRecipe={onConfirmRecipe} onConfirmLocalRecipe={onConfirmLocalRecipe} onAcceptAiEstimate={onAcceptAiEstimate ? (estimate, quantityGrams) => onAcceptAiEstimate(estimate, quantityGrams, value.items?.length ? index : undefined) : undefined} onOverrideAiEstimate={onOverrideAiEstimate ? (payload) => onOverrideAiEstimate(payload, value.items?.length ? index : undefined) : undefined} onSelectCandidate={onSelectCandidate ? (candidate) => onSelectCandidate(candidate, value.items?.length ? index : undefined) : undefined} recipeFixServices={recipeFixServices}/>) }
     </ul>}

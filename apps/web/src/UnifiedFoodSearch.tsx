@@ -16,7 +16,7 @@ type RecipeItem = { type: "recipe"; recipeId: string; title: string; source: "ow
 // egg servings), so picking the food keeps what the user already said.
 export type FoodAmount = { quantity: number; servingId?: string; grams: number };
 type FoodItem = { type: "food"; food: Food & { match?: { stage: string; score: number } }; via: "name" | "meaning"; amount?: FoodAmount };
-type SearchResult = { kind: "barcode"; barcode: string } | { kind: "results"; query: string; items: Array<RecipeItem | FoodItem>; meaning: { tried: boolean; terms: string[] } };
+type SearchResult = { kind: "barcode"; barcode: string } | { kind: "results"; query: string; items: Array<RecipeItem | FoodItem>; meaning: { tried: boolean; terms: string[] }; quantity?: { quantity: number; unit: string } };
 
 const texts = {
   hu: { own: "Saját recept", reference: "Ételadatbázis", food: "Alapanyag", meaning: "jelentés szerint", serving: "1 adag ≈ {g} g", none: "Nincs találat a név alapján. Nyomj Entert, és értelmezem a teljes mondatot." },
@@ -35,10 +35,12 @@ export const isBarcodeInput = (value: string) => BARCODE.test(value.replace(/\s+
 
 export function UnifiedFoodSearch({ lang, state, value, disabled, onPickFood, onPickRecipe }: {
   lang: Lang; state: ApiState; value: string; disabled?: boolean;
-  onPickFood: (food: Food, amount?: FoodAmount) => void; onPickRecipe: (option: LocalRecipeOption) => void;
+  onPickFood: (food: Food, amount?: FoodAmount) => void; onPickRecipe: (option: LocalRecipeOption, statedQuantity?: { quantity: number; unit: string }) => void;
 }) {
   const t = texts[lang];
   const [items, setItems] = useState<Array<RecipeItem | FoodItem>>([]);
+  // "2 adag lángos", "egy tányér babgulyás": the stated amount travels with a picked recipe.
+  const [statedQuantity, setStatedQuantity] = useState<{ quantity: number; unit: string } | undefined>();
   const [open, setOpen] = useState(false);
   const [searched, setSearched] = useState("");
   const latest = useRef("");
@@ -52,7 +54,7 @@ export function UnifiedFoodSearch({ lang, state, value, disabled, onPickFood, on
       try {
         const first = await api<SearchResult>(`/search?q=${encodeURIComponent(query)}`, {}, state);
         if (latest.current !== query || first.kind !== "results") return;
-        setItems(first.items.slice(0, 10)); setSearched(query); setOpen(true);
+        setItems(first.items.slice(0, 10)); setStatedQuantity(first.quantity); setSearched(query); setOpen(true);
         const trusted = first.items.some((item) => item.type === "recipe" || (item.type === "food" && (item.food.match?.stage === "exact" || item.food.match?.stage === "alias")));
         // The meaning search costs an AI call, so it waits until typing has
         // stopped and the last word looks finished (live 2026-09-26: "1 tá",
@@ -62,7 +64,7 @@ export function UnifiedFoodSearch({ lang, state, value, disabled, onPickFood, on
           try {
             const second = await api<SearchResult>(`/search?q=${encodeURIComponent(query)}&meaning=1`, {}, state);
             if (latest.current !== query || second.kind !== "results") return;
-            setItems(second.items.slice(0, 10)); setSearched(query); setOpen(true);
+            setItems(second.items.slice(0, 10)); setStatedQuantity(second.quantity); setSearched(query); setOpen(true);
           } catch { /* keep the name results */ }
         }, MEANING_DELAY_MS);
       } catch {
@@ -78,7 +80,7 @@ export function UnifiedFoodSearch({ lang, state, value, disabled, onPickFood, on
       {items.length === 0 && <li className="unified-search-empty">{t.none}</li>}
       {items.map((item) => item.type === "recipe"
         ? <li key={`r-${item.recipeId}`} role="option" aria-selected="false">
-          <button type="button" onClick={() => { close(); onPickRecipe({ recipeId: item.recipeId, title: item.title, source: item.source, servings: item.servings, servingGrams: item.servingGrams }); }}>
+          <button type="button" onClick={() => { close(); onPickRecipe({ recipeId: item.recipeId, title: item.title, source: item.source, servings: item.servings, servingGrams: item.servingGrams }, statedQuantity); }}>
             <BookOpen aria-hidden="true" size={15}/> <span>{item.title}</span>
             <small>{item.source === "own" ? t.own : t.reference}{item.servingGrams ? ` · ${t.serving.replace("{g}", String(Math.round(item.servingGrams)))}` : ""}</small>
           </button>

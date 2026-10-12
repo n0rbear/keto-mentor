@@ -79,7 +79,7 @@ export const dict = {
         webDisabled: "A recept-keresés jelenleg nincs bekapcsolva.",
         webRateLimited: "Túl sok recept-keresés volt mostanában — próbáld később.",
         confirmAdd: "Hozzáadás étkezéshez", confirmAdding: "…",
-        confirmQuantity: "Mennyiség", confirmUnit: "Egység", confirmServingUnit: "adag",
+        confirmQuantity: "Mennyiség", confirmUnit: "Egység", confirmServingUnit: "adag", plateEstimate: "{n} tányér ({plate}, normál) ≈ {g} g – módosítható",
         blockedHeading: "Ezek az összetevők akasztják meg a mentést — javítsd kézzel:",
         blockingReasons: {
           food_not_found: "Nem találtuk az adatbázisban.",
@@ -303,7 +303,7 @@ export const dict = {
         webDisabled: "Die Rezeptsuche ist derzeit nicht aktiviert.",
         webRateLimited: "Zu viele Rezeptsuchen zuletzt — bitte später erneut versuchen.",
         confirmAdd: "Zur Mahlzeit hinzufügen", confirmAdding: "…",
-        confirmQuantity: "Menge", confirmUnit: "Einheit", confirmServingUnit: "Portion",
+        confirmQuantity: "Menge", confirmUnit: "Einheit", confirmServingUnit: "Portion", plateEstimate: "{n} Teller ({plate}, normal) ≈ {g} g – anpassbar",
         blockedHeading: "Diese Zutaten blockieren das Speichern — bitte manuell korrigieren:",
         blockingReasons: {
           food_not_found: "Nicht in der Datenbank gefunden.",
@@ -527,7 +527,7 @@ export const dict = {
         webDisabled: "Recipe search is not currently enabled.",
         webRateLimited: "Too many recipe searches recently — try again later.",
         confirmAdd: "Add to meal", confirmAdding: "…",
-        confirmQuantity: "Quantity", confirmUnit: "Unit", confirmServingUnit: "serving",
+        confirmQuantity: "Quantity", confirmUnit: "Unit", confirmServingUnit: "serving", plateEstimate: "{n} plate ({plate}, normal) ≈ {g} g – adjustable",
         blockedHeading: "These ingredients are blocking the save — fix them manually:",
         blockingReasons: {
           food_not_found: "Not found in the database.",

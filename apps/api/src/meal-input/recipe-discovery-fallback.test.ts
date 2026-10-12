@@ -1188,3 +1188,103 @@ describe("attachRecipeDiscoveryFallback: control cases — ordinary foods still 
     expect(provider.search).not.toHaveBeenCalled();
   });
 });
+
+// Owner report (2026-10-11, real iPhone use): "2 adag lángos" either asked
+// for grams (the AI called lángos a single food, so no recipe was looked up)
+// or showed the reference dish and asked for the portion count again. The
+// stated count must stay on the result next to whichever saved recipe
+// resolves the dish.
+describe("a stated portion count reaches the saved-recipe match (2 adag lángos)", () => {
+  const referenceRow = (id: string, variant: string, title: string, grams: number) => ({ id, title, servings: 1, finishedWeightGrams: grams, provenance: { referenceVariantId: variant }, ingredients: [] });
+  function referencePrisma() {
+    const rows = [referenceRow("r-hu", "hu_langos", "Lángos", 200), referenceRow("r-at", "at_langos", "Langos", 180), referenceRow("r-gulyas", "hu_gulyasleves", "Gulyásleves", 450)];
+    return { ...emptyPrisma(), recipe: { findMany: async ({ where }: any) => where.userId ? [] : rows } } as any;
+  }
+  const understanding = (kind: FoodUnderstanding["kind"], name: string, text: string, onDish: boolean): FoodUnderstanding => ({
+    language: "hu", kind, ...(kind === "compound_dish" ? { dishName: name } : {}), ...(onDish ? { dishQuantity: 2, dishUnit: "portion" as const } : {}),
+    items: onDish ? [] : [{ originalText: text, canonicalName: name, quantity: 2, unit: "portion", evidence: "explicit", confidence: 0.9 }],
+    clarificationNeeded: false, confidence: 0.9
+  });
+
+  it.each([true, false])("compound dish, count on the dish (%s) or on its item: the HU/AT tie is offered with the 2 portions kept", async (onDish) => {
+    const provider = fakeSearchProvider([]);
+    const result = await interpretMealInput(referencePrisma(), "2 adag lángos", undefined, fakeAiProvider(understanding("compound_dish", "lángos", "2 adag lángos", onDish)));
+    const withMatch = await attachRecipeDiscoveryFallback(result, { ...discoveryDeps(provider), prisma: referencePrisma() });
+    expect(withMatch.recipeDiscovery).toMatchObject({ reason: "ambiguous_local_matches", localAlternatives: [{ recipeId: "r-hu", servings: 1 }, { recipeId: "r-at", servings: 1 }] });
+    expect(withMatch.parsed).toMatchObject({ quantity: 2, unit: "portion" });
+    expect(provider.search).not.toHaveBeenCalled();
+  });
+
+  it("the AI calling lángos a single food still reaches the reference dishes instead of only a grams estimate", async () => {
+    const provider = fakeSearchProvider([]);
+    const result = await interpretMealInput(referencePrisma(), "2 adag lángos", undefined, fakeAiProvider(understanding("single_food", "lángos", "2 adag lángos", false)));
+    expect(result.recipeDiscovery).toBeUndefined();
+    const withMatch = await attachRecipeDiscoveryFallback(result, { ...discoveryDeps(provider), prisma: referencePrisma() });
+    expect(withMatch.recipeDiscovery).toMatchObject({ status: "confirmation_required", reason: "ambiguous_local_matches", searchAttempted: false });
+    expect(withMatch.recipeDiscovery?.localAlternatives?.map((option) => option.recipeId)).toEqual(["r-hu", "r-at"]);
+    expect(withMatch.parsed).toMatchObject({ quantity: 2, unit: "portion" });
+    expect(withMatch.foodResolution).toBe(result.foodResolution);
+    expect(provider.search).not.toHaveBeenCalled();
+  });
+
+  it("a non-ambiguous reference dish (2 adag gulyásleves) is a direct match with the count kept, as a compound or a single food", async () => {
+    for (const kind of ["compound_dish", "single_food"] as const) {
+      const result = await interpretMealInput(referencePrisma(), "2 adag gulyásleves", undefined, fakeAiProvider(understanding(kind, "gulyásleves", "2 adag gulyásleves", false)));
+      const withMatch = await attachRecipeDiscoveryFallback(result, { ...discoveryDeps(), prisma: referencePrisma() });
+      expect(withMatch.recipeDiscovery).toMatchObject({ status: "local_match", localMatch: { recipeId: "r-gulyas", source: "reference", servings: 1, servingGrams: 450 } });
+      expect(withMatch.parsed).toMatchObject({ quantity: 2, unit: "portion" });
+    }
+  });
+
+  it("a single food with no saved recipe of that name is left exactly as it was, and the web is never searched for it", async () => {
+    const provider = fakeSearchProvider([]);
+    const result = await interpretMealInput(referencePrisma(), "2 adag ismeretlen", undefined, fakeAiProvider(understanding("single_food", "ismeretlen", "2 adag ismeretlen", false)));
+    const after = await attachRecipeDiscoveryFallback(result, { ...discoveryDeps(provider), prisma: referencePrisma() });
+    expect(after).toBe(result);
+    expect(provider.search).not.toHaveBeenCalled();
+  });
+});
+
+// Owner report (2026-10-11): "babgulyás" resolved the saved dish, "egy tányér
+// babgulyás" went to the web and asked for grams. With a quantity the AI
+// tends to translate the dish name, so the user's own dish words must be
+// looked up too.
+describe("a quantity prefix resolves the same saved dish as the bare dish name", () => {
+  const ownBab = { id: "own-bab", title: "Babgulyás", servings: 4, finishedWeightGrams: 2000, provenance: null, ingredients: [] };
+  const gulyas = { id: "r-gulyas", title: "Gulyásleves", servings: 1, finishedWeightGrams: 450, provenance: { referenceVariantId: "hu_gulyasleves" }, ingredients: [] };
+  const recipePrisma = () => ({ ...emptyPrisma(), recipe: { findMany: async ({ where }: any) => where.userId ? [ownBab] : [gulyas] } }) as any;
+  const compound = (dishName: string, unit: "plate" | "portion" | "bowl" | undefined, quantity: number | undefined, language: FoodUnderstanding["language"] = "hu"): FoodUnderstanding => ({
+    language, kind: "compound_dish", dishName, ...(unit ? { dishQuantity: quantity, dishUnit: unit } : {}), items: [], clarificationNeeded: false, confidence: 0.9
+  });
+
+  it.each([
+    ["babgulyás", compound("babgulyás", undefined, undefined)],
+    ["egy tányér babgulyás", compound("bean goulash", "plate", 1)],
+    ["egy adag babgulyás", compound("bean goulash", "portion", 1)],
+    ["1 tányér babgulyás", compound("bean goulash", "plate", 1)],
+    ["2 adag babgulyás", compound("bean goulash", "portion", 2)]
+  ])("%s -> the user's own Babgulyás, never the web", async (text, understanding) => {
+    const provider = fakeSearchProvider([{ url: "https://example.com/babgulyas", title: "Babgulyás", domain: "example.com" }]);
+    const result = await interpretMealInput(recipePrisma(), text, undefined, fakeAiProvider(understanding));
+    const resolved = await attachRecipeDiscoveryFallback(result, { ...discoveryDeps(provider), prisma: recipePrisma() });
+    expect(resolved.recipeDiscovery).toMatchObject({ status: "local_match", localMatch: { recipeId: "own-bab", source: "own" } });
+    expect(provider.search).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["egy tányér gulyásleves", compound("Gulyás soup", "plate", 1)],
+    ["ein Teller Gulaschsuppe", compound("Hungarian goulash", "plate", 1, "de")],
+    ["a bowl of goulash soup", compound("goulash", "bowl", 1, "en")]
+  ])("%s -> the reference dish even when the AI names it differently", async (text, understanding) => {
+    const prisma = { ...emptyPrisma(), recipe: { findMany: async ({ where }: any) => where.userId ? [] : [gulyas, { ...gulyas, id: "r-at", provenance: { referenceVariantId: "at_gulaschsuppe" } }] } } as any;
+    const result = await interpretMealInput(prisma, text, undefined, fakeAiProvider(understanding));
+    const resolved = await attachRecipeDiscoveryFallback(result, { ...discoveryDeps(fakeSearchProvider([])), prisma });
+    expect(resolved.recipeDiscovery?.status === "local_match" || resolved.recipeDiscovery?.reason === "ambiguous_local_matches").toBe(true);
+  });
+
+  it("the AI calling it a single food with a translated name: the user's words still find the saved dish", async () => {
+    const result = await interpretMealInput(recipePrisma(), "egy adag babgulyás", undefined, fakeAiProvider({ language: "hu", kind: "single_food", items: [{ originalText: "egy adag babgulyás", canonicalName: "bean goulash", quantity: 1, unit: "portion", evidence: "explicit", confidence: 0.9 }], clarificationNeeded: false, confidence: 0.9 }));
+    const resolved = await attachRecipeDiscoveryFallback(result, { ...discoveryDeps(), prisma: recipePrisma() });
+    expect(resolved.recipeDiscovery).toMatchObject({ status: "local_match", localMatch: { recipeId: "own-bab" } });
+  });
+});
