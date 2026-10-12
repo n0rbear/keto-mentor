@@ -760,11 +760,12 @@ describe("plate amounts of a saved recipe (egy tányér babgulyás)", () => {
     recipeDiscovery: { status: "local_match", localMatch: bab },
     items: [{ parsed, foodResolution: "unresolved", selectedFood: null, candidates: [], quantity: null, canConfirm: false, interpretationSource: "ai_assisted", semanticItem: { canonicalName: "babgulyás", evidence: "explicit" } }]
   } as any);
-  function stubPlates(plates: any[], grams = 420) {
+  // The server picks the plate (POST /me/plate-portion); this stubs its answer.
+  function stubPortion(response: any, status = 200) {
     const calls: Array<{ url: string; body?: any }> = [];
     vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input); calls.push({ url, body: init?.body ? JSON.parse(String(init.body)) : undefined });
-      return new Response(JSON.stringify(url.endsWith("/me/plates") ? { plates } : { grams, densityGPerMl: 1.05, basis: "reference" }), { status: 200 });
+      return new Response(JSON.stringify(response), { status });
     }));
     return calls;
   }
@@ -775,24 +776,46 @@ describe("plate amounts of a saved recipe (egy tányér babgulyás)", () => {
   };
 
   it.each([["hu", 1], ["de", 1], ["en", 2]] as const)("a plate count uses the saved plate at normal fill through the recipe (%s, %d plate)", async (lang, count) => {
-    const calls = stubPlates([{ id: "p1", name: "Mély tányér", kind: "deep", capacityMl: 550, diameterMm: null }]);
+    const calls = stubPortion({ grams: 420, densityGPerMl: 1.05, basis: "reference", plate: { source: "saved", name: "Mély tányér", kind: "deep", capacityMl: 550 } });
     const onConfirm = render1({ foodQuery: "babgulyás", quantity: count, unit: "plate" }, lang);
     await waitFor(() => expect((screen.getByLabelText(dict[lang].foodUnderstanding.recipeDiscovery.confirmQuantity) as HTMLInputElement).value).toBe(String(420 * count)));
     expect((screen.getByLabelText(dict[lang].foodUnderstanding.recipeDiscovery.confirmUnit) as HTMLSelectElement).value).toBe("g");
     expect(screen.getByText(new RegExp(`Mély tányér.*${420 * count} g`))).toBeTruthy();
-    expect(calls.find((call) => call.url.includes("/portion"))?.body).toEqual({ fill: "normal", recipeId: "bab" });
+    expect(calls).toEqual([{ url: expect.stringContaining("/me/plate-portion"), body: { recipeId: "bab", unit: "plate" } }]);
     fireEvent.click(screen.getByText(dict[lang].foodUnderstanding.recipeDiscovery.confirmAdd));
     expect(onConfirm).toHaveBeenCalledWith(bab, 420 * count, "g");
   });
 
-  it("a bowl prefers the user's deep plate", async () => {
-    const calls = stubPlates([{ id: "flat", name: "Lapos", kind: "flat", capacityMl: null, diameterMm: 260 }, { id: "deep", name: "Tál", kind: "deep", capacityMl: 600, diameterMm: null }]);
+  it("a bowl is sent as a bowl (the server prefers the user's deep plate)", async () => {
+    const calls = stubPortion({ grams: 450, densityGPerMl: 1, basis: "default", plate: { source: "saved", name: "Tál", kind: "deep", capacityMl: 600 } });
     render1({ foodQuery: "babgulyás", quantity: 1, unit: "bowl" });
-    await waitFor(() => expect(calls.some((call) => call.url.includes("/me/plates/deep/portion"))).toBe(true));
+    expect(await screen.findByText(/1 tányér \(Tál, normál\) ≈ 450 g/)).toBeTruthy();
+    expect(calls[0].body).toEqual({ recipeId: "bab", unit: "bowl" });
   });
 
-  it("without a saved plate one plate counts as one serving, never a grams prompt", async () => {
-    const calls = stubPlates([]);
+  // Owner decisions (2026-10-11, locked): no saved plate (skipped or never
+  // answered) -> average plate sizes; a soup is always on a deep plate.
+  // Never a grams prompt.
+  it.each([
+    ["hu", "plate", "flat", 1, /1 átlagos lapos tányér \(Ø 26 cm, normál\) ≈ 340 g – módosítható/],
+    ["hu", "bowl", "deep", 1, /1 átlagos mély tányér \(600 ml, normál\) ≈ 340 g – módosítható/],
+    ["hu", "plate", "deep", 1, /1 átlagos mély tányér \(600 ml, normál\) ≈ 340 g – módosítható/],
+    ["de", "plate", "flat", 2, /2 × durchschnittlicher flacher Teller \(Ø 26 cm, normal\) ≈ 680 g – anpassbar/],
+    ["en", "bowl", "deep", 1, /1 × average deep plate \(600 ml, normal\) ≈ 340 g – adjustable/]
+  ] as const)("without a saved plate: %s %s -> the average %s plate (%d)", async (lang, unit, kind, count, note) => {
+    const plate = kind === "deep" ? { source: "average", kind: "deep", capacityMl: 600 } : { source: "average", kind: "flat", diameterMm: 260 };
+    const calls = stubPortion({ grams: 340, densityGPerMl: 1, basis: "default", plate });
+    const onConfirm = render1({ foodQuery: "babgulyás", quantity: count, unit }, lang);
+    expect(await screen.findByText(note)).toBeTruthy();
+    expect(calls[0].body).toEqual({ recipeId: "bab", unit });
+    expect((screen.getByLabelText(dict[lang].foodUnderstanding.recipeDiscovery.confirmUnit) as HTMLSelectElement).value).toBe("g");
+    expect(screen.queryByText(/Hány grammot|Wie viele Gramm|How many grams/)).toBeNull();
+    fireEvent.click(screen.getByText(dict[lang].foodUnderstanding.recipeDiscovery.confirmAdd));
+    expect(onConfirm).toHaveBeenCalledWith(bab, 340 * count, "g");
+  });
+
+  it("if even the plate estimate fails, one plate stays one adjustable serving (no grams prompt)", async () => {
+    const calls = stubPortion({ error: "x" }, 500);
     const onConfirm = render1({ foodQuery: "babgulyás", quantity: 2, unit: "plate" });
     await waitFor(() => expect(calls.length).toBe(1));
     expect((screen.getByLabelText(dict.hu.foodUnderstanding.recipeDiscovery.confirmUnit) as HTMLSelectElement).value).toBe("serving");
@@ -801,7 +824,7 @@ describe("plate amounts of a saved recipe (egy tányér babgulyás)", () => {
   });
 
   it("the bare dish name starts at 1 adjustable portion, with no plate lookup", () => {
-    const calls = stubPlates([{ id: "p1", name: "Mély tányér", kind: "deep" }]);
+    const calls = stubPortion({ grams: 420 });
     const onConfirm = render1({ foodQuery: "babgulyás" });
     expect((screen.getByLabelText(dict.hu.foodUnderstanding.recipeDiscovery.confirmUnit) as HTMLSelectElement).value).toBe("serving");
     fireEvent.change(screen.getByLabelText(dict.hu.foodUnderstanding.recipeDiscovery.confirmQuantity), { target: { value: "1.5" } });

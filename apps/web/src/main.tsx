@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { Activity, ChevronLeft, ChevronRight, ExternalLink, LogOut, Mail, Pencil, Plus, Repeat, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
+import { Activity, ChevronLeft, ChevronRight, ExternalLink, LogOut, Mail, Pencil, Plus, Repeat, ShieldCheck, Sparkles, Trash2, UtensilsCrossed } from "lucide-react";
 
 import { dict, type Lang } from "./i18n";
 import { api, ApiError, streamProgress, type ApiState } from "./api";
@@ -24,9 +24,10 @@ import { UpdateBanner } from "./UpdateBanner";
 import { OfflineBanner } from "./OfflineBanner";
 import { DiagnosticsPanel, type DiagnosticEvent } from "./DiagnosticsPanel";
 import { BuildInfo } from "./BuildInfo";
+import { MyPlates, PlateSetup, plateSetupPending } from "./PlateSetup";
 import type { QuantityClarification as Clarification } from "@keto-mentor/shared";
 
-type User = { id: string; username: string; locale: Lang; profile?: any };
+type User = { id: string; username: string; locale: Lang; profile?: any; _count?: { plates?: number } };
 export type Totals = { kcal: number; fat: number; protein: number; carbs: number; fiber: number; netCarbs: number };
 type Meal = { id: string; title: string; eatenAt: string; totals: Totals };
 export type FoodServing = { id: string; key: string; unit: string; labels?: Partial<Record<Lang, string>>; grams: number; isEstimated: boolean; confidence: number; provenance?: unknown };
@@ -97,6 +98,7 @@ export function App() {
   const [confirmingExternalId, setConfirmingExternalId] = useState<string | null>(null);
   const [confirmingRecipe, setConfirmingRecipe] = useState(false);
   const [confirmingAiEstimate, setConfirmingAiEstimate] = useState(false);
+  const [myPlatesOpen, setMyPlatesOpen] = useState(false);
   const t = dict[lang];
   const state = useMemo(() => ({ token, setToken }), [token]);
 
@@ -634,6 +636,12 @@ export function App() {
           <div className="header-actions">
             <select aria-label={lang === "hu" ? "Nyelv" : lang === "de" ? "Sprache" : "Language"} className="field compact" value={lang} onChange={(e) => changeLang(e.target.value as Lang)}><option value="hu">HU</option><option value="de">DE</option><option value="en">EN</option></select>
 
+            {user && profile?.onboardingDone && (
+              <button type="button" className="btn ghost" aria-label={t.myPlates.open} aria-expanded={myPlatesOpen}
+                onClick={() => { setMyPlatesOpen(true); document.getElementById("top")?.scrollIntoView?.({ behavior: "smooth" }); }}>
+                <UtensilsCrossed size={17}/><span>{t.myPlates.open}</span>
+              </button>
+            )}
             {user && (
               <button
                 className="btn ghost"
@@ -647,6 +655,7 @@ export function App() {
                   } finally {
                     setToken(null);
                     setUser(null);
+                    setMyPlatesOpen(false);
                   }
                 }}
               >
@@ -697,6 +706,10 @@ export function App() {
               <button className="btn primary w-full">{t.save}</button>
             </div>
           </form>
+        ) : myPlatesOpen ? (
+          <MyPlates lang={lang} state={state} onClose={() => setMyPlatesOpen(false)}/>
+        ) : plateSetupPending(user) ? (
+          <PlateSetup lang={lang} state={state} onAnswered={(answer) => setUser((current) => current ? { ...current, profile: { ...current.profile, plateSetup: answer } } : current)}/>
         ) : (
           <div className="card welcome-panel"><p className="panel-kicker">{lang === "hu" ? "Mai fókusz" : lang === "de" ? "Heutiger Fokus" : "Today’s focus"}</p><h2>{t.dashboard}</h2><p>{t.explain}</p></div>
         )}

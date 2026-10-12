@@ -307,7 +307,9 @@ app.post("/auth/refresh", refreshLimiter, async (req, res, next) => {
 app.get("/me", requireAuth, async (req, res) => {
   const user = await prisma.user.findUnique({
     where: { id: req.user!.id },
-    select: { id: true, username: true, locale: true, profile: true, entitlements: true }
+    // _count.plates: the web shows the one-time plate question only while the
+    // user has no saved plate and never answered it (profile.plateSetup).
+    select: { id: true, username: true, locale: true, profile: true, entitlements: true, _count: { select: { plates: true } } }
   });
   res.json({ user });
 });

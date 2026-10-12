@@ -2,14 +2,23 @@ import { afterEach, describe, expect, it } from "vitest";
 import express from "express";
 import type { AddressInfo } from "node:net";
 import { platesRouter } from "./plates.js";
-import { estimatePlatePortion, dishProfileFromProvenance } from "./plate-portion.js";
+import { estimatePlatePortion, dishProfileFromProvenance, dishServedIn, AVERAGE_PLATES } from "./plate-portion.js";
 
 function fakePrisma(initialPlates: any[] = [], recipes: any[] = []) {
   const plates = [...initialPlates];
+  const profiles: any[] = [];
   const pick = (p: any) => ({ id: p.id, name: p.name, kind: p.kind, capacityMl: p.capacityMl ?? null, diameterMm: p.diameterMm ?? null });
   return {
     plates,
+    profiles,
     prisma: {
+      profile: {
+        upsert: async ({ where, update, create }: any) => {
+          const existing = profiles.find((p) => p.userId === where.userId);
+          if (existing) Object.assign(existing, update); else profiles.push({ ...create });
+          return { plateSetup: profiles.find((p) => p.userId === where.userId).plateSetup };
+        }
+      },
       userPlate: {
         findMany: async ({ where }: any) => plates.filter((p) => p.userId === where.userId).map(pick),
         findFirst: async ({ where }: any) => { const p = plates.find((x) => x.id === where.id && x.userId === where.userId); return p ? pick(p) : null; },
@@ -94,5 +103,81 @@ describe("saját tányérok API", () => {
     expect(plates).toHaveLength(2);
     await fetch(`${base}/me/plates/p1`, { method: "DELETE" });
     expect(plates.map((p) => p.id)).toEqual(["p2"]);
+  });
+});
+
+// Owner decisions (2026-10-11, locked): no saved plate -> average plate
+// sizes; soups/főzelék always on a deep plate (reference-dish servedIn).
+describe("plate amounts of a saved recipe (POST /me/plate-portion)", () => {
+  const goulash = { kind: "reference_dish", densityGPerMl: 1.022, servedIn: "deep_plate", parts: [{ part: "gulyasleves", densityGPerMl: 1.022 }] };
+  const lecso = { ...referenceLecso, servedIn: "flat_plate" };
+  const recipes = [
+    { id: "gulyas", userId: "system", visibility: "public", provenance: goulash },
+    { id: "lecso", userId: "system", visibility: "public", provenance: lecso },
+    { id: "own-fork", userId: "user-1", visibility: "private", provenance: { forkedFromRecipeId: "gulyas", sourceProvenance: goulash } },
+    { id: "babgulyas", userId: "user-1", visibility: "private", provenance: null },
+    { id: "secret", userId: "user-2", visibility: "private", provenance: goulash }
+  ];
+  const flat = { id: "f1", userId: "user-1", name: "Lapos", kind: "flat", diameterMm: 240 };
+  const deep = { id: "d1", userId: "user-1", name: "Mély", kind: "deep", capacityMl: 500 };
+  const post = async (base: string, body: unknown) => (await fetch(`${base}/me/plate-portion`, json("POST", body))).json();
+
+  it("one clearly named constant: flat 26 cm (reference-dish calibration plate), deep 600 ml (450 g goulash at normal fill)", () => {
+    expect(AVERAGE_PLATES).toEqual({ flat: { kind: "flat", diameterMm: 260 }, deep: { kind: "deep", capacityMl: 600 } });
+    expect(estimatePlatePortion(AVERAGE_PLATES.deep, "normal", { densityGPerMl: 1.022 }).grams).toBe(460);
+  });
+
+  it("servedIn comes from the dish metadata, also for an own copy of a reference dish", () => {
+    expect(dishServedIn(goulash)).toBe("deep_plate");
+    expect(dishServedIn({ forkedFromRecipeId: "x", sourceProvenance: goulash })).toBe("deep_plate");
+    expect(dishServedIn(lecso)).toBe("flat_plate");
+    expect(dishServedIn(null)).toBeNull();
+    expect(dishServedIn({ trust: "source_verified" })).toBeNull();
+  });
+
+  it("no saved plate: egy tányér -> average flat plate, egy tál -> average deep plate", async () => {
+    const base = await start(fakePrisma([], recipes).prisma);
+    expect(await post(base, { recipeId: "babgulyas", unit: "plate" })).toEqual({ grams: 340, densityGPerMl: 1, basis: "default", plate: { source: "average", kind: "flat", diameterMm: 260 } });
+    expect(await post(base, { recipeId: "babgulyas", unit: "bowl" })).toEqual({ grams: 450, densityGPerMl: 1, basis: "default", plate: { source: "average", kind: "deep", capacityMl: 600 } });
+    expect((await post(base, { recipeId: "lecso", unit: "plate" })).grams).toBe(404);
+  });
+
+  it("a soup said as 'tányér' uses the deep plate: the average one without saved plates", async () => {
+    const base = await start(fakePrisma([], recipes).prisma);
+    expect(await post(base, { recipeId: "gulyas", unit: "plate" })).toEqual({ grams: 460, densityGPerMl: 1.022, basis: "reference", plate: { source: "average", kind: "deep", capacityMl: 600 } });
+    expect((await post(base, { recipeId: "own-fork", unit: "plate" })).plate).toEqual({ source: "average", kind: "deep", capacityMl: 600 });
+    // another user's private recipe lends nothing
+    expect((await post(base, { recipeId: "secret", unit: "plate" })).plate).toEqual({ source: "average", kind: "flat", diameterMm: 260 });
+  });
+
+  it("a soup takes the user's deep plate; with only a flat saved plate, the average deep plate", async () => {
+    const both = await start(fakePrisma([flat, deep], recipes).prisma);
+    expect((await post(both, { recipeId: "gulyas", unit: "plate" })).plate).toEqual({ source: "saved", name: "Mély", kind: "deep", capacityMl: 500 });
+    expect((await post(both, { recipeId: "gulyas", unit: "plate" })).grams).toBe(383);
+    const onlyFlat = await start(fakePrisma([flat], recipes).prisma);
+    expect((await post(onlyFlat, { recipeId: "gulyas", unit: "plate" })).plate).toEqual({ source: "average", kind: "deep", capacityMl: 600 });
+  });
+
+  it("flat-plate dishes keep #81: first saved plate; a bowl prefers the deep one", async () => {
+    const base = await start(fakePrisma([flat, deep], recipes).prisma);
+    expect((await post(base, { recipeId: "lecso", unit: "plate" })).plate).toMatchObject({ source: "saved", name: "Lapos", kind: "flat" });
+    expect((await post(base, { recipeId: "babgulyas", unit: "plate" })).plate).toMatchObject({ source: "saved", name: "Lapos" });
+    expect((await post(base, { recipeId: "babgulyas", unit: "bowl" })).plate).toMatchObject({ source: "saved", name: "Mély" });
+    expect((await fetch(`${base}/me/plate-portion`, json("POST", { recipeId: "lecso", unit: "cup" }))).status).toBe(400);
+  });
+});
+
+describe("one-time plate question answer (PUT /me/plate-setup)", () => {
+  it("persists skipped or saved on the user's own profile; nothing else is accepted", async () => {
+    const { prisma, profiles } = fakePrisma();
+    const base = await start(prisma);
+    const skipped = await fetch(`${base}/me/plate-setup`, json("PUT", { answer: "skipped" }));
+    expect(skipped.status).toBe(200);
+    expect(await skipped.json()).toEqual({ plateSetup: "skipped" });
+    expect(profiles).toEqual([{ userId: "user-1", plateSetup: "skipped" }]);
+    expect((await fetch(`${base}/me/plate-setup`, json("PUT", { answer: "later" }))).status).toBe(400);
+    expect((await fetch(`${base}/me/plate-setup`, json("PUT", { answer: "saved", userId: "user-2" }))).status).toBe(400);
+    await fetch(`${base}/me/plate-setup`, json("PUT", { answer: "saved" }));
+    expect(profiles).toEqual([{ userId: "user-1", plateSetup: "saved" }]);
   });
 });
