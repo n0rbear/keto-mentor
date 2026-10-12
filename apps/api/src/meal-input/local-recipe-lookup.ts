@@ -113,12 +113,20 @@ export async function findTrustedLocalRecipe(prisma: Pick<PrismaClient, "recipe"
   const dishNormalized = normalizeSearch(dishName);
   if (!dishNormalized) return { status: "not_found" };
 
-  const rows = await prisma.recipe.findMany({ where: { userId, deletedAt: null }, include: recipeLookupInclude });
+  // Titles first (cheap); the ingredient/nutrient graph is loaded only for
+  // the matching recipes, never for every recipe the user owns (performance,
+  // owner log 2026-10-12).
+  const titles = await prisma.recipe.findMany({ where: { userId, deletedAt: null }, select: { id: true, title: true } });
   // Exact title first; only when nothing matches exactly do the dish words
   // decide, so "Paprikás krumpli" never competes with a decorated duplicate.
-  const exact = rows.filter((row) => normalizeSearch(row.title) === dishNormalized);
+  const exact = titles.filter((row) => normalizeSearch(row.title) === dishNormalized);
   const dishCore = dishCoreKey(dishName);
-  const matches = exact.length ? exact : dishCore ? rows.filter((row) => dishCoreKey(row.title) === dishCore) : [];
+  const titleMatches = exact.length ? exact : dishCore ? titles.filter((row) => dishCoreKey(row.title) === dishCore) : [];
+  if (titleMatches.length === 0) return { status: "not_found" };
+  const matchIds = titleMatches.map((row) => row.id);
+  const loaded = await prisma.recipe.findMany({ where: { userId, deletedAt: null, id: { in: matchIds } }, include: recipeLookupInclude });
+  const byId = new Map(loaded.map((row) => [row.id, row]));
+  const matches = matchIds.map((id) => byId.get(id)).filter((row): row is NonNullable<typeof row> => row != null);
   if (matches.length === 0) return { status: "not_found" };
   if (matches.length > 1) return { status: "ambiguous", candidates: matches.map((row) => candidateOf(row, "own")) };
   return foundOf(matches[0], "own");

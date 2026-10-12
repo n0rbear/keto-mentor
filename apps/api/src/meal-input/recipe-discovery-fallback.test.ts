@@ -1288,3 +1288,65 @@ describe("a quantity prefix resolves the same saved dish as the bare dish name",
     expect(resolved.recipeDiscovery).toMatchObject({ status: "local_match", localMatch: { recipeId: "own-bab" } });
   });
 });
+
+// Performance (owner log 2026-10-12): "egy tányér brassói." took 12.8 s while
+// the timed interpret pipeline took 1.6 s. The untimed ~11 s were the
+// reference-dish lookup loading every seeded reference recipe (541, with
+// ingredients -> food -> nutrients) just to pick one by variant id. This fake
+// honors `where.id.in`, `select` and `include`, and counts how many recipe
+// rows were read with their ingredient graph.
+describe("reference-dish lookup reads only the matching recipe (egy tányér brassói)", () => {
+  async function referenceDb() {
+    const { REFERENCE_DATA } = await import("../reference-dishes/reference-data.js");
+    const { REFERENCE_USERNAME } = await import("../reference-dishes/seed.js");
+    const rows = REFERENCE_DATA.variants.map((variant, index) => ({
+      id: `ref-${index}`, title: variant.titles.hu, servings: 1, finishedWeightGrams: variant.servingGrams, provenance: { referenceVariantId: variant.id },
+      ingredients: [] as unknown[]
+    }));
+    const stats = { queries: 0, heavyRows: 0, lightRows: 0 };
+    const findMany = vi.fn(async ({ where, include, select }: any) => {
+      stats.queries++;
+      if (where.userId) return [];
+      if (where.user?.username !== REFERENCE_USERNAME) return [];
+      const matched = where.id?.in ? rows.filter((row) => where.id.in.includes(row.id)) : rows;
+      if (select) { stats.lightRows += matched.length; return matched.map((row) => ({ id: row.id, provenance: row.provenance })); }
+      if (include && Object.keys(include).length) stats.heavyRows += matched.length;
+      return matched;
+    });
+    return { prisma: { ...emptyPrisma(), recipe: { findMany } } as any, stats, rows };
+  }
+  const brassoi: FoodUnderstanding = { language: "hu", kind: "compound_dish", dishName: "brassói", dishQuantity: 1, dishUnit: "plate", items: [], clarificationNeeded: false, confidence: 0.9 };
+
+  it("same reference match, the web never searched, one recipe graph loaded instead of all 541, and the map is reused", async () => {
+    const { prisma, stats, rows } = await referenceDb();
+    expect(rows.length).toBeGreaterThan(500);
+    const provider = fakeSearchProvider([{ url: "https://example.com/brassoi", title: "Brassói", domain: "example.com" }]);
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    try {
+      const result = await interpretMealInput(prisma, "egy tányér brassói.", undefined, fakeAiProvider(brassoi));
+      const resolved = await attachRecipeDiscoveryFallback(result, { ...discoveryDeps(provider), prisma });
+      expect(resolved.recipeDiscovery).toMatchObject({ status: "local_match", searchAttempted: false, localMatch: { source: "reference", title: "brassói aprópecsenye" } });
+      expect(provider.search).not.toHaveBeenCalled();
+      expect(stats.heavyRows).toBe(1);
+      expect(log).toHaveBeenCalledWith(expect.stringMatching(/^timing_stage stage=reference_dish_lookup ms=\d+$/));
+      expect(log).toHaveBeenCalledWith(expect.stringMatching(/^timing_stage stage=own_recipe_lookup ms=\d+$/));
+      expect(log).not.toHaveBeenCalledWith(expect.stringMatching(/stage=recipe_discovery /));
+
+      const lightAfterFirst = stats.lightRows;
+      await attachRecipeDiscoveryFallback(result, { ...discoveryDeps(provider), prisma });
+      expect(stats.lightRows).toBe(lightAfterFirst);
+      expect(stats.heavyRows).toBe(2);
+    } finally {
+      log.mockRestore();
+    }
+  });
+
+  it("a stale cached map (recipe reseeded under a new id) is re-read once and still finds the dish", async () => {
+    const { prisma, rows } = await referenceDb();
+    const { findReferenceDish } = await import("./local-recipe-lookup.js");
+    expect(await findReferenceDish(prisma, "brassói")).toMatchObject({ status: "found", title: "brassói aprópecsenye" });
+    const row = rows.find((candidate) => candidate.title === "brassói aprópecsenye")!;
+    row.id = "reseeded";
+    expect(await findReferenceDish(prisma, "brassói")).toMatchObject({ status: "found", recipeId: "reseeded" });
+  });
+});

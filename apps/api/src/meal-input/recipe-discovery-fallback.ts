@@ -9,6 +9,7 @@ import { RecipeDiscoveryService, type RecipeDiscoveryCandidate, type RecipeDisco
 import { domainOf } from "../web-knowledge/web-knowledge-search-provider.js";
 import type { SafeFetcherDependencies } from "../recipes/safe-url-fetcher.js";
 import { classifyRecipeReview, computeTrustedNutrition, toIngredientReview, localizeResolvedFoodNames, type RecipeIngredientReview, type RecipeReviewSummary, type ReviewableIngredient } from "../recipes/recipe-ingredient-review.js";
+import { timeStage } from "../request-performance.js";
 import { findReferenceDish, findTrustedLocalRecipe, withoutLeadingAmount, type LocalRecipeLookupResult } from "./local-recipe-lookup.js";
 import type { ProgressStage } from "./progress-bus.js";
 import type { RecipeIngredientNormalizationProvider } from "../recipes/recipe-ingredient-normalization.js";
@@ -485,8 +486,8 @@ async function findLocalDish(deps: RecipeDiscoveryFallbackDeps, aiName: string |
   const names = [aiName?.trim(), userText ? withoutLeadingAmount(userText).trim() : undefined]
     .filter((name, index, all): name is string => !!name && all.indexOf(name) === index);
   for (const name of names) {
-    const own = await findTrustedLocalRecipe(deps.prisma, name, deps.userId);
-    const local = own.status === "not_found" ? await findReferenceDish(deps.prisma, name) : own;
+    const own = await timeStage("own_recipe_lookup", () => findTrustedLocalRecipe(deps.prisma, name, deps.userId));
+    const local = own.status === "not_found" ? await timeStage("reference_dish_lookup", () => findReferenceDish(deps.prisma, name)) : own;
     if (local.status !== "not_found") return local;
   }
   return { status: "not_found" };
@@ -538,7 +539,7 @@ export async function attachRecipeDiscoveryFallback(result: InterpretResult, dep
   }
 
   deps.onProgress?.("recipe_discovery");
-  let preview = await runRecipeDiscovery(dishName, deps);
+  let preview = await timeStage("recipe_discovery", () => runRecipeDiscovery(dishName, deps));
   const portionUnit = result.semantic?.dishUnit;
   const portionCount = result.semantic?.dishQuantity;
   if (preview.candidate && portionCount && (portionUnit === "plate" || portionUnit === "bowl" || portionUnit === "portion")) {

@@ -104,6 +104,7 @@ export function platesRouter(prisma: PrismaClient, requireAuth: express.RequestH
   // bowl prefers the user's deep plate, a plate takes the first saved plate
   // (#81). No (usable) saved plate: the average plate (AVERAGE_PLATES).
   router.post("/me/plate-portion", requireAuth, express.json(), async (req, res, next) => {
+    const startedAt = performance.now();
     try {
       const input = amountPortionSchema.parse(req.body ?? {});
       const provenance = await visibleProvenance(prisma, req.user!.id, input.recipeId);
@@ -116,7 +117,9 @@ export function platesRouter(prisma: PrismaClient, requireAuth: express.RequestH
       const estimate = estimatePlatePortion(plate, "normal", dishProfileFromProvenance(provenance));
       console.log(`plate_portion kind=${plate.kind} average=${!chosen} deep_dish=${deepDish} basis=${estimate.basis}`);
       res.json({ ...estimate, plate: chosen ? { source: "saved", name: chosen.name, ...plate } : { source: "average", ...plate } });
-    } catch (error) { next(error); }
+    } catch (error) { next(error); } finally {
+      console.log(`timing_stage stage=plate_portion ms=${Math.round(performance.now() - startedAt)}`);
+    }
   });
 
   router.put("/me/plate-setup", requireAuth, express.json(), async (req, res, next) => {
