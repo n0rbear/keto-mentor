@@ -1,0 +1,359 @@
+# Staple catalog names: review (2026-10-12)
+
+Branch `fix/staple-food-names`. Migrations:
+`apps/api/prisma/migrations/20261012120000_remove_off_cow_milk` and
+`apps/api/prisma/migrations/20261012130000_staple_catalog_names`.
+
+## Why
+
+On 2026-10-12 the owner said "… egy pohár tehén tej". Production already holds
+proper milk records (BLS M111300 Vollmilch 3,5 %, M111200 fettarme Milch 1,5 %,
+M113300 / M113200 H-Milch, USDA whole / 2 % / 1 % / skim milk). None of them had
+a Hungarian name or a "tej"/"milk" alias, so the local search found nothing. The
+request went to external lookup and about 10 AI calls (17 s). The user then
+picked Open Food Facts 8904089919135 "cow milk", an Indian packaged product,
+and it was saved as a GLOBAL food named "tehéntej". The root cause: everyday
+staples sit in the catalog with only German or English source names.
+
+## What changes
+
+1. **Bare milk words offer a choice (owner decision 1).** "tej", "tehéntej",
+   "tehén tej", "Milch", "Kuhmilch", "milk" and "cow milk" are the same reviewed
+   alias on five records: teljes tej 3,5 %, félzsíros tej 1,5 %, teljes H-tej
+   3,5 %, félzsíros H-tej 1,5 % and sovány tej (USDA skim; BLS has no skim milk
+   record). This uses the catalog's existing mechanism for a deliberate choice
+   between records, the one generic "sajt" already uses. Several records with
+   the same top match set the interpreter's `ambiguous` flag, so the result is
+   `confirmation_required` and the catalog candidates are listed to pick from.
+   There is no silent pick, no external lookup and no AI. Qualified phrases sit
+   on exactly one record: "teljes tej", "3,5%-os tej", "Vollmilch", "whole milk",
+   "félzsíros tej", "1,5%-os tej", "fettarme Milch", "semi-skimmed milk",
+   "sovány tej", "Magermilch", "skim milk", "2%-os tej".
+2. **The OFF "cow milk" record is removed (owner decision 2).** The migration
+   deletes exactly (`open_food_facts`, `8904089919135`, createdById NULL) and its
+   FoodAlias / FoodNutrient / FoodServing rows. Every statement is guarded with
+   `NOT EXISTS` on MealItem and RecipeIngredient. These are the only tables whose
+   foreign key to Food restricts deletes; a test checks this against
+   schema.prisma. If the record is missing, the migration does nothing.
+3. **Staple names (229 records, 866 alias rows).** The style
+   follows `20260926130000_hungarian_catalog_names`:
+   - `names.hu` / `names.en` are set only where that locale is empty.
+   - Reviewed aliases (`reviewed_migration` provenance) are inserted with
+     `ON CONFLICT DO NOTHING`.
+   - The new words are appended to `searchText` once.
+   - No nutrition changes and no new Food rows.
+
+   For the 21 records whose names were already curated in
+   `data/reference-dishes/bls-imports*.json` (inserted as aliases by the regional
+   migrations), the same names are reused. One exception: the curated "gouda
+   sajt" on M402600 would tie with the starter Gouda, so that record is named
+   "gouda (48%)".
+4. **Small interpreter fixes found while verifying (general, no word lists):**
+   - `natural-food-query.ts`: a fat percentage ("3,5%-os tej", "2% milk") is
+     part of the food's identity, not its quantity. "dl" is a unit (×100 ml).
+     "whole milk", "whole grain" and "whole wheat" keep "whole" as part of the
+     name instead of reading it as "1 piece". The parser also returns the words
+     as typed (`literalFoodQuery`), because case-suffix stripping is blind:
+     "kávé"→"ka", "gomba"→"gom", "Brot"→"br", "Honig"→"hon", "parboiled"→"par"
+     + boiled.
+   - `interpret.ts`: the words as typed are searched as well, and win only as a
+     trusted match strictly stronger than the stripped form. The tie check now
+     compares the top match with the strongest other candidate, not just the
+     second one in display order (a "dried" or "with …" source name can sort a
+     tied record lower). It is also skipped only for the egg preparations that
+     pick their own record, so "nyers tej" stays a choice.
+   - `food-search.ts`: the result limit never splits a tie of trusted matches.
+     USDA skim milk's source name ("… with added vitamin A …") carries a
+     ranking penalty that otherwise pushed it out of the top 8 for "milk".
+
+## Shared bare words (each one offers a choice)
+
+| bare word | records offered |
+|---|---|
+| almond butter, mandelmus, mandulavaj | usda_fdc:168588 (mandulavaj (sótlan)); usda_fdc:2262074 (mandulavaj (krémes)) |
+| bread, brot, kenyer | bls:B121000 (teljes kiőrlésű kenyér); bls:B221000 (rozskenyér); bls:B271000 (rozsos vegyes kenyér); bls:B311000 (fehér kenyér) |
+| buttermilch, iro | usda_fdc:167697 (író (csökkentett zsírtartalmú)); usda_fdc:2259792 (író (zsírszegény)) |
+| cream cheese, frischkase, kremsajt | bls:M710800 (krémsajt (dupla krém)); usda_fdc:2346385 (natúr krémsajt (USA, tömb)) |
+| currants, johannisbeeren, ribizli | bls:F321100 (piros ribizli); bls:F322100 (fehér ribizli); bls:F323100 (fekete ribizli) |
+| low fat milk, zsirszegeny tej | usda_fdc:746772 (zsírszegény tej (1%)); usda_fdc:746778 (zsírszegény tej (2%)) |
+| dinnye | bls:F535100 (görögdinnye); usda_fdc:746770 (sárgadinnye) |
+| cow milk, cow s milk, kuhmilch, milch, milk, tehen tej, tehentej, tej | bls:M111200 (félzsíros tej (1,5%)); bls:M111300 (teljes tej (3,5%)); bls:M113200 (félzsíros H-tej (1,5%)); bls:M113300 (teljes H-tej (3,5%)); usda_fdc:746776 (sovány tej (zsírmentes)) |
+| asvanyviz, mineral water, mineralwasser | bls:N127000 (szénsavas ásványvíz); bls:N128000 (szénsavmentes ásványvíz) |
+| sojamilch, soy milk, szojaital, szojatej | usda_fdc:1999630 (szójaital (cukrozatlan)); usda_fdc:2257044 (szójaital (cukrozott)) |
+| h milch, h tej, tartos tej, uht milk | bls:M113200 (félzsíros H-tej (1,5%)); bls:M113300 (teljes H-tej (3,5%)) |
+| eleszto, hefe, yeast | bls:R458000 (szárított élesztő); bls:R459000 (friss élesztő) |
+
+## Review table
+
+"Shared bare word" lists the aliases that intentionally sit on several records.
+"Reviewed aliases" lists the aliases that belong to this record only. Every
+record also gets its new hu/en name as a `localized_name` alias.
+
+| source | sourceId | originalName | new hu | new en | shared bare word (choice) | reviewed aliases |
+|---|---|---|---|---|---|---|
+| bls | M111300 | Vollmilch frisch, 3,5 % Fett, pasteurisiert | teljes tej (3,5%) | whole milk (3.5%) | tej, tehéntej, tehén tej, Milch, Kuhmilch, milk, cow milk, cow's milk | teljes tej, 3,5%-os tej, 3,5% tej, friss teljes tej, Vollmilch, frische Vollmilch, whole milk |
+| bls | M111200 | Milch fettarm, frisch, 1,5 % Fett, pasteurisiert | félzsíros tej (1,5%) | semi-skimmed milk (1.5%) | tej, tehéntej, tehén tej, Milch, Kuhmilch, milk, cow milk, cow's milk | félzsíros tej, 1,5%-os tej, 1,5% tej, fettarme Milch, semi-skimmed milk |
+| bls | M113300 | H-Vollmilch 3,5 % Fett, ultrahocherhitzt | teljes H-tej (3,5%) | UHT whole milk (3.5%) | tej, tehéntej, tehén tej, Milch, Kuhmilch, milk, cow milk, cow's milk, H-tej, tartós tej, H-Milch, UHT milk | teljes H-tej, teljes tartós tej, H-Vollmilch, UHT whole milk |
+| bls | M113200 | H-Milch fettarm, 1,5 % Fett, ultrahocherhitzt | félzsíros H-tej (1,5%) | UHT semi-skimmed milk (1.5%) | tej, tehéntej, tehén tej, Milch, Kuhmilch, milk, cow milk, cow's milk, H-tej, tartós tej, H-Milch, UHT milk | félzsíros H-tej, félzsíros tartós tej, fettarme H-Milch, UHT semi-skimmed milk |
+| usda_fdc | 746776 | Milk, nonfat, fluid, with added vitamin A and vitamin D (fat free or skim) | sovány tej (zsírmentes) | — | tej, tehéntej, tehén tej, Milch, Kuhmilch, milk, cow milk, cow's milk | sovány tej, zsírmentes tej, Magermilch, entrahmte Milch, skim milk, skimmed milk, nonfat milk, fat-free milk |
+| usda_fdc | 746782 | Milk, whole, 3.25% milkfat, with added vitamin D | teljes tej (3,25%, USA) | — | — | — |
+| usda_fdc | 746778 | Milk, reduced fat, fluid, 2% milkfat, with added vitamin A and vitamin D | zsírszegény tej (2%) | — | zsírszegény tej, low-fat milk | 2%-os tej, 2% tej, 2% milk |
+| usda_fdc | 746772 | Milk, lowfat, fluid, 1% milkfat, with added vitamin A and vitamin D | zsírszegény tej (1%) | — | zsírszegény tej, low-fat milk | 1%-os tej, 1% tej, 1% milk |
+| bls | M112300 | Rohmilch/Vorzugsmilch, mind. 3,5 % Fett | nyers tej (Vorzugsmilch, min. 3,5%) | raw milk (min. 3.5%) | — | Rohmilch, Vorzugsmilch |
+| bls | M181400 | Kondensmilch mind. 8 % Fett, gezuckert | sűrített tej (cukrozott, 8%) | sweetened condensed milk (8%) | — | gezuckerte Kondensmilch |
+| bls | M181100 | Kondensmagermilch max. 1 % Fett, gezuckert | sovány sűrített tej (cukrozott, 1%) | sweetened condensed skimmed milk (1%) | — | — |
+| bls | M882000 | Vollmilchpulver | teljes tejpor | whole milk powder | — | Vollmilchpulver |
+| bls | M884000 | Magermilchpulver | sovány tejpor | skimmed milk powder | — | Magermilchpulver |
+| usda_fdc | 2346386 | Cream, heavy | tejszín (heavy cream, USA) | — | — | heavy cream, heavy whipping cream |
+| bls | M710800 | Frischkäsezubereitung Natur, mind. 60 % Fett i. Tr. | krémsajt (dupla krém) | cream cheese, full fat (Doppelrahmstufe) | krémsajt, Frischkäse, cream cheese | natúr krémsajt, Doppelrahmfrischkäse |
+| usda_fdc | 2346385 | Cream cheese, full fat, block | natúr krémsajt (USA, tömb) | — | krémsajt, Frischkäse, cream cheese | — |
+| bls | M402600 | Gouda 48 % Fett i. Tr. | gouda (48%) | Gouda (48% fat in dry matter) | — | — |
+| bls | M303600 | Chester (Cheddar) mind. 45 % Fett i. Tr. | cheddar (45%) | Cheddar (45% fat in dry matter) | — | — |
+| bls | M012100 | Roquefort mind. 50 % Fett i. Tr. | roquefort | Roquefort | — | — |
+| bls | M5B1600 | Gorgonzola mind. 48 % Fett i. Tr. | gorgonzola | Gorgonzola | — | — |
+| bls | M502600 | Edelpilzkäse mind. 45 % Fett i. Tr. | kéksajt (45%) | blue cheese (45% fat in dry matter) | — | — |
+| bls | M502700 | Edelpilzkäse mind. 50 % Fett i. Tr. | kéksajt (50%) | blue cheese (50% fat in dry matter) | — | — |
+| bls | M502800 | Edelpilzkäse mind. 60 % Fett i. Tr. | kéksajt (60%) | blue cheese (60% fat in dry matter) | — | — |
+| bls | M516700 | Danablu mind. 50 % Fett i. Tr. | Danablu (dán kéksajt) | Danablu (Danish blue cheese) | — | — |
+| bls | M052000 | Salzlakenkäse aus Kuhmilch, Hirtenkäse, mind. 45 % Fett i. Tr. | sós lében érlelt tehénsajt (Hirtenkäse) | brined cow's milk cheese (Hirtenkäse) | — | — |
+| bls | M053000 | Salzlakenkäse aus Ziegenmilch, mind. 45 % Fett i. Tr. | sós lében érlelt kecskesajt | brined goat's milk cheese | — | — |
+| bls | M3A4300 | Salzlakenkäse aus Schafmilch, mind. 20 % Fett i. Tr. | sós lében érlelt juhsajt (20%) | brined sheep's milk cheese (20% fat in dry matter) | — | — |
+| bls | M6A6800 | Salzlakenkäse aus Schafmilch, mind. 45 % Fett i. Tr. | sós lében érlelt juhsajt (45%) | brined sheep's milk cheese (45% fat in dry matter) | — | — |
+| usda_fdc | 746766 | Cheese, ricotta, whole milk | ricotta | — | — | — |
+| usda_fdc | 325036 | Cheese, parmesan, grated | reszelt parmezán | — | — | grated parmesan |
+| usda_fdc | 2259795 | Cheese, parmesan, grated, refrigerated | reszelt parmezán (hűtött) | — | — | — |
+| usda_fdc | 2346384 | Cottage cheese, full fat, large or small curd | szemcsés túró (zsíros) | — | — | — |
+| usda_fdc | 2259793 | Yogurt, plain, whole milk | natúr joghurt (zsíros, USA) | — | — | — |
+| usda_fdc | 2647437 | Yogurt, plain, nonfat | natúr joghurt (zsírmentes) | — | — | zsírmentes joghurt |
+| usda_fdc | 2259794 | Yogurt, Greek, plain, whole milk | görög joghurt (zsíros, USA) | — | — | — |
+| usda_fdc | 330137 | Yogurt, Greek, plain, nonfat | görög joghurt (zsírmentes) | — | — | zsírmentes görög joghurt |
+| usda_fdc | 2259792 | Buttermilk, low fat | író (zsírszegény) | — | író, Buttermilch | — |
+| usda_fdc | 167697 | Milk, buttermilk, fluid, cultured, reduced fat | író (csökkentett zsírtartalmú) | — | író, Buttermilch | — |
+| bls | E111100 | Hühnerei roh | tyúktojás (nyers) | chicken egg, raw | — | tyúktojás |
+| bls | E112100 | Hühnerei Eigelb, roh | tojássárgája | egg yolk | — | tojássárgája, tojássárga, Eigelb, Eidotter, egg yolk |
+| bls | E113100 | Hühnerei Eiklar, roh | tojásfehérje | egg white | — | tojásfehérje, tojásfehér, Eiklar, Eiweiß, egg white |
+| bls | E106100 | Wachtelei roh | fürjtojás (nyers) | quail egg, raw | — | fürjtojás, Wachtelei, quail egg |
+| bls | E131100 | Entenei roh | kacsatojás (nyers) | duck egg, raw | — | kacsatojás, Entenei, duck egg |
+| bls | E141100 | Gänseei roh | libatojás (nyers) | goose egg, raw | — | libatojás, Gänseei, goose egg |
+| bls | Q630000 | Süßrahmbutter | vaj (édes tejszínből) | sweet cream butter | — | — |
+| bls | Q620000 | Sauerrahmbutter | vaj (savanyított tejszínből) | cultured butter | — | Sauerrahmbutter |
+| bls | Q611000 | Butter mild gesäuert | vaj (enyhén savanyított) | lightly cultured butter | — | — |
+| bls | Q640000 | Halbfettbutter | félzsíros vaj (light) | half-fat butter | — | félzsíros vaj, light vaj, Halbfettbutter |
+| bls | Q683000 | Butterschmalz | tisztított vaj (ghí) | clarified butter (ghee) | — | tisztított vaj, ghí, vajzsír, Butterschmalz, ghee, clarified butter |
+| usda_fdc | 173410 | Butter, salted | sós vaj | — | — | salted butter |
+| bls | Q180000 | Rapsöl/Rüböl | repceolaj (Rapsöl) | rapeseed oil (canola) | — | Rapsöl, canola oil |
+| bls | Q250000 | Kürbiskernöl | tökmagolaj | pumpkin seed oil | — | Kürbiskernöl |
+| bls | Q260000 | Maiskeimöl | kukoricacsíra-olaj | corn oil | — | Maiskeimöl |
+| bls | Q270000 | Sojaöl | szójaolaj | soybean oil | — | Sojaöl |
+| bls | Q310000 | Walnussöl | dióolaj | walnut oil | — | Walnussöl |
+| bls | Q210000 | Erdnussöl | földimogyoró-olaj | peanut oil | — | Erdnussöl |
+| bls | Q190000 | Mandelöl | mandulaolaj | almond oil | — | Mandelöl |
+| bls | Q890000 | Rinderfett/Rindertalg | marhafaggyú | beef tallow | — | Rindertalg |
+| bls | W412000 | Schwein Speck/Rückenspeck (grüner Speck) roh | hátszalonna (nyers, füstöletlen) | pork back fat (raw, unsmoked) | — | hátszalonna, nyers hátszalonna, grüner Speck |
+| bls | B311000 | Weizenbrot/Weißbrot | fehér kenyér | white bread | kenyér, Brot, bread | fehérkenyér, búzakenyér, Weißbrot |
+| bls | B271000 | Roggenmischbrot | rozsos vegyes kenyér | rye-wheat mixed bread | kenyér, Brot, bread | rozsos kenyér, Roggenmischbrot |
+| bls | B221000 | Roggenbrot | rozskenyér | rye bread | kenyér, Brot, bread | Roggenbrot |
+| bls | B121000 | Roggenvollkornbrot | — | — | kenyér, Brot, bread | — |
+| bls | B314000 | Weizentoastbrot/Buttertoastbrot | toastkenyér | white toast bread | — | toast kenyér, toastkenyér, Toastbrot, toast bread |
+| bls | B106000 | Vollkornbrot mit Ölsamen | magvas teljes kiőrlésű kenyér | wholegrain bread with seeds | — | magvas kenyér |
+| bls | B881100 | Eiweißbrot/Proteinbrot | fehérjekenyér | protein bread | — | proteinkenyér, Eiweißbrot, Proteinbrot |
+| bls | B511000 | Weizenbrötchen | zsemle | wheat bread roll | — | zsömle, Brötchen, Semmel, bread roll |
+| bls | B511100 | Weizenbrötchen mit Kümmel und Salz | sós-köményes zsemle (Salzstangerl) | wheat roll with salt and caraway | — | — |
+| bls | B591000 | Mehrkornbrötchen | magvas péksütemény (Kornspitz) | multigrain roll | — | magvas zsemle, többmagvas zsemle, Mehrkornbrötchen |
+| bls | B551200 | Weizenmischbrötchen mit Mohn | mákos zsemle | poppy seed roll | — | — |
+| bls | B526300 | Roggenbrötchen mit Sesam | szezámos rozszsemle | rye roll with sesame | — | — |
+| bls | B783012 | Weizentortilla | tortilla (búzaliszt) | wheat tortilla | — | tortilla, tortillalap, Tortilla, tortilla |
+| bls | B6A2100 | Roggenvollkornknäckebrot | knäckebrot (teljes kiőrlésű rozs) | wholegrain rye crispbread | — | knäckebrot, Knäckebrot, crispbread |
+| bls | C351000 | Reis unpoliert, roh | barna rizs (nyers) | brown rice, raw | — | barna rizs, Naturreis, brown rice |
+| bls | C359000 | Reis parboiled, poliert, roh | parboiled rizs (nyers) | parboiled rice, raw | — | parboiled rizs, Parboiled Reis, parboiled rice |
+| bls | C353100 | Wildreis roh | vadrizs (nyers) | wild rice, raw | — | vadrizs, Wildreis, wild rice |
+| usda_fdc | 2512381 | Rice, white, long grain, unenriched, raw | fehér rizs (hosszú szemű, nyers) | — | — | hosszú szemű rizs |
+| usda_fdc | 2512380 | Rice, brown, long grain, unenriched, raw | barna rizs (hosszú szemű, nyers) | — | — | — |
+| bls | C453000 | Reis Mehl | rizsliszt | rice flour | — | Reismehl |
+| bls | C233000 | Hafer Mehl | zabliszt | oat flour | — | Hafermehl |
+| bls | C138000 | Hafer Kleie | zabkorpa | oat bran | — | Haferkleie |
+| bls | C446000 | Mais Stärke | kukoricakeményítő | cornstarch | — | Maisstärke |
+| bls | K230000 | Kartoffelstärke (Kartoffelmehl) | burgonyakeményítő | potato starch | — | Kartoffelstärke |
+| bls | C443000 | Mais Mehl | kukoricaliszt | maize flour | — | Maismehl |
+| bls | C346000 | Mais Grieß | kukoricadara (polenta) | corn grits (polenta) | — | kukoricadara, Maisgrieß |
+| bls | C148000 | Gerste Graupen | gyöngyárpa | pearl barley | — | Graupen, Gerstengraupen |
+| usda_fdc | 2512378 | Buckwheat, whole grain | hajdina (nyers) | — | — | hajdina, Buchweizen, buckwheat |
+| usda_fdc | 2512374 | Flour, buckwheat | hajdinaliszt | — | — | Buchweizenmehl |
+| usda_fdc | 2512379 | Millet, whole grain | köles (nyers) | — | — | köles, Hirse, millet |
+| usda_fdc | 2710820 | Bulgur, dry, raw | bulgur (nyers) | — | — | — |
+| usda_fdc | 2512375 | Flour, rye | rozsliszt | — | — | Roggenmehl |
+| usda_fdc | 2003587 | Flour, spelt, whole grain | teljes kiőrlésű tönkölyliszt | — | — | tönkölyliszt, Dinkelvollkornmehl |
+| usda_fdc | 790085 | Flour, whole wheat, unenriched | teljes kiőrlésű búzaliszt | — | — | Weizenvollkornmehl |
+| usda_fdc | 2261420 | Flour, almond | mandulaliszt | — | — | Mandelmehl, almond flour |
+| usda_fdc | 2515382 | Flour, coconut | kókuszliszt | — | — | Kokosmehl, coconut flour |
+| usda_fdc | 2262075 | Flaxseed, ground | őrölt lenmag | — | — | geschroteter Leinsamen, ground flaxseed |
+| usda_fdc | 168147 | Vital wheat gluten | búzasikér (glutén) | — | — | búzasikér, Weizengluten |
+| bls | E432000 | Eierteigwaren roh | tojásos tészta (száraz) | egg pasta, dry | — | tojásos tészta, Eiernudeln, egg noodles |
+| bls | E438000 | Eier-Frischteigwaren roh | friss tojásos tészta | fresh egg pasta | — | frische Eiernudeln |
+| bls | E510000 | Vollkornteigwaren eifrei, roh | teljes kiőrlésű tészta (száraz) | wholewheat pasta, dry | — | teljes kiőrlésű tészta, Vollkornnudeln, wholewheat pasta |
+| bls | H030400 | Glasnudeln aus Mungbohnenstärke, roh | üvegtészta (nyers) | glass noodles, raw | — | üvegtészta, Glasnudeln, glass noodles |
+| bls | G543100 | Gemüsepaprika rot, roh | piros kaliforniai paprika | red bell pepper | — | rote Paprika, red bell pepper |
+| bls | G542100 | Gemüsepaprika gelb, roh | sárga kaliforniai paprika | yellow bell pepper | — | gelbe Paprika, yellow bell pepper |
+| bls | G553100 | Pfefferschote grün, roh | zöld csilipaprika | green chili pepper | — | — |
+| bls | G554100 | Pfefferschote rot, roh | piros csilipaprika | red chili pepper | — | — |
+| bls | G211100 | Spinat roh | spenót (nyers) | spinach, raw | — | — |
+| bls | G520100 | Gurke roh | uborka (nyers) | cucumber, raw | — | — |
+| bls | F502100 | Avocado roh | avokádó (nyers) | avocado, raw | — | — |
+| bls | G104100 | Feldsalat/Rapunzel, roh | galambbegysaláta (Vogerlsalat) | lamb's lettuce | — | galambbegy, galambbegysaláta, Feldsalat, Vogerlsalat, lamb's lettuce, lamb lettuce |
+| bls | G107100 | Römischer Salat/Romanasalat, roh | római saláta | romaine lettuce | — | Römersalat, romaine lettuce |
+| bls | G130100 | Rucola roh | rukkola | rocket (arugula) | — | rucola, Rucola, arugula, rocket |
+| bls | G106100 | Radicchio roh | radicchio | radicchio | — | — |
+| bls | G081100 | Schnittlauch roh | metélőhagyma | chives | — | metélőhagyma, snidling, Schnittlauch, chives |
+| bls | R231000 | Basilikum getrocknet | szárított bazsalikom | dried basil | — | getrocknetes Basilikum, dried basil |
+| bls | K120100 | Kartoffel ungeschält, roh | burgonya héjjal (nyers) | potato, unpeeled, raw | — | — |
+| bls | K420100 | Batate/Süßkartoffel, roh | édesburgonya (batáta) | sweet potato | — | édesburgonya, batáta, Süßkartoffel, sweet potato |
+| usda_fdc | 2346404 | Sweet potatoes, orange flesh, without skin, raw | édesburgonya (narancssárga, nyers) | — | — | — |
+| bls | K713100 | Pfifferling roh | rókagomba | chanterelle | — | Pfifferling, chanterelle |
+| bls | K724100 | Shiitakepilz roh | shiitake gomba | shiitake mushroom | — | shiitake, Shiitake |
+| bls | K740100 | Austernpilz roh | laskagomba | oyster mushroom | — | Austernpilz, oyster mushroom |
+| bls | G770400 | Kichererbse reif | csicseriborsó (száraz) | chickpeas, dry | — | száraz csicseriborsó |
+| bls | H725100 | Linse reif | lencse (száraz) | lentils | — | lencse, Linsen, lentils |
+| usda_fdc | 2644283 | Lentils, dry | lencse (száraz, USA) | — | — | — |
+| bls | H742100 | Kidneybohne reif | vörösbab (száraz) | kidney beans, dry | — | száraz vörösbab |
+| bls | H739400 | Gartenbohne reif | szárazbab (fehérbab) | dried white beans | — | szárazbab, fehérbab, weiße Bohnen |
+| bls | H770100 | Mungbohne reif | mungóbab (száraz) | mung beans, dry | — | mungóbab |
+| bls | H861000 | Tofu | tofu | tofu | — | — |
+| bls | H861100 | Seidentofu | selyemtofu | silken tofu | — | Seidentofu, silken tofu |
+| bls | F535100 | Wassermelone roh | görögdinnye | watermelon | dinnye | Wassermelone, watermelon |
+| bls | F310100 | Weintraube roh | szőlő | grapes | — | Weintrauben, Trauben, grapes |
+| usda_fdc | 2346412 | Grapes, red, seedless, raw | vörös szőlő (magvatlan) | — | — | — |
+| usda_fdc | 2346413 | Grapes, green, seedless, raw | zöld szőlő (magvatlan) | — | — | — |
+| bls | F604100 | Grapefruit roh | grapefruit | grapefruit | — | — |
+| bls | F201100 | Aprikose roh | sárgabarack (Marille) | apricot | — | sárgabarack, kajszibarack, kajszi, Marille, apricot |
+| bls | F201400 | Aprikose getrocknet | aszalt sárgabarack | dried apricots | — | aszalt kajszi, getrocknete Aprikosen, dried apricots |
+| bls | F321100 | Johannisbeere rot, roh | piros ribizli | redcurrants | ribizli, Johannisbeeren, currants | redcurrants |
+| bls | F322100 | Johannisbeere weiß, roh | fehér ribizli | white currants | ribizli, Johannisbeeren, currants | — |
+| bls | F323100 | Johannisbeere schwarz roh | fekete ribizli | blackcurrants | ribizli, Johannisbeeren, currants | blackcurrants |
+| bls | F081100 | Rhabarber roh | rebarbara | rhubarb | — | Rhabarber, rhubarb |
+| bls | F401100 | Preiselbeere roh | vörös áfonya | lingonberries | — | Preiselbeeren, lingonberries |
+| usda_fdc | 167747 | Lemon juice, raw | citromlé (frissen facsart) | — | — | citromlé, Zitronensaft, lemon juice |
+| usda_fdc | 167748 | Lemon juice from concentrate, canned or bottled | citromlé (palackozott) | — | — | — |
+| usda_fdc | 2003597 | Orange juice, no pulp, not fortified, not from concentrate, refrigerated | narancslé (100%, nem sűrítményből) | — | — | — |
+| usda_fdc | 2003591 | Orange juice, no pulp, not fortified, from concentrate, refrigerated | narancslé (sűrítményből) | — | — | — |
+| usda_fdc | 2003590 | Apple juice, with added vitamin C, from concentrate, shelf stable | almalé | — | — | Apfelsaft, apple juice |
+| usda_fdc | 2710832 | Mandarin, seedless, peeled, raw | mandarin | — | — | — |
+| usda_fdc | 746770 | Melons, cantaloupe, raw | sárgadinnye | — | dinnye | Cantaloupe-Melone, cantaloupe |
+| usda_fdc | 746768 | Figs, dried, uncooked | aszalt füge | — | — | getrocknete Feigen, dried figs |
+| bls | H160100 | Pekannuss | pekándió | pecan nuts | — | Pekannüsse, pecans |
+| bls | H180100 | Paranuss | brazil dió | Brazil nuts | — | Paranüsse, Brazil nuts |
+| usda_fdc | 2515378 | Nuts, macadamia nuts, raw | makadámdió | — | — | Macadamianüsse, macadamia nuts |
+| bls | H230100 | Edelkastanie/Marone | gesztenye (Maroni) | sweet chestnut | — | gesztenye, Maronen, chestnuts |
+| bls | H150100 | Kokos Fruchtfleisch, roh | kókuszdió (friss hús) | coconut meat, fresh | — | Kokosnuss |
+| bls | H150400 | Kokos Fruchtfleisch, geraspelt, getrocknet | kókuszreszelék | desiccated coconut | — | Kokosraspeln, desiccated coconut |
+| usda_fdc | 168586 | Nuts, coconut meat, dried (desiccated), sweetened, shredded | kókuszreszelék (cukrozott) | — | — | — |
+| bls | H151000 | Kokoswasser (Fruchtwasser) | kókuszvíz | coconut water | — | Kokoswasser, coconut water |
+| bls | H880200 | Erdnussbutter/Erdnusscreme | mogyoróvaj | peanut butter | — | földimogyoró-krém, Erdnussbutter, peanut butter |
+| usda_fdc | 2262072 | Peanut butter, creamy | mogyoróvaj (krémes, USA) | — | — | — |
+| usda_fdc | 2262074 | Almond butter, creamy | mandulavaj (krémes) | — | Mandelmus, mandulavaj, almond butter | — |
+| usda_fdc | 168588 | Nuts, almond butter, plain, without salt added | mandulavaj (sótlan) | — | Mandelmus, mandulavaj, almond butter | — |
+| bls | Q901000 | Tahin (Sesammus) | tahini (szezámkrém) | tahini (sesame paste) | — | tahini, Tahin, tahini |
+| bls | H800000 | Mandeldrink ungesüßt | mandulaital (cukrozatlan) | almond drink, unsweetened | — | mandulaital, mandulatej, Mandelmilch, Mandeldrink, almond milk |
+| usda_fdc | 1999631 | Almond milk, unsweetened, plain, shelf stable | mandulaital (cukrozatlan, tartós) | — | — | — |
+| usda_fdc | 2257045 | Almond milk, unsweetened, plain, refrigerated | mandulaital (cukrozatlan, hűtött) | — | — | — |
+| usda_fdc | 2257046 | Oat milk, unsweetened, plain, refrigerated | zabital (cukrozatlan) | — | — | zabital, zabtej, Haferdrink, Hafermilch, oat milk |
+| usda_fdc | 1999630 | Soy milk, unsweetened, plain, shelf stable | szójaital (cukrozatlan) | — | szójaital, szójatej, Sojamilch, soy milk | — |
+| usda_fdc | 2257044 | Soy milk, sweetened, plain, refrigerated | szójaital (cukrozott) | — | szójaital, szójatej, Sojamilch, soy milk | — |
+| bls | S120000 | Honig | méz | honey | — | honey |
+| bls | S121000 | Blütenhonig (Nektarhonig) | virágméz | blossom honey | — | Blütenhonig |
+| bls | S122000 | Honigtauhonig (Waldhonig) | erdei méz (mézharmatméz) | forest honey (honeydew honey) | — | erdei méz, Waldhonig |
+| bls | S112000 | Zucker braun (Kandisfarin/Rohzucker) | barna cukor | brown sugar | — | nádcukor, brauner Zucker, brown sugar |
+| bls | S115100 | Traubenzucker (Dextrose/Glukose) | szőlőcukor (glükóz) | dextrose (glucose) | — | szőlőcukor, Traubenzucker, dextrose |
+| bls | S118000 | Fruchtzucker (Fruktose) | gyümölcscukor (fruktóz) | fructose | — | gyümölcscukor, fruktóz, Fruchtzucker |
+| bls | S116000 | Milchzucker (Laktose) | tejcukor (laktóz) | lactose (milk sugar) | — | tejcukor, Milchzucker |
+| bls | S711000 | Kakaopulver schwach entölt | kakaópor (cukrozatlan) | cocoa powder, unsweetened | — | kakaópor, Kakaopulver, cocoa powder |
+| bls | S145000 | Nuss-Nougat-Creme | mogyorókrém (Nutella-típus) | chocolate hazelnut spread | — | mogyorókrém, kakaós mogyorókrém, Nuss-Nougat-Creme |
+| bls | S241000 | Vanilleeis | vaníliafagylalt | vanilla ice cream | — | Vanilleeis, vanilla ice cream |
+| bls | S242000 | Schokoladeneis | csokoládéfagylalt | chocolate ice cream | — | csokifagyi, Schokoladeneis, chocolate ice cream |
+| bls | R111000 | Speisesalz/Siedesalz/Tafelsalz | só (étkezési) | table salt | — | só, konyhasó, Salz, Speisesalz, salt |
+| bls | R123100 | Apfelessig | almaecet | cider vinegar | — | Apfelessig, apple cider vinegar |
+| bls | R141100 | Tomatenketchup | ketchup | tomato ketchup | — | Ketchup |
+| bls | R143000 | Sojasauce/Sojasoße | szójaszósz | soy sauce | — | Sojasoße, soy sauce |
+| bls | R421100 | Backpulver | sütőpor | baking powder | — | Backpulver, baking powder |
+| bls | R459000 | Backhefe frisch (Frischbackhefe) | friss élesztő | fresh yeast | élesztő, Hefe, yeast | Frischhefe |
+| bls | R458000 | Backhefe getrocknet (Trockenbackhefe) | szárított élesztő | dry yeast | élesztő, Hefe, yeast | instant élesztő, Trockenhefe |
+| bls | R468000 | Gelatine/Speisegelatine | zselatin | gelatine | — | Gelatine, gelatin |
+| bls | K762400 | Hefe Flocken/Nährhefe | élesztőpehely | nutritional yeast flakes | — | Hefeflocken, nutritional yeast |
+| bls | R811000 | Fleisch Bouillon/Brühe/Suppe (Brühwürfel, Pulver) | húsleveskocka / -por (marha) | beef bouillon cube/powder | — | húsleveskocka |
+| bls | N110000 | Trinkwasser | ivóvíz (csapvíz) | drinking water | — | víz, csapvíz, Wasser, Leitungswasser, water |
+| bls | N127000 | Natürliches Mineralwasser mit Kohlensäure | szénsavas ásványvíz | sparkling mineral water | ásványvíz, Mineralwasser, mineral water | Sprudelwasser |
+| bls | N128000 | Natürliches Mineralwasser still | szénsavmentes ásványvíz | still mineral water | ásványvíz, Mineralwasser, mineral water | stilles Wasser |
+| bls | N410100 | Kaffee (Getränk) | kávé (fekete, ital) | coffee (brewed) | — | kávé, fekete kávé, feketekávé, Kaffee, coffee, black coffee |
+| bls | N411100 | Espresso (Getränk) | eszpresszó | espresso | — | espresso, presszókávé, Espresso |
+| bls | N415000 | Kaffee (Getränk) entkoffeiniert | koffeinmentes kávé | decaf coffee | — | entkoffeinierter Kaffee, decaf |
+| bls | N419000 | Türkischer Mokka (Getränk) | török kávé | Turkish coffee | — | türkischer Mokka |
+| bls | N420900 | Instantkaffeepulver | instant kávépor | instant coffee powder | — | instant kávé, Instantkaffee, instant coffee |
+| bls | N610100 | Grüntee (Getränk) | zöld tea | green tea (brewed) | — | Grüntee, green tea |
+| bls | T506100 | Wels roh | harcsa | wels catfish | — | Wels |
+| bls | T603100 | Zander roh | fogassüllő (süllő) | zander (pike-perch) | — | süllő, fogas, Zander, zander |
+| bls | T102100 | Hering roh | hering (nyers) | herring, raw | — | hering, Hering, herring |
+| bls | T507100 | Pangasius/Schlankwels, roh | pangasius | pangasius | — | Pangasius |
+| usda_fdc | 334194 | Fish, tuna, light, canned in water, drained solids | tonhalkonzerv (vízben, lecsepegtetve) | — | — | tonhalkonzerv, tonhal konzerv, canned tuna |
+| usda_fdc | 2684442 | Fish, tilapia, farm raised, raw | tilápia | — | — | Tilapia |
+| bls | U211100 | Rind Filet/Lende, roh | marhabélszín | beef tenderloin | — | bélszín, Rinderfilet, beef tenderloin |
+| bls | V634100 | Hähnchen Leber, roh | csirkemáj | chicken liver | — | Hühnerleber, chicken liver |
+| bls | V614100 | Hähnchen Herz, roh | csirkeszív | chicken heart | — | Hühnerherz, chicken hearts |
+| bls | V654100 | Hähnchen Magen, roh | csirkezúza | chicken gizzard | — | zúza, Hühnermagen, chicken gizzards |
+| bls | V531100 | Rind Leber, roh | marhamáj | beef liver | — | Rinderleber, beef liver |
+| bls | V533100 | Schwein Leber, roh | sertésmáj | pork liver | — | Schweineleber, pork liver |
+| bls | V532100 | Kalb Leber, roh | borjúmáj | calf liver | — | Kalbsleber, calf liver |
+| bls | V132100 | Kaninchen Fleisch, roh | nyúlhús | rabbit meat | — | Kaninchenfleisch, rabbit |
+| bls | V250100 | Wildschwein Fleisch, roh | vaddisznóhús | wild boar meat | — | Wildschweinfleisch, wild boar |
+| bls | V122100 | Ziege Fleisch, roh | kecskehús | goat meat | — | Ziegenfleisch, goat meat |
+| usda_fdc | 2727568 | Chicken, wing, meat and skin, raw | csirkeszárny (bőrrel, nyers) | — | — | csirkeszárny, Hähnchenflügel, chicken wings |
+| usda_fdc | 2514746 | Chicken, ground, with additives, raw | darált csirkehús | — | — | ground chicken |
+| usda_fdc | 2514747 | Turkey, ground, 93% lean/ 7% fat, raw | darált pulykahús (7% zsír) | — | — | darált pulykahús, Putenhackfleisch, ground turkey |
+| usda_fdc | 2514744 | Beef, ground, 80% lean meat / 20% fat, raw | darált marhahús (80/20) | — | — | — |
+| usda_fdc | 2514743 | Beef, ground, 90% lean meat / 10% fat, raw | darált marhahús (90/10) | — | — | — |
+| bls | W149300 | Salami (Schwein) | sertésszalámi | pork salami | — | — |
+| bls | W212000 | Geflügel-Wiener Würstchen | baromfivirsli | poultry frankfurters | — | baromfi virsli, Geflügelwürstchen |
+| bls | W231200 | Mortadella/Schinkenwurst fein zerkleinert | mortadella | mortadella | — | Mortadella |
+| bls | W441000 | Parmaschinken | pármai sonka | Parma ham | — | prosciutto, Parmaschinken, prosciutto |
+| bls | W442000 | Schwarzwälder Schinken, Rohpökelware, geräuchert | fekete-erdei sonka | Black Forest ham | — | Schwarzwälder Schinken |
+| bls | W510000 | Kasseler, Rohpökelware, geräuchert | füstölt pácolt karaj (Kasseler) | Kasseler (cured smoked pork loin) | — | Kasseler, Kasseler |
+| bls | W310000 | Delikatess Leberwurst/Feine Leberwurst/Gutsleberwurst | májas (Delikatess Leberwurst) | liver sausage (fine Leberwurst) | — | májas, Leberwurst, liver sausage |
+| bls | W874300 | Wiener Würstchen Konserve | virsli (konzerv) | frankfurters, canned | — | — |
+| usda_fdc | 323121 | Frankfurter, beef, unheated | marhavirsli | — | — | beef frankfurter |
+| bls | X411243 | Hühnerbrühe | tyúkhúsleves-alaplé (szűrt) | chicken broth (strained) | — | csirkealaplé, Hühnerbrühe, chicken broth |
+| bls | X416243 | Gemüsebrühe | zöldségalaplé | vegetable broth | — | Gemüsebrühe, vegetable broth |
+| bls | Y183013 | Fleischbrühe (Rind) | marha alaplé (Fleischbrühe) | beef broth | — | marha alaplé, Rinderbrühe, beef broth |
+
+## Verification
+
+- `apps/api/src/catalog/staple-catalog-names.test.ts` parses the migration SQL,
+  applies it to the production name snapshot of the targeted records
+  (`src/catalog/fixtures/staple-names-snapshot.json`, names only) and runs the
+  real interpreter. The checks:
+  - Bare milk words in HU/DE/EN offer the five milk records.
+  - Qualified milk phrases resolve directly.
+  - 38 staple phrases resolve locally.
+  - The other shared words offer a choice.
+  - Every reviewed Hungarian alias reaches its record or a choice that
+    contains it.
+  - Spies prove that no external lookup, search-intent AI or food AI runs.
+  - The SQL of both migrations is scoped and guarded.
+- A throwaway local PostgreSQL 16 (Unix socket only, no real database) checked
+  the following:
+  - All migrations apply; both new ones apply twice idempotently.
+  - With a MealItem pointing at the OFF record the delete removes nothing;
+    without one it removes the record, its 2 aliases and its nutrients.
+  - Through the real SQL search, 679 of 687 alias phrases resolve as intended.
+    The 8 others are listed under known gaps.
+
+## Known gaps
+
+- "H-tej" loses its single-letter "H" in the meal-input parser. "H-tej" gives
+  the full milk choice (both H-tej records are in it), while "teljes H-tej",
+  "félzsíros H-tej", "H-Vollmilch" and "fettarme H-Milch" reach the fresh milk
+  of the same fat level (same macros). The search box finds the H-tej aliases
+  directly.
+- A few English display names do not round-trip through the meal-input parser
+  ("glass noodles": "glass" is a unit; "half-fat butter": "half" is a quantity).
+  The Hungarian and German aliases for these records work.
+- If someone logs a meal with the OFF record before deploy, the guarded delete
+  keeps it. Its "tehéntej" name then outranks the shared "tehéntej" alias for
+  that exact word.

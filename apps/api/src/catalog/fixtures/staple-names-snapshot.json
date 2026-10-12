@@ -1,0 +1,1914 @@
+[
+{
+"source": "bls",
+"sourceId": "M111300",
+"originalName": "Vollmilch frisch, 3,5 % Fett, pasteurisiert",
+"names": {
+"de": "Vollmilch frisch, 3,5 % Fett, pasteurisiert"
+}
+},
+{
+"source": "bls",
+"sourceId": "M111200",
+"originalName": "Milch fettarm, frisch, 1,5 % Fett, pasteurisiert",
+"names": {
+"de": "Milch fettarm, frisch, 1,5 % Fett, pasteurisiert"
+}
+},
+{
+"source": "bls",
+"sourceId": "M113300",
+"originalName": "H-Vollmilch 3,5 % Fett, ultrahocherhitzt",
+"names": {
+"de": "H-Vollmilch 3,5 % Fett, ultrahocherhitzt"
+}
+},
+{
+"source": "bls",
+"sourceId": "M113200",
+"originalName": "H-Milch fettarm, 1,5 % Fett, ultrahocherhitzt",
+"names": {
+"de": "H-Milch fettarm, 1,5 % Fett, ultrahocherhitzt"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "746776",
+"originalName": "Milk, nonfat, fluid, with added vitamin A and vitamin D (fat free or skim)",
+"names": {
+"en": "Milk, nonfat, fluid, with added vitamin A and vitamin D (fat free or skim)"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "746782",
+"originalName": "Milk, whole, 3.25% milkfat, with added vitamin D",
+"names": {
+"en": "Milk, whole, 3.25% milkfat, with added vitamin D"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "746778",
+"originalName": "Milk, reduced fat, fluid, 2% milkfat, with added vitamin A and vitamin D",
+"names": {
+"en": "Milk, reduced fat, fluid, 2% milkfat, with added vitamin A and vitamin D"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "746772",
+"originalName": "Milk, lowfat, fluid, 1% milkfat, with added vitamin A and vitamin D",
+"names": {
+"en": "Milk, lowfat, fluid, 1% milkfat, with added vitamin A and vitamin D"
+}
+},
+{
+"source": "bls",
+"sourceId": "M112300",
+"originalName": "Rohmilch/Vorzugsmilch, mind. 3,5 % Fett",
+"names": {
+"de": "Rohmilch/Vorzugsmilch, mind. 3,5 % Fett"
+}
+},
+{
+"source": "bls",
+"sourceId": "M181400",
+"originalName": "Kondensmilch mind. 8 % Fett, gezuckert",
+"names": {
+"de": "Kondensmilch mind. 8 % Fett, gezuckert"
+}
+},
+{
+"source": "bls",
+"sourceId": "M181100",
+"originalName": "Kondensmagermilch max. 1 % Fett, gezuckert",
+"names": {
+"de": "Kondensmagermilch max. 1 % Fett, gezuckert"
+}
+},
+{
+"source": "bls",
+"sourceId": "M882000",
+"originalName": "Vollmilchpulver",
+"names": {
+"de": "Vollmilchpulver"
+}
+},
+{
+"source": "bls",
+"sourceId": "M884000",
+"originalName": "Magermilchpulver",
+"names": {
+"de": "Magermilchpulver"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2346386",
+"originalName": "Cream, heavy",
+"names": {
+"en": "Cream, heavy"
+}
+},
+{
+"source": "bls",
+"sourceId": "M710800",
+"originalName": "Frischkäsezubereitung Natur, mind. 60 % Fett i. Tr.",
+"names": {
+"de": "Frischkäsezubereitung Natur, mind. 60 % Fett i. Tr."
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2346385",
+"originalName": "Cream cheese, full fat, block",
+"names": {
+"en": "Cream cheese, full fat, block"
+}
+},
+{
+"source": "bls",
+"sourceId": "M402600",
+"originalName": "Gouda 48 % Fett i. Tr.",
+"names": {
+"de": "Gouda 48 % Fett i. Tr."
+}
+},
+{
+"source": "bls",
+"sourceId": "M303600",
+"originalName": "Chester (Cheddar) mind. 45 % Fett i. Tr.",
+"names": {
+"de": "Chester (Cheddar) mind. 45 % Fett i. Tr."
+}
+},
+{
+"source": "bls",
+"sourceId": "M012100",
+"originalName": "Roquefort mind. 50 % Fett i. Tr.",
+"names": {
+"de": "Roquefort mind. 50 % Fett i. Tr."
+}
+},
+{
+"source": "bls",
+"sourceId": "M5B1600",
+"originalName": "Gorgonzola mind. 48 % Fett i. Tr.",
+"names": {
+"de": "Gorgonzola mind. 48 % Fett i. Tr."
+}
+},
+{
+"source": "bls",
+"sourceId": "M502600",
+"originalName": "Edelpilzkäse mind. 45 % Fett i. Tr.",
+"names": {
+"de": "Edelpilzkäse mind. 45 % Fett i. Tr."
+}
+},
+{
+"source": "bls",
+"sourceId": "M502700",
+"originalName": "Edelpilzkäse mind. 50 % Fett i. Tr.",
+"names": {
+"de": "Edelpilzkäse mind. 50 % Fett i. Tr."
+}
+},
+{
+"source": "bls",
+"sourceId": "M502800",
+"originalName": "Edelpilzkäse mind. 60 % Fett i. Tr.",
+"names": {
+"de": "Edelpilzkäse mind. 60 % Fett i. Tr."
+}
+},
+{
+"source": "bls",
+"sourceId": "M516700",
+"originalName": "Danablu mind. 50 % Fett i. Tr.",
+"names": {
+"de": "Danablu mind. 50 % Fett i. Tr."
+}
+},
+{
+"source": "bls",
+"sourceId": "M052000",
+"originalName": "Salzlakenkäse aus Kuhmilch, Hirtenkäse, mind. 45 % Fett i. Tr.",
+"names": {
+"de": "Salzlakenkäse aus Kuhmilch, Hirtenkäse, mind. 45 % Fett i. Tr."
+}
+},
+{
+"source": "bls",
+"sourceId": "M053000",
+"originalName": "Salzlakenkäse aus Ziegenmilch, mind. 45 % Fett i. Tr.",
+"names": {
+"de": "Salzlakenkäse aus Ziegenmilch, mind. 45 % Fett i. Tr."
+}
+},
+{
+"source": "bls",
+"sourceId": "M3A4300",
+"originalName": "Salzlakenkäse aus Schafmilch, mind. 20 % Fett i. Tr.",
+"names": {
+"de": "Salzlakenkäse aus Schafmilch, mind. 20 % Fett i. Tr."
+}
+},
+{
+"source": "bls",
+"sourceId": "M6A6800",
+"originalName": "Salzlakenkäse aus Schafmilch, mind. 45 % Fett i. Tr.",
+"names": {
+"de": "Salzlakenkäse aus Schafmilch, mind. 45 % Fett i. Tr."
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "746766",
+"originalName": "Cheese, ricotta, whole milk",
+"names": {
+"en": "Cheese, ricotta, whole milk"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "325036",
+"originalName": "Cheese, parmesan, grated",
+"names": {
+"en": "Cheese, parmesan, grated"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2259795",
+"originalName": "Cheese, parmesan, grated, refrigerated",
+"names": {
+"en": "Cheese, parmesan, grated, refrigerated"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2346384",
+"originalName": "Cottage cheese, full fat, large or small curd",
+"names": {
+"en": "Cottage cheese, full fat, large or small curd"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2259793",
+"originalName": "Yogurt, plain, whole milk",
+"names": {
+"en": "Yogurt, plain, whole milk"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2647437",
+"originalName": "Yogurt, plain, nonfat",
+"names": {
+"en": "Yogurt, plain, nonfat"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2259794",
+"originalName": "Yogurt, Greek, plain, whole milk",
+"names": {
+"en": "Yogurt, Greek, plain, whole milk"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "330137",
+"originalName": "Yogurt, Greek, plain, nonfat",
+"names": {
+"en": "Yogurt, Greek, plain, nonfat"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2259792",
+"originalName": "Buttermilk, low fat",
+"names": {
+"en": "Buttermilk, low fat"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "167697",
+"originalName": "Milk, buttermilk, fluid, cultured, reduced fat",
+"names": {
+"en": "Milk, buttermilk, fluid, cultured, reduced fat"
+}
+},
+{
+"source": "bls",
+"sourceId": "E111100",
+"originalName": "Hühnerei roh",
+"names": {
+"de": "Hühnerei roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "E112100",
+"originalName": "Hühnerei Eigelb, roh",
+"names": {
+"de": "Hühnerei Eigelb, roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "E113100",
+"originalName": "Hühnerei Eiklar, roh",
+"names": {
+"de": "Hühnerei Eiklar, roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "E106100",
+"originalName": "Wachtelei roh",
+"names": {
+"de": "Wachtelei roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "E131100",
+"originalName": "Entenei roh",
+"names": {
+"de": "Entenei roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "E141100",
+"originalName": "Gänseei roh",
+"names": {
+"de": "Gänseei roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "Q630000",
+"originalName": "Süßrahmbutter",
+"names": {
+"de": "Süßrahmbutter"
+}
+},
+{
+"source": "bls",
+"sourceId": "Q620000",
+"originalName": "Sauerrahmbutter",
+"names": {
+"de": "Sauerrahmbutter"
+}
+},
+{
+"source": "bls",
+"sourceId": "Q611000",
+"originalName": "Butter mild gesäuert",
+"names": {
+"de": "Butter mild gesäuert"
+}
+},
+{
+"source": "bls",
+"sourceId": "Q640000",
+"originalName": "Halbfettbutter",
+"names": {
+"de": "Halbfettbutter"
+}
+},
+{
+"source": "bls",
+"sourceId": "Q683000",
+"originalName": "Butterschmalz",
+"names": {
+"de": "Butterschmalz"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "173410",
+"originalName": "Butter, salted",
+"names": {
+"en": "Butter, salted"
+}
+},
+{
+"source": "bls",
+"sourceId": "Q180000",
+"originalName": "Rapsöl/Rüböl",
+"names": {
+"de": "Rapsöl/Rüböl"
+}
+},
+{
+"source": "bls",
+"sourceId": "Q250000",
+"originalName": "Kürbiskernöl",
+"names": {
+"de": "Kürbiskernöl"
+}
+},
+{
+"source": "bls",
+"sourceId": "Q260000",
+"originalName": "Maiskeimöl",
+"names": {
+"de": "Maiskeimöl"
+}
+},
+{
+"source": "bls",
+"sourceId": "Q270000",
+"originalName": "Sojaöl",
+"names": {
+"de": "Sojaöl"
+}
+},
+{
+"source": "bls",
+"sourceId": "Q310000",
+"originalName": "Walnussöl",
+"names": {
+"de": "Walnussöl"
+}
+},
+{
+"source": "bls",
+"sourceId": "Q210000",
+"originalName": "Erdnussöl",
+"names": {
+"de": "Erdnussöl"
+}
+},
+{
+"source": "bls",
+"sourceId": "Q190000",
+"originalName": "Mandelöl",
+"names": {
+"de": "Mandelöl"
+}
+},
+{
+"source": "bls",
+"sourceId": "Q890000",
+"originalName": "Rinderfett/Rindertalg",
+"names": {
+"de": "Rinderfett/Rindertalg"
+}
+},
+{
+"source": "bls",
+"sourceId": "W412000",
+"originalName": "Schwein Speck/Rückenspeck (grüner Speck) roh",
+"names": {
+"de": "Schwein Speck/Rückenspeck (grüner Speck) roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "B311000",
+"originalName": "Weizenbrot/Weißbrot",
+"names": {
+"de": "Weizenbrot/Weißbrot"
+}
+},
+{
+"source": "bls",
+"sourceId": "B271000",
+"originalName": "Roggenmischbrot",
+"names": {
+"de": "Roggenmischbrot"
+}
+},
+{
+"source": "bls",
+"sourceId": "B221000",
+"originalName": "Roggenbrot",
+"names": {
+"de": "Roggenbrot"
+}
+},
+{
+"source": "bls",
+"sourceId": "B121000",
+"originalName": "Roggenvollkornbrot",
+"names": {
+"hu": "teljes kiőrlésű kenyér",
+"en": "wholegrain bread",
+"de": "Vollkornbrot"
+}
+},
+{
+"source": "bls",
+"sourceId": "B314000",
+"originalName": "Weizentoastbrot/Buttertoastbrot",
+"names": {
+"de": "Weizentoastbrot/Buttertoastbrot"
+}
+},
+{
+"source": "bls",
+"sourceId": "B106000",
+"originalName": "Vollkornbrot mit Ölsamen",
+"names": {
+"de": "Vollkornbrot mit Ölsamen"
+}
+},
+{
+"source": "bls",
+"sourceId": "B881100",
+"originalName": "Eiweißbrot/Proteinbrot",
+"names": {
+"de": "Eiweißbrot/Proteinbrot"
+}
+},
+{
+"source": "bls",
+"sourceId": "B511000",
+"originalName": "Weizenbrötchen",
+"names": {
+"de": "Weizenbrötchen"
+}
+},
+{
+"source": "bls",
+"sourceId": "B511100",
+"originalName": "Weizenbrötchen mit Kümmel und Salz",
+"names": {
+"de": "Weizenbrötchen mit Kümmel und Salz"
+}
+},
+{
+"source": "bls",
+"sourceId": "B591000",
+"originalName": "Mehrkornbrötchen",
+"names": {
+"de": "Mehrkornbrötchen"
+}
+},
+{
+"source": "bls",
+"sourceId": "B551200",
+"originalName": "Weizenmischbrötchen mit Mohn",
+"names": {
+"de": "Weizenmischbrötchen mit Mohn"
+}
+},
+{
+"source": "bls",
+"sourceId": "B526300",
+"originalName": "Roggenbrötchen mit Sesam",
+"names": {
+"de": "Roggenbrötchen mit Sesam"
+}
+},
+{
+"source": "bls",
+"sourceId": "B783012",
+"originalName": "Weizentortilla",
+"names": {
+"de": "Weizentortilla"
+}
+},
+{
+"source": "bls",
+"sourceId": "B6A2100",
+"originalName": "Roggenvollkornknäckebrot",
+"names": {
+"de": "Roggenvollkornknäckebrot"
+}
+},
+{
+"source": "bls",
+"sourceId": "C351000",
+"originalName": "Reis unpoliert, roh",
+"names": {
+"de": "Reis unpoliert, roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "C359000",
+"originalName": "Reis parboiled, poliert, roh",
+"names": {
+"de": "Reis parboiled, poliert, roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "C353100",
+"originalName": "Wildreis roh",
+"names": {
+"de": "Wildreis roh"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2512381",
+"originalName": "Rice, white, long grain, unenriched, raw",
+"names": {
+"en": "Rice, white, long grain, unenriched, raw"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2512380",
+"originalName": "Rice, brown, long grain, unenriched, raw",
+"names": {
+"en": "Rice, brown, long grain, unenriched, raw"
+}
+},
+{
+"source": "bls",
+"sourceId": "C453000",
+"originalName": "Reis Mehl",
+"names": {
+"de": "Reis Mehl"
+}
+},
+{
+"source": "bls",
+"sourceId": "C233000",
+"originalName": "Hafer Mehl",
+"names": {
+"de": "Hafer Mehl"
+}
+},
+{
+"source": "bls",
+"sourceId": "C138000",
+"originalName": "Hafer Kleie",
+"names": {
+"de": "Hafer Kleie"
+}
+},
+{
+"source": "bls",
+"sourceId": "C446000",
+"originalName": "Mais Stärke",
+"names": {
+"de": "Mais Stärke"
+}
+},
+{
+"source": "bls",
+"sourceId": "K230000",
+"originalName": "Kartoffelstärke (Kartoffelmehl)",
+"names": {
+"de": "Kartoffelstärke (Kartoffelmehl)"
+}
+},
+{
+"source": "bls",
+"sourceId": "C443000",
+"originalName": "Mais Mehl",
+"names": {
+"de": "Mais Mehl"
+}
+},
+{
+"source": "bls",
+"sourceId": "C346000",
+"originalName": "Mais Grieß",
+"names": {
+"de": "Mais Grieß"
+}
+},
+{
+"source": "bls",
+"sourceId": "C148000",
+"originalName": "Gerste Graupen",
+"names": {
+"de": "Gerste Graupen"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2512378",
+"originalName": "Buckwheat, whole grain",
+"names": {
+"en": "Buckwheat, whole grain"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2512374",
+"originalName": "Flour, buckwheat",
+"names": {
+"en": "Flour, buckwheat"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2512379",
+"originalName": "Millet, whole grain",
+"names": {
+"en": "Millet, whole grain"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2710820",
+"originalName": "Bulgur, dry, raw",
+"names": {
+"en": "Bulgur, dry, raw"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2512375",
+"originalName": "Flour, rye",
+"names": {
+"en": "Flour, rye"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2003587",
+"originalName": "Flour, spelt, whole grain",
+"names": {
+"en": "Flour, spelt, whole grain"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "790085",
+"originalName": "Flour, whole wheat, unenriched",
+"names": {
+"en": "Flour, whole wheat, unenriched"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2261420",
+"originalName": "Flour, almond",
+"names": {
+"en": "Flour, almond"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2515382",
+"originalName": "Flour, coconut",
+"names": {
+"en": "Flour, coconut"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2262075",
+"originalName": "Flaxseed, ground",
+"names": {
+"en": "Flaxseed, ground"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "168147",
+"originalName": "Vital wheat gluten",
+"names": {
+"en": "Vital wheat gluten"
+}
+},
+{
+"source": "bls",
+"sourceId": "E432000",
+"originalName": "Eierteigwaren roh",
+"names": {
+"de": "Eierteigwaren roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "E438000",
+"originalName": "Eier-Frischteigwaren roh",
+"names": {
+"de": "Eier-Frischteigwaren roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "E510000",
+"originalName": "Vollkornteigwaren eifrei, roh",
+"names": {
+"de": "Vollkornteigwaren eifrei, roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "H030400",
+"originalName": "Glasnudeln aus Mungbohnenstärke, roh",
+"names": {
+"de": "Glasnudeln aus Mungbohnenstärke, roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "G543100",
+"originalName": "Gemüsepaprika rot, roh",
+"names": {
+"de": "Gemüsepaprika rot, roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "G542100",
+"originalName": "Gemüsepaprika gelb, roh",
+"names": {
+"de": "Gemüsepaprika gelb, roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "G553100",
+"originalName": "Pfefferschote grün, roh",
+"names": {
+"de": "Pfefferschote grün, roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "G554100",
+"originalName": "Pfefferschote rot, roh",
+"names": {
+"de": "Pfefferschote rot, roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "G211100",
+"originalName": "Spinat roh",
+"names": {
+"de": "Spinat roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "G520100",
+"originalName": "Gurke roh",
+"names": {
+"de": "Gurke roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "F502100",
+"originalName": "Avocado roh",
+"names": {
+"de": "Avocado roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "G104100",
+"originalName": "Feldsalat/Rapunzel, roh",
+"names": {
+"de": "Feldsalat/Rapunzel, roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "G107100",
+"originalName": "Römischer Salat/Romanasalat, roh",
+"names": {
+"de": "Römischer Salat/Romanasalat, roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "G130100",
+"originalName": "Rucola roh",
+"names": {
+"de": "Rucola roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "G106100",
+"originalName": "Radicchio roh",
+"names": {
+"de": "Radicchio roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "G081100",
+"originalName": "Schnittlauch roh",
+"names": {
+"de": "Schnittlauch roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "R231000",
+"originalName": "Basilikum getrocknet",
+"names": {
+"de": "Basilikum getrocknet"
+}
+},
+{
+"source": "bls",
+"sourceId": "K120100",
+"originalName": "Kartoffel ungeschält, roh",
+"names": {
+"de": "Kartoffel ungeschält, roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "K420100",
+"originalName": "Batate/Süßkartoffel, roh",
+"names": {
+"de": "Batate/Süßkartoffel, roh"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2346404",
+"originalName": "Sweet potatoes, orange flesh, without skin, raw",
+"names": {
+"en": "Sweet potatoes, orange flesh, without skin, raw"
+}
+},
+{
+"source": "bls",
+"sourceId": "K713100",
+"originalName": "Pfifferling roh",
+"names": {
+"de": "Pfifferling roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "K724100",
+"originalName": "Shiitakepilz roh",
+"names": {
+"de": "Shiitakepilz roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "K740100",
+"originalName": "Austernpilz roh",
+"names": {
+"de": "Austernpilz roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "G770400",
+"originalName": "Kichererbse reif",
+"names": {
+"de": "Kichererbse reif"
+}
+},
+{
+"source": "bls",
+"sourceId": "H725100",
+"originalName": "Linse reif",
+"names": {
+"de": "Linse reif"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2644283",
+"originalName": "Lentils, dry",
+"names": {
+"en": "Lentils, dry"
+}
+},
+{
+"source": "bls",
+"sourceId": "H742100",
+"originalName": "Kidneybohne reif",
+"names": {
+"de": "Kidneybohne reif"
+}
+},
+{
+"source": "bls",
+"sourceId": "H739400",
+"originalName": "Gartenbohne reif",
+"names": {
+"de": "Gartenbohne reif"
+}
+},
+{
+"source": "bls",
+"sourceId": "H770100",
+"originalName": "Mungbohne reif",
+"names": {
+"de": "Mungbohne reif"
+}
+},
+{
+"source": "bls",
+"sourceId": "H861000",
+"originalName": "Tofu",
+"names": {
+"de": "Tofu"
+}
+},
+{
+"source": "bls",
+"sourceId": "H861100",
+"originalName": "Seidentofu",
+"names": {
+"de": "Seidentofu"
+}
+},
+{
+"source": "bls",
+"sourceId": "F535100",
+"originalName": "Wassermelone roh",
+"names": {
+"de": "Wassermelone roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "F310100",
+"originalName": "Weintraube roh",
+"names": {
+"de": "Weintraube roh"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2346412",
+"originalName": "Grapes, red, seedless, raw",
+"names": {
+"en": "Grapes, red, seedless, raw"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2346413",
+"originalName": "Grapes, green, seedless, raw",
+"names": {
+"en": "Grapes, green, seedless, raw"
+}
+},
+{
+"source": "bls",
+"sourceId": "F604100",
+"originalName": "Grapefruit roh",
+"names": {
+"de": "Grapefruit roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "F201100",
+"originalName": "Aprikose roh",
+"names": {
+"de": "Aprikose roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "F201400",
+"originalName": "Aprikose getrocknet",
+"names": {
+"de": "Aprikose getrocknet"
+}
+},
+{
+"source": "bls",
+"sourceId": "F321100",
+"originalName": "Johannisbeere rot, roh",
+"names": {
+"de": "Johannisbeere rot, roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "F322100",
+"originalName": "Johannisbeere weiß, roh",
+"names": {
+"de": "Johannisbeere weiß, roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "F323100",
+"originalName": "Johannisbeere schwarz roh",
+"names": {
+"de": "Johannisbeere schwarz roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "F081100",
+"originalName": "Rhabarber roh",
+"names": {
+"de": "Rhabarber roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "F401100",
+"originalName": "Preiselbeere roh",
+"names": {
+"de": "Preiselbeere roh"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "167747",
+"originalName": "Lemon juice, raw",
+"names": {
+"en": "Lemon juice, raw"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "167748",
+"originalName": "Lemon juice from concentrate, canned or bottled",
+"names": {
+"en": "Lemon juice from concentrate, canned or bottled"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2003597",
+"originalName": "Orange juice, no pulp, not fortified, not from concentrate, refrigerated",
+"names": {
+"en": "Orange juice, no pulp, not fortified, not from concentrate, refrigerated"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2003591",
+"originalName": "Orange juice, no pulp, not fortified, from concentrate, refrigerated",
+"names": {
+"en": "Orange juice, no pulp, not fortified, from concentrate, refrigerated"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2003590",
+"originalName": "Apple juice, with added vitamin C, from concentrate, shelf stable",
+"names": {
+"en": "Apple juice, with added vitamin C, from concentrate, shelf stable"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2710832",
+"originalName": "Mandarin, seedless, peeled, raw",
+"names": {
+"en": "Mandarin, seedless, peeled, raw"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "746770",
+"originalName": "Melons, cantaloupe, raw",
+"names": {
+"en": "Melons, cantaloupe, raw"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "746768",
+"originalName": "Figs, dried, uncooked",
+"names": {
+"en": "Figs, dried, uncooked"
+}
+},
+{
+"source": "bls",
+"sourceId": "H160100",
+"originalName": "Pekannuss",
+"names": {
+"de": "Pekannuss"
+}
+},
+{
+"source": "bls",
+"sourceId": "H180100",
+"originalName": "Paranuss",
+"names": {
+"de": "Paranuss"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2515378",
+"originalName": "Nuts, macadamia nuts, raw",
+"names": {
+"en": "Nuts, macadamia nuts, raw"
+}
+},
+{
+"source": "bls",
+"sourceId": "H230100",
+"originalName": "Edelkastanie/Marone",
+"names": {
+"de": "Edelkastanie/Marone"
+}
+},
+{
+"source": "bls",
+"sourceId": "H150100",
+"originalName": "Kokos Fruchtfleisch, roh",
+"names": {
+"de": "Kokos Fruchtfleisch, roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "H150400",
+"originalName": "Kokos Fruchtfleisch, geraspelt, getrocknet",
+"names": {
+"de": "Kokos Fruchtfleisch, geraspelt, getrocknet"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "168586",
+"originalName": "Nuts, coconut meat, dried (desiccated), sweetened, shredded",
+"names": {
+"en": "Nuts, coconut meat, dried (desiccated), sweetened, shredded"
+}
+},
+{
+"source": "bls",
+"sourceId": "H151000",
+"originalName": "Kokoswasser (Fruchtwasser)",
+"names": {
+"de": "Kokoswasser (Fruchtwasser)"
+}
+},
+{
+"source": "bls",
+"sourceId": "H880200",
+"originalName": "Erdnussbutter/Erdnusscreme",
+"names": {
+"de": "Erdnussbutter/Erdnusscreme"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2262072",
+"originalName": "Peanut butter, creamy",
+"names": {
+"en": "Peanut butter, creamy"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2262074",
+"originalName": "Almond butter, creamy",
+"names": {
+"en": "Almond butter, creamy"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "168588",
+"originalName": "Nuts, almond butter, plain, without salt added",
+"names": {
+"en": "Nuts, almond butter, plain, without salt added"
+}
+},
+{
+"source": "bls",
+"sourceId": "Q901000",
+"originalName": "Tahin (Sesammus)",
+"names": {
+"de": "Tahin (Sesammus)"
+}
+},
+{
+"source": "bls",
+"sourceId": "H800000",
+"originalName": "Mandeldrink ungesüßt",
+"names": {
+"de": "Mandeldrink ungesüßt"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "1999631",
+"originalName": "Almond milk, unsweetened, plain, shelf stable",
+"names": {
+"en": "Almond milk, unsweetened, plain, shelf stable"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2257045",
+"originalName": "Almond milk, unsweetened, plain, refrigerated",
+"names": {
+"en": "Almond milk, unsweetened, plain, refrigerated"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2257046",
+"originalName": "Oat milk, unsweetened, plain, refrigerated",
+"names": {
+"en": "Oat milk, unsweetened, plain, refrigerated"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "1999630",
+"originalName": "Soy milk, unsweetened, plain, shelf stable",
+"names": {
+"en": "Soy milk, unsweetened, plain, shelf stable"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2257044",
+"originalName": "Soy milk, sweetened, plain, refrigerated",
+"names": {
+"en": "Soy milk, sweetened, plain, refrigerated"
+}
+},
+{
+"source": "bls",
+"sourceId": "S120000",
+"originalName": "Honig",
+"names": {
+"de": "Honig"
+}
+},
+{
+"source": "bls",
+"sourceId": "S121000",
+"originalName": "Blütenhonig (Nektarhonig)",
+"names": {
+"de": "Blütenhonig (Nektarhonig)"
+}
+},
+{
+"source": "bls",
+"sourceId": "S122000",
+"originalName": "Honigtauhonig (Waldhonig)",
+"names": {
+"de": "Honigtauhonig (Waldhonig)"
+}
+},
+{
+"source": "bls",
+"sourceId": "S112000",
+"originalName": "Zucker braun (Kandisfarin/Rohzucker)",
+"names": {
+"de": "Zucker braun (Kandisfarin/Rohzucker)"
+}
+},
+{
+"source": "bls",
+"sourceId": "S115100",
+"originalName": "Traubenzucker (Dextrose/Glukose)",
+"names": {
+"de": "Traubenzucker (Dextrose/Glukose)"
+}
+},
+{
+"source": "bls",
+"sourceId": "S118000",
+"originalName": "Fruchtzucker (Fruktose)",
+"names": {
+"de": "Fruchtzucker (Fruktose)"
+}
+},
+{
+"source": "bls",
+"sourceId": "S116000",
+"originalName": "Milchzucker (Laktose)",
+"names": {
+"de": "Milchzucker (Laktose)"
+}
+},
+{
+"source": "bls",
+"sourceId": "S711000",
+"originalName": "Kakaopulver schwach entölt",
+"names": {
+"de": "Kakaopulver schwach entölt"
+}
+},
+{
+"source": "bls",
+"sourceId": "S145000",
+"originalName": "Nuss-Nougat-Creme",
+"names": {
+"de": "Nuss-Nougat-Creme"
+}
+},
+{
+"source": "bls",
+"sourceId": "S241000",
+"originalName": "Vanilleeis",
+"names": {
+"de": "Vanilleeis"
+}
+},
+{
+"source": "bls",
+"sourceId": "S242000",
+"originalName": "Schokoladeneis",
+"names": {
+"de": "Schokoladeneis"
+}
+},
+{
+"source": "bls",
+"sourceId": "R111000",
+"originalName": "Speisesalz/Siedesalz/Tafelsalz",
+"names": {
+"de": "Speisesalz/Siedesalz/Tafelsalz"
+}
+},
+{
+"source": "bls",
+"sourceId": "R123100",
+"originalName": "Apfelessig",
+"names": {
+"de": "Apfelessig"
+}
+},
+{
+"source": "bls",
+"sourceId": "R141100",
+"originalName": "Tomatenketchup",
+"names": {
+"de": "Tomatenketchup"
+}
+},
+{
+"source": "bls",
+"sourceId": "R143000",
+"originalName": "Sojasauce/Sojasoße",
+"names": {
+"de": "Sojasauce/Sojasoße"
+}
+},
+{
+"source": "bls",
+"sourceId": "R421100",
+"originalName": "Backpulver",
+"names": {
+"de": "Backpulver"
+}
+},
+{
+"source": "bls",
+"sourceId": "R459000",
+"originalName": "Backhefe frisch (Frischbackhefe)",
+"names": {
+"de": "Backhefe frisch (Frischbackhefe)"
+}
+},
+{
+"source": "bls",
+"sourceId": "R458000",
+"originalName": "Backhefe getrocknet (Trockenbackhefe)",
+"names": {
+"de": "Backhefe getrocknet (Trockenbackhefe)"
+}
+},
+{
+"source": "bls",
+"sourceId": "R468000",
+"originalName": "Gelatine/Speisegelatine",
+"names": {
+"de": "Gelatine/Speisegelatine"
+}
+},
+{
+"source": "bls",
+"sourceId": "K762400",
+"originalName": "Hefe Flocken/Nährhefe",
+"names": {
+"de": "Hefe Flocken/Nährhefe"
+}
+},
+{
+"source": "bls",
+"sourceId": "R811000",
+"originalName": "Fleisch Bouillon/Brühe/Suppe (Brühwürfel, Pulver)",
+"names": {
+"de": "Fleisch Bouillon/Brühe/Suppe (Brühwürfel, Pulver)"
+}
+},
+{
+"source": "bls",
+"sourceId": "N110000",
+"originalName": "Trinkwasser",
+"names": {
+"de": "Trinkwasser"
+}
+},
+{
+"source": "bls",
+"sourceId": "N127000",
+"originalName": "Natürliches Mineralwasser mit Kohlensäure",
+"names": {
+"de": "Natürliches Mineralwasser mit Kohlensäure"
+}
+},
+{
+"source": "bls",
+"sourceId": "N128000",
+"originalName": "Natürliches Mineralwasser still",
+"names": {
+"de": "Natürliches Mineralwasser still"
+}
+},
+{
+"source": "bls",
+"sourceId": "N410100",
+"originalName": "Kaffee (Getränk)",
+"names": {
+"de": "Kaffee (Getränk)"
+}
+},
+{
+"source": "bls",
+"sourceId": "N411100",
+"originalName": "Espresso (Getränk)",
+"names": {
+"de": "Espresso (Getränk)"
+}
+},
+{
+"source": "bls",
+"sourceId": "N415000",
+"originalName": "Kaffee (Getränk) entkoffeiniert",
+"names": {
+"de": "Kaffee (Getränk) entkoffeiniert"
+}
+},
+{
+"source": "bls",
+"sourceId": "N419000",
+"originalName": "Türkischer Mokka (Getränk)",
+"names": {
+"de": "Türkischer Mokka (Getränk)"
+}
+},
+{
+"source": "bls",
+"sourceId": "N420900",
+"originalName": "Instantkaffeepulver",
+"names": {
+"de": "Instantkaffeepulver"
+}
+},
+{
+"source": "bls",
+"sourceId": "N610100",
+"originalName": "Grüntee (Getränk)",
+"names": {
+"de": "Grüntee (Getränk)"
+}
+},
+{
+"source": "bls",
+"sourceId": "T506100",
+"originalName": "Wels roh",
+"names": {
+"de": "Wels roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "T603100",
+"originalName": "Zander roh",
+"names": {
+"de": "Zander roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "T102100",
+"originalName": "Hering roh",
+"names": {
+"de": "Hering roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "T507100",
+"originalName": "Pangasius/Schlankwels, roh",
+"names": {
+"de": "Pangasius/Schlankwels, roh"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "334194",
+"originalName": "Fish, tuna, light, canned in water, drained solids",
+"names": {
+"en": "Fish, tuna, light, canned in water, drained solids"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2684442",
+"originalName": "Fish, tilapia, farm raised, raw",
+"names": {
+"en": "Fish, tilapia, farm raised, raw"
+}
+},
+{
+"source": "bls",
+"sourceId": "U211100",
+"originalName": "Rind Filet/Lende, roh",
+"names": {
+"de": "Rind Filet/Lende, roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "V634100",
+"originalName": "Hähnchen Leber, roh",
+"names": {
+"de": "Hähnchen Leber, roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "V614100",
+"originalName": "Hähnchen Herz, roh",
+"names": {
+"de": "Hähnchen Herz, roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "V654100",
+"originalName": "Hähnchen Magen, roh",
+"names": {
+"de": "Hähnchen Magen, roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "V531100",
+"originalName": "Rind Leber, roh",
+"names": {
+"de": "Rind Leber, roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "V533100",
+"originalName": "Schwein Leber, roh",
+"names": {
+"de": "Schwein Leber, roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "V532100",
+"originalName": "Kalb Leber, roh",
+"names": {
+"de": "Kalb Leber, roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "V132100",
+"originalName": "Kaninchen Fleisch, roh",
+"names": {
+"de": "Kaninchen Fleisch, roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "V250100",
+"originalName": "Wildschwein Fleisch, roh",
+"names": {
+"de": "Wildschwein Fleisch, roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "V122100",
+"originalName": "Ziege Fleisch, roh",
+"names": {
+"de": "Ziege Fleisch, roh"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2727568",
+"originalName": "Chicken, wing, meat and skin, raw",
+"names": {
+"en": "Chicken, wing, meat and skin, raw"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2514746",
+"originalName": "Chicken, ground, with additives, raw",
+"names": {
+"en": "Chicken, ground, with additives, raw"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2514747",
+"originalName": "Turkey, ground, 93% lean/ 7% fat, raw",
+"names": {
+"en": "Turkey, ground, 93% lean/ 7% fat, raw"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2514744",
+"originalName": "Beef, ground, 80% lean meat / 20% fat, raw",
+"names": {
+"en": "Beef, ground, 80% lean meat / 20% fat, raw"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "2514743",
+"originalName": "Beef, ground, 90% lean meat / 10% fat, raw",
+"names": {
+"en": "Beef, ground, 90% lean meat / 10% fat, raw"
+}
+},
+{
+"source": "bls",
+"sourceId": "W149300",
+"originalName": "Salami (Schwein)",
+"names": {
+"de": "Salami (Schwein)"
+}
+},
+{
+"source": "bls",
+"sourceId": "W212000",
+"originalName": "Geflügel-Wiener Würstchen",
+"names": {
+"de": "Geflügel-Wiener Würstchen"
+}
+},
+{
+"source": "bls",
+"sourceId": "W231200",
+"originalName": "Mortadella/Schinkenwurst fein zerkleinert",
+"names": {
+"de": "Mortadella/Schinkenwurst fein zerkleinert"
+}
+},
+{
+"source": "bls",
+"sourceId": "W441000",
+"originalName": "Parmaschinken",
+"names": {
+"de": "Parmaschinken"
+}
+},
+{
+"source": "bls",
+"sourceId": "W442000",
+"originalName": "Schwarzwälder Schinken, Rohpökelware, geräuchert",
+"names": {
+"de": "Schwarzwälder Schinken, Rohpökelware, geräuchert"
+}
+},
+{
+"source": "bls",
+"sourceId": "W510000",
+"originalName": "Kasseler, Rohpökelware, geräuchert",
+"names": {
+"de": "Kasseler, Rohpökelware, geräuchert"
+}
+},
+{
+"source": "bls",
+"sourceId": "W310000",
+"originalName": "Delikatess Leberwurst/Feine Leberwurst/Gutsleberwurst",
+"names": {
+"de": "Delikatess Leberwurst/Feine Leberwurst/Gutsleberwurst"
+}
+},
+{
+"source": "bls",
+"sourceId": "W874300",
+"originalName": "Wiener Würstchen Konserve",
+"names": {
+"de": "Wiener Würstchen Konserve"
+}
+},
+{
+"source": "usda_fdc",
+"sourceId": "323121",
+"originalName": "Frankfurter, beef, unheated",
+"names": {
+"en": "Frankfurter, beef, unheated"
+}
+},
+{
+"source": "bls",
+"sourceId": "X411243",
+"originalName": "Hühnerbrühe",
+"names": {
+"de": "Hühnerbrühe"
+}
+},
+{
+"source": "bls",
+"sourceId": "X416243",
+"originalName": "Gemüsebrühe",
+"names": {
+"de": "Gemüsebrühe"
+}
+},
+{
+"source": "bls",
+"sourceId": "Y183013",
+"originalName": "Fleischbrühe (Rind)",
+"names": {
+"de": "Fleischbrühe (Rind)"
+}
+},
+{
+"source": "open_database",
+"sourceId": "168409",
+"originalName": "Cucumber",
+"names": {
+"hu": "Kígyóuborka",
+"en": "Cucumber",
+"de": "Gurke"
+}
+},
+{
+"source": "open_database",
+"sourceId": "168462",
+"originalName": "Spinach",
+"names": {
+"hu": "Spenót",
+"en": "Spinach",
+"de": "Spinat"
+}
+},
+{
+"source": "open_database",
+"sourceId": "171241",
+"originalName": "Gouda cheese",
+"names": {
+"hu": "Gouda sajt",
+"en": "Gouda cheese",
+"de": "Gouda"
+}
+},
+{
+"source": "open_database",
+"sourceId": "171287",
+"originalName": "Egg",
+"names": {
+"hu": "Tojás",
+"en": "Egg",
+"de": "Ei"
+}
+},
+{
+"source": "open_database",
+"sourceId": "171705",
+"originalName": "Avocado",
+"names": {
+"hu": "Avokádó",
+"en": "Avocado",
+"de": "Avocado"
+}
+},
+{
+"source": "open_database",
+"sourceId": "173414",
+"originalName": "Cheddar cheese",
+"names": {
+"hu": "Cheddar sajt",
+"en": "Cheddar cheese",
+"de": "Cheddar"
+}
+},
+{
+"source": "open_database",
+"sourceId": "173430",
+"originalName": "Butter",
+"names": {
+"hu": "Vaj",
+"en": "Butter",
+"de": "Butter"
+}
+}
+]

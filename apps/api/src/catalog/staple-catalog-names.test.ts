@@ -1,0 +1,287 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { describe, expect, it, vi } from "vitest";
+import { interpretMealInput, type DynamicResolutionDeps } from "../meal-input/interpret.js";
+import { DynamicFoodResolutionRateLimiter } from "./dynamic-food-rate-limit.js";
+import { normalizeSearch } from "./normalize.js";
+import { parseNaturalFoodQuery } from "./natural-food-query.js";
+import type { AiProvider } from "../ai/provider.js";
+
+// Owner report 2026-10-12: "egy pohár tehén tej" found no local milk, because
+// the BLS/USDA milk records carried only German/English source names. These
+// tests run the REAL migration data (names + reviewed aliases parsed from the
+// SQL) against the catalog records as production had them (read-only name
+// snapshot, no nutrition), through the real interpreter.
+
+const migrationsDir = new URL("../../prisma/migrations/", import.meta.url);
+const read = (name: string) => readFileSync(fileURLToPath(new URL(`${name}/migration.sql`, migrationsDir)), "utf8");
+const namesSql = read("20261012130000_staple_catalog_names");
+const deleteSql = read("20261012120000_remove_off_cow_milk");
+
+type SnapshotRow = { source: string; sourceId: string; originalName: string; names: Record<string, string> };
+const snapshot: SnapshotRow[] = JSON.parse(readFileSync(fileURLToPath(new URL("./fixtures/staple-names-snapshot.json", import.meta.url)), "utf8"));
+
+const unquote = (value: string) => value.replace(/''/g, "'");
+const statements = namesSql.replace(/^--.*$/gm, "").split(/;\s*\n/).map((statement) => statement.trim()).filter(Boolean);
+
+function nameUpdates(locale: "hu" | "en") {
+  const statement = statements.find((s) => s.startsWith(`UPDATE "ketomentor"."Food"`) && s.includes(`'{${locale}}'`));
+  if (!statement) throw new Error(`no ${locale} name update`);
+  return [...statement.matchAll(/\('(bls|usda_fdc)', '([A-Z0-9]+)', '((?:[^']|'')*)'\)/g)].map((m) => ({ key: `${m[1]}:${m[2]}`, name: unquote(m[3]) }));
+}
+
+type AliasRow = { key: string; alias: string; normalized: string; locale: string; kind: string };
+const aliasRows: AliasRow[] = [...namesSql.matchAll(/\('(bls|usda_fdc)', '([A-Z0-9]+)', '((?:[^']|'')*)', '([a-z0-9 ]*)', '(hu|de|en)', '([a-z_]+)'\)/g)]
+  .map((m) => ({ key: `${m[1]}:${m[2]}`, alias: unquote(m[3]), normalized: m[4], locale: m[5], kind: m[6] }));
+const searchWords = new Map(
+  [...(statements.find((s) => s.includes(`SET "searchText"`)) ?? "").matchAll(/\('(bls|usda_fdc)', '([A-Z0-9]+)', '([a-z0-9 ]*)'\)/g)]
+    .map((m) => [`${m[1]}:${m[2]}`, m[3]] as const)
+);
+
+// The open_database starter foods keep their seeded aliases (prisma/seed.ts).
+const starterAliases: Record<string, string[]> = {
+  "open_database:173430": ["vaj", "butter"],
+  "open_database:171287": ["tojas", "egg", "eier", "ei"],
+  "open_database:171241": ["gouda", "sajt", "kase", "cheese"],
+  "open_database:173414": ["cheddar", "sajt", "kase", "cheese"]
+};
+
+function catalogAfterMigration() {
+  const hu = new Map(nameUpdates("hu").map((u) => [u.key, u.name]));
+  const en = new Map(nameUpdates("en").map((u) => [u.key, u.name]));
+  const foods = snapshot.map((row) => {
+    const key = `${row.source}:${row.sourceId}`;
+    const names = { ...row.names };
+    // Never overwrite an existing name (the migration's COALESCE guard).
+    if (!names.hu && hu.has(key)) names.hu = hu.get(key)!;
+    if (!names.en && en.has(key)) names.en = en.get(key)!;
+    const searchText = normalizeSearch([row.originalName, ...Object.values(names), searchWords.get(key) ?? ""].join(" "));
+    return { id: key, name: row.originalName, originalName: row.originalName, names, source: row.source, sourceId: row.sourceId, createdById: null, searchText, servings: [], kcalPer100g: 50, proteinPer100g: 1, fatPer100g: 1, carbsPer100g: 1 };
+  });
+  const aliases = [
+    ...aliasRows.map((a) => ({ foodId: a.key, normalizedAlias: a.normalized, kind: a.kind, confidence: 1 })),
+    ...Object.entries(starterAliases).flatMap(([foodId, list]) => list.map((normalizedAlias) => ({ foodId, normalizedAlias, kind: "synonym", confidence: 1 })))
+  ];
+  return { foods, aliases };
+}
+
+function makePrisma() {
+  const { foods, aliases } = catalogAfterMigration();
+  return {
+    foodAlias: {
+      findMany: async ({ where }: any) => {
+        const variants = where.OR.map((o: any) => o.normalizedAlias.contains as string);
+        return aliases.filter((a) => variants.some((v: string) => a.normalizedAlias.includes(v)));
+      }
+    },
+    food: {
+      findMany: async ({ where }: any) => {
+        if (where.id?.in) return foods.filter((f) => where.id.in.includes(f.id));
+        const variants = where.OR.map((o: any) => o.searchText.contains as string);
+        return foods.filter((f) => variants.some((v: string) => f.searchText.includes(v.toLowerCase())));
+      }
+    }
+  } as any;
+}
+
+const prisma = makePrisma();
+
+function spies() {
+  const lookup = vi.fn(async () => { throw new Error("external lookup must not run"); });
+  const generate = vi.fn(async () => { throw new Error("search-intent AI must not run"); });
+  const run = vi.fn(async () => { throw new Error("food AI must not run"); });
+  const dynamic: DynamicResolutionDeps = {
+    prisma: {} as any, searchIntentProvider: { id: "spy", generate } as any,
+    adapters: [{ source: "usda_fdc", sourceName: "USDA", lookup } as any],
+    rateLimiter: new DynamicFoodResolutionRateLimiter(), userId: "owner"
+  };
+  const ai: AiProvider = { id: "spy", supports: () => true, run } as unknown as AiProvider;
+  return { dynamic, ai, lookup, generate, run };
+}
+
+async function interpret(text: string) {
+  const s = spies();
+  const result = await interpretMealInput(prisma, text, undefined, s.ai, s.dynamic);
+  expect(s.lookup).not.toHaveBeenCalled();
+  expect(s.generate).not.toHaveBeenCalled();
+  expect(s.run).not.toHaveBeenCalled();
+  return result.items?.[0] ?? result;
+}
+
+const MILK = ["bls:M111300", "bls:M111200", "bls:M113300", "bls:M113200", "usda_fdc:746776"];
+
+describe("staple catalog names: milk (owner decision 1, 2026-10-12)", () => {
+  it.each([
+    "tej", "tehéntej", "egy pohár tehén tej", "egy pohár tehéntej", "1 bögre tej", "2 dl tej", "nyers tej",
+    "milk", "a glass of milk", "cow's milk", "Milch", "ein Glas Milch", "Kuhmilch"
+  ])("bare %j offers a choice of the milk records, locally, without a silent pick", async (text) => {
+    const item = await interpret(text);
+    expect(item.ambiguous).toBe(true);
+    expect(item.foodResolution).toBe("confirmation_required");
+    expect(item.canConfirm).toBe(false);
+    expect(item.candidates.map((c: any) => c.id)).toEqual(expect.arrayContaining(MILK));
+  });
+
+  it.each([
+    ["teljes tej", "bls:M111300"], ["egy pohár teljes tej", "bls:M111300"], ["3,5%-os tej", "bls:M111300"], ["2 dl 3,5%-os tej", "bls:M111300"],
+    ["Vollmilch", "bls:M111300"], ["200 ml Vollmilch", "bls:M111300"], ["whole milk", "bls:M111300"], ["a glass of whole milk", "bls:M111300"],
+    ["félzsíros tej", "bls:M111200"], ["1,5%-os tej", "bls:M111200"], ["fettarme Milch", "bls:M111200"], ["semi-skimmed milk", "bls:M111200"],
+    ["sovány tej", "usda_fdc:746776"], ["2 dl sovány tej", "usda_fdc:746776"], ["skim milk", "usda_fdc:746776"], ["Magermilch", "usda_fdc:746776"],
+    ["2%-os tej", "usda_fdc:746778"]
+  ])("qualified %j resolves directly to %s without external lookup or AI", async (text, id) => {
+    const item = await interpret(text);
+    expect(item.foodResolution).toBe("resolved");
+    expect(item.ambiguous).toBeFalsy();
+    expect(item.selectedFood?.id).toBe(id);
+  });
+
+  it("H-tej / tartós tej is a choice between the two UHT records", async () => {
+    // "H-tej" itself parses to bare "tej" (the full milk choice, which includes both UHT records);
+    // the explicit UHT words offer just the pair.
+    for (const text of ["tartós tej", "H-Milch", "UHT milk"]) {
+      const item = await interpret(text);
+      expect(item.ambiguous).toBe(true);
+      expect(item.candidates.map((c: any) => c.id)).toEqual(expect.arrayContaining(["bls:M113300", "bls:M113200"]));
+    }
+  });
+});
+
+describe("staple catalog names: everyday staples resolve locally", () => {
+  it.each([
+    ["egy kávé", "bls:N410100"], ["Kaffee", "bls:N410100"], ["coffee", "bls:N410100"], ["eszpresszó", "bls:N411100"],
+    ["2 szelet rozskenyér", "bls:B221000"], ["1 zsemle", "bls:B511000"], ["Brötchen", "bls:B511000"], ["fehérjekenyér", "bls:B881100"],
+    ["3 tojássárgája", "bls:E112100"], ["2 tojásfehérje", "bls:E113100"], ["Eigelb", "bls:E112100"],
+    ["csirkemáj", "bls:V634100"], ["csirkezúza", "bls:V654100"], ["harcsa", "bls:T506100"], ["süllő", "bls:T603100"],
+    ["1 ek mogyoróvaj", "bls:H880200"], ["zabkorpa", "bls:C138000"], ["kókuszliszt", "usda_fdc:2515382"], ["mandulaliszt", "usda_fdc:2261420"],
+    ["2 dl mandulatej", "bls:H800000"], ["barna rizs", "bls:C351000"], ["parboiled rizs", "bls:C359000"],
+    ["1 tk méz", "bls:S120000"], ["Honig", "bls:S120000"], ["egy csipet só", "bls:R111000"], ["sütőpor", "bls:R421100"],
+    ["rókagomba", "bls:K713100"], ["laskagomba", "bls:K740100"], ["sárgabarack", "bls:F201100"], ["görögdinnye", "bls:F535100"],
+    ["tisztított vaj", "bls:Q683000"], ["ghí", "bls:Q683000"], ["sós vaj", "usda_fdc:173410"], ["pármai sonka", "bls:W441000"],
+    ["zöld tea", "bls:N610100"], ["víz", "bls:N110000"], ["tonhalkonzerv", "usda_fdc:334194"], ["lencse", "bls:H725100"]
+  ])("%j -> %s", async (text, id) => {
+    const item = await interpret(text);
+    expect(item.foodResolution).toBe("resolved");
+    expect(item.selectedFood?.id).toBe(id);
+  });
+
+  it.each([
+    ["kenyér", ["bls:B311000", "bls:B271000", "bls:B221000", "bls:B121000"]],
+    ["2 szelet kenyér", ["bls:B311000", "bls:B271000", "bls:B221000", "bls:B121000"]],
+    ["Brot", ["bls:B311000", "bls:B221000"]],
+    ["krémsajt", ["bls:M710800", "usda_fdc:2346385"]],
+    ["élesztő", ["bls:R459000", "bls:R458000"]],
+    ["ribizli", ["bls:F321100", "bls:F322100", "bls:F323100"]],
+    ["ásványvíz", ["bls:N127000", "bls:N128000"]],
+    ["dinnye", ["bls:F535100", "usda_fdc:746770"]],
+    ["zsírszegény tej", ["usda_fdc:746778", "usda_fdc:746772"]]
+  ])("ambiguous bare %j offers a choice", async (text, ids) => {
+    const item = await interpret(text);
+    expect(item.ambiguous).toBe(true);
+    expect(item.candidates.map((c: any) => c.id)).toEqual(expect.arrayContaining(ids));
+  });
+
+  it("existing starter foods keep their bare words (no new ties)", async () => {
+    expect((await interpret("vaj")).selectedFood?.id).toBe("open_database:173430");
+    expect((await interpret("2 tojás")).selectedFood?.id).toBe("open_database:171287");
+  });
+
+  it("every reviewed Hungarian alias resolves to its record, or to a choice that includes it", async () => {
+    // "H-" is dropped by the parser (single letter), so the UHT-specific
+    // Hungarian phrases reach the fresh-milk record of the same fat level.
+    const knownParserGaps = new Set(["teljes h tej", "felzsiros h tej"]);
+    const failures: string[] = [];
+    for (const row of aliasRows.filter((a) => a.locale === "hu" && a.kind === "synonym" && !knownParserGaps.has(a.normalized))) {
+      const item = await interpret(row.alias);
+      const ids = item.candidates.map((c: any) => c.id);
+      const ok = (item.foodResolution === "resolved" && item.selectedFood?.id === row.key) || (item.ambiguous && ids.includes(row.key));
+      if (!ok) failures.push(`${row.alias} -> ${item.foodResolution} ${item.selectedFood?.id ?? "-"}`);
+    }
+    expect(failures).toEqual([]);
+  });
+});
+
+describe("staple catalog names migration data", () => {
+  it("never creates foods, never deletes, never touches nutrition", () => {
+    const sql = namesSql.replace(/--.*$/gm, "");
+    expect(sql).not.toMatch(/\b(DELETE|DROP|TRUNCATE|ALTER)\b/i);
+    expect(sql).not.toMatch(/INSERT INTO "ketomentor"\."Food"\s/);
+    expect(sql).not.toMatch(/kcalPer100g|fatPer100g|proteinPer100g|carbsPer100g|FoodNutrient/);
+    expect(sql).not.toMatch(/"public"\./i);
+  });
+
+  it("sets names only where the locale has none and inserts aliases idempotently", () => {
+    const updates = statements.filter((s) => /^UPDATE "ketomentor"\."Food"/.test(s));
+    expect(updates).toHaveLength(3);
+    for (const locale of ["hu", "en"]) {
+      const update = updates.find((s) => s.includes(`'{${locale}}'`))!;
+      expect(update).toContain(`AND COALESCE(f."names"->>'${locale}', '') = ''`);
+    }
+    for (const statement of statements) expect(statement).toContain(`"createdById" IS NULL`);
+    expect(statements.find((s) => s.startsWith("INSERT"))).toContain(`ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING`);
+    expect(statements.find((s) => s.includes(`SET "searchText"`))).toContain(`position(v.words IN f."searchText") = 0`);
+  });
+
+  it("targets only records of the read-only snapshot, each with a normalized alias", () => {
+    const known = new Set(snapshot.map((row) => `${row.source}:${row.sourceId}`));
+    for (const row of [...aliasRows, ...nameUpdates("hu"), ...nameUpdates("en")]) expect(known.has(row.key)).toBe(true);
+    for (const row of aliasRows) expect(row.normalized).toBe(normalizeSearch(row.alias));
+  });
+
+  it("a shared bare word sits on several records only as an intentional choice; every other alias on exactly one", () => {
+    const owners = new Map<string, Set<string>>();
+    for (const row of aliasRows) owners.set(row.normalized, (owners.get(row.normalized) ?? new Set()).add(row.key));
+    const shared = [...owners].filter(([, keys]) => keys.size > 1).map(([word]) => word).sort();
+    expect(shared).toEqual([
+      "almond butter", "asvanyviz", "bread", "brot", "buttermilch", "cow milk", "cow s milk", "cream cheese", "currants", "dinnye", "eleszto",
+      "frischkase", "h milch", "h tej", "hefe", "iro", "johannisbeeren", "kenyer", "kremsajt", "kuhmilch", "low fat milk", "mandelmus", "mandulavaj",
+      "milch", "milk", "mineral water", "mineralwasser", "ribizli", "sojamilch", "soy milk", "szojaital", "szojatej", "tartos tej", "tehen tej",
+      "tehentej", "tej", "uht milk", "yeast", "zsirszegeny tej"
+    ]);
+  });
+});
+
+describe("removal of the Open Food Facts 'cow milk' record", () => {
+  const sql = deleteSql.replace(/--.*$/gm, "");
+  const deletes = sql.split(";").map((s) => s.trim()).filter(Boolean);
+
+  it("deletes only that record and its own alias/nutrient/serving rows", () => {
+    expect(sql).not.toMatch(/\b(DROP|TRUNCATE|ALTER|UPDATE|INSERT)\b/i);
+    expect(sql).not.toMatch(/"public"\./i);
+    expect(deletes.map((s) => s.match(/^DELETE FROM "ketomentor"\."(\w+)"/)?.[1])).toEqual(["FoodAlias", "FoodNutrient", "FoodServing", "Food"]);
+    for (const statement of deletes) {
+      expect(statement).toContain(`f."source" = 'open_food_facts' AND f."sourceId" = '8904089919135' AND f."createdById" IS NULL`);
+    }
+  });
+
+  it("is guarded: nothing is deleted while a meal item or recipe ingredient references the record", () => {
+    for (const statement of deletes) {
+      expect(statement).toContain(`NOT EXISTS (SELECT 1 FROM "ketomentor"."MealItem" AS m WHERE m."foodId" = f."id")`);
+      expect(statement).toContain(`NOT EXISTS (SELECT 1 FROM "ketomentor"."RecipeIngredient" AS r WHERE r."foodId" = f."id")`);
+    }
+  });
+
+  it("covers every table whose foreign key to Food restricts a delete", () => {
+    const schema = readFileSync(fileURLToPath(new URL("../../prisma/schema.prisma", import.meta.url)), "utf8");
+    const models = [...schema.matchAll(/model (\w+) \{([\s\S]*?)\n\}/g)]
+      .filter(([, , body]) => /\bFood\??\s+@relation\(/.test(body) && !/\bFood\??\s+@relation\([^)]*onDelete: Cascade/.test(body))
+      .map(([, name]) => name).sort();
+    expect(models).toEqual(["MealItem", "RecipeIngredient"]);
+  });
+});
+
+describe("natural food query: identity words stay out of the quantity", () => {
+  it.each([
+    ["3,5%-os tej", { foodQuery: "3 5 os tej" }],
+    ["1,5 % Milch", { foodQuery: "1 5 milch" }],
+    ["2 dl 2%-os tej", { quantity: 200, unit: "ml", foodQuery: "2 os tej" }],
+    ["2 dl tej", { quantity: 200, unit: "ml", foodQuery: "tej" }],
+    ["whole milk", { foodQuery: "whole milk" }],
+    ["whole avocado", { quantity: 1, unit: "piece", foodQuery: "avocado" }]
+  ])("%j", (text, expected) => expect(parseNaturalFoodQuery(text)).toMatchObject(expected));
+
+  it("keeps the words as typed next to the suffix-stripped form", () => {
+    expect(parseNaturalFoodQuery("egy kávé")).toMatchObject({ foodQuery: "ka", literalFoodQuery: "kave" });
+    expect(parseNaturalFoodQuery("Brot")).toMatchObject({ foodQuery: "br", literalFoodQuery: "brot" });
+    expect(parseNaturalFoodQuery("tej").literalFoodQuery).toBeUndefined();
+  });
+});
