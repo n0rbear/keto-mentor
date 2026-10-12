@@ -29,18 +29,53 @@ staples sit in the catalog with only German or English source names.
    on exactly one record: "teljes tej", "3,5%-os tej", "Vollmilch", "whole milk",
    "félzsíros tej", "1,5%-os tej", "fettarme Milch", "semi-skimmed milk",
    "sovány tej", "Magermilch", "skim milk", "2%-os tej".
+1b. **Bare coffee and roll words offer a choice too (owner review on PR #85).**
+   The owner's words: "Kávéból és zsemléből is lehet több féle."
+   - "kávé", "Kaffee" and "coffee" offer four records: kávé (fekete, ital)
+     N410100, eszpresszó N411100, török kávé N419000 and koffeinmentes kávé
+     N415000. These qualified phrases resolve directly: "fekete kávé",
+     "feketekávé", "filterkávé", "black coffee", "Filterkaffee", "eszpresszó",
+     "espresso", "török kávé", "koffeinmentes kávé". The catalog has **no**
+     tejeskávé, Milchkaffee, cappuccino or latte drink record (only "Cappuccino
+     Instantpulver", a powder), so none was invented and those phrases still go
+     through the normal lookup.
+   - "zsemle", "zsömle", "Semmel(n)", "Brötchen", "Schrippe(n)", "Weck(le)",
+     "roll(s)" and "bread roll(s)" offer seven records: búzazsemle B511000,
+     magvas péksütemény (Kornspitz) B591000, magvas rozszsemle B526000,
+     szezámos rozszsemle B526300, mákos zsemle B551200, sós-köményes zsemle
+     B511100 and bagett zsemle B781300. Production already has the reference
+     seed's `regional_synonym` aliases (semmel, brötchen, schrippe, zsemle, …)
+     on B511000; the same words on the other rolls turn them into a tie.
+     These qualified phrases resolve directly: "búzazsemle", "fehér zsemle",
+     "Weizenbrötchen", "white roll", "magvas zsemle", "Mehrkornbrötchen",
+     "Kornspitz", "mákos zsemle", "Mohnbrötchen", and "Laugenbrötchen" /
+     "lúgos zsemle" (on BLS B723100 Laugengebäck). "rozszsemle" /
+     "Roggenbrötchen" offer the two rye rolls. There is no Vollkornbrötchen
+     record.
+   - Roll dishes and servings are unchanged. The reference recipes and the
+     62.5 g AT piece serving stay on B511000 (one of the choices).
+     "Leberkässemmel", "Fischbrötchen" and "Schrippe" keep their reference-dish
+     routes, because alias words are not appended to searchText.
+   - The same principle applies to other bare words: "knäckebrot" /
+     "crispbread" (rye, multigrain, sunflower crispbread) and "hering" /
+     "herring" (raw, matjes, Bismarck). These bare words deliberately still
+     resolve to one record, because the alternatives are either near-identical
+     or clearly named products: méz, víz, lencse, mogyoróvaj, mandulaital,
+     kókuszreszelék (the sweetened one is named "cukrozott"), szőlő, barna rizs,
+     só, eszpresszó.
 2. **The OFF "cow milk" record is removed (owner decision 2).** The migration
    deletes exactly (`open_food_facts`, `8904089919135`, createdById NULL) and its
    FoodAlias / FoodNutrient / FoodServing rows. Every statement is guarded with
    `NOT EXISTS` on MealItem and RecipeIngredient. These are the only tables whose
    foreign key to Food restricts deletes; a test checks this against
    schema.prisma. If the record is missing, the migration does nothing.
-3. **Staple names (229 records, 866 alias rows).** The style
+3. **Staple names (232 records, 1011 alias rows).** The style
    follows `20260926130000_hungarian_catalog_names`:
    - `names.hu` / `names.en` are set only where that locale is empty.
    - Reviewed aliases (`reviewed_migration` provenance) are inserted with
      `ON CONFLICT DO NOTHING`.
-   - The new words are appended to `searchText` once.
+   - The new display names (not the alias words) are appended to
+     `searchText` once.
    - No nutrition changes and no new Food rows.
 
    For the 21 records whose names were already curated in
@@ -73,12 +108,17 @@ staples sit in the catalog with only German or English source names.
 | almond butter, mandelmus, mandulavaj | usda_fdc:168588 (mandulavaj (sótlan)); usda_fdc:2262074 (mandulavaj (krémes)) |
 | bread, brot, kenyer | bls:B121000 (teljes kiőrlésű kenyér); bls:B221000 (rozskenyér); bls:B271000 (rozsos vegyes kenyér); bls:B311000 (fehér kenyér) |
 | buttermilch, iro | usda_fdc:167697 (író (csökkentett zsírtartalmú)); usda_fdc:2259792 (író (zsírszegény)) |
+| coffee, kaffee, kave | bls:N410100 (kávé (fekete, ital)); bls:N411100 (eszpresszó); bls:N415000 (koffeinmentes kávé); bls:N419000 (török kávé) |
 | cream cheese, frischkase, kremsajt | bls:M710800 (krémsajt (dupla krém)); usda_fdc:2346385 (natúr krémsajt (USA, tömb)) |
+| crispbread, knackebrot | bls:B6A2100 (knäckebrot (teljes kiőrlésű rozs)); bls:B6A3200 (napraforgós rozs knäckebrot); bls:B6A4000 (többmagvas teljes kiőrlésű knäckebrot) |
 | currants, johannisbeeren, ribizli | bls:F321100 (piros ribizli); bls:F322100 (fehér ribizli); bls:F323100 (fekete ribizli) |
+| hering, herring | bls:T102100 (hering (nyers)); bls:T811100 (matjeshering filé); bls:T820802 (Bismarck-hering) |
 | low fat milk, zsirszegeny tej | usda_fdc:746772 (zsírszegény tej (1%)); usda_fdc:746778 (zsírszegény tej (2%)) |
 | dinnye | bls:F535100 (görögdinnye); usda_fdc:746770 (sárgadinnye) |
 | cow milk, cow s milk, kuhmilch, milch, milk, tehen tej, tehentej, tej | bls:M111200 (félzsíros tej (1,5%)); bls:M111300 (teljes tej (3,5%)); bls:M113200 (félzsíros H-tej (1,5%)); bls:M113300 (teljes H-tej (3,5%)); usda_fdc:746776 (sovány tej (zsírmentes)) |
 | asvanyviz, mineral water, mineralwasser | bls:N127000 (szénsavas ásványvíz); bls:N128000 (szénsavmentes ásványvíz) |
+| bread roll, bread rolls, brotchen, roll, rolls, schrippe, schrippen, semmel, semmeln, weck, weckle, zsemle, zsomle | bls:B511000 (búzazsemle); bls:B511100 (sós-köményes zsemle (Salzstangerl)); bls:B526000 (magvas rozszsemle); bls:B526300 (szezámos rozszsemle); bls:B551200 (mákos zsemle); bls:B591000 (magvas péksütemény (Kornspitz)); bls:B781300 (bagett zsemle) |
+| roggenbrotchen, rozszsemle, rye roll | bls:B526000 (magvas rozszsemle); bls:B526300 (szezámos rozszsemle) |
 | sojamilch, soy milk, szojaital, szojatej | usda_fdc:1999630 (szójaital (cukrozatlan)); usda_fdc:2257044 (szójaital (cukrozott)) |
 | h milch, h tej, tartos tej, uht milk | bls:M113200 (félzsíros H-tej (1,5%)); bls:M113300 (teljes H-tej (3,5%)) |
 | eleszto, hefe, yeast | bls:R458000 (szárított élesztő); bls:R459000 (friss élesztő) |
@@ -157,13 +197,18 @@ record also gets its new hu/en name as a `localized_name` alias.
 | bls | B314000 | Weizentoastbrot/Buttertoastbrot | toastkenyér | white toast bread | — | toast kenyér, toastkenyér, Toastbrot, toast bread |
 | bls | B106000 | Vollkornbrot mit Ölsamen | magvas teljes kiőrlésű kenyér | wholegrain bread with seeds | — | magvas kenyér |
 | bls | B881100 | Eiweißbrot/Proteinbrot | fehérjekenyér | protein bread | — | proteinkenyér, Eiweißbrot, Proteinbrot |
-| bls | B511000 | Weizenbrötchen | zsemle | wheat bread roll | — | zsömle, Brötchen, Semmel, bread roll |
-| bls | B511100 | Weizenbrötchen mit Kümmel und Salz | sós-köményes zsemle (Salzstangerl) | wheat roll with salt and caraway | — | — |
-| bls | B591000 | Mehrkornbrötchen | magvas péksütemény (Kornspitz) | multigrain roll | — | magvas zsemle, többmagvas zsemle, Mehrkornbrötchen |
-| bls | B551200 | Weizenmischbrötchen mit Mohn | mákos zsemle | poppy seed roll | — | — |
-| bls | B526300 | Roggenbrötchen mit Sesam | szezámos rozszsemle | rye roll with sesame | — | — |
+| bls | B511000 | Weizenbrötchen | búzazsemle | white wheat roll | zsemle, zsömle, Semmel, Brötchen, Schrippe, Schrippen, Semmeln, Weck, Weckle, roll, rolls, bread roll, bread rolls | fehér zsemle, búzazsemle, Weizenbrötchen, Weizensemmel, white roll, wheat roll |
+| bls | B511100 | Weizenbrötchen mit Kümmel und Salz | sós-köményes zsemle (Salzstangerl) | wheat roll with salt and caraway | zsemle, zsömle, Semmel, Brötchen, Schrippe, Schrippen, Semmeln, Weck, Weckle, roll, rolls, bread roll, bread rolls | sós-köményes zsemle, köményes zsemle |
+| bls | B591000 | Mehrkornbrötchen | magvas péksütemény (Kornspitz) | multigrain roll | zsemle, zsömle, Semmel, Brötchen, Schrippe, Schrippen, Semmeln, Weck, Weckle, roll, rolls, bread roll, bread rolls | magvas zsemle, többmagvas zsemle, Mehrkornbrötchen, multigrain roll |
+| bls | B551200 | Weizenmischbrötchen mit Mohn | mákos zsemle | poppy seed roll | zsemle, zsömle, Semmel, Brötchen, Schrippe, Schrippen, Semmeln, Weck, Weckle, roll, rolls, bread roll, bread rolls | Mohnbrötchen |
+| bls | B526300 | Roggenbrötchen mit Sesam | szezámos rozszsemle | rye roll with sesame | rozszsemle, Roggenbrötchen, rye roll, zsemle, zsömle, Semmel, Brötchen, Schrippe, Schrippen, Semmeln, Weck, Weckle, roll, rolls, bread roll, bread rolls | — |
+| bls | B526000 | Roggenbrötchen mit Ölsamen | magvas rozszsemle | rye roll with seeds | rozszsemle, Roggenbrötchen, rye roll, zsemle, zsömle, Semmel, Brötchen, Schrippe, Schrippen, Semmeln, Weck, Weckle, roll, rolls, bread roll, bread rolls | — |
+| bls | B781300 | Weizenbaguettebrötchen | — | — | zsemle, zsömle, Semmel, Brötchen, Schrippe, Schrippen, Semmeln, Weck, Weckle, roll, rolls, bread roll, bread rolls | — |
+| bls | B723100 | Laugengebäck (Hagelsalz entfernt) | — | — | — | Laugenbrötchen, Laugensemmel, lúgos zsemle, pretzel roll |
 | bls | B783012 | Weizentortilla | tortilla (búzaliszt) | wheat tortilla | — | tortilla, tortillalap, Tortilla, tortilla |
-| bls | B6A2100 | Roggenvollkornknäckebrot | knäckebrot (teljes kiőrlésű rozs) | wholegrain rye crispbread | — | knäckebrot, Knäckebrot, crispbread |
+| bls | B6A2100 | Roggenvollkornknäckebrot | knäckebrot (teljes kiőrlésű rozs) | wholegrain rye crispbread | knäckebrot, Knäckebrot, crispbread | rozs knäckebrot, Roggenknäckebrot |
+| bls | B6A4000 | Mehrkornvollkornknäckebrot | többmagvas teljes kiőrlésű knäckebrot | wholegrain multigrain crispbread | knäckebrot, Knäckebrot, crispbread | többmagvas knäckebrot, Mehrkornknäckebrot |
+| bls | B6A3200 | Roggenvollkornknäckebrot mit Sonnenblumenkernen | napraforgós rozs knäckebrot | rye crispbread with sunflower seeds | knäckebrot, Knäckebrot, crispbread | napraforgós knäckebrot |
 | bls | C351000 | Reis unpoliert, roh | barna rizs (nyers) | brown rice, raw | — | barna rizs, Naturreis, brown rice |
 | bls | C359000 | Reis parboiled, poliert, roh | parboiled rizs (nyers) | parboiled rice, raw | — | parboiled rizs, Parboiled Reis, parboiled rice |
 | bls | C353100 | Wildreis roh | vadrizs (nyers) | wild rice, raw | — | vadrizs, Wildreis, wild rice |
@@ -282,15 +327,17 @@ record also gets its new hu/en name as a `localized_name` alias.
 | bls | N110000 | Trinkwasser | ivóvíz (csapvíz) | drinking water | — | víz, csapvíz, Wasser, Leitungswasser, water |
 | bls | N127000 | Natürliches Mineralwasser mit Kohlensäure | szénsavas ásványvíz | sparkling mineral water | ásványvíz, Mineralwasser, mineral water | Sprudelwasser |
 | bls | N128000 | Natürliches Mineralwasser still | szénsavmentes ásványvíz | still mineral water | ásványvíz, Mineralwasser, mineral water | stilles Wasser |
-| bls | N410100 | Kaffee (Getränk) | kávé (fekete, ital) | coffee (brewed) | — | kávé, fekete kávé, feketekávé, Kaffee, coffee, black coffee |
-| bls | N411100 | Espresso (Getränk) | eszpresszó | espresso | — | espresso, presszókávé, Espresso |
-| bls | N415000 | Kaffee (Getränk) entkoffeiniert | koffeinmentes kávé | decaf coffee | — | entkoffeinierter Kaffee, decaf |
-| bls | N419000 | Türkischer Mokka (Getränk) | török kávé | Turkish coffee | — | türkischer Mokka |
+| bls | N410100 | Kaffee (Getränk) | kávé (fekete, ital) | coffee (brewed) | kávé, Kaffee, coffee | fekete kávé, feketekávé, filterkávé, főzött kávé, Filterkaffee, schwarzer Kaffee, black coffee, filter coffee, brewed coffee |
+| bls | N411100 | Espresso (Getränk) | eszpresszó | espresso | kávé, Kaffee, coffee | espresso, presszókávé, Espresso |
+| bls | N415000 | Kaffee (Getränk) entkoffeiniert | koffeinmentes kávé | decaf coffee | kávé, Kaffee, coffee | entkoffeinierter Kaffee, decaf |
+| bls | N419000 | Türkischer Mokka (Getränk) | török kávé | Turkish coffee | kávé, Kaffee, coffee | türkischer Mokka, Turkish coffee |
 | bls | N420900 | Instantkaffeepulver | instant kávépor | instant coffee powder | — | instant kávé, Instantkaffee, instant coffee |
 | bls | N610100 | Grüntee (Getränk) | zöld tea | green tea (brewed) | — | Grüntee, green tea |
 | bls | T506100 | Wels roh | harcsa | wels catfish | — | Wels |
 | bls | T603100 | Zander roh | fogassüllő (süllő) | zander (pike-perch) | — | süllő, fogas, Zander, zander |
-| bls | T102100 | Hering roh | hering (nyers) | herring, raw | — | hering, Hering, herring |
+| bls | T102100 | Hering roh | hering (nyers) | herring, raw | hering, Hering, herring | nyers hering, raw herring |
+| bls | T811100 | Matjesfilet (Heringsfilet) nordische Art | — | — | hering, Hering, herring | — |
+| bls | T820802 | Bismarckhering Präserve, abgetropft | — | — | hering, Hering, herring | — |
 | bls | T507100 | Pangasius/Schlankwels, roh | pangasius | pangasius | — | Pangasius |
 | usda_fdc | 334194 | Fish, tuna, light, canned in water, drained solids | tonhalkonzerv (vízben, lecsepegtetve) | — | — | tonhalkonzerv, tonhal konzerv, canned tuna |
 | usda_fdc | 2684442 | Fish, tilapia, farm raised, raw | tilápia | — | — | Tilapia |
@@ -330,7 +377,9 @@ record also gets its new hu/en name as a `localized_name` alias.
   real interpreter. The checks:
   - Bare milk words in HU/DE/EN offer the five milk records.
   - Qualified milk phrases resolve directly.
-  - 38 staple phrases resolve locally.
+  - Qualified staple phrases resolve locally (coffee and roll kinds
+    included); bare coffee and roll words offer their choice.
+  - Roll dishes and the B511000 serving are unaffected.
   - The other shared words offer a choice.
   - Every reviewed Hungarian alias reaches its record or a choice that
     contains it.
@@ -341,7 +390,7 @@ record also gets its new hu/en name as a `localized_name` alias.
   - All migrations apply; both new ones apply twice idempotently.
   - With a MealItem pointing at the OFF record the delete removes nothing;
     without one it removes the record, its 2 aliases and its nutrients.
-  - Through the real SQL search, 679 of 687 alias phrases resolve as intended.
+  - Through the real SQL search, 824 of 832 alias phrases resolve as intended.
     The 8 others are listed under known gaps.
 
 ## Known gaps

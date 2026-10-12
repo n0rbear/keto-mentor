@@ -6,6 +6,8 @@ import { DynamicFoodResolutionRateLimiter } from "./dynamic-food-rate-limit.js";
 import { normalizeSearch } from "./normalize.js";
 import { parseNaturalFoodQuery } from "./natural-food-query.js";
 import type { AiProvider } from "../ai/provider.js";
+import { REFERENCE_DATA } from "../reference-dishes/reference-data.js";
+import { referenceVariantIdsFor } from "../reference-dishes/lookup.js";
 
 // Owner report 2026-10-12: "egy pohár tehén tej" found no local milk, because
 // the BLS/USDA milk records carried only German/English source names. These
@@ -148,8 +150,11 @@ describe("staple catalog names: milk (owner decision 1, 2026-10-12)", () => {
 
 describe("staple catalog names: everyday staples resolve locally", () => {
   it.each([
-    ["egy kávé", "bls:N410100"], ["Kaffee", "bls:N410100"], ["coffee", "bls:N410100"], ["eszpresszó", "bls:N411100"],
-    ["2 szelet rozskenyér", "bls:B221000"], ["1 zsemle", "bls:B511000"], ["Brötchen", "bls:B511000"], ["fehérjekenyér", "bls:B881100"],
+    ["fekete kávé", "bls:N410100"], ["egy feketekávé", "bls:N410100"], ["black coffee", "bls:N410100"], ["Filterkaffee", "bls:N410100"],
+    ["eszpresszó", "bls:N411100"], ["espresso", "bls:N411100"], ["török kávé", "bls:N419000"], ["koffeinmentes kávé", "bls:N415000"],
+    ["2 szelet rozskenyér", "bls:B221000"], ["fehérjekenyér", "bls:B881100"],
+    ["1 búzazsemle", "bls:B511000"], ["fehér zsemle", "bls:B511000"], ["Weizenbrötchen", "bls:B511000"], ["magvas zsemle", "bls:B591000"],
+    ["Mehrkornbrötchen", "bls:B591000"], ["mákos zsemle", "bls:B551200"], ["Laugenbrötchen", "bls:B723100"], ["Mohnbrötchen", "bls:B551200"],
     ["3 tojássárgája", "bls:E112100"], ["2 tojásfehérje", "bls:E113100"], ["Eigelb", "bls:E112100"],
     ["csirkemáj", "bls:V634100"], ["csirkezúza", "bls:V654100"], ["harcsa", "bls:T506100"], ["süllő", "bls:T603100"],
     ["1 ek mogyoróvaj", "bls:H880200"], ["zabkorpa", "bls:C138000"], ["kókuszliszt", "usda_fdc:2515382"], ["mandulaliszt", "usda_fdc:2261420"],
@@ -173,11 +178,29 @@ describe("staple catalog names: everyday staples resolve locally", () => {
     ["ribizli", ["bls:F321100", "bls:F322100", "bls:F323100"]],
     ["ásványvíz", ["bls:N127000", "bls:N128000"]],
     ["dinnye", ["bls:F535100", "usda_fdc:746770"]],
-    ["zsírszegény tej", ["usda_fdc:746778", "usda_fdc:746772"]]
+    ["zsírszegény tej", ["usda_fdc:746778", "usda_fdc:746772"]],
+    ["kávé", ["bls:N410100", "bls:N411100", "bls:N419000", "bls:N415000"]], ["egy kávé", ["bls:N410100", "bls:N411100", "bls:N419000", "bls:N415000"]], ["egy bögre kávé", ["bls:N410100", "bls:N411100", "bls:N419000", "bls:N415000"]], ["Kaffee", ["bls:N410100", "bls:N411100", "bls:N419000", "bls:N415000"]], ["a cup of coffee", ["bls:N410100", "bls:N411100", "bls:N419000", "bls:N415000"]],
+    ["zsemle", ["bls:B511000", "bls:B591000", "bls:B526000", "bls:B526300", "bls:B551200", "bls:B511100", "bls:B781300"]], ["1 zsemle", ["bls:B511000", "bls:B591000", "bls:B526000", "bls:B526300", "bls:B551200", "bls:B511100", "bls:B781300"]], ["2 Semmel", ["bls:B511000", "bls:B591000", "bls:B526000", "bls:B526300", "bls:B551200", "bls:B511100", "bls:B781300"]], ["Brötchen", ["bls:B511000", "bls:B591000", "bls:B526000", "bls:B526300", "bls:B551200", "bls:B511100", "bls:B781300"]], ["zwei Schrippen", ["bls:B511000", "bls:B591000", "bls:B526000", "bls:B526300", "bls:B551200", "bls:B511100", "bls:B781300"]],
+    ["bread roll", ["bls:B511000", "bls:B591000", "bls:B526000", "bls:B526300", "bls:B551200", "bls:B511100", "bls:B781300"]], ["rozszsemle", ["bls:B526000", "bls:B526300"]],
+    ["knäckebrot", ["bls:B6A2100", "bls:B6A4000", "bls:B6A3200"]], ["hering", ["bls:T102100", "bls:T811100", "bls:T820802"]]
   ])("ambiguous bare %j offers a choice", async (text, ids) => {
     const item = await interpret(text);
     expect(item.ambiguous).toBe(true);
     expect(item.candidates.map((c: any) => c.id)).toEqual(expect.arrayContaining(ids));
+  });
+
+  it("roll dishes and the roll serving are untouched: only the bare food word became a choice", async () => {
+    // Dish compounds are not pulled onto the plain rolls (no alias head words in searchText).
+    for (const text of ["Leberkässemmel", "Fischbrötchen", "Backfischsemmel"]) {
+      const result = await interpretMealInput(prisma, text);
+      const item = result.items?.[0] ?? result;
+      expect(item.foodResolution === "resolved" || !!item.ambiguous, text).toBe(false);
+    }
+    // The reference roll (Semmel/Brötchen dishes, the 62.5 g AT piece serving) is still B511000, one of the choices.
+    expect(REFERENCE_DATA.foodKeys.wheat_roll.catalog).toEqual({ source: "bls", sourceId: "B511000" });
+    expect(REFERENCE_DATA.servings.some((serving) => serving.foodKey === "wheat_roll" && serving.grams === 62.5)).toBe(true);
+    expect(referenceVariantIdsFor("Schrippe")).toEqual(["de_broetchen"]);
+    expect(referenceVariantIdsFor("Leberkässemmel").length).toBeGreaterThan(0);
   });
 
   it("existing starter foods keep their bare words (no new ties)", async () => {
@@ -219,6 +242,8 @@ describe("staple catalog names migration data", () => {
     for (const statement of statements) expect(statement).toContain(`"createdById" IS NULL`);
     expect(statements.find((s) => s.startsWith("INSERT"))).toContain(`ON CONFLICT ("foodId", "normalizedAlias", "locale") DO NOTHING`);
     expect(statements.find((s) => s.includes(`SET "searchText"`))).toContain(`position(v.words IN f."searchText") = 0`);
+    // Only display names reach searchText, never shared alias head words.
+    for (const words of searchWords.values()) expect(words).not.toMatch(/\b(semmel|brotchen|schrippe|weckle)\b/);
   });
 
   it("targets only records of the read-only snapshot, each with a normalized alias", () => {
@@ -232,10 +257,12 @@ describe("staple catalog names migration data", () => {
     for (const row of aliasRows) owners.set(row.normalized, (owners.get(row.normalized) ?? new Set()).add(row.key));
     const shared = [...owners].filter(([, keys]) => keys.size > 1).map(([word]) => word).sort();
     expect(shared).toEqual([
-      "almond butter", "asvanyviz", "bread", "brot", "buttermilch", "cow milk", "cow s milk", "cream cheese", "currants", "dinnye", "eleszto",
-      "frischkase", "h milch", "h tej", "hefe", "iro", "johannisbeeren", "kenyer", "kremsajt", "kuhmilch", "low fat milk", "mandelmus", "mandulavaj",
-      "milch", "milk", "mineral water", "mineralwasser", "ribizli", "sojamilch", "soy milk", "szojaital", "szojatej", "tartos tej", "tehen tej",
-      "tehentej", "tej", "uht milk", "yeast", "zsirszegeny tej"
+      "almond butter", "asvanyviz", "bread", "bread roll", "bread rolls", "brot", "brotchen", "buttermilch", "coffee", "cow milk", "cow s milk",
+      "cream cheese", "crispbread", "currants", "dinnye", "eleszto", "frischkase", "h milch", "h tej", "hefe", "hering", "herring", "iro",
+      "johannisbeeren", "kaffee", "kave", "kenyer", "knackebrot", "kremsajt", "kuhmilch", "low fat milk", "mandelmus", "mandulavaj", "milch",
+      "milk", "mineral water", "mineralwasser", "ribizli", "roggenbrotchen", "roll", "rolls", "rozszsemle", "rye roll", "schrippe", "schrippen",
+      "semmel", "semmeln", "sojamilch", "soy milk", "szojaital", "szojatej", "tartos tej", "tehen tej", "tehentej", "tej", "uht milk", "weck",
+      "weckle", "yeast", "zsemle", "zsirszegeny tej", "zsomle"
     ]);
   });
 });

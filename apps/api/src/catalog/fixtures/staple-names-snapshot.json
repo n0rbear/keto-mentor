@@ -571,6 +571,34 @@
 },
 {
 "source": "bls",
+"sourceId": "B526000",
+"originalName": "Roggenbrötchen mit Ölsamen",
+"names": {
+"de": "Roggenbrötchen mit Ölsamen"
+}
+},
+{
+"source": "bls",
+"sourceId": "B781300",
+"originalName": "Weizenbaguettebrötchen",
+"names": {
+"hu": "bagett zsemle",
+"en": "baguette roll",
+"de": "Weizenbaguettebrötchen"
+}
+},
+{
+"source": "bls",
+"sourceId": "B723100",
+"originalName": "Laugengebäck (Hagelsalz entfernt)",
+"names": {
+"hu": "perec (lúgos)",
+"en": "lye pretzel",
+"de": "Laugengebäck (Hagelsalz entfernt)"
+}
+},
+{
+"source": "bls",
 "sourceId": "B783012",
 "originalName": "Weizentortilla",
 "names": {
@@ -583,6 +611,22 @@
 "originalName": "Roggenvollkornknäckebrot",
 "names": {
 "de": "Roggenvollkornknäckebrot"
+}
+},
+{
+"source": "bls",
+"sourceId": "B6A4000",
+"originalName": "Mehrkornvollkornknäckebrot",
+"names": {
+"de": "Mehrkornvollkornknäckebrot"
+}
+},
+{
+"source": "bls",
+"sourceId": "B6A3200",
+"originalName": "Roggenvollkornknäckebrot mit Sonnenblumenkernen",
+"names": {
+"de": "Roggenvollkornknäckebrot mit Sonnenblumenkernen"
 }
 },
 {
@@ -1599,6 +1643,26 @@
 "originalName": "Hering roh",
 "names": {
 "de": "Hering roh"
+}
+},
+{
+"source": "bls",
+"sourceId": "T811100",
+"originalName": "Matjesfilet (Heringsfilet) nordische Art",
+"names": {
+"hu": "matjeshering filé",
+"en": "matjes herring fillet",
+"de": "Matjesfilet (Heringsfilet) nordische Art"
+}
+},
+{
+"source": "bls",
+"sourceId": "T820802",
+"originalName": "Bismarckhering Präserve, abgetropft",
+"names": {
+"hu": "Bismarck-hering",
+"en": "Bismarck herring (marinated)",
+"de": "Bismarckhering Präserve, abgetropft"
 }
 },
 {
