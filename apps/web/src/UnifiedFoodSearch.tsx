@@ -26,6 +26,8 @@ const texts = {
 
 const BARCODE = /^\d{8,14}$/;
 const MEANING_DELAY_MS = 900;
+// Typing/editing pause before a search is sent.
+export const SEARCH_DELAY_MS = 350;
 /** Only a finished-looking word is worth a meaning search: at least 3 letters, not a bare number or unit. */
 export const wantsMeaningSearch = (query: string) => {
   const words = query.trim().split(/\s+/).filter((word) => /\p{L}{3,}/u.test(word));
@@ -50,9 +52,13 @@ export function UnifiedFoodSearch({ lang, state, value, disabled, onPickFood, on
     latest.current = query;
     if (query.length < 2 || isBarcodeInput(query) || disabled) { setItems([]); setOpen(false); return; }
     let meaningTimer: ReturnType<typeof setTimeout> | undefined;
+    // Each edit supersedes the previous search: its request is aborted, not
+    // left running next to the new one (owner log 2026-10-12: three
+    // overlapping 3-6 s searches while editing one dictated sentence).
+    const controller = new AbortController();
     const timer = setTimeout(async () => {
       try {
-        const first = await api<SearchResult>(`/search?q=${encodeURIComponent(query)}`, {}, state);
+        const first = await api<SearchResult>(`/search?q=${encodeURIComponent(query)}`, { signal: controller.signal }, state);
         if (latest.current !== query || first.kind !== "results") return;
         setItems(first.items.slice(0, 10)); setStatedQuantity(first.quantity); setSearched(query); setOpen(true);
         const trusted = first.items.some((item) => item.type === "recipe" || (item.type === "food" && (item.food.match?.stage === "exact" || item.food.match?.stage === "alias")));
@@ -62,16 +68,16 @@ export function UnifiedFoodSearch({ lang, state, value, disabled, onPickFood, on
         if (trusted || !wantsMeaningSearch(query)) return;
         meaningTimer = setTimeout(async () => {
           try {
-            const second = await api<SearchResult>(`/search?q=${encodeURIComponent(query)}&meaning=1`, {}, state);
+            const second = await api<SearchResult>(`/search?q=${encodeURIComponent(query)}&meaning=1`, { signal: controller.signal }, state);
             if (latest.current !== query || second.kind !== "results") return;
             setItems(second.items.slice(0, 10)); setStatedQuantity(second.quantity); setSearched(query); setOpen(true);
           } catch { /* keep the name results */ }
         }, MEANING_DELAY_MS);
       } catch {
-        if (latest.current === query) { setItems([]); setOpen(false); }
+        if (!controller.signal.aborted && latest.current === query) { setItems([]); setOpen(false); }
       }
-    }, 300);
-    return () => { clearTimeout(timer); if (meaningTimer) clearTimeout(meaningTimer); };
+    }, SEARCH_DELAY_MS);
+    return () => { clearTimeout(timer); if (meaningTimer) clearTimeout(meaningTimer); controller.abort(); };
   }, [value, disabled, state]);
 
   const close = () => { setOpen(false); };

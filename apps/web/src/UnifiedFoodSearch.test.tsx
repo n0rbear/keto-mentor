@@ -103,4 +103,28 @@ describe("one search field (roadmap G2)", () => {
     await new Promise((resolve) => setTimeout(resolve, 400));
     expect(urls).toHaveLength(0);
   });
+
+  // Owner log (2026-10-12): editing a dictated sentence fired overlapping
+  // 3-6 s searches, and the earlier ones were never cancelled.
+  it("debounces edits and aborts a superseded search instead of letting it run on", async () => {
+    const calls: Array<{ q: string | null; signal?: AbortSignal }> = [];
+    vi.stubGlobal("fetch", vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      const url = new URL(String(input));
+      calls.push({ q: url.searchParams.get("q"), signal: init?.signal ?? undefined });
+      if (url.searchParams.get("q") === "Három tojás és paprika") return Promise.resolve(ok({ kind: "results", query: "", meaning: { tried: false, terms: [] }, items: [{ type: "recipe", recipeId: "r", title: "Kész", source: "own", servings: 1, servingGrams: 100 }] }));
+      return new Promise<Response>((_resolve, reject) => init?.signal?.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError"))));
+    }));
+    const props = { lang: "hu" as const, state, onPickFood: vi.fn(), onPickRecipe: vi.fn() };
+    const view = render(<UnifiedFoodSearch {...props} value="Három tojás"/>);
+    // Quick successive edits inside the pause send nothing in between.
+    view.rerender(<UnifiedFoodSearch {...props} value="Három tojás é"/>);
+    view.rerender(<UnifiedFoodSearch {...props} value="Három tojás és"/>);
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    expect(calls.map((c) => c.q)).toEqual(["Három tojás és"]);
+    // A later edit aborts the still-running search and only its own result is shown.
+    view.rerender(<UnifiedFoodSearch {...props} value="Három tojás és paprika"/>);
+    expect(calls[0].signal?.aborted).toBe(true);
+    expect(await screen.findByText("Kész")).toBeTruthy();
+    expect(calls.map((c) => c.q)).toEqual(["Három tojás és", "Három tojás és paprika"]);
+  });
 });
