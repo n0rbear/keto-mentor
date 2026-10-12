@@ -206,3 +206,41 @@ describe("recipe editing", () => {
     expect(recipes[0].finishedWeightGrams).toBe(900);
   });
 });
+
+// Owner decision 2026-10-12: "Mély tányérban eszem" on own recipes, stored as
+// provenance.servedIn (the field the plate logic reads), no schema change.
+describe("served-in choice of an own recipe", () => {
+  it("persists deep on create and returns it", async () => {
+    const { prisma, recipes } = fakePrisma([]);
+    const created: any = await createRecipe(prisma, "owner", recipeInputSchema.parse({ ...input, servedIn: "deep_plate" }));
+    expect(recipes[0].provenance).toEqual({ servedIn: "deep_plate" });
+    expect(created.servedIn).toBe("deep_plate");
+  });
+  it("an unmarked recipe stays without provenance and reads as no deep plate", async () => {
+    const { prisma, recipes } = fakePrisma([]);
+    const created: any = await createRecipe(prisma, "owner", input);
+    expect(recipes[0].provenance).toBeUndefined();
+    expect(created.servedIn).toBeNull();
+  });
+  it("edits the choice and keeps the rest of the provenance (trust is untouched)", async () => {
+    const provenance = { trust: "source_verified", extractionMethod: "schema_org_json_ld", sourceUrl: "https://source.example/r" };
+    const { prisma, recipes } = fakePrisma([fullRecipe({ sourceType: "schema_org", sourceUrl: "https://source.example/r", provenance })]);
+    const updated: any = await updateRecipe(prisma, "owner", "r1", { ...input, servedIn: "deep_plate" });
+    expect(recipes[0].provenance).toEqual({ ...provenance, servedIn: "deep_plate" });
+    expect(updated.servedIn).toBe("deep_plate");
+    await updateRecipe(prisma, "owner", "r1", input);
+    expect(recipes[0].provenance).toEqual({ ...provenance, servedIn: "deep_plate" });
+  });
+  it("a copy of a reference soup returns its existing deep value and can be switched to flat", async () => {
+    const goulash = { kind: "reference_dish", densityGPerMl: 1.022, servedIn: "deep_plate" };
+    const { prisma, recipes } = fakePrisma([fullRecipe({ id: "ref", userId: "system", visibility: "public", provenance: goulash })]);
+    const copy: any = await forkRecipe(prisma, "owner", "ref");
+    expect(copy.servedIn).toBe("deep_plate");
+    const updated: any = await updateRecipe(prisma, "owner", copy.id, { ...input, servedIn: "flat_plate" });
+    expect(updated.servedIn).toBe("flat_plate");
+    expect(recipes[1].provenance).toMatchObject({ forkedFromRecipeId: "ref", sourceProvenance: goulash, servedIn: "flat_plate" });
+  });
+  it("only flat or deep is accepted", () => {
+    expect(recipeInputSchema.safeParse({ ...input, servedIn: "handheld" }).success).toBe(false);
+  });
+});

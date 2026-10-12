@@ -52,13 +52,16 @@ export const AVERAGE_PLATES = {
 
 /**
  * Whether a dish is eaten from a deep plate (soups, főzelék, Eintopf), read
- * from the reference-dish metadata "servedIn" — the recipe's own provenance,
- * or the reference dish an own recipe was copied from. No word lists.
+ * from "servedIn" in the recipe's provenance: the reference-dish metadata,
+ * the owner's own choice in the recipe editor ("Mély tányérban eszem",
+ * owner decision 2026-10-12; it overrides a copied reference value), or the
+ * recipe an own copy was made from. No word lists.
  */
 export function dishServedIn(provenance: unknown): "deep_plate" | "flat_plate" | "handheld" | null {
   const p = provenance as { kind?: string; servedIn?: unknown; sourceProvenance?: unknown } | null;
   if (!p || typeof p !== "object") return null;
-  if (p.kind === "reference_dish") return p.servedIn === "deep_plate" || p.servedIn === "flat_plate" || p.servedIn === "handheld" ? p.servedIn : null;
+  if (p.servedIn === "deep_plate" || p.servedIn === "flat_plate" || p.servedIn === "handheld") return p.servedIn;
+  if (p.kind === "reference_dish") return null;
   return p.sourceProvenance ? dishServedIn(p.sourceProvenance) : null;
 }
 export type DishPlateProfile = {

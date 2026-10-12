@@ -11,6 +11,8 @@ export type RecipeDetailData = {
   id: string; userId: string; title: string; description?: string | null; instructions?: string[];
   servings?: number | null; finishedWeightGrams?: number | null; visibility: "private" | "public" | "unlisted";
   sourceType: "manual" | "schema_org" | "ai_structured"; sourceUrl?: string | null;
+  // How the dish is eaten (provenance.servedIn); drives "egy tányér" plate choice.
+  servedIn?: "deep_plate" | "flat_plate" | "handheld" | null;
   user: { id: string; username: string };
   ingredients: RecipeIngredientDetail[];
   nutrition: { total: NutritionSlice; perServing: NutritionSlice | null; per100g: NutritionSlice | null };

@@ -3,6 +3,7 @@ import type { RecipeInput, RecipeMealInput } from "@keto-mentor/shared";
 import { calculateRecipeNutrition, scaleRecipeSnapshot, type RecipeWithIngredients } from "./nutrition.js";
 import { serializeMeal } from "../nutrition.js";
 import { assertExactlyOneMealItemSource } from "../meals/meal-item-source.js";
+import { dishServedIn } from "../meal-input/plate-portion.js";
 
 const recipeInclude = {
   user: { select: { id: true, username: true } },
@@ -30,7 +31,16 @@ type RecipeSummaryRow = Prisma.RecipeGetPayload<{ include: typeof recipeSummaryI
 const notFound = () => Object.assign(new Error("recipe_not_found"), { status: 404, publicCode: "recipe_not_found" });
 
 export function serializeRecipe(recipe: FullRecipe) {
-  return { ...recipe, nutrition: calculateRecipeNutrition(recipe as RecipeWithIngredients) };
+  return { ...recipe, servedIn: dishServedIn(recipe.provenance), nutrition: calculateRecipeNutrition(recipe as RecipeWithIngredients) };
+}
+
+// The editor's "served in" choice lives in provenance.servedIn (the field the
+// plate logic reads, see dishServedIn), merged into whatever provenance the
+// recipe already carries (import trust, fork origin) — no schema change.
+function withServedIn(provenance: Prisma.JsonValue | null | undefined, servedIn: RecipeInput["servedIn"]): Prisma.InputJsonValue | undefined {
+  const base = provenance && typeof provenance === "object" && !Array.isArray(provenance) ? provenance as Prisma.JsonObject : undefined;
+  if (!servedIn) return base as Prisma.InputJsonValue | undefined;
+  return { ...(base ?? {}), servedIn } as Prisma.InputJsonValue;
 }
 
 // Card-shaped projection: metadata plus computed nutrition, never the raw
@@ -76,7 +86,7 @@ export async function createRecipe(prisma: PrismaClient, userId: string, input: 
       visibility: input.visibility,
       sourceType: input.sourceType,
       sourceUrl: trustedImport?.sourceUrl ?? input.sourceUrl,
-      provenance: trustedImport ? { importedAt: new Date().toISOString(), extractionMethod: trustedImport.extractionMethod, sourceUrl: trustedImport.sourceUrl, trust: "source_verified" } : undefined,
+      provenance: withServedIn(trustedImport ? { importedAt: new Date().toISOString(), extractionMethod: trustedImport.extractionMethod, sourceUrl: trustedImport.sourceUrl, trust: "source_verified" } : undefined, input.servedIn),
       ingredients: { create: ingredientCreates(input) }
     },
     include: recipeInclude
@@ -137,6 +147,7 @@ export async function updateRecipe(prisma: PrismaClient, userId: string, recipeI
         finishedWeightGrams: input.finishedWeightGrams,
         visibility: input.visibility,
         ...(preserveTrustedSource ? {} : { sourceType: input.sourceType, sourceUrl: input.sourceUrl }),
+        ...(input.servedIn ? { provenance: withServedIn(existing.provenance, input.servedIn) } : {}),
         ingredients: { create: ingredientCreates(input) }
       },
       include: recipeInclude

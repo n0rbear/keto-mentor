@@ -327,6 +327,10 @@ export const recipeInputSchema = z.object({
   sourceType: z.enum(["manual", "schema_org", "ai_structured"]).default("manual"),
   sourceUrl: safeRecipeSourceUrlSchema.optional(),
   importProof: z.string().max(4_000).optional(),
+  // How the dish is eaten ("Mély tányérban eszem", 2026-10-12). Stored as
+  // provenance.servedIn, which the plate-portion logic reads. Omitted on an
+  // update = keep the current value.
+  servedIn: z.enum(["flat_plate", "deep_plate"]).optional(),
   ingredients: z.array(recipeIngredientSchema).min(1).max(50)
 });
 // recipeMealSchema carries no legitimate extra fields (unlike recipeInputSchema
