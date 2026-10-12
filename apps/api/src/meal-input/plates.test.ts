@@ -167,6 +167,44 @@ describe("plate amounts of a saved recipe (POST /me/plate-portion)", () => {
   });
 });
 
+// Owner decision 2026-10-12: own recipes can be marked "Mély tányérban eszem"
+// (provenance.servedIn, the same field the reference dishes carry).
+describe("own recipe marked as eaten from a deep plate", () => {
+  const recipes = [
+    { id: "own-deep", userId: "user-1", visibility: "private", provenance: { servedIn: "deep_plate" } },
+    { id: "own-flat", userId: "user-1", visibility: "private", provenance: { servedIn: "flat_plate" } },
+    { id: "own-plain", userId: "user-1", visibility: "private", provenance: null },
+    { id: "fork-made-flat", userId: "user-1", visibility: "private", provenance: { forkedFromRecipeId: "g", sourceProvenance: { kind: "reference_dish", densityGPerMl: 1.022, servedIn: "deep_plate" }, servedIn: "flat_plate" } }
+  ];
+  const flat = { id: "f1", userId: "user-1", name: "Lapos", kind: "flat", diameterMm: 240 };
+  const deep = { id: "d1", userId: "user-1", name: "Mély", kind: "deep", capacityMl: 500 };
+  const post = async (base: string, body: unknown) => (await fetch(`${base}/me/plate-portion`, json("POST", body))).json();
+
+  it("the own choice is read by dishServedIn and overrides a copied reference value", () => {
+    expect(dishServedIn({ servedIn: "deep_plate" })).toBe("deep_plate");
+    expect(dishServedIn({ trust: "source_verified", servedIn: "deep_plate" })).toBe("deep_plate");
+    expect(dishServedIn(recipes[3].provenance)).toBe("flat_plate");
+    expect(dishServedIn({ servedIn: "bogus" })).toBeNull();
+  });
+
+  it("'egy tányér' of a deep-marked own recipe: the user's deep plate, else the average deep plate (600 ml)", async () => {
+    const saved = await start(fakePrisma([flat, deep], recipes).prisma);
+    expect(await post(saved, { recipeId: "own-deep", unit: "plate" })).toEqual({ grams: 375, densityGPerMl: 1, basis: "default", plate: { source: "saved", name: "Mély", kind: "deep", capacityMl: 500 } });
+    const none = await start(fakePrisma([], recipes).prisma);
+    expect(await post(none, { recipeId: "own-deep", unit: "plate" })).toEqual({ grams: 450, densityGPerMl: 1, basis: "default", plate: { source: "average", kind: "deep", capacityMl: 600 } });
+    const onlyFlat = await start(fakePrisma([flat], recipes).prisma);
+    expect((await post(onlyFlat, { recipeId: "own-deep", unit: "plate" })).plate).toEqual({ source: "average", kind: "deep", capacityMl: 600 });
+  });
+
+  it("unmarked or flat-marked own recipes stay on the flat plate", async () => {
+    const saved = await start(fakePrisma([flat, deep], recipes).prisma);
+    for (const recipeId of ["own-plain", "own-flat", "fork-made-flat"])
+      expect((await post(saved, { recipeId, unit: "plate" })).plate).toMatchObject({ source: "saved", name: "Lapos", kind: "flat" });
+    const none = await start(fakePrisma([], recipes).prisma);
+    expect((await post(none, { recipeId: "own-plain", unit: "plate" })).plate).toEqual({ source: "average", kind: "flat", diameterMm: 260 });
+  });
+});
+
 describe("one-time plate question answer (PUT /me/plate-setup)", () => {
   it("persists skipped or saved on the user's own profile; nothing else is accepted", async () => {
     const { prisma, profiles } = fakePrisma();

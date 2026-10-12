@@ -52,6 +52,11 @@ export function RecipeEditor({ lang, state, editing, onSaved, onCancel }: {
   const [servings, setServings] = useState(editing?.servings?.toString() ?? "");
   const [finishedWeight, setFinishedWeight] = useState(editing?.finishedWeightGrams?.toString() ?? "");
   const [visibility, setVisibility] = useState<"private" | "public">(editing?.visibility === "public" ? "public" : "private");
+  // "Mély tányérban eszem" (2026-10-12): flat by default; a copied reference
+  // soup shows its deep value. Sent on create, and on edit only when changed,
+  // so an untouched copy keeps its reference value as-is.
+  const initialServedIn = editing?.servedIn === "deep_plate" ? "deep_plate" : "flat_plate";
+  const [servedIn, setServedIn] = useState<"flat_plate" | "deep_plate">(initialServedIn);
   const [ingredients, setIngredients] = useState<Ingredient[]>(() => (editing?.ingredients ?? []).map((ingredient) => ({ ...ingredient, originalText: ingredient.originalText ?? undefined, preparation: ingredient.preparation ?? undefined })));
   const [candidate, setCandidate] = useState<Food | null>(null);
   const [candidateGrams, setCandidateGrams] = useState("100");
@@ -122,7 +127,7 @@ export function RecipeEditor({ lang, state, editing, onSaved, onCancel }: {
     if (importBlocked) return setStatus(imp.blocked);
     setSaving(true);
     setStatus("");
-    const body = { title, description: description || undefined, instructions, servings: servings ? Number(servings) : undefined, finishedWeightGrams: finishedWeight ? Number(finishedWeight) : undefined, visibility, sourceType: importPreview ? importPreview.extractionMethod === "ai_structured" ? "ai_structured" : "schema_org" : "manual", ...(importPreview ? { sourceUrl: importPreview.sourceUrl, importProof: importPreview.importProof } : {}), ingredients: allIngredients.map(({ foodId, quantityGrams, preparation, originalText, sortOrder }) => ({ foodId, quantityGrams, ...(preparation ? { preparation } : {}), ...(originalText ? { originalText } : {}), sortOrder })) };
+    const body = { title, description: description || undefined, instructions, servings: servings ? Number(servings) : undefined, finishedWeightGrams: finishedWeight ? Number(finishedWeight) : undefined, visibility, ...(!editing || servedIn !== initialServedIn ? { servedIn } : {}), sourceType: importPreview ? importPreview.extractionMethod === "ai_structured" ? "ai_structured" : "schema_org" : "manual", ...(importPreview ? { sourceUrl: importPreview.sourceUrl, importProof: importPreview.importProof } : {}), ingredients: allIngredients.map(({ foodId, quantityGrams, preparation, originalText, sortOrder }) => ({ foodId, quantityGrams, ...(preparation ? { preparation } : {}), ...(originalText ? { originalText } : {}), sortOrder })) };
     try {
       const result = await api<{ recipe: { id: string } }>(editing ? `/recipes/${editing.id}` : "/recipes", { method: editing ? "PUT" : "POST", body: JSON.stringify(body) }, state);
       onSaved(result.recipe.id);
@@ -156,6 +161,7 @@ export function RecipeEditor({ lang, state, editing, onSaved, onCancel }: {
       <label>{t.recipes.finishedWeightLabel}<input className="field" type="number" min="0.1" step="0.1" value={finishedWeight} onChange={(e) => setFinishedWeight(e.target.value)}/></label>
     </div>
     <fieldset className="visibility-toggle"><legend>{t.recipes.visibilityLegend}</legend><label><input type="radio" checked={visibility === "private"} onChange={() => setVisibility("private")}/> {t.recipes.visibilityPrivateOption}</label><label><input type="radio" checked={visibility === "public"} onChange={() => setVisibility("public")}/> {t.recipes.visibilityPublicOption}</label></fieldset>
+    <fieldset className="visibility-toggle"><legend>{t.recipes.servedInLegend}</legend><label><input type="radio" name="recipe-served-in" checked={servedIn === "flat_plate"} onChange={() => setServedIn("flat_plate")}/> {t.recipes.servedInFlatOption}</label><label><input type="radio" name="recipe-served-in" checked={servedIn === "deep_plate"} onChange={() => setServedIn("deep_plate")}/> {t.recipes.servedInDeepOption}</label></fieldset>
     <div className="ingredient-adder"><FoodCombobox idPrefix="recipe-food" lang={lang} state={state} selected={candidate} onSelect={setCandidate} resetVersion={resetVersion} labels={{ label: reviewIndex == null ? t.recipes.ingredientLabel : imp.resolve, placeholder: t.foodSearch.placeholder, loading: t.foodSearch.loading, noResults: t.foodSearch.noResults, hint: t.foodSearch.hint, selected: t.foodSearch.selected }}/><label>{t.recipes.gramsFieldLabel}<input className="field" type="number" min="0.1" step="0.1" value={candidateGrams} onChange={(e) => setCandidateGrams(e.target.value)}/></label><button type="button" className="btn secondary" onClick={addIngredient}><Plus size={16}/>{t.recipes.addIngredient}</button></div>
     <div className="ingredient-list">{ingredients.map((ingredient, index) => { const ingredientName = pickDisplayName(ingredient.food, lang); return <div className="ingredient-row" key={`${ingredient.foodId}-${index}`}><strong>{ingredientName}</strong><input aria-label={`${ingredientName} ${t.recipes.gramsFieldLabel}`} className="field" type="number" min="0.1" step="0.1" value={ingredient.quantityGrams} onChange={(e) => setIngredients((items) => items.map((item, i) => i === index ? { ...item, quantityGrams: Number(e.target.value) } : item))}/><span>g</span><button className="icon-button" aria-label={t.recipes.removeIngredient} onClick={() => setIngredients((items) => items.filter((_, i) => i !== index))}><Trash2 size={17}/></button></div>; })}</div>
     <NutritionSummary title={partialNutrition ? t.recipes.partialNutrition : t.recipes.totalNutrition} totals={live}/>
