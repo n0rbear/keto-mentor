@@ -449,6 +449,17 @@ export function rankFoodCandidates(candidates: any[], variants: readonly string[
     });
 }
 
+// The result limit must not split a tie. When several foods carry the same
+// trusted identity (a shared reviewed alias such as bare "tej"/"milk", which
+// is how the catalog offers a choice), a ranking penalty can push one of them
+// below lexical partial matches; it is kept anyway, after the first `take`.
+function withTiedIdentities<T extends { match: FoodSearchMatch }>(ranked: T[], take: number): T[] {
+  const head = ranked.slice(0, take);
+  const tiedScores = new Set(head.filter((food) => isTrustedLocalMatch(food.match)).map((food) => `${food.match.query}|${food.match.score}`));
+  if (!tiedScores.size) return head;
+  return [...head, ...ranked.slice(take).filter((food) => isTrustedLocalMatch(food.match) && tiedScores.has(`${food.match.query}|${food.match.score}`))];
+}
+
 export async function searchFoods(prisma: CatalogPrisma, rawQuery: string, limit = 20, formEvidence?: FormEvidence) {
   const variants = expandFoodQuery(rawQuery);
   // Live 500 (2026-09-26, typing "1 t"): no word of two or more letters
@@ -472,7 +483,7 @@ export async function searchFoods(prisma: CatalogPrisma, rawQuery: string, limit
       candidates.push(...fuzzy);
       ranked = rankFoodCandidates(candidates, variants, aliasesByFood, fuzzyIds, rankingQuery);
     }
-    const winners = ranked.slice(0, take);
+    const winners = withTiedIdentities(ranked, take);
     if (!winners.length) return [];
     const full = await prisma.food.findMany({
       where: { id: { in: winners.map(food => food.id) }, createdById: null },
@@ -505,5 +516,5 @@ export async function searchFoods(prisma: CatalogPrisma, rawQuery: string, limit
   }
   const missingIds = [...new Set(aliases.map(alias => alias.foodId))].filter(id => !candidates.some(food => food.id === id));
   if (missingIds.length) candidates.push(...await prisma.food.findMany({ where: { id: { in: missingIds }, createdById: null }, orderBy: { id: "asc" }, take: 96 }));
-  return withoutDryFormsForDrink(drinkIdentities, rankFoodCandidates(candidates, variants, aliasesByFood, fuzzyIds, rankingQuery).slice(0, take));
+  return withoutDryFormsForDrink(drinkIdentities, withTiedIdentities(rankFoodCandidates(candidates, variants, aliasesByFood, fuzzyIds, rankingQuery), take));
 }

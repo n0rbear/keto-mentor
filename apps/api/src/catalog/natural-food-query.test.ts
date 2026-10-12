@@ -113,9 +113,9 @@ describe("natural food query parser", () => {
     (text, expected) => expect(parseNaturalFoodQuery(text)).toEqual(expected)
   );
 
-  it("separates preparation from base food (tükörtojás -> tojás + fried)", () => expect(parseNaturalFoodQuery("3 tükörtojás")).toEqual({ quantity: 3, unit: "piece", foodQuery: "tojas", preparation: "fried" }));
-  it("parses '5 tojásból rántotta' as tojás + scrambled", () => expect(parseNaturalFoodQuery("5 tojásból rántotta")).toEqual({ quantity: 5, unit: "piece", foodQuery: "tojas", preparation: "scrambled" }));
-  it("parses 'tojásrántotta 5 tojásból' as tojás + scrambled", () => expect(parseNaturalFoodQuery("tojásrántotta 5 tojásból")).toEqual({ quantity: 5, unit: "piece", foodQuery: "tojas", preparation: "scrambled" }));
+  it("separates preparation from base food (tükörtojás -> tojás + fried)", () => expect(parseNaturalFoodQuery("3 tükörtojás")).toEqual({ quantity: 3, unit: "piece", foodQuery: "tojas", preparation: "fried", literalFoodQuery: "tukortojas" }));
+  it("parses '5 tojásból rántotta' as tojás + scrambled", () => expect(parseNaturalFoodQuery("5 tojásból rántotta")).toEqual({ quantity: 5, unit: "piece", foodQuery: "tojas", preparation: "scrambled", literalFoodQuery: "tojasbol", literalPreparation: "scrambled" }));
+  it("parses 'tojásrántotta 5 tojásból' as tojás + scrambled", () => expect(parseNaturalFoodQuery("tojásrántotta 5 tojásból")).toEqual({ quantity: 5, unit: "piece", foodQuery: "tojas", preparation: "scrambled", literalFoodQuery: "tojasrantotta tojasbol" }));
   it("parses 'főtt tojás' as tojás + boiled", () => expect(parseNaturalFoodQuery("2 főtt tojás")).toEqual({ quantity: 2, unit: "piece", foodQuery: "tojas", preparation: "boiled" }));
   it("parses '100 g bacon'", () => expect(parseNaturalFoodQuery("100 g bacon")).toEqual({ quantity: 100, unit: "g", foodQuery: "bacon" }));
   it("parses diacritic-free input", () => expect(parseNaturalFoodQuery("kigyouborka")).toEqual({ foodQuery: "kigyouborka" }));
