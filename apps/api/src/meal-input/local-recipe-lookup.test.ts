@@ -148,3 +148,30 @@ describe("withoutLeadingAmount (owner report 2026-10-11)", () => {
     ["a plate of goulash soup", "goulash soup"], ["2 servings of goulash soup", "goulash soup"], ["babgulyás", "babgulyás"]
   ])("%s -> %s", (text, dish) => expect(withoutLeadingAmount(text)).toBe(dish));
 });
+
+// Performance (owner log 2026-10-12): the own-recipe lookup used to load the
+// ingredient/nutrient graph of EVERY recipe the user owns to compare titles.
+describe("findTrustedLocalRecipe loads the ingredient graph only for title matches", () => {
+  function countingPrisma(rows: ReturnType<typeof recipeRow>[]) {
+    const included: string[] = [];
+    const findMany = async ({ where, include }: any) => {
+      const matched = rows.filter((r) => r.userId === where.userId && r.deletedAt === null && (!where.id?.in || where.id.in.includes(r.id)));
+      if (include) included.push(...matched.map((r) => r.id));
+      return matched;
+    };
+    return { prisma: { recipe: { findMany } } as any, included };
+  }
+  const many = Array.from({ length: 50 }, (_, i) => recipeRow({ id: `r-${i}`, title: `Recept ${i}` }));
+
+  it("same result, one graph loaded", async () => {
+    const { prisma, included } = countingPrisma([...many, recipeRow({ id: "target", title: "Töltött káposzta" })]);
+    expect(await findTrustedLocalRecipe(prisma, "töltött káposzta", "user-1")).toMatchObject({ status: "found", recipeId: "target", nutritionCalculable: true });
+    expect(included).toEqual(["target"]);
+  });
+
+  it("no title match: no graph loaded at all", async () => {
+    const { prisma, included } = countingPrisma(many);
+    expect(await findTrustedLocalRecipe(prisma, "brassói", "user-1")).toEqual({ status: "not_found" });
+    expect(included).toEqual([]);
+  });
+});

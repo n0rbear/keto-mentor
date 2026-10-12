@@ -33,6 +33,7 @@ import { getWeekOverview } from "./meals/week-query.js";
 import { recipeRouter } from "./recipes/router.js";
 import { interpretMealInput } from "./meal-input/interpret.js";
 import { attachRecipeDiscoveryFallback } from "./meal-input/recipe-discovery-fallback.js";
+import { timeStage } from "./request-performance.js";
 import { buildDiagnostics } from "./meal-input/diagnostics.js";
 import { configuredFoodAiProvider } from "./ai/food-ai-gateway.js";
 import { FoodNlpUserRateLimiter, rateLimitedFoodNlpProvider } from "./ai/food-nlp-rate-limit.js";
@@ -331,9 +332,9 @@ const meaningSearchLimiter = new DynamicFoodResolutionRateLimiter(Date.now, { wi
 app.get("/search", requireAuth, async (req, res, next) => {
   try {
     const { q, meaning } = z.object({ q: z.string().max(200).default(""), meaning: z.enum(["0", "1"]).default("0") }).parse(req.query);
-    res.json(await unifiedSearch(prisma, q, meaning === "1", {
+    res.json(await timeStage("unified_search", () => unifiedSearch(prisma, q, meaning === "1", {
       userId: req.user!.id, foodLocale: foodLocaleFor(trustedLocale(req.user!)), searchIntentProvider, meaningLimiter: meaningSearchLimiter
-    }));
+    })));
   } catch (error) {
     next(error);
   }
@@ -448,6 +449,7 @@ app.get("/meal-input/progress/:operationId", requireAuth, (req, res) => {
 });
 
 app.post("/meal-input/interpret", requireAuth, async (req, res, next) => {
+  const requestStartedAt = performance.now();
   let operationId: string | undefined;
   try {
     const input = mealInterpretationSchema.parse(req.body);
@@ -483,13 +485,17 @@ app.post("/meal-input/interpret", requireAuth, async (req, res, next) => {
     // per-ingredient resolution otherwise has only the sparse local catalog
     // to match against. Still `null` whenever no external adapters are
     // configured, matching ordinary meal-input's own behavior exactly.
-    const withDiscovery = await attachRecipeDiscoveryFallback(result, { discoveryService: recipeDiscoveryService, recipeAiProvider: recipeDiscoveryAiProvider, prisma, userId: req.user!.id, locale: trustedLocale(req.user!), onProgress, dynamic: recipeIngredientDynamic, recipeIngredientNormalizationProvider, recipeQuantityEstimationProvider });
+    const withDiscovery = await timeStage("recipe_discovery_fallback", () => attachRecipeDiscoveryFallback(result, { discoveryService: recipeDiscoveryService, recipeAiProvider: recipeDiscoveryAiProvider, prisma, userId: req.user!.id, locale: trustedLocale(req.user!), onProgress, dynamic: recipeIngredientDynamic, recipeIngredientNormalizationProvider, recipeQuantityEstimationProvider }));
     onProgress("finalizing");
     // Owner-beta diagnostics checkpoint (2026-09-13): derived entirely from
     // the already-computed, already-response-bound result above — see
     // diagnostics.ts. Never a second AI/network call, never data the client
     // couldn't already see elsewhere in this same JSON body.
-    res.json({ ...withDiscovery, diagnostics: buildDiagnostics(withDiscovery, trustedLocale(req.user!)) });
+    const diagnosticsStartedAt = performance.now();
+    const diagnostics = buildDiagnostics(withDiscovery, trustedLocale(req.user!));
+    console.log(`timing_stage stage=build_diagnostics ms=${Math.round(performance.now() - diagnosticsStartedAt)}`);
+    res.json({ ...withDiscovery, diagnostics });
+    console.log(`timing_stage stage=REQUEST_TOTAL ms=${Math.round(performance.now() - requestStartedAt)}`);
   } catch (error) {
     next(error);
   } finally {
