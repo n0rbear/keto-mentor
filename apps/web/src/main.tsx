@@ -24,6 +24,7 @@ import { UpdateBanner } from "./UpdateBanner";
 import { OfflineBanner } from "./OfflineBanner";
 import { DiagnosticsPanel, type DiagnosticEvent } from "./DiagnosticsPanel";
 import { BuildInfo } from "./BuildInfo";
+import { FeedbackReport } from "./FeedbackReport";
 import { MyPlates, PlateSetup, plateSetupPending } from "./PlateSetup";
 import type { QuantityClarification as Clarification } from "@keto-mentor/shared";
 
@@ -99,6 +100,9 @@ export function App() {
   const [confirmingRecipe, setConfirmingRecipe] = useState(false);
   const [confirmingAiEstimate, setConfirmingAiEstimate] = useState(false);
   const [myPlatesOpen, setMyPlatesOpen] = useState(false);
+  // Context for an in-app bug report (FeedbackReport): the last meal text the
+  // user actually submitted and that request's progress operationId.
+  const [lastInterpretRequest, setLastInterpretRequest] = useState<{ text: string; operationId: string } | null>(null);
   const t = dict[lang];
   const state = useMemo(() => ({ token, setToken }), [token]);
 
@@ -298,6 +302,7 @@ export function App() {
     // the result replaces the (very briefly shown, if at all) button
     // spinner directly, with no artificial delay.
     const operationId = crypto.randomUUID();
+    setLastInterpretRequest({ text: naturalInput, operationId });
     const stopProgress = streamProgress(operationId, state, (stage) => setProgressStage(stage as ProgressStage));
     try {
       const result = await api<MealInterpretation>("/meal-input/interpret", { method: "POST", body: JSON.stringify({ text: naturalInput, operationId }) }, state);
@@ -636,6 +641,13 @@ export function App() {
           <div className="header-actions">
             <select aria-label={lang === "hu" ? "Nyelv" : lang === "de" ? "Sprache" : "Language"} className="field compact" value={lang} onChange={(e) => changeLang(e.target.value as Lang)}><option value="hu">HU</option><option value="de">DE</option><option value="en">EN</option></select>
 
+            {user && (
+              <FeedbackReport lang={lang} state={state} getContext={() => ({
+                view: !profile ? "loading" : !profile.onboardingDone ? "onboarding" : myPlatesOpen ? "my_plates" : plateSetupPending(user) ? "plate_setup" : `dashboard${window.location.hash ? window.location.hash.slice(0, 20) : ""}`,
+                lastInput: lastInterpretRequest?.text,
+                operationId: lastInterpretRequest?.operationId
+              })}/>
+            )}
             {user && profile?.onboardingDone && (
               <button type="button" className="btn ghost" aria-label={t.myPlates.open} aria-expanded={myPlatesOpen}
                 onClick={() => { setMyPlatesOpen(true); document.getElementById("top")?.scrollIntoView?.({ behavior: "smooth" }); }}>

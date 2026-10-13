@@ -59,6 +59,7 @@ import { editPrivateFood } from "./catalog/edit-private-food.js";
 import { publishProgress, subscribeProgress, closeProgress } from "./meal-input/progress-bus.js";
 import { configuredTranscriptionProvider } from "./ai/transcription-gateway.js";
 import { TranscriptionProviderError } from "./ai/transcription-provider.js";
+import { feedbackRouter } from "./feedback/feedback.js";
 import { platesRouter } from "./meal-input/plates.js";
 import { VOICE_TRANSCRIBE_RATE_LIMIT, voiceTranscribeRateLimitKey } from "./meal-input/voice-rate-limit.js";
 
@@ -423,6 +424,8 @@ app.post(
 // (thrown before the route handler above ever runs) — kept as a normal JSON
 // error response rather than Express's default HTML error page.
 app.use(platesRouter(prisma, requireAuth));
+// In-app bug reports: one searchable `user_feedback` log line each — see feedback/feedback.ts.
+app.use(feedbackRouter(requireAuth));
 app.use("/meal-input/transcribe", (error: any, _req: express.Request, res: express.Response, next: express.NextFunction) => {
   if (error?.type === "entity.too.large") return res.status(413).json({ error: "audio_too_large" });
   next(error);
