@@ -17,6 +17,15 @@ export type ParsedNaturalFoodQuery = {
   // real user-stated information a future packaged-product lookup could use;
   // never part of the identity search itself.
   retailChain?: string;
+  // The food words exactly as typed (units, quantities and standalone
+  // preparation words removed, but no case-suffix or attached-preparation
+  // stripping). Present only when it differs from foodQuery. Suffix
+  // stripping is a blind heuristic: it turns "tojásból" into "tojás", but
+  // also "kávé" into "ka", "gomba" into "gom", "Brot" into "br" and
+  // "parboiled" into "par" + boiled. The interpreter searches this form as
+  // well and uses it only when it is a strictly better trusted catalog match.
+  literalFoodQuery?: string;
+  literalPreparation?: string;
   items?: ParsedNaturalFoodQuery[];
 };
 
@@ -53,6 +62,9 @@ const UNITS = new Map<string, NaturalQuantityUnit>([
   // AI-estimate -> manual-grams chain as "piece"/"cup"/etc., since a
   // universal 1 ml = 1 g assumption would be wrong for most real foods.
   ["ml", "ml"], ["milliliter", "ml"], ["milliliterek", "ml"], ["millilitre", "ml"],
+  // "dl" (deciliter = 100 ml) is how Hungarians measure milk and other
+  // drinks ("2 dl tej"); unrecognized it stayed glued to the food query.
+  ["dl", "ml"], ["deciliter", "ml"],
   ["l", "l"], ["liter", "l"], ["liters", "l"], ["litre", "l"], ["litres", "l"],
   ["db", "piece"], ["darab", "piece"], ["piece", "piece"], ["pieces", "piece"], ["stuk", "piece"], ["stuck", "piece"], ["stucke", "piece"],
   ["whole", "piece"], ["egesz", "piece"], ["ganz", "piece"], ["ganze", "piece"], ["ganzen", "piece"],
@@ -92,7 +104,20 @@ const NUMBERS = new Map([
 // raw quantity must be scaled up by the token actually matched (looked up by
 // explicitUnitWord, never by the resolved `unit` itself, which is deliberately
 // coarser than the real vocabulary of tokens that resolve to it).
-const UNIT_TOKEN_SCALE = new Map<string, number>([["dkg", 10], ["deka", 10], ["dekagramm", 10], ["dekagram", 10]]);
+const UNIT_TOKEN_SCALE = new Map<string, number>([["dkg", 10], ["deka", 10], ["dekagramm", 10], ["dekagram", 10], ["dl", 100], ["deciliter", 100]]);
+
+// "whole"/"egész"/"ganz" means one whole item ("whole avocado"), except where
+// it is part of the food's own name: "whole milk", "whole grain", "whole
+// wheat". With no stated quantity, those keep "whole" in the food words.
+const WHOLE_UNIT_WORDS = new Set(["whole", "egesz", "ganz", "ganze", "ganzen"]);
+const WHOLE_IS_PART_OF_NAME_BEFORE = new Set(["milk", "grain", "wheat", "meal"]);
+
+// A fat or strength percentage ("3,5%-os tej", "1,5 % Milch", "2% milk") is
+// part of the food's identity, never its quantity. It is protected as one
+// token before quantity parsing and restored afterwards in its normalized
+// form ("3 5 os"), the same form a catalog name or alias normalizes to.
+const PERCENT_PHRASE = /(\d+(?:[.,]\d+)?)\s*%(?:-?(os|as|es|ös|os))?/giu;
+const PERCENT_TOKEN = /\bpct([0-9x]+?)(?:x(os|as|es))?pct\b/g;
 
 const HALF_WORDS = new Set(["fel", "fele", "half", "halb", "halbe"]);
 const IMPLICIT_ONE_UNIT_WORDS = new Set(["fel", "fele", "half", "halb", "halbe", "halbes", "negyed", "quarter", "viertel", "whole", "egesz", "ganz", "ganze", "ganzen"]);
@@ -266,6 +291,20 @@ function extractBaseFood(token: string): { base: string; preparation?: string } 
   return { base, preparation };
 }
 
+const PERCENT_TOKEN_SINGLE = /^pct[0-9x]+?(?:x(?:os|as|es))?pct$/;
+
+function protectPercent(raw: string): string {
+  return raw.replace(PERCENT_PHRASE, (_match, value: string, suffix?: string) => {
+    const digits = normalizeSearch(value).replace(/ /g, "x");
+    const ending = suffix ? `x${normalizeSearch(suffix)}` : "";
+    return ` pct${digits}${ending}pct `;
+  });
+}
+
+function restorePercent(text: string): string {
+  return text.replace(PERCENT_TOKEN, (_match, digits: string, suffix?: string) => [digits.replace(/x/g, " "), suffix].filter(Boolean).join(" "));
+}
+
 function parseSegment(normalized: string): ParsedNaturalFoodQuery {
   const tokens = normalized.replace(/^a(n)?\s+/, "one ").split(" ").filter(Boolean).filter((token) => !SPEECH_VERBS.has(token) && !["a", "an", "of"].includes(token));
 
@@ -329,7 +368,8 @@ function parseSegment(normalized: string): ParsedNaturalFoodQuery {
   let restAfterUnit = restAfterSize;
   if (restAfterSize.length) {
     const u = UNITS.get(restAfterSize[0]);
-    if (u) { unit = u; explicitUnitWord = restAfterSize[0]; restAfterUnit = restAfterSize.slice(1); }
+    const wholeIsName = quantity == null && WHOLE_UNIT_WORDS.has(restAfterSize[0]) && WHOLE_IS_PART_OF_NAME_BEFORE.has(restAfterSize[1] ?? "");
+    if (u && !wholeIsName) { unit = u; explicitUnitWord = restAfterSize[0]; restAfterUnit = restAfterSize.slice(1); }
   }
   if (quantity == null && explicitUnitWord && IMPLICIT_ONE_UNIT_WORDS.has(explicitUnitWord)) quantity = 1;
   if (quantity != null && explicitUnitWord && UNIT_TOKEN_SCALE.has(explicitUnitWord)) quantity *= UNIT_TOKEN_SCALE.get(explicitUnitWord)!;
@@ -353,18 +393,27 @@ function parseSegment(normalized: string): ParsedNaturalFoodQuery {
   if (unit === "splash") foodText = foodText.replace(/\b(kaveba|in den kaffee|in coffee)\b.*$/i, "").trim();
 
   const foodTokens: string[] = [];
+  const literalTokens: string[] = [];
   const preparations: string[] = [];
+  const standalonePreparations: string[] = [];
   for (const token of foodText.split(" ").filter(Boolean)) {
-    if (PREPARATION_CONCEPTS[token]) { preparations.push(PREPARATION_CONCEPTS[token]); continue; }
+    if (PREPARATION_CONCEPTS[token]) { preparations.push(PREPARATION_CONCEPTS[token]); standalonePreparations.push(PREPARATION_CONCEPTS[token]); continue; }
+    if (PERCENT_TOKEN_SINGLE.test(token)) { foodTokens.push(token); literalTokens.push(token); continue; }
     const { base, preparation } = extractBaseFood(token);
     if (preparation) preparations.push(preparation);
     if (base.length >= 2) foodTokens.push(base);
+    if (token.length >= 2) literalTokens.push(token);
   }
 
-  const foodQuery = [...new Set(foodTokens)].join(" ").trim() || normalized;
+  const foodQuery = restorePercent([...new Set(foodTokens)].join(" ").trim()) || normalized;
+  const literalFoodQuery = restorePercent([...new Set(literalTokens)].join(" ").trim());
   const preparation = preparations[0];
 
   const result: ParsedNaturalFoodQuery = { foodQuery };
+  if (literalFoodQuery && literalFoodQuery !== foodQuery) {
+    result.literalFoodQuery = literalFoodQuery;
+    if (standalonePreparations[0]) result.literalPreparation = standalonePreparations[0];
+  }
   if (quantity != null) { result.quantity = quantity; result.unit = unit; }
   if (quantityUpper != null) result.quantityUpper = quantityUpper;
   if (size) result.size = size;
@@ -402,7 +451,8 @@ export function parseNaturalFoodQuery(raw: string): ParsedNaturalFoodQuery {
   // unit must still tokenize as quantity + unit, not one unmatched word.
   // Applied before decimal protection so a glued unit after a decimal
   // ("1,5kg") still splits correctly without disturbing the "1,5" itself.
-  const spaced = raw.replace(/(\d)([a-zA-Z])/g, "$1 $2");
+  // A percentage is protected right after that split (see PERCENT_PHRASE).
+  const spaced = protectPercent(raw.replace(/(\d)([a-zA-Z])/g, "$1 $2"));
   const numericSafe = spaced
     .replace(/½/g, " 0decimal5 ")
     .replace(/¼/g, " 0decimal25 ")

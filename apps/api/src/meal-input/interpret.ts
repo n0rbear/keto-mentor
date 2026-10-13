@@ -433,11 +433,26 @@ function coveredLocalCandidates(foodQuery: string, candidates: ResolvedFood[]): 
 async function interpretOne(
   prisma: SearchablePrisma,
   input: string,
-  parsed: ParsedNaturalFoodQuery,
+  parsedInput: ParsedNaturalFoodQuery,
   provider: QuantityEstimationProvider,
   dynamic: DynamicResolutionDeps = null
 ): Promise<InterpretResult> {
-  const baseCandidates = await timeStage("local_search", async () => (await searchFoods(prisma, parsed.foodQuery, 8)) as unknown as ResolvedFood[]);
+  let parsed = parsedInput;
+  let baseCandidates = await timeStage("local_search", async () => (await searchFoods(prisma, parsed.foodQuery, 8)) as unknown as ResolvedFood[]);
+  // The parser's case-suffix stripping is blind ("kávé" -> "ka", "gomba" ->
+  // "gom", "Brot" -> "br"). The words as typed are searched too and win only
+  // as a trusted catalog match strictly stronger than the stripped form's.
+  const literalFoodQuery = parsedInput.literalFoodQuery;
+  if (literalFoodQuery) {
+    const literalCandidates = await timeStage("local_search", async () => (await searchFoods(prisma, literalFoodQuery, 8)) as unknown as ResolvedFood[]);
+    const literalTop = literalCandidates[0]?.match;
+    if (literalTop && isTrustedLocalMatch(literalTop) && literalTop.score > (baseCandidates[0]?.match?.score ?? 0)) {
+      const { literalFoodQuery: _literal, literalPreparation, ...rest } = parsedInput;
+      parsed = { ...rest, foodQuery: literalFoodQuery, preparation: literalPreparation };
+      if (!literalPreparation) delete parsed.preparation;
+      baseCandidates = literalCandidates;
+    }
+  }
 
   let preparedFood: ResolvedFood | null = null;
   const prepSearchToken = parsed.preparation ? PREP_SEARCH_TOKEN[parsed.preparation] : undefined;
@@ -545,9 +560,16 @@ async function interpretOne(
   const preparedFound = !!preparedFood;
 
   let ambiguous = false;
-  if (!hasPrep && candidates.length > 1) {
+  // Only the egg preparations that pick a distinct catalog record (see
+  // needsPreparedFormLookup) may suppress the tie check. A merely descriptive
+  // preparation word must not turn a genuine tie into a silent pick: "nyers
+  // tej" is still a choice between the milk records, like bare "tej".
+  if (!needsPreparedFormLookup && candidates.length > 1) {
     const s0 = candidates[0].match?.score ?? 0;
-    const s1 = candidates[1].match?.score ?? 0;
+    // The strongest OTHER candidate, not merely the second in display order:
+    // ranking penalties (a "dried"/"with ..." source name) can sort a tied
+    // record below a weaker partial match.
+    const s1 = Math.max(...candidates.slice(1).map((candidate) => candidate.match?.score ?? 0));
     // A real generic ambiguity means top candidates are nearly tied (e.g. two
     // cheeses both at 95). A clear winner (e.g. egg 100 vs 95) must NOT be
     // flagged ambiguous just because a prepared form shares a base alias.
