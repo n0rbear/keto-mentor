@@ -20,10 +20,14 @@ Compact continuity state for the Master/worker workflow. Git, tests and this fil
 ## Regional methodology (from #75/#76 — follow exactly)
 Source of truth = Python modules in `data/reference-dishes/` (`at.py`, `hu*.py`, `common.py`, `foods.py`); `build.py` validates/derives; generated TS data + idempotent seed. Every dish: countries, category, aliases per `hu`/`de`/`de-AT`/`en`, ≥2 dated recipe sources, every ingredient → existing BLS/USDA catalog record (BLS first, then USDA; OFF only branded, `chain_official` only chains). Never invent or hand-type nutrition; never substitute — missing record → `<country>-missing-foods.md`, or import from the official BLS 4.0 xlsx via `BlsAdapter`/`bls-migration-sql.ts` in an insert-only migration. Carbs stored total = available + fiber. Rules: `common.MEASURE_G`, `FAT_RETENTION` (drippings), `BOILED_YIELD`, `breaded()`. Per-dish BLS cross-check; >15 % needs a written reason. Minimums counted on built dishes only (no side variants). Build twice → byte-identical. API + web tests and `tsc` green.
 
-## Next tasks
-1. Owner review of #78 and #79 (no merge by Master).
-2. Before staging verification: repoint staging services to the feature branch; staging DB expires 2026-10-13 (owner decision: upgrade or recreate).
-3. Later: fix-list items (USDA import migration for HU-1/3/4–12 + AT gaps; K-1/K-2; BlsAdapter "TR"/"<LOD" handling for dry wines), phase 4 DE, phase 5 chains, phase 6 unit weights/aliases.
+## Next tasks (owner order, 2026-10-13)
+1. **Password reset + switch to e-mail registration/login.** Open decisions: e-mail sending provider (needs owner-supplied API key as Render env var, never in repo); how existing username accounts (incl. owner) get an e-mail attached.
+2. **Privacy notice (Adatvédelmi tájékoztató)** HU/DE/EN page. Needs owner data: controller name, contact e-mail, address/country; lists processors (Render, OpenAI for voice/AI, Tavily web search if live, Open Food Facts lookups).
+3. **Source attribution page** (BLS CC BY 4.0 — mandatory "Max Rubner-Institut (2025): Bundeslebensmittelschlüssel (BLS), Version 4.0" + licence; USDA FDC CC0; Open Food Facts ODbL; chain_official sources).
+4. **Dinner recommendation (Vacsiajánló)** — LOCKED: premium, uses the day's intake to stay within the keto carb target; not a generic recipe recommender. Design decisions to put to owner before building.
+5. **Fast-food chains** = regional phase 5 (brief: chain official per-country tables, ≥20 products per chain, `chain_official` source, HU/AT/DE).
+6. **Render cold start:** owner idea = keep-alive ping every 14 min. Caveat to decide: Render free = 750 instance-hours/month shared by ALL free services in the workspace (keto api + web are among ~5 free services); 24/7 ping ≈ 744 h for one service would exhaust it. Options: ping only daytime (e.g. 06–23 HU ≈ 527 h), or paid Starter for the API.
+- Staging DB `keto-mentor-staging-db` expired 2026-10-13 09:21 UTC (free plan). Recreate only if staging is needed again.
 
 ## Known issues
 - `render.yaml` prod start runs migrate + seed on every boot (pre-existing).
