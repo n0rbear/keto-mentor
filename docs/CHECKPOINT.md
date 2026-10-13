@@ -4,7 +4,7 @@ Compact continuity state for the Master/worker workflow. Git, tests and this fil
 
 - **Date:** 2026-10-13
 - **Checkpoint branch:** `claude/pensive-hamilton-ocsygi` (checkpoint-only; no product code)
-- **main HEAD:** `f96919a` (merge of PR #85, 2026-10-13)
+- **main HEAD:** `8bbd197` (merge of PR #86, 2026-10-13)
 - **Production:** live at `1d027b3` (2026-10-12 03:48 UTC). #81 (stated portion count + "<amount> <dish>" resolves like "<dish>"; tányér = adjustable plate amount, never grams) and #82 (one-time plate question, `Profile.plateSetup` migration applied, average plates flat 26 cm / deep 600 ml, soups always deep, "Tányérjaim" header entry) live; `reference_dishes unchanged=541`. Prod catalog = shared `driverassistant` Postgres, schema `ketomentor`, read-only via Render MCP.
 - **Staging DB:** `keto-mentor-staging-db` is a free-plan instance that **expires 2026-10-13**.
 - **Staging services** still track `fix/web-evidence-production-effectiveness` (merged, stale) — repoint to the next feature branch or `main` before staging verification. Staging start does NOT run migrations.
@@ -19,6 +19,8 @@ Compact continuity state for the Master/worker workflow. Git, tests and this fil
 
 ## Regional methodology (from #75/#76 — follow exactly)
 Source of truth = Python modules in `data/reference-dishes/` (`at.py`, `hu*.py`, `common.py`, `foods.py`); `build.py` validates/derives; generated TS data + idempotent seed. Every dish: countries, category, aliases per `hu`/`de`/`de-AT`/`en`, ≥2 dated recipe sources, every ingredient → existing BLS/USDA catalog record (BLS first, then USDA; OFF only branded, `chain_official` only chains). Never invent or hand-type nutrition; never substitute — missing record → `<country>-missing-foods.md`, or import from the official BLS 4.0 xlsx via `BlsAdapter`/`bls-migration-sql.ts` in an insert-only migration. Carbs stored total = available + fiber. Rules: `common.MEASURE_G`, `FAT_RETENTION` (drippings), `BOILED_YIELD`, `breaded()`. Per-dish BLS cross-check; >15 % needs a written reason. Minimums counted on built dishes only (no side variants). Build twice → byte-identical. API + web tests and `tsc` green.
+
+- DONE (2026-10-13): #86 in-app bug report live — header button "Hibát találtam"; each report = one log line `user_feedback id=<6 hex> user=… view=… lang=… build=… lastInput=… message=…` (search Render logs for `user_feedback`). Log-only, no DB.
 
 ## Next tasks (owner order, 2026-10-13)
 1. **Password reset + switch to e-mail registration/login.** Open decisions: e-mail sending provider (needs owner-supplied API key as Render env var, never in repo); how existing username accounts (incl. owner) get an e-mail attached.
