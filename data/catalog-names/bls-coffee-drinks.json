@@ -1,0 +1,208 @@
+[
+  {
+    "sourceId": "N491000",
+    "names": {
+      "hu": "tejeskávé (fele kávé, fele tej 3,5%)",
+      "en": "coffee with milk, half and half (milk 3.5%)"
+    },
+    "synonyms": {
+      "hu": [
+        "tejeskávé",
+        "tejes kávé",
+        "kávé tejjel fele-fele",
+        "kávé"
+      ],
+      "de": [
+        "Milchkaffee",
+        "Kaffee halb und halb",
+        "Café au lait",
+        "Kaffee"
+      ],
+      "en": [
+        "café au lait",
+        "milky coffee",
+        "coffee"
+      ]
+    }
+  },
+  {
+    "sourceId": "N410200",
+    "names": {
+      "hu": "kávé egy kevés tejjel (3,5%)",
+      "en": "coffee with a dash of milk (3.5%)"
+    },
+    "synonyms": {
+      "hu": [
+        "kávé tejjel",
+        "kávé kevés tejjel",
+        "kávé"
+      ],
+      "de": [
+        "Kaffee mit Milch",
+        "Kaffee"
+      ],
+      "en": [
+        "coffee with milk",
+        "white coffee",
+        "coffee"
+      ]
+    }
+  },
+  {
+    "sourceId": "N414000",
+    "names": {
+      "hu": "cappuccino (tej 3,5%)",
+      "en": "cappuccino (milk 3.5%)"
+    },
+    "synonyms": {
+      "hu": [
+        "cappuccino",
+        "kapucsínó",
+        "kávé"
+      ],
+      "de": [
+        "Cappuccino",
+        "Kaffee"
+      ],
+      "en": [
+        "cappuccino",
+        "coffee"
+      ]
+    }
+  },
+  {
+    "sourceId": "N4A3300",
+    "names": {
+      "hu": "cukros cappuccino (tej 3,5%)",
+      "en": "cappuccino with sugar (milk 3.5%)"
+    },
+    "synonyms": {
+      "hu": [
+        "cukros cappuccino"
+      ],
+      "de": [
+        "Cappuccino mit Zucker"
+      ],
+      "en": [
+        "cappuccino with sugar"
+      ]
+    }
+  },
+  {
+    "sourceId": "N418000",
+    "names": {
+      "hu": "latte macchiato (tej 3,5%)",
+      "en": "latte macchiato (milk 3.5%)"
+    },
+    "synonyms": {
+      "hu": [
+        "latte macchiato",
+        "latte",
+        "caffè latte",
+        "kávé"
+      ],
+      "de": [
+        "Latte macchiato",
+        "Kaffee"
+      ],
+      "en": [
+        "latte macchiato",
+        "latte",
+        "caffe latte",
+        "coffee"
+      ]
+    }
+  },
+  {
+    "sourceId": "N410300",
+    "names": {
+      "hu": "tejes-cukros kávé (tej 3,5%)",
+      "en": "coffee with milk and sugar (milk 3.5%)"
+    },
+    "synonyms": {
+      "hu": [
+        "tejes cukros kávé"
+      ],
+      "de": [
+        "Kaffee mit Milch und Zucker"
+      ],
+      "en": [
+        "coffee with milk and sugar"
+      ]
+    }
+  },
+  {
+    "sourceId": "N410600",
+    "names": {
+      "hu": "cukros kávé",
+      "en": "coffee with sugar"
+    },
+    "synonyms": {
+      "hu": [
+        "cukros kávé",
+        "feketekávé cukorral"
+      ],
+      "de": [
+        "Kaffee mit Zucker"
+      ],
+      "en": [
+        "coffee with sugar"
+      ]
+    }
+  },
+  {
+    "sourceId": "N411200",
+    "names": {
+      "hu": "cukros eszpresszó",
+      "en": "espresso with sugar"
+    },
+    "synonyms": {
+      "hu": [
+        "cukros eszpresszó"
+      ],
+      "de": [
+        "Espresso mit Zucker"
+      ],
+      "en": [
+        "espresso with sugar"
+      ]
+    }
+  },
+  {
+    "sourceId": "N410400",
+    "names": {
+      "hu": "kávé sűrített tejjel (7,5%)",
+      "en": "coffee with evaporated milk (7.5%)"
+    },
+    "synonyms": {
+      "hu": [
+        "kávé sűrített tejjel",
+        "kávé kávétejjel"
+      ],
+      "de": [
+        "Kaffee mit Kondensmilch"
+      ],
+      "en": [
+        "coffee with evaporated milk"
+      ]
+    }
+  },
+  {
+    "sourceId": "Y997043",
+    "names": {
+      "hu": "jegeskávé (fagylalttal)",
+      "en": "iced coffee with ice cream (Eiskaffee)"
+    },
+    "synonyms": {
+      "hu": [
+        "jegeskávé"
+      ],
+      "de": [
+        "Eiskaffee"
+      ],
+      "en": [
+        "Eiskaffee"
+      ]
+    }
+  }
+]
