@@ -2,9 +2,9 @@
 
 Compact continuity state for the Master/worker workflow. Git, tests and this file are the source of truth — not chat history. Never store secrets here.
 
-- **Date:** 2026-10-12
+- **Date:** 2026-10-13
 - **Checkpoint branch:** `claude/pensive-hamilton-ocsygi` (checkpoint-only; no product code)
-- **main HEAD:** `d36afe8` (merge of PR #84, 2026-10-12)
+- **main HEAD:** `f96919a` (merge of PR #85, 2026-10-13)
 - **Production:** live at `1d027b3` (2026-10-12 03:48 UTC). #81 (stated portion count + "<amount> <dish>" resolves like "<dish>"; tányér = adjustable plate amount, never grams) and #82 (one-time plate question, `Profile.plateSetup` migration applied, average plates flat 26 cm / deep 600 ml, soups always deep, "Tányérjaim" header entry) live; `reference_dishes unchanged=541`. Prod catalog = shared `driverassistant` Postgres, schema `ketomentor`, read-only via Render MCP.
 - **Staging DB:** `keto-mentor-staging-db` is a free-plan instance that **expires 2026-10-13**.
 - **Staging services** still track `fix/web-evidence-production-effectiveness` (merged, stale) — repoint to the next feature branch or `main` before staging verification. Staging start does NOT run migrations.
@@ -40,5 +40,5 @@ Authoritative catalog data first; AI nutrition is a labelled, user-confirmable e
 - DONE: regional phase 4 (DE) #80 (merged 2026-10-11).
 - DONE: #81 portion/plate fix, #82 plate onboarding (merged 2026-10-12).
 - DONE (2026-10-12): #83 own-recipe deep plate, #84 perf (reference lookup loaded all 541 recipes per request; now variant-map cache + abort superseded /search; new timing_stage incl. REQUEST_TOTAL).
-- IN REVIEW: PR #85 `fix/staple-food-names` — 229 staples HU/EN names, bare tej/milk choice, guarded delete of OFF 8904089919135 'cow milk', parser fixes (percent, dl, whole, literal words), tie-check vs strongest other candidate. Owner: bare kávé and zsemle/Brötchen must also be a choice (worker updating).
+- DONE (2026-10-13): #85 live — 229 staple HU/EN names (649 global foods still without hu), bare tej/kávé/zsemle/knäckebrot/hering = choice, 10 BLS coffee drinks, OFF 'cow milk' deleted (verified 0 rows), parser fixes. Missing: flat white/Melange/Verlängerter, instant coffee drink (incomplete BLS row), Vollkornbrötchen. #84 latency fix not yet measured live (no usage since deploy; check REQUEST_TOTAL logs).
 - PLANNED: regional phases 4–6; dinner recommendation (no code yet); Phase 6B native apps; Phase 7 beta/release.
