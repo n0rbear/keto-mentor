@@ -1236,6 +1236,7 @@ Köretek lapos tányéron (26 cm, normál): Nokedli ≈ 223 g, Petrezselymes bur
 
 | Katalógus | Kulcs | Egység | g | Becsült | Bizalom | Országok | Források |
 |---|---|---|---:|---|---:|---|---:|
+| bls:W211200 (frankfurter) | piece | piece | 59.5 | igen | 0.8 | HU, AT | 4 |
 | bls:B511000 (wheat_roll) | piece_at | piece | 62.5 | nem | 0.85 | AT | 2 |
 
 ## Lánctermékek (chain_official)
