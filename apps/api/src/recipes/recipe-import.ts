@@ -264,6 +264,7 @@ export async function previewRecipeImport(
     // output index; positional zipping would shift every later ingredient.
     const rolesBySourceLine = new Map(extracted.ingredients.map((raw, index) => [raw, roleEvidence[index]]));
     const ingredients = resolvedIngredients.map((ingredient) => ({ ...ingredient, ...(rolesBySourceLine.get(ingredient.originalText) ?? recoverIngredientRolesFromHtml(page.html, [ingredient.originalText], extracted.instructions)[0]) }));
+    console.log(formatRecipeImportLog(page.finalUrl, extracted.extractionMethod, ingredients));
     return { ...extracted, ingredients };
   } catch (error) {
     if (error instanceof RecipeImportError) throw error;
@@ -279,3 +280,19 @@ export async function previewRecipeImport(
   }
 }
 
+
+// One searchable line per import preview (owner report 2026-10-14: a
+// carbonara import left three staples unresolved and the log showed neither
+// the site nor which lines failed). Host and path only (no query string);
+// recipe lines are public page text, capped.
+type ImportLogRow = { originalText: string; parsedFoodQuery?: string; resolution: string; canConfirm: boolean; excludeFromNutrition?: boolean; selectedFood?: { source?: string; sourceId?: string | null } | null };
+export function formatRecipeImportLog(finalUrl: string, method: string, rows: readonly ImportLogRow[]) {
+  let where = "?";
+  try { const parsed = new URL(finalUrl); where = `${parsed.host}${parsed.pathname}`.slice(0, 120); } catch { /* keep "?" */ }
+  const status = (row: ImportLogRow) => row.excludeFromNutrition && row.canConfirm ? "seasoning" : row.canConfirm ? "ok" : row.selectedFood ? "review" : "unresolved";
+  const counts = { ok: 0, seasoning: 0, review: 0, unresolved: 0 };
+  for (const row of rows) counts[status(row)] += 1;
+  const open = rows.filter((row) => status(row) === "review" || status(row) === "unresolved").slice(0, 12)
+    .map((row) => `${status(row)}:${row.originalText.slice(0, 60)}=>${(row.parsedFoodQuery ?? "").slice(0, 40)}${row.selectedFood?.sourceId ? `@${row.selectedFood.source}:${row.selectedFood.sourceId}` : ""}`);
+  return `recipe_import_preview where=${JSON.stringify(where)} method=${method} lines=${rows.length} ok=${counts.ok} seasoning=${counts.seasoning} review=${counts.review} unresolved=${counts.unresolved} open=${JSON.stringify(open)}`;
+}

@@ -132,7 +132,7 @@ export const dict = {
       aiExtractedNotice: "A recept adatait AI nyerte ki az oldalról. Mentés előtt ellenőrizd.",
       import: {
         heading: "Recept importálása URL-ből", url: "Nyilvános recept URL", preview: "Előnézet", loading: "Betöltés…",
-        resolved: "Feloldva", review: "Ellenőrzést igényel", unresolved: "Nincs feloldva", resolve: "Alapanyag ellenőrzése",
+        resolved: "Feloldva", seasoningExcluded: "ízlés szerint – a tápértékbe nem számít bele", review: "Ellenőrzést igényel", unresolved: "Nincs feloldva", resolve: "Alapanyag ellenőrzése",
         blocked: "A mentéshez minden alapanyagnak biztos Food-találat és grammérték kell.", failed: "A recept előnézete nem készíthető el.",
         omit: "Kihagyás", restore: "Visszaállítás", servingsUnit: "adag"
       }
@@ -360,7 +360,7 @@ export const dict = {
       aiExtractedNotice: "Die Rezeptdaten wurden von der KI aus der Seite extrahiert. Bitte vor dem Speichern prüfen.",
       import: {
         heading: "Rezept aus URL importieren", url: "Öffentliche Rezept-URL", preview: "Vorschau", loading: "Laden…",
-        resolved: "Aufgelöst", review: "Prüfung erforderlich", unresolved: "Nicht aufgelöst", resolve: "Zutat prüfen",
+        resolved: "Aufgelöst", seasoningExcluded: "nach Geschmack – zählt nicht zum Nährwert", review: "Prüfung erforderlich", unresolved: "Nicht aufgelöst", resolve: "Zutat prüfen",
         blocked: "Zum Speichern braucht jede Zutat eine sichere Food-Zuordnung und Grammmenge.", failed: "Die Rezeptvorschau konnte nicht erstellt werden.",
         omit: "Auslassen", restore: "Wiederherstellen", servingsUnit: "Portionen"
       }
@@ -588,7 +588,7 @@ export const dict = {
       aiExtractedNotice: "This recipe's data was extracted by AI from the page. Review it before saving.",
       import: {
         heading: "Import recipe from URL", url: "Public recipe URL", preview: "Preview", loading: "Loading…",
-        resolved: "Resolved", review: "Needs review", unresolved: "Unresolved", resolve: "Review ingredient",
+        resolved: "Resolved", seasoningExcluded: "to taste – not counted in nutrition", review: "Needs review", unresolved: "Unresolved", resolve: "Review ingredient",
         blocked: "Every ingredient needs a safe Food match and gram quantity before saving.", failed: "The recipe preview could not be created.",
         omit: "Omit", restore: "Restore", servingsUnit: "servings"
       }
