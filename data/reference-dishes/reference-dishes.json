@@ -60181,6 +60181,46 @@
   ],
   "servings": [
     {
+      "food_key": "frankfurter",
+      "key": "piece",
+      "unit": "piece",
+      "countries": [
+        "HU",
+        "AT"
+      ],
+      "grams": 59.5,
+      "is_estimated": true,
+      "confidence": 0.8,
+      "labels": {
+        "hu": "db virsli",
+        "de": "Stück",
+        "de-AT": "Stück",
+        "en": "piece"
+      },
+      "sources": [
+        {
+          "url": "https://stufferhus.myshoprenter.hu/magyaros-grillkolbasz-kb-40-dkgcsomag-718",
+          "retrieved": "2026-10-13",
+          "note": "Stuffer Húsüzem: Frankfurti virsli - 250 g/csomag (4db) = 62.5 g"
+        },
+        {
+          "url": "https://www.trimex.hu/Termek/Reszletek/1973-frankfurti-sertes-virsli-1kg-gyf",
+          "retrieved": "2026-10-13",
+          "note": "Trimex: Frankfurti sertés virsli 1kg/cs (kb.18-20db) = 52.6 g at 19 db"
+        },
+        {
+          "url": "https://www.spar.at/produktwelt/spar-naturpur-bio-frankfurter-4-x-60g/p/6431648",
+          "retrieved": "2026-10-05",
+          "note": "SPAR Natur*pur Bio-Frankfurter 4 x 60 g (at_traditionell frankfurter_wuerstel)"
+        },
+        {
+          "url": "https://www.spar.at/produktwelt/tann-frankfurter-2-paar-per-250g-packung/p/7771651",
+          "retrieved": "2026-10-05",
+          "note": "TANN Frankfurter 2 Paar per 250 g = 62.5 g (at_traditionell frankfurter_wuerstel)"
+        }
+      ]
+    },
+    {
       "food_key": "wheat_roll",
       "key": "piece_at",
       "unit": "piece",
@@ -60212,6 +60252,69 @@
   ],
   "unit_classes": [
     {
+      "key": "bockwurst",
+      "unit": "piece",
+      "grams": 95,
+      "countries": [
+        "DE"
+      ],
+      "keywords": [
+        "bockwurst"
+      ],
+      "sources": [
+        {
+          "url": "https://www.rewe.de/shop/p/metzgerei-henrici-bockwurst-ca-440g-4-stueck/8631300",
+          "retrieved": "2026-10-11",
+          "note": "Metzgerei Henrici Bockwurst ca. 440 g, 4 Stück (110 g)"
+        },
+        {
+          "url": "https://www.mein-deal.com/?p=1437789",
+          "retrieved": "2026-10-11",
+          "note": "Halberstädter Bockwurst, 5 Stück im Glas 400 g (80 g)"
+        }
+      ]
+    },
+    {
+      "key": "frankfurter",
+      "unit": "piece",
+      "grams": 59.5,
+      "countries": [
+        "HU",
+        "AT"
+      ],
+      "whole_word": true,
+      "keywords": [
+        "virsli",
+        "virslik",
+        "wiener würstchen",
+        "frankfurter würstchen",
+        "würstel",
+        "frankfurter würstel"
+      ],
+      "sources": [
+        {
+          "url": "https://stufferhus.myshoprenter.hu/magyaros-grillkolbasz-kb-40-dkgcsomag-718",
+          "retrieved": "2026-10-13",
+          "note": "Stuffer Húsüzem: Frankfurti virsli - 250 g/csomag (4db) = 62.5 g"
+        },
+        {
+          "url": "https://www.trimex.hu/Termek/Reszletek/1973-frankfurti-sertes-virsli-1kg-gyf",
+          "retrieved": "2026-10-13",
+          "note": "Trimex: Frankfurti sertés virsli 1kg/cs (kb.18-20db) = 52.6 g at 19 db"
+        },
+        {
+          "url": "https://www.spar.at/produktwelt/spar-naturpur-bio-frankfurter-4-x-60g/p/6431648",
+          "retrieved": "2026-10-05",
+          "note": "SPAR Natur*pur Bio-Frankfurter 4 x 60 g (at_traditionell frankfurter_wuerstel)"
+        },
+        {
+          "url": "https://www.spar.at/produktwelt/tann-frankfurter-2-paar-per-250g-packung/p/7771651",
+          "retrieved": "2026-10-05",
+          "note": "TANN Frankfurter 2 Paar per 250 g = 62.5 g (at_traditionell frankfurter_wuerstel)"
+        }
+      ]
+    },
+    {
       "key": "bread_roll_at",
       "unit": "piece",
       "grams": 62.5,
@@ -60240,6 +60343,37 @@
     }
   ],
   "food_aliases": [
+    {
+      "food_key": "frankfurter",
+      "aliases": {
+        "hu": [
+          "frankfurti virsli",
+          "frankfurti sertésvirsli",
+          "sertésvirsli"
+        ],
+        "de": [
+          "Frankfurter Würstchen"
+        ],
+        "de-AT": [
+          "Frankfurter Würstel"
+        ],
+        "en": [
+          "wiener sausage"
+        ]
+      }
+    },
+    {
+      "food_key": "ketchup",
+      "aliases": {
+        "hu": [
+          "kecsap",
+          "kechup",
+          "kecsup",
+          "ketchap",
+          "paradicsomketchup"
+        ]
+      }
+    },
     {
       "food_key": "tomato",
       "aliases": {

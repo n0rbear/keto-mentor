@@ -37,14 +37,22 @@ describe("FeedbackReport", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("sends the text with context, closes and shows the ticket id", async () => {
+  it("sends the text with context and keeps the ticket id visible until closed", async () => {
     const fetchMock = stubFetch(() => new Response(JSON.stringify({ id: "abc123" }), { status: 201 }));
     const textarea = renderPanel();
     expect((screen.getByRole("button", { name: t.send }) as HTMLButtonElement).disabled).toBe(true);
     fireEvent.change(textarea, { target: { value: "A mentés nem működött" } });
     fireEvent.click(screen.getByRole("button", { name: t.send }));
     await waitFor(() => expect(screen.getByRole("status").textContent).toContain("Hibajegy: #abc123"));
+    // Owner report 6c6ae5: a timed toast was missed — the confirmation stays
+    // inside the open panel until the user dismisses it.
+    expect(screen.getByRole("dialog", { name: t.title })).toBeTruthy();
+    expect(screen.queryByPlaceholderText(t.placeholder)).toBeNull();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(screen.getByRole("status").textContent).toContain("#abc123");
+    fireEvent.click(screen.getAllByRole("button", { name: t.close }).at(-1)!);
     expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.queryByRole("status")).toBeNull();
 
     const call = fetchMock.mock.calls.find(([url]) => String(url).endsWith("/feedback"))!;
     const body = JSON.parse((call[1] as RequestInit).body as string);

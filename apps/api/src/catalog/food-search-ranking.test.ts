@@ -35,6 +35,23 @@ function rankedCatalog(rows: ReturnType<typeof food>[], aliases: any[] = []) {
 }
 
 describe("general catalog ranking regressions", () => {
+  it("finds ketchup under its Hungarian spelling 'kechup' (owner report 4efb32)", async () => {
+    const rows = [food("bls-ketchup", "Tomatenketchup", { searchText: normalizeSearch("Tomatenketchup ketchup tomato ketchup") }), food("usda-ketchup", "Ketchup, restaurant", { source: "usda_fdc" })];
+    const aliases = [{ id: "a1", foodId: "bls-ketchup", normalizedAlias: "kechup", kind: "regional_synonym", confidence: 1 }];
+    const result = await searchFoods(rankedCatalog(rows, aliases), "kechup");
+    expect(result.map((row) => row.id)).toEqual(["bls-ketchup"]);
+    expect(isTrustedLocalMatch(result[0].match)).toBe(true);
+  });
+
+  it("ranks the BLS virsli above a same-named OFF product via its reviewed alias (owner report 6c6ae5)", async () => {
+    const rows = [food("off-virsli", "Frankfurti virsli - BIO vom BERG", { source: "off" }), food("bls-virsli", "Wiener Würstchen", { searchText: normalizeSearch("Wiener Würstchen virsli") })];
+    const aliases = [{ id: "a1", foodId: "bls-virsli", normalizedAlias: "frankfurti virsli", kind: "regional_synonym", confidence: 1 }];
+    const result = await searchFoods(rankedCatalog(rows, aliases), "frankfurti virsli");
+    expect(result[0].id).toBe("bls-virsli");
+    expect(isTrustedLocalMatch(result[0].match)).toBe(true);
+    expect(isTrustedLocalMatch(result.find((row) => row.id === "off-virsli")!.match)).toBe(false);
+  });
+
   it("does not treat an expansion as attested identity: bacon must not retrieve ham/Hamburger/Hammel", async () => {
     expect(expandFoodQuery("bacon")).toEqual(["bacon"]);
     const result = await searchFoods(catalog([food("ham", "Ham"), food("burger", "Hamburger"), food("mutton", "Hammel"), food("bacon", "Bacon")]), "bacon");

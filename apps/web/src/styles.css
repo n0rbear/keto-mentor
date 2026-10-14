@@ -539,4 +539,7 @@ body { padding-left: var(--safe-left); padding-right: var(--safe-right); }
 .feedback-meta { display: flex; justify-content: space-between; align-items: flex-start; gap: .8rem; }
 .feedback-meta > :last-child { flex: none; font-variant-numeric: tabular-nums; }
 .feedback-error { margin: 0; color: rgb(var(--danger)); }
-.feedback-toast { position: fixed; z-index: 60; left: 50%; bottom: calc(1rem + env(safe-area-inset-bottom, 0px) + 64px); transform: translateX(-50%); width: min(100% - 32px, 420px); display: flex; align-items: center; justify-content: space-between; gap: .6rem; padding: .7rem .9rem; box-shadow: var(--shadow-lg); font-size: .9rem; }
+.feedback-success { display: flex; align-items: flex-start; gap: .7rem; padding: .8rem .9rem; border-radius: 12px; border: 1px solid rgb(var(--success) / .45); background: rgb(var(--success) / .1); color: rgb(var(--success)); }
+.feedback-success p { margin: 0; color: rgb(var(--text)); }
+.feedback-success-title { font-weight: 700; }
+.feedback-ticket { font-size: 1.15rem; letter-spacing: .04em; color: rgb(var(--success)); }

@@ -5,6 +5,33 @@ export const GENERATED_UNIT_WEIGHTS: Record<string, readonly GeneratedUnitWeight
   "piece": [
     {
       "countries": [
+        "DE"
+      ],
+      "grams": 95,
+      "key": "bockwurst",
+      "keywords": [
+        "bockwurst"
+      ]
+    },
+    {
+      "countries": [
+        "HU",
+        "AT"
+      ],
+      "grams": 59.5,
+      "key": "frankfurter",
+      "keywords": [
+        "virsli",
+        "virslik",
+        "wiener würstchen",
+        "frankfurter würstchen",
+        "würstel",
+        "frankfurter würstel"
+      ],
+      "wholeWord": true
+    },
+    {
+      "countries": [
         "AT"
       ],
       "grams": 62.5,

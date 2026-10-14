@@ -247,3 +247,43 @@ for _name in PHASE2_MODULES:
     PARTS.update(_m.PARTS)
     DISHES += _m.DISHES
     MISSING_FOODS += getattr(_m, "MISSING", [])
+
+# ---- sausage piece weights (owner report 6c6ae5, 2026-10-13: "4 db frankfurti
+# virsli" had no piece weight). Sources read 2026-10-13. Catalog servings are
+# not filtered by country, so the virsli record carries ONE piece weight: the
+# mean of the two Hungarian and the two Austrian retail packs (62.5, 52.6, 60,
+# 62.5 g -> 59.4 g, rounded to 59.5 g). Hungarian packs are mostly sold by
+# weight only; the two below state a piece count.
+VIRSLI_R = "2026-10-13"
+VIRSLI_SOURCES = [
+    src("https://stufferhus.myshoprenter.hu/magyaros-grillkolbasz-kb-40-dkgcsomag-718", VIRSLI_R, "Stuffer Húsüzem: Frankfurti virsli - 250 g/csomag (4db) = 62.5 g"),
+    src("https://www.trimex.hu/Termek/Reszletek/1973-frankfurti-sertes-virsli-1kg-gyf", VIRSLI_R, "Trimex: Frankfurti sertés virsli 1kg/cs (kb.18-20db) = 52.6 g at 19 db"),
+    src("https://www.spar.at/produktwelt/spar-naturpur-bio-frankfurter-4-x-60g/p/6431648", "2026-10-05", "SPAR Natur*pur Bio-Frankfurter 4 x 60 g (at_traditionell frankfurter_wuerstel)"),
+    src("https://www.spar.at/produktwelt/tann-frankfurter-2-paar-per-250g-packung/p/7771651", "2026-10-05", "TANN Frankfurter 2 Paar per 250 g = 62.5 g (at_traditionell frankfurter_wuerstel)"),
+]
+SERVINGS = [
+    dict(food_key="frankfurter", key="piece", unit="piece", countries=["HU", "AT"], grams=59.5, is_estimated=True, confidence=0.8,
+         labels={"hu": "db virsli", "de": "Stück", "de-AT": "Stück", "en": "piece"}, sources=VIRSLI_SOURCES),
+]
+# Class weights for other virsli records without their own piece serving (OFF
+# products, canned virsli). Bockwurst comes first: its Hungarian catalog name
+# is "Bockwurst (nagy virsli)" and it is much heavier (de_alltag: 95 g).
+UNIT_CLASSES = [
+    dict(key="bockwurst", unit="piece", grams=95, countries=["DE"],
+         keywords=["bockwurst"],
+         sources=[src("https://www.rewe.de/shop/p/metzgerei-henrici-bockwurst-ca-440g-4-stueck/8631300", "2026-10-11", "Metzgerei Henrici Bockwurst ca. 440 g, 4 Stück (110 g)"),
+                  src("https://www.mein-deal.com/?p=1437789", "2026-10-11", "Halberstädter Bockwurst, 5 Stück im Glas 400 g (80 g)")]),
+    # Whole words only: "virslis kifli", "frankfurti leves" and "Frankfurter
+    # Kranz" are dishes, not one sausage.
+    dict(key="frankfurter", unit="piece", grams=59.5, countries=["HU", "AT"], whole_word=True,
+         keywords=["virsli", "virslik", "wiener würstchen", "frankfurter würstchen", "würstel", "frankfurter würstel"],
+         sources=VIRSLI_SOURCES),
+]
+# "frankfurti virsli" (Hungarian retail name) was not an alias of the virsli
+# record, so an OFF product of that name outranked it.
+FOOD_ALIASES = [
+    dict(food_key="frankfurter", aliases={"hu": ["frankfurti virsli", "frankfurti sertésvirsli", "sertésvirsli"], "de": ["Frankfurter Würstchen"], "de-AT": ["Frankfurter Würstel"], "en": ["wiener sausage"]}),
+    # Owner report 4efb32 (2026-10-14): "kechup" found nothing in the recipe
+    # ingredient search. Common Hungarian spellings of ketchup.
+    dict(food_key="ketchup", aliases={"hu": ["kecsap", "kechup", "kecsup", "ketchap", "paradicsomketchup"]}),
+]

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Bug, X } from "lucide-react";
+import { Bug, CheckCircle2, X } from "lucide-react";
 import { api, ApiError, type ApiState } from "./api";
 import { dict, type Lang } from "./i18n";
 
@@ -9,7 +9,10 @@ import { dict, type Lang } from "./i18n";
 // `user_feedback` log line the developer reads on Render. Never sends
 // passwords, tokens or anything beyond the fields below. The panel and the
 // thank-you note are portalled to <body>: the sticky header's backdrop-filter
-// would otherwise trap position: fixed inside it.
+// would otherwise trap position: fixed inside it. After a successful send
+// the panel stays open and shows the ticket id until the user closes it: a
+// timed toast at the bottom of the page was easy to miss on desktop (owner
+// report 6c6ae5, 2026-10-13).
 
 export const FEEDBACK_MAX_LENGTH = 2000;
 
@@ -36,16 +39,15 @@ export function FeedbackReport({ lang, state, getContext }: { lang: Lang; state:
   const [ticket, setTicket] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  useEffect(() => { if (open) textareaRef.current?.focus(); }, [open]);
-  useEffect(() => {
-    if (!ticket) return;
-    const timer = window.setTimeout(() => setTicket(null), 10000);
-    return () => window.clearTimeout(timer);
-  }, [ticket]);
+  const doneRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => { if (open && !ticket) textareaRef.current?.focus(); }, [open, ticket]);
+  useEffect(() => { if (ticket) doneRef.current?.focus(); }, [ticket]);
 
   function close() {
     setOpen(false);
     setError(null);
+    setTicket(null);
   }
 
   async function send() {
@@ -66,7 +68,6 @@ export function FeedbackReport({ lang, state, getContext }: { lang: Lang; state:
       const result = await api<{ id: string }>("/feedback", { method: "POST", body: JSON.stringify({ message: text.slice(0, FEEDBACK_MAX_LENGTH), context }) }, state);
       setTicket(result.id);
       setMessage("");
-      setOpen(false);
     } catch (caught) {
       setError(caught instanceof ApiError && caught.status === 429 ? t.rateLimited : t.failed);
     } finally {
@@ -79,14 +80,28 @@ export function FeedbackReport({ lang, state, getContext }: { lang: Lang; state:
       <button type="button" className="btn ghost" aria-label={t.open} aria-expanded={open} onClick={() => { setTicket(null); setOpen(true); }}>
         <Bug size={17}/><span>{t.open}</span>
       </button>
-      {ticket && createPortal(
-        <div className="feedback-toast card" role="status">
-          <span>{t.thanks} {t.ticket}: #{ticket}</span>
-          <button type="button" className="icon-button" aria-label={t.close} onClick={() => setTicket(null)}><X size={14}/></button>
+      {open && ticket && createPortal(
+        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label={t.title} onKeyDown={(event) => { if (event.key === "Escape") close(); }}>
+          <div className="modal-panel card">
+            <div className="modal-header">
+              <h3>{t.title}</h3>
+              <button type="button" className="icon-button" aria-label={t.close} onClick={close}><X size={16}/></button>
+            </div>
+            <div className="feedback-success" role="status">
+              <CheckCircle2 size={22} aria-hidden="true"/>
+              <div>
+                <p className="feedback-success-title">{t.thanks}</p>
+                <p>{t.ticket}: <strong className="feedback-ticket">#{ticket}</strong></p>
+              </div>
+            </div>
+            <div className="modal-actions">
+              <button ref={doneRef} type="button" className="btn primary" onClick={close}>{t.close}</button>
+            </div>
+          </div>
         </div>,
         document.body
       )}
-      {open && createPortal(
+      {open && !ticket && createPortal(
         <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label={t.title} onKeyDown={(event) => { if (event.key === "Escape") close(); }}>
           <form className="modal-panel card" onSubmit={(event) => { event.preventDefault(); void send(); }}>
             <div className="modal-header">

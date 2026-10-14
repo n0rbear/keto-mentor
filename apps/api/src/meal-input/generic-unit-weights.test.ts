@@ -27,6 +27,17 @@ describe("typical slice weights without AI (owner request 2026-09-26)", () => {
     expect(genericUnitWeight("piece", food("Apple", { hu: "Alma" }))).toBeNull();
   });
 
+  it("knows a virsli piece without AI, but not for virsli dishes or Bockwurst (owner report 6c6ae5)", async () => {
+    expect(genericUnitWeight("piece", food("Frankfurti virsli - BIO vom BERG"))?.grams).toBe(59.5);
+    expect(genericUnitWeight("piece", food("Wiener Würstchen", { hu: "Virsli" }))?.key).toBe("frankfurter");
+    expect(genericUnitWeight("piece", food("Bockwurst", { hu: "Bockwurst (nagy virsli)" }))?.grams).toBe(95);
+    expect(genericUnitWeight("piece", food("Virslis kifli"))).toBeNull();
+    expect(genericUnitWeight("piece", food("Frankfurti leves"))).toBeNull();
+    expect(genericUnitWeight("piece", food("Frankfurter Kranz"))).toBeNull();
+    const result = await resolveQuantity(parseNaturalFoodQuery("4 db frankfurti virsli"), food("Frankfurti virsli") as any);
+    expect(result).toMatchObject({ status: "resolved", grams: 238, estimated: true, requiresConfirmation: false });
+  });
+
   it("prefers the food's own slice serving", async () => {
     const own = { ...food("Gouda"), servings: [{ id: "s1", key: "slice", unit: "slice", labels: {}, grams: 25, isEstimated: false, confidence: 1, provenance: { source: "curated" } }] };
     expect(await resolveQuantity(parseNaturalFoodQuery("3 szelet gouda"), own as any)).toMatchObject({ grams: 75, servingId: "s1" });
