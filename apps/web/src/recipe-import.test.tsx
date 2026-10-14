@@ -56,6 +56,27 @@ describe("recipe URL import UI", () => {
   });
 });
 
+describe("unquantified salt/pepper in an imported recipe (owner report 2026-10-14)", () => {
+  it("shows 'to taste' instead of 'needs review', does not block the save and is not stored", async () => {
+    const salt = { ...food, id: "salt", name: "Salz" };
+    const preview = { title: "Carbonara", sourceUrl: "https://example.com/carbonara", instructions: [], extractionMethod: "schema_org", importProof: "proof", ingredients: [
+      { originalText: "200 g spinach", parsedQuantity: 200, parsedUnit: "g", parsedFoodQuery: "spinach", resolution: "resolved", selectedFood: food, candidates: [food], quantity: { status: "resolved", grams: 200, requiresConfirmation: false }, canConfirm: true },
+      { originalText: "Só", parsedFoodQuery: "salt", resolution: "preview", selectedFood: salt, candidates: [salt], quantity: null, canConfirm: true, excludeFromNutrition: true }
+    ] };
+    let saved: any;
+    vi.stubGlobal("fetch", stubPreviewThenSave(new Response(JSON.stringify({ preview }), { status: 200 }), { onSave: (body) => { saved = body; } }));
+    renderBuilder(); fireEvent.click(screen.getByRole("button", { name: /New recipe/i }));
+    fireEvent.change(screen.getByLabelText("Public recipe URL"), { target: { value: "https://example.com/carbonara" } }); fireEvent.click(screen.getByRole("button", { name: "Preview" }));
+    expect(await screen.findByText((_text, element) => element?.tagName === "LI" && element.textContent?.includes("to taste – not counted in nutrition") === true)).toBeTruthy();
+    expect(screen.queryByText((_text, element) => element?.tagName === "LI" && element.textContent?.includes("Needs review") === true)).toBeNull();
+    const save = screen.getByRole("button", { name: /Save/i }) as HTMLButtonElement;
+    expect(save.disabled).toBe(false);
+    fireEvent.click(save);
+    await waitFor(() => expect(saved).toBeTruthy());
+    expect(saved.ingredients.map((item: any) => item.foodId)).toEqual(["spinach"]);
+  });
+});
+
 const aiPreview = { title: "AI Spinach Bowl", sourceUrl: "https://example.com/no-jsonld", servings: 2, instructions: ["Cook spinach", "Fry eggs"], extractionMethod: "ai_structured", importProof: "proof.mac", ingredients: [{ originalText: "200 g spinach", parsedQuantity: 200, parsedUnit: "g", parsedFoodQuery: "spinach", resolution: "resolved", selectedFood: food, candidates: [food], quantity: { status: "resolved", grams: 200, requiresConfirmation: false }, canConfirm: true }] };
 
 function stubPreviewThenSave(previewResponse: Response, opts: { onSave?: (body: any) => void } = {}) {

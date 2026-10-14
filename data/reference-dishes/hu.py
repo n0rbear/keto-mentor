@@ -286,4 +286,13 @@ FOOD_ALIASES = [
     # Owner report 4efb32 (2026-10-14): "kechup" found nothing in the recipe
     # ingredient search. Common Hungarian spellings of ketchup.
     dict(food_key="ketchup", aliases={"hu": ["kecsap", "kechup", "kecsup", "ketchap", "paradicsomketchup"]}),
+    # Owner report 2026-10-14: importing Mindmegette's carbonara (the same
+    # recipe as hu_hetkoznapi "carbonara", reviewed there) left spagetti,
+    # parmezán sajt and kolozsvári szalonna unresolved; the import AI
+    # normalizes them to "spaghetti", "Parmesan cheese", "smoked bacon".
+    # Same records as that reviewed recipe; kolozsvári -> smoked_bacon as in
+    # hu_levesek's review note.
+    dict(food_key="pasta_durum_dry", aliases={"hu": ["spagetti", "spagettitészta", "száraztészta", "penne", "makaróni"], "de": ["Spaghetti", "Hartweizennudeln"], "en": ["spaghetti", "dry pasta", "penne", "macaroni"]}),
+    dict(food_key="parmesan", aliases={"hu": ["parmezán sajt", "parmezánsajt", "parmigiano reggiano"], "de": ["Parmesankäse", "Parmigiano Reggiano"], "en": ["parmesan cheese", "parmigiano reggiano"]}),
+    dict(food_key="smoked_bacon", aliases={"hu": ["kolozsvári szalonna", "füstölt szalonna"], "de": ["Räucherspeck"], "en": ["smoked bacon"]}),
 ]

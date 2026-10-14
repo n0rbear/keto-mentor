@@ -25,6 +25,8 @@ export type BatchResolvedIngredient = ReviewableIngredient & { canConfirm: boole
 const UNQUANTIFIED_SEASONING_IDENTITIES = new Set([
   "salt", "pepper", "black pepper", "white pepper", "ground pepper", "ground black pepper", "salt and pepper", "salt pepper", "sea salt", "table salt",
   "so", "bors", "feketebors", "fekete bors", "orolt bors", "orolt feketebors", "orolt fekete bors", "so es bors", "so bors", "tengeri so",
+  // "bors (őrölt)" (Mindmegette, 2026-10-14): parentheses become spaces.
+  "bors orolt", "feketebors orolt", "fekete bors orolt", "frissen orolt bors", "frissen orolt feketebors",
   "salz", "pfeffer", "schwarzer pfeffer", "salz und pfeffer", "salz pfeffer", "meersalz"
 ]);
 const TO_TASTE_PHRASES = /\b(?:izles szerint|tetszes szerint|igeny szerint|to taste|as needed|nach geschmack|nach belieben|optional|opcionalis)\b/g;
@@ -262,7 +264,10 @@ export async function resolveRecipeIngredientsBatch(
       resolution, selectedFood, candidates, quantity, quantitySource, aiEstimate: draft.aiEstimate,
       quantityGrams: quantity?.status === "resolved" ? quantity.grams : undefined,
       quantityRange: singleFoodLine && line.parsed.quantityUpper != null ? { min: line.parsed.quantity!, max: line.parsed.quantityUpper, unit: line.parsed.unit } : undefined,
-      excludeFromNutrition, canConfirm: resolution === "resolved" && (!!quantity || excludeFromNutrition), externalCandidates, externalCandidatesReason
+      // An excluded seasoning adds nothing to nutrition, so a merely previewed
+      // salt/pepper match is enough (owner report 2026-10-14: "Só" stayed
+      // "needs review" on a BLS salt preview match).
+      excludeFromNutrition, canConfirm: (resolution === "resolved" && (!!quantity || excludeFromNutrition)) || (excludeFromNutrition && !!selectedFood), externalCandidates, externalCandidatesReason
     };
   }
 

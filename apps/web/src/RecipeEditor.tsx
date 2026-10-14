@@ -8,7 +8,7 @@ import type { RecipeDetailData } from "./RecipeDetail";
 import type { AiEstimateValue } from "./FoodUnderstandingPreview";
 
 export type Ingredient = { id?: string; foodId: string; quantityGrams: number; originalText?: string; preparation?: string; sortOrder?: number; food: Food };
-export type ImportIngredientRow = { aiEstimate?: AiEstimateValue; originalText: string; omitted?: boolean; parsedQuantity?: number; parsedUnit?: string; parsedFoodQuery: string; preparation?: string; resolution: string; selectedFood: (Food & { source?: string; sourceId?: string }) | null; candidates: Food[]; quantity: { status: string; grams?: number; requiresConfirmation: boolean } | null; canConfirm: boolean };
+export type ImportIngredientRow = { aiEstimate?: AiEstimateValue; originalText: string; omitted?: boolean; parsedQuantity?: number; parsedUnit?: string; parsedFoodQuery: string; preparation?: string; resolution: string; selectedFood: (Food & { source?: string; sourceId?: string }) | null; candidates: Food[]; quantity: { status: string; grams?: number; requiresConfirmation: boolean } | null; canConfirm: boolean; excludeFromNutrition?: boolean };
 type ImportIngredient = ImportIngredientRow;
 type ImportPreview = { title: string; sourceUrl: string; servings?: number; instructions: string[]; extractionMethod: string; importProof: string; ingredients: ImportIngredient[] };
 
@@ -18,6 +18,13 @@ function recipeErrorText(error: unknown, labels: Record<string, string>) {
   if (!(error instanceof ApiError)) return labels.unknown;
   return labels[error.code] ?? (error.status === 401 ? labels.unauthorized : error.status && error.status >= 500 ? labels.server : labels.unknown);
 }
+
+// Salt/pepper written without an amount: the server excludes it from
+// nutrition (excludeFromNutrition), so it needs no grams and never blocks the
+// save; it is not stored, as a saved ingredient always carries grams (owner
+// report 2026-10-14, Mindmegette carbonara: "Só", "bors (őrölt)").
+export const isExcludedSeasoning = (item: ImportIngredient) => !item.omitted && !!item.excludeFromNutrition && item.canConfirm;
+const isReadyRow = (item: ImportIngredient) => isExcludedSeasoning(item) || (!!item.canConfirm && !!item.selectedFood && item.quantity?.status === "resolved" && !!item.quantity.grams);
 
 export function ingredientsFromImport(rows: ImportIngredient[]): Ingredient[] {
   return rows.flatMap((item, sortOrder) => !item.omitted && item.canConfirm && item.selectedFood && item.quantity?.status === "resolved" && item.quantity.grams
@@ -92,13 +99,13 @@ export function RecipeEditor({ lang, state, editing, onSaved, onCancel }: {
   }
 
   const allIngredients = useMemo(() => combineRecipeIngredients(importPreview?.ingredients ?? [], ingredients), [importPreview, ingredients]);
-  const importBlocked = !!importPreview && importPreview.ingredients.some((item) => !item.omitted && (!item.canConfirm || !item.selectedFood || item.quantity?.status !== "resolved" || !item.quantity.grams));
+  const importBlocked = !!importPreview && importPreview.ingredients.some((item) => !item.omitted && !isReadyRow(item));
   // A row only counts toward nutrition once fully resolved (same predicate as
   // ingredientsFromImport / importBlocked). While any required row is not,
   // `live` is a SUBTOTAL of the resolved rows only — never the whole recipe —
   // so it must not be labeled, or scaled per serving / per 100 g, as complete.
   const requiredRows = (importPreview?.ingredients ?? []).filter((item) => !item.omitted);
-  const unresolvedCount = requiredRows.filter((item) => !(item.canConfirm && item.selectedFood && item.quantity?.status === "resolved" && item.quantity.grams)).length;
+  const unresolvedCount = requiredRows.filter((item) => !isReadyRow(item)).length;
   const partialNutrition = !!importPreview && unresolvedCount > 0;
   const live = useMemo(() => allIngredients.reduce((sum, ingredient) => {
     const factor = ingredient.quantityGrams / 100;
@@ -145,7 +152,7 @@ export function RecipeEditor({ lang, state, editing, onSaved, onCancel }: {
   return <div className="recipe-editor">
     {status && <div className="status error" role="alert">{status}</div>}
     {!editing && <section className="rounded-xl border border-borderSoft p-4" aria-label={imp.heading}><h3>{imp.heading}</h3><div className="recipe-search"><input aria-label={imp.url} className="field" type="url" value={importUrl} onChange={(e) => { setImportUrl(e.target.value); setImportPreview(null); setReviewIndex(null); setIngredients([]); }} placeholder="https://example.com/recipe"/><button type="button" className="btn secondary" disabled={importing || !importUrl.trim()} onClick={() => previewImport()}>{importing ? imp.loading : imp.preview}</button></div></section>}
-    {importPreview && <section className="rounded-xl border border-borderSoft p-4" aria-label={imp.preview}><h3>{importPreview.title}</h3>{importPreview.extractionMethod === "ai_structured" && <p className="status success" role="status">{t.recipes.aiExtractedNotice}</p>}{importPreview.servings && <p>{importPreview.servings} {imp.servingsUnit}</p>}<ul className="recipe-detail-list">{importPreview.ingredients.map((item, index) => { const valid = !item.omitted && item.canConfirm && item.selectedFood && item.quantity?.status === "resolved" && item.quantity.grams; return <li key={`${item.originalText}-${index}`}><strong>{item.originalText}</strong> — {item.omitted ? imp.omit : valid ? `${pickDisplayName(item.selectedFood, lang)}, ${Math.round(item.quantity!.grams! * 10) / 10} g · ${imp.resolved}` : item.selectedFood ? imp.review : imp.unresolved}{!item.omitted && !valid && <button type="button" className="btn secondary ml-2" onClick={() => { setReviewIndex(index); setCandidate(item.selectedFood); setCandidateGrams(item.quantity?.grams ? String(item.quantity.grams) : ""); }}>{imp.resolve}</button>}<button type="button" className="btn secondary ml-2" onClick={() => setImportPreview((preview) => preview ? { ...preview, ingredients: preview.ingredients.map((row, rowIndex) => rowIndex === index ? { ...row, omitted: !row.omitted } : row) } : preview)}>{item.omitted ? imp.restore : imp.omit}</button></li>; })}</ul>{instructions.length > 0 && <ol className="recipe-detail-list">{instructions.map((instruction, index) => <li key={index}>{instruction}</li>)}</ol>}{importBlocked && <p className="text-sm text-muted" role="alert">{imp.blocked}</p>}</section>}
+    {importPreview && <section className="rounded-xl border border-borderSoft p-4" aria-label={imp.preview}><h3>{importPreview.title}</h3>{importPreview.extractionMethod === "ai_structured" && <p className="status success" role="status">{t.recipes.aiExtractedNotice}</p>}{importPreview.servings && <p>{importPreview.servings} {imp.servingsUnit}</p>}<ul className="recipe-detail-list">{importPreview.ingredients.map((item, index) => { const seasoning = isExcludedSeasoning(item); const valid = !item.omitted && !seasoning && item.canConfirm && item.selectedFood && item.quantity?.status === "resolved" && item.quantity.grams; return <li key={`${item.originalText}-${index}`}><strong>{item.originalText}</strong> — {item.omitted ? imp.omit : seasoning ? imp.seasoningExcluded : valid ? `${pickDisplayName(item.selectedFood, lang)}, ${Math.round(item.quantity!.grams! * 10) / 10} g · ${imp.resolved}` : item.selectedFood ? imp.review : imp.unresolved}{!item.omitted && !valid && !seasoning && <button type="button" className="btn secondary ml-2" onClick={() => { setReviewIndex(index); setCandidate(item.selectedFood); setCandidateGrams(item.quantity?.grams ? String(item.quantity.grams) : ""); }}>{imp.resolve}</button>}<button type="button" className="btn secondary ml-2" onClick={() => setImportPreview((preview) => preview ? { ...preview, ingredients: preview.ingredients.map((row, rowIndex) => rowIndex === index ? { ...row, omitted: !row.omitted } : row) } : preview)}>{item.omitted ? imp.restore : imp.omit}</button></li>; })}</ul>{instructions.length > 0 && <ol className="recipe-detail-list">{instructions.map((instruction, index) => <li key={index}>{instruction}</li>)}</ol>}{importBlocked && <p className="text-sm text-muted" role="alert">{imp.blocked}</p>}</section>}
     {importPreview && <section aria-label={lang === "hu" ? "Összetevők forrásai" : lang === "de" ? "Zutatenquellen" : "Ingredient sources"}>
       <a href={importPreview.sourceUrl} target="_blank" rel="noopener noreferrer">{new URL(importPreview.sourceUrl).hostname}</a>
       <ul>{importPreview.ingredients.map((item, index) => <li key={index}>

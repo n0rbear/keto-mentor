@@ -261,7 +261,8 @@ describe("resolveRecipeIngredientsBatch", () => {
     ["só ízlés szerint", "só ízlés szerint"],
     ["Salz nach Geschmack", "Salz"],
     ["frisch gemahlener Pfeffer nach Belieben", "pfeffer"],
-    ["fekete bors", "fekete bors"]
+    ["fekete bors", "fekete bors"],
+    ["bors (őrölt)", "bors (őrölt)"]
   ])("an unquantified seasoning line (%s -> identity %s) is excluded from nutrition instead of blocking", async (raw, identity) => {
     const { prisma } = fakePrisma();
     const result = await resolveRecipeIngredientsBatch(

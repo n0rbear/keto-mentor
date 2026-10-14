@@ -35,6 +35,27 @@ function rankedCatalog(rows: ReturnType<typeof food>[], aliases: any[] = []) {
 }
 
 describe("general catalog ranking regressions", () => {
+  it.each([
+    ["spaghetti", "bls-pasta"], ["spagetti", "bls-pasta"], ["parmesan cheese", "bls-parmesan"], ["kolozsvári szalonna", "bls-bacon"], ["smoked bacon", "bls-bacon"]
+  ])("resolves the carbonara import identity '%s' to the reviewed BLS record (owner report 2026-10-14)", async (query, id) => {
+    const rows = [
+      food("bls-pasta", "Teigwaren eifrei, roh", { searchText: normalizeSearch("Teigwaren eifrei roh tészta nudeln pasta") }),
+      food("usda-sauce", "Sauce, pasta, spaghetti/marinara, ready-to-serve", { source: "usda_fdc" }),
+      food("bls-parmesan", "Parmesan mind. 30 % Fett i. Tr.", { searchText: normalizeSearch("Parmesan parmezán") }),
+      food("usda-parmesan", "Cheese, parmesan, grated", { source: "usda_fdc" }),
+      food("bls-bacon", "Schwein Frühstücksspeck, Rohpökelware, geräuchert", { searchText: normalizeSearch("Schwein Frühstücksspeck bacon") }),
+      food("usda-bacon", "Pork, cured, bacon, cooked, restaurant", { source: "usda_fdc" })
+    ];
+    const aliases = [
+      ...["spaghetti", "spagetti"].map((alias, i) => ({ id: `p${i}`, foodId: "bls-pasta", normalizedAlias: alias, kind: "regional_synonym", confidence: 1 })),
+      { id: "c1", foodId: "bls-parmesan", normalizedAlias: "parmesan cheese", kind: "regional_synonym", confidence: 1 },
+      ...["kolozsvari szalonna", "smoked bacon"].map((alias, i) => ({ id: `b${i}`, foodId: "bls-bacon", normalizedAlias: alias, kind: "regional_synonym", confidence: 1 }))
+    ];
+    const result = await searchFoods(rankedCatalog(rows, aliases), query);
+    expect(result[0].id).toBe(id);
+    expect(isTrustedLocalMatch(result[0].match)).toBe(true);
+  });
+
   it("finds ketchup under its Hungarian spelling 'kechup' (owner report 4efb32)", async () => {
     const rows = [food("bls-ketchup", "Tomatenketchup", { searchText: normalizeSearch("Tomatenketchup ketchup tomato ketchup") }), food("usda-ketchup", "Ketchup, restaurant", { source: "usda_fdc" })];
     const aliases = [{ id: "a1", foodId: "bls-ketchup", normalizedAlias: "kechup", kind: "regional_synonym", confidence: 1 }];

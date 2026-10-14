@@ -60375,6 +60375,61 @@
       }
     },
     {
+      "food_key": "pasta_durum_dry",
+      "aliases": {
+        "hu": [
+          "spagetti",
+          "spagettitészta",
+          "száraztészta",
+          "penne",
+          "makaróni"
+        ],
+        "de": [
+          "Spaghetti",
+          "Hartweizennudeln"
+        ],
+        "en": [
+          "spaghetti",
+          "dry pasta",
+          "penne",
+          "macaroni"
+        ]
+      }
+    },
+    {
+      "food_key": "parmesan",
+      "aliases": {
+        "hu": [
+          "parmezán sajt",
+          "parmezánsajt",
+          "parmigiano reggiano"
+        ],
+        "de": [
+          "Parmesankäse",
+          "Parmigiano Reggiano"
+        ],
+        "en": [
+          "parmesan cheese",
+          "parmigiano reggiano"
+        ]
+      }
+    },
+    {
+      "food_key": "smoked_bacon",
+      "aliases": {
+        "hu": [
+          "kolozsvári szalonna",
+          "füstölt szalonna"
+        ],
+        "de": [
+          "Räucherspeck"
+        ],
+        "en": [
+          "smoked bacon"
+        ]
+      }
+    },
+    {
       "food_key": "tomato",
       "aliases": {
         "de-AT": [
