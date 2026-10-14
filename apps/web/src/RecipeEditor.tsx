@@ -48,7 +48,11 @@ export function RecipeEditor({ lang, state, editing, onSaved, onCancel }: {
   const imp = t.recipes.import;
   const [title, setTitle] = useState(editing?.title ?? "");
   const [description, setDescription] = useState(editing?.description ?? "");
-  const [instructions, setInstructions] = useState<string[]>(editing?.instructions ?? []);
+  // Raw textarea text; trimmed into steps only when read. Normalizing on every
+  // keystroke ate a trailing space and the empty line Enter starts (owner
+  // report a8c9ed, 2026-10-14).
+  const [instructionsText, setInstructionsText] = useState((editing?.instructions ?? []).join("\n"));
+  const instructions = instructionsText.split(/\r?\n/).map((line) => line.trim()).filter(Boolean).slice(0, 100);
   const [servings, setServings] = useState(editing?.servings?.toString() ?? "");
   const [finishedWeight, setFinishedWeight] = useState(editing?.finishedWeightGrams?.toString() ?? "");
   const [visibility, setVisibility] = useState<"private" | "public">(editing?.visibility === "public" ? "public" : "private");
@@ -109,7 +113,7 @@ export function RecipeEditor({ lang, state, editing, onSaved, onCancel }: {
       const result = await api<{ preview: ImportPreview }>("/recipes/import-url/preview", { method: "POST", body: JSON.stringify({ url: importUrl.trim() }) }, state);
       const preview = result.preview;
       setImportPreview(preview); setTitle(preview.title); setServings(preview.servings?.toString() ?? "");
-      setInstructions(preview.instructions);
+      setInstructionsText(preview.instructions.join("\n"));
     } catch (error) { setStatus(error instanceof ApiError && error.code in t.recipeErrors ? recipeErrorText(error, t.recipeErrors) : imp.failed); }
     finally { setImporting(false); }
   }
@@ -156,7 +160,7 @@ export function RecipeEditor({ lang, state, editing, onSaved, onCancel }: {
     <div className="grid gap-3 md:grid-cols-2">
       <label>{t.recipes.titleLabel}<input className="field" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={120}/></label>
       <label>{t.recipes.descriptionLabel}<input className="field" value={description} onChange={(e) => setDescription(e.target.value)} maxLength={2000}/></label>
-      <label>{t.recipes.instructionsLabel}<textarea className="field" value={instructions.join("\n")} onChange={(e) => setInstructions(e.target.value.split(/\r?\n/).map((line) => line.trim()).filter(Boolean).slice(0, 100))}/></label>
+      <label>{t.recipes.instructionsLabel}<textarea className="field" value={instructionsText} onChange={(e) => setInstructionsText(e.target.value)}/></label>
       <label>{t.recipes.servingsFieldLabel}<input className="field" type="number" min="0.1" step="0.1" value={servings} onChange={(e) => setServings(e.target.value)}/></label>
       <label>{t.recipes.finishedWeightLabel}<input className="field" type="number" min="0.1" step="0.1" value={finishedWeight} onChange={(e) => setFinishedWeight(e.target.value)}/></label>
     </div>

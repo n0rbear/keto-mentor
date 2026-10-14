@@ -283,4 +283,7 @@ UNIT_CLASSES = [
 # record, so an OFF product of that name outranked it.
 FOOD_ALIASES = [
     dict(food_key="frankfurter", aliases={"hu": ["frankfurti virsli", "frankfurti sertésvirsli", "sertésvirsli"], "de": ["Frankfurter Würstchen"], "de-AT": ["Frankfurter Würstel"], "en": ["wiener sausage"]}),
+    # Owner report 4efb32 (2026-10-14): "kechup" found nothing in the recipe
+    # ingredient search. Common Hungarian spellings of ketchup.
+    dict(food_key="ketchup", aliases={"hu": ["kecsap", "kechup", "kecsup", "ketchap", "paradicsomketchup"]}),
 ]

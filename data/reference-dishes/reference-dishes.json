@@ -60363,6 +60363,18 @@
       }
     },
     {
+      "food_key": "ketchup",
+      "aliases": {
+        "hu": [
+          "kecsap",
+          "kechup",
+          "kecsup",
+          "ketchap",
+          "paradicsomketchup"
+        ]
+      }
+    },
+    {
       "food_key": "tomato",
       "aliases": {
         "de-AT": [
