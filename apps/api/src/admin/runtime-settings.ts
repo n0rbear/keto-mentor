@@ -19,14 +19,18 @@ export const announcementSchema = z.object({
 export const settingsSchema = z.object({
   registrationOpen: z.boolean(),
   announcement: announcementSchema,
-  aiLimits: aiLimitsSchema
+  aiLimits: aiLimitsSchema,
+  // Premium features while there is no payment yet (2026-10-15): "beta_all"
+  // lets every signed-in user try them, "premium_only" needs an entitlement.
+  premiumAccess: z.enum(["beta_all", "premium_only"]).default("beta_all")
 });
 export type AppSettings = z.infer<typeof settingsSchema>;
 
 export const DEFAULT_SETTINGS: AppSettings = Object.freeze({
   registrationOpen: true,
   announcement: { enabled: false, hu: "", de: "", en: "" },
-  aiLimits: { perHour: 30, perDay: 100, perRecipe: 8 }
+  aiLimits: { perHour: 30, perDay: 100, perRecipe: 8 },
+  premiumAccess: "beta_all"
 }) as AppSettings;
 
 let current: AppSettings = structuredClone(DEFAULT_SETTINGS);

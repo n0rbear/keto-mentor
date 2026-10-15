@@ -598,3 +598,11 @@ body { padding-left: var(--safe-left); padding-right: var(--safe-right); }
 .idea-card .btn { grid-column: 1 / -1; justify-self: start; }
 @media (min-width: 640px) { .idea-card { grid-template-columns: auto 1fr auto; } .idea-card .btn { grid-column: auto; } }
 .admin-badge.is-idea { background: rgb(var(--warning) / .15); color: rgb(var(--warning)); }
+.dinner-card { display: grid; gap: .6rem; }
+.dinner-card > .btn { justify-self: start; }
+.dinner-head { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; justify-content: space-between; }
+.dinner-head .section-heading { margin: 0; }
+.dinner-result { display: grid; gap: .5rem; min-width: 0; }
+.dinner-list { display: grid; gap: .5rem; margin: 0; padding: 0; list-style: none; }
+.dinner-item { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; justify-content: space-between; border: 1px solid rgb(var(--border) / .35); border-radius: 12px; padding: .6rem .75rem; min-width: 0; }
+.dinner-item > div { min-width: 0; overflow-wrap: anywhere; }

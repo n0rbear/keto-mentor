@@ -18,13 +18,13 @@ type Overview = {
 };
 type Ticket = { id: string; kind?: string; message: string; status: string; adminNote: string | null; view: string | null; lang: string | null; build: string | null; lastInput: string | null; createdAt: string; user: { username: string; email: string | null } | null };
 type AdminUser = { id: string; username: string; email: string | null; emailVerified: boolean; locale: string; createdAt: string; meals: number; recipes: number; lastMealAt: string | null; isAdmin: boolean };
-type Settings = { registrationOpen: boolean; announcement: { enabled: boolean; hu: string; de: string; en: string }; aiLimits: { perHour: number; perDay: number; perRecipe: number } };
+type Settings = { registrationOpen: boolean; announcement: { enabled: boolean; hu: string; de: string; en: string }; aiLimits: { perHour: number; perDay: number; perRecipe: number }; premiumAccess?: "beta_all" | "premium_only" };
 type Tab = "overview" | "feedback" | "users" | "settings";
 
 const KIND_LABELS: Record<string, string> = {
   search: "Gépelés közbeni keresés", food_search: "Alapanyag-keresés (recept)", interpret: "Értelmezés (Enter)", voice: "Hangbevitel",
   external_lookup: "Külső adatbázis-keresés", recipe_import: "Recept-import", meal_saved: "Mentett étkezés", register: "Regisztráció",
-  login: "Belépés", feedback: "Hibajelentés", reset_request: "Jelszó-visszaállítás kérése", http_5xx: "Szerverhiba (5xx)"
+  login: "Belépés", feedback: "Hibajelentés", reset_request: "Jelszó-visszaállítás kérése", dinner_suggestions: "Vacsoraajánló", http_5xx: "Szerverhiba (5xx)"
 };
 const kindLabel = (kind: string) => KIND_LABELS[kind] ?? (kind.startsWith("ai:") ? `AI: ${kind.slice(3)}` : kind.startsWith("ai_error:") ? `AI-hiba: ${kind.slice(9)}` : kind.endsWith(":error") ? `${KIND_LABELS[kind.slice(0, -6)] ?? kind.slice(0, -6)} – hiba` : kind);
 const fmtDate = (iso: string | null) => iso ? new Date(iso).toLocaleString("hu-HU", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }) : "–";
@@ -207,6 +207,11 @@ function SettingsTab({ state }: { state: ApiState }) {
         {limit("perHour", "Óránként", "AI-becslés és webes tápérték-keresés óránként (alap: 30)")}
         {limit("perDay", "Naponta", "Ugyanez naponta (alap: 100)")}
         {limit("perRecipe", "Receptenként", "Egy recept importálásakor legfeljebb (alap: 8)")}
+      </section>
+      <section>
+        <h3>Prémium funkciók</h3>
+        <label className="legal-confirm"><input type="checkbox" checked={(settings.premiumAccess ?? "beta_all") === "beta_all"} onChange={(e) => set({ premiumAccess: e.target.checked ? "beta_all" : "premium_only" })}/>Béta: minden felhasználó kipróbálhatja (pl. Vacsoraajánló)</label>
+        <p className="text-xs text-muted">Kikapcsolva csak a prémium jogosultságú felhasználók érik el.</p>
       </section>
       {error && <p className="status error" role="alert">{error}</p>}
       {saved && <p className="status success" role="status">Mentve, azonnal érvényes.</p>}

@@ -29,6 +29,8 @@ import { editMeal, deleteMeal, getMeal } from "./meals/edit-meal.js";
 import { repeatMeal } from "./meals/repeat-meal.js";
 import { resolveDiaryDateRange, resolveWeekRange } from "./meals/diary-date.js";
 import { getMealsForDay } from "./meals/diary-query.js";
+import { normalizeSearch } from "./catalog/normalize.js";
+import { DINNER_FEATURE, hasPremiumFeature, loadDinnerCandidates, rankDinnerSuggestions } from "./meals/dinner-suggestions.js";
 import { getWeekOverview } from "./meals/week-query.js";
 import { recipeRouter } from "./recipes/router.js";
 import { interpretMealInput } from "./meal-input/interpret.js";
@@ -631,6 +633,37 @@ app.get("/meals/week", requireAuth, async (req, res, next) => {
     const tzOffsetParam = typeof req.query.tzOffsetMinutes === "string" ? req.query.tzOffsetMinutes : undefined;
     const week = resolveWeekRange({ date: dateParam, tzOffsetMinutes: tzOffsetParam });
     const result = await getWeekOverview(prisma, req.user!.id, week);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Vacsoraajánló (premium, in beta for everyone until payment exists): what
+// to eat for dinner so the selected day stays inside the user's targets.
+// Same ?date/?tzOffsetMinutes convention as /meals/today. Registered before
+// /meals/:mealId.
+app.get("/meals/dinner-suggestions", requireAuth, async (req, res, next) => {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: req.user!.id }, select: { locale: true, profile: true, entitlements: true } });
+    if (!hasPremiumFeature(user?.entitlements ?? [], DINNER_FEATURE, getSettings().premiumAccess)) return res.status(403).json({ error: "premium_required" });
+    const range = resolveDiaryDateRange({
+      date: typeof req.query.date === "string" ? req.query.date : undefined,
+      tzOffsetMinutes: typeof req.query.tzOffsetMinutes === "string" ? req.query.tzOffsetMinutes : undefined
+    });
+    const [day, candidates] = await Promise.all([getMealsForDay(prisma, req.user!.id, range, "detailed"), loadDinnerCandidates(prisma, req.user!.id)]);
+    const profile = user?.profile;
+    const goal = { kcal: profile?.dailyKcal ?? 1800, protein: profile?.dailyProtein ?? 110, netCarbs: profile?.dailyNetCarbs ?? 25, fat: profile?.dailyFat ?? 130 };
+    const lang = (["hu", "de", "en"].includes(String(req.query.lang)) ? req.query.lang : user?.locale ?? "hu") as "hu" | "de" | "en";
+    const result = rankDinnerSuggestions({
+      candidates,
+      remaining: { kcal: goal.kcal - day.totals.kcal, protein: goal.protein - day.totals.protein, netCarbs: goal.netCarbs - day.totals.netCarbs, fat: goal.fat - day.totals.fat },
+      avoid: [...(profile?.avoidedFoods ?? []), ...(profile?.allergies ?? [])],
+      eatenRecipeIds: new Set(day.meals.flatMap((meal: any) => meal.items.map((item: any) => item.recipeId).filter(Boolean))),
+      eatenTitles: new Set(day.meals.flatMap((meal: any) => [meal.title, ...meal.items.map((item: any) => item.displayName)]).filter(Boolean).map((title: string) => normalizeSearch(title))),
+      lang
+    });
+    logger.info({ status: result.status, count: result.suggestions.length, candidates: candidates.length }, "dinner_suggestions");
     res.json(result);
   } catch (error) {
     next(error);

@@ -14,6 +14,7 @@ import { WeekOverviewCard, type WeekOverviewData } from "./WeekOverview";
 import { AuthForm } from "./AuthForm";
 import { EmailPrompt, VerifyEmailBand } from "./EmailPrompt";
 import { AdminPage } from "./AdminPage";
+import { DinnerSuggestions } from "./DinnerSuggestions";
 import { MealTypePicker, mealTypeFields, mealTypeText, rememberCustomMealType, suggestedChoice, type MealChoice } from "./MealTypePicker";
 import { LegalFooter, LegalPageView, legalPageFromHash, type LegalPage } from "./LegalPages";
 import { createPortal } from "react-dom";
@@ -894,6 +895,9 @@ export function App() {
             {selectedFood && <button className="btn primary w-full" disabled={mealSaving} aria-busy={mealSaving}>{mealSaving ? t.savingMeal : t.addMeal}</button>}
           </form>
         </section>
+      )}
+      {user && !adminAccount && profile?.onboardingDone && (
+        <section id="dinner"><DinnerSuggestions lang={lang} state={state} date={selectedDate} onLogged={handleMealLogged}/></section>
       )}
       {user && !adminAccount && profile?.onboardingDone && (
         <section id="recipes">

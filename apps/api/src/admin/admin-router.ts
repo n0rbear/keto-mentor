@@ -165,7 +165,7 @@ export function adminRouter(deps: AdminDeps) {
   router.put("/admin/settings", async (req, res, next) => {
     try {
       const settings = await saveSettings(deps.prisma, settingsSchema.parse(req.body));
-      log(`admin_action action=settings_update registrationOpen=${settings.registrationOpen} announcement=${settings.announcement.enabled} aiLimits=${settings.aiLimits.perHour}/${settings.aiLimits.perDay}/${settings.aiLimits.perRecipe}`);
+      log(`admin_action action=settings_update registrationOpen=${settings.registrationOpen} announcement=${settings.announcement.enabled} aiLimits=${settings.aiLimits.perHour}/${settings.aiLimits.perDay}/${settings.aiLimits.perRecipe} premiumAccess=${settings.premiumAccess}`);
       res.json({ settings });
     } catch (error) { next(error); }
   });
