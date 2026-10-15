@@ -93,6 +93,9 @@ export function rankDinnerSuggestions(input: {
   limit?: number;
   random?: () => number;
   todayMeals?: EatenMeal[];
+  // Variety: dishes eaten in the last days and dishes suggested recently.
+  recentDishIds?: Set<string>;
+  recentlySuggested?: Set<string>;
 }): DinnerResult {
   const { remaining, lang } = input;
   const rounded = { kcal: Math.round(remaining.kcal), protein: round(remaining.protein), netCarbs: round(remaining.netCarbs), fat: round(remaining.fat) };
@@ -106,17 +109,21 @@ export function rankDinnerSuggestions(input: {
     if (input.eatenRecipeIds.has(candidate.recipeId)) continue;
     if (Object.values(candidate.titles).some((title) => input.eatenTitles.has(normalizeSearch(title)))) continue;
     if (terms.some((term) => mentions(candidate.haystack, term))) continue;
-    const proteinFit = remaining.protein > 0 ? Math.min(m.protein, remaining.protein) / remaining.protein : 0.5;
-    const kcalFit = m.kcal / remaining.kcal;
+    // Saturating fits (owner feedback 2026-10-16: "nem állandóan csülköt"):
+    // any dish covering ~60% of the missing protein, or half the calories,
+    // counts as a full fit, so the very richest dish does not always win.
+    const proteinFit = remaining.protein > 0 ? Math.min(1, m.protein / (0.6 * remaining.protein)) : 0.5;
+    const kcalFit = Math.min(1, m.kcal / (0.5 * remaining.kcal));
     const carbUse = m.netCarbs / remaining.netCarbs;
-    const score = 2 * proteinFit + kcalFit - 0.6 * carbUse + (candidate.source === "own" ? 0.3 : 0) + (candidate.lowCarbFriendly ? 0.2 : 0);
+    const score = 1.2 * proteinFit + 0.6 * kcalFit - 0.5 * carbUse + (candidate.source === "own" ? 0.3 : 0) + (candidate.lowCarbFriendly ? 0.15 : 0)
+      - (input.recentDishIds?.has(candidate.dishId) ? 0.8 : 0) - (input.recentlySuggested?.has(candidate.dishId) ? 0.9 : 0);
     scored.push({ candidate, score });
   }
   // Variety (owner feedback 2026-10-15: "csak sült húsokat írt"): a little
   // randomness among the good fits, so "Újraszámolás" shows other ideas, and
   // at most one dish per cooking style and per main protein while others exist.
   const random = input.random ?? Math.random;
-  const jittered = scored.map((entry) => ({ ...entry, key: entry.score + random() * 0.8 }))
+  const jittered = scored.map((entry) => ({ ...entry, key: entry.score + random() * 1.2 }))
     .sort((a, b) => b.key - a.key || a.candidate.titles[lang].localeCompare(b.candidate.titles[lang]));
   const limit = input.limit ?? 5;
   const picked: DinnerCandidate[] = [];
@@ -259,3 +266,13 @@ export function hasPremiumFeature(
 }
 
 export const DINNER_FEATURE = "dinner_recommender";
+
+// The dishes each user was shown lately (in memory, last 15), so a repeated
+// "Mit egyek vacsorára?" / "Újraszámolás" brings other ideas.
+const shown = new Map<string, string[]>();
+export function recentlyShown(userId: string) { return new Set(shown.get(userId) ?? []); }
+export function rememberShown(userId: string, dishIds: string[]) {
+  const next = [...dishIds, ...(shown.get(userId) ?? []).filter((id) => !dishIds.includes(id))].slice(0, 15);
+  shown.set(userId, next);
+  if (shown.size > 5000) shown.delete(shown.keys().next().value!);
+}

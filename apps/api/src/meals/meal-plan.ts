@@ -52,7 +52,9 @@ function scoreDay(meals: PlanMeal[], goals: Goals, weekDishes: Map<string, numbe
   const t = sumMacros(meals);
   if (t.netCarbs > goals.netCarbs) return { fits: false, score: -1000 - t.netCarbs };
   const kcalRatio = goals.kcal > 0 ? t.kcal / goals.kcal : 1;
-  let score = 2 * (goals.protein > 0 ? Math.min(t.protein, goals.protein) / goals.protein : 0.5)
+  // Saturating protein (owner feedback 2026-10-16: not always csülök and
+  // fried eggs): reaching ~85% of the protein target is already a full fit.
+  let score = 2 * (goals.protein > 0 ? Math.min(1, t.protein / (0.85 * goals.protein)) : 0.5)
     - 2.5 * Math.max(0, 0.85 - kcalRatio) - 4 * Math.max(0, kcalRatio - 1.05)
     - 0.4 * (t.netCarbs / Math.max(1, goals.netCarbs));
   const [, lunch, dinner] = meals;
@@ -61,8 +63,9 @@ function scoreDay(meals: PlanMeal[], goals: Goals, weekDishes: Map<string, numbe
     if (lunch.protein === dinner.protein) score -= 0.5;
   }
   for (const meal of meals) {
-    score -= 1.5 * (weekDishes.get(meal.dishId) ?? 0);
-    score -= 0.15 * (weekStyles.get(meal.style) ?? 0);
+    score -= 2.5 * (weekDishes.get(meal.dishId) ?? 0);
+    score -= 0.35 * (weekStyles.get(meal.style) ?? 0);
+    score -= 0.25 * (weekStyles.get(`protein:${meal.protein}`) ?? 0);
     if (meal.source === "own") score += 0.2;
   }
   return { fits: true, score };
@@ -78,7 +81,9 @@ function pickDay(date: string, pools: Pools, goals: Goals, weekDishes: Map<strin
     const d = fixed.dinner ?? toMeal("dinner", pick(pools.main));
     if (l.dishId === d.dishId || b.dishId === l.dishId || b.dishId === d.dishId) continue;
     const meals = [b, l, d];
-    const { fits, score } = scoreDay(meals, goals, weekDishes, weekStyles);
+    const scored = scoreDay(meals, goals, weekDishes, weekStyles);
+    // A little randomness among the good days, so two plans are not the same.
+    const fits = scored.fits, score = scored.score + random() * 0.9;
     if (!best || (fits && !best.fits) || (fits === best.fits && score > best.score)) best = { meals, fits, score };
   }
   const meals = best?.meals ?? [];
@@ -98,6 +103,7 @@ function weekCounts(days: PlanDay[], skip?: { date: string; slot?: PlanSlot }) {
     if (skip && day.date === skip.date && (!skip.slot || meal.mealType === skip.slot)) continue;
     dishes.set(meal.dishId, (dishes.get(meal.dishId) ?? 0) + 1);
     styles.set(meal.style, (styles.get(meal.style) ?? 0) + 1);
+    styles.set(`protein:${meal.protein}`, (styles.get(`protein:${meal.protein}`) ?? 0) + 1);
   }
   return { dishes, styles };
 }

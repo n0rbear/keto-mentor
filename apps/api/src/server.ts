@@ -31,7 +31,7 @@ import { repeatMeal } from "./meals/repeat-meal.js";
 import { resolveDiaryDateRange, resolveWeekRange } from "./meals/diary-date.js";
 import { getMealsForDay } from "./meals/diary-query.js";
 import { normalizeSearch } from "./catalog/normalize.js";
-import { DINNER_FEATURE, hasPremiumFeature, loadDinnerCandidates, rankDinnerSuggestions } from "./meals/dinner-suggestions.js";
+import { DINNER_FEATURE, hasPremiumFeature, loadDinnerCandidates, rankDinnerSuggestions, recentlyShown, rememberShown } from "./meals/dinner-suggestions.js";
 import { getWeekOverview } from "./meals/week-query.js";
 import { recipeRouter } from "./recipes/router.js";
 import { interpretMealInput, resolveQuantity } from "./meal-input/interpret.js";
@@ -697,8 +697,14 @@ app.get("/meals/dinner-suggestions", requireAuth, async (req, res, next) => {
     const dayGoals = effectiveGoals(profile, range.date);
     const goal = { kcal: dayGoals.dailyKcal, protein: dayGoals.dailyProtein, netCarbs: dayGoals.dailyNetCarbs, fat: dayGoals.dailyFat };
     const lang = (["hu", "de", "en"].includes(String(req.query.lang)) ? req.query.lang : user?.locale ?? "hu") as "hu" | "de" | "en";
+    const dishOf = new Map(candidates.map((c) => [c.recipeId, c.dishId]));
+    const weekAgo = new Date(range.start.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const recentItems = await prisma.mealItem.findMany({ where: { recipeId: { not: null }, meal: { userId: req.user!.id, eatenAt: { gte: weekAgo, lt: range.start } } }, select: { recipeId: true }, take: 300 });
+    const recentDishIds = new Set(recentItems.map((item) => dishOf.get(item.recipeId!)).filter((id): id is string => !!id));
     const result = rankDinnerSuggestions({
       candidates,
+      recentDishIds,
+      recentlySuggested: recentlyShown(req.user!.id),
       remaining: { kcal: goal.kcal - day.totals.kcal, protein: goal.protein - day.totals.protein, netCarbs: goal.netCarbs - day.totals.netCarbs, fat: goal.fat - day.totals.fat },
       avoid: [...(profile?.avoidedFoods ?? []), ...(profile?.allergies ?? [])],
       eatenRecipeIds: new Set(day.meals.flatMap((meal: any) => meal.items.map((item: any) => item.recipeId).filter(Boolean))),
@@ -706,6 +712,7 @@ app.get("/meals/dinner-suggestions", requireAuth, async (req, res, next) => {
       lang,
       todayMeals: day.meals.map((meal: any) => ({ id: meal.id, title: meal.title, mealType: meal.mealType ?? null, mealTypeLabel: meal.mealTypeLabel ?? null, totals: meal.totals }))
     });
+    rememberShown(req.user!.id, result.suggestions.map((s) => dishOf.get(s.recipeId) ?? s.recipeId));
     logger.info({ status: result.status, count: result.suggestions.length, leftovers: result.leftovers.length, candidates: candidates.length }, "dinner_suggestions");
     res.json(result);
   } catch (error) {
