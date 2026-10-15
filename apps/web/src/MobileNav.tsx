@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { BookOpen, CalendarDays, CalendarRange, FileDown, LineChart, Pill, SlidersHorizontal, Crown, Gem, Home, Lightbulb, Menu, Moon, UtensilsCrossed, X } from "lucide-react";
+import { Bell, BookOpen, CalendarDays, CalendarRange, FileDown, LineChart, Pill, SlidersHorizontal, Crown, Gem, Home, Lightbulb, Menu, Moon, UtensilsCrossed, X } from "lucide-react";
 import type { Lang } from "./i18n";
 
 // Phone layout (owner request 2026-10-15: "ne legyen ennyire hosszan
@@ -8,17 +8,17 @@ import type { Lang } from "./i18n";
 // keeps everything on one page; the switch is pure CSS on <main
 // data-mobile-view>, so the DOM (and every flow) stays the same.
 
-export const MOBILE_VIEWS = ["today", "log", "week", "stats", "micros", "goals", "dinner", "plan", "recipes", "export", "premium", "idea"] as const;
+export const MOBILE_VIEWS = ["today", "log", "week", "stats", "micros", "goals", "reminders", "dinner", "plan", "recipes", "export", "premium", "idea"] as const;
 export type MobileView = (typeof MOBILE_VIEWS)[number];
 
 export const MOBILE_VIEW_LABELS: Record<Lang, Record<MobileView, string>> = {
-  hu: { today: "Ma", log: "Rögzítés", week: "Heti áttekintés", stats: "Haladó statisztika", micros: "Mikrotápanyagok", goals: "Rugalmas célok", dinner: "Vacsoraajánló", plan: "Heti étrendterv", recipes: "Receptek", export: "Export (PDF/CSV)", premium: "Prémium – hamarosan", idea: "Ötletem van" },
-  de: { today: "Heute", log: "Erfassen", week: "Wochenübersicht", stats: "Erweiterte Statistik", micros: "Mikronährstoffe", goals: "Flexible Ziele", dinner: "Abendessen-Vorschlag", plan: "Wochenplan", recipes: "Rezepte", export: "Export (PDF/CSV)", premium: "Premium – demnächst", idea: "Ich habe eine Idee" },
-  en: { today: "Today", log: "Log", week: "Week overview", stats: "Advanced stats", micros: "Micronutrients", goals: "Flexible goals", dinner: "Dinner ideas", plan: "Weekly meal plan", recipes: "Recipes", export: "Export (PDF/CSV)", premium: "Premium – coming soon", idea: "I have an idea" }
+  hu: { today: "Ma", log: "Rögzítés", week: "Heti áttekintés", stats: "Haladó statisztika", micros: "Mikrotápanyagok", goals: "Rugalmas célok", reminders: "Emlékeztetők", dinner: "Vacsoraajánló", plan: "Heti étrendterv", recipes: "Receptek", export: "Export (PDF/CSV)", premium: "Prémium – hamarosan", idea: "Ötletem van" },
+  de: { today: "Heute", log: "Erfassen", week: "Wochenübersicht", stats: "Erweiterte Statistik", micros: "Mikronährstoffe", goals: "Flexible Ziele", reminders: "Erinnerungen", dinner: "Abendessen-Vorschlag", plan: "Wochenplan", recipes: "Rezepte", export: "Export (PDF/CSV)", premium: "Premium – demnächst", idea: "Ich habe eine Idee" },
+  en: { today: "Today", log: "Log", week: "Week overview", stats: "Advanced stats", micros: "Micronutrients", goals: "Flexible goals", reminders: "Reminders", dinner: "Dinner ideas", plan: "Weekly meal plan", recipes: "Recipes", export: "Export (PDF/CSV)", premium: "Premium – coming soon", idea: "I have an idea" }
 };
 const SHORT: Record<Lang, Partial<Record<MobileView, string>>> = { hu: { dinner: "Vacsora" }, de: { dinner: "Abendessen" }, en: { dinner: "Dinner" } };
-const ICONS: Record<MobileView, typeof Home> = { today: Home, log: UtensilsCrossed, week: CalendarDays, stats: LineChart, micros: Pill, goals: SlidersHorizontal, dinner: Moon, plan: CalendarRange, recipes: BookOpen, export: FileDown, premium: Gem, idea: Lightbulb };
-const PREMIUM: ReadonlySet<MobileView> = new Set(["stats", "micros", "goals", "dinner", "plan", "export"]);
+const ICONS: Record<MobileView, typeof Home> = { today: Home, log: UtensilsCrossed, week: CalendarDays, stats: LineChart, micros: Pill, goals: SlidersHorizontal, reminders: Bell, dinner: Moon, plan: CalendarRange, recipes: BookOpen, export: FileDown, premium: Gem, idea: Lightbulb };
+const PREMIUM: ReadonlySet<MobileView> = new Set(["stats", "micros", "goals", "reminders", "dinner", "plan", "export"]);
 const BAR: MobileView[] = ["today", "log", "dinner", "recipes"];
 
 const menuCopy = { hu: { open: "Menü", close: "Menü bezárása", premium: "Prémium" }, de: { open: "Menü", close: "Menü schließen", premium: "Premium" }, en: { open: "Menu", close: "Close menu", premium: "Premium" } } as const;

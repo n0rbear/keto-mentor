@@ -22,6 +22,7 @@ import { ExportCard } from "./ExportCard";
 import { MicrosCard } from "./MicrosCard";
 import { FlexibleGoals } from "./FlexibleGoals";
 import { effectiveGoals } from "./goals";
+import { dueReminder, ReminderBand, RemindersCard, type ReminderSettings } from "./Reminders";
 import { MealTypePicker, mealTypeFields, mealTypeText, rememberCustomMealType, suggestedChoice, type MealChoice } from "./MealTypePicker";
 import { LegalFooter, LegalPageView, legalPageFromHash, type LegalPage } from "./LegalPages";
 import { createPortal } from "react-dom";
@@ -138,6 +139,15 @@ export function App() {
   // admin screen instead of the diary and logs nothing (the API refuses it
   // too). Every admin call is checked again on the server.
   const adminAccount = !!user?.isAdmin;
+  // Emlékeztetők (premium): settings for the in-app band; "Később" hides it for this session.
+  const [reminders, setReminders] = useState<ReminderSettings>(null);
+  const [reminderDismissed, setReminderDismissed] = useState<string | null>(null);
+  const [clockTick, setClockTick] = useState(0);
+  useEffect(() => {
+    if (!user || user.isAdmin || !user.profile?.onboardingDone) return;
+    api<{ reminders: ReminderSettings }>("/me/reminders", {}, state).then((r) => setReminders(r.reminders)).catch(() => undefined);
+  }, [user?.id, user?.profile?.onboardingDone]);
+  useEffect(() => { const id = window.setInterval(() => setClockTick((n) => n + 1), 60_000); return () => window.clearInterval(id); }, []);
   // Phones show one dashboard part at a time (MobileNav.tsx).
   const [mobileView, setMobileViewState] = useState<MobileView>("today");
   function setMobileView(view: MobileView) {
@@ -793,6 +803,11 @@ export function App() {
       {user && !adminAccount && profile?.onboardingDone && user.email === null && (
         <EmailPrompt lang={lang} state={state} onSaved={(email) => setUser((current) => current ? { ...current, email, emailVerified: false } : current)}/>
       )}
+      {user && !adminAccount && profile?.onboardingDone && selectedDate === todayLocalDate() && (() => {
+        void clockTick;
+        const kind = dueReminder(reminders, meals);
+        return kind && reminderDismissed !== `${todayLocalDate()}:${kind}` ? <ReminderBand lang={lang} kind={kind} onLog={() => { setMealChoice({ type: kind, label: "" }); setMobileView("log"); document.getElementById("log-meal")?.scrollIntoView?.({ behavior: "smooth" }); }} onDismiss={() => setReminderDismissed(`${todayLocalDate()}:${kind}`)}/> : null;
+      })()}
       {user && !adminAccount && profile?.onboardingDone && user.email && user.emailVerified === false && !verifyNotice?.ok && (
         <VerifyEmailBand lang={lang} state={state} email={user.email}/>
       )}
@@ -944,6 +959,9 @@ export function App() {
       )}
       {user && !adminAccount && profile?.onboardingDone && (
         <section id="stats"><ProgressStats lang={lang} state={state} today={todayLocalDate()}/></section>
+      )}
+      {user && !adminAccount && profile?.onboardingDone && (
+        <section id="reminders"><RemindersCard lang={lang} state={state} settings={reminders} emailConfirmed={!!user.email && user.emailVerified !== false} onSaved={setReminders}/></section>
       )}
       {user && !adminAccount && profile?.onboardingDone && (
         <section id="goals"><FlexibleGoals lang={lang} state={state} base={profile} value={profile.weekdayGoals} onSaved={(next) => setUser((current) => current ? { ...current, profile: next } : current)}/></section>

@@ -73,6 +73,7 @@ import { forbidAdminAccountWrites } from "./admin/admin-only-account.js";
 import { keepAwakeUrls, startKeepAwake } from "./keep-awake.js";
 import { mealPlanRouter } from "./meals/meal-plan-router.js";
 import { progressRouter } from "./stats/progress-router.js";
+import { remindersRouter, startReminders } from "./reminders/reminders.js";
 import { adminRouter } from "./admin/admin-router.js";
 import { REFERENCE_USERNAME } from "./reference-dishes/seed.js";
 import { platesRouter } from "./meal-input/plates.js";
@@ -695,6 +696,8 @@ app.get("/meals/dinner-suggestions", requireAuth, async (req, res, next) => {
 app.use(mealPlanRouter({ prisma, requireAuth, adminOnly, log: (obj, msg) => logger.info(obj, msg) }));
 // Haladó statisztika és testsúlynapló (premium, in beta for everyone).
 app.use(progressRouter({ prisma, requireAuth, adminOnly }));
+// Emlékeztetők (premium, in beta for everyone): e-mail at the user's times.
+app.use(remindersRouter({ prisma, requireAuth, adminOnly }));
 
 // Single-meal detail, backing the web edit UI (the dashboard list uses the
 // slim ?view=summary shape and intentionally has no per-item data).
@@ -756,4 +759,5 @@ loadSettings(prisma).catch((error) => logger.warn({ err: error?.message }, "admi
 startUsageFlusher(prisma);
 startPremiumUsersRefresher(prisma);
 if (env.NODE_ENV === "production") startKeepAwake(keepAwakeUrls(env.KEEP_AWAKE_URLS));
+if (env.NODE_ENV === "production") startReminders({ prisma, mailer, webAppUrl, admins: adminEmails, log: (line) => logger.info(line) });
 app.listen(env.PORT, () => logger.info({ port: env.PORT }, "Keto Mentor API listening"));

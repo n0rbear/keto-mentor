@@ -232,6 +232,9 @@ model Profile {
   /// Rugalmas célok (premium, 2026-10-16): per-weekday overrides of the daily
   /// targets ({ mon: { netCarbs: 40 }, ... }); null = the same every day.
   weekdayGoals  Json?
+  /// Emlékeztetők (premium, 2026-10-16): { lunchAt, dinnerAt ("HH:MM" or
+  /// null), timeZone (IANA), lastSent: { lunch, dinner } local dates }.
+  reminders     Json?
   updatedAt     DateTime @updatedAt
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

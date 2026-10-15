@@ -757,3 +757,16 @@ body { padding-left: var(--safe-left); padding-right: var(--safe-right); }
   main[data-mobile-view="goals"] #goals { display: block; padding-top: 1rem; }
   main[data-mobile-view="goals"] #today { display: none; }
 }
+#reminders { width: min(1180px, calc(100% - 32px)); margin: 0 auto 1.25rem; }
+@media (max-width: 860px) { #reminders { width: min(100% - 24px, 1180px); } }
+.reminders-card { display: grid; gap: .6rem; }
+.reminders-card > .btn { justify-self: start; }
+.reminder-row { display: flex; align-items: center; justify-content: space-between; gap: .6rem; flex-wrap: wrap; }
+.reminder-row .field { width: 8rem; }
+.reminder-band { flex-wrap: wrap; }
+.reminder-band span { flex: 1 1 10rem; }
+@media (max-width: 860px) {
+  main[data-mobile-view] #reminders { display: none; }
+  main[data-mobile-view="reminders"] #reminders { display: block; padding-top: 1rem; }
+  main[data-mobile-view="reminders"] #today { display: none; }
+}

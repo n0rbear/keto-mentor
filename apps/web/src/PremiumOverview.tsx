@@ -16,7 +16,7 @@ export const PREMIUM_FEATURES: Feature[] = [
   { key: "export", status: "beta", title: { hu: "Export (PDF/CSV)", de: "Export (PDF/CSV)", en: "Export (PDF/CSV)" }, text: { hu: "Naplód orvosnak vagy dietetikusnak.", de: "Dein Tagebuch für Arzt oder Ernährungsberatung.", en: "Your diary for your doctor or dietitian." } },
   { key: "micros", status: "beta", title: { hu: "Mikrotápanyagok", de: "Mikronährstoffe", en: "Micronutrients" }, text: { hu: "Vitaminok és ásványi anyagok naponta.", de: "Vitamine und Mineralstoffe pro Tag.", en: "Vitamins and minerals per day." } },
   { key: "goals", status: "beta", title: { hu: "Rugalmas célok", de: "Flexible Ziele", en: "Flexible goals" }, text: { hu: "Napokra bontott célok, például carb cycling.", de: "Ziele je Wochentag, z. B. Carb Cycling.", en: "Goals per weekday, e.g. carb cycling." } },
-  { key: "reminders", status: "soon", title: { hu: "Emlékeztetők", de: "Erinnerungen", en: "Reminders" }, text: { hu: "Például: „még nem rögzítetted az ebédet”.", de: "Zum Beispiel: „Mittagessen noch nicht eingetragen“.", en: "For example: \"lunch not logged yet\"." } }
+  { key: "reminders", status: "beta", title: { hu: "Emlékeztetők", de: "Erinnerungen", en: "Reminders" }, text: { hu: "Például: „még nem rögzítetted az ebédet”.", de: "Zum Beispiel: „Mittagessen noch nicht eingetragen“.", en: "For example: \"lunch not logged yet\"." } }
 ];
 
 const copy = {
