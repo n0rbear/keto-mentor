@@ -5,6 +5,8 @@ import { api, ApiError, type ApiState } from "./api";
 import type { Lang } from "./i18n";
 import { PremiumBadge, PremiumNote } from "./PremiumBadge";
 import { MEAL_TYPE_LABELS, type MealType } from "./MealTypePicker";
+import { BRAND_CONTACT } from "./brand-contact";
+import ketoMentorLogo from "./assets/ketomentor-logo-small.png";
 
 // Export (premium, 2026-10-16): the diary for a date range as a CSV file
 // (Excel-friendly) or as a printable report the browser saves as PDF.
@@ -59,6 +61,16 @@ export function diaryCsv(data: ExportData, lang: Lang) {
   return "﻿" + rows.join("\r\n") + "\r\n";
 }
 
+function ContactLine() {
+  const host = (url: string) => url.replace(/^https?:\/\//, "").replace(/\/$/, "");
+  return (
+    <p className="print-contact">
+      <span>{host(BRAND_CONTACT.web)}</span> · <span>{BRAND_CONTACT.email}</span> · <span>Telegram: {host(BRAND_CONTACT.telegram)}</span>
+      {BRAND_CONTACT.whatsapp && <> · <span>WhatsApp: {BRAND_CONTACT.whatsapp}</span></>}
+    </p>
+  );
+}
+
 function Report({ data, lang }: { data: ExportData; lang: Lang }) {
   const t = copy[lang];
   const n = data.days.length || 1;
@@ -69,7 +81,13 @@ function Report({ data, lang }: { data: ExportData; lang: Lang }) {
   const line = (x: Totals) => `${f(x.kcal)} kcal · ${a.fat} ${f(x.fat)} g · ${a.protein} ${f(x.protein)} g · ${a.carbs} ${f(x.carbs)} g · ${a.fiber} ${f(x.fiber)} g · ${a.net} ${f(x.netCarbs)} g`;
   return (
     <div className="print-report">
-      <h1>Keto Mentor – {t.report}</h1>
+      <header className="print-brand">
+        <img src={ketoMentorLogo} alt="Keto Mentor"/>
+        <div>
+          <h1>Keto Mentor – {t.report}</h1>
+          <ContactLine/>
+        </div>
+      </header>
       <p>{t.period}: {data.from} – {data.to}</p>
       {data.goals && <p>{t.goals}: {data.goals.dailyKcal} kcal · {a.protein} {data.goals.dailyProtein} g · {a.net} ≤ {data.goals.dailyNetCarbs} g · {a.fat} {data.goals.dailyFat} g · {a.fiber} {data.goals.dailyFiber} g</p>}
       {data.days.length > 0 && <p>{t.avg}: {f(avg("kcal"))} kcal · {a.protein} {f(avg("protein"))} g · {a.net} {f(avg("netCarbs"))} g{keto != null ? ` · ${t.ketoDays}: ${keto}/${data.days.length}` : ""}</p>}
@@ -86,7 +104,7 @@ function Report({ data, lang }: { data: ExportData; lang: Lang }) {
           </table>
         </section>
       ))}
-      <p className="print-note">{t.disclaimer}</p>
+      <footer className="print-footer"><p className="print-note">{t.disclaimer}</p><ContactLine/></footer>
     </div>
   );
 }

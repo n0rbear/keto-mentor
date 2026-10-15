@@ -6,7 +6,7 @@ import { dict, type Lang } from "./i18n";
 import { api, ApiError, streamProgress, type ApiState } from "./api";
 import { mondayOf, shiftDate, todayLocalDate } from "./date";
 import "./styles.css";
-import norbappLogo from "./assets/norbapp-logo-new.png";
+import ketoMentorMark from "./assets/ketomentor-mark.png";
 
 import { RecipeBuilder } from "./RecipeBuilder";
 import { MealEditDialog, DeleteMealDialog, RepeatMealDialog, type MealDetail } from "./MealActions";
@@ -21,6 +21,8 @@ import { ProgressStats } from "./ProgressStats";
 import { ExportCard } from "./ExportCard";
 import { MicrosCard } from "./MicrosCard";
 import { FlexibleGoals } from "./FlexibleGoals";
+import { PalettePicker } from "./PalettePicker";
+import { applyPalette, storedPalette } from "./palette";
 import { effectiveGoals } from "./goals";
 import { dueReminder, ReminderBand, RemindersCard, type ReminderSettings } from "./Reminders";
 import { MealTypePicker, mealTypeFields, mealTypeText, rememberCustomMealType, suggestedChoice, type MealChoice } from "./MealTypePicker";
@@ -735,7 +737,7 @@ export function App() {
       <header className="app-header">
         <div className="app-header-inner">
           <a className="product-lockup" href="#top" aria-label="NorbApp Keto Mentor">
-            <span className="brand-logo-slot"><img src={norbappLogo} alt="NorbApp"/></span>
+            <span className="brand-logo-slot is-keto"><img src={ketoMentorMark} alt="Keto Mentor"/></span>
             <span className="product-lockup-copy"><small>NorbApp health</small><strong>{t.app}</strong></span>
           </a>
           <div className="header-actions">
@@ -995,9 +997,10 @@ export function App() {
       <footer className="app-footer">
         <div className="footer-inner">
           <a className="brand-link" href="https://norbapp.com" target="_blank" rel="noreferrer" aria-label="NorbApp weboldal megnyitasa">
-            <img src={norbappLogo} alt="NorbApp"/><span>NorbApp · Keto Mentor</span>
+            <img src={ketoMentorMark} alt="Keto Mentor"/><span>Keto Mentor · NorbApp</span>
           </a>
           <div className="footer-links">
+            <PalettePicker lang={lang}/>
             <a className="contact-link" href="https://norbapp.com" target="_blank" rel="noreferrer"><ExternalLink size={15}/>norbapp.com</a>
             <a className="contact-link" href="mailto:ketomentor@norbapp.com"><Mail size={15}/>ketomentor@norbapp.com</a>
           </div>
@@ -1193,4 +1196,5 @@ function mealErrorText(error: unknown, labels: Record<string, string>) {
 }
 
 const rootElement = document.getElementById("root");
+applyPalette(storedPalette());
 if (rootElement) createRoot(rootElement).render(<App />);
