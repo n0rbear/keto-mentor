@@ -80,10 +80,31 @@ describe("announcement and e-mail confirmation in the app", () => {
       return json({ error: "missing_token" }, 401);
     }));
     render(<App/>);
-    expect(await screen.findByText("Ma este karbantartás")).toBeTruthy();
+    // Popup once, plus the band that stays.
+    expect((await screen.findAllByText("Ma este karbantartás")).length).toBe(2);
+    fireEvent.click(screen.getByRole("button", { name: "OK" }));
+    expect(screen.getAllByText("Ma este karbantartás")).toHaveLength(1);
+    expect(localStorage.getItem("km_seen_announcement")).toContain("Ma este karbantartás");
     expect(await screen.findByText(/e-mail címed megerősítve|E-Mail-Adresse ist bestätigt|e-mail address is confirmed/)).toBeTruthy();
     expect(calls).toContain("/auth/verify-email");
     expect(window.location.hash).toBe("");
+  });
+});
+
+describe("an announcement saved while the app is open", () => {
+  it("appears when the app comes back to the screen", async () => {
+    let announcement: unknown = null;
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = new URL(String(input));
+      if (url.pathname === "/config") return json({ registrationOpen: true, announcement });
+      if (url.pathname === "/build-info") return json({});
+      return json({ error: "missing_token" }, 401);
+    }));
+    render(<App/>);
+    await waitFor(() => expect(screen.queryByText("Szia")).toBeNull());
+    announcement = { hu: "Szia", de: "Hallo", en: "Hi" };
+    window.dispatchEvent(new Event("focus"));
+    expect((await screen.findAllByText("Szia")).length).toBeGreaterThan(0);
   });
 });
 

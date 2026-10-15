@@ -32,6 +32,23 @@ describe("Vacsoraajánló", () => {
     expect(screen.getByText("Naplózva vacsoraként.")).toBeTruthy();
   });
 
+  it("offers lunch leftovers as an extra and logs them as a repeat for dinner", async () => {
+    const posts: Array<{ path: string; body: any }> = [];
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = new URL(String(input));
+      if (url.pathname === "/meals/dinner-suggestions") return json({ remaining: { kcal: 700, protein: 40, netCarbs: 10, fat: 50 }, status: "ok", suggestions: [], leftovers: [
+        { mealId: "m1", title: "Csirkepörkölt", mealType: "lunch", mealTypeLabel: null, perServing: { kcal: 480, protein: 35, netCarbs: 5, fat: 32 }, after: { kcal: 220, protein: 5, netCarbs: 5, fat: 18 } }
+      ] });
+      if (url.pathname === "/meals/m1/repeat") { posts.push({ path: url.pathname, body: JSON.parse(String(init?.body)) }); return json({ meal: {} }, 201); }
+      throw new Error(`unexpected ${url.pathname}`);
+    }));
+    render(<DinnerSuggestions lang="hu" state={state} date="2026-10-15" onLogged={() => undefined}/>);
+    fireEvent.click(screen.getByRole("button", { name: "Mit egyek vacsorára?" }));
+    expect(await screen.findByText("Ha maradt az ebédből…")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /Naplózom vacsoraként: Csirkepörkölt/ }));
+    await waitFor(() => expect(posts).toEqual([{ path: "/meals/m1/repeat", body: { mealType: "dinner" } }]));
+  });
+
   it("explains an exhausted carb budget and a premium lock", async () => {
     let call = 0;
     vi.stubGlobal("fetch", vi.fn(async () => (++call === 1
