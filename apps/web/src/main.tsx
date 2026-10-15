@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { Activity, ChevronLeft, ChevronRight, ExternalLink, LayoutDashboard, LogOut, Mail, Megaphone, Pencil, Plus, Repeat, ShieldCheck, Sparkles, Trash2, UtensilsCrossed } from "lucide-react";
+import { Activity, ChevronLeft, ChevronRight, ExternalLink, LogOut, Mail, Megaphone, Pencil, Plus, Repeat, ShieldCheck, Sparkles, Trash2, UtensilsCrossed } from "lucide-react";
 
 import { dict, type Lang } from "./i18n";
 import { api, ApiError, streamProgress, type ApiState } from "./api";
@@ -126,18 +126,10 @@ export function App() {
     if (legalPageFromHash(window.location.hash)) window.history.replaceState(null, "", window.location.pathname + window.location.search);
     setLegalPage(null);
   }
-  // Admin screen at #admin (2026-10-15); shown only to an account the API
-  // reports as isAdmin, every admin call is checked again on the server.
-  const [adminOpen, setAdminOpen] = useState(() => window.location.hash === "#admin");
-  useEffect(() => {
-    const onHash = () => setAdminOpen(window.location.hash === "#admin");
-    window.addEventListener("hashchange", onHash);
-    return () => window.removeEventListener("hashchange", onHash);
-  }, []);
-  function closeAdmin() {
-    if (window.location.hash === "#admin") window.history.replaceState(null, "", window.location.pathname + window.location.search);
-    setAdminOpen(false);
-  }
+  // The admin account is admin-only (owner decision 2026-10-15): it sees the
+  // admin screen instead of the diary and logs nothing (the API refuses it
+  // too). Every admin call is checked again on the server.
+  const adminAccount = !!user?.isAdmin;
   // Public runtime settings: registration open? announcement for everyone?
   const [appConfig, setAppConfig] = useState<{ registrationOpen: boolean; announcement: { hu: string; de: string; en: string } | null } | null>(null);
   useEffect(() => { api<{ registrationOpen: boolean; announcement: { hu: string; de: string; en: string } | null }>("/config").then(setAppConfig).catch(() => undefined); }, []);
@@ -704,20 +696,17 @@ export function App() {
           <div className="header-actions">
             <select aria-label={lang === "hu" ? "Nyelv" : lang === "de" ? "Sprache" : "Language"} className="field compact" value={lang} onChange={(e) => changeLang(e.target.value as Lang)}><option value="hu">HU</option><option value="de">DE</option><option value="en">EN</option></select>
 
-            {user && (
+            {user && !adminAccount && (
               <FeedbackReport kind="idea" lang={lang} state={state} getContext={() => ({ view: "header" })}/>
             )}
-            {user && (
+            {user && !adminAccount && (
               <FeedbackReport lang={lang} state={state} getContext={() => ({
                 view: !profile ? "loading" : !profile.onboardingDone ? "onboarding" : myPlatesOpen ? "my_plates" : plateSetupPending(user) ? "plate_setup" : `dashboard${window.location.hash ? window.location.hash.slice(0, 20) : ""}`,
                 lastInput: lastInterpretRequest?.text,
                 operationId: lastInterpretRequest?.operationId
               })}/>
             )}
-            {user?.isAdmin && (
-              <a className="btn ghost" href="#admin" aria-label="Admin"><LayoutDashboard size={17}/><span>Admin</span></a>
-            )}
-            {user && profile?.onboardingDone && (
+            {user && !adminAccount && profile?.onboardingDone && (
               <button type="button" className="btn ghost" aria-label={t.myPlates.open} aria-expanded={myPlatesOpen}
                 onClick={() => { setMyPlatesOpen(true); document.getElementById("top")?.scrollIntoView?.({ behavior: "smooth" }); }}>
                 <UtensilsCrossed size={17}/><span>{t.myPlates.open}</span>
@@ -755,12 +744,15 @@ export function App() {
         <div className="card announcement-band" role="status"><Megaphone size={18} aria-hidden="true"/><span>{appConfig.announcement[lang] || appConfig.announcement.hu}</span></div>
       )}
       {verifyNotice && <div className={`card announcement-band ${verifyNotice.ok ? "" : "is-error"}`} role="status"><Mail size={18} aria-hidden="true"/><span>{verifyNotice.text}</span></div>}
-      {user && profile?.onboardingDone && user.email === null && (
+      {user && !adminAccount && profile?.onboardingDone && user.email === null && (
         <EmailPrompt lang={lang} state={state} onSaved={(email) => setUser((current) => current ? { ...current, email, emailVerified: false } : current)}/>
       )}
-      {user && profile?.onboardingDone && user.email && user.emailVerified === false && !verifyNotice?.ok && (
+      {user && !adminAccount && profile?.onboardingDone && user.email && user.emailVerified === false && !verifyNotice?.ok && (
         <VerifyEmailBand lang={lang} state={state} email={user.email}/>
       )}
+      {adminAccount ? (
+        <section id="top" className="admin-shell"><AdminPage state={state}/></section>
+      ) : (
       <section id="top" className={`hero-shell ${user ? "is-authenticated" : ""}`}>
         <div className="hero-copy">
           <div className="eyebrow"><Sparkles size={13}/> NorbApp · Keto Mentor</div>
@@ -805,8 +797,9 @@ export function App() {
           <div className="card welcome-panel"><p className="panel-kicker">{lang === "hu" ? "Mai fókusz" : lang === "de" ? "Heutiger Fokus" : "Today’s focus"}</p><h2>{t.dashboard}</h2><p>{t.explain}</p></div>
         )}
       </section>
+      )}
 
-      {user && profile?.onboardingDone && (
+      {user && !adminAccount && profile?.onboardingDone && (
         <section id="today" className="dashboard-shell">
           <div className="dashboard-main">
             <div className="macro-grid" aria-label={lang === "hu" ? "Napi makrók" : lang === "de" ? "Tägliche Makros" : "Daily macros"}>
@@ -902,17 +895,17 @@ export function App() {
           </form>
         </section>
       )}
-      {user && profile?.onboardingDone && (
+      {user && !adminAccount && profile?.onboardingDone && (
         <section id="recipes">
           <RecipeBuilder lang={lang} state={state} currentUserId={user.id} onMealAdded={handleMealLogged} mealChoice={mealChoice} onMealChoiceChange={setMealChoice}/>
         </section>
       )}
-      {user && profile?.onboardingDone && (
+      {user && !adminAccount && profile?.onboardingDone && (
         <section className="idea-section" aria-label={dict[lang].idea.cardTitle}>
           <FeedbackReport kind="idea" variant="card" lang={lang} state={state} getContext={() => ({ view: "dashboard_card" })}/>
         </section>
       )}
-      {user && profile?.onboardingDone && <MobileNav lang={lang}/>}
+      {user && !adminAccount && profile?.onboardingDone && <MobileNav lang={lang}/>}
       <footer className="app-footer">
         <div className="footer-inner">
           <a className="brand-link" href="https://norbapp.com" target="_blank" rel="noreferrer" aria-label="NorbApp weboldal megnyitasa">
@@ -929,10 +922,6 @@ export function App() {
       {deletingMealId && <DeleteMealDialog lang={lang} onCancel={() => setDeletingMealId(null)} onConfirm={confirmDeleteMeal}/>}
       {repeatingMeal && <RepeatMealDialog title={repeatingMeal.title} lang={lang} onCancel={() => setRepeatingMeal(null)} onConfirm={confirmRepeatMeal}/>}
       <LegalFooter lang={lang}/>
-      {adminOpen && user?.isAdmin && createPortal(
-        <div className="legal-overlay"><AdminPage state={state} onClose={closeAdmin}/></div>,
-        document.body
-      )}
       {legalPage && createPortal(
         <div className="legal-overlay">
           <LegalPageView page={legalPage} lang={lang} state={state} signedIn={!!user} onClose={closeLegalPage}

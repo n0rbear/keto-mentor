@@ -88,7 +88,7 @@ describe("announcement and e-mail confirmation in the app", () => {
 });
 
 describe("confirming the admin address from the link", () => {
-  it("shows the Admin button without a reload", async () => {
+  it("switches to the admin-only screen without a reload", async () => {
     localStorage.setItem("km_token", "tok");
     window.history.replaceState(null, "", "/#verify=abcdefghijklmnopqrstuvwxyz0123456789");
     let confirmed = false;
@@ -101,9 +101,14 @@ describe("confirming the admin address from the link", () => {
       if (url.pathname === "/meals/today") return json({ date: "2026-10-15", meals: [], totals: { kcal: 0, fat: 0, protein: 0, carbs: 0, fiber: 0, netCarbs: 0 } });
       if (url.pathname === "/meals/week") return json({ weekStart: "2026-10-12", weekEnd: "2026-10-18", days: [], summary: { mealCount: 0, loggedDays: 0 } });
       if (url.pathname === "/recipes") return json({ recipes: [] });
+      if (url.pathname === "/admin/overview") return json(overview);
       return json({});
     }));
     render(<App/>);
-    expect(await screen.findByRole("link", { name: "Admin" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "Admin" })).toBeTruthy();
+    // The admin account logs nothing: no diary, no recipe builder, no idea/bug buttons.
+    await waitFor(() => expect(document.getElementById("today")).toBeNull());
+    expect(document.getElementById("recipes")).toBeNull();
+    expect(screen.queryByRole("button", { name: /Vissza az apphoz/ })).toBeNull();
   });
 });
