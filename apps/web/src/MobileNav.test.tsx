@@ -24,7 +24,7 @@ describe("MobileMenu (header drop-down)", () => {
     render(<MobileMenu lang="hu" active="today" onSelect={onSelect}/>);
     fireEvent.click(screen.getByRole("button", { name: "Menü" }));
     const items = screen.getAllByRole("menuitem");
-    expect(items.map((i) => i.textContent)).toEqual(["Ma", "Rögzítés", "Heti áttekintés", "Haladó statisztikaPrémium", "VacsoraajánlóPrémium", "Heti étrendtervPrémium", "Receptek", "Prémium – hamarosan", "Ötletem van"]);
+    expect(items.map((i) => i.textContent)).toEqual(["Ma", "Rögzítés", "Heti áttekintés", "Haladó statisztikaPrémium", "VacsoraajánlóPrémium", "Heti étrendtervPrémium", "Receptek", "Export (PDF/CSV)Prémium", "Prémium – hamarosan", "Ötletem van"]);
     fireEvent.click(items[2]);
     expect(onSelect).toHaveBeenCalledWith("week");
     expect(screen.queryByRole("menu")).toBeNull();

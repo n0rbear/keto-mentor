@@ -3,21 +3,43 @@ import { z } from "zod";
 import { getSettings } from "../admin/runtime-settings.js";
 import { hasPremiumFeature } from "../meals/dinner-suggestions.js";
 import { localDay, weeklyProgress } from "./progress.js";
+import { exportDays } from "./export.js";
+import { serializeMeal } from "../nutrition.js";
 
 export const STATS_FEATURE = "advanced_stats";
+export const EXPORT_FEATURE = "export";
 const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const weightSchema = z.object({ date: dateSchema, weightKg: z.number().min(20).max(400) }).strict();
 
 export function progressRouter(deps: { prisma: any; requireAuth: express.RequestHandler; adminOnly: express.RequestHandler }) {
   const router = express.Router();
   const { prisma } = deps;
-  const gate: express.RequestHandler = async (req, res, next) => {
+  const gateFor = (feature: string): express.RequestHandler => async (req, res, next) => {
     try {
       const user = await prisma.user.findUnique({ where: { id: req.user!.id }, select: { entitlements: true } });
-      if (!hasPremiumFeature(user?.entitlements ?? [], STATS_FEATURE, getSettings().premiumAccess)) return res.status(403).json({ error: "premium_required" });
+      if (!hasPremiumFeature(user?.entitlements ?? [], feature, getSettings().premiumAccess)) return res.status(403).json({ error: "premium_required" });
       next();
     } catch (error) { next(error); }
   };
+  const gate = gateFor(STATS_FEATURE);
+
+  // Diary export for a CSV file or a printable report (at most 92 days).
+  router.get("/export/diary", deps.requireAuth, gateFor(EXPORT_FEATURE), async (req, res, next) => {
+    try {
+      const from = dateSchema.parse(req.query.from);
+      const to = dateSchema.parse(req.query.to);
+      const tz = Number(req.query.tzOffsetMinutes ?? 0);
+      const tzOffsetMinutes = Number.isFinite(tz) && Math.abs(tz) <= 14 * 60 ? tz : 0;
+      const start = new Date(new Date(`${from}T00:00:00Z`).getTime() + tzOffsetMinutes * 60_000);
+      const end = new Date(new Date(`${to}T00:00:00Z`).getTime() + 24 * 60 * 60 * 1000 + tzOffsetMinutes * 60_000);
+      if (!(end > start) || end.getTime() - start.getTime() > 93 * 24 * 60 * 60 * 1000) return res.status(400).json({ error: "invalid_range" });
+      const [meals, profile] = await Promise.all([
+        prisma.meal.findMany({ where: { userId: req.user!.id, eatenAt: { gte: start, lt: end } }, include: { items: { include: { food: true, recipe: true } } } }),
+        prisma.profile.findUnique({ where: { userId: req.user!.id }, select: { dailyKcal: true, dailyProtein: true, dailyNetCarbs: true, dailyFat: true, dailyFiber: true } })
+      ]);
+      res.json({ from, to, goals: profile, days: exportDays(meals.map(serializeMeal), tzOffsetMinutes) });
+    } catch (error) { next(error); }
+  });
 
   router.get("/stats/progress", deps.requireAuth, gate, async (req, res, next) => {
     try {
