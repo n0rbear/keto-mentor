@@ -12,6 +12,9 @@ import { RecipeBuilder } from "./RecipeBuilder";
 import { MealEditDialog, DeleteMealDialog, RepeatMealDialog, type MealDetail } from "./MealActions";
 import { WeekOverviewCard, type WeekOverviewData } from "./WeekOverview";
 import { AuthForm } from "./AuthForm";
+import { EmailPrompt } from "./EmailPrompt";
+import { LegalFooter, LegalPageView, legalPageFromHash, type LegalPage } from "./LegalPages";
+import { createPortal } from "react-dom";
 import { FoodUnderstandingPreview, type ExternalCandidate, type RecipeDiscoveryPreviewValue, type RecipeDiscoveryCandidateValue, type AiEstimateValue, type AiEstimateOverridePayload, type CandidateFood, type RecipeIngredientOverride, type LocalRecipeOption, LocalRecipePicker, statedServings, statedPlates } from "./FoodUnderstandingPreview";
 import { pickDisplayName } from "./food-display-name";
 import { QuantityClarification } from "./QuantityClarification";
@@ -28,7 +31,7 @@ import { FeedbackReport } from "./FeedbackReport";
 import { MyPlates, PlateSetup, plateSetupPending } from "./PlateSetup";
 import type { QuantityClarification as Clarification } from "@keto-mentor/shared";
 
-type User = { id: string; username: string; locale: Lang; profile?: any; _count?: { plates?: number } };
+type User = { id: string; username: string; email?: string | null; locale: Lang; profile?: any; _count?: { plates?: number } };
 export type Totals = { kcal: number; fat: number; protein: number; carbs: number; fiber: number; netCarbs: number };
 type Meal = { id: string; title: string; eatenAt: string; totals: Totals };
 export type FoodServing = { id: string; key: string; unit: string; labels?: Partial<Record<Lang, string>>; grams: number; isEstimated: boolean; confidence: number; provenance?: unknown };
@@ -100,6 +103,18 @@ export function App() {
   const [confirmingRecipe, setConfirmingRecipe] = useState(false);
   const [confirmingAiEstimate, setConfirmingAiEstimate] = useState(false);
   const [myPlatesOpen, setMyPlatesOpen] = useState(false);
+  // Source attribution / privacy notice (#forrasok, #adatvedelem), shown
+  // over every view, signed in or not (tester release 2026-10-15).
+  const [legalPage, setLegalPage] = useState<LegalPage | null>(() => legalPageFromHash(window.location.hash));
+  useEffect(() => {
+    const onHash = () => setLegalPage(legalPageFromHash(window.location.hash));
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+  function closeLegalPage() {
+    if (legalPageFromHash(window.location.hash)) window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    setLegalPage(null);
+  }
   // Context for an in-app bug report (FeedbackReport): the last meal text the
   // user actually submitted and that request's progress operationId.
   const [lastInterpretRequest, setLastInterpretRequest] = useState<{ text: string; operationId: string } | null>(null);
@@ -682,6 +697,9 @@ export function App() {
       <UpdateBanner lang={lang}/>
       <InstallPrompt lang={lang}/>
 
+      {user && profile?.onboardingDone && user.email === null && (
+        <EmailPrompt lang={lang} state={state} onSaved={(email) => setUser((current) => current ? { ...current, email } : current)}/>
+      )}
       <section id="top" className={`hero-shell ${user ? "is-authenticated" : ""}`}>
         <div className="hero-copy">
           <div className="eyebrow"><Sparkles size={13}/> NorbApp · Keto Mentor</div>
@@ -843,6 +861,14 @@ export function App() {
       {editingMeal && <MealEditDialog meal={editingMeal} lang={lang} state={state} onCancel={() => setEditingMeal(null)} onSaved={handleMealEdited}/>}
       {deletingMealId && <DeleteMealDialog lang={lang} onCancel={() => setDeletingMealId(null)} onConfirm={confirmDeleteMeal}/>}
       {repeatingMeal && <RepeatMealDialog title={repeatingMeal.title} lang={lang} onCancel={() => setRepeatingMeal(null)} onConfirm={confirmRepeatMeal}/>}
+      <LegalFooter lang={lang}/>
+      {legalPage && createPortal(
+        <div className="legal-overlay">
+          <LegalPageView page={legalPage} lang={lang} state={state} signedIn={!!user} onClose={closeLegalPage}
+            onAccountDeleted={() => { closeLegalPage(); setToken(null); setUser(null); setMyPlatesOpen(false); }}/>
+        </div>,
+        document.body
+      )}
     </main>
   );
 }

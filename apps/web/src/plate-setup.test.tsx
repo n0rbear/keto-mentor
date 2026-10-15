@@ -42,7 +42,7 @@ function stubServer(opts: { me: () => any; plates?: any[] }) {
 async function login() {
   render(<App/>);
   fireEvent.click(screen.getByTestId("auth-mode-login"));
-  fireEvent.change(screen.getByLabelText("Felhasználónév"), { target: { value: "alice" } });
+  fireEvent.change(screen.getByLabelText("Felhasználónév vagy e-mail"), { target: { value: "alice" } });
   fireEvent.change(screen.getByLabelText("Jelszó"), { target: { value: "supersecret" } });
   fireEvent.click(screen.getByTestId("auth-submit"));
 }
@@ -65,6 +65,7 @@ describe("plate question after registration (Milyen tányérjaid vannak?)", () =
     render(<App/>);
     fireEvent.click(screen.getByTestId("auth-mode-register"));
     fireEvent.change(screen.getByLabelText("Felhasználónév"), { target: { value: "newuser" } });
+    fireEvent.change(screen.getByLabelText("E-mail cím"), { target: { value: "newuser@example.com" } });
     fireEvent.change(screen.getByLabelText("Jelszó"), { target: { value: "supersecret1" } });
     fireEvent.click(screen.getByTestId("auth-submit"));
     const form = (await screen.findByText("Kezdő beállítások")).closest("form")!;

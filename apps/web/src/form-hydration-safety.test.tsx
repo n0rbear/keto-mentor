@@ -30,6 +30,7 @@ describe("forms never fall back to a native GET that leaks fields into the URL",
     render(<App/>);
     fireEvent.click(screen.getByTestId("auth-mode-register"));
     fireEvent.change(screen.getByLabelText("Felhasználónév"), { target: { value: "newuser" } });
+    fireEvent.change(screen.getByLabelText("E-mail cím"), { target: { value: "newuser@example.com" } });
     fireEvent.change(screen.getByLabelText("Jelszó"), { target: { value: "supersecret1" } });
     fireEvent.click(screen.getByTestId("auth-submit"));
 

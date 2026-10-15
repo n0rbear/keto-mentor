@@ -37,7 +37,16 @@ const envSchema = z.object({
 
   WEB_SEARCH_PROVIDER: z.enum(["tavily"]).optional(),
   TAVILY_API_KEY: z.string().min(1).optional(),
-  TAVILY_BASE_URL: z.string().url().max(500).optional()
+  TAVILY_BASE_URL: z.string().url().max(500).optional(),
+
+  // Password reset e-mail (tester release, 2026-10-15). Without
+  // RESEND_API_KEY no e-mail is sent (the request still answers 202 and logs
+  // password_reset_email outcome=not_configured). MAIL_FROM must be a sender
+  // on a domain verified in Resend. WEB_APP_URL is where the reset link
+  // points (default: the first CORS_ORIGIN).
+  RESEND_API_KEY: z.string().min(1).optional(),
+  MAIL_FROM: z.string().min(3).max(200).default("Keto Mentor <noreply@norbapp.com>"),
+  WEB_APP_URL: z.string().url().max(300).optional()
 });
 
 // Dashboards like Render can leave an optional var present but blank (e.g. a key

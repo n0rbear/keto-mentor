@@ -60,6 +60,10 @@ import { publishProgress, subscribeProgress, closeProgress } from "./meal-input/
 import { configuredTranscriptionProvider } from "./ai/transcription-gateway.js";
 import { TranscriptionProviderError } from "./ai/transcription-provider.js";
 import { feedbackRouter } from "./feedback/feedback.js";
+import { passwordResetRouter } from "./password-reset/password-reset.js";
+import { resendMailer } from "./mail/mailer.js";
+import { accountDeletionRouter } from "./account/account-deletion.js";
+import { REFERENCE_USERNAME } from "./reference-dishes/seed.js";
 import { platesRouter } from "./meal-input/plates.js";
 import { VOICE_TRANSCRIBE_RATE_LIMIT, voiceTranscribeRateLimitKey } from "./meal-input/voice-rate-limit.js";
 
@@ -231,6 +235,7 @@ app.post("/auth/register", authLimiter, async (req, res, next) => {
     const user = await prisma.user.create({
       data: {
         username: input.username.toLowerCase(),
+        email: input.email,
         passwordHash,
         locale: input.locale,
         profile: { create: { onboardingDone: false } },
@@ -243,7 +248,7 @@ app.post("/auth/register", authLimiter, async (req, res, next) => {
     setRefreshCookie(res, session.refreshToken);
     res.status(201).json({ user, accessToken: session.accessToken });
   } catch (error: any) {
-    if (error?.code === "P2002") return res.status(409).json({ error: "username_taken" });
+    if (error?.code === "P2002") return res.status(409).json({ error: String(error?.meta?.target ?? "").includes("email") ? "email_taken" : "username_taken" });
     next(error);
   }
 });
@@ -251,7 +256,9 @@ app.post("/auth/register", authLimiter, async (req, res, next) => {
 app.post("/auth/login", authLimiter, async (req, res, next) => {
   try {
     const input = loginSchema.parse(req.body);
-    const userWithHash = await prisma.user.findUnique({ where: { username: input.username.toLowerCase() } });
+    // The same field takes the username or the e-mail address (2026-10-15).
+    const login = input.username.toLowerCase();
+    const userWithHash = await prisma.user.findUnique({ where: login.includes("@") ? { email: login } : { username: login } });
     if (!userWithHash || !(await verifyPassword(userWithHash.passwordHash, input.password))) {
       return res.status(401).json({ error: "invalid_credentials" });
     }
@@ -267,6 +274,14 @@ app.post("/auth/login", authLimiter, async (req, res, next) => {
 
 
 
+
+// Password reset by e-mail and attaching an e-mail to an existing account.
+app.use(passwordResetRouter({
+  prisma, mailer: resendMailer(env.RESEND_API_KEY, env.MAIL_FROM), webAppUrl: env.WEB_APP_URL ?? env.CORS_ORIGIN.split(",")[0].trim(),
+  hashPassword, verifyPassword, requireAuth
+}));
+
+app.use(accountDeletionRouter({ prisma, requireAuth, verifyPassword, systemUsername: REFERENCE_USERNAME }));
 
 app.post("/auth/logout", requireAuth, async (req, res, next) => {
   try {
@@ -311,7 +326,7 @@ app.get("/me", requireAuth, async (req, res) => {
     where: { id: req.user!.id },
     // _count.plates: the web shows the one-time plate question only while the
     // user has no saved plate and never answered it (profile.plateSetup).
-    select: { id: true, username: true, locale: true, profile: true, entitlements: true, _count: { select: { plates: true } } }
+    select: { id: true, username: true, email: true, locale: true, profile: true, entitlements: true, _count: { select: { plates: true } } }
   });
   res.json({ user });
 });
