@@ -24,7 +24,7 @@ import { QuantityClarification } from "./QuantityClarification";
 import { BarcodeLookup } from "./BarcodeLookup";
 import { UnifiedFoodSearch, isBarcodeInput } from "./UnifiedFoodSearch";
 import { VoiceInput } from "./VoiceInput";
-import { MobileNav } from "./MobileNav";
+import { MobileMenu, MobileNav, type MobileView } from "./MobileNav";
 import { InstallPrompt } from "./InstallPrompt";
 import { UpdateBanner } from "./UpdateBanner";
 import { OfflineBanner } from "./OfflineBanner";
@@ -131,6 +131,12 @@ export function App() {
   // admin screen instead of the diary and logs nothing (the API refuses it
   // too). Every admin call is checked again on the server.
   const adminAccount = !!user?.isAdmin;
+  // Phones show one dashboard part at a time (MobileNav.tsx).
+  const [mobileView, setMobileViewState] = useState<MobileView>("today");
+  function setMobileView(view: MobileView) {
+    setMobileViewState(view);
+    window.scrollTo?.({ top: 0 });
+  }
   // Public runtime settings: registration open? announcement for everyone?
   const [appConfig, setAppConfig] = useState<{ registrationOpen: boolean; announcement: { hu: string; de: string; en: string } | null } | null>(null);
   // Re-read every 2 minutes and whenever the app comes back to the screen, so
@@ -240,6 +246,7 @@ export function App() {
   // when one is added — otherwise a meal added while browsing a past day
   // would silently not appear in the list the user is looking at.
   async function handleMealLogged() {
+    setMobileViewState("today");
     const today = todayLocalDate();
     setSelectedDate(today);
     await loadAll(today);
@@ -706,7 +713,7 @@ export function App() {
   }, [authBootstrapping]);
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen" data-mobile-view={user && !adminAccount && profile?.onboardingDone && !myPlatesOpen && !plateSetupPending(user) ? mobileView : undefined}>
       <header className="app-header">
         <div className="app-header-inner">
           <a className="product-lockup" href="#top" aria-label="NorbApp Keto Mentor">
@@ -716,6 +723,7 @@ export function App() {
           <div className="header-actions">
             <select aria-label={lang === "hu" ? "Nyelv" : lang === "de" ? "Sprache" : "Language"} className="field compact" value={lang} onChange={(e) => changeLang(e.target.value as Lang)}><option value="hu">HU</option><option value="de">DE</option><option value="en">EN</option></select>
 
+            {user && !adminAccount && profile?.onboardingDone && <MobileMenu lang={lang} active={mobileView} onSelect={setMobileView}/>}
             {user && !adminAccount && (
               <FeedbackReport kind="idea" lang={lang} state={state} getContext={() => ({ view: "header" })}/>
             )}
@@ -877,6 +885,7 @@ export function App() {
                   </div>
                 ))}</div>
               )}
+              <button type="button" className="btn primary w-full mobile-only" onClick={() => setMobileView("log")}><Plus size={18} aria-hidden="true"/>{t.addMeal}</button>
             </div>
           </div>
           <form id="log-meal" onSubmit={addMeal} method="post" className="card meal-entry-card space-y-3">
@@ -938,7 +947,7 @@ export function App() {
           <FeedbackReport kind="idea" variant="card" lang={lang} state={state} getContext={() => ({ view: "dashboard_card" })}/>
         </section>
       )}
-      {user && !adminAccount && profile?.onboardingDone && <MobileNav lang={lang}/>}
+      {user && !adminAccount && profile?.onboardingDone && <MobileNav lang={lang} active={mobileView} onSelect={setMobileView}/>}
       <footer className="app-footer">
         <div className="footer-inner">
           <a className="brand-link" href="https://norbapp.com" target="_blank" rel="noreferrer" aria-label="NorbApp weboldal megnyitasa">

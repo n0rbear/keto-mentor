@@ -598,6 +598,8 @@ body { padding-left: var(--safe-left); padding-right: var(--safe-right); }
 .idea-card .btn { grid-column: 1 / -1; justify-self: start; }
 @media (min-width: 640px) { .idea-card { grid-template-columns: auto 1fr auto; } .idea-card .btn { grid-column: auto; } }
 .admin-badge.is-idea { background: rgb(var(--warning) / .15); color: rgb(var(--warning)); }
+#dinner { width: min(1180px, calc(100% - 32px)); margin: 0 auto 1.25rem; }
+@media (max-width: 860px) { #dinner { width: min(100% - 24px, 1180px); } }
 .dinner-card { display: grid; gap: .6rem; }
 .dinner-card > .btn { justify-self: start; }
 .dinner-head { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; justify-content: space-between; }
@@ -610,3 +612,27 @@ body { padding-left: var(--safe-left); padding-right: var(--safe-right); }
 .premium-note { margin: 0; border-left: 3px solid rgb(217 160 30 / .7); padding: .1rem 0 .1rem .55rem; color: rgb(var(--text-muted)); font-size: .78rem; }
 .card.is-premium { border-color: rgb(217 160 30 / .45); }
 .dinner-item.is-leftover { border-style: dashed; }
+
+/* Phone layout: one dashboard part at a time (MobileNav.tsx). */
+.mobile-menu, .mobile-only { display: none; }
+@media (max-width: 860px) {
+  .mobile-menu { display: block; position: relative; order: 99; }
+  .mobile-menu-button { color: rgb(var(--brand-bright)); border-color: rgb(var(--brand) / .35); }
+  .mobile-only { display: inline-flex; justify-content: center; gap: .4rem; }
+  .mobile-menu-button { gap: .35rem; }
+  .mobile-menu-list { position: fixed; right: max(12px, var(--safe-right)); left: max(12px, var(--safe-left)); top: calc(64px + var(--safe-top, 0px)); z-index: 60; max-width: 22rem; margin-left: auto !important; margin: 0; padding: .35rem; list-style: none; display: grid; gap: .1rem; border: 1px solid rgb(var(--border) / .25); border-radius: 14px; background: rgb(var(--bg-elevated)); box-shadow: 0 18px 40px rgb(0 0 0 / .45); }
+  .mobile-menu-item { width: 100%; display: flex; align-items: center; gap: .6rem; min-height: 46px; padding: .5rem .7rem; border: 0; border-radius: 10px; background: transparent; color: rgb(var(--text)); font: inherit; font-weight: 700; text-align: left; cursor: pointer; }
+  .mobile-menu-item[aria-current="page"] { background: rgb(var(--surface-active) / .6); color: rgb(var(--brand-bright)); }
+  .mobile-menu-item .premium-badge { margin-left: auto; }
+  .premium-badge.is-small { padding: .1rem .45rem; font-size: .62rem; }
+  .mobile-nav-item { border: 0; background: transparent; font: inherit; cursor: pointer; }
+
+  main[data-mobile-view] .hero-shell { display: none; }
+  main[data-mobile-view] #dinner, main[data-mobile-view] #recipes, main[data-mobile-view] .idea-section { display: none; }
+  main[data-mobile-view="dinner"] #dinner, main[data-mobile-view="recipes"] #recipes, main[data-mobile-view="idea"] .idea-section { display: block; }
+  main[data-mobile-view="dinner"] #today, main[data-mobile-view="recipes"] #today, main[data-mobile-view="idea"] #today { display: none; }
+  main[data-mobile-view] #dinner, main[data-mobile-view] #recipes, main[data-mobile-view] .idea-section { padding-top: 1rem; }
+  main[data-mobile-view]:not([data-mobile-view="today"]) .macro-grid, main[data-mobile-view]:not([data-mobile-view="today"]) .today-card { display: none; }
+  main[data-mobile-view]:not([data-mobile-view="week"]) .week-card { display: none; }
+  main[data-mobile-view]:not([data-mobile-view="log"]) #log-meal { display: none; }
+}
