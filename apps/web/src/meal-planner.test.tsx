@@ -1,0 +1,54 @@
+// @vitest-environment jsdom
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { MealPlanner } from "./MealPlanner";
+
+afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); localStorage.clear(); });
+const state = { token: "t", setToken: () => undefined };
+const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status });
+const goals = { kcal: 1800, protein: 110, netCarbs: 25, fat: 130 };
+const meal = (mealType: string, title: string, recipeId: string) => ({ mealType, recipeId, source: "reference", titles: { hu: title, de: title, en: title }, servingGrams: 300, macros: { kcal: 550, protein: 35, netCarbs: 5, fat: 40 } });
+const plan = (dinner = "Csirkepaprikás") => ({
+  id: "p1", startDate: "2026-10-16",
+  days: [{ date: "2026-10-16", fits: true, totals: { kcal: 1650, protein: 105, netCarbs: 15, fat: 120 }, meals: [meal("breakfast", "Rántotta", "r1"), meal("lunch", "Sült karaj", "r2"), meal("dinner", dinner, "r3")] }],
+  shopping: [{ name: "Sertéskaraj", grams: 1200, seasoning: false, meals: 4 }, { name: "só", grams: 10, seasoning: true, meals: 6 }]
+});
+
+describe("Heti étrendterv", () => {
+  it("creates a plan, swaps a dinner, logs today's meal and ticks the shopping list", async () => {
+    const calls: Array<{ method: string; path: string; body?: any }> = [];
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = new URL(String(input)); const method = init?.method ?? "GET";
+      calls.push({ method, path: url.pathname, body: init?.body ? JSON.parse(String(init.body)) : undefined });
+      if (url.pathname === "/meal-plans/current") return json({ plan: null, goals });
+      if (url.pathname === "/meal-plans" && method === "POST") return json({ plan: plan(), goals }, 201);
+      if (url.pathname === "/meal-plans/p1/swap") return json({ plan: plan("Halászlé"), goals });
+      if (url.pathname === "/recipes/r3/meals") return json({ meal: {} }, 201);
+      throw new Error(`unexpected ${method} ${url.pathname}`);
+    }));
+    const onLogged = vi.fn();
+    render(<MealPlanner lang="hu" state={state} today="2026-10-16" onLogged={onLogged}/>);
+    fireEvent.click(await screen.findByRole("button", { name: "Heti terv készítése" }));
+    expect(await screen.findByText("Csirkepaprikás")).toBeTruthy();
+    expect(calls.find((c) => c.path === "/meal-plans")?.body).toEqual({ startDate: "2026-10-16" });
+
+    fireEvent.click(screen.getByRole("button", { name: "Másikat kérek: Vacsora" }));
+    expect(await screen.findByText("Halászlé")).toBeTruthy();
+    expect(calls.find((c) => c.path === "/meal-plans/p1/swap")?.body).toEqual({ date: "2026-10-16", mealType: "dinner" });
+
+    fireEvent.click(screen.getByRole("button", { name: "Naplózom: Halászlé" }));
+    await waitFor(() => expect(onLogged).toHaveBeenCalled());
+    expect(calls.find((c) => c.path === "/recipes/r3/meals")?.body).toEqual({ mealType: "dinner", quantity: 1, unit: "serving" });
+
+    fireEvent.click(screen.getByRole("button", { name: /Bevásárlólista/ }));
+    expect(screen.getByText("1.2 kg", { exact: false })).toBeTruthy();
+    fireEvent.click(screen.getByRole("checkbox", { name: /Sertéskaraj/ }));
+    expect(JSON.parse(localStorage.getItem("km_shopping_p1")!)).toEqual({ Sertéskaraj: true });
+  });
+
+  it("shows the premium lock", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => json({ error: "premium_required" }, 403)));
+    render(<MealPlanner lang="hu" state={state} today="2026-10-16" onLogged={() => undefined}/>);
+    expect(await screen.findByText("A heti étrendterv prémium funkció.")).toBeTruthy();
+  });
+});

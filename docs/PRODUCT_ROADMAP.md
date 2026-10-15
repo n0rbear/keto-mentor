@@ -70,6 +70,20 @@ Prefer one shared mobile-client architecture, likely React Native with Expo unle
 
 Focus on real daily usage, bug fixing and UX polish. Complete password reset/email, privacy and terms, source attribution, monitoring, end-to-end coverage, store builds, closed beta and public launch.
 
+## Feature tiers (owner-approved 2026-10-15)
+
+- **Anonymous (no account):** type what you intend to eat and see its nutrition. Nothing is stored or tied to anyone.
+- **Registered (free):** everything that is not premium. This covers the diary, meal types, search, voice, barcode, recipes and import, plates, the week overview, and ideas/bug reports.
+- **Premium:** the features below. Until payment exists, the admin setting `premiumAccess=beta_all` opens them to every signed-in tester. Each premium feature carries the gold "Prémium funkció" badge. The in-app "Prémium – hamarosan" card lists them all.
+  1. Vacsoraajánló (dinner recommender): shipped in beta.
+  2. Weekly meal plan and shopping list: shipped in beta (2026-10-16).
+  3. Larger AI allowance.
+  4. Advanced stats and weight log.
+  5. Export (PDF/CSV).
+  6. Micronutrients.
+  7. Flexible goals (per weekday, carb cycling).
+  8. Reminders.
+
 ## Delivery principles
 
 - Expected launch window: 6–8 weeks at approximately 2–3 development hours per day.
@@ -78,7 +92,7 @@ Focus on real daily usage, bug fixing and UX polish. Complete password reset/ema
 - Infrastructure or security work may interrupt the roadmap only for a genuine blocker.
 - New feature ideas belong in the backlog and do not automatically change the current phase.
 - Phase-order changes require explicit product-owner approval.
-- Premium coach, weekly meal plans and shopping lists are post-MVP unless explicitly promoted later.
+- Premium coach is post-MVP. Weekly meal plans and shopping lists were promoted into premium by the product owner on 2026-10-15.
 
 ## Backlog
 

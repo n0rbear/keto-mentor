@@ -25,8 +25,12 @@ export type DinnerCandidate = {
   // For variety: cooking style (soup, stew, roast, fried…) and main protein.
   style: string;
   protein: string;
+  // For the weekly plan (meal-plan.ts): reference tags and one serving's
+  // ingredients for the shopping list.
+  tags?: string[];
+  ingredients?: Array<{ name: string; names?: Record<string, string> | null; grams: number | null; seasoning: boolean }>;
 };
-export type DinnerSuggestion = Omit<DinnerCandidate, "haystack" | "lowCarbFriendly" | "dishId" | "titles" | "style" | "protein"> & { title: string; after: Macros };
+export type DinnerSuggestion = Omit<DinnerCandidate, "haystack" | "lowCarbFriendly" | "dishId" | "titles" | "style" | "protein" | "tags" | "ingredients"> & { title: string; after: Macros };
 // "Ha maradt az ebédből…" (owner idea 2026-10-15): an earlier meal of the
 // day that would fit again, offered as an extra at the same portion.
 export type EatenMeal = { id: string; title: string; mealType: string | null; mealTypeLabel: string | null; totals: Macros };
@@ -56,7 +60,7 @@ const ALLERGEN_GROUPS: Array<[string[], string[]]> = [
   [["rakfelek", "tenger gyumolcsei", "garnele", "meeresfruchte", "shellfish", "seafood"], ["rak", "garnela", "kagylo", "garnele", "muschel", "shrimp", "prawn", "mussel"]]
 ];
 
-function exclusionTerms(entries: string[]): string[] {
+export function exclusionTerms(entries: string[]): string[] {
   const terms = new Set<string>();
   for (const entry of entries) {
     const term = normalizeSearch(entry);
@@ -70,7 +74,7 @@ function exclusionTerms(entries: string[]): string[] {
 // The start of a word, so compounds count too ("sajt" hits "sajtos"). For
 // allergies an extra hit only leaves a dish out, which is the safe side.
 const escape = (term: string) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-const mentions = (haystack: string, term: string) => new RegExp(`(^|\\s)${escape(term)}`).test(haystack);
+export const mentions = (haystack: string, term: string) => new RegExp(`(^|\\s)${escape(term)}`).test(haystack);
 
 const round = (value: number) => Math.round(value * 10) / 10;
 const sub = (a: Macros, b: Macros): Macros => ({ kcal: a.kcal - b.kcal, protein: a.protein - b.protein, netCarbs: a.netCarbs - b.netCarbs, fat: a.fat - b.fat });
@@ -181,7 +185,7 @@ export function classifyDish(title: string, haystack: string, tags: string[]): {
   return { style, protein };
 }
 
-const ingredientInclude = { ingredients: { include: { food: { select: { name: true, kcalPer100g: true, fatPer100g: true, proteinPer100g: true, carbsPer100g: true, fiberPer100g: true } } } } } as const;
+const ingredientInclude = { ingredients: { include: { food: { select: { name: true, names: true, kcalPer100g: true, fatPer100g: true, proteinPer100g: true, carbsPer100g: true, fiberPer100g: true } } } } } as const;
 
 function toCandidate(recipe: any, source: "own" | "reference"): DinnerCandidate | null {
   let perServing;
@@ -208,6 +212,13 @@ function toCandidate(recipe: any, source: "own" | "reference"): DinnerCandidate 
     perServing: { kcal: perServing.kcal, protein: perServing.protein, netCarbs: perServing.netCarbs, fat: perServing.fat },
     haystack,
     lowCarbFriendly: tags.includes("low-carb-friendly"),
+    tags,
+    ingredients: recipe.ingredients.map((ingredient: any) => ({
+      name: ingredient.originalText ?? ingredient.food?.name ?? "",
+      names: ingredient.food?.names ?? null,
+      grams: ingredient.quantityGrams == null ? null : ingredient.quantityGrams / (recipe.servings || 1),
+      seasoning: ingredient.role === "seasoning"
+    })),
     ...classifyDish(normalizeSearch(Object.values(titles).join(" ")), haystack, tags)
   };
 }

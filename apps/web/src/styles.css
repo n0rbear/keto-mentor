@@ -636,3 +636,38 @@ body { padding-left: var(--safe-left); padding-right: var(--safe-right); }
   main[data-mobile-view]:not([data-mobile-view="week"]) .week-card { display: none; }
   main[data-mobile-view]:not([data-mobile-view="log"]) #log-meal { display: none; }
 }
+#premium { width: min(1180px, calc(100% - 32px)); margin: 0 auto 1.25rem; }
+@media (max-width: 860px) { #premium { width: min(100% - 24px, 1180px); } }
+.premium-overview { display: grid; gap: .6rem; }
+.premium-overview .section-heading svg { color: rgb(250 204 21); }
+.premium-list { display: grid; gap: .4rem; margin: 0; padding: 0; list-style: none; }
+@media (min-width: 861px) { .premium-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.premium-item { display: flex; align-items: center; justify-content: space-between; gap: .6rem; border: 1px solid rgb(var(--border) / .18); border-radius: 12px; padding: .55rem .7rem; min-width: 0; }
+.premium-item > div { display: grid; gap: .1rem; min-width: 0; }
+.premium-status { flex: 0 0 auto; border-radius: 999px; padding: .15rem .55rem; font-size: .66rem; font-weight: 800; white-space: nowrap; }
+.premium-status.is-beta { background: rgb(var(--brand) / .16); color: rgb(var(--brand-bright)); border: 1px solid rgb(var(--brand) / .4); }
+.premium-status.is-soon { background: rgb(250 204 21 / .1); color: rgb(250 204 21); border: 1px solid rgb(217 160 30 / .45); }
+@media (max-width: 860px) {
+  main[data-mobile-view] #premium { display: none; }
+  main[data-mobile-view="premium"] #premium { display: block; padding-top: 1rem; }
+  main[data-mobile-view="premium"] #today { display: none; }
+}
+#plan { width: min(1180px, calc(100% - 32px)); margin: 0 auto 1.25rem; }
+@media (max-width: 860px) { #plan { width: min(100% - 24px, 1180px); } }
+.planner-card { display: grid; gap: .6rem; }
+.planner-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.planner-days { display: flex; gap: .35rem; overflow-x: auto; padding-bottom: .2rem; }
+.planner-days .chip { flex: 0 0 auto; text-transform: capitalize; }
+.planner-days .chip.is-warning { border-color: rgb(var(--warning) / .6); }
+.planner-meal-actions { display: flex; flex-wrap: wrap; gap: .35rem; }
+.planner-card .meal-type-tag { margin-right: .4rem; }
+.shopping-list { display: grid; gap: .6rem; }
+.shopping-list ul { display: grid; gap: .2rem; margin: 0; padding: 0; list-style: none; }
+.shopping-list label { display: flex; align-items: center; gap: .55rem; min-height: 40px; flex-wrap: wrap; }
+.shopping-list label input { width: 1.15rem; height: 1.15rem; accent-color: rgb(var(--brand)); }
+.shopping-list label.is-done > span:first-of-type { text-decoration: line-through; color: rgb(var(--text-muted)); }
+@media (max-width: 860px) {
+  main[data-mobile-view] #plan { display: none; }
+  main[data-mobile-view="plan"] #plan { display: block; padding-top: 1rem; }
+  main[data-mobile-view="plan"] #today { display: none; }
+}
