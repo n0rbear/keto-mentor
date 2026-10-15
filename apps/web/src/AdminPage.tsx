@@ -215,12 +215,12 @@ function SettingsTab({ state }: { state: ApiState }) {
   );
 }
 
-export function AdminPage({ state, onClose }: { state: ApiState; onClose: () => void }) {
+export function AdminPage({ state, onClose }: { state: ApiState; onClose?: () => void }) {
   const [tab, setTab] = useState<Tab>("overview");
   const tabs: Array<[Tab, string]> = [["overview", "Áttekintés"], ["feedback", "Hibajegyek"], ["users", "Felhasználók"], ["settings", "Beállítások"]];
   return (
     <article className="card legal-page admin-page" aria-labelledby="admin-title">
-      <button type="button" className="btn ghost" onClick={onClose}><ArrowLeft size={16} aria-hidden="true"/>Vissza az apphoz</button>
+      {onClose && <button type="button" className="btn ghost" onClick={onClose}><ArrowLeft size={16} aria-hidden="true"/>Vissza az apphoz</button>}
       <h2 id="admin-title">Admin</h2>
       <div className="admin-tabs" role="tablist">
         {tabs.map(([key, label]) => <button key={key} type="button" role="tab" aria-selected={tab === key} className={`seg ${tab === key ? "active" : ""}`} onClick={() => setTab(key)}>{label}</button>)}

@@ -66,6 +66,7 @@ import { accountDeletionRouter, deleteAccount } from "./account/account-deletion
 import { startUsageFlusher, usageMiddleware } from "./admin/usage-counters.js";
 import { getSettings, loadSettings } from "./admin/runtime-settings.js";
 import { adminEmailList, emailVerificationRouter, isAdminUser, sendVerification } from "./admin/email-verification.js";
+import { forbidAdminAccountWrites } from "./admin/admin-only-account.js";
 import { adminRouter } from "./admin/admin-router.js";
 import { REFERENCE_USERNAME } from "./reference-dishes/seed.js";
 import { platesRouter } from "./meal-input/plates.js";
@@ -290,6 +291,8 @@ const mailer = resendMailer(env.RESEND_API_KEY, env.MAIL_FROM);
 const webAppUrl = env.WEB_APP_URL ?? preferredWebOrigin(env.CORS_ORIGIN);
 const verificationDeps = { prisma, mailer, webAppUrl };
 const adminEmails = adminEmailList(env.ADMIN_EMAILS);
+// The admin account logs nothing (owner decision 2026-10-15).
+const adminOnly = forbidAdminAccountWrites({ prisma, admins: adminEmails });
 app.use(passwordResetRouter({
   prisma, mailer, webAppUrl, hashPassword, verifyPassword, requireAuth,
   onEmailChanged: (userId) => sendVerification(verificationDeps, userId)
@@ -549,7 +552,7 @@ app.post("/meal-input/interpret", requireAuth, async (req, res, next) => {
   }
 });
 
-app.put("/me/onboarding", requireAuth, async (req, res, next) => {
+app.put("/me/onboarding", requireAuth, adminOnly, async (req, res, next) => {
   try {
     const input = onboardingSchema.parse(req.body);
     const { locale, ...profileInput } = input;
@@ -598,7 +601,7 @@ app.get("/meals/today", requireAuth, async (req, res, next) => {
   }
 });
 
-app.post("/meals", requireAuth, async (req, res, next) => {
+app.post("/meals", requireAuth, adminOnly, async (req, res, next) => {
   try {
     const input = createMealSchema.parse(req.body);
     // Same recipe-ingredient dynamic deps as recipe-discovery-fallback's own
@@ -647,7 +650,7 @@ app.get("/meals/:mealId", requireAuth, async (req, res, next) => {
 
 // Corrects title/eatenAt and/or existing item grams, or removes existing items.
 // Never accepts food/recipe identity or nutrition fields from the client.
-app.patch("/meals/:mealId", requireAuth, async (req, res, next) => {
+app.patch("/meals/:mealId", requireAuth, adminOnly, async (req, res, next) => {
   try {
     const input = editMealSchema.parse(req.body);
     const meal = await editMeal(prisma, req.user!.id, req.params.mealId, input);
@@ -657,7 +660,7 @@ app.patch("/meals/:mealId", requireAuth, async (req, res, next) => {
   }
 });
 
-app.delete("/meals/:mealId", requireAuth, async (req, res, next) => {
+app.delete("/meals/:mealId", requireAuth, adminOnly, async (req, res, next) => {
   try {
     await deleteMeal(prisma, req.user!.id, req.params.mealId);
     res.status(204).end();
@@ -669,7 +672,7 @@ app.delete("/meals/:mealId", requireAuth, async (req, res, next) => {
 // Quick repeat: logs a new meal reproducing an existing one (same title,
 // items, trusted Food/Recipe references, quantities), timestamped at now.
 // The body carries nothing — the server loads the trusted source itself.
-app.post("/meals/:mealId/repeat", requireAuth, async (req, res, next) => {
+app.post("/meals/:mealId/repeat", requireAuth, adminOnly, async (req, res, next) => {
   try {
     const type = repeatMealSchema.parse(req.body ?? {});
     const meal = await repeatMeal(prisma, req.user!.id, req.params.mealId, new Date(), type);
@@ -679,7 +682,7 @@ app.post("/meals/:mealId/repeat", requireAuth, async (req, res, next) => {
   }
 });
 
-app.use("/recipes", recipeRouter);
+app.use("/recipes", (req, res, next) => (req.method === "GET" ? next() : requireAuth(req, res, () => adminOnly(req, res, next))), recipeRouter);
 
 app.use((error: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   if (error?.name === "ZodError") return res.status(400).json({ error: "validation_error", issues: error.issues });
