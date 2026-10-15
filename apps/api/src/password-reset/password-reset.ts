@@ -33,6 +33,8 @@ export type PasswordResetDeps = {
   hashPassword(password: string): Promise<string>;
   verifyPassword(hash: string, password: string): Promise<boolean>;
   requireAuth: express.RequestHandler;
+  /** Called after an account attaches a new e-mail (sends the confirmation link). */
+  onEmailChanged?: (userId: string) => Promise<unknown>;
   log?: (line: string) => void;
   now?: () => Date;
 };
@@ -54,6 +56,23 @@ export function resetEmail(lang: Lang, link: string) {
 
 const langOf = (value: unknown): Lang => (value === "de" || value === "en" ? value : "hu");
 
+/** Issues a reset link and mails it; also used by the admin screen. Returns the outcome it logged. */
+export async function sendPasswordReset(deps: Pick<PasswordResetDeps, "prisma" | "mailer" | "webAppUrl" | "log" | "now">, user: { id: string; email: string; locale?: string | null }): Promise<string> {
+  const log = deps.log ?? console.log;
+  const at = (deps.now ?? (() => new Date()))();
+  const recent = await deps.prisma.passwordResetToken.findFirst({ where: { userId: user.id, createdAt: { gt: new Date(at.getTime() - RESET_COOLDOWN_MS) } }, select: { id: true } });
+  if (recent) { log("password_reset_request outcome=cooldown"); return "cooldown"; }
+  const token = randomBytes(32).toString("base64url");
+  await deps.prisma.$transaction([
+    deps.prisma.passwordResetToken.updateMany({ where: { userId: user.id, usedAt: null }, data: { usedAt: at } }),
+    deps.prisma.passwordResetToken.create({ data: { userId: user.id, tokenHash: hashResetToken(token), expiresAt: new Date(at.getTime() + RESET_TOKEN_TTL_MS) } })
+  ]);
+  const link = `${deps.webAppUrl.replace(/\/+$/, "")}/#reset=${token}`;
+  const result = await deps.mailer.send({ to: user.email, ...resetEmail(langOf(user.locale), link) });
+  log(`password_reset_email outcome=${result.outcome}${result.status ? ` status=${result.status}` : ""}`);
+  return result.outcome;
+}
+
 export function passwordResetRouter(deps: PasswordResetDeps) {
   const router = express.Router();
   const log = deps.log ?? console.log;
@@ -67,17 +86,7 @@ export function passwordResetRouter(deps: PasswordResetDeps) {
       const input = passwordResetRequestSchema.parse(req.body);
       const user = await deps.prisma.user.findUnique({ where: { email: input.email }, select: { id: true, locale: true } });
       if (!user) { log("password_reset_request outcome=no_account"); return res.status(202).json({ ok: true }); }
-      const at = now();
-      const recent = await deps.prisma.passwordResetToken.findFirst({ where: { userId: user.id, createdAt: { gt: new Date(at.getTime() - RESET_COOLDOWN_MS) } }, select: { id: true } });
-      if (recent) { log("password_reset_request outcome=cooldown"); return res.status(202).json({ ok: true }); }
-      const token = randomBytes(32).toString("base64url");
-      await deps.prisma.$transaction([
-        deps.prisma.passwordResetToken.updateMany({ where: { userId: user.id, usedAt: null }, data: { usedAt: at } }),
-        deps.prisma.passwordResetToken.create({ data: { userId: user.id, tokenHash: hashResetToken(token), expiresAt: new Date(at.getTime() + RESET_TOKEN_TTL_MS) } })
-      ]);
-      const link = `${deps.webAppUrl.replace(/\/+$/, "")}/#reset=${token}`;
-      const result = await deps.mailer.send({ to: input.email, ...resetEmail(langOf(input.locale ?? user.locale), link) });
-      log(`password_reset_email outcome=${result.outcome}${result.status ? ` status=${result.status}` : ""}`);
+      await sendPasswordReset(deps, { id: user.id, email: input.email, locale: input.locale ?? user.locale });
       res.status(202).json({ ok: true });
     } catch (error) { next(error); }
   });
@@ -112,6 +121,7 @@ export function passwordResetRouter(deps: PasswordResetDeps) {
         if (error?.code === "P2002") return res.status(409).json({ error: "email_taken" });
         throw error;
       }
+      if (deps.onEmailChanged) await deps.onEmailChanged(user.id).catch(() => undefined);
       res.json({ email: input.email });
     } catch (error) { next(error); }
   });

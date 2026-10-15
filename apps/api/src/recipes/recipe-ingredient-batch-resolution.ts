@@ -1,5 +1,6 @@
 import { searchFoods, isTrustedLocalMatch, hasIdentityCoverage, localFormMismatch } from "../catalog/food-search.js";
-import { cappedPerRequest, RECIPE_FALLBACK_CAP } from "../catalog/usage-budget.js";
+import { cappedPerRequest } from "../catalog/usage-budget.js";
+import { getSettings } from "../admin/runtime-settings.js";
 import { resolveManyAuthoritativeFoods, type PendingAuthoritativeResolution } from "../catalog/dynamic-food-resolution-batch.js";
 import { DisabledRecipeSemanticGateProvider } from "../catalog/semantic-candidate-gate-batch.js";
 import { resolveQuantity, type DynamicResolutionDeps } from "../meal-input/interpret.js";
@@ -199,10 +200,11 @@ export async function resolveRecipeIngredientsBatch(
     // 2026-09-25: a single recipe took ~44 s, largely sequential waits).
     // One recipe never spends more than RECIPE_FALLBACK_CAP web lookups or
     // AI estimates, whatever the user's remaining hourly/daily budget.
+    const perRecipe = getSettings().aiLimits.perRecipe; // admin setting, default 8 (RECIPE_FALLBACK_CAP)
     const fallbackDeps = {
       ...dynamic,
-      webEvidenceFallback: dynamic.webEvidenceFallback && { ...dynamic.webEvidenceFallback, rateLimiter: cappedPerRequest(dynamic.webEvidenceFallback.rateLimiter, RECIPE_FALLBACK_CAP) },
-      aiEstimation: dynamic.aiEstimation && { ...dynamic.aiEstimation, rateLimiter: cappedPerRequest(dynamic.aiEstimation.rateLimiter, RECIPE_FALLBACK_CAP) }
+      webEvidenceFallback: dynamic.webEvidenceFallback && { ...dynamic.webEvidenceFallback, rateLimiter: cappedPerRequest(dynamic.webEvidenceFallback.rateLimiter, perRecipe) },
+      aiEstimation: dynamic.aiEstimation && { ...dynamic.aiEstimation, rateLimiter: cappedPerRequest(dynamic.aiEstimation.rateLimiter, perRecipe) }
     };
     await Promise.all(drafts.map(async (draft) => {
       const outcome = outcomes.get(String(draft.resultIndex));

@@ -72,6 +72,66 @@ model User {
   recipes      Recipe[]
   plates       UserPlate[]
   passwordResetTokens PasswordResetToken[]
+  emailVerificationTokens EmailVerificationToken[]
+  feedback     Feedback[]
+}
+
+/// E-mail confirmation link (admin release, 2026-10-15). The admin role needs
+/// a confirmed address; only the SHA-256 of the token is stored and it is
+/// bound to the address it was sent to.
+model EmailVerificationToken {
+  id        String    @id @default(cuid())
+  userId    String
+  email     String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+/// In-app bug reports (#86), kept for the admin screen; the searchable
+/// user_feedback log line stays too. A deleted account keeps its tickets
+/// without the link to the user.
+model Feedback {
+  id          String   @id
+  userId      String?
+  message     String
+  view        String?
+  lang        String?
+  build       String?
+  lastInput   String?
+  operationId String?
+  clientTime  String?
+  status      String   @default("open")
+  adminNote   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+}
+
+/// Admin-editable runtime settings (registration, announcement, AI limits).
+model AppSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+/// Anonymous daily usage counters for the admin statistics: no user id, no
+/// content, one row per day and kind (search, interpret, ai:<capability>...).
+model UsageDaily {
+  day              DateTime @db.Date
+  kind             String
+  count            Int      @default(0)
+  totalMs          BigInt   @default(0)
+  promptTokens     BigInt   @default(0)
+  completionTokens BigInt   @default(0)
+
+  @@id([day, kind])
 }
 
 /// One-time password reset link (tester release, 2026-10-15). Only the

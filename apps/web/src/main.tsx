@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { Activity, ChevronLeft, ChevronRight, ExternalLink, LogOut, Mail, Pencil, Plus, Repeat, ShieldCheck, Sparkles, Trash2, UtensilsCrossed } from "lucide-react";
+import { Activity, ChevronLeft, ChevronRight, ExternalLink, LayoutDashboard, LogOut, Mail, Megaphone, Pencil, Plus, Repeat, ShieldCheck, Sparkles, Trash2, UtensilsCrossed } from "lucide-react";
 
 import { dict, type Lang } from "./i18n";
 import { api, ApiError, streamProgress, type ApiState } from "./api";
@@ -12,7 +12,8 @@ import { RecipeBuilder } from "./RecipeBuilder";
 import { MealEditDialog, DeleteMealDialog, RepeatMealDialog, type MealDetail } from "./MealActions";
 import { WeekOverviewCard, type WeekOverviewData } from "./WeekOverview";
 import { AuthForm } from "./AuthForm";
-import { EmailPrompt } from "./EmailPrompt";
+import { EmailPrompt, VerifyEmailBand } from "./EmailPrompt";
+import { AdminPage } from "./AdminPage";
 import { LegalFooter, LegalPageView, legalPageFromHash, type LegalPage } from "./LegalPages";
 import { createPortal } from "react-dom";
 import { FoodUnderstandingPreview, type ExternalCandidate, type RecipeDiscoveryPreviewValue, type RecipeDiscoveryCandidateValue, type AiEstimateValue, type AiEstimateOverridePayload, type CandidateFood, type RecipeIngredientOverride, type LocalRecipeOption, LocalRecipePicker, statedServings, statedPlates } from "./FoodUnderstandingPreview";
@@ -31,7 +32,7 @@ import { FeedbackReport } from "./FeedbackReport";
 import { MyPlates, PlateSetup, plateSetupPending } from "./PlateSetup";
 import type { QuantityClarification as Clarification } from "@keto-mentor/shared";
 
-type User = { id: string; username: string; email?: string | null; locale: Lang; profile?: any; _count?: { plates?: number } };
+type User = { id: string; username: string; email?: string | null; emailVerified?: boolean; isAdmin?: boolean; locale: Lang; profile?: any; _count?: { plates?: number } };
 export type Totals = { kcal: number; fat: number; protein: number; carbs: number; fiber: number; netCarbs: number };
 type Meal = { id: string; title: string; eatenAt: string; totals: Totals };
 export type FoodServing = { id: string; key: string; unit: string; labels?: Partial<Record<Lang, string>>; grams: number; isEstimated: boolean; confidence: number; provenance?: unknown };
@@ -115,6 +116,34 @@ export function App() {
     if (legalPageFromHash(window.location.hash)) window.history.replaceState(null, "", window.location.pathname + window.location.search);
     setLegalPage(null);
   }
+  // Admin screen at #admin (2026-10-15); shown only to an account the API
+  // reports as isAdmin, every admin call is checked again on the server.
+  const [adminOpen, setAdminOpen] = useState(() => window.location.hash === "#admin");
+  useEffect(() => {
+    const onHash = () => setAdminOpen(window.location.hash === "#admin");
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+  function closeAdmin() {
+    if (window.location.hash === "#admin") window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    setAdminOpen(false);
+  }
+  // Public runtime settings: registration open? announcement for everyone?
+  const [appConfig, setAppConfig] = useState<{ registrationOpen: boolean; announcement: { hu: string; de: string; en: string } | null } | null>(null);
+  useEffect(() => { api<{ registrationOpen: boolean; announcement: { hu: string; de: string; en: string } | null }>("/config").then(setAppConfig).catch(() => undefined); }, []);
+  // E-mail confirmation link from the e-mail (#verify=<token>).
+  const [verifyNotice, setVerifyNotice] = useState<{ ok: boolean; text: string } | null>(null);
+  useEffect(() => {
+    const match = /^#verify=([A-Za-z0-9_-]{20,200})$/.exec(window.location.hash);
+    if (!match) return;
+    window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    const msg = { hu: ["Az e-mail címed megerősítve.", "A megerősítő link lejárt vagy már felhasználták."], de: ["Deine E-Mail-Adresse ist bestätigt.", "Der Bestätigungslink ist abgelaufen oder wurde schon verwendet."], en: ["Your e-mail address is confirmed.", "The confirmation link has expired or was already used."] };
+    const pick = (navigator.language ?? "hu").slice(0, 2) as Lang;
+    const texts = msg[pick in msg ? pick : "hu"];
+    api("/auth/verify-email", { method: "POST", body: JSON.stringify({ token: match[1] }) })
+      .then(() => { setVerifyNotice({ ok: true, text: texts[0] }); setUser((current) => current ? { ...current, emailVerified: true } : current); })
+      .catch(() => setVerifyNotice({ ok: false, text: texts[1] }));
+  }, []);
   // Context for an in-app bug report (FeedbackReport): the last meal text the
   // user actually submitted and that request's progress operationId.
   const [lastInterpretRequest, setLastInterpretRequest] = useState<{ text: string; operationId: string } | null>(null);
@@ -663,6 +692,9 @@ export function App() {
                 operationId: lastInterpretRequest?.operationId
               })}/>
             )}
+            {user?.isAdmin && (
+              <a className="btn ghost" href="#admin" aria-label="Admin"><LayoutDashboard size={17}/><span>Admin</span></a>
+            )}
             {user && profile?.onboardingDone && (
               <button type="button" className="btn ghost" aria-label={t.myPlates.open} aria-expanded={myPlatesOpen}
                 onClick={() => { setMyPlatesOpen(true); document.getElementById("top")?.scrollIntoView?.({ behavior: "smooth" }); }}>
@@ -697,8 +729,15 @@ export function App() {
       <UpdateBanner lang={lang}/>
       <InstallPrompt lang={lang}/>
 
+      {appConfig?.announcement && (appConfig.announcement[lang] || appConfig.announcement.hu) && (
+        <div className="card announcement-band" role="status"><Megaphone size={18} aria-hidden="true"/><span>{appConfig.announcement[lang] || appConfig.announcement.hu}</span></div>
+      )}
+      {verifyNotice && <div className={`card announcement-band ${verifyNotice.ok ? "" : "is-error"}`} role="status"><Mail size={18} aria-hidden="true"/><span>{verifyNotice.text}</span></div>}
       {user && profile?.onboardingDone && user.email === null && (
-        <EmailPrompt lang={lang} state={state} onSaved={(email) => setUser((current) => current ? { ...current, email } : current)}/>
+        <EmailPrompt lang={lang} state={state} onSaved={(email) => setUser((current) => current ? { ...current, email, emailVerified: false } : current)}/>
+      )}
+      {user && profile?.onboardingDone && user.email && user.emailVerified === false && !verifyNotice?.ok && (
+        <VerifyEmailBand lang={lang} state={state} email={user.email}/>
       )}
       <section id="top" className={`hero-shell ${user ? "is-authenticated" : ""}`}>
         <div className="hero-copy">
@@ -710,7 +749,7 @@ export function App() {
 
 
         {!user ? (
-          <AuthForm mode="register" lang={lang} state={state} onSuccess={setUser} />
+          <AuthForm mode={appConfig?.registrationOpen === false ? "login" : "register"} registrationOpen={appConfig?.registrationOpen !== false} lang={lang} state={state} onSuccess={setUser} />
         ) : authBootstrapping ? (
           <div className="card welcome-panel" role="status" aria-busy="true">
             <p className="panel-kicker">{t.loadingProfile}</p>
@@ -862,6 +901,10 @@ export function App() {
       {deletingMealId && <DeleteMealDialog lang={lang} onCancel={() => setDeletingMealId(null)} onConfirm={confirmDeleteMeal}/>}
       {repeatingMeal && <RepeatMealDialog title={repeatingMeal.title} lang={lang} onCancel={() => setRepeatingMeal(null)} onConfirm={confirmRepeatMeal}/>}
       <LegalFooter lang={lang}/>
+      {adminOpen && user?.isAdmin && createPortal(
+        <div className="legal-overlay"><AdminPage state={state} onClose={closeAdmin}/></div>,
+        document.body
+      )}
       {legalPage && createPortal(
         <div className="legal-overlay">
           <LegalPageView page={legalPage} lang={lang} state={state} signedIn={!!user} onClose={closeLegalPage}

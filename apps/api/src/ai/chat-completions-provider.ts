@@ -2,6 +2,7 @@ import { foodUnderstandingSchema } from "@keto-mentor/shared";
 import { z } from "zod";
 import type { AiCapability, AiProvider, FoodNlpInput } from "./provider.js";
 import { FOOD_NLP_SYSTEM_INSTRUCTION } from "./food-nlp-prompt.js";
+import { countUsage } from "../admin/usage-counters.js";
 
 const foodNlpInputSchema = z.object({ text: z.string().trim().min(2).max(300) }).strict();
 // `usage` is optional and permissive (.passthrough()) — every OpenAI-
@@ -175,6 +176,8 @@ export class ChatCompletionsProvider implements AiProvider {
       (event.reasoningTokens != null ? ` reasoningTokens=${event.reasoningTokens}` : "") +
       (event.totalTokens != null ? ` totalTokens=${event.totalTokens}` : "")
     );
+    // Anonymous daily totals for the admin statistics (calls, latency, tokens).
+    countUsage(event.success ? `ai:${event.capability}` : `ai_error:${event.capability}`, { ms: event.latencyMs, promptTokens: event.promptTokens ?? 0, completionTokens: event.completionTokens ?? 0 });
     this.onUsage?.(event);
   }
 

@@ -60,9 +60,13 @@ import { publishProgress, subscribeProgress, closeProgress } from "./meal-input/
 import { configuredTranscriptionProvider } from "./ai/transcription-gateway.js";
 import { TranscriptionProviderError } from "./ai/transcription-provider.js";
 import { feedbackRouter } from "./feedback/feedback.js";
-import { passwordResetRouter } from "./password-reset/password-reset.js";
+import { passwordResetRouter, sendPasswordReset } from "./password-reset/password-reset.js";
 import { resendMailer } from "./mail/mailer.js";
-import { accountDeletionRouter } from "./account/account-deletion.js";
+import { accountDeletionRouter, deleteAccount } from "./account/account-deletion.js";
+import { startUsageFlusher, usageMiddleware } from "./admin/usage-counters.js";
+import { getSettings, loadSettings } from "./admin/runtime-settings.js";
+import { adminEmailList, emailVerificationRouter, isAdminUser, sendVerification } from "./admin/email-verification.js";
+import { adminRouter } from "./admin/admin-router.js";
 import { REFERENCE_USERNAME } from "./reference-dishes/seed.js";
 import { platesRouter } from "./meal-input/plates.js";
 import { VOICE_TRANSCRIBE_RATE_LIMIT, voiceTranscribeRateLimitKey } from "./meal-input/voice-rate-limit.js";
@@ -175,6 +179,8 @@ app.use(express.json({ limit: "256kb" }));
 app.use(cookieParser());
 app.use(cors({ origin: env.CORS_ORIGIN.split(",").map((origin) => origin.trim()), credentials: true }));
 app.use(pinoHttp({ logger }));
+// Anonymous daily usage statistics for the admin screen (admin/usage-counters.ts).
+app.use(usageMiddleware());
 
 
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 20, standardHeaders: true, legacyHeaders: false });
@@ -230,6 +236,8 @@ app.get("/build-info", (_req, res) => res.json({
 
 app.post("/auth/register", authLimiter, async (req, res, next) => {
   try {
+    // The admin can close registration (admin/runtime-settings.ts).
+    if (!getSettings().registrationOpen) return res.status(403).json({ error: "registration_closed" });
     const input = registerSchema.parse(req.body);
     const passwordHash = await hashPassword(input.password);
     const user = await prisma.user.create({
@@ -247,6 +255,8 @@ app.post("/auth/register", authLimiter, async (req, res, next) => {
     const session = await createSession(prisma, user);
     setRefreshCookie(res, session.refreshToken);
     res.status(201).json({ user, accessToken: session.accessToken });
+    // Confirmation link for the new address, after answering (best effort).
+    void sendVerification(verificationDeps, user.id).catch(() => undefined);
   } catch (error: any) {
     if (error?.code === "P2002") return res.status(409).json({ error: String(error?.meta?.target ?? "").includes("email") ? "email_taken" : "username_taken" });
     next(error);
@@ -276,9 +286,24 @@ app.post("/auth/login", authLimiter, async (req, res, next) => {
 
 
 // Password reset by e-mail and attaching an e-mail to an existing account.
+const mailer = resendMailer(env.RESEND_API_KEY, env.MAIL_FROM);
+const webAppUrl = env.WEB_APP_URL ?? env.CORS_ORIGIN.split(",")[0].trim();
+const verificationDeps = { prisma, mailer, webAppUrl };
+const adminEmails = adminEmailList(env.ADMIN_EMAILS);
 app.use(passwordResetRouter({
-  prisma, mailer: resendMailer(env.RESEND_API_KEY, env.MAIL_FROM), webAppUrl: env.WEB_APP_URL ?? env.CORS_ORIGIN.split(",")[0].trim(),
-  hashPassword, verifyPassword, requireAuth
+  prisma, mailer, webAppUrl, hashPassword, verifyPassword, requireAuth,
+  onEmailChanged: (userId) => sendVerification(verificationDeps, userId)
+}));
+app.use(emailVerificationRouter({ ...verificationDeps, requireAuth }));
+// Public, non-secret runtime settings the web needs before sign-in.
+app.get("/config", (_req, res) => {
+  const { registrationOpen, announcement } = getSettings();
+  res.json({ registrationOpen, announcement: announcement.enabled ? announcement : null });
+});
+app.use(adminRouter({
+  prisma, requireAuth, admins: adminEmails, systemUsername: REFERENCE_USERNAME,
+  deleteAccount: (userId) => deleteAccount(prisma as any, userId, REFERENCE_USERNAME),
+  sendPasswordReset: (user) => sendPasswordReset({ prisma, mailer, webAppUrl }, user)
 }));
 
 app.use(accountDeletionRouter({ prisma, requireAuth, verifyPassword, systemUsername: REFERENCE_USERNAME }));
@@ -326,9 +351,9 @@ app.get("/me", requireAuth, async (req, res) => {
     where: { id: req.user!.id },
     // _count.plates: the web shows the one-time plate question only while the
     // user has no saved plate and never answered it (profile.plateSetup).
-    select: { id: true, username: true, email: true, locale: true, profile: true, entitlements: true, _count: { select: { plates: true } } }
+    select: { id: true, username: true, email: true, emailVerifiedAt: true, locale: true, profile: true, entitlements: true, _count: { select: { plates: true } } }
   });
-  res.json({ user });
+  res.json({ user: user && { ...user, emailVerified: !!user.emailVerifiedAt, isAdmin: isAdminUser(user, adminEmails) } });
 });
 
 app.get("/foods", requireAuth, async (req, res, next) => {
@@ -440,7 +465,10 @@ app.post(
 // error response rather than Express's default HTML error page.
 app.use(platesRouter(prisma, requireAuth));
 // In-app bug reports: one searchable `user_feedback` log line each — see feedback/feedback.ts.
-app.use(feedbackRouter(requireAuth));
+app.use(feedbackRouter(requireAuth, console.log, (record) => prisma.feedback.create({ data: {
+  id: record.id, userId: record.userId, message: record.message, view: record.view, lang: record.lang, build: record.build,
+  lastInput: record.lastInput, operationId: record.operationId, clientTime: record.clientTime
+} })));
 app.use("/meal-input/transcribe", (error: any, _req: express.Request, res: express.Response, next: express.NextFunction) => {
   if (error?.type === "entity.too.large") return res.status(413).json({ error: "audio_too_large" });
   next(error);
@@ -660,4 +688,8 @@ app.use((error: any, _req: express.Request, res: express.Response, _next: expres
   res.status(500).json({ error: "internal_error" });
 });
 
+// Admin settings (registration, announcement, AI limits) before serving; a
+// failed read keeps the defaults rather than blocking the start.
+loadSettings(prisma).catch((error) => logger.warn({ err: error?.message }, "admin settings not loaded, using defaults"));
+startUsageFlusher(prisma);
 app.listen(env.PORT, () => logger.info({ port: env.PORT }, "Keto Mentor API listening"));

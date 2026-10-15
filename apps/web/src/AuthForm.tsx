@@ -20,18 +20,26 @@ const copy = {
   en: { register: "Register", login: "Login", username: "Username", loginName: "Username or e-mail", email: "E-mail address", password: "Password", newPassword: "New password (at least 10 characters)", forgot: "Forgot your password?", forgotTitle: "Request a new password", forgotIntro: "Enter your account's e-mail address and we will send you a link to set a new password.", send: "Send link", sent: "If this e-mail address is registered, the link arrives within a few minutes (check your spam folder too). It is valid for 1 hour.", resetTitle: "Set a new password", save: "Save password", changed: "Your new password is saved. Sign in with it now.", back: "Back to login", privacy: "By registering you accept the", privacyLink: "privacy notice", emailHint: "You need it to reset your password if you forget it." }
 } as const;
 
+// The admin can pause registration (2026-10-15); existing users still sign in.
+const closedText: Record<Lang, string> = {
+  hu: "Az új regisztráció jelenleg szünetel. Ha már van fiókod, jelentkezz be.",
+  de: "Neue Registrierungen sind derzeit pausiert. Wenn du schon ein Konto hast, melde dich an.",
+  en: "New registrations are paused right now. If you already have an account, sign in."
+};
+
 export function resetTokenFromHash(hash: string): string | null {
   const match = /^#reset=([A-Za-z0-9_-]{20,200})$/.exec(hash);
   return match ? match[1] : null;
 }
 
-export function AuthForm({ mode: initialMode, lang, state, onSuccess }: { mode: "login" | "register"; lang: Lang; state: ApiState; onSuccess: (user: { id: string; username: string; locale: Lang }) => void }) {
+export function AuthForm({ mode: initialMode, lang, state, onSuccess, registrationOpen = true }: { mode: "login" | "register"; lang: Lang; state: ApiState; onSuccess: (user: { id: string; username: string; locale: Lang }) => void; registrationOpen?: boolean }) {
   const [resetToken, setResetToken] = useState<string | null>(() => resetTokenFromHash(window.location.hash));
   const [mode, setMode] = useState<Mode>(() => resetTokenFromHash(window.location.hash) ? "reset" : initialMode);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const t = copy[lang];
+  useEffect(() => { if (!registrationOpen && mode === "register") setMode("login"); }, [registrationOpen, mode]);
   const passwordMinLength = mode === "register" || mode === "reset" ? 10 : 1;
 
   useEffect(() => {
@@ -96,7 +104,8 @@ export function AuthForm({ mode: initialMode, lang, state, onSuccess }: { mode: 
           </>
         )}
       </div>
-      {(mode === "login" || mode === "register") && (
+      {!registrationOpen && mode === "login" && <p className="status" role="status">{closedText[lang]}</p>}
+      {registrationOpen && (mode === "login" || mode === "register") && (
         <div className="auth-mode-switch">
           <button type="button" data-testid="auth-mode-register" className={`seg ${mode === "register" ? "active" : ""}`} disabled={submitting} onClick={() => switchMode("register")}>{t.register}</button>
           <button type="button" data-testid="auth-mode-login" className={`seg ${mode === "login" ? "active" : ""}`} disabled={submitting} onClick={() => switchMode("login")}>{t.login}</button>
