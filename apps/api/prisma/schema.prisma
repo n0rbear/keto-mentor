@@ -98,6 +98,8 @@ model EmailVerificationToken {
 model Feedback {
   id          String   @id
   userId      String?
+  /// "bug" (Hibát találtam) or "idea" (Ötletem van).
+  kind        String   @default("bug")
   message     String
   view        String?
   lang        String?

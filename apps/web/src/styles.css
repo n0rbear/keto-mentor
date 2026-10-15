@@ -589,3 +589,11 @@ body { padding-left: var(--safe-left); padding-right: var(--safe-right); }
 .chip:focus-visible { outline: 2px solid rgb(var(--brand-bright)); outline-offset: 2px; }
 .meal-type-custom { display: grid; gap: .25rem; font-size: .82rem; }
 .meal-type-tag { display: inline-block; margin-right: .4rem; padding: .05rem .45rem; border-radius: 999px; font-size: .7rem; font-weight: 800; background: rgb(var(--brand) / .14); color: rgb(var(--brand-bright)); }
+.btn.ghost.idea-button, .btn.ghost.idea-button svg { color: rgb(var(--warning)); }
+.idea-section { width: min(100% - 32px, 1120px); margin: 1.2rem auto 0; }
+.idea-card { display: grid; grid-template-columns: auto 1fr; gap: .4rem .8rem; align-items: center; border-color: rgb(var(--warning) / .4); }
+.idea-card > svg { color: rgb(var(--warning)); }
+.idea-card p { margin: .15rem 0 0; }
+.idea-card .btn { grid-column: 1 / -1; justify-self: start; }
+@media (min-width: 640px) { .idea-card { grid-template-columns: auto 1fr auto; } .idea-card .btn { grid-column: auto; } }
+.admin-badge.is-idea { background: rgb(var(--warning) / .15); color: rgb(var(--warning)); }

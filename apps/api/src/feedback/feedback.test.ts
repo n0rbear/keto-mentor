@@ -74,8 +74,15 @@ describe("POST /feedback", () => {
     expect(line).not.toContain("secret-name");
   });
 
+  it("marks an idea in the log line (Ötletem van, 2026-10-15)", async () => {
+    const { base, lines } = await start();
+    expect((await post(base, { kind: "idea", message: "Legyen sötét mód" })).status).toBe(201);
+    expect(lines[0]).toMatch(/^user_feedback id=[0-9a-f]{6} kind=idea user=user-1 /);
+    expect((await post(base, { kind: "wish", message: "x" })).status).toBe(400);
+  });
+
   it("marks missing context fields and caps a long last input", () => {
-    const line = formatFeedbackLine("abc123", "u1", { message: "m", context: { lastInput: "y".repeat(500) } });
+    const line = formatFeedbackLine("abc123", "u1", { kind: "bug", message: "m", context: { lastInput: "y".repeat(500) } });
     expect(line).toContain('view=- lang=- build=-');
     expect(line).toContain(`lastInput="${"y".repeat(300)}…"`);
   });

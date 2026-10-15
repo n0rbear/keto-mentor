@@ -15,6 +15,8 @@ export const FEEDBACK_RATE_LIMIT = Object.freeze({ windowMs: 15 * 60 * 1000, lim
 // Whitelisted, length-capped context fields. Unknown keys are dropped by
 // zod's default object parsing, so nothing else the client sends is logged.
 export const feedbackSchema = z.object({
+  // "idea": the "Ötletem van" button (owner request 2026-10-15); default bug.
+  kind: z.enum(["bug", "idea"]).default("bug"),
   message: z.string().trim().min(1).max(FEEDBACK_MESSAGE_MAX),
   context: z.object({
     view: z.string().max(40).optional(),
@@ -43,12 +45,12 @@ export function logValue(value: string | undefined, max?: number) {
 
 export function formatFeedbackLine(id: string, userId: string, input: z.infer<typeof feedbackSchema>) {
   const c = input.context ?? {};
-  return `user_feedback id=${id} user=${userId} view=${logValue(c.view)} lang=${logValue(c.lang)} build=${logValue(c.build)}`
+  return `user_feedback id=${id}${input.kind === "idea" ? " kind=idea" : ""} user=${userId} view=${logValue(c.view)} lang=${logValue(c.lang)} build=${logValue(c.build)}`
     + ` clientTime=${logValue(c.clientTime)} operationId=${logValue(c.operationId)} lastInput=${logValue(c.lastInput, 300)}`
     + ` message=${logValue(input.message)}`;
 }
 
-export type FeedbackRecord = { id: string; userId: string; message: string } & NonNullable<z.infer<typeof feedbackSchema>["context"]>;
+export type FeedbackRecord = { id: string; userId: string; kind: "bug" | "idea"; message: string } & NonNullable<z.infer<typeof feedbackSchema>["context"]>;
 
 // The ticket is also stored for the admin screen (2026-10-15); a failed write
 // never fails the report — the log line is the record of last resort.
@@ -60,7 +62,7 @@ export function feedbackRouter(requireAuth: express.RequestHandler, log: (line: 
       const input = feedbackSchema.parse(req.body);
       const id = randomBytes(3).toString("hex");
       log(formatFeedbackLine(id, req.user!.id, input));
-      if (store) await store({ id, userId: req.user!.id, message: input.message, ...(input.context ?? {}) }).catch(() => log(`user_feedback_store outcome=failed id=${id}`));
+      if (store) await store({ id, userId: req.user!.id, kind: input.kind, message: input.message, ...(input.context ?? {}) }).catch(() => log(`user_feedback_store outcome=failed id=${id}`));
       res.status(201).json({ id });
     } catch (error) { next(error); }
   });

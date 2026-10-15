@@ -81,3 +81,25 @@ describe("FeedbackReport", () => {
     await waitFor(() => expect(screen.getByRole("alert").textContent).toBe(t.rateLimited));
   });
 });
+
+describe("Ötletem van (owner request 2026-10-15)", () => {
+  it("sends an idea with its own wording and without the last meal entry", async () => {
+    const calls: any[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (url: string, init?: RequestInit) => {
+      if (String(url).endsWith("/build-info")) return new Response(JSON.stringify({ environment: "production", branch: "main", commit: "abc1234" }), { status: 200 });
+      calls.push(JSON.parse(String(init?.body)));
+      return new Response(JSON.stringify({ id: "1dea42" }), { status: 201 });
+    }));
+    render(<FeedbackReport kind="idea" variant="card" lang="hu" state={{ token: "t", setToken: vi.fn() }} getContext={() => ({ view: "dashboard_card", lastInput: "2 tojás", operationId: "op" })}/>);
+    expect(screen.getByText("Ötleted van?")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Ötletem van" }));
+    expect(screen.getByRole("dialog", { name: "Ötletem van" })).toBeTruthy();
+    fireEvent.change(screen.getByPlaceholderText("Mitől lenne jobb az app? Milyen funkciót szeretnél?"), { target: { value: "Legyen sötét mód" } });
+    fireEvent.click(screen.getByRole("button", { name: "Küldés" }));
+    await waitFor(() => expect(screen.getByRole("status").textContent).toContain("Köszönjük az ötletet!"));
+    expect(screen.getByRole("status").textContent).toContain("Ötlet: #1dea42");
+    expect(calls[0]).toMatchObject({ kind: "idea", message: "Legyen sötét mód" });
+    expect(calls[0].context.lastInput).toBeUndefined();
+    expect(calls[0].context.operationId).toBeUndefined();
+  });
+});
