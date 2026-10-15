@@ -3,7 +3,7 @@ import express from "express";
 import type { AddressInfo } from "node:net";
 import { adminRouter } from "./admin-router.js";
 import { adminEmailList, emailVerificationRouter, isAdminUser, sendVerification } from "./email-verification.js";
-import { DEFAULT_SETTINGS, getSettings, loadSettings, resetSettingsForTests, userFallbackWindows } from "./runtime-settings.js";
+import { DEFAULT_SETTINGS, getSettings, loadSettings, refreshPremiumUsers, resetSettingsForTests, setPremiumUsersForTests, setSettings, userFallbackWindows } from "./runtime-settings.js";
 import { clearPendingUsageForTests, countUsage, flushUsage, pendingUsageForTests, usageMiddleware } from "./usage-counters.js";
 import { UserUsageBudget } from "../catalog/usage-budget.js";
 
@@ -116,7 +116,7 @@ describe("admin features", () => {
 
   it("saves settings, applies them at once and reloads them after a restart", async () => {
     const t = startAdmin();
-    const next = { registrationOpen: false, announcement: { enabled: true, hu: "Karbantartás 20-kor", de: "Wartung um 20 Uhr", en: "Maintenance at 8 pm" }, aiLimits: { perHour: 5, perDay: 20, perRecipe: 3 }, premiumAccess: "premium_only" as const };
+    const next = { registrationOpen: false, announcement: { enabled: true, hu: "Karbantartás 20-kor", de: "Wartung um 20 Uhr", en: "Maintenance at 8 pm" }, aiLimits: { perHour: 5, perDay: 20, perRecipe: 3, premiumPerHour: 50, premiumPerDay: 150 }, premiumAccess: "premium_only" as const };
     expect((await call(t.base, "PUT", "/admin/settings", "admin", next)).status).toBe(200);
     expect(getSettings()).toEqual(next);
     expect(userFallbackWindows().map((w) => w.limit)).toEqual([5, 20]);
@@ -130,8 +130,34 @@ describe("admin features", () => {
   it("a dynamic budget follows the admin limits immediately", () => {
     const budget = new UserUsageBudget(userFallbackWindows);
     resetSettingsForTests();
-    for (let i = 0; i < 30; i++) expect(budget.consume("u")).toBe(true);
+    // Beta: everyone gets the premium allowance (60/hour by default).
+    for (let i = 0; i < 60; i++) expect(budget.consume("u")).toBe(true);
     expect(budget.consume("u")).toBe(false);
+  });
+
+  it("premium users get the larger AI allowance once premium is closed", () => {
+    resetSettingsForTests();
+    setSettings({ ...getSettings(), premiumAccess: "premium_only" });
+    setPremiumUsersForTests(["vip"]);
+    const budget = new UserUsageBudget(userFallbackWindows);
+    for (let i = 0; i < 30; i++) expect(budget.consume("free")).toBe(true);
+    expect(budget.consume("free")).toBe(false);
+    for (let i = 0; i < 60; i++) expect(budget.consume("vip")).toBe(true);
+    expect(budget.consume("vip")).toBe(false);
+    setPremiumUsersForTests([]);
+    resetSettingsForTests();
+  });
+
+  it("reads premium users from active, unexpired entitlements", async () => {
+    let where: any;
+    await refreshPremiumUsers({ entitlement: { findMany: async (args: any) => { where = args.where; return [{ userId: "vip" }]; } } }, new Date("2026-10-16T00:00:00Z"));
+    expect(where.active).toBe(true);
+    resetSettingsForTests();
+    setSettings({ ...getSettings(), premiumAccess: "premium_only" });
+    expect(userFallbackWindows("vip").map((w) => w.limit)).toEqual([60, 200]);
+    expect(userFallbackWindows("other").map((w) => w.limit)).toEqual([30, 100]);
+    setPremiumUsersForTests([]);
+    resetSettingsForTests();
   });
 });
 

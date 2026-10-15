@@ -77,7 +77,7 @@ Focus on real daily usage, bug fixing and UX polish. Complete password reset/ema
 - **Premium:** the features below. Until payment exists, the admin setting `premiumAccess=beta_all` opens them to every signed-in tester. Each premium feature carries the gold "Prémium funkció" badge. The in-app "Prémium – hamarosan" card lists them all.
   1. Vacsoraajánló (dinner recommender): shipped in beta.
   2. Weekly meal plan and shopping list: shipped in beta (2026-10-16).
-  3. Larger AI allowance.
+  3. Larger AI allowance: shipped in beta (2026-10-16). Admin-set premium limits (default 60/hour, 200/day) for premium entitlements (plan premium or feature ai_plus), and for everyone while in beta.
   4. Advanced stats and weight log.
   5. Export (PDF/CSV).
   6. Micronutrients.

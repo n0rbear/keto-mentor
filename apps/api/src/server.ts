@@ -66,7 +66,7 @@ import { passwordResetRouter, sendPasswordReset } from "./password-reset/passwor
 import { preferredWebOrigin, resendMailer } from "./mail/mailer.js";
 import { accountDeletionRouter, deleteAccount } from "./account/account-deletion.js";
 import { startUsageFlusher, usageMiddleware } from "./admin/usage-counters.js";
-import { getSettings, loadSettings } from "./admin/runtime-settings.js";
+import { getSettings, loadSettings, startPremiumUsersRefresher } from "./admin/runtime-settings.js";
 import { adminEmailList, emailVerificationRouter, isAdminUser, sendVerification } from "./admin/email-verification.js";
 import { forbidAdminAccountWrites } from "./admin/admin-only-account.js";
 import { keepAwakeUrls, startKeepAwake } from "./keep-awake.js";
@@ -734,5 +734,6 @@ app.use((error: any, _req: express.Request, res: express.Response, _next: expres
 // failed read keeps the defaults rather than blocking the start.
 loadSettings(prisma).catch((error) => logger.warn({ err: error?.message }, "admin settings not loaded, using defaults"));
 startUsageFlusher(prisma);
+startPremiumUsersRefresher(prisma);
 if (env.NODE_ENV === "production") startKeepAwake(keepAwakeUrls(env.KEEP_AWAKE_URLS));
 app.listen(env.PORT, () => logger.info({ port: env.PORT }, "Keto Mentor API listening"));

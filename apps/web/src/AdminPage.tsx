@@ -18,7 +18,7 @@ type Overview = {
 };
 type Ticket = { id: string; kind?: string; message: string; status: string; adminNote: string | null; view: string | null; lang: string | null; build: string | null; lastInput: string | null; createdAt: string; user: { username: string; email: string | null } | null };
 type AdminUser = { id: string; username: string; email: string | null; emailVerified: boolean; locale: string; createdAt: string; meals: number; recipes: number; lastMealAt: string | null; isAdmin: boolean };
-type Settings = { registrationOpen: boolean; announcement: { enabled: boolean; hu: string; de: string; en: string }; aiLimits: { perHour: number; perDay: number; perRecipe: number }; premiumAccess?: "beta_all" | "premium_only" };
+type Settings = { registrationOpen: boolean; announcement: { enabled: boolean; hu: string; de: string; en: string }; aiLimits: { perHour: number; perDay: number; perRecipe: number; premiumPerHour?: number; premiumPerDay?: number }; premiumAccess?: "beta_all" | "premium_only" };
 type Tab = "overview" | "feedback" | "users" | "settings";
 
 const KIND_LABELS: Record<string, string> = {
@@ -185,7 +185,7 @@ function SettingsTab({ state }: { state: ApiState }) {
     try { const r = await api<{ settings: Settings }>("/admin/settings", { method: "PUT", body: JSON.stringify(settings) }, state); setSettings(r.settings); setSaved(true); setError(null); } catch (e) { setError(errorText(e)); }
   }
   const limit = (key: keyof Settings["aiLimits"], label: string, hint: string) => (
-    <label>{label}<input className="field" type="number" min={0} value={settings.aiLimits[key]} onChange={(e) => set({ aiLimits: { ...settings.aiLimits, [key]: Number(e.target.value) } })}/><span className="text-xs text-muted">{hint}</span></label>
+    <label>{label}<input className="field" type="number" min={0} value={settings.aiLimits[key] ?? 0} onChange={(e) => set({ aiLimits: { ...settings.aiLimits, [key]: Number(e.target.value) } })}/><span className="text-xs text-muted">{hint}</span></label>
   );
   return (
     <div className="admin-stack admin-settings">
@@ -207,6 +207,9 @@ function SettingsTab({ state }: { state: ApiState }) {
         {limit("perHour", "Óránként", "AI-becslés és webes tápérték-keresés óránként (alap: 30)")}
         {limit("perDay", "Naponta", "Ugyanez naponta (alap: 100)")}
         {limit("perRecipe", "Receptenként", "Egy recept importálásakor legfeljebb (alap: 8)")}
+        <h3>Bővebb AI-keret (prémium)</h3>
+        {limit("premiumPerHour", "Prémium: óránként", "Prémium felhasználóknak, bétában mindenkinek (alap: 60)")}
+        {limit("premiumPerDay", "Prémium: naponta", "Ugyanez naponta (alap: 200)")}
       </section>
       <section>
         <h3>Prémium funkciók</h3>

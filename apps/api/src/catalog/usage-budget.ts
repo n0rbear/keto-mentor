@@ -22,17 +22,19 @@ export class UserUsageBudget implements UsageLimiter {
   private readonly buckets = new Map<string, Array<{ startsAt: number; count: number }>>();
   // A function is read on every call, so admin-changed limits apply at once
   // (owner request 2026-10-15); a plain array keeps the fixed limits tests use.
-  constructor(private readonly windowsSource: readonly BudgetWindow[] | (() => readonly BudgetWindow[]), private readonly now: () => number = Date.now) {}
-  private get windows(): readonly BudgetWindow[] { return typeof this.windowsSource === "function" ? this.windowsSource() : this.windowsSource; }
+  // A function may also depend on the user (premium users get more).
+  constructor(private readonly windowsSource: readonly BudgetWindow[] | ((userId?: string) => readonly BudgetWindow[]), private readonly now: () => number = Date.now) {}
+  private windowsFor(userId: string): readonly BudgetWindow[] { return typeof this.windowsSource === "function" ? this.windowsSource(userId) : this.windowsSource; }
 
   consume(userId: string): boolean {
     if (!userId) throw new Error("Authenticated user required before usage budgeting");
     const current = this.now();
-    const buckets = this.windows.map((window, index) => {
+    const windows = this.windowsFor(userId);
+    const buckets = windows.map((window, index) => {
       const existing = this.buckets.get(userId)?.[index];
       return !existing || current - existing.startsAt >= window.windowMs ? { startsAt: current, count: 0 } : existing;
     });
-    if (buckets.some((bucket, index) => bucket.count >= this.windows[index].limit)) return false;
+    if (buckets.some((bucket, index) => bucket.count >= windows[index].limit)) return false;
     for (const bucket of buckets) bucket.count += 1;
     this.buckets.set(userId, buckets);
     return true;
