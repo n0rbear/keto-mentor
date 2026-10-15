@@ -48,14 +48,19 @@ export function formatFeedbackLine(id: string, userId: string, input: z.infer<ty
     + ` message=${logValue(input.message)}`;
 }
 
-export function feedbackRouter(requireAuth: express.RequestHandler, log: (line: string) => void = console.log) {
+export type FeedbackRecord = { id: string; userId: string; message: string } & NonNullable<z.infer<typeof feedbackSchema>["context"]>;
+
+// The ticket is also stored for the admin screen (2026-10-15); a failed write
+// never fails the report — the log line is the record of last resort.
+export function feedbackRouter(requireAuth: express.RequestHandler, log: (line: string) => void = console.log, store?: (record: FeedbackRecord) => Promise<unknown>) {
   const router = express.Router();
   const limiter = rateLimit({ ...FEEDBACK_RATE_LIMIT, standardHeaders: true, legacyHeaders: false, keyGenerator: feedbackRateLimitKey });
-  router.post("/feedback", requireAuth, limiter, (req, res, next) => {
+  router.post("/feedback", requireAuth, limiter, async (req, res, next) => {
     try {
       const input = feedbackSchema.parse(req.body);
       const id = randomBytes(3).toString("hex");
       log(formatFeedbackLine(id, req.user!.id, input));
+      if (store) await store({ id, userId: req.user!.id, message: input.message, ...(input.context ?? {}) }).catch(() => log(`user_feedback_store outcome=failed id=${id}`));
       res.status(201).json({ id });
     } catch (error) { next(error); }
   });

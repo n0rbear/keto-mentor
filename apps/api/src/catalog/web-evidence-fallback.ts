@@ -1,5 +1,6 @@
 import type { WebKnowledgeSearchProvider, WebSearchResult } from "../web-knowledge/web-knowledge-search-provider.js";
 import { USER_FALLBACK_WINDOWS, UserUsageBudget, type UsageLimiter } from "./usage-budget.js";
+import { userFallbackWindows } from "../admin/runtime-settings.js";
 import type { NutritionEvidenceExtractionProvider } from "./nutrition-evidence-extraction.js";
 import { extractJsonLdNutrition, extractVisibleTextNutrition } from "./nutrition-evidence-extraction.js";
 import type { SemanticCandidateGateProvider, SemanticCandidateGateStatus } from "./semantic-candidate-gate.js";
@@ -42,7 +43,8 @@ import { timeStage } from "../request-performance.js";
 export const WEB_EVIDENCE_FALLBACK_RATE_LIMIT = USER_FALLBACK_WINDOWS;
 
 export class WebEvidenceFallbackRateLimiter extends UserUsageBudget {
-  constructor(now: () => number = Date.now) { super(WEB_EVIDENCE_FALLBACK_RATE_LIMIT, now); }
+  // Limits come from the admin settings (defaults 30/hour, 100/day).
+  constructor(now: () => number = Date.now) { super(userFallbackWindows, now); }
 }
 
 // Cost bound (Phase 20): at most this many candidate pages are ever fetched

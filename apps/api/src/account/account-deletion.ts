@@ -11,12 +11,26 @@ import { accountDeletionSchema } from "@keto-mentor/shared";
 // - private foods (Food.createdById) have no foreign key to the user; they
 //   are deleted once nothing references them any more.
 
+export type AccountDb = Db;
 type Db = {
   user: { findUnique(args: any): Promise<any>; delete(args: any): Promise<any> };
   recipe: { updateMany(args: any): Promise<any> };
   food: { deleteMany(args: any): Promise<any> };
   $transaction<T>(fn: (tx: any) => Promise<T>): Promise<T>;
 };
+
+/** Deletes one account as described above; returns how many shared recipes were handed over. Also used by the admin screen. */
+export async function deleteAccount(prisma: Db, userId: string, systemUsername: string): Promise<number> {
+  return prisma.$transaction(async (tx) => {
+    const system = await tx.user.findUnique({ where: { username: systemUsername }, select: { id: true } });
+    const shared = system
+      ? await tx.recipe.updateMany({ where: { userId, mealItems: { some: { meal: { userId: { not: userId } } } } }, data: { userId: system.id } })
+      : { count: 0 };
+    await tx.user.delete({ where: { id: userId } });
+    await tx.food.deleteMany({ where: { createdById: userId, mealItems: { none: {} }, recipeIngredients: { none: {} } } });
+    return shared.count;
+  });
+}
 
 export function accountDeletionRouter(deps: { prisma: Db; requireAuth: express.RequestHandler; verifyPassword(hash: string, password: string): Promise<boolean>; systemUsername: string; log?: (line: string) => void }) {
   const router = express.Router();
@@ -27,15 +41,7 @@ export function accountDeletionRouter(deps: { prisma: Db; requireAuth: express.R
       const userId = req.user!.id;
       const user = await deps.prisma.user.findUnique({ where: { id: userId }, select: { id: true, passwordHash: true } });
       if (!user || !(await deps.verifyPassword(user.passwordHash, input.currentPassword))) return res.status(401).json({ error: "invalid_credentials" });
-      const handedOver = await deps.prisma.$transaction(async (tx) => {
-        const system = await tx.user.findUnique({ where: { username: deps.systemUsername }, select: { id: true } });
-        const shared = system
-          ? await tx.recipe.updateMany({ where: { userId, mealItems: { some: { meal: { userId: { not: userId } } } } }, data: { userId: system.id } })
-          : { count: 0 };
-        await tx.user.delete({ where: { id: userId } });
-        await tx.food.deleteMany({ where: { createdById: userId, mealItems: { none: {} }, recipeIngredients: { none: {} } } });
-        return shared.count;
-      });
+      const handedOver = await deleteAccount(deps.prisma, userId, deps.systemUsername);
       log(`account_deleted shared_recipes_kept=${handedOver}`);
       res.clearCookie("km_refresh");
       res.status(204).end();

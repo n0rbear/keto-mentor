@@ -46,7 +46,10 @@ const envSchema = z.object({
   // points (default: the first CORS_ORIGIN).
   RESEND_API_KEY: z.string().min(1).optional(),
   MAIL_FROM: z.string().min(3).max(200).default("Keto Mentor <noreply@norbapp.com>"),
-  WEB_APP_URL: z.string().url().max(300).optional()
+  WEB_APP_URL: z.string().url().max(300).optional(),
+  // Admin screen (2026-10-15): comma-separated addresses; the role needs the
+  // address to be confirmed by e-mail. Default: the owner's admin address.
+  ADMIN_EMAILS: z.string().max(500).optional()
 });
 
 // Dashboards like Render can leave an optional var present but blank (e.g. a key

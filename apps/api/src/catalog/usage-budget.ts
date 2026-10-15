@@ -20,7 +20,10 @@ export const RECIPE_FALLBACK_CAP = 8;
 
 export class UserUsageBudget implements UsageLimiter {
   private readonly buckets = new Map<string, Array<{ startsAt: number; count: number }>>();
-  constructor(private readonly windows: readonly BudgetWindow[], private readonly now: () => number = Date.now) {}
+  // A function is read on every call, so admin-changed limits apply at once
+  // (owner request 2026-10-15); a plain array keeps the fixed limits tests use.
+  constructor(private readonly windowsSource: readonly BudgetWindow[] | (() => readonly BudgetWindow[]), private readonly now: () => number = Date.now) {}
+  private get windows(): readonly BudgetWindow[] { return typeof this.windowsSource === "function" ? this.windowsSource() : this.windowsSource; }
 
   consume(userId: string): boolean {
     if (!userId) throw new Error("Authenticated user required before usage budgeting");
