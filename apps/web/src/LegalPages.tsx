@@ -65,7 +65,7 @@ function controllerLines(lang: Lang): string[] {
   const missing = ui[lang].missing;
   const { name, email, country } = LEGAL_CONTROLLER;
   const label = lang === "hu" ? ["Név", "E-mail", "Ország"] : lang === "de" ? ["Name", "E-Mail", "Land"] : ["Name", "E-mail", "Country"];
-  return [`${label[0]}: ${name ?? missing}`, `${label[1]}: ${email ?? missing}`, `${label[2]}: ${country ?? missing}`];
+  return [`${label[0]}: ${name ?? missing}`, `${label[1]}: ${email ?? missing}`, `${label[2]}: ${country?.[lang] ?? missing}`];
 }
 
 function privacy(lang: Lang): { intro: string; sections: Section[] } {

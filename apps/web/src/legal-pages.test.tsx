@@ -26,9 +26,12 @@ describe("legal pages", () => {
     expect(screen.getByRole("link", { name: /CC0/ })).toBeTruthy();
   });
 
-  it("shows a visible placeholder instead of an invented controller and no deletion form when signed out", () => {
-    render(<LegalPageView page="privacy" lang="hu" state={state} signedIn={false} onClose={vi.fn()} onAccountDeleted={vi.fn()}/>);
-    expect(document.body.textContent).toContain("Név: ⚠ kitöltés alatt");
+  it.each([["hu", "Ország: Németország"], ["de", "Land: Deutschland"], ["en", "Country: Germany"]] as const)("names the controller (%s) and shows no deletion form when signed out", (lang, country) => {
+    render(<LegalPageView page="privacy" lang={lang} state={state} signedIn={false} onClose={vi.fn()} onAccountDeleted={vi.fn()}/>);
+    expect(document.body.textContent).toContain("Norbert Horváth");
+    expect(document.body.textContent).toContain("norbert@norbapp.com");
+    expect(document.body.textContent).toContain(country);
+    expect(document.body.textContent).not.toContain("⚠");
     expect(document.body.textContent).toContain("OpenAI");
     expect(screen.queryByRole("form", { name: "Fiók törlése" })).toBeNull();
   });
