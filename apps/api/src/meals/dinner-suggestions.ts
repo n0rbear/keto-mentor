@@ -22,13 +22,22 @@ export type DinnerCandidate = {
   // Normalized title and ingredient names, for avoided foods and allergens.
   haystack: string;
   lowCarbFriendly: boolean;
+  // For variety: cooking style (soup, stew, roast, fried…) and main protein.
+  style: string;
+  protein: string;
 };
-export type DinnerSuggestion = Omit<DinnerCandidate, "haystack" | "lowCarbFriendly" | "dishId" | "titles"> & { title: string; after: Macros };
+export type DinnerSuggestion = Omit<DinnerCandidate, "haystack" | "lowCarbFriendly" | "dishId" | "titles" | "style" | "protein"> & { title: string; after: Macros };
+// "Ha maradt az ebédből…" (owner idea 2026-10-15): an earlier meal of the
+// day that would fit again, offered as an extra at the same portion.
+export type EatenMeal = { id: string; title: string; mealType: string | null; mealTypeLabel: string | null; totals: Macros };
+export type LeftoverSuggestion = { mealId: string; title: string; mealType: string | null; mealTypeLabel: string | null; perServing: Macros; after: Macros };
 export type DinnerResult = {
   remaining: Macros;
   status: "ok" | "carb_budget_used" | "kcal_budget_used" | "nothing_fits";
   suggestions: DinnerSuggestion[];
+  leftovers: LeftoverSuggestion[];
 };
+const LEFTOVER_TYPES = new Set(["breakfast", "morning_snack", "lunch", "afternoon_snack", "custom"]);
 
 // Reference dishes that are not a dinner main: sweets, bakery, side dishes.
 const NOT_A_DINNER = new Set(["sweet", "dessert", "cake", "pastry", "cookies", "bakery", "bread", "side"]);
@@ -78,11 +87,13 @@ export function rankDinnerSuggestions(input: {
   eatenTitles: Set<string>;
   lang: Lang;
   limit?: number;
+  random?: () => number;
+  todayMeals?: EatenMeal[];
 }): DinnerResult {
   const { remaining, lang } = input;
   const rounded = { kcal: Math.round(remaining.kcal), protein: round(remaining.protein), netCarbs: round(remaining.netCarbs), fat: round(remaining.fat) };
-  if (remaining.netCarbs <= 0) return { remaining: rounded, status: "carb_budget_used", suggestions: [] };
-  if (remaining.kcal <= 0) return { remaining: rounded, status: "kcal_budget_used", suggestions: [] };
+  if (remaining.netCarbs <= 0) return { remaining: rounded, status: "carb_budget_used", suggestions: [], leftovers: [] };
+  if (remaining.kcal <= 0) return { remaining: rounded, status: "kcal_budget_used", suggestions: [], leftovers: [] };
   const terms = exclusionTerms(input.avoid);
   const scored: Array<{ candidate: DinnerCandidate; score: number }> = [];
   for (const candidate of input.candidates) {
@@ -97,22 +108,77 @@ export function rankDinnerSuggestions(input: {
     const score = 2 * proteinFit + kcalFit - 0.6 * carbUse + (candidate.source === "own" ? 0.3 : 0) + (candidate.lowCarbFriendly ? 0.2 : 0);
     scored.push({ candidate, score });
   }
-  scored.sort((a, b) => b.score - a.score || a.candidate.titles[lang].localeCompare(b.candidate.titles[lang]));
-  // One variant per dish: "rántott hús" with three side dishes is one idea.
+  // Variety (owner feedback 2026-10-15: "csak sült húsokat írt"): a little
+  // randomness among the good fits, so "Újraszámolás" shows other ideas, and
+  // at most one dish per cooking style and per main protein while others exist.
+  const random = input.random ?? Math.random;
+  const jittered = scored.map((entry) => ({ ...entry, key: entry.score + random() * 0.8 }))
+    .sort((a, b) => b.key - a.key || a.candidate.titles[lang].localeCompare(b.candidate.titles[lang]));
+  const limit = input.limit ?? 5;
+  const picked: DinnerCandidate[] = [];
   const seenDish = new Set<string>();
-  const suggestions: DinnerSuggestion[] = [];
-  for (const { candidate } of scored) {
-    if (seenDish.has(candidate.dishId)) continue;
-    seenDish.add(candidate.dishId);
+  const usedStyle = new Set<string>();
+  const usedProtein = new Set<string>();
+  const rules: Array<(c: DinnerCandidate) => boolean> = [
+    (c) => !usedStyle.has(c.style) && !usedProtein.has(c.protein),
+    (c) => !usedStyle.has(c.style),
+    () => true
+  ];
+  for (const rule of rules) {
+    for (const { candidate } of jittered) {
+      if (picked.length >= limit) break;
+      if (seenDish.has(candidate.dishId) || !rule(candidate)) continue;
+      seenDish.add(candidate.dishId); usedStyle.add(candidate.style); usedProtein.add(candidate.protein);
+      picked.push(candidate);
+    }
+  }
+  const suggestions: DinnerSuggestion[] = picked.map((candidate) => {
     const m = candidate.perServing;
-    suggestions.push({
+    return {
       recipeId: candidate.recipeId, source: candidate.source, title: candidate.titles[lang], servingGrams: candidate.servingGrams,
       perServing: { kcal: Math.round(m.kcal), protein: round(m.protein), netCarbs: round(m.netCarbs), fat: round(m.fat) },
       after: (({ kcal, protein, netCarbs, fat }) => ({ kcal: Math.round(kcal), protein: round(protein), netCarbs: round(netCarbs), fat: round(fat) }))(sub(remaining, m))
-    });
-    if (suggestions.length >= (input.limit ?? 5)) break;
-  }
-  return { remaining: rounded, status: suggestions.length ? "ok" : "nothing_fits", suggestions };
+    };
+  });
+  const leftovers: LeftoverSuggestion[] = (input.todayMeals ?? [])
+    .filter((meal) => meal.mealType && LEFTOVER_TYPES.has(meal.mealType))
+    .filter((meal) => meal.totals.netCarbs <= remaining.netCarbs && meal.totals.kcal <= remaining.kcal && meal.totals.kcal >= 150)
+    .slice(0, 2)
+    .map((meal) => ({
+      mealId: meal.id, title: meal.title, mealType: meal.mealType, mealTypeLabel: meal.mealTypeLabel,
+      perServing: { kcal: Math.round(meal.totals.kcal), protein: round(meal.totals.protein), netCarbs: round(meal.totals.netCarbs), fat: round(meal.totals.fat) },
+      after: (({ kcal, protein, netCarbs, fat }) => ({ kcal: Math.round(kcal), protein: round(protein), netCarbs: round(netCarbs), fat: round(fat) }))(sub(remaining, meal.totals))
+    }));
+  return { remaining: rounded, status: suggestions.length || leftovers.length ? "ok" : "nothing_fits", suggestions, leftovers };
+}
+
+const STYLE_TAGS: Array<[string, string]> = [
+  ["soup", "soup"], ["salad", "salad"], ["főzelék", "fozelek"], ["stew", "stew"], ["braised", "stew"], ["boiled", "stew"],
+  ["eggs", "eggs"], ["fish", "fish"], ["grilled", "grilled"], ["fried", "fried"], ["roast", "roast"], ["baked", "baked"], ["pasta", "pasta"], ["pizza", "pizza"]
+];
+// Hungarian compounds ("zöldborsófőzelék", "babgulyás") carry the style inside a word.
+const STYLE_WORDS: Array<[RegExp, string]> = [
+  [/(leves|suppe|soup)/, "soup"], [/(salata|salat|salad)/, "salad"], [/fozelek/, "fozelek"],
+  [/(porkolt|paprikas|gulyas|ragu|gulasch|stew)/, "stew"], [/(rantott|panir|schnitzel|fried)/, "fried"],
+  [/(grill|roston)/, "grilled"], [/(sult|braten|roast)/, "roast"], [/(omlett|rantotta|tojas|egg)/, "eggs"]
+];
+const PROTEIN_WORDS: Array<[RegExp, string]> = [
+  [/(^|\s)(hal|lazac|ponty|harcsa|pisztrang|tonhal|fisch|lachs|forelle|fish|salmon|tuna|trout)/, "fish"],
+  [/(^|\s)(csirke|pulyka|kacsa|liba|szarnyas|huhn|hahnchen|pute|ente|gans|chicken|turkey|duck)/, "poultry"],
+  [/(^|\s)(marha|borju|rind|kalb|beef|veal)/, "beef"],
+  [/(^|\s)(sertes|karaj|tarja|szalonna|kolbasz|virsli|sonka|schwein|speck|wurst|schinken|pork|bacon|ham|sausage)/, "pork"],
+  [/(^|\s)(barany|vad|oz|lamm|wild|lamb|venison)/, "lamb_game"],
+  [/(^|\s)(tojas|ei|eier|egg)/, "eggs"],
+  [/(^|\s)(sajt|kase|cheese|turo|quark)/, "cheese"]
+];
+
+/** Cooking style and main protein, from the dish tags or else from its words. */
+// The style is read from the title only ("fejes saláta" as an ingredient
+// does not make a salad); the protein from the title first, then ingredients.
+export function classifyDish(title: string, haystack: string, tags: string[]): { style: string; protein: string } {
+  const style = STYLE_TAGS.find(([tag]) => tags.includes(tag))?.[1] ?? STYLE_WORDS.find(([re]) => re.test(title))?.[1] ?? "other";
+  const protein = PROTEIN_WORDS.find(([re]) => re.test(title))?.[1] ?? PROTEIN_WORDS.find(([re]) => re.test(haystack))?.[1] ?? "plant";
+  return { style, protein };
 }
 
 const ingredientInclude = { ingredients: { include: { food: { select: { name: true, kcalPer100g: true, fatPer100g: true, proteinPer100g: true, carbsPer100g: true, fiberPer100g: true } } } } } as const;
@@ -132,6 +198,7 @@ function toCandidate(recipe: any, source: "own" | "reference"): DinnerCandidate 
     ? { hu: provenance.titles.hu, de: provenance.titles.de, en: provenance.titles.en }
     : { hu: recipe.title, de: recipe.title, en: recipe.title };
   const names = recipe.ingredients.flatMap((ingredient: any) => [ingredient.food?.name, ingredient.originalText]).filter(Boolean);
+  const haystack = normalizeSearch([...Object.values(titles), ...names].join(" "));
   return {
     recipeId: recipe.id,
     source,
@@ -139,8 +206,9 @@ function toCandidate(recipe: any, source: "own" | "reference"): DinnerCandidate 
     dishId: source === "reference" ? provenance?.referenceDishId ?? recipe.id : recipe.id,
     servingGrams: source === "reference" ? provenance?.servingGrams ?? null : recipe.finishedWeightGrams && recipe.servings ? Math.round(recipe.finishedWeightGrams / recipe.servings) : null,
     perServing: { kcal: perServing.kcal, protein: perServing.protein, netCarbs: perServing.netCarbs, fat: perServing.fat },
-    haystack: normalizeSearch([...Object.values(titles), ...names].join(" ")),
-    lowCarbFriendly: tags.includes("low-carb-friendly")
+    haystack,
+    lowCarbFriendly: tags.includes("low-carb-friendly"),
+    ...classifyDish(normalizeSearch(Object.values(titles).join(" ")), haystack, tags)
   };
 }
 

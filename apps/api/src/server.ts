@@ -69,6 +69,7 @@ import { startUsageFlusher, usageMiddleware } from "./admin/usage-counters.js";
 import { getSettings, loadSettings } from "./admin/runtime-settings.js";
 import { adminEmailList, emailVerificationRouter, isAdminUser, sendVerification } from "./admin/email-verification.js";
 import { forbidAdminAccountWrites } from "./admin/admin-only-account.js";
+import { keepAwakeUrls, startKeepAwake } from "./keep-awake.js";
 import { adminRouter } from "./admin/admin-router.js";
 import { REFERENCE_USERNAME } from "./reference-dishes/seed.js";
 import { platesRouter } from "./meal-input/plates.js";
@@ -661,9 +662,10 @@ app.get("/meals/dinner-suggestions", requireAuth, async (req, res, next) => {
       avoid: [...(profile?.avoidedFoods ?? []), ...(profile?.allergies ?? [])],
       eatenRecipeIds: new Set(day.meals.flatMap((meal: any) => meal.items.map((item: any) => item.recipeId).filter(Boolean))),
       eatenTitles: new Set(day.meals.flatMap((meal: any) => [meal.title, ...meal.items.map((item: any) => item.displayName)]).filter(Boolean).map((title: string) => normalizeSearch(title))),
-      lang
+      lang,
+      todayMeals: day.meals.map((meal: any) => ({ id: meal.id, title: meal.title, mealType: meal.mealType ?? null, mealTypeLabel: meal.mealTypeLabel ?? null, totals: meal.totals }))
     });
-    logger.info({ status: result.status, count: result.suggestions.length, candidates: candidates.length }, "dinner_suggestions");
+    logger.info({ status: result.status, count: result.suggestions.length, leftovers: result.leftovers.length, candidates: candidates.length }, "dinner_suggestions");
     res.json(result);
   } catch (error) {
     next(error);
@@ -728,4 +730,5 @@ app.use((error: any, _req: express.Request, res: express.Response, _next: expres
 // failed read keeps the defaults rather than blocking the start.
 loadSettings(prisma).catch((error) => logger.warn({ err: error?.message }, "admin settings not loaded, using defaults"));
 startUsageFlusher(prisma);
+if (env.NODE_ENV === "production") startKeepAwake(keepAwakeUrls(env.KEEP_AWAKE_URLS));
 app.listen(env.PORT, () => logger.info({ port: env.PORT }, "Keto Mentor API listening"));

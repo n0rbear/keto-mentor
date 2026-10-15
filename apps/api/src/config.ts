@@ -49,7 +49,11 @@ const envSchema = z.object({
   WEB_APP_URL: z.string().url().max(300).optional(),
   // Admin screen (2026-10-15): comma-separated addresses; the role needs the
   // address to be confirmed by e-mail. Default: the owner's admin address.
-  ADMIN_EMAILS: z.string().max(500).optional()
+  ADMIN_EMAILS: z.string().max(500).optional(),
+  // Sites the always-on API keeps awake (owner request 2026-10-15): a Render
+  // free service sleeps after 15 minutes without requests. Comma-separated
+  // https URLs; "off" disables. Default: norbapp.com.
+  KEEP_AWAKE_URLS: z.string().max(1000).optional()
 });
 
 // Dashboards like Render can leave an optional var present but blank (e.g. a key

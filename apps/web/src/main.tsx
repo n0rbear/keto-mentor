@@ -133,7 +133,26 @@ export function App() {
   const adminAccount = !!user?.isAdmin;
   // Public runtime settings: registration open? announcement for everyone?
   const [appConfig, setAppConfig] = useState<{ registrationOpen: boolean; announcement: { hu: string; de: string; en: string } | null } | null>(null);
-  useEffect(() => { api<{ registrationOpen: boolean; announcement: { hu: string; de: string; en: string } | null }>("/config").then(setAppConfig).catch(() => undefined); }, []);
+  // Re-read every 2 minutes and whenever the app comes back to the screen, so
+  // an announcement saved while someone has the app open still reaches them
+  // (ticket 2c2fc1, 2026-10-15).
+  useEffect(() => {
+    const load = () => { api<{ registrationOpen: boolean; announcement: { hu: string; de: string; en: string } | null }>("/config").then(setAppConfig).catch(() => undefined); };
+    load();
+    const timer = window.setInterval(load, 2 * 60 * 1000);
+    const onVisible = () => { if (document.visibilityState === "visible") load(); };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+    return () => { window.clearInterval(timer); document.removeEventListener("visibilitychange", onVisible); window.removeEventListener("focus", onVisible); };
+  }, []);
+  const announcementText = appConfig?.announcement ? (appConfig.announcement[lang] || appConfig.announcement.hu) : "";
+  // Each new announcement also opens once as a popup; "OK" remembers it in this browser.
+  const [seenAnnouncement, setSeenAnnouncement] = useState(() => { try { return localStorage.getItem("km_seen_announcement") ?? ""; } catch { return ""; } });
+  const announcementKey = appConfig?.announcement ? JSON.stringify(appConfig.announcement) : "";
+  function dismissAnnouncement() {
+    setSeenAnnouncement(announcementKey);
+    try { localStorage.setItem("km_seen_announcement", announcementKey); } catch { /* storage unavailable */ }
+  }
   // E-mail confirmation link from the e-mail (#verify=<token>).
   const [verifyNotice, setVerifyNotice] = useState<{ ok: boolean; text: string } | null>(null);
   useEffect(() => {
@@ -741,8 +760,18 @@ export function App() {
       <UpdateBanner lang={lang}/>
       <InstallPrompt lang={lang}/>
 
-      {appConfig?.announcement && (appConfig.announcement[lang] || appConfig.announcement.hu) && (
-        <div className="card announcement-band" role="status"><Megaphone size={18} aria-hidden="true"/><span>{appConfig.announcement[lang] || appConfig.announcement.hu}</span></div>
+      {announcementText && !adminAccount && announcementKey !== seenAnnouncement && createPortal(
+        <div className="modal-backdrop announcement-modal" role="presentation">
+          <div className="card modal-panel" role="dialog" aria-modal="true" aria-labelledby="announcement-title">
+            <h2 id="announcement-title" className="section-heading"><Megaphone size={20} aria-hidden="true"/>{lang === "hu" ? "Üzenet" : lang === "de" ? "Mitteilung" : "Message"}</h2>
+            <p>{announcementText}</p>
+            <button type="button" className="btn primary" onClick={dismissAnnouncement} autoFocus>OK</button>
+          </div>
+        </div>,
+        document.body
+      )}
+      {announcementText && (
+        <div className="card announcement-band" role="status"><Megaphone size={18} aria-hidden="true"/><span>{announcementText}</span></div>
       )}
       {verifyNotice && <div className={`card announcement-band ${verifyNotice.ok ? "" : "is-error"}`} role="status"><Mail size={18} aria-hidden="true"/><span>{verifyNotice.text}</span></div>}
       {user && !adminAccount && profile?.onboardingDone && user.email === null && (

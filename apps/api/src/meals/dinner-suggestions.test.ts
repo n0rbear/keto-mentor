@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { hasPremiumFeature, rankDinnerSuggestions, type DinnerCandidate } from "./dinner-suggestions.js";
+import { classifyDish, hasPremiumFeature, rankDinnerSuggestions, type DinnerCandidate } from "./dinner-suggestions.js";
 import { normalizeSearch } from "../catalog/normalize.js";
 
 const dish = (id: string, m: Partial<DinnerCandidate["perServing"]>, extra: Partial<DinnerCandidate> = {}): DinnerCandidate => ({
   recipeId: id, source: "reference", titles: { hu: id, de: id, en: id }, dishId: id, servingGrams: 300,
-  perServing: { kcal: 500, protein: 30, netCarbs: 5, fat: 35, ...m }, haystack: normalizeSearch(id), lowCarbFriendly: false, ...extra
+  perServing: { kcal: 500, protein: 30, netCarbs: 5, fat: 35, ...m }, haystack: normalizeSearch(id), lowCarbFriendly: false, style: `style-${id}`, protein: `protein-${id}`, ...extra
 });
 const remaining = { kcal: 700, protein: 40, netCarbs: 10, fat: 50 };
-const base = { remaining, avoid: [], eatenRecipeIds: new Set<string>(), eatenTitles: new Set<string>(), lang: "hu" as const };
+const base = { remaining, avoid: [], eatenRecipeIds: new Set<string>(), eatenTitles: new Set<string>(), lang: "hu" as const, random: () => 0 };
 
 describe("vacsoraajánló ranking", () => {
   it("keeps only dishes that fit the remaining net carbs and calories at one serving", () => {
@@ -37,6 +37,34 @@ describe("vacsoraajánló ranking", () => {
       candidates: [dish("a", {}), dish("Pörkölt", {}), dish("v1", {}, { dishId: "rantott" }), dish("v2", { protein: 10 }, { dishId: "rantott" })]
     });
     expect(result.suggestions.map((s) => s.recipeId)).toEqual(["v1"]);
+  });
+
+  it("is varied: one roast at most while other styles fit, and a reshuffle on recalculation", () => {
+    const roasts = ["sült csülök", "sült tarja", "sült kacsa", "sült marha"].map((id) => dish(id, { protein: 40 }, { style: "roast", protein: id }));
+    const others = [dish("halászlé", { protein: 25 }, { style: "soup", protein: "fish" }), dish("csirkepaprikás", { protein: 30 }, { style: "stew", protein: "poultry" }), dish("tojásos saláta", { protein: 20 }, { style: "salad", protein: "eggs" })];
+    const result = rankDinnerSuggestions({ ...base, limit: 4, candidates: [...roasts, ...others] });
+    expect(result.suggestions.filter((s) => s.title.startsWith("sült"))).toHaveLength(1);
+    expect(result.suggestions).toHaveLength(4);
+    const many = Array.from({ length: 12 }, (_, i) => dish(`d${i}`, {}));
+    let n = 0;
+    const seq = () => ((n = (n * 9301 + 49297) % 233280) / 233280);
+    const first = rankDinnerSuggestions({ ...base, random: seq, limit: 3, candidates: many }).suggestions.map((s) => s.recipeId);
+    const second = rankDinnerSuggestions({ ...base, random: seq, limit: 3, candidates: many }).suggestions.map((s) => s.recipeId);
+    expect(first).not.toEqual(second);
+  });
+
+  it("classifies style and main protein from tags or words", () => {
+    expect(classifyDish(normalizeSearch("Rántott csirkemell"), "", ["fried"])).toEqual({ style: "fried", protein: "poultry" });
+    expect(classifyDish(normalizeSearch("Zöldborsófőzelék"), normalizeSearch("zöldborsó vaj fejes saláta"), [])).toEqual({ style: "fozelek", protein: "plant" });
+    expect(classifyDish(normalizeSearch("Babgulyás füstölt sertéscsülökkel"), normalizeSearch("csirke alaplé"), [])).toEqual({ style: "stew", protein: "pork" });
+  });
+
+  it("offers an earlier meal of the day that fits again as a leftover extra", () => {
+    const meal = (id: string, mealType: string, m: Partial<DinnerCandidate["perServing"]>) => ({ id, title: id, mealType, mealTypeLabel: null, totals: { kcal: 450, protein: 30, netCarbs: 4, fat: 33, ...m } });
+    const result = rankDinnerSuggestions({ ...base, candidates: [], todayMeals: [meal("lunch-ok", "lunch", {}), meal("lunch-carby", "lunch", { netCarbs: 15 }), meal("dinner-earlier", "dinner", {}), meal("tiny", "snack", { kcal: 80 })] });
+    expect(result.status).toBe("ok");
+    expect(result.leftovers.map((l) => l.mealId)).toEqual(["lunch-ok"]);
+    expect(result.leftovers[0].after).toEqual({ kcal: 250, protein: 10, netCarbs: 6, fat: 17 });
   });
 
   it("says so when the carb or calorie budget is already used", () => {
