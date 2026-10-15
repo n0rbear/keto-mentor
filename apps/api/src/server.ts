@@ -70,6 +70,7 @@ import { getSettings, loadSettings } from "./admin/runtime-settings.js";
 import { adminEmailList, emailVerificationRouter, isAdminUser, sendVerification } from "./admin/email-verification.js";
 import { forbidAdminAccountWrites } from "./admin/admin-only-account.js";
 import { keepAwakeUrls, startKeepAwake } from "./keep-awake.js";
+import { mealPlanRouter } from "./meals/meal-plan-router.js";
 import { adminRouter } from "./admin/admin-router.js";
 import { REFERENCE_USERNAME } from "./reference-dishes/seed.js";
 import { platesRouter } from "./meal-input/plates.js";
@@ -671,6 +672,9 @@ app.get("/meals/dinner-suggestions", requireAuth, async (req, res, next) => {
     next(error);
   }
 });
+
+// Heti étrendtervező (premium, in beta for everyone until payment exists).
+app.use(mealPlanRouter({ prisma, requireAuth, adminOnly, log: (obj, msg) => logger.info(obj, msg) }));
 
 // Single-meal detail, backing the web edit UI (the dashboard list uses the
 // slim ?view=summary shape and intentionally has no per-item data).

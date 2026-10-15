@@ -16,6 +16,7 @@ import { EmailPrompt, VerifyEmailBand } from "./EmailPrompt";
 import { AdminPage } from "./AdminPage";
 import { DinnerSuggestions } from "./DinnerSuggestions";
 import { PremiumOverview } from "./PremiumOverview";
+import { MealPlanner } from "./MealPlanner";
 import { MealTypePicker, mealTypeFields, mealTypeText, rememberCustomMealType, suggestedChoice, type MealChoice } from "./MealTypePicker";
 import { LegalFooter, LegalPageView, legalPageFromHash, type LegalPage } from "./LegalPages";
 import { createPortal } from "react-dom";
@@ -937,6 +938,9 @@ export function App() {
       )}
       {user && !adminAccount && profile?.onboardingDone && (
         <section id="dinner"><DinnerSuggestions lang={lang} state={state} date={selectedDate} onLogged={handleMealLogged}/></section>
+      )}
+      {user && !adminAccount && profile?.onboardingDone && (
+        <section id="plan"><MealPlanner lang={lang} state={state} today={todayLocalDate()} onLogged={handleMealLogged}/></section>
       )}
       {user && !adminAccount && profile?.onboardingDone && (
         <section id="recipes">
