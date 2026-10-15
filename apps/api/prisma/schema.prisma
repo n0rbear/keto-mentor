@@ -299,6 +299,11 @@ model Meal {
   id        String     @id @default(cuid())
   userId    String
   title     String
+  /// breakfast | morning_snack | lunch | afternoon_snack | dinner | snack |
+  /// custom (owner decision 2026-10-15); null on meals logged before.
+  mealType      String?
+  /// The user's own meal name when mealType is "custom".
+  mealTypeLabel String?
   eatenAt   DateTime   @default(now())
   createdAt DateTime   @default(now())
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)

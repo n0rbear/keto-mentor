@@ -1,3 +1,4 @@
+import type { MealChoice } from "./MealTypePicker";
 import { useEffect, useState } from "react";
 import { BookOpen, Plus, Users } from "lucide-react";
 import { api, type ApiState } from "./api";
@@ -14,7 +15,7 @@ type RecipeSummary = {
 
 type View = { kind: "library" } | { kind: "editor"; editing: RecipeDetailData | null } | { kind: "detail"; recipeId: string };
 
-export function RecipeBuilder({ lang, state, currentUserId, onMealAdded }: { lang: Lang; state: ApiState; currentUserId: string; onMealAdded: () => Promise<void> }) {
+export function RecipeBuilder({ lang, state, currentUserId, onMealAdded, mealChoice, onMealChoiceChange }: { lang: Lang; state: ApiState; currentUserId: string; onMealAdded: () => Promise<void>; mealChoice?: MealChoice; onMealChoiceChange?: (next: MealChoice) => void }) {
   const t = dict[lang];
   const [tab, setTab] = useState<"mine" | "public">("mine");
   const [recipes, setRecipes] = useState<RecipeSummary[]>([]);
@@ -58,6 +59,8 @@ export function RecipeBuilder({ lang, state, currentUserId, onMealAdded }: { lan
         onEdit={startEdit}
         onDeleted={backToLibrary}
         onMealAdded={onMealAdded}
+        mealChoice={mealChoice}
+        onMealChoiceChange={onMealChoiceChange}
       />
     ) : (
       <>

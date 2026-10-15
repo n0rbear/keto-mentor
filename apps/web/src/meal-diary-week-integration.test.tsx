@@ -68,7 +68,7 @@ describe("full-App: historical date navigation drives the week overview, and the
 
     render(<App/>);
 
-    await waitFor(() => expect(screen.getByText("Breakfast")).toBeTruthy());
+    await waitFor(() => expect(screen.getByText("Breakfast", { selector: "strong" })).toBeTruthy());
     // Initial week overview shows the current week's zeroed days.
     expect(screen.getAllByRole("listitem")).toHaveLength(7);
 
@@ -91,7 +91,7 @@ describe("full-App: historical date navigation drives the week overview, and the
     stubFetch({ [todayDate]: [todayMeal] });
     render(<App/>);
 
-    await waitFor(() => expect(screen.getByText("Breakfast")).toBeTruthy());
+    await waitFor(() => expect(screen.getByText("Breakfast", { selector: "strong" })).toBeTruthy());
     const dateInput = screen.getByLabelText("Select date") as HTMLInputElement;
     const initialValue = dateInput.value;
 
@@ -105,7 +105,7 @@ describe("full-App: historical date navigation drives the week overview, and the
     stubFetch({ [todayDate]: [todayMeal] });
     render(<App/>);
 
-    await waitFor(() => expect(screen.getByText("Breakfast")).toBeTruthy());
+    await waitFor(() => expect(screen.getByText("Breakfast", { selector: "strong" })).toBeTruthy());
     expect((screen.getByLabelText("Next week") as HTMLButtonElement).disabled).toBe(true);
   });
 });

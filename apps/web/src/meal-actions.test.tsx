@@ -121,7 +121,7 @@ describe("DeleteMealDialog", () => {
 describe("RepeatMealDialog", () => {
   it.each(["hu", "de", "en"] as const)("shows the meal title and a localized repeat confirmation: %s", (lang) => {
     render(<RepeatMealDialog title="Breakfast" lang={lang} onCancel={vi.fn()} onConfirm={vi.fn()}/>);
-    expect(screen.getByText("Breakfast")).toBeTruthy();
+    expect(screen.getByText("Breakfast", { selector: "strong" })).toBeTruthy();
     expect(screen.getByText(dict[lang].diary.confirmRepeat)).toBeTruthy();
     expect(screen.getByText(dict[lang].diary.repeatMeal)).toBeTruthy();
   });

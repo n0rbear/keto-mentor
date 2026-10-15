@@ -581,3 +581,11 @@ body { padding-left: var(--safe-left); padding-right: var(--safe-right); }
 /* Wide admin tables scroll inside their box instead of widening the page grid. */
 .legal-page { grid-template-columns: minmax(0, 1fr); }
 .admin-stack, .admin-stack > section, .admin-table-wrap { min-width: 0; }
+.meal-type-picker { border: 0; padding: 0; margin: 0; display: grid; gap: .45rem; min-width: 0; }
+.meal-type-picker legend { font-size: .85rem; font-weight: 700; margin-bottom: .35rem; padding: 0; }
+.meal-type-options { display: flex; flex-wrap: wrap; gap: .4rem; }
+.chip { border: 1px solid rgb(var(--border) / .22); border-radius: 999px; padding: .4rem .75rem; font-size: .82rem; font-weight: 700; background: rgb(var(--surface) / .6); color: rgb(var(--text)); cursor: pointer; }
+.chip.active { border-color: rgb(var(--brand-bright) / .7); background: rgb(var(--brand) / .18); color: rgb(var(--brand-bright)); }
+.chip:focus-visible { outline: 2px solid rgb(var(--brand-bright)); outline-offset: 2px; }
+.meal-type-custom { display: grid; gap: .25rem; font-size: .82rem; }
+.meal-type-tag { display: inline-block; margin-right: .4rem; padding: .05rem .45rem; border-radius: 999px; font-size: .7rem; font-weight: 800; background: rgb(var(--brand) / .14); color: rgb(var(--brand-bright)); }

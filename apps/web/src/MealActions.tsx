@@ -1,3 +1,4 @@
+import { MealTypePicker, mealTypeFields, rememberCustomMealType, suggestedChoice, type MealChoice } from "./MealTypePicker";
 import { useState } from "react";
 import { Trash2, X } from "lucide-react";
 import { api, ApiError, type ApiState } from "./api";
@@ -11,7 +12,7 @@ import { type Totals } from "./main";
 // falls back to the food's raw canonical name — not the viewer's language.
 // `food`, when present, lets the UI pick the properly localized name instead.
 export type MealItemDetail = { id: string; quantityGrams: number; displayName: string | null; food?: NamedFood | null; totals: Totals };
-export type MealDetail = { id: string; title: string; eatenAt: string; totals: Totals; items: MealItemDetail[] };
+export type MealDetail = { id: string; title: string; mealType?: string | null; mealTypeLabel?: string | null; eatenAt: string; totals: Totals; items: MealItemDetail[] };
 
 function mealErrorText(error: unknown, labels: Record<string, string>) {
   if (!(error instanceof ApiError)) return labels.unknown;
@@ -29,6 +30,9 @@ export function MealEditDialog({ meal, lang, state, onCancel, onSaved }: {
 }) {
   const t = dict[lang];
   const [title, setTitle] = useState(meal.title);
+  // Meals logged before types existed start from the time-of-day suggestion.
+  const initialChoice: MealChoice = meal.mealType ? { type: meal.mealType as MealChoice["type"], label: meal.mealTypeLabel ?? "" } : suggestedChoice(new Date(meal.eatenAt));
+  const [mealChoice, setMealChoice] = useState<MealChoice>(initialChoice);
   const [eatenAtLocal, setEatenAtLocal] = useState(() => toDatetimeLocalValue(meal.eatenAt));
   const [items, setItems] = useState(() => meal.items.map((item) => ({ id: item.id, displayName: item.food ? pickDisplayName(item.food, lang) : (item.displayName ?? ""), grams: String(item.quantityGrams), removed: false })));
   const [saving, setSaving] = useState(false);
@@ -46,6 +50,10 @@ export function MealEditDialog({ meal, lang, state, onCancel, onSaved }: {
     try {
       const body: Record<string, unknown> = {};
       if (title.trim() !== meal.title) body.title = title.trim();
+      const typeFields = mealTypeFields(mealChoice);
+      if (!typeFields) throw new ApiError("meal_type_label_required");
+      // Sent only when the user changed it (a legacy meal's suggestion alone is not a change).
+      if (mealChoice.type !== initialChoice.type || mealChoice.label.trim() !== initialChoice.label.trim()) Object.assign(body, typeFields);
       const eatenAtIso = new Date(eatenAtLocal).toISOString();
       if (eatenAtIso !== new Date(meal.eatenAt).toISOString()) body.eatenAt = eatenAtIso;
       const corrections = items.filter((item) => !item.removed).filter((item) => Number(item.grams) !== meal.items.find((original) => original.id === item.id)?.quantityGrams);
@@ -71,6 +79,7 @@ export function MealEditDialog({ meal, lang, state, onCancel, onSaved }: {
           <h3>{t.diary.editMeal}</h3>
           <button type="button" className="icon-button" aria-label={t.diary.cancel} onClick={onCancel}><X size={18}/></button>
         </div>
+        <MealTypePicker lang={lang} value={mealChoice} onChange={setMealChoice} idPrefix="edit-meal-type"/>
         <label className="modal-field">{t.mealName}<input className="field" value={title} onChange={(event) => setTitle(event.target.value)} maxLength={100}/></label>
         <label className="modal-field">{t.diary.editTime}<input type="datetime-local" className="field" value={eatenAtLocal} max={toDatetimeLocalValue(new Date().toISOString())} onChange={(event) => setEatenAtLocal(event.target.value)}/></label>
         <div className="edit-items">
@@ -130,17 +139,22 @@ export function DeleteMealDialog({ lang, onCancel, onConfirm }: { lang: Lang; on
   );
 }
 
-export function RepeatMealDialog({ title, lang, onCancel, onConfirm }: { title: string; lang: Lang; onCancel: () => void; onConfirm: () => Promise<void> | void }) {
+export function RepeatMealDialog({ title, lang, onCancel, onConfirm }: { title: string; lang: Lang; onCancel: () => void; onConfirm: (type: { mealType: string; mealTypeLabel?: string }) => Promise<void> | void }) {
   const t = dict[lang];
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // A repeat is logged now, so the time of day suggests which meal it is.
+  const [mealChoice, setMealChoice] = useState<MealChoice>(() => suggestedChoice());
 
   async function confirm() {
     if (pending) return;
     setPending(true);
     setError(null);
     try {
-      await onConfirm();
+      const typeFields = mealTypeFields(mealChoice);
+      if (!typeFields) throw new ApiError("meal_type_label_required");
+      if (typeFields.mealTypeLabel) rememberCustomMealType(typeFields.mealTypeLabel);
+      await onConfirm(typeFields);
     } catch (caught) {
       setError(mealErrorText(caught, t.mealErrors));
       setPending(false);
@@ -152,6 +166,7 @@ export function RepeatMealDialog({ title, lang, onCancel, onConfirm }: { title: 
       <div className="modal-panel card">
         <p><strong>{title}</strong></p>
         <p>{t.diary.confirmRepeat}</p>
+        <MealTypePicker lang={lang} value={mealChoice} onChange={setMealChoice} idPrefix="repeat-meal-type"/>
         {error && <div className="status error" role="alert">{error}</div>}
         <div className="modal-actions">
           <button type="button" className="btn secondary" onClick={onCancel} disabled={pending}>{t.diary.cancel}</button>

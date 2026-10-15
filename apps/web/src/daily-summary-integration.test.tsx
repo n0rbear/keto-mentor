@@ -34,7 +34,7 @@ describe("daily summary: meal count and over-limit net carbs", () => {
   it("shows the meal count for the selected day", async () => {
     stubFetch();
     render(<App/>);
-    await waitFor(() => expect(screen.getByText("Breakfast")).toBeTruthy());
+    await waitFor(() => expect(screen.getByText("Breakfast", { selector: "strong" })).toBeTruthy());
     const macroGrid = screen.getByLabelText("Daily macros");
     expect(within(macroGrid).getByText("2")).toBeTruthy(); // meals.length
   });
@@ -42,7 +42,7 @@ describe("daily summary: meal count and over-limit net carbs", () => {
   it("visually distinguishes net carbs once it exceeds the daily goal, uncapped past 100%", async () => {
     stubFetch();
     render(<App/>);
-    await waitFor(() => expect(screen.getByText("Breakfast")).toBeTruthy());
+    await waitFor(() => expect(screen.getByText("Breakfast", { selector: "strong" })).toBeTruthy());
     const netCarbsTrack = screen.getByRole("progressbar", { name: "net carbs" });
     const tile = netCarbsTrack.closest(".metric-tile");
     expect(tile?.className).toContain("is-over-limit");
@@ -53,7 +53,7 @@ describe("daily summary: meal count and over-limit net carbs", () => {
   it("keeps a within-goal macro capped at 100% and without the over-limit class", async () => {
     stubFetch();
     render(<App/>);
-    await waitFor(() => expect(screen.getByText("Breakfast")).toBeTruthy());
+    await waitFor(() => expect(screen.getByText("Breakfast", { selector: "strong" })).toBeTruthy());
     const kcalTrack = screen.getByRole("progressbar", { name: "kcal" });
     const tile = kcalTrack.closest(".metric-tile");
     expect(tile?.className).not.toContain("is-over-limit");
@@ -66,7 +66,7 @@ describe("daily summary: meal count and over-limit net carbs", () => {
   it("orders net carbs as the first macro tile, ahead of kcal/protein/fat/fiber/meal count", async () => {
     stubFetch();
     render(<App/>);
-    await waitFor(() => expect(screen.getByText("Breakfast")).toBeTruthy());
+    await waitFor(() => expect(screen.getByText("Breakfast", { selector: "strong" })).toBeTruthy());
     const macroGrid = screen.getByLabelText("Daily macros");
     const labels = within(macroGrid).getAllByText(/^(net carbs|kcal|protein|fat|fiber)$/, { selector: ".metric-label" }).map((el) => el.textContent);
     expect(labels[0]).toBe("net carbs");

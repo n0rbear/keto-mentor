@@ -40,7 +40,8 @@ describe("repeating a meal from a historical day", () => {
       }
 
       if (url.pathname === "/meals/meal-past/repeat" && method === "POST") {
-        expect(JSON.parse(String(init?.body ?? "{}"))).toEqual({});
+        // The only thing a repeat sends is which meal it is now (2026-10-15).
+        expect(Object.keys(JSON.parse(String(init?.body ?? "{}")))).toEqual(["mealType"]);
         repeatCalled = true;
         todayMealsNow = [todayMeal, repeatedMeal];
         return new Response(JSON.stringify({ meal: { ...repeatedMeal, items: [] } }), { status: 201 });
@@ -51,11 +52,11 @@ describe("repeating a meal from a historical day", () => {
 
     render(<App/>);
 
-    await waitFor(() => expect(screen.getByText("Breakfast")).toBeTruthy());
+    await waitFor(() => expect(screen.getByText("Breakfast", { selector: "strong" })).toBeTruthy());
 
     fireEvent.change(screen.getByLabelText("Select date"), { target: { value: "2026-01-01" } });
     await waitFor(() => expect(screen.getByText("Old Lunch")).toBeTruthy());
-    expect(screen.queryByText("Breakfast")).toBeNull(); // confirms we're genuinely on the historical day now
+    expect(screen.queryByText("Breakfast", { selector: "strong" })).toBeNull(); // confirms we're genuinely on the historical day now
 
     fireEvent.click(screen.getByLabelText("Repeat"));
     await waitFor(() => expect(screen.getByText("Log this meal again now?")).toBeTruthy());
@@ -67,7 +68,7 @@ describe("repeating a meal from a historical day", () => {
 
     // Today's list must reflect the fresh server state (the repeated meal now
     // present alongside the original), never an optimistic client-side guess.
-    await waitFor(() => expect(screen.getByText("Breakfast")).toBeTruthy());
+    await waitFor(() => expect(screen.getByText("Breakfast", { selector: "strong" })).toBeTruthy());
     await waitFor(() => expect(screen.getAllByText("Old Lunch").length).toBeGreaterThan(0));
 
     const fetchesAfterReturn = dateFetches.slice(dateFetches.lastIndexOf("2026-01-01") + 1);

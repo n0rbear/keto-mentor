@@ -95,11 +95,12 @@ export async function editMeal(prisma: PrismaClient, userId: string, mealId: str
   if (meal.items.every((item) => removeSet.has(item.id))) throw mealItemsEmptyError();
 
   await prisma.$transaction(async (tx) => {
-    if (input.title !== undefined || input.eatenAt !== undefined) {
+    if (input.title !== undefined || input.eatenAt !== undefined || input.mealType !== undefined) {
       const updated = await tx.meal.updateMany({
         where: { id: mealId, userId },
         data: {
           ...(input.title !== undefined ? { title: input.title } : {}),
+          ...(input.mealType !== undefined ? { mealType: input.mealType, mealTypeLabel: input.mealType === "custom" ? input.mealTypeLabel : null } : {}),
           ...(input.eatenAt !== undefined ? { eatenAt: new Date(input.eatenAt) } : {})
         }
       });
