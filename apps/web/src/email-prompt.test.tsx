@@ -22,7 +22,7 @@ describe("EmailPrompt for accounts without an e-mail (2026-10-15)", () => {
   });
 
   it("shows a wrong password and can be postponed for the session", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ error: "invalid_credentials" }), { status: 401 })));
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ error: "invalid_credentials" }), { status: 403 })));
     const state = { token: null, setToken: vi.fn() };
     const { unmount } = render(<EmailPrompt lang="hu" state={state} onSaved={vi.fn()}/>);
     fireEvent.change(screen.getByLabelText("E-mail cím"), { target: { value: "a@b.hu" } });

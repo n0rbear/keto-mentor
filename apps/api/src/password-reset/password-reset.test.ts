@@ -116,11 +116,19 @@ describe("password reset by e-mail", () => {
   it("lets an existing account attach an e-mail with its current password", async () => {
     const t = await start();
     expect((await t.call("PUT", "/me/email", { email: "new@example.com", currentPassword: "old-password" })).status).toBe(401);
-    expect((await t.call("PUT", "/me/email", { email: "new@example.com", currentPassword: "wrong" }, true)).status).toBe(401);
+    expect((await t.call("PUT", "/me/email", { email: "new@example.com", currentPassword: "wrong" }, true)).status).toBe(403);
     expect((await t.call("PUT", "/me/email", { email: "taken@example.com", currentPassword: "old-password" }, true)).status).toBe(409);
     const ok = await t.call("PUT", "/me/email", { email: "New@Example.com", currentPassword: "old-password" }, true);
     expect(ok.status).toBe(200);
     expect(t.users[0].email).toBe("new@example.com");
+  });
+
+  it("changes the password only with the current one, and never to a short one", async () => {
+    const t = await start();
+    expect((await t.call("PUT", "/me/password", { currentPassword: "wrong", newPassword: "uj-jelszo-123" }, true)).status).toBe(403);
+    expect((await t.call("PUT", "/me/password", { currentPassword: "old-password", newPassword: "rovid" }, true)).status).toBe(400);
+    expect((await t.call("PUT", "/me/password", { currentPassword: "old-password", newPassword: "uj-jelszo-123" }, true)).status).toBe(200);
+    expect(t.users[0].passwordHash).toBe("hash:uj-jelszo-123");
   });
 });
 
