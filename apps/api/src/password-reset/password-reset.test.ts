@@ -3,7 +3,7 @@ import express from "express";
 import type { AddressInfo } from "node:net";
 import { hashResetToken, passwordResetRouter, RESET_COOLDOWN_MS, RESET_TOKEN_TTL_MS, resetEmail } from "./password-reset.js";
 import type { MailMessage } from "../mail/mailer.js";
-import { resendMailer } from "../mail/mailer.js";
+import { preferredWebOrigin, resendMailer } from "../mail/mailer.js";
 
 const servers: any[] = [];
 afterEach(() => { for (const s of servers.splice(0)) s.close(); });
@@ -144,5 +144,13 @@ describe("reset e-mail and Resend transport", () => {
     expect(JSON.parse(calls[0][1].body)).toMatchObject({ from: "Keto Mentor <noreply@norbapp.com>", to: ["x@y.z"] });
     const failing = (async () => new Response("{}", { status: 403 })) as typeof fetch;
     expect(await resendMailer("re_key", "a@b.c", failing).send({ to: "x@y.z", subject: "s", text: "t", html: "h" })).toEqual({ outcome: "failed", status: 403 });
+  });
+});
+
+describe("e-mail link origin", () => {
+  it("prefers the app's own domain over the Render host", () => {
+    expect(preferredWebOrigin("https://keto-mentor-web.onrender.com, https://ketomentor.norbapp.com")).toBe("https://ketomentor.norbapp.com");
+    expect(preferredWebOrigin("https://keto-mentor-web.onrender.com")).toBe("https://keto-mentor-web.onrender.com");
+    expect(preferredWebOrigin("")).toBe("http://localhost:5173");
   });
 });

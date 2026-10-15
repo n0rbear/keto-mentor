@@ -24,3 +24,14 @@ export function resendMailer(apiKey: string | undefined, from: string, fetchImpl
     }
   };
 }
+
+/**
+ * Where e-mail links point when WEB_APP_URL is unset: the first allowed web
+ * origin on the app's own domain, not a *.onrender.com host. A link to a
+ * different domain than the sender's is a common spam signal (owner,
+ * 2026-10-15: every provider put the mails into spam).
+ */
+export function preferredWebOrigin(corsOrigin: string) {
+  const origins = corsOrigin.split(",").map((origin) => origin.trim()).filter(Boolean);
+  return origins.find((origin) => !/\.onrender\.com$/i.test(new URL(origin).host)) ?? origins[0] ?? "http://localhost:5173";
+}
