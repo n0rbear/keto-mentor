@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { BookOpen, CalendarDays, CalendarRange, Crown, Gem, Home, Lightbulb, Menu, Moon, UtensilsCrossed, X } from "lucide-react";
+import { BookOpen, CalendarDays, CalendarRange, LineChart, Crown, Gem, Home, Lightbulb, Menu, Moon, UtensilsCrossed, X } from "lucide-react";
 import type { Lang } from "./i18n";
 
 // Phone layout (owner request 2026-10-15: "ne legyen ennyire hosszan
@@ -8,17 +8,17 @@ import type { Lang } from "./i18n";
 // keeps everything on one page; the switch is pure CSS on <main
 // data-mobile-view>, so the DOM (and every flow) stays the same.
 
-export const MOBILE_VIEWS = ["today", "log", "week", "dinner", "plan", "recipes", "premium", "idea"] as const;
+export const MOBILE_VIEWS = ["today", "log", "week", "stats", "dinner", "plan", "recipes", "premium", "idea"] as const;
 export type MobileView = (typeof MOBILE_VIEWS)[number];
 
 export const MOBILE_VIEW_LABELS: Record<Lang, Record<MobileView, string>> = {
-  hu: { today: "Ma", log: "Rögzítés", week: "Heti áttekintés", dinner: "Vacsoraajánló", plan: "Heti étrendterv", recipes: "Receptek", premium: "Prémium – hamarosan", idea: "Ötletem van" },
-  de: { today: "Heute", log: "Erfassen", week: "Wochenübersicht", dinner: "Abendessen-Vorschlag", plan: "Wochenplan", recipes: "Rezepte", premium: "Premium – demnächst", idea: "Ich habe eine Idee" },
-  en: { today: "Today", log: "Log", week: "Week overview", dinner: "Dinner ideas", plan: "Weekly meal plan", recipes: "Recipes", premium: "Premium – coming soon", idea: "I have an idea" }
+  hu: { today: "Ma", log: "Rögzítés", week: "Heti áttekintés", stats: "Haladó statisztika", dinner: "Vacsoraajánló", plan: "Heti étrendterv", recipes: "Receptek", premium: "Prémium – hamarosan", idea: "Ötletem van" },
+  de: { today: "Heute", log: "Erfassen", week: "Wochenübersicht", stats: "Erweiterte Statistik", dinner: "Abendessen-Vorschlag", plan: "Wochenplan", recipes: "Rezepte", premium: "Premium – demnächst", idea: "Ich habe eine Idee" },
+  en: { today: "Today", log: "Log", week: "Week overview", stats: "Advanced stats", dinner: "Dinner ideas", plan: "Weekly meal plan", recipes: "Recipes", premium: "Premium – coming soon", idea: "I have an idea" }
 };
 const SHORT: Record<Lang, Partial<Record<MobileView, string>>> = { hu: { dinner: "Vacsora" }, de: { dinner: "Abendessen" }, en: { dinner: "Dinner" } };
-const ICONS: Record<MobileView, typeof Home> = { today: Home, log: UtensilsCrossed, week: CalendarDays, dinner: Moon, plan: CalendarRange, recipes: BookOpen, premium: Gem, idea: Lightbulb };
-const PREMIUM: ReadonlySet<MobileView> = new Set(["dinner", "plan"]);
+const ICONS: Record<MobileView, typeof Home> = { today: Home, log: UtensilsCrossed, week: CalendarDays, stats: LineChart, dinner: Moon, plan: CalendarRange, recipes: BookOpen, premium: Gem, idea: Lightbulb };
+const PREMIUM: ReadonlySet<MobileView> = new Set(["stats", "dinner", "plan"]);
 const BAR: MobileView[] = ["today", "log", "dinner", "recipes"];
 
 const menuCopy = { hu: { open: "Menü", close: "Menü bezárása", premium: "Prémium" }, de: { open: "Menü", close: "Menü schließen", premium: "Premium" }, en: { open: "Menu", close: "Close menu", premium: "Premium" } } as const;

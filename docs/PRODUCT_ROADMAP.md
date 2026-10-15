@@ -78,7 +78,7 @@ Focus on real daily usage, bug fixing and UX polish. Complete password reset/ema
   1. Vacsoraajánló (dinner recommender): shipped in beta.
   2. Weekly meal plan and shopping list: shipped in beta (2026-10-16).
   3. Larger AI allowance: shipped in beta (2026-10-16). Admin-set premium limits (default 60/hour, 200/day) for premium entitlements (plan premium or feature ai_plus), and for everyone while in beta.
-  4. Advanced stats and weight log.
+  4. Advanced stats and weight log: shipped in beta (2026-10-16).
   5. Export (PDF/CSV).
   6. Micronutrients.
   7. Flexible goals (per weekday, carb cycling).
