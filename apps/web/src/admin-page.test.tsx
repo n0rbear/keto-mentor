@@ -86,3 +86,24 @@ describe("announcement and e-mail confirmation in the app", () => {
     expect(window.location.hash).toBe("");
   });
 });
+
+describe("confirming the admin address from the link", () => {
+  it("shows the Admin button without a reload", async () => {
+    localStorage.setItem("km_token", "tok");
+    window.history.replaceState(null, "", "/#verify=abcdefghijklmnopqrstuvwxyz0123456789");
+    let confirmed = false;
+    const profile = { onboardingDone: true, plateSetup: "skipped", dailyKcal: 1800, dailyFat: 130, dailyProtein: 110, dailyNetCarbs: 25, dailyFiber: 25 };
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = new URL(String(input));
+      if (url.pathname === "/config") return json({ registrationOpen: true, announcement: null });
+      if (url.pathname === "/auth/verify-email") { confirmed = true; return json({ ok: true }); }
+      if (url.pathname === "/me") return json({ user: { id: "a", username: "norbadmin", email: "norbert@norbapp.com", emailVerified: confirmed, isAdmin: confirmed, locale: "hu", profile } });
+      if (url.pathname === "/meals/today") return json({ date: "2026-10-15", meals: [], totals: { kcal: 0, fat: 0, protein: 0, carbs: 0, fiber: 0, netCarbs: 0 } });
+      if (url.pathname === "/meals/week") return json({ weekStart: "2026-10-12", weekEnd: "2026-10-18", days: [], summary: { mealCount: 0, loggedDays: 0 } });
+      if (url.pathname === "/recipes") return json({ recipes: [] });
+      return json({});
+    }));
+    render(<App/>);
+    expect(await screen.findByRole("link", { name: "Admin" })).toBeTruthy();
+  });
+});

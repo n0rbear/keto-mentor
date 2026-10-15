@@ -151,7 +151,13 @@ export function App() {
     const pick = (navigator.language ?? "hu").slice(0, 2) as Lang;
     const texts = msg[pick in msg ? pick : "hu"];
     api("/auth/verify-email", { method: "POST", body: JSON.stringify({ token: match[1] }) })
-      .then(() => { setVerifyNotice({ ok: true, text: texts[0] }); setUser((current) => current ? { ...current, emailVerified: true } : current); })
+      .then(() => {
+        setVerifyNotice({ ok: true, text: texts[0] });
+        setUser((current) => current ? { ...current, emailVerified: true } : current);
+        // Re-read the account: a confirmed admin address turns on the Admin button at once.
+        const stored = localStorage.getItem("km_token");
+        if (stored) api<{ user: User }>("/me", {}, { token: stored, setToken }).then((me) => setUser(me.user)).catch(() => undefined);
+      })
       .catch(() => setVerifyNotice({ ok: false, text: texts[1] }));
   }, []);
   // Context for an in-app bug report (FeedbackReport): the last meal text the
