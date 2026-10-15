@@ -186,7 +186,7 @@ describe("e-mail confirmation", () => {
   it("mails a link that confirms the address once, and only for the address it was sent to", async () => {
     const t = startVerify();
     expect(await sendVerification(t.deps, "u1")).toBe("sent");
-    expect(t.sent[0]).toMatchObject({ to: "anna@example.com", subject: "Keto Mentor – E-Mail-Adresse bestätigen" });
+    expect(t.sent[0]).toMatchObject({ to: "anna@example.com", subject: "Keto Mentor by NorbApp – E-Mail-Adresse bestätigen" });
     expect(await sendVerification(t.deps, "u1")).toBe("cooldown");
     const token = /#verify=([A-Za-z0-9_-]+)/.exec(t.sent[0].text)![1];
     expect(JSON.stringify(t.tokens)).not.toContain(token);

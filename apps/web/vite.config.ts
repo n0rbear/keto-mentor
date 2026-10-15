@@ -12,7 +12,7 @@ export default defineConfig({
       registerType: "prompt",
       injectRegister: false,
       manifest: {
-        name: "Keto Mentor",
+        name: "Keto Mentor by NorbApp",
         short_name: "Keto Mentor",
         description: "Keto Mentor by NorbApp — guided keto goals, natural-language meal logging and a real food diary.",
         start_url: "/",

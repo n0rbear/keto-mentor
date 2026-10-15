@@ -73,7 +73,7 @@ describe("password reset by e-mail", () => {
     const t = await start();
     expect((await t.call("POST", "/auth/password-reset/request", { email: " Anna@Example.com " })).status).toBe(202);
     expect(t.sent).toHaveLength(1);
-    expect(t.sent[0]).toMatchObject({ to: "anna@example.com", subject: "Keto Mentor – neues Passwort festlegen" });
+    expect(t.sent[0]).toMatchObject({ to: "anna@example.com", subject: "Keto Mentor by NorbApp – neues Passwort festlegen" });
     const token = tokenFrom(t.sent[0]);
     expect(t.sent[0].text).toContain(`https://ketomentor.norbapp.com/#reset=${token}`);
     expect(t.tokens[0].tokenHash).toBe(hashResetToken(token));
@@ -131,7 +131,7 @@ describe("reset e-mail and Resend transport", () => {
       expect(mail.text).toContain("https://x/#reset=abc");
       expect(mail.html).toContain('href="https://x/#reset=abc"');
     }
-    expect(resetEmail("hu", "l").subject).toBe("Keto Mentor – új jelszó beállítása");
+    expect(resetEmail("hu", "l").subject).toBe("Keto Mentor by NorbApp – új jelszó beállítása");
   });
 
   it("is not_configured without a key and posts to Resend with one", async () => {

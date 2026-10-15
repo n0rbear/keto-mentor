@@ -71,7 +71,7 @@ function controllerLines(lang: Lang): string[] {
 function privacy(lang: Lang): { intro: string; sections: Section[] } {
   const c = controllerLines(lang).map((line) => [line]);
   if (lang === "de") return {
-    intro: "Diese Erklärung beschreibt, welche personenbezogenen Daten Keto Mentor verarbeitet, wozu und mit welchen Rechten. Keto Mentor ist ein Ernährungstagebuch zur Information; es stellt keine Diagnose und ersetzt keine ärztliche Beratung.",
+    intro: "Diese Erklärung beschreibt, welche personenbezogenen Daten Keto Mentor by NorbApp verarbeitet, wozu und mit welchen Rechten. Keto Mentor ist ein Ernährungstagebuch zur Information; es stellt keine Diagnose und ersetzt keine ärztliche Beratung.",
     sections: [
       { title: "1. Verantwortlicher", body: c },
       { title: "2. Welche Daten", body: [["Konto: Benutzername, E-Mail-Adresse, Passwort (nur als Argon2-Hash), Sprache."], ["Profil: Ziele und Makrowerte, Vorlieben, gemiedene Lebensmittel, Allergien, deine Teller."], ["Tagebuch: Mahlzeiten mit Mengen und Nährwerten, eigene Rezepte, Wochenplan."], ["Wenn du sie nutzt: Gewichtstagebuch (Datum und Gewicht), Ziele je Wochentag, Erinnerungseinstellungen (Uhrzeit und Zeitzone)."], ["Fehlermeldungen, die du sendest: dein Text, Ansicht, Sprache, App-Version und deine letzte Mahlzeiteingabe."], ["Technische Protokolle beim Hosting-Anbieter: IP-Adresse, Browser, Zeitpunkt und Pfad der Anfrage."]] },
@@ -83,7 +83,7 @@ function privacy(lang: Lang): { intro: string; sections: Section[] } {
     ]
   };
   if (lang === "en") return {
-    intro: "This notice explains which personal data Keto Mentor processes, why, and what your rights are. Keto Mentor is an informational food diary; it does not diagnose and does not replace medical advice.",
+    intro: "This notice explains which personal data Keto Mentor by NorbApp processes, why, and what your rights are. Keto Mentor is an informational food diary; it does not diagnose and does not replace medical advice.",
     sections: [
       { title: "1. Controller", body: c },
       { title: "2. What data", body: [["Account: username, e-mail address, password (only as an Argon2 hash), language."], ["Profile: goals and macro targets, preferences, avoided foods, allergies, your plates."], ["Diary: meals with amounts and nutrition, your own recipes, weekly meal plan."], ["If you use them: weight log (date and weight), per-weekday goals, reminder settings (time and time zone)."], ["Bug reports you send: your text, the current screen, language, app version and your last meal entry."], ["Technical logs at the hosting provider: IP address, browser, time and path of each request."]] },
@@ -95,7 +95,7 @@ function privacy(lang: Lang): { intro: string; sections: Section[] } {
     ]
   };
   return {
-    intro: "Ez a tájékoztató leírja, milyen személyes adatokat kezel a Keto Mentor, milyen célból, és milyen jogaid vannak. A Keto Mentor tájékoztató jellegű étkezésnapló; nem diagnosztizál, és nem helyettesíti az orvosi tanácsot.",
+    intro: "Ez a tájékoztató leírja, milyen személyes adatokat kezel a Keto Mentor by NorbApp, milyen célból, és milyen jogaid vannak. A Keto Mentor tájékoztató jellegű étkezésnapló; nem diagnosztizál, és nem helyettesíti az orvosi tanácsot.",
     sections: [
       { title: "1. Adatkezelő", body: c },
       { title: "2. Milyen adatokat kezelünk", body: [["Fiók: felhasználónév, e-mail cím, jelszó (csak Argon2-lenyomatként), nyelv."], ["Profil: célok és makróértékek, preferenciák, kerülendő ételek, allergiák, a tányérjaid."], ["Napló: étkezések mennyiséggel és tápértékkel, saját receptek, heti étrendterv."], ["Ha használod: testsúlynapló (dátum és testsúly), napokra bontott célok, emlékeztető-beállítások (időpont és időzóna)."], ["Az általad küldött hibajelentések: a szöveged, az aktuális képernyő, a nyelv, az app verziója és az utoljára beírt étkezésed."], ["Technikai napló a tárhelyszolgáltatónál: IP-cím, böngésző, a kérés ideje és útvonala."]] },

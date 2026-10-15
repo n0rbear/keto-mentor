@@ -91,7 +91,7 @@ export function AuthForm({ mode: initialMode, lang, state, onSuccess, registrati
   return (
     <form key={mode} onSubmit={submit} method="post" className="card auth-panel space-y-4">
       <div className="auth-intro">
-        <p className="panel-kicker">NorbApp · Keto Mentor</p>
+        <p className="panel-kicker">Keto Mentor by NorbApp</p>
         {mode === "forgot" || mode === "reset" ? (
           <>
             <h2>{mode === "forgot" ? t.forgotTitle : t.resetTitle}</h2>
