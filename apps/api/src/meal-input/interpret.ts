@@ -131,6 +131,10 @@ export type InterpretResult = {
   ambiguous?: boolean;
   preparationUnavailable?: boolean;
   items?: InterpretResult[];
+  // Owner report dc9bcf: the local unit weight (own serving or typical
+  // weight, never AI) of each offered candidate, by food id, so picking one
+  // keeps "1 db" / "3 szelet" instead of asking for grams.
+  candidateQuantities?: Record<string, QuantityResolution>;
   interpretationSource: "deterministic" | "ai_assisted";
   semantic?: {
     language: FoodUnderstanding["language"];
@@ -1067,6 +1071,11 @@ export async function interpretMealInput(
       item.canConfirm = item.quantity?.status === "resolved" && !item.quantity.requiresConfirmation;
     }));
     if (result.items) result.canConfirm = result.items.every((item) => item.canConfirm);
+  }
+  for (const item of result.items ?? [result]) {
+    if ((item.foodResolution !== "confirmation_required" && item.foodResolution !== "preview") || !item.candidates?.length) continue;
+    const known = item.candidates.flatMap((candidate) => { const quantity = resolveQuantityLocally(item.parsed, candidate); return quantity ? [[candidate.id, quantity] as const] : []; });
+    if (known.length) item.candidateQuantities = Object.fromEntries(known);
   }
   result.clarification = firstQuantityClarification(result);
   console.log(`timing_stage stage=TOTAL ms=${Math.round(performance.now() - requestStartedAt)}`);

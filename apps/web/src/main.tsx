@@ -46,6 +46,7 @@ type MealInterpretation = {
   confidence?: number;
   preparation?: string;
   items?: MealInterpretation[];
+  candidateQuantities?: Record<string, NonNullable<MealInterpretation["quantity"]>>;
   // FINAL FALLBACK: AI-ESTIMATED NUTRITION — present only when foodResolution
   // is "ai_estimate_pending" (see apps/api/src/meal-input/interpret.ts's own
   // InterpretResult.aiEstimate doc). `proof` is opaque here — only ever
@@ -310,7 +311,8 @@ export function App() {
       // Auto-fill the single-food form only for a single, confirmable interpretation.
       if (result.canConfirm && result.selectedFood && result.parsed.quantity && !result.items) {
         setSelectedFood(result.selectedFood);
-        setMealQuantity(String(result.parsed.quantity));
+        // A typical unit weight has no serving: the form gets its grams.
+        setMealQuantity(String(!result.quantity?.servingId && result.parsed.unit !== "g" && result.parsed.unit !== "kg" && result.quantity?.grams ? result.quantity.grams : result.parsed.quantity));
         setMealMeasure(result.quantity?.servingId ? `serving:${result.quantity.servingId}` : result.parsed.unit === "kg" ? "kg" : "g");
         setGramsOverride("");
       } else {
@@ -534,9 +536,15 @@ export function App() {
     // belongs to the previous candidate and must be reviewed again.
     const mass = item.parsed.quantity && (item.parsed.unit === "g" || item.parsed.unit === "kg")
       ? item.parsed.quantity * (item.parsed.unit === "kg" ? 1000 : 1) : undefined;
+    // The picked candidate's own local unit weight (serving or typical
+    // weight, owner report dc9bcf: "1 db főtt tojás", "3 szelet bacon") was
+    // computed by the server for that very food, so it is kept.
+    const known = mass ? undefined : item.candidateQuantities?.[candidate.id];
+    const keep = known?.status === "resolved" && !!known.grams && !known.requiresConfirmation ? known : undefined;
     item.quantity = mass ? { status: "resolved", grams: mass, estimated: false, requiresConfirmation: false }
-      : { status: "unresolved", estimated: false, requiresConfirmation: true, reason: "quantity_missing" };
-    item.canConfirm = !!mass;
+      : keep ?? { status: "unresolved", estimated: false, requiresConfirmation: true, reason: "quantity_missing" };
+    item.candidateQuantities = undefined;
+    item.canConfirm = !!mass || !!keep;
     next.canConfirm = rows.every((row) => row.canConfirm);
     const pendingIndex = rows.findIndex((row) => row.foodResolution === "resolved" && !row.canConfirm);
     next.clarification = pendingIndex < 0 ? undefined : { type: "grams_required", itemIndex: pendingIndex, allowCustomGrams: true };
@@ -548,8 +556,8 @@ export function App() {
     // translation) while Food's own field type doesn't express that.
     if (next.items) return;
     setSelectedFood(candidate as Food);
-    setMealQuantity(mass ? String(mass) : "");
-    setMealMeasure("g");
+    setMealQuantity(mass ? String(mass) : keep?.servingId ? String(item.parsed.quantity) : keep ? String(keep.grams) : "");
+    setMealMeasure(keep?.servingId ? `serving:${keep.servingId}` : "g");
     setGramsOverride("");
   }
 
@@ -566,6 +574,9 @@ export function App() {
       if (it.quantityConfirmation) items.push({ foodId: it.selectedFood.id, quantity: q.grams, unit: "g", quantityConfirmation: it.quantityConfirmation });
       else if (q.servingId) items.push({ foodId: it.selectedFood.id, quantity: it.parsed.quantity ?? 1, unit: "serving", servingId: q.servingId });
       else if (it.parsed.unit === "g" || it.parsed.unit === "kg") items.push({ foodId: it.selectedFood.id, quantity: it.parsed.quantity ?? 0, unit: it.parsed.unit });
+      // A typical unit weight ("3 szelet bacon" ≈ 30 g) has no serving to
+      // save; it is saved as estimated grams (owner report dc9bcf).
+      else if (q.estimated) items.push({ foodId: it.selectedFood.id, quantity: q.grams, unit: "g", quantityConfirmation: { method: "estimated", accepted: true, grams: q.grams } });
       else return;
     }
     if (!items.length) return;

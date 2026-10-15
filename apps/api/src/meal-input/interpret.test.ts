@@ -1812,3 +1812,46 @@ describe("a stated portion count on a catalog food with a portion serving", () =
     expect(result.clarification).toBeUndefined();
   });
 });
+
+// Owner report dc9bcf (production 2026-10-15, voice, hu): "Egy darab főtt
+// tojás, három szelet bacon, két szelet gouda sajt." Fixtures mirror the
+// production catalog rows these words reach: no boiled chicken egg record
+// (so the egg is offered for confirmation with preparationUnavailable), and
+// several bacon records without a slice serving (so bacon is ambiguous).
+// The server already knows 1 egg ≈ 50 g and 3 bacon slices ≈ 30 g, but the
+// user has to pick a candidate for both, and the picked candidate's own unit
+// weight was not part of the response, so the app asked for grams.
+describe("unit weights survive the candidate pick (owner report dc9bcf)", () => {
+  const prodLike: Food[] = [
+    baseFoods.find((food) => food.id === "catalog-egg")!,
+    baseFoods.find((food) => food.id === "catalog-gouda")!,
+    { id: "bls-E111100", name: "Hühnerei roh", names: { de: "Hühnerei roh", en: "chicken egg, raw", hu: "tyúktojás (nyers)" }, synonyms: { de: ["Hühnerei roh"], en: ["chicken egg, raw"], hu: ["tyúktojás", "tyúktojás (nyers)"] }, kcalPer100g: 137 },
+    { id: "usda-168277", name: "Pork, cured, bacon, unprepared", names: { en: "Pork, cured, bacon, unprepared", hu: "szalonna, pácolt, nyers" }, synonyms: { en: ["bacon"] }, kcalPer100g: 417 },
+    { id: "bls-W415000", name: "Schwein Frühstücksspeck, Rohpökelware, geräuchert", names: { de: "Frühstücksspeck", en: "bacon", hu: "bacon" }, synonyms: { de: ["Frühstücksspeck"], en: ["bacon"], hu: ["bacon"] }, kcalPer100g: 330 },
+    { id: "usda-167712", name: "Pork, cured, bacon, cooked, broiled, pan-fried or roasted, reduced sodium", names: { en: "Pork, cured, bacon, cooked, broiled, pan-fried or roasted, reduced sodium" }, synonyms: { en: ["bacon cooked"] }, kcalPer100g: 541 }
+  ];
+  const understanding: FoodUnderstanding = {
+    language: "hu", kind: "multiple_foods", confidence: 0.9, clarificationNeeded: false,
+    items: [
+      { originalText: "Egy darab főtt tojás", canonicalName: "tojás", quantity: 1, unit: "piece", preparation: "boiled", evidence: "explicit", confidence: 0.9 },
+      { originalText: "három szelet bacon", canonicalName: "bacon", quantity: 3, unit: "slice", evidence: "explicit", confidence: 0.9 },
+      { originalText: "két szelet gouda sajt", canonicalName: "gouda sajt", quantity: 2, unit: "slice", evidence: "explicit", confidence: 0.9 }
+    ]
+  };
+
+  it("each offered candidate carries its own local unit weight, so picking it needs no grams", async () => {
+    const r = await interpretMealInput(makePrisma(prodLike), "Egy darab főtt tojás, három szelet bacon, két szelet gouda sajt.", undefined, new MockFoodNlpProvider(understanding));
+    const [egg, bacon, gouda] = r.items!;
+    expect(egg).toMatchObject({ foodResolution: "confirmation_required", preparationUnavailable: true, quantity: { status: "resolved", grams: 50 } });
+    expect(egg.candidateQuantities?.["catalog-egg"]).toMatchObject({ status: "resolved", grams: 50, servingId: "egg" });
+    expect(egg.candidateQuantities?.["bls-E111100"]).toMatchObject({ status: "resolved", grams: 50, estimated: true, provenance: { method: "generic_unit_weight", key: "egg" } });
+    expect(bacon).toMatchObject({ foodResolution: "confirmation_required", ambiguous: true, quantity: { status: "resolved", grams: 30 } });
+    for (const id of ["usda-168277", "bls-W415000", "usda-167712"]) {
+      expect(bacon.candidateQuantities?.[id], id).toMatchObject({ status: "resolved", grams: 30, estimated: true, provenance: { method: "generic_unit_weight", key: "bacon" } });
+    }
+    // Control: gouda matches one record with its own slice serving and is
+    // resolved directly, so the user never has to pick it.
+    expect(gouda).toMatchObject({ foodResolution: "resolved", canConfirm: true, quantity: { status: "resolved", grams: 56.7, servingId: "gouda-slice" } });
+    expect(gouda.candidateQuantities).toBeUndefined();
+  });
+});
