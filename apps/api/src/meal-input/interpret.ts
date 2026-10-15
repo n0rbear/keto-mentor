@@ -569,7 +569,12 @@ async function interpretOne(
     // The strongest OTHER candidate, not merely the second in display order:
     // ranking penalties (a "dried"/"with ..." source name) can sort a tied
     // record below a weaker partial match.
-    const s1 = Math.max(...candidates.slice(1).map((candidate) => candidate.match?.score ?? 0));
+    // A packaged product (Open Food Facts) named like the generic word never
+    // ties with a reviewed catalog record ("2 pár virsli", ticket 5d5e3f):
+    // the generic record wins and the product stays in the list to switch to.
+    const reviewed = (candidate: { source?: string }) => candidate.source !== "open_food_facts";
+    const rivals = reviewed(candidates[0]) ? candidates.slice(1).filter(reviewed) : candidates.slice(1);
+    const s1 = rivals.length ? Math.max(...rivals.map((candidate) => candidate.match?.score ?? 0)) : 0;
     // A real generic ambiguity means top candidates are nearly tied (e.g. two
     // cheeses both at 95). A clear winner (e.g. egg 100 vs 95) must NOT be
     // flagged ambiguous just because a prepared form shares a base alias.

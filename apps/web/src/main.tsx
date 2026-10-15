@@ -647,11 +647,43 @@ export function App() {
     // catalog) — cast needed only because CandidateFood's `names` is
     // Partial<Record<Lang,string>> (a food need not have every locale's
     // translation) while Food's own field type doesn't express that.
-    if (next.items) return;
-    setSelectedFood(candidate as Food);
-    setMealQuantity(mass ? String(mass) : "");
-    setMealMeasure("g");
-    setGramsOverride("");
+    if (!next.items) {
+      setSelectedFood(candidate as Food);
+      setMealQuantity(mass ? String(mass) : "");
+      setMealMeasure("g");
+      setGramsOverride("");
+    }
+    // "2 pár virsli": a stated piece/slice/serving amount is converted for the
+    // newly chosen food on the server (its serving, the typical unit weight,
+    // or an AI estimate the user confirms) instead of asking for grams.
+    if (!mass && item.parsed.quantity && item.parsed.unit) void convertForCandidate(next, index, candidate as Food);
+  }
+
+  async function convertForCandidate(base: MealInterpretation, index: number, food: Food) {
+    const row = (base.items ?? [base])[index];
+    try {
+      const { quantity } = await api<{ quantity: NonNullable<MealInterpretation["quantity"]> }>("/meal-input/quantity", { method: "POST", body: JSON.stringify({ foodId: food.id, parsed: { quantity: row.parsed.quantity, unit: row.parsed.unit, size: row.parsed.size, foodQuery: row.parsed.foodQuery ?? "", preparation: row.parsed.preparation } }) }, state);
+      setInterpretation((current) => {
+        if (!current) return current;
+        const next = structuredClone(current);
+        const rows = next.items ?? [next];
+        const item = rows[index];
+        if (!item || item.selectedFood?.id !== food.id || item.quantity?.status === "resolved") return current;
+        item.quantity = quantity;
+        item.canConfirm = quantity.status === "resolved" && !quantity.requiresConfirmation;
+        next.canConfirm = rows.every((r) => r.canConfirm);
+        const pending = rows.findIndex((r) => r.foodResolution === "resolved" && !r.canConfirm);
+        if (pending < 0) next.clarification = undefined;
+        else {
+          const q = rows[pending].quantity;
+          next.clarification = q?.status === "resolved"
+            ? { type: "estimate_confirmation", itemIndex: pending, allowCustomGrams: true, suggestedGrams: q.grams, rangeGrams: q.rangeGrams, confidence: q.confidence, method: q.method === "ai_estimated" ? "ai_estimated" : "estimated" }
+            : { type: "grams_required", itemIndex: pending, allowCustomGrams: true };
+        }
+        if (!next.items && item.canConfirm && quantity.grams) { setMealQuantity(String(Math.round(quantity.grams))); setMealMeasure("g"); }
+        return next;
+      });
+    } catch { /* keep asking for grams */ }
   }
 
   async function confirmMultiMeal() {
