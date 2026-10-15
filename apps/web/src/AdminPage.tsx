@@ -11,12 +11,12 @@ type Overview = {
   users: { total: number; new7: number; new30: number; withEmail: number; verified: number; active1: number; active7: number; active30: number };
   meals: { total: number; last24h: number; last7d: number };
   recipes: { total: number; public: number };
-  feedback: { open: number; total: number };
+  feedback: { open: number; total: number; ideasOpen?: number; ideasTotal?: number };
   keto?: { loggedDays: number; adherentDays: number; percent: number | null; users: number; usersMostlyAdherent: number; perUser: Array<{ userId: string; username: string; days: number; adherentDays: number; percent: number; avgNetCarbs: number; goal: number }> };
   usageTotals: Record<string, { count: number; avgMs: number | null; promptTokens: number; completionTokens: number }>;
   perDay: Record<string, Record<string, number>>;
 };
-type Ticket = { id: string; message: string; status: string; adminNote: string | null; view: string | null; lang: string | null; build: string | null; lastInput: string | null; createdAt: string; user: { username: string; email: string | null } | null };
+type Ticket = { id: string; kind?: string; message: string; status: string; adminNote: string | null; view: string | null; lang: string | null; build: string | null; lastInput: string | null; createdAt: string; user: { username: string; email: string | null } | null };
 type AdminUser = { id: string; username: string; email: string | null; emailVerified: boolean; locale: string; createdAt: string; meals: number; recipes: number; lastMealAt: string | null; isAdmin: boolean };
 type Settings = { registrationOpen: boolean; announcement: { enabled: boolean; hu: string; de: string; en: string }; aiLimits: { perHour: number; perDay: number; perRecipe: number } };
 type Tab = "overview" | "feedback" | "users" | "settings";
@@ -50,6 +50,7 @@ function OverviewTab({ state }: { state: ApiState }) {
         <Kpi label="Étkezések" value={data.meals.total} sub={`24 óra: ${data.meals.last24h} · 7 nap: ${data.meals.last7d}`}/>
         <Kpi label="Receptek" value={data.recipes.total} sub={`ebből nyilvános: ${data.recipes.public}`}/>
         <Kpi label="Nyitott hibajegy" value={data.feedback.open} sub={`összesen: ${data.feedback.total}`}/>
+        <Kpi label="Nyitott ötlet" value={data.feedback.ideasOpen ?? 0} sub={`összesen: ${data.feedback.ideasTotal ?? 0}`}/>
         <Kpi label="E-mail cím" value={data.users.withEmail} sub={`megerősítve: ${data.users.verified}`}/>
       </div>
       {data.keto && (
@@ -95,11 +96,12 @@ function Kpi({ label, value, sub }: { label: string; value: number; sub: string 
 
 function FeedbackTab({ state }: { state: ApiState }) {
   const [status, setStatus] = useState<"open" | "done" | "all">("open");
+  const [kind, setKind] = useState<"all" | "bug" | "idea">("all");
   const [items, setItems] = useState<Ticket[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notes, setNotes] = useState<Record<string, string>>({});
-  const load = () => { setError(null); api<{ items: Ticket[] }>(`/admin/feedback?status=${status}`, {}, state).then((r) => setItems(r.items)).catch((e) => setError(errorText(e))); };
-  useEffect(load, [status]);
+  const load = () => { setError(null); api<{ items: Ticket[] }>(`/admin/feedback?status=${status}${kind === "all" ? "" : `&kind=${kind}`}`, {}, state).then((r) => setItems(r.items)).catch((e) => setError(errorText(e))); };
+  useEffect(load, [status, kind]);
   async function update(id: string, patch: { status?: string; adminNote?: string }) {
     try { await api(`/admin/feedback/${id}`, { method: "PATCH", body: JSON.stringify(patch) }, state); load(); } catch (e) { setError(errorText(e)); }
   }
@@ -108,10 +110,13 @@ function FeedbackTab({ state }: { state: ApiState }) {
       <div className="auth-mode-switch">
         {(["open", "done", "all"] as const).map((s) => <button key={s} type="button" className={`seg ${status === s ? "active" : ""}`} onClick={() => setStatus(s)}>{s === "open" ? "Nyitott" : s === "done" ? "Kész" : "Mind"}</button>)}
       </div>
+      <div className="auth-mode-switch" aria-label="Típus">
+        {(["all", "bug", "idea"] as const).map((k) => <button key={k} type="button" className={`seg ${kind === k ? "active" : ""}`} onClick={() => setKind(k)}>{k === "all" ? "Hibák és ötletek" : k === "bug" ? "Hibák" : "Ötletek"}</button>)}
+      </div>
       {error && <p className="status error" role="alert">{error}</p>}
       {!items ? <p role="status">Betöltés…</p> : items.length === 0 ? <p>Nincs ilyen hibajegy.</p> : items.map((t) => (
         <article key={t.id} className="admin-ticket">
-          <header><strong>#{t.id}</strong><span className="text-xs text-muted">{fmtDate(t.createdAt)} · {t.user ? `${t.user.username}${t.user.email ? ` (${t.user.email})` : ""}` : "törölt fiók"} · {t.view ?? "?"} · {t.lang ?? "?"}</span></header>
+          <header><strong>#{t.id}</strong><span className={`admin-badge ${t.kind === "idea" ? "is-idea" : ""}`}>{t.kind === "idea" ? "ötlet" : "hiba"}</span><span className="text-xs text-muted">{fmtDate(t.createdAt)} · {t.user ? `${t.user.username}${t.user.email ? ` (${t.user.email})` : ""}` : "törölt fiók"} · {t.view ?? "?"} · {t.lang ?? "?"}</span></header>
           <p>{t.message}</p>
           {t.lastInput && <p className="text-xs text-muted">Utolsó bevitel: „{t.lastInput}”</p>}
           {t.build && <p className="text-xs text-muted">Verzió: {t.build}</p>}

@@ -699,6 +699,9 @@ export function App() {
             <select aria-label={lang === "hu" ? "Nyelv" : lang === "de" ? "Sprache" : "Language"} className="field compact" value={lang} onChange={(e) => changeLang(e.target.value as Lang)}><option value="hu">HU</option><option value="de">DE</option><option value="en">EN</option></select>
 
             {user && (
+              <FeedbackReport kind="idea" lang={lang} state={state} getContext={() => ({ view: "header" })}/>
+            )}
+            {user && (
               <FeedbackReport lang={lang} state={state} getContext={() => ({
                 view: !profile ? "loading" : !profile.onboardingDone ? "onboarding" : myPlatesOpen ? "my_plates" : plateSetupPending(user) ? "plate_setup" : `dashboard${window.location.hash ? window.location.hash.slice(0, 20) : ""}`,
                 lastInput: lastInterpretRequest?.text,
@@ -896,6 +899,11 @@ export function App() {
       {user && profile?.onboardingDone && (
         <section id="recipes">
           <RecipeBuilder lang={lang} state={state} currentUserId={user.id} onMealAdded={handleMealLogged} mealChoice={mealChoice} onMealChoiceChange={setMealChoice}/>
+        </section>
+      )}
+      {user && profile?.onboardingDone && (
+        <section className="idea-section" aria-label={dict[lang].idea.cardTitle}>
+          <FeedbackReport kind="idea" variant="card" lang={lang} state={state} getContext={() => ({ view: "dashboard_card" })}/>
         </section>
       )}
       {user && profile?.onboardingDone && <MobileNav lang={lang}/>}

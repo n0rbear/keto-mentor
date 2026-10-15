@@ -466,7 +466,7 @@ app.post(
 app.use(platesRouter(prisma, requireAuth));
 // In-app bug reports: one searchable `user_feedback` log line each — see feedback/feedback.ts.
 app.use(feedbackRouter(requireAuth, console.log, (record) => prisma.feedback.create({ data: {
-  id: record.id, userId: record.userId, message: record.message, view: record.view, lang: record.lang, build: record.build,
+  id: record.id, userId: record.userId, kind: record.kind, message: record.message, view: record.view, lang: record.lang, build: record.build,
   lastInput: record.lastInput, operationId: record.operationId, clientTime: record.clientTime
 } })));
 app.use("/meal-input/transcribe", (error: any, _req: express.Request, res: express.Response, next: express.NextFunction) => {

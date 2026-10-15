@@ -54,9 +54,10 @@ export function adminRouter(deps: AdminDeps) {
         deps.prisma.meal.count({ where: { createdAt: { gte: since(7) } } }),
         deps.prisma.recipe.count({ where: { deletedAt: null, user: notSystem } }),
         deps.prisma.recipe.count({ where: { deletedAt: null, visibility: "public", user: notSystem } }),
-        deps.prisma.feedback.count({ where: { status: "open" } }),
-        deps.prisma.feedback.count()
+        deps.prisma.feedback.count({ where: { status: "open", kind: "bug" } }),
+        deps.prisma.feedback.count({ where: { kind: "bug" } })
       ]);
+      const [ideasOpen, ideasTotal] = await Promise.all([deps.prisma.feedback.count({ where: { status: "open", kind: "idea" } }), deps.prisma.feedback.count({ where: { kind: "idea" } })]);
       const activeIn = async (d: number) => (await deps.prisma.meal.groupBy({ by: ["userId"], where: { createdAt: { gte: since(d) } } })).length;
       const [active1, active7, active30] = await Promise.all([activeIn(1), activeIn(7), activeIn(30)]);
       const startDay = new Date(Date.UTC(at.getUTCFullYear(), at.getUTCMonth(), at.getUTCDate()) - (days - 1) * DAY);
@@ -90,7 +91,7 @@ export function adminRouter(deps: AdminDeps) {
         users: { total: usersTotal, new7: users7, new30: users30, withEmail: usersWithEmail, verified: usersVerified, active1, active7, active30 },
         meals: { total: mealsTotal, last24h: meals1, last7d: meals7 },
         recipes: { total: recipesTotal, public: recipesPublic },
-        feedback: { open: feedbackOpen, total: feedbackTotal },
+        feedback: { open: feedbackOpen, total: feedbackTotal, ideasOpen, ideasTotal },
         keto,
         usageTotals: totals,
         perDay
@@ -101,8 +102,9 @@ export function adminRouter(deps: AdminDeps) {
   router.get("/admin/feedback", async (req, res, next) => {
     try {
       const status = req.query.status === "done" ? "done" : req.query.status === "all" ? undefined : "open";
+      const kind = req.query.kind === "bug" || req.query.kind === "idea" ? req.query.kind : undefined;
       const items = await deps.prisma.feedback.findMany({
-        where: status ? { status } : {}, orderBy: { createdAt: "desc" }, take: 200,
+        where: { ...(status ? { status } : {}), ...(kind ? { kind } : {}) }, orderBy: { createdAt: "desc" }, take: 200,
         include: { user: { select: { username: true, email: true } } }
       });
       res.json({ items });

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Bug, CheckCircle2, X } from "lucide-react";
+import { Bug, CheckCircle2, Lightbulb, X } from "lucide-react";
 import { api, ApiError, type ApiState } from "./api";
 import { dict, type Lang } from "./i18n";
 
@@ -30,8 +30,12 @@ async function buildLabel(): Promise<string | undefined> {
   }
 }
 
-export function FeedbackReport({ lang, state, getContext }: { lang: Lang; state: ApiState; getContext: () => FeedbackClientContext }) {
-  const t = dict[lang].feedback;
+// kind "idea" is the "Ötletem van" button (owner request 2026-10-15): same
+// panel and endpoint, its own wording; variant "card" is the visible prompt
+// at the bottom of the dashboard.
+export function FeedbackReport({ lang, state, getContext, kind = "bug", variant = "button" }: { lang: Lang; state: ApiState; getContext: () => FeedbackClientContext; kind?: "bug" | "idea"; variant?: "button" | "card" }) {
+  const t = kind === "idea" ? { ...dict[lang].feedback, ...dict[lang].idea } : dict[lang].feedback;
+  const Icon = kind === "idea" ? Lightbulb : Bug;
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
@@ -62,10 +66,11 @@ export function FeedbackReport({ lang, state, getContext }: { lang: Lang; state:
         lang,
         build: await buildLabel(),
         clientTime: new Date().toISOString(),
-        lastInput: cap(client.lastInput, 500),
-        operationId: cap(client.operationId, 64)
+        // An idea is not about the last meal entry, so it never carries it.
+        lastInput: kind === "idea" ? undefined : cap(client.lastInput, 500),
+        operationId: kind === "idea" ? undefined : cap(client.operationId, 64)
       };
-      const result = await api<{ id: string }>("/feedback", { method: "POST", body: JSON.stringify({ message: text.slice(0, FEEDBACK_MAX_LENGTH), context }) }, state);
+      const result = await api<{ id: string }>("/feedback", { method: "POST", body: JSON.stringify({ kind, message: text.slice(0, FEEDBACK_MAX_LENGTH), context }) }, state);
       setTicket(result.id);
       setMessage("");
     } catch (caught) {
@@ -77,9 +82,17 @@ export function FeedbackReport({ lang, state, getContext }: { lang: Lang; state:
 
   return (
     <>
-      <button type="button" className="btn ghost" aria-label={t.open} aria-expanded={open} onClick={() => { setTicket(null); setOpen(true); }}>
-        <Bug size={17}/><span>{t.open}</span>
-      </button>
+      {variant === "card" ? (
+        <div className="card idea-card">
+          <Icon size={22} aria-hidden="true"/>
+          <div><strong>{dict[lang].idea.cardTitle}</strong><p className="text-sm text-muted">{dict[lang].idea.cardText}</p></div>
+          <button type="button" className="btn primary" aria-expanded={open} onClick={() => { setTicket(null); setOpen(true); }}>{t.open}</button>
+        </div>
+      ) : (
+        <button type="button" className={`btn ghost ${kind === "idea" ? "idea-button" : ""}`} aria-label={t.open} aria-expanded={open} onClick={() => { setTicket(null); setOpen(true); }}>
+          <Icon size={17}/><span>{t.open}</span>
+        </button>
+      )}
       {open && ticket && createPortal(
         <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label={t.title} onKeyDown={(event) => { if (event.key === "Escape") close(); }}>
           <div className="modal-panel card">
