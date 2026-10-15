@@ -68,6 +68,10 @@ const UNITS = new Map<string, NaturalQuantityUnit>([
   ["l", "l"], ["liter", "l"], ["liters", "l"], ["litre", "l"], ["litres", "l"],
   ["db", "piece"], ["darab", "piece"], ["piece", "piece"], ["pieces", "piece"], ["stuk", "piece"], ["stuck", "piece"], ["stucke", "piece"],
   ["whole", "piece"], ["egesz", "piece"], ["ganz", "piece"], ["ganze", "piece"], ["ganzen", "piece"],
+  // "1 pár virsli" / "ein Paar Würstchen" / "a pair of frankfurters" = two
+  // pieces (owner report c289ec, 2026-10-15): "pár" stayed in the food words
+  // ("par virsli"), so the catalog match failed and grams were asked.
+  ["par", "piece"], ["paar", "piece"], ["pair", "piece"], ["pairs", "piece"],
   ["szelet", "slice"], ["slice", "slice"], ["slices", "slice"], ["scheibe", "slice"], ["scheiben", "slice"], ["adag", "portion"], ["portion", "portion"], ["portionen", "portion"], ["serving", "portion"], ["servings", "portion"],
   ["ek", "tbsp"], ["el", "tbsp"], ["evokanal", "tbsp"], ["essloffel", "tbsp"], ["tbsp", "tbsp"], ["tablespoon", "tbsp"], ["tablespoons", "tbsp"],
   ["tk", "tsp"], ["tl", "tsp"], ["teaskanal", "tsp"], ["teeloffel", "tsp"], ["tsp", "tsp"], ["teaspoon", "tsp"], ["teaspoons", "tsp"],
@@ -104,7 +108,7 @@ const NUMBERS = new Map([
 // raw quantity must be scaled up by the token actually matched (looked up by
 // explicitUnitWord, never by the resolved `unit` itself, which is deliberately
 // coarser than the real vocabulary of tokens that resolve to it).
-const UNIT_TOKEN_SCALE = new Map<string, number>([["dkg", 10], ["deka", 10], ["dekagramm", 10], ["dekagram", 10], ["dl", 100], ["deciliter", 100]]);
+const UNIT_TOKEN_SCALE = new Map<string, number>([["dkg", 10], ["deka", 10], ["dekagramm", 10], ["dekagram", 10], ["dl", 100], ["deciliter", 100], ["par", 2], ["paar", 2], ["pair", 2], ["pairs", 2]]);
 
 // "whole"/"egész"/"ganz" means one whole item ("whole avocado"), except where
 // it is part of the food's own name: "whole milk", "whole grain", "whole

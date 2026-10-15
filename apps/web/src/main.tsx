@@ -752,11 +752,11 @@ export function App() {
               {/* Net carbs leads — on mobile the grid scrolls horizontally,
                   so the keto-critical metric must be the first tile in DOM
                   order, not something requiring horizontal discovery. */}
-              <Macro label="net carbs" value={totals.netCarbs} goal={goals.dailyNetCarbs} emphasis warnOverLimit/>
-              <Macro label="kcal" value={totals.kcal} goal={goals.dailyKcal}/>
-              <Macro label="protein" value={totals.protein} goal={goals.dailyProtein}/>
-              <Macro label="fat" value={totals.fat} goal={goals.dailyFat}/>
-              <Macro label="fiber" value={totals.fiber} goal={goals.dailyFiber}/>
+              <Macro label={MACRO_LABELS[lang].netCarbs} value={totals.netCarbs} goal={goals.dailyNetCarbs} emphasis warnOverLimit/>
+              <Macro label={MACRO_LABELS[lang].kcal} value={totals.kcal} goal={goals.dailyKcal}/>
+              <Macro label={MACRO_LABELS[lang].protein} value={totals.protein} goal={goals.dailyProtein}/>
+              <Macro label={MACRO_LABELS[lang].fat} value={totals.fat} goal={goals.dailyFat}/>
+              <Macro label={MACRO_LABELS[lang].fiber} value={totals.fiber} goal={goals.dailyFiber}/>
               <MealCountTile label={t.diary.mealsLabel} value={meals.length}/>
             </div>
             <WeekOverviewCard
@@ -891,6 +891,14 @@ function Macro({ label, value, goal, emphasis = false, warnOverLimit = false }: 
     </div>
   );
 }
+
+// Dashboard macro tiles in the UI language (tester walk-through 2026-10-15:
+// the Hungarian and German screens showed "NET CARBS", "FAT", "FIBER").
+const MACRO_LABELS: Record<Lang, { netCarbs: string; kcal: string; protein: string; fat: string; fiber: string }> = {
+  hu: { netCarbs: "nettó szénhidrát", kcal: "kcal", protein: "fehérje", fat: "zsír", fiber: "rost" },
+  de: { netCarbs: "Netto-KH", kcal: "kcal", protein: "Eiweiß", fat: "Fett", fiber: "Ballaststoffe" },
+  en: { netCarbs: "net carbs", kcal: "kcal", protein: "protein", fat: "fat", fiber: "fiber" }
+};
 
 function MealCountTile({ label, value }: { label: string; value: number }) {
   return <div className="metric-tile metric-tile-count"><div className="metric-label">{label}</div><strong className="metric-value">{value}</strong></div>;
