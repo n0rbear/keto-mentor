@@ -4,10 +4,12 @@ import { getSettings } from "../admin/runtime-settings.js";
 import { hasPremiumFeature } from "../meals/dinner-suggestions.js";
 import { localDay, weeklyProgress } from "./progress.js";
 import { exportDays } from "./export.js";
+import { dayMicros } from "./micros.js";
 import { serializeMeal } from "../nutrition.js";
 
 export const STATS_FEATURE = "advanced_stats";
 export const EXPORT_FEATURE = "export";
+export const MICROS_FEATURE = "micronutrients";
 const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const weightSchema = z.object({ date: dateSchema, weightKg: z.number().min(20).max(400) }).strict();
 
@@ -22,6 +24,22 @@ export function progressRouter(deps: { prisma: any; requireAuth: express.Request
     } catch (error) { next(error); }
   };
   const gate = gateFor(STATS_FEATURE);
+
+  // A day's vitamins and minerals against the EU reference values.
+  router.get("/stats/micros", deps.requireAuth, gateFor(MICROS_FEATURE), async (req, res, next) => {
+    try {
+      const date = dateSchema.parse(req.query.date);
+      const tz = Number(req.query.tzOffsetMinutes ?? 0);
+      const tzOffsetMinutes = Number.isFinite(tz) && Math.abs(tz) <= 14 * 60 ? tz : 0;
+      const start = new Date(new Date(`${date}T00:00:00Z`).getTime() + tzOffsetMinutes * 60_000);
+      const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+      const meals = await prisma.meal.findMany({
+        where: { userId: req.user!.id, eatenAt: { gte: start, lt: end } },
+        select: { items: { select: { quantityGrams: true, snapshotNutrients: true, food: { select: { nutrients: { select: { amountPer100g: true, nutrient: { select: { key: true } } } } } } } } }
+      });
+      res.json({ date, ...dayMicros(meals.flatMap((meal: any) => meal.items)) });
+    } catch (error) { next(error); }
+  });
 
   // Diary export for a CSV file or a printable report (at most 92 days).
   router.get("/export/diary", deps.requireAuth, gateFor(EXPORT_FEATURE), async (req, res, next) => {

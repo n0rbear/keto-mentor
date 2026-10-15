@@ -19,6 +19,7 @@ import { PremiumOverview } from "./PremiumOverview";
 import { MealPlanner } from "./MealPlanner";
 import { ProgressStats } from "./ProgressStats";
 import { ExportCard } from "./ExportCard";
+import { MicrosCard } from "./MicrosCard";
 import { MealTypePicker, mealTypeFields, mealTypeText, rememberCustomMealType, suggestedChoice, type MealChoice } from "./MealTypePicker";
 import { LegalFooter, LegalPageView, legalPageFromHash, type LegalPage } from "./LegalPages";
 import { createPortal } from "react-dom";
@@ -940,6 +941,9 @@ export function App() {
       )}
       {user && !adminAccount && profile?.onboardingDone && (
         <section id="stats"><ProgressStats lang={lang} state={state} today={todayLocalDate()}/></section>
+      )}
+      {user && !adminAccount && profile?.onboardingDone && (
+        <section id="micros"><MicrosCard lang={lang} state={state} date={selectedDate}/></section>
       )}
       {user && !adminAccount && profile?.onboardingDone && (
         <section id="dinner"><DinnerSuggestions lang={lang} state={state} date={selectedDate} onLogged={handleMealLogged}/></section>

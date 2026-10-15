@@ -727,3 +727,19 @@ body { padding-left: var(--safe-left); padding-right: var(--safe-right); }
   .print-report section { break-inside: avoid; }
   .print-report .print-note { margin-top: 1rem; color: #555; font-size: 9pt; }
 }
+#micros { width: min(1180px, calc(100% - 32px)); margin: 0 auto 1.25rem; }
+@media (max-width: 860px) { #micros { width: min(100% - 24px, 1180px); } }
+.micros-card { display: grid; gap: .55rem; }
+.micros-card h3 { margin: .3rem 0 0; font-size: .95rem; }
+.micro-list { display: grid; gap: .5rem; margin: 0; padding: 0; list-style: none; }
+@media (min-width: 861px) { .micro-list { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 1.25rem; } }
+.micro-row { display: grid; gap: .25rem; min-width: 0; }
+.micro-head { display: flex; justify-content: space-between; gap: .5rem; flex-wrap: wrap; font-size: .85rem; font-weight: 700; }
+.micro-track { height: 8px; border-radius: 999px; background: rgb(var(--border) / .14); overflow: hidden; }
+.micro-fill { height: 100%; border-radius: 999px; background: rgb(var(--brand)); }
+.micro-fill.is-over { background: rgb(var(--warning)); }
+@media (max-width: 860px) {
+  main[data-mobile-view] #micros { display: none; }
+  main[data-mobile-view="micros"] #micros { display: block; padding-top: 1rem; }
+  main[data-mobile-view="micros"] #today { display: none; }
+}
