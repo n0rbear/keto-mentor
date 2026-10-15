@@ -13,6 +13,8 @@ import { MealEditDialog, DeleteMealDialog, RepeatMealDialog, type MealDetail } f
 import { WeekOverviewCard, type WeekOverviewData } from "./WeekOverview";
 import { AuthForm } from "./AuthForm";
 import { EmailPrompt } from "./EmailPrompt";
+import { LegalFooter, LegalPageView, legalPageFromHash, type LegalPage } from "./LegalPages";
+import { createPortal } from "react-dom";
 import { FoodUnderstandingPreview, type ExternalCandidate, type RecipeDiscoveryPreviewValue, type RecipeDiscoveryCandidateValue, type AiEstimateValue, type AiEstimateOverridePayload, type CandidateFood, type RecipeIngredientOverride, type LocalRecipeOption, LocalRecipePicker, statedServings, statedPlates } from "./FoodUnderstandingPreview";
 import { pickDisplayName } from "./food-display-name";
 import { QuantityClarification } from "./QuantityClarification";
@@ -101,6 +103,18 @@ export function App() {
   const [confirmingRecipe, setConfirmingRecipe] = useState(false);
   const [confirmingAiEstimate, setConfirmingAiEstimate] = useState(false);
   const [myPlatesOpen, setMyPlatesOpen] = useState(false);
+  // Source attribution / privacy notice (#forrasok, #adatvedelem), shown
+  // over every view, signed in or not (tester release 2026-10-15).
+  const [legalPage, setLegalPage] = useState<LegalPage | null>(() => legalPageFromHash(window.location.hash));
+  useEffect(() => {
+    const onHash = () => setLegalPage(legalPageFromHash(window.location.hash));
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+  function closeLegalPage() {
+    if (legalPageFromHash(window.location.hash)) window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    setLegalPage(null);
+  }
   // Context for an in-app bug report (FeedbackReport): the last meal text the
   // user actually submitted and that request's progress operationId.
   const [lastInterpretRequest, setLastInterpretRequest] = useState<{ text: string; operationId: string } | null>(null);
@@ -847,6 +861,14 @@ export function App() {
       {editingMeal && <MealEditDialog meal={editingMeal} lang={lang} state={state} onCancel={() => setEditingMeal(null)} onSaved={handleMealEdited}/>}
       {deletingMealId && <DeleteMealDialog lang={lang} onCancel={() => setDeletingMealId(null)} onConfirm={confirmDeleteMeal}/>}
       {repeatingMeal && <RepeatMealDialog title={repeatingMeal.title} lang={lang} onCancel={() => setRepeatingMeal(null)} onConfirm={confirmRepeatMeal}/>}
+      <LegalFooter lang={lang}/>
+      {legalPage && createPortal(
+        <div className="legal-overlay">
+          <LegalPageView page={legalPage} lang={lang} state={state} signedIn={!!user} onClose={closeLegalPage}
+            onAccountDeleted={() => { closeLegalPage(); setToken(null); setUser(null); setMyPlatesOpen(false); }}/>
+        </div>,
+        document.body
+      )}
     </main>
   );
 }

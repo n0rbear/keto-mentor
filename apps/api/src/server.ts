@@ -62,6 +62,8 @@ import { TranscriptionProviderError } from "./ai/transcription-provider.js";
 import { feedbackRouter } from "./feedback/feedback.js";
 import { passwordResetRouter } from "./password-reset/password-reset.js";
 import { resendMailer } from "./mail/mailer.js";
+import { accountDeletionRouter } from "./account/account-deletion.js";
+import { REFERENCE_USERNAME } from "./reference-dishes/seed.js";
 import { platesRouter } from "./meal-input/plates.js";
 import { VOICE_TRANSCRIBE_RATE_LIMIT, voiceTranscribeRateLimitKey } from "./meal-input/voice-rate-limit.js";
 
@@ -278,6 +280,8 @@ app.use(passwordResetRouter({
   prisma, mailer: resendMailer(env.RESEND_API_KEY, env.MAIL_FROM), webAppUrl: env.WEB_APP_URL ?? env.CORS_ORIGIN.split(",")[0].trim(),
   hashPassword, verifyPassword, requireAuth
 }));
+
+app.use(accountDeletionRouter({ prisma, requireAuth, verifyPassword, systemUsername: REFERENCE_USERNAME }));
 
 app.post("/auth/logout", requireAuth, async (req, res, next) => {
   try {

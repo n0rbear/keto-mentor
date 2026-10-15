@@ -25,6 +25,8 @@ export const passwordResetConfirmSchema = z.object({ token: z.string().min(20).m
 // Existing username-only accounts attach an e-mail; the current password
 // proves it is the owner of the account, not someone at an unlocked screen.
 export const emailUpdateSchema = z.object({ email: emailSchema, currentPassword: z.string().min(1).max(200) });
+// Account deletion (GDPR erasure) is confirmed with the current password.
+export const accountDeletionSchema = z.object({ currentPassword: z.string().min(1).max(200) });
 
 // A standalone endpoint for changing just the UI language after onboarding —
 // onboardingSchema's `locale` field only ever fires once (it always also
