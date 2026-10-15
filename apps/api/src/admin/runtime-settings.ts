@@ -8,7 +8,11 @@ import { z } from "zod";
 export const aiLimitsSchema = z.object({
   perHour: z.number().int().min(0).max(1000),
   perDay: z.number().int().min(0).max(10000),
-  perRecipe: z.number().int().min(0).max(50)
+  perRecipe: z.number().int().min(0).max(50),
+  // "Bővebb AI-keretek" (premium, 2026-10-16): the larger allowance for
+  // premium users (everyone while premiumAccess is "beta_all").
+  premiumPerHour: z.number().int().min(0).max(1000).default(60),
+  premiumPerDay: z.number().int().min(0).max(10000).default(200)
 });
 export const announcementSchema = z.object({
   enabled: z.boolean(),
@@ -29,7 +33,7 @@ export type AppSettings = z.infer<typeof settingsSchema>;
 export const DEFAULT_SETTINGS: AppSettings = Object.freeze({
   registrationOpen: true,
   announcement: { enabled: false, hu: "", de: "", en: "" },
-  aiLimits: { perHour: 30, perDay: 100, perRecipe: 8 },
+  aiLimits: { perHour: 30, perDay: 100, perRecipe: 8, premiumPerHour: 60, premiumPerDay: 200 },
   premiumAccess: "beta_all"
 }) as AppSettings;
 
@@ -66,8 +70,33 @@ export async function saveSettings(prisma: SettingsDb, next: AppSettings): Promi
   return current;
 }
 
+// Users with an active premium entitlement (plan premium or feature
+// "ai_plus"), refreshed from the database every few minutes so the budget
+// check stays synchronous.
+const AI_PLUS_FEATURE = "ai_plus";
+let premiumUsers = new Set<string>();
+export function setPremiumUsersForTests(ids: string[]) { premiumUsers = new Set(ids); }
+export async function refreshPremiumUsers(prisma: { entitlement: { findMany(args: any): Promise<Array<{ userId: string }>> } }, now = new Date()) {
+  const rows = await prisma.entitlement.findMany({
+    where: { active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: now } }], AND: [{ OR: [{ plan: "premium" }, { features: { has: AI_PLUS_FEATURE } }] }] },
+    select: { userId: true }
+  });
+  premiumUsers = new Set(rows.map((row) => row.userId));
+}
+export function startPremiumUsersRefresher(prisma: Parameters<typeof refreshPremiumUsers>[0], intervalMs = 5 * 60 * 1000) {
+  const run = () => { refreshPremiumUsers(prisma).catch(() => undefined); };
+  run();
+  const timer = setInterval(run, intervalMs);
+  timer.unref?.();
+  return () => clearInterval(timer);
+}
+export const hasAiPlus = (userId?: string) => current.premiumAccess === "beta_all" || (!!userId && premiumUsers.has(userId));
+
 /** The per-user windows the AI-estimate and web-evidence budgets read on every call. */
-export const userFallbackWindows = () => [
-  { windowMs: 60 * 60 * 1000, limit: current.aiLimits.perHour },
-  { windowMs: 24 * 60 * 60 * 1000, limit: current.aiLimits.perDay }
-];
+export const userFallbackWindows = (userId?: string) => {
+  const plus = hasAiPlus(userId);
+  return [
+    { windowMs: 60 * 60 * 1000, limit: plus ? Math.max(current.aiLimits.premiumPerHour, current.aiLimits.perHour) : current.aiLimits.perHour },
+    { windowMs: 24 * 60 * 60 * 1000, limit: plus ? Math.max(current.aiLimits.premiumPerDay, current.aiLimits.perDay) : current.aiLimits.perDay }
+  ];
+};
