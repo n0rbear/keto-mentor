@@ -2,9 +2,9 @@
 
 Compact continuity state for the Master/worker workflow. Git, tests and this file are the source of truth — not chat history. Never store secrets here.
 
-- **Date:** 2026-10-13
+- **Date:** 2026-10-15
 - **Checkpoint branch:** `claude/pensive-hamilton-ocsygi` (checkpoint-only; no product code)
-- **main HEAD:** `8bbd197` (merge of PR #86, 2026-10-13)
+- **main HEAD:** `dcc2b55` (merge of PR #89, 2026-10-14)
 - **Production:** live at `1d027b3` (2026-10-12 03:48 UTC). #81 (stated portion count + "<amount> <dish>" resolves like "<dish>"; tányér = adjustable plate amount, never grams) and #82 (one-time plate question, `Profile.plateSetup` migration applied, average plates flat 26 cm / deep 600 ml, soups always deep, "Tányérjaim" header entry) live; `reference_dishes unchanged=541`. Prod catalog = shared `driverassistant` Postgres, schema `ketomentor`, read-only via Render MCP.
 - **Staging DB:** `keto-mentor-staging-db` is a free-plan instance that **expires 2026-10-13**.
 - **Staging services** still track `fix/web-evidence-production-effectiveness` (merged, stale) — repoint to the next feature branch or `main` before staging verification. Staging start does NOT run migrations.
@@ -22,10 +22,10 @@ Source of truth = Python modules in `data/reference-dishes/` (`at.py`, `hu*.py`,
 
 - DONE (2026-10-13): #86 in-app bug report live — header button "Hibát találtam"; each report = one log line `user_feedback id=<6 hex> user=… view=… lang=… build=… lastInput=… message=…` (search Render logs for `user_feedback`). Log-only, no DB.
 
-## FIRST for the next Master session (owner-reported 2026-10-13, investigated, not yet fixed)
-1. **Feedback ticket id not shown.** Owner sent a report from desktop Chrome; API logged it (`user_feedback id=6c6ae5 …`, 201 returned) but the UI showed no "Hibajegy: #…" confirmation. Reproduce in `apps/web/src/FeedbackReport.tsx` / `main.tsx` (note likely rendered inside the closing panel or cleared on re-render). Small web fix.
-2. **"4 db frankfurti virsli" (owner report #6c6ae5: "fogalma sincs, hány gramm egy virsli").** Evidence from prod logs 16:48–16:49 UTC: `quantity_ai outcome=not_configured provider=disabled`, local search miss for "frankfurti virsli" → external lookup + 5 AI calls, REQUEST_TOTAL 19.9 s, ended `confirmation_required ambiguous`. Read-only DB: no FoodServing (piece weight) on ANY virsli record (BLS W211200 virsli/Wiener Würstchen, W212000 baromfivirsli, W211100 Bockwurst, W874300 konzerv, USDA 323121 marhavirsli); "frankfurti virsli"/"Frankfurter" is not an alias of W211200; an OFF product "Frankfurti virsli - BIO vom BERG" (0900828100719) is in the global catalog and competes. Fix direction (general, per brief): sourced piece weights for the sausage family (≥2 retail sources, like the phase-1 Semmel serving / generic-unit-weights table from #77), qualified aliases frankfurti virsli/Frankfurter/Wiener → W211200, and find out why the quantity AI is "not_configured" in production (config only — report to owner, don't change env).
-Local worktrees/branches `fix/feedback-ticket-visible` and `fix/sausage-piece-weights` were created from `8bbd197` but contain no commits (not pushed) — start fresh.
+## Current (2026-10-15, new Master session)
+- Both 2026-10-13 defects were ALREADY fixed by PR #87 (merged 2026-10-14, session_01MGhGcAM2DjuVnHwsPVLqJP): `584f64d` ticket id stays visible until the panel is closed; `f4b1321` virsli piece weight 59.5 g (HU/AT) / Bockwurst 95 g (DE) via generated `generic-unit-weights.data.ts` + 'frankfurti virsli' aliases. Also #87 recipe steps space/Enter + kechup alias, #88 read-only Render tool permissions, #89 carbonara import (staple aliases, salt/pepper non-blocking, `recipe_import_preview` log). Production live at `dcc2b55` (2026-10-14 10:00 UTC).
+- Owner ticket **#dc9bcf** (2026-10-15 08:07 UTC, iPhone Safari, build dcc2b55, ticket id WAS shown → #87 fix confirmed, not intermittent): "Egy darab főtt tojás, három szelet bacon, két szelet gouda sajt." — 1 db főtt tojás and 1 szelet bacon have no known weight. Worker investigating on local branch `fix/egg-bacon-unit-weights` (worktree /home/user/km-main) following the f4b1321 sourced-unit-weight pattern.
+- Quantity AI 'not_configured' in prod (seen 2026-10-13) still to be reported to owner (config only).
 
 ## Next tasks (owner order, 2026-10-13)
 1. **Password reset + switch to e-mail registration/login.** Open decisions: e-mail sending provider (needs owner-supplied API key as Render env var, never in repo); how existing username accounts (incl. owner) get an e-mail attached.
