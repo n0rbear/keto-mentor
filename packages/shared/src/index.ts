@@ -3,16 +3,28 @@ import { z } from "zod";
 export const locales = ["hu", "de", "en"] as const;
 export type Locale = (typeof locales)[number];
 
+// E-mail (owner decision 2026-10-15, tester release): required for new
+// accounts so a forgotten password can be reset by e-mail; login accepts the
+// username or the e-mail address in the same field.
+export const emailSchema = z.string().trim().toLowerCase().email().max(254);
+
 export const registerSchema = z.object({
   username: z.string().trim().min(3).max(32).regex(/^[a-zA-Z0-9_.-]+$/),
+  email: emailSchema,
   password: z.string().min(10).max(200),
   locale: z.enum(locales).default("hu")
 });
 
 export const loginSchema = z.object({
-  username: z.string().trim().min(3).max(32),
+  username: z.string().trim().min(3).max(254),
   password: z.string().min(1).max(200)
 });
+
+export const passwordResetRequestSchema = z.object({ email: emailSchema, locale: z.enum(locales).optional() });
+export const passwordResetConfirmSchema = z.object({ token: z.string().min(20).max(200), password: z.string().min(10).max(200) });
+// Existing username-only accounts attach an e-mail; the current password
+// proves it is the owner of the account, not someone at an unlocked screen.
+export const emailUpdateSchema = z.object({ email: emailSchema, currentPassword: z.string().min(1).max(200) });
 
 // A standalone endpoint for changing just the UI language after onboarding —
 // onboardingSchema's `locale` field only ever fires once (it always also

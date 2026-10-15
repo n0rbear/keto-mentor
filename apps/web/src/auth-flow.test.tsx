@@ -60,6 +60,7 @@ describe("AuthForm submitting state and double-submit prevention", () => {
     const submit = screen.getByTestId("auth-submit") as HTMLButtonElement;
     const password = screen.getByLabelText("Password") as HTMLInputElement;
     const username = screen.getByLabelText("Username") as HTMLInputElement;
+    fireEvent.change(screen.getByLabelText("E-mail address"), { target: { value: "alice@example.com" } });
 
     fireEvent.change(username, { target: { value: "alice" } });
     fireEvent.change(password, { target: { value: "supersecret" } });
@@ -85,6 +86,7 @@ describe("AuthForm submitting state and double-submit prevention", () => {
     const submit = screen.getByTestId("auth-submit") as HTMLButtonElement;
     const password = screen.getByLabelText("Password") as HTMLInputElement;
     const username = screen.getByLabelText("Username") as HTMLInputElement;
+    fireEvent.change(screen.getByLabelText("E-mail address"), { target: { value: "alice@example.com" } });
 
     fireEvent.change(username, { target: { value: "alice" } });
     fireEvent.change(password, { target: { value: "supersecret" } });
@@ -104,13 +106,14 @@ describe("AuthForm invalid credentials UX", () => {
     const submit = screen.getByTestId("auth-submit") as HTMLButtonElement;
     const password = screen.getByLabelText("Password") as HTMLInputElement;
     const username = screen.getByLabelText("Username") as HTMLInputElement;
+    fireEvent.change(screen.getByLabelText("E-mail address"), { target: { value: "alice@example.com" } });
 
     fireEvent.change(username, { target: { value: "alice" } });
     fireEvent.change(password, { target: { value: "supersecret" } });
     fireEvent.click(submit);
 
     const alert = await screen.findByRole("alert");
-    expect(alert.textContent).toBe("Incorrect username or password.");
+    expect(alert.textContent).toBe("Incorrect username, e-mail or password.");
     expect(submit.disabled).toBe(false);
   });
 
@@ -121,6 +124,7 @@ describe("AuthForm invalid credentials UX", () => {
     const submit = screen.getByTestId("auth-submit") as HTMLButtonElement;
     const password = screen.getByLabelText("Password") as HTMLInputElement;
     const username = screen.getByLabelText("Username") as HTMLInputElement;
+    fireEvent.change(screen.getByLabelText("E-mail address"), { target: { value: "alice@example.com" } });
 
     fireEvent.change(username, { target: { value: "alice" } });
     fireEvent.change(password, { target: { value: "supersecret" } });

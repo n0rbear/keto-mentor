@@ -42,7 +42,7 @@ function stubFetch({ meGate, weekGate }: { meGate?: Gate; weekGate?: Gate } = {}
 async function submitLogin() {
   render(<App/>);
   fireEvent.click(screen.getByTestId("auth-mode-login"));
-  fireEvent.change(screen.getByLabelText("Felhasználónév"), { target: { value: "alice" } });
+  fireEvent.change(screen.getByLabelText("Felhasználónév vagy e-mail"), { target: { value: "alice" } });
   fireEvent.change(screen.getByLabelText("Jelszó"), { target: { value: "supersecret" } });
   fireEvent.click(screen.getByTestId("auth-submit"));
 }

@@ -12,6 +12,7 @@ import { RecipeBuilder } from "./RecipeBuilder";
 import { MealEditDialog, DeleteMealDialog, RepeatMealDialog, type MealDetail } from "./MealActions";
 import { WeekOverviewCard, type WeekOverviewData } from "./WeekOverview";
 import { AuthForm } from "./AuthForm";
+import { EmailPrompt } from "./EmailPrompt";
 import { FoodUnderstandingPreview, type ExternalCandidate, type RecipeDiscoveryPreviewValue, type RecipeDiscoveryCandidateValue, type AiEstimateValue, type AiEstimateOverridePayload, type CandidateFood, type RecipeIngredientOverride, type LocalRecipeOption, LocalRecipePicker, statedServings, statedPlates } from "./FoodUnderstandingPreview";
 import { pickDisplayName } from "./food-display-name";
 import { QuantityClarification } from "./QuantityClarification";
@@ -28,7 +29,7 @@ import { FeedbackReport } from "./FeedbackReport";
 import { MyPlates, PlateSetup, plateSetupPending } from "./PlateSetup";
 import type { QuantityClarification as Clarification } from "@keto-mentor/shared";
 
-type User = { id: string; username: string; locale: Lang; profile?: any; _count?: { plates?: number } };
+type User = { id: string; username: string; email?: string | null; locale: Lang; profile?: any; _count?: { plates?: number } };
 export type Totals = { kcal: number; fat: number; protein: number; carbs: number; fiber: number; netCarbs: number };
 type Meal = { id: string; title: string; eatenAt: string; totals: Totals };
 export type FoodServing = { id: string; key: string; unit: string; labels?: Partial<Record<Lang, string>>; grams: number; isEstimated: boolean; confidence: number; provenance?: unknown };
@@ -682,6 +683,9 @@ export function App() {
       <UpdateBanner lang={lang}/>
       <InstallPrompt lang={lang}/>
 
+      {user && profile?.onboardingDone && user.email === null && (
+        <EmailPrompt lang={lang} state={state} onSaved={(email) => setUser((current) => current ? { ...current, email } : current)}/>
+      )}
       <section id="top" className={`hero-shell ${user ? "is-authenticated" : ""}`}>
         <div className="hero-copy">
           <div className="eyebrow"><Sparkles size={13}/> NorbApp · Keto Mentor</div>

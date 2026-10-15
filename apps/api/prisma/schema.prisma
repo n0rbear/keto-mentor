@@ -71,6 +71,21 @@ model User {
   entitlements Entitlement[]
   recipes      Recipe[]
   plates       UserPlate[]
+  passwordResetTokens PasswordResetToken[]
+}
+
+/// One-time password reset link (tester release, 2026-10-15). Only the
+/// SHA-256 of the random token is stored; valid for one hour, single use.
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 // The user's own measured plates for plate-photo portion estimation. Only
