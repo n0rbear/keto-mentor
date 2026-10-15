@@ -74,7 +74,8 @@ export const TRACKED_REQUESTS: Readonly<Record<string, string>> = Object.freeze(
   "POST /auth/register": "register",
   "POST /auth/login": "login",
   "POST /feedback": "feedback",
-  "POST /auth/password-reset/request": "reset_request"
+  "POST /auth/password-reset/request": "reset_request",
+  "GET /meals/dinner-suggestions": "dinner_suggestions"
 });
 
 export function usageMiddleware(count: typeof countUsage = countUsage) {
