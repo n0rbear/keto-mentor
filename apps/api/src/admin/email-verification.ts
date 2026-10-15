@@ -17,9 +17,9 @@ type Lang = "hu" | "de" | "en";
 const langOf = (value: unknown): Lang => (value === "de" || value === "en" ? value : "hu");
 
 const COPY: Record<Lang, { subject: string; intro: string; action: string; ignore: string }> = {
-  hu: { subject: "Keto Mentor – e-mail cím megerősítése", intro: "Kérjük, erősítsd meg az e-mail címedet a Keto Mentorban. A link 24 óráig érvényes:", action: "E-mail cím megerősítése", ignore: "Ha nem te adtad meg ezt a címet, hagyd figyelmen kívül ezt a levelet." },
-  de: { subject: "Keto Mentor – E-Mail-Adresse bestätigen", intro: "Bitte bestätige deine E-Mail-Adresse bei Keto Mentor. Der Link ist 24 Stunden gültig:", action: "E-Mail-Adresse bestätigen", ignore: "Wenn du diese Adresse nicht angegeben hast, ignoriere diese E-Mail." },
-  en: { subject: "Keto Mentor – confirm your e-mail address", intro: "Please confirm your e-mail address for Keto Mentor. The link is valid for 24 hours:", action: "Confirm e-mail address", ignore: "If you did not enter this address, ignore this e-mail." }
+  hu: { subject: "Keto Mentor by NorbApp – e-mail cím megerősítése", intro: "Kérjük, erősítsd meg az e-mail címedet a Keto Mentorban. A link 24 óráig érvényes:", action: "E-mail cím megerősítése", ignore: "Ha nem te adtad meg ezt a címet, hagyd figyelmen kívül ezt a levelet." },
+  de: { subject: "Keto Mentor by NorbApp – E-Mail-Adresse bestätigen", intro: "Bitte bestätige deine E-Mail-Adresse bei Keto Mentor. Der Link ist 24 Stunden gültig:", action: "E-Mail-Adresse bestätigen", ignore: "Wenn du diese Adresse nicht angegeben hast, ignoriere diese E-Mail." },
+  en: { subject: "Keto Mentor by NorbApp – confirm your e-mail address", intro: "Please confirm your e-mail address for Keto Mentor. The link is valid for 24 hours:", action: "Confirm e-mail address", ignore: "If you did not enter this address, ignore this e-mail." }
 };
 
 type Db = {

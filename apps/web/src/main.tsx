@@ -768,9 +768,9 @@ export function App() {
     <main className="min-h-screen" data-mobile-view={user && !adminAccount && profile?.onboardingDone && !myPlatesOpen && !plateSetupPending(user) ? mobileView : undefined}>
       <header className="app-header">
         <div className="app-header-inner">
-          <a className="product-lockup" href="#top" aria-label="NorbApp Keto Mentor">
+          <a className="product-lockup" href="#top" aria-label="Keto Mentor by NorbApp">
             <span className="brand-logo-slot is-keto"><img src={ketoMentorMark} alt="Keto Mentor"/></span>
-            <span className="product-lockup-copy"><small>NorbApp health</small><strong>{t.app}</strong></span>
+            <span className="product-lockup-copy"><strong>{t.app}</strong><small>by NorbApp</small></span>
           </a>
           <div className="header-actions">
             <select aria-label={lang === "hu" ? "Nyelv" : lang === "de" ? "Sprache" : "Language"} className="field compact" value={lang} onChange={(e) => changeLang(e.target.value as Lang)}><option value="hu">HU</option><option value="de">DE</option><option value="en">EN</option></select>
@@ -850,7 +850,7 @@ export function App() {
       ) : (
       <section id="top" className={`hero-shell ${user ? "is-authenticated" : ""}`}>
         <div className="hero-copy">
-          <div className="eyebrow"><Sparkles size={13}/> NorbApp · Keto Mentor</div>
+          <div className="eyebrow"><Sparkles size={13}/> Keto Mentor by NorbApp</div>
           <h1 className="hero-title">{t.hero}</h1>
           <p className="hero-lead">{t.lead}</p>
           <p className="health-note"><ShieldCheck size={18}/><span>{t.disclaimer}</span></p>
@@ -1029,7 +1029,7 @@ export function App() {
       <footer className="app-footer">
         <div className="footer-inner">
           <a className="brand-link" href="https://norbapp.com" target="_blank" rel="noreferrer" aria-label="NorbApp weboldal megnyitasa">
-            <img src={ketoMentorMark} alt="Keto Mentor"/><span>Keto Mentor · NorbApp</span>
+            <img src={ketoMentorMark} alt="Keto Mentor"/><span>Keto Mentor by NorbApp</span>
           </a>
           <div className="footer-links">
             <PalettePicker lang={lang}/>

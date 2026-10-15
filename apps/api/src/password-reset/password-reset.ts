@@ -42,9 +42,9 @@ export type PasswordResetDeps = {
 export const hashResetToken = (token: string) => createHash("sha256").update(token).digest("hex");
 
 const COPY: Record<Lang, { subject: string; intro: string; action: string; ignore: string }> = {
-  hu: { subject: "Keto Mentor – új jelszó beállítása", intro: "Új jelszót kértél a Keto Mentor fiókodhoz. Az alábbi link 1 óráig érvényes, és egyszer használható:", action: "Új jelszó beállítása", ignore: "Ha nem te kérted, hagyd figyelmen kívül ezt a levelet; a jelszavad nem változik." },
-  de: { subject: "Keto Mentor – neues Passwort festlegen", intro: "Du hast ein neues Passwort für dein Keto-Mentor-Konto angefordert. Der Link ist 1 Stunde gültig und nur einmal verwendbar:", action: "Neues Passwort festlegen", ignore: "Wenn du das nicht angefordert hast, ignoriere diese E-Mail; dein Passwort bleibt unverändert." },
-  en: { subject: "Keto Mentor – set a new password", intro: "You asked for a new password for your Keto Mentor account. The link is valid for 1 hour and works once:", action: "Set a new password", ignore: "If you did not ask for this, ignore this e-mail; your password stays the same." }
+  hu: { subject: "Keto Mentor by NorbApp – új jelszó beállítása", intro: "Új jelszót kértél a Keto Mentor fiókodhoz. Az alábbi link 1 óráig érvényes, és egyszer használható:", action: "Új jelszó beállítása", ignore: "Ha nem te kérted, hagyd figyelmen kívül ezt a levelet; a jelszavad nem változik." },
+  de: { subject: "Keto Mentor by NorbApp – neues Passwort festlegen", intro: "Du hast ein neues Passwort für dein Keto-Mentor-Konto angefordert. Der Link ist 1 Stunde gültig und nur einmal verwendbar:", action: "Neues Passwort festlegen", ignore: "Wenn du das nicht angefordert hast, ignoriere diese E-Mail; dein Passwort bleibt unverändert." },
+  en: { subject: "Keto Mentor by NorbApp – set a new password", intro: "You asked for a new password for your Keto Mentor account. The link is valid for 1 hour and works once:", action: "Set a new password", ignore: "If you did not ask for this, ignore this e-mail; your password stays the same." }
 };
 
 export function resetEmail(lang: Lang, link: string) {

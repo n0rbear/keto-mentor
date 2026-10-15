@@ -23,21 +23,21 @@ const copy = {
     last7: "Utolsó 7 nap", last30: "Utolsó 30 nap", from: "Ettől", to: "Eddig", csv: "CSV letöltése", pdf: "Jelentés / PDF", empty: "Ebben az időszakban nincs naplózott étkezés.",
     head: ["Dátum", "Idő", "Étkezés", "Étel", "Tétel", "Gramm", "kcal", "Zsír (g)", "Fehérje (g)", "Szénhidrát (g)", "Rost (g)", "Nettó CH (g)"],
     report: "Étkezési napló", period: "Időszak", goals: "Napi célok", dayTotal: "Napi összesen", avg: "Átlag naplózott naponta", ketoDays: "Keto-napok (nettó CH a cél alatt)",
-    disclaimer: "A Keto Mentor tájékoztató jellegű étkezéskövető, nem orvosi eszköz.", premium_required: "Az export prémium funkció.", failed: "Most nem sikerült, próbáld újra.", busy: "Készítem…"
+    disclaimer: "A Keto Mentor by NorbApp tájékoztató jellegű étkezéskövető, nem orvosi eszköz.", premium_required: "Az export prémium funkció.", failed: "Most nem sikerült, próbáld újra.", busy: "Készítem…"
   },
   de: {
     title: "Export für Arzt und Ernährungsberatung", lead: "Dein Tagebuch für einen Zeitraum: als Tabelle (CSV, in Excel zu öffnen) oder als druckbarer Bericht, den du als PDF speichern kannst.",
     last7: "Letzte 7 Tage", last30: "Letzte 30 Tage", from: "Von", to: "Bis", csv: "CSV herunterladen", pdf: "Bericht / PDF", empty: "In diesem Zeitraum gibt es keine Mahlzeiten.",
     head: ["Datum", "Uhrzeit", "Mahlzeit", "Gericht", "Position", "Gramm", "kcal", "Fett (g)", "Eiweiß (g)", "Kohlenhydrate (g)", "Ballaststoffe (g)", "Netto-KH (g)"],
     report: "Ernährungstagebuch", period: "Zeitraum", goals: "Tagesziele", dayTotal: "Tagessumme", avg: "Durchschnitt pro erfasstem Tag", ketoDays: "Keto-Tage (Netto-KH unter Ziel)",
-    disclaimer: "Keto Mentor ist ein informativer Ernährungstracker, kein Medizinprodukt.", premium_required: "Der Export ist eine Premium-Funktion.", failed: "Hat gerade nicht geklappt, bitte erneut versuchen.", busy: "Erstelle…"
+    disclaimer: "Keto Mentor by NorbApp ist ein informativer Ernährungstracker, kein Medizinprodukt.", premium_required: "Der Export ist eine Premium-Funktion.", failed: "Hat gerade nicht geklappt, bitte erneut versuchen.", busy: "Erstelle…"
   },
   en: {
     title: "Export for your doctor or dietitian", lead: "Your diary for a period: as a table (CSV, opens in Excel) or as a printable report you can save as PDF.",
     last7: "Last 7 days", last30: "Last 30 days", from: "From", to: "To", csv: "Download CSV", pdf: "Report / PDF", empty: "No meals logged in this period.",
     head: ["Date", "Time", "Meal", "Dish", "Item", "Grams", "kcal", "Fat (g)", "Protein (g)", "Carbs (g)", "Fiber (g)", "Net carbs (g)"],
     report: "Food diary", period: "Period", goals: "Daily targets", dayTotal: "Day total", avg: "Average per logged day", ketoDays: "Keto days (net carbs under target)",
-    disclaimer: "Keto Mentor is an informational food tracker, not a medical device.", premium_required: "Export is a premium feature.", failed: "That did not work, please try again.", busy: "Preparing…"
+    disclaimer: "Keto Mentor by NorbApp is an informational food tracker, not a medical device.", premium_required: "Export is a premium feature.", failed: "That did not work, please try again.", busy: "Preparing…"
   }
 } as const;
 
@@ -84,7 +84,7 @@ function Report({ data, lang }: { data: ExportData; lang: Lang }) {
       <header className="print-brand">
         <img src={ketoMentorLogo} alt="Keto Mentor"/>
         <div>
-          <h1>Keto Mentor – {t.report}</h1>
+          <h1>Keto Mentor by NorbApp – {t.report}</h1>
           <ContactLine/>
         </div>
       </header>
