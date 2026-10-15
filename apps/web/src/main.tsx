@@ -20,6 +20,8 @@ import { MealPlanner } from "./MealPlanner";
 import { ProgressStats } from "./ProgressStats";
 import { ExportCard } from "./ExportCard";
 import { MicrosCard } from "./MicrosCard";
+import { FlexibleGoals } from "./FlexibleGoals";
+import { effectiveGoals } from "./goals";
 import { MealTypePicker, mealTypeFields, mealTypeText, rememberCustomMealType, suggestedChoice, type MealChoice } from "./MealTypePicker";
 import { LegalFooter, LegalPageView, legalPageFromHash, type LegalPage } from "./LegalPages";
 import { createPortal } from "react-dom";
@@ -701,7 +703,8 @@ export function App() {
   }
 
   const profile = user?.profile;
-  const goals = profile ?? { dailyKcal: 1800, dailyFat: 130, dailyProtein: 110, dailyNetCarbs: 25, dailyFiber: 25 };
+  // The selected day's targets, with flexible weekday goals (premium) applied.
+  const goals = effectiveGoals(profile, selectedDate);
   const today = todayLocalDate();
   const isCurrentWeek = mondayOf(weekAnchor) === mondayOf(today);
   // /auth/login's response user has no `profile` field (only /me includes
@@ -941,6 +944,9 @@ export function App() {
       )}
       {user && !adminAccount && profile?.onboardingDone && (
         <section id="stats"><ProgressStats lang={lang} state={state} today={todayLocalDate()}/></section>
+      )}
+      {user && !adminAccount && profile?.onboardingDone && (
+        <section id="goals"><FlexibleGoals lang={lang} state={state} base={profile} value={profile.weekdayGoals} onSaved={(next) => setUser((current) => current ? { ...current, profile: next } : current)}/></section>
       )}
       {user && !adminAccount && profile?.onboardingDone && (
         <section id="micros"><MicrosCard lang={lang} state={state} date={selectedDate}/></section>

@@ -229,6 +229,9 @@ model Profile {
   /// "saved" | "skipped"; null = never answered. Without saved plates the
   /// average plates (plate-portion.ts AVERAGE_PLATES) are used either way.
   plateSetup    String?
+  /// Rugalmas célok (premium, 2026-10-16): per-weekday overrides of the daily
+  /// targets ({ mon: { netCarbs: 40 }, ... }); null = the same every day.
+  weekdayGoals  Json?
   updatedAt     DateTime @updatedAt
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

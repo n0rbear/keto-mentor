@@ -394,3 +394,30 @@ export type CreateMealInput = z.infer<typeof createMealSchema>;
 export type EditPrivateFoodInput = z.infer<typeof editPrivateFoodSchema>;
 export type RecipeDiscoveryMealItemInput = z.infer<typeof recipeDiscoveryMealItemSchema>;
 export type RecipeIngredientOverride = z.infer<typeof recipeIngredientOverrideSchema>;
+
+// Rugalmas célok (premium, 2026-10-16): optional per-weekday overrides of the
+// daily targets, e.g. carb cycling. A missing day or field keeps the base goal.
+export const WEEKDAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
+export type WeekdayKey = (typeof WEEKDAY_KEYS)[number];
+export const dayGoalSchema = z.object({
+  kcal: z.number().int().min(800).max(6000).optional(),
+  netCarbs: z.number().int().min(0).max(300).optional(),
+  protein: z.number().int().min(0).max(400).optional(),
+  fat: z.number().int().min(0).max(400).optional()
+}).strict();
+export const weekdayGoalsSchema = z.object({
+  mon: dayGoalSchema.optional(), tue: dayGoalSchema.optional(), wed: dayGoalSchema.optional(), thu: dayGoalSchema.optional(),
+  fri: dayGoalSchema.optional(), sat: dayGoalSchema.optional(), sun: dayGoalSchema.optional()
+}).strict();
+export type WeekdayGoals = z.infer<typeof weekdayGoalsSchema>;
+export type BaseGoals = { dailyKcal: number; dailyProtein: number; dailyNetCarbs: number; dailyFat: number; dailyFiber: number };
+
+/** The targets for one calendar day (YYYY-MM-DD): the base goals with that weekday's overrides. */
+export function effectiveGoals(profile: Partial<BaseGoals> & { weekdayGoals?: unknown } | null | undefined, date: string): BaseGoals {
+  const base: BaseGoals = { dailyKcal: profile?.dailyKcal ?? 1800, dailyProtein: profile?.dailyProtein ?? 110, dailyNetCarbs: profile?.dailyNetCarbs ?? 25, dailyFat: profile?.dailyFat ?? 130, dailyFiber: profile?.dailyFiber ?? 25 };
+  const parsed = weekdayGoalsSchema.safeParse(profile?.weekdayGoals ?? {});
+  if (!parsed.success) return base;
+  const day = parsed.data[WEEKDAY_KEYS[(new Date(`${date}T12:00:00Z`).getUTCDay() + 6) % 7]];
+  if (!day) return base;
+  return { ...base, dailyKcal: day.kcal ?? base.dailyKcal, dailyProtein: day.protein ?? base.dailyProtein, dailyNetCarbs: day.netCarbs ?? base.dailyNetCarbs, dailyFat: day.fat ?? base.dailyFat };
+}

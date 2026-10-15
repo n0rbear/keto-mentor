@@ -19,7 +19,8 @@ export function mondayOf(day: string) {
 }
 const plusDays = (day: string, n: number) => { const d = new Date(`${day}T12:00:00Z`); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
 
-export function weeklyProgress(meals: readonly ProgressMeal[], input: { today: string; weeks: number; tzOffsetMinutes: number; goalNetCarbs: number }) {
+export function weeklyProgress(meals: readonly ProgressMeal[], input: { today: string; weeks: number; tzOffsetMinutes: number; goalNetCarbs: number; goalNetCarbsFor?: (day: string) => number }) {
+  const goalOf = (day: string) => input.goalNetCarbsFor?.(day) ?? input.goalNetCarbs;
   const days = new Map<string, { kcal: number; protein: number; netCarbs: number }>();
   for (const meal of meals) {
     const day = localDay(meal.eatenAt, input.tzOffsetMinutes);
@@ -31,8 +32,9 @@ export function weeklyProgress(meals: readonly ProgressMeal[], input: { today: s
   const weeks: WeekStat[] = [];
   for (let w = input.weeks - 1; w >= 0; w--) {
     const start = plusDays(thisMonday, -7 * w);
-    const logged = Array.from({ length: 7 }, (_, i) => days.get(plusDays(start, i))).filter((d): d is NonNullable<typeof d> => !!d);
-    const ketoDays = logged.filter((d) => d.netCarbs <= input.goalNetCarbs + 1e-9).length;
+    const loggedDates = Array.from({ length: 7 }, (_, i) => plusDays(start, i)).filter((day) => days.has(day));
+    const logged = loggedDates.map((day) => days.get(day)!);
+    const ketoDays = loggedDates.filter((day) => days.get(day)!.netCarbs <= goalOf(day) + 1e-9).length;
     const avg = (key: "kcal" | "protein" | "netCarbs") => logged.reduce((a, d) => a + d[key], 0) / logged.length;
     weeks.push({
       weekStart: start, loggedDays: logged.length, ketoDays,
@@ -43,7 +45,7 @@ export function weeklyProgress(meals: readonly ProgressMeal[], input: { today: s
   // Keto streak: consecutive logged keto days ending today or yesterday.
   let streak = 0;
   let cursor = days.has(input.today) ? input.today : plusDays(input.today, -1);
-  while (days.has(cursor) && days.get(cursor)!.netCarbs <= input.goalNetCarbs + 1e-9) { streak += 1; cursor = plusDays(cursor, -1); }
+  while (days.has(cursor) && days.get(cursor)!.netCarbs <= goalOf(cursor) + 1e-9) { streak += 1; cursor = plusDays(cursor, -1); }
   const totalLogged = weeks.reduce((a, w) => a + w.loggedDays, 0);
   const totalKeto = weeks.reduce((a, w) => a + w.ketoDays, 0);
   return { weeks, streak, percent: totalLogged ? Math.round((totalKeto / totalLogged) * 100) : null, rangeStart: weeks[0]?.weekStart ?? thisMonday };
