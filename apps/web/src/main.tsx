@@ -853,7 +853,7 @@ export function App() {
           </a>
           <div className="footer-links">
             <a className="contact-link" href="https://norbapp.com" target="_blank" rel="noreferrer"><ExternalLink size={15}/>norbapp.com</a>
-            <a className="contact-link" href="mailto:norbert@norbapp.com"><Mail size={15}/>norbert@norbapp.com</a>
+            <a className="contact-link" href="mailto:ketomentor@norbapp.com"><Mail size={15}/>ketomentor@norbapp.com</a>
           </div>
         </div>
         <BuildInfo lang={lang}/>

@@ -2,7 +2,7 @@
 // 2026-10-15). The country is given per UI language.
 export const LEGAL_CONTROLLER: { name: string | null; email: string | null; country: { hu: string; de: string; en: string } | null } = {
   name: "Norbert Horváth",
-  email: "norbert@norbapp.com",
+  email: "ketomentor@norbapp.com",
   country: { hu: "Németország", de: "Deutschland", en: "Germany" }
 };
 

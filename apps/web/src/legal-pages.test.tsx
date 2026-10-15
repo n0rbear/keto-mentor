@@ -29,7 +29,7 @@ describe("legal pages", () => {
   it.each([["hu", "Ország: Németország"], ["de", "Land: Deutschland"], ["en", "Country: Germany"]] as const)("names the controller (%s) and shows no deletion form when signed out", (lang, country) => {
     render(<LegalPageView page="privacy" lang={lang} state={state} signedIn={false} onClose={vi.fn()} onAccountDeleted={vi.fn()}/>);
     expect(document.body.textContent).toContain("Norbert Horváth");
-    expect(document.body.textContent).toContain("norbert@norbapp.com");
+    expect(document.body.textContent).toContain("ketomentor@norbapp.com");
     expect(document.body.textContent).toContain(country);
     expect(document.body.textContent).not.toContain("⚠");
     expect(document.body.textContent).toContain("OpenAI");
