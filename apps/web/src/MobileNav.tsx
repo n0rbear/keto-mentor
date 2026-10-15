@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { BookOpen, CalendarDays, Crown, Home, Lightbulb, Menu, Moon, UtensilsCrossed, X } from "lucide-react";
+import { BookOpen, CalendarDays, Crown, Gem, Home, Lightbulb, Menu, Moon, UtensilsCrossed, X } from "lucide-react";
 import type { Lang } from "./i18n";
 
 // Phone layout (owner request 2026-10-15: "ne legyen ennyire hosszan
@@ -8,16 +8,16 @@ import type { Lang } from "./i18n";
 // keeps everything on one page; the switch is pure CSS on <main
 // data-mobile-view>, so the DOM (and every flow) stays the same.
 
-export const MOBILE_VIEWS = ["today", "log", "week", "dinner", "recipes", "idea"] as const;
+export const MOBILE_VIEWS = ["today", "log", "week", "dinner", "recipes", "premium", "idea"] as const;
 export type MobileView = (typeof MOBILE_VIEWS)[number];
 
 export const MOBILE_VIEW_LABELS: Record<Lang, Record<MobileView, string>> = {
-  hu: { today: "Ma", log: "Rögzítés", week: "Heti áttekintés", dinner: "Vacsoraajánló", recipes: "Receptek", idea: "Ötletem van" },
-  de: { today: "Heute", log: "Erfassen", week: "Wochenübersicht", dinner: "Abendessen-Vorschlag", recipes: "Rezepte", idea: "Ich habe eine Idee" },
-  en: { today: "Today", log: "Log", week: "Week overview", dinner: "Dinner ideas", recipes: "Recipes", idea: "I have an idea" }
+  hu: { today: "Ma", log: "Rögzítés", week: "Heti áttekintés", dinner: "Vacsoraajánló", recipes: "Receptek", premium: "Prémium – hamarosan", idea: "Ötletem van" },
+  de: { today: "Heute", log: "Erfassen", week: "Wochenübersicht", dinner: "Abendessen-Vorschlag", recipes: "Rezepte", premium: "Premium – demnächst", idea: "Ich habe eine Idee" },
+  en: { today: "Today", log: "Log", week: "Week overview", dinner: "Dinner ideas", recipes: "Recipes", premium: "Premium – coming soon", idea: "I have an idea" }
 };
 const SHORT: Record<Lang, Partial<Record<MobileView, string>>> = { hu: { dinner: "Vacsora" }, de: { dinner: "Abendessen" }, en: { dinner: "Dinner" } };
-const ICONS: Record<MobileView, typeof Home> = { today: Home, log: UtensilsCrossed, week: CalendarDays, dinner: Moon, recipes: BookOpen, idea: Lightbulb };
+const ICONS: Record<MobileView, typeof Home> = { today: Home, log: UtensilsCrossed, week: CalendarDays, dinner: Moon, recipes: BookOpen, premium: Gem, idea: Lightbulb };
 const PREMIUM: ReadonlySet<MobileView> = new Set(["dinner"]);
 const BAR: MobileView[] = ["today", "log", "dinner", "recipes"];
 

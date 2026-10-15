@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import { App } from "./main";
 
 afterEach(() => { vi.restoreAllMocks(); localStorage.clear(); });
@@ -70,7 +70,7 @@ describe("full-App: historical date navigation drives the week overview, and the
 
     await waitFor(() => expect(screen.getByText("Breakfast", { selector: "strong" })).toBeTruthy());
     // Initial week overview shows the current week's zeroed days.
-    expect(screen.getAllByRole("listitem")).toHaveLength(7);
+    expect(within(document.querySelector(".week-card") as HTMLElement).getAllByRole("listitem")).toHaveLength(7);
 
     // Jump the diary directly to a date inside a different (prior) week via the date picker.
     fireEvent.change(screen.getByLabelText("Select date"), { target: { value: "2025-12-30" } });

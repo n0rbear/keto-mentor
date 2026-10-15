@@ -15,6 +15,7 @@ import { AuthForm } from "./AuthForm";
 import { EmailPrompt, VerifyEmailBand } from "./EmailPrompt";
 import { AdminPage } from "./AdminPage";
 import { DinnerSuggestions } from "./DinnerSuggestions";
+import { PremiumOverview } from "./PremiumOverview";
 import { MealTypePicker, mealTypeFields, mealTypeText, rememberCustomMealType, suggestedChoice, type MealChoice } from "./MealTypePicker";
 import { LegalFooter, LegalPageView, legalPageFromHash, type LegalPage } from "./LegalPages";
 import { createPortal } from "react-dom";
@@ -941,6 +942,9 @@ export function App() {
         <section id="recipes">
           <RecipeBuilder lang={lang} state={state} currentUserId={user.id} onMealAdded={handleMealLogged} mealChoice={mealChoice} onMealChoiceChange={setMealChoice}/>
         </section>
+      )}
+      {user && !adminAccount && profile?.onboardingDone && (
+        <section id="premium"><PremiumOverview lang={lang}/></section>
       )}
       {user && !adminAccount && profile?.onboardingDone && (
         <section className="idea-section" aria-label={dict[lang].idea.cardTitle}>
