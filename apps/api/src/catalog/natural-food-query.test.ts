@@ -181,3 +181,18 @@ describe("natural food query parser", () => {
     });
   });
 });
+
+describe("a pair of pieces (owner report c289ec, 2026-10-15)", () => {
+  it.each([
+    ["1 pár virsli", 2], ["egy pár virsli", 2], ["2 pár virsli", 4], ["ein Paar Würstchen", 2], ["a pair of frankfurters", 2]
+  ])("%s -> %i pieces, the pair word leaves the food words", (input, pieces) => {
+    const parsed = parseNaturalFoodQuery(input);
+    expect(parsed).toMatchObject({ quantity: pieces, unit: "piece" });
+    expect(parsed.foodQuery.split(" ")).not.toContain("par");
+    expect(parsed.foodQuery).not.toMatch(/\b(paar|pair)\b/);
+  });
+
+  it("keeps párizsi as a food word", () => {
+    expect(parseNaturalFoodQuery("2 szelet párizsi")).toMatchObject({ foodQuery: "parizsi", quantity: 2, unit: "slice" });
+  });
+});

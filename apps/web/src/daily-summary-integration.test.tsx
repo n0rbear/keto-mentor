@@ -18,10 +18,10 @@ const meals = [
   { id: "m2", title: "Lunch", eatenAt: new Date().toISOString(), totals: { kcal: 0, fat: 0, protein: 0, carbs: 0, fiber: 0, netCarbs: 0 } }
 ];
 
-function stubFetch() {
+function stubFetch(me = user) {
   vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
     const url = new URL(String(input));
-    if (url.pathname === "/me") return new Response(JSON.stringify({ user }), { status: 200 });
+    if (url.pathname === "/me") return new Response(JSON.stringify({ user: me }), { status: 200 });
     if (url.pathname === "/meals/week") return new Response(JSON.stringify(emptyWeek), { status: 200 });
     if (url.pathname === "/meals/today") {
       return new Response(JSON.stringify({ date: url.searchParams.get("date"), meals, totals: overLimitTotals }), { status: 200 });
@@ -70,5 +70,12 @@ describe("daily summary: meal count and over-limit net carbs", () => {
     const macroGrid = screen.getByLabelText("Daily macros");
     const labels = within(macroGrid).getAllByText(/^(net carbs|kcal|protein|fat|fiber)$/, { selector: ".metric-label" }).map((el) => el.textContent);
     expect(labels[0]).toBe("net carbs");
+  });
+
+  it.each([["hu", "nettó szénhidrát"], ["de", "Netto-KH"]] as const)("labels the macro tiles in the UI language (%s)", async (locale, netCarbs) => {
+    stubFetch({ ...user, locale });
+    render(<App/>);
+    await waitFor(() => expect(screen.getAllByText(netCarbs, { selector: ".metric-label" }).length).toBe(1));
+    expect(screen.queryByText("fiber", { selector: ".metric-label" })).toBeNull();
   });
 });
