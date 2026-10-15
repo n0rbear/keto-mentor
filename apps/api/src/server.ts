@@ -671,8 +671,8 @@ app.delete("/meals/:mealId", requireAuth, async (req, res, next) => {
 // The body carries nothing — the server loads the trusted source itself.
 app.post("/meals/:mealId/repeat", requireAuth, async (req, res, next) => {
   try {
-    repeatMealSchema.parse(req.body ?? {});
-    const meal = await repeatMeal(prisma, req.user!.id, req.params.mealId);
+    const type = repeatMealSchema.parse(req.body ?? {});
+    const meal = await repeatMeal(prisma, req.user!.id, req.params.mealId, new Date(), type);
     res.status(201).json({ meal });
   } catch (error) {
     next(error);

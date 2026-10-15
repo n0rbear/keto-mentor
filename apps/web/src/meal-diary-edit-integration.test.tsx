@@ -52,7 +52,7 @@ describe("editing while browsing a historical day keeps the diary on that day", 
 
     render(<App/>);
 
-    await waitFor(() => expect(screen.getByText("Breakfast")).toBeTruthy());
+    await waitFor(() => expect(screen.getByText("Breakfast", { selector: "strong" })).toBeTruthy());
 
     fireEvent.change(screen.getByLabelText("Select date"), { target: { value: "2026-01-01" } });
     await waitFor(() => expect(screen.getByText("Old Lunch")).toBeTruthy());

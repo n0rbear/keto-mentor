@@ -19,7 +19,7 @@ function fakePrisma(hasFood = true) {
     meal: { create: async ({ data }: any) => {
       capturedGrams = data.items.create[0].quantityGrams;
       capturedSnapshot = data.items.create[0].conversionSnapshot;
-      return { id: "meal", userId: data.userId, title: data.title, eatenAt: data.eatenAt, createdAt: new Date(), items: [{ id: "item", mealId: "meal", foodId: food.id, quantityGrams: capturedGrams, food }] };
+      return { id: "meal", userId: data.userId, title: data.title, mealType: data.mealType, mealTypeLabel: data.mealTypeLabel, eatenAt: data.eatenAt, createdAt: new Date(), items: [{ id: "item", mealId: "meal", foodId: food.id, quantityGrams: capturedGrams, food }] };
     } }
   } as unknown as PrismaClient;
   return { client, grams: () => capturedGrams, snapshot: () => capturedSnapshot };
@@ -28,32 +28,32 @@ function fakePrisma(hasFood = true) {
 describe("meal creation", () => {
   it("creates a meal in grams and calculates macros", async () => {
     const fake = fakePrisma();
-    const meal = await createMeal(fake.client, "user", createMealSchema.parse({ title: "Lunch", items: [{ foodId: "egg", quantity: 125, unit: "g" }] }));
+    const meal = await createMeal(fake.client, "user", createMealSchema.parse({ mealType: "lunch", title: "Lunch", items: [{ foodId: "egg", quantity: 125, unit: "g" }] }));
     expect(fake.grams()).toBe(125);
     expect(meal.totals).toMatchObject({ kcal: 250, protein: 17.5, fat: 18.75, netCarbs: 1.25 });
   });
 
   it("converts serving units to grams", async () => {
     const fake = fakePrisma();
-    await createMeal(fake.client, "user", createMealSchema.parse({ title: "Breakfast", items: [{ foodId: "egg", quantity: 2, unit: "serving", servingId: "egg-serving" }] }));
+    await createMeal(fake.client, "user", createMealSchema.parse({ mealType: "lunch", title: "Breakfast", items: [{ foodId: "egg", quantity: 2, unit: "serving", servingId: "egg-serving" }] }));
     expect(fake.grams()).toBe(100);
   });
 
   it("stores the original input and conversion snapshot", async () => {
     const fake = fakePrisma();
-    await createMeal(fake.client, "user", createMealSchema.parse({ title: "Breakfast", items: [{ foodId: "egg", quantity: 2, unit: "serving", servingId: "egg-serving" }] }));
+    await createMeal(fake.client, "user", createMealSchema.parse({ mealType: "lunch", title: "Breakfast", items: [{ foodId: "egg", quantity: 2, unit: "serving", servingId: "egg-serving" }] }));
     expect(fake.grams()).toBe(100);
   });
 
   it("rejects an invalid food id", async () => {
     const fake = fakePrisma(false);
-    await expect(createMeal(fake.client, "user", createMealSchema.parse({ title: "Lunch", items: [{ foodId: "missing", quantity: 100, unit: "g" }] }))).rejects.toMatchObject({ publicCode: "food_not_found", status: 404 });
+    await expect(createMeal(fake.client, "user", createMealSchema.parse({ mealType: "lunch", title: "Lunch", items: [{ foodId: "missing", quantity: 100, unit: "g" }] }))).rejects.toMatchObject({ publicCode: "food_not_found", status: 404 });
   });
 
   it("accepts confirmed AI grams and preserves meal-only provenance without changing servings", async () => {
     const fake = fakePrisma();
     const before = JSON.stringify(food.servings);
-    await createMeal(fake.client, "user", createMealSchema.parse({ title: "Snack", items: [{ foodId: "egg", quantity: 42, unit: "g", quantityConfirmation: { method: "user_corrected", accepted: true, grams: 42 } }] }));
+    await createMeal(fake.client, "user", createMealSchema.parse({ mealType: "lunch", title: "Snack", items: [{ foodId: "egg", quantity: 42, unit: "g", quantityConfirmation: { method: "user_corrected", accepted: true, grams: 42 } }] }));
     expect(fake.grams()).toBe(42);
     expect(fake.snapshot()).toMatchObject({ quantityConfirmation: { method: "user_corrected", accepted: true, grams: 42 } });
     expect(JSON.stringify(food.servings)).toBe(before);
@@ -65,7 +65,7 @@ describe("meal creation", () => {
   });
 
   it.each([0, -1, 5001])("rejects invalid quantity %s", (quantity) => {
-    expect(() => createMealSchema.parse({ title: "Lunch", items: [{ foodId: "egg", quantity, unit: "g" }] })).toThrow();
+    expect(() => createMealSchema.parse({ mealType: "lunch", title: "Lunch", items: [{ foodId: "egg", quantity, unit: "g" }] })).toThrow();
   });
 });
 
@@ -145,14 +145,14 @@ describe("meal creation with a recipe-discovery item", () => {
 
   it("without recipeDeps configured, a recipe-discovery item is refused rather than silently ignored", async () => {
     const fake = fakePrisma();
-    const input = createMealSchema.parse({ title: "Ebéd", items: [recipeItem()] });
+    const input = createMealSchema.parse({ mealType: "lunch", title: "Ebéd", items: [recipeItem()] });
     await expect(createMeal(fake.client, "user-1", input)).rejects.toMatchObject({ publicCode: "recipe_discovery_unavailable", status: 503 });
     expect(fake.meals).toHaveLength(0);
   });
 
   it("a recipe item alone persists a Meal with a recipeId-backed MealItem, no food row", async () => {
     const fake = fakePrisma();
-    const input = createMealSchema.parse({ title: "Ebéd", items: [recipeItem()] });
+    const input = createMealSchema.parse({ mealType: "lunch", title: "Ebéd", items: [recipeItem()] });
     const meal = await createMeal(fake.client, "user-1", input, deps());
     expect(fake.meals).toHaveLength(1);
     expect(meal.items).toHaveLength(1);
@@ -162,7 +162,7 @@ describe("meal creation with a recipe-discovery item", () => {
 
   it("Case A (no overlap): the recipe (sertéscsülök only) plus an independent potato sibling both persist, both contribute nutrition", async () => {
     const fake = fakePrisma();
-    const input = createMealSchema.parse({ title: "Ebéd", items: [recipeItem(), { foodId: "potato", quantity: 150, unit: "g" }] });
+    const input = createMealSchema.parse({ mealType: "lunch", title: "Ebéd", items: [recipeItem(), { foodId: "potato", quantity: 150, unit: "g" }] });
     const meal = await createMeal(fake.client, "user-1", input, deps());
     expect(meal.items).toHaveLength(2);
     const recipeMealItem = meal.items.find((i: any) => i.recipeId);
@@ -179,7 +179,7 @@ describe("meal creation with a recipe-discovery item", () => {
       // The recipe's own ingredients this time include potato too.
       fetchDependencies: { resolve: async () => [{ address: "93.184.216.34", family: 4 }], request: async () => ({ status: 200, headers: { "content-type": "text/html" }, body: Buffer.from(recipeHtml(["800 g sertéscsülök", "500 g burgonya"])) }) }
     };
-    const input = createMealSchema.parse({ title: "Ebéd", items: [recipeItem(), { foodId: "potato", quantity: 150, unit: "g" }] });
+    const input = createMealSchema.parse({ mealType: "lunch", title: "Ebéd", items: [recipeItem(), { foodId: "potato", quantity: 150, unit: "g" }] });
     await expect(createMeal(fake.client, "user-1", input, overlapDeps)).rejects.toMatchObject({ publicCode: "recipe_sibling_overlap", status: 409 });
     expect(fake.meals).toHaveLength(0);
   });
@@ -195,7 +195,7 @@ describe("meal creation with a recipe-discovery item", () => {
       [SOURCE_URL]: ["800 g sertéscsülök", "500 g burgonya"],
       [OTHER_URL]: ["300 g burgonya"]
     });
-    const input = createMealSchema.parse({ title: "Ebéd", items: [recipeItem(), recipeItem({ sourceUrl: OTHER_URL })] });
+    const input = createMealSchema.parse({ mealType: "lunch", title: "Ebéd", items: [recipeItem(), recipeItem({ sourceUrl: OTHER_URL })] });
     await expect(createMeal(fake.client, "user-1", input, twoRecipesOverlapDeps)).rejects.toMatchObject({ publicCode: "recipe_sibling_overlap", status: 409 });
     expect(fake.meals).toHaveLength(0);
   });
@@ -207,7 +207,7 @@ describe("meal creation with a recipe-discovery item", () => {
       [SOURCE_URL]: ["800 g sertéscsülök"],
       [OTHER_URL]: ["300 g burgonya"]
     });
-    const input = createMealSchema.parse({ title: "Ebéd", items: [recipeItem(), recipeItem({ sourceUrl: OTHER_URL })] });
+    const input = createMealSchema.parse({ mealType: "lunch", title: "Ebéd", items: [recipeItem(), recipeItem({ sourceUrl: OTHER_URL })] });
     const meal = await createMeal(fake.client, "user-1", input, disjointDeps);
     expect(meal.items).toHaveLength(2);
     expect(meal.items.every((i: any) => i.recipeId)).toBe(true);
@@ -221,7 +221,7 @@ describe("meal creation with a recipe-discovery item", () => {
   // hand-computed here (800g sertéscsülök @ 280kcal/22F/20P/0C per 100g).
   it("PHASE 15 — the persisted MealItem snapshot is EXACTLY quantityGrams x resolvedFood nutrition/100 — independently recomputed, not merely equal to itself", async () => {
     const fake = fakePrisma();
-    const input = createMealSchema.parse({ title: "Ebéd", items: [recipeItem({ quantity: 800, unit: "g" })] });
+    const input = createMealSchema.parse({ mealType: "lunch", title: "Ebéd", items: [recipeItem({ quantity: 800, unit: "g" })] });
     const meal = await createMeal(fake.client, "user-1", input, deps());
     const item = meal.items[0];
     expect(item.quantityGrams).toBe(800);
@@ -240,7 +240,7 @@ describe("meal creation with a recipe-discovery item", () => {
   // was created and re-serializing the SAME meal object.
   it("PHASE 16 — historical MealItem nutrition is stable: mutating the Food's catalog nutrition AFTER meal creation does not change the already-created meal's totals", async () => {
     const fake = fakePrisma();
-    const input = createMealSchema.parse({ title: "Ebéd", items: [recipeItem({ quantity: 800, unit: "g" })] });
+    const input = createMealSchema.parse({ mealType: "lunch", title: "Ebéd", items: [recipeItem({ quantity: 800, unit: "g" })] });
     const meal = await createMeal(fake.client, "user-1", input, deps());
     const originalKcal = meal.items[0].totals.kcal;
     expect(originalKcal).toBeCloseTo(800 / 100 * 280, 9);
@@ -271,7 +271,7 @@ describe("meal creation with a recipe-discovery item", () => {
   // other and each create its own duplicate Recipe row for the same URL.
   it("two items in the same request referencing the SAME sourceUrl resolve to the SAME Recipe — no duplicate Recipe row from the in-request race", async () => {
     const fake = fakePrisma();
-    const input = createMealSchema.parse({ title: "Ebéd", items: [recipeItem({ quantity: 400, unit: "g" }), recipeItem({ quantity: 400, unit: "g" })] });
+    const input = createMealSchema.parse({ mealType: "lunch", title: "Ebéd", items: [recipeItem({ quantity: 400, unit: "g" }), recipeItem({ quantity: 400, unit: "g" })] });
     const meal = await createMeal(fake.client, "user-1", input, deps());
     expect(fake.recipeCreateCalls()).toBe(1);
     expect(meal.items).toHaveLength(2);
@@ -343,7 +343,7 @@ describe("meal creation with an AI-estimate item", () => {
 
   it("accepts a valid estimate: persists a new Food tagged ai_estimated, createdById-scoped to the accepting user", async () => {
     const fake = fakePrismaWithFoods();
-    const meal = await createMeal(fake.client, "user-1", createMealSchema.parse({ title: "Dinner", items: [acceptItem("user-1")] }));
+    const meal = await createMeal(fake.client, "user-1", createMealSchema.parse({ mealType: "lunch", title: "Dinner", items: [acceptItem("user-1")] }));
     expect(fake.foods).toHaveLength(1);
     expect(fake.foods[0]).toMatchObject({ source: "ai_estimated", createdById: "user-1", name: "Crucian carp, raw", kcalPer100g: 97 });
     expect(fake.foods[0].provenance).toMatchObject({ method: "ai_estimated", userAccepted: true, requestedIdentity: "karasz" });
@@ -354,7 +354,7 @@ describe("meal creation with an AI-estimate item", () => {
     const fake = fakePrismaWithFoods();
     const stolenProof = createAiEstimateProof("user-1", estimate);
     const item = { aiEstimateProof: stolenProof, ...estimate, quantityGrams: 150 };
-    await expect(createMeal(fake.client, "user-2", createMealSchema.parse({ title: "Dinner", items: [item] })))
+    await expect(createMeal(fake.client, "user-2", createMealSchema.parse({ mealType: "lunch", title: "Dinner", items: [item] })))
       .rejects.toMatchObject({ publicCode: "invalid_ai_estimate_proof" });
     expect(fake.foods).toHaveLength(0);
   });
@@ -363,22 +363,22 @@ describe("meal creation with an AI-estimate item", () => {
     const fake = fakePrismaWithFoods();
     const item = acceptItem("user-1", {});
     item.kcalPer100g = 999; // tampered AFTER minting the proof for the original value
-    await expect(createMeal(fake.client, "user-1", createMealSchema.parse({ title: "Dinner", items: [item] })))
+    await expect(createMeal(fake.client, "user-1", createMealSchema.parse({ mealType: "lunch", title: "Dinner", items: [item] })))
       .rejects.toMatchObject({ publicCode: "invalid_ai_estimate_proof" });
     expect(fake.foods).toHaveLength(0);
   });
 
   it("Part O: accepting the SAME identity again reuses the existing private Food instead of creating a duplicate", async () => {
     const fake = fakePrismaWithFoods();
-    await createMeal(fake.client, "user-1", createMealSchema.parse({ title: "Dinner", items: [acceptItem("user-1")] }));
-    await createMeal(fake.client, "user-1", createMealSchema.parse({ title: "Dinner again", items: [acceptItem("user-1")] }));
+    await createMeal(fake.client, "user-1", createMealSchema.parse({ mealType: "lunch", title: "Dinner", items: [acceptItem("user-1")] }));
+    await createMeal(fake.client, "user-1", createMealSchema.parse({ mealType: "lunch", title: "Dinner again", items: [acceptItem("user-1")] }));
     expect(fake.foods).toHaveLength(1);
   });
 
   it("Part W (P0, mandatory): a SECOND user's identical-looking request creates their OWN private Food, never reusing or reading User A's row", async () => {
     const fake = fakePrismaWithFoods();
-    await createMeal(fake.client, "user-A", createMealSchema.parse({ title: "Dinner", items: [acceptItem("user-A")] }));
-    await createMeal(fake.client, "user-B", createMealSchema.parse({ title: "Dinner", items: [acceptItem("user-B")] }));
+    await createMeal(fake.client, "user-A", createMealSchema.parse({ mealType: "lunch", title: "Dinner", items: [acceptItem("user-A")] }));
+    await createMeal(fake.client, "user-B", createMealSchema.parse({ mealType: "lunch", title: "Dinner", items: [acceptItem("user-B")] }));
     expect(fake.foods).toHaveLength(2);
     expect(fake.foods[0].createdById).toBe("user-A");
     expect(fake.foods[1].createdById).toBe("user-B");
@@ -388,14 +388,14 @@ describe("meal creation with an AI-estimate item", () => {
   it("Part W: User B cannot accept using a proof minted for User A even with matching request shape", async () => {
     const fake = fakePrismaWithFoods();
     const proofForA = createAiEstimateProof("user-A", estimate);
-    await expect(createMeal(fake.client, "user-B", createMealSchema.parse({ title: "Dinner", items: [{ aiEstimateProof: proofForA, ...estimate, quantityGrams: 150 }] })))
+    await expect(createMeal(fake.client, "user-B", createMealSchema.parse({ mealType: "lunch", title: "Dinner", items: [{ aiEstimateProof: proofForA, ...estimate, quantityGrams: 150 }] })))
       .rejects.toMatchObject({ publicCode: "invalid_ai_estimate_proof" });
   });
 
   it("Part K/N: a user's own EARLIER manually-entered (user_input) private Food is also reused, not duplicated, by a later AI-estimate acceptance for the same identity", async () => {
     const priorManual = { id: "manual-1", name: "Crucian carp (my own entry)", createdById: "user-1", source: "user_input", searchText: "crucian carp my own entry karasz", kcalPer100g: 90, proteinPer100g: 18, fatPer100g: 2, carbsPer100g: 0, fiberPer100g: 0 };
     const fake = fakePrismaWithFoods([priorManual]);
-    const meal = await createMeal(fake.client, "user-1", createMealSchema.parse({ title: "Dinner", items: [acceptItem("user-1")] }));
+    const meal = await createMeal(fake.client, "user-1", createMealSchema.parse({ mealType: "lunch", title: "Dinner", items: [acceptItem("user-1")] }));
     expect(fake.foods).toHaveLength(1); // no new Food created — the prior private entry was reused
     expect(meal.items[0].food?.id).toBe("manual-1");
   });
@@ -403,7 +403,26 @@ describe("meal creation with an AI-estimate item", () => {
   it("expired proof is rejected", async () => {
     const fake = fakePrismaWithFoods();
     const expiredProof = createAiEstimateProof("user-1", estimate, "a".repeat(32), Date.now() - 20 * 60 * 1000);
-    await expect(createMeal(fake.client, "user-1", createMealSchema.parse({ title: "Dinner", items: [{ aiEstimateProof: expiredProof, ...estimate, quantityGrams: 150 }] })))
+    await expect(createMeal(fake.client, "user-1", createMealSchema.parse({ mealType: "lunch", title: "Dinner", items: [{ aiEstimateProof: expiredProof, ...estimate, quantityGrams: 150 }] })))
       .rejects.toMatchObject({ publicCode: "invalid_ai_estimate_proof" });
+  });
+});
+
+describe("meal type is required (owner decision 2026-10-15)", () => {
+  it("rejects a meal without a type and a custom type without a name", () => {
+    const item = { foodId: "egg", quantity: 100, unit: "g" };
+    expect(createMealSchema.safeParse({ title: "Tojás", items: [item] }).success).toBe(false);
+    expect(createMealSchema.safeParse({ title: "Tojás", mealType: "custom", items: [item] }).success).toBe(false);
+    expect(createMealSchema.safeParse({ title: "Tojás", mealType: "custom", mealTypeLabel: "Edzés után", items: [item] }).success).toBe(true);
+    expect(createMealSchema.safeParse({ title: "Tojás", mealType: "morning_snack", items: [item] }).success).toBe(true);
+    expect(createMealSchema.safeParse({ title: "Tojás", mealType: "brunch", items: [item] }).success).toBe(false);
+  });
+
+  it("stores the type; a label only for a custom type", async () => {
+    const fake = fakePrisma();
+    const custom = await createMeal(fake.client, "user", createMealSchema.parse({ mealType: "custom", mealTypeLabel: "Edzés után", title: "Tojás", items: [{ foodId: "egg", quantity: 100, unit: "g" }] }));
+    expect(custom).toMatchObject({ mealType: "custom", mealTypeLabel: "Edzés után" });
+    const lunch = await createMeal(fake.client, "user", createMealSchema.parse({ mealType: "lunch", mealTypeLabel: "ignored", title: "Tojás", items: [{ foodId: "egg", quantity: 100, unit: "g" }] }));
+    expect(lunch).toMatchObject({ mealType: "lunch", mealTypeLabel: null });
   });
 });

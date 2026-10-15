@@ -135,8 +135,8 @@ describe("recipe meal snapshots", () => {
     expect(itemTotals(item).netCarbs).not.toBe(3); // the re-clamped max(0, 6-3) bug value
   });
   it("rejects client-supplied nutrition on the add-to-meal request at the schema boundary", () => {
-    expect(recipeMealSchema.safeParse({ quantity: 1, unit: "g", kcal: 9999 }).success).toBe(false);
-    expect(recipeMealSchema.safeParse({ quantity: 1, unit: "g" }).success).toBe(true);
+    expect(recipeMealSchema.safeParse({ mealType: "dinner", quantity: 1, unit: "g", kcal: 9999 }).success).toBe(false);
+    expect(recipeMealSchema.safeParse({ mealType: "dinner", quantity: 1, unit: "g" }).success).toBe(true);
   });
 });
 

@@ -1,3 +1,4 @@
+import { MealTypePicker, mealTypeFields, rememberCustomMealType, suggestedChoice, type MealChoice } from "./MealTypePicker";
 import { useEffect, useState } from "react";
 import { ArrowLeft, Copy, Pencil, Trash2, X } from "lucide-react";
 import { api, ApiError, type ApiState } from "./api";
@@ -28,11 +29,16 @@ function sourceHost(url: string) {
 }
 
 export function RecipeDetail({
-  recipeId, lang, state, currentUserId, onBack, onEdit, onDeleted, onMealAdded
+  recipeId, lang, state, currentUserId, onBack, onEdit, onDeleted, onMealAdded, mealChoice: sharedChoice, onMealChoiceChange
 }: {
   recipeId: string; lang: Lang; state: ApiState; currentUserId: string;
   onBack: () => void; onEdit: (recipe: RecipeDetailData) => void; onDeleted: () => void; onMealAdded: () => Promise<void>;
+  mealChoice?: MealChoice; onMealChoiceChange?: (next: MealChoice) => void;
 }) {
+  // Same "which meal?" choice as the meal entry card (shared when provided).
+  const [ownChoice, setOwnChoice] = useState<MealChoice>(() => suggestedChoice());
+  const mealChoice = sharedChoice ?? ownChoice;
+  const setMealChoice = onMealChoiceChange ?? setOwnChoice;
   const t = dict[lang];
   const [recipe, setRecipe] = useState<RecipeDetailData | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -72,7 +78,10 @@ export function RecipeDetail({
   async function addToMeal(quantity: number, unit: "g" | "serving") {
     if (!recipe) return;
     try {
-      await api(`/recipes/${recipe.id}/meals`, { method: "POST", body: JSON.stringify({ quantity, unit }) }, state);
+      const typeFields = mealTypeFields(mealChoice);
+      if (!typeFields) { setStatus({ kind: "error", text: t.mealErrors.meal_type_label_required }); return; }
+      if (typeFields.mealTypeLabel) rememberCustomMealType(typeFields.mealTypeLabel);
+      await api(`/recipes/${recipe.id}/meals`, { method: "POST", body: JSON.stringify({ ...typeFields, quantity, unit }) }, state);
       await onMealAdded();
       setStatus({ kind: "success", text: `${recipe.title}${t.recipes.addedToMealSuffix}` });
     } catch (error) {
@@ -127,6 +136,7 @@ export function RecipeDetail({
             {recipe.nutrition.per100g && <NutritionSummary title={t.recipes.per100g} totals={recipe.nutrition.per100g.macros}/>}
           </div>
 
+          <MealTypePicker lang={lang} value={mealChoice} onChange={setMealChoice} idPrefix="recipe-meal-type"/>
           <RecipeMealControls recipe={recipe} lang={lang} onAdd={addToMeal}/>
         </article>
       )}

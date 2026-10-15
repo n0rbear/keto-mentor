@@ -3,6 +3,16 @@ import { z } from "zod";
 export const locales = ["hu", "de", "en"] as const;
 export type Locale = (typeof locales)[number];
 
+// Meal type (owner decision 2026-10-15): every logged meal says which meal it
+// is. Suggested from the time of day, always changeable; "custom" carries the
+// user's own name in mealTypeLabel. Legacy meals have none (null).
+export const mealTypes = ["breakfast", "morning_snack", "lunch", "afternoon_snack", "dinner", "snack", "custom"] as const;
+export type MealType = (typeof mealTypes)[number];
+export const mealTypeLabelSchema = z.string().trim().min(1).max(40);
+const customNeedsLabel = (value: { mealType?: MealType; mealTypeLabel?: string }, context: z.RefinementCtx) => {
+  if (value.mealType === "custom" && !value.mealTypeLabel) context.addIssue({ code: z.ZodIssueCode.custom, path: ["mealTypeLabel"], message: "custom_meal_type_needs_label" });
+};
+
 // E-mail (owner decision 2026-10-15, tester release): required for new
 // accounts so a forgotten password can be reset by e-mail; login accepts the
 // username or the e-mail address in the same field.
@@ -150,9 +160,11 @@ export const aiEstimateMealItemSchema = z.object({
 
 export const createMealSchema = z.object({
   title: z.string().trim().min(2).max(100),
+  mealType: z.enum(mealTypes),
+  mealTypeLabel: mealTypeLabelSchema.optional(),
   eatenAt: z.string().datetime().optional(),
   items: z.array(z.union([catalogMealItemSchema, manualMealItemSchema, recipeDiscoveryMealItemSchema, aiEstimateMealItemSchema])).min(1).max(20)
-});
+}).superRefine(customNeedsLabel);
 
 // Part P (2026-09-16): correcting a PRIVATE Food's own macros by hand — only
 // ever valid for a Food this user owns (createdById) and whose source is
@@ -182,11 +194,14 @@ export const editMealItemSchema = z.object({
 
 export const editMealSchema = z.object({
   title: z.string().trim().min(2).max(100).optional(),
+  mealType: z.enum(mealTypes).optional(),
+  mealTypeLabel: mealTypeLabelSchema.optional(),
   eatenAt: z.string().datetime().optional(),
   items: z.array(editMealItemSchema).max(20).optional(),
   removeItemIds: z.array(z.string().min(1)).max(20).optional()
 }).strict().superRefine((value, context) => {
-  if (value.title === undefined && value.eatenAt === undefined && !value.items?.length && !value.removeItemIds?.length) {
+  customNeedsLabel(value, context);
+  if (value.title === undefined && value.mealType === undefined && value.eatenAt === undefined && !value.items?.length && !value.removeItemIds?.length) {
     context.addIssue({ code: "custom", message: "no_changes_provided" });
   }
   if (value.items) {
@@ -206,7 +221,9 @@ export type EditMealInput = z.infer<typeof editMealSchema>;
 // Repeat carries no client-authored content at all — the server loads the
 // trusted source meal itself, so any field here (identity, quantity,
 // nutrition, another userId) would only ever be a forgery attempt.
-export const repeatMealSchema = z.object({}).strict();
+// The only choice a repeat takes is which meal it is now (optional: the source
+// meal's type is kept when absent).
+export const repeatMealSchema = z.object({ mealType: z.enum(mealTypes).optional(), mealTypeLabel: mealTypeLabelSchema.optional() }).strict().superRefine(customNeedsLabel);
 
 export const mealInterpretationSchema = z.object({
   text: z.string().trim().min(2).max(300),
@@ -353,9 +370,11 @@ export const recipeInputSchema = z.object({
 // outright rather than silently stripped.
 export const recipeMealSchema = z.object({
   title: z.string().trim().min(2).max(100).optional(),
+  mealType: z.enum(mealTypes),
+  mealTypeLabel: mealTypeLabelSchema.optional(),
   quantity: z.number().positive().max(5000),
   unit: z.enum(["g", "serving"])
-}).strict();
+}).strict().superRefine(customNeedsLabel);
 export const recipeListQuerySchema = z.object({
   q: z.string().trim().max(120).optional(),
   limit: z.coerce.number().int().min(1).max(50).default(20),

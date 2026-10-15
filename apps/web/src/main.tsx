@@ -14,6 +14,7 @@ import { WeekOverviewCard, type WeekOverviewData } from "./WeekOverview";
 import { AuthForm } from "./AuthForm";
 import { EmailPrompt, VerifyEmailBand } from "./EmailPrompt";
 import { AdminPage } from "./AdminPage";
+import { MealTypePicker, mealTypeFields, mealTypeText, rememberCustomMealType, suggestedChoice, type MealChoice } from "./MealTypePicker";
 import { LegalFooter, LegalPageView, legalPageFromHash, type LegalPage } from "./LegalPages";
 import { createPortal } from "react-dom";
 import { FoodUnderstandingPreview, type ExternalCandidate, type RecipeDiscoveryPreviewValue, type RecipeDiscoveryCandidateValue, type AiEstimateValue, type AiEstimateOverridePayload, type CandidateFood, type RecipeIngredientOverride, type LocalRecipeOption, LocalRecipePicker, statedServings, statedPlates } from "./FoodUnderstandingPreview";
@@ -34,7 +35,7 @@ import type { QuantityClarification as Clarification } from "@keto-mentor/shared
 
 type User = { id: string; username: string; email?: string | null; emailVerified?: boolean; isAdmin?: boolean; locale: Lang; profile?: any; _count?: { plates?: number } };
 export type Totals = { kcal: number; fat: number; protein: number; carbs: number; fiber: number; netCarbs: number };
-type Meal = { id: string; title: string; eatenAt: string; totals: Totals };
+type Meal = { id: string; title: string; mealType?: string | null; mealTypeLabel?: string | null; eatenAt: string; totals: Totals };
 export type FoodServing = { id: string; key: string; unit: string; labels?: Partial<Record<Lang, string>>; grams: number; isEstimated: boolean; confidence: number; provenance?: unknown };
 export type Food = { id: string; name: string; names?: Record<Lang, string>; servings?: FoodServing[]; kcalPer100g: number; fatPer100g: number; proteinPer100g: number; carbsPer100g: number; fiberPer100g: number; provenance?: any; match?: { stage: string; score: number } };
 type MealInterpretation = {
@@ -104,6 +105,15 @@ export function App() {
   const [confirmingRecipe, setConfirmingRecipe] = useState(false);
   const [confirmingAiEstimate, setConfirmingAiEstimate] = useState(false);
   const [myPlatesOpen, setMyPlatesOpen] = useState(false);
+  // Which meal the next logged food belongs to (owner decision 2026-10-15):
+  // suggested from the time of day, required, changeable, own name possible.
+  const [mealChoice, setMealChoice] = useState<MealChoice>(() => suggestedChoice());
+  function requireTypeFields() {
+    const fields = mealTypeFields(mealChoice);
+    if (!fields) throw new ApiError("meal_type_label_required");
+    if (fields.mealTypeLabel) rememberCustomMealType(fields.mealTypeLabel);
+    return fields;
+  }
   // Source attribution / privacy notice (#forrasok, #adatvedelem), shown
   // over every view, signed in or not (tester release 2026-10-15).
   const [legalPage, setLegalPage] = useState<LegalPage | null>(() => legalPageFromHash(window.location.hash));
@@ -245,9 +255,9 @@ export function App() {
   // Repeat always logs at now, so — unlike Edit/Delete — jump the diary to
   // today even when repeating from a historical date, so the new entry is
   // immediately visible instead of appearing to do nothing.
-  async function confirmRepeatMeal() {
+  async function confirmRepeatMeal(type: { mealType: string; mealTypeLabel?: string }) {
     if (!repeatingMeal) return;
-    await api(`/meals/${repeatingMeal.id}/repeat`, { method: "POST", body: JSON.stringify({}) }, state);
+    await api(`/meals/${repeatingMeal.id}/repeat`, { method: "POST", body: JSON.stringify(type) }, state);
     setRepeatingMeal(null);
     await handleMealLogged();
     setMealStatus({ kind: "success", text: t.diary.mealRepeated });
@@ -308,7 +318,7 @@ export function App() {
       const selectedServing = selectedFood.servings?.find((serving) => serving.id === servingId);
       await api("/meals", {
         method: "POST",
-        body: JSON.stringify({ title: String(form.get("title") ?? "").trim() || (pickDisplayName(selectedFood, lang) || selectedFood.name).slice(0, 100), items: [{ foodId: selectedFood.id, quantity: Number(form.get("quantity")), unit: servingId ? "serving" : mealMeasure, servingId, gramsOverride: selectedServing?.isEstimated && gramsOverride ? Number(gramsOverride) : undefined, quantityConfirmation: interpretation?.selectedFood?.id === selectedFood.id && mealMeasure === "g" && interpretation.quantityConfirmation ? { ...interpretation.quantityConfirmation, grams: Number(form.get("quantity")), method: Number(form.get("quantity")) === interpretation.quantityConfirmation.grams ? interpretation.quantityConfirmation.method : "user_corrected" } : undefined }] })
+        body: JSON.stringify({ ...requireTypeFields(), title: String(form.get("title") ?? "").trim() || (pickDisplayName(selectedFood, lang) || selectedFood.name).slice(0, 100), items: [{ foodId: selectedFood.id, quantity: Number(form.get("quantity")), unit: servingId ? "serving" : mealMeasure, servingId, gramsOverride: selectedServing?.isEstimated && gramsOverride ? Number(gramsOverride) : undefined, quantityConfirmation: interpretation?.selectedFood?.id === selectedFood.id && mealMeasure === "g" && interpretation.quantityConfirmation ? { ...interpretation.quantityConfirmation, grams: Number(form.get("quantity")), method: Number(form.get("quantity")) === interpretation.quantityConfirmation.grams ? interpretation.quantityConfirmation.method : "user_corrected" } : undefined }] })
       }, state);
       formElement.reset();
       setSelectedFood(null);
@@ -449,6 +459,7 @@ export function App() {
       await api("/meals", {
         method: "POST",
         body: JSON.stringify({
+          ...requireTypeFields(),
           title: interpretation?.semantic?.dishName || candidate.title,
           items: [{ sourceUrl: candidate.sourceUrl, importProof: candidate.importProof, extractionMethod: candidate.extractionMethod, quantity, unit, ...(ingredientOverrides?.length ? { ingredientOverrides } : {}) }]
         })
@@ -473,7 +484,7 @@ export function App() {
     setMealStatus(null);
     try {
       const title = (interpretation?.semantic?.dishName || option.title).slice(0, 100);
-      await api(`/recipes/${encodeURIComponent(option.recipeId)}/meals`, { method: "POST", body: JSON.stringify({ title: title.length >= 2 ? title : option.title, quantity, unit }) }, state);
+      await api(`/recipes/${encodeURIComponent(option.recipeId)}/meals`, { method: "POST", body: JSON.stringify({ ...requireTypeFields(), title: title.length >= 2 ? title : option.title, quantity, unit }) }, state);
       setInterpretation(null);
       setNaturalInput("");
       await handleMealLogged();
@@ -501,6 +512,7 @@ export function App() {
       await api("/meals", {
         method: "POST",
         body: JSON.stringify({
+          ...requireTypeFields(),
           title: estimate.localizedFoodName || estimate.canonicalFoodName,
           items: [{
             aiEstimateProof: estimate.proof, requestedIdentity: estimate.requestedIdentity, canonicalFoodName: estimate.canonicalFoodName,
@@ -535,6 +547,7 @@ export function App() {
       await api("/meals", {
         method: "POST",
         body: JSON.stringify({
+          ...requireTypeFields(),
           title: payload.foodName,
           items: [{
             foodName: payload.foodName, quantityGrams: payload.quantityGrams, source: "user_input",
@@ -616,7 +629,7 @@ export function App() {
     setMealSaving(true);
     setMealStatus(null);
     try {
-      await api("/meals", { method: "POST", body: JSON.stringify({ title: interpretation.input || (lang === "hu" ? "Ebéd" : lang === "de" ? "Mahlzeit" : "Meal"), items }) }, state);
+      await api("/meals", { method: "POST", body: JSON.stringify({ ...requireTypeFields(), title: interpretation.input || (lang === "hu" ? "Ebéd" : lang === "de" ? "Mahlzeit" : "Meal"), items }) }, state);
       setInterpretation(null);
       setNaturalInput("");
       await handleMealLogged();
@@ -822,7 +835,7 @@ export function App() {
               ) : (
                 <div className="meal-list">{meals.map((m) => (
                   <div className="meal" key={m.id}>
-                    <div className="meal-copy"><strong>{m.title}</strong><time dateTime={m.eatenAt}>{formatMealTime(m.eatenAt, lang)}</time></div>
+                    <div className="meal-copy">{mealTypeText(m, lang) && <span className="meal-type-tag">{mealTypeText(m, lang)}</span>}<strong>{m.title}</strong><time dateTime={m.eatenAt}>{formatMealTime(m.eatenAt, lang)}</time></div>
                     <span className="meal-macros">{Math.round(m.totals.kcal)} kcal · <b>{Math.round(m.totals.netCarbs)} g net</b></span>
                     <div className="meal-actions">
                       <button type="button" className="icon-button meal-action-btn" aria-label={t.diary.repeatMeal} onClick={() => setRepeatingMeal({ id: m.id, title: m.title })}><Repeat size={14}/></button>
@@ -836,6 +849,7 @@ export function App() {
           </div>
           <form id="log-meal" onSubmit={addMeal} method="post" className="card meal-entry-card space-y-3">
             <h2 className="section-heading"><Plus size={20}/>{t.addMeal}</h2>
+            <MealTypePicker lang={lang} value={mealChoice} onChange={setMealChoice}/>
             <div className="natural-input">
               <label htmlFor="natural-meal-input">{lang === "hu" ? "Mit ettél?" : lang === "de" ? "Was hast du gegessen?" : "What did you eat?"}</label>
               <p className="natural-input-helper">{lang === "hu" ? "Ételt, alapanyagot vagy vonalkódot is írhatsz vagy mondhatsz. Gépelés közben javaslatokat mutatok, Enterre a teljes mondatot értelmezem." : lang === "de" ? "Gericht, Zutat oder Barcode – tippen oder sprechen. Beim Tippen gibt es Vorschläge, Enter wertet den ganzen Satz aus." : "A dish, an ingredient or a barcode – type or speak. Suggestions appear while typing; Enter interprets the whole sentence."}</p>
@@ -881,7 +895,7 @@ export function App() {
       )}
       {user && profile?.onboardingDone && (
         <section id="recipes">
-          <RecipeBuilder lang={lang} state={state} currentUserId={user.id} onMealAdded={handleMealLogged}/>
+          <RecipeBuilder lang={lang} state={state} currentUserId={user.id} onMealAdded={handleMealLogged} mealChoice={mealChoice} onMealChoiceChange={setMealChoice}/>
         </section>
       )}
       {user && profile?.onboardingDone && <MobileNav lang={lang}/>}

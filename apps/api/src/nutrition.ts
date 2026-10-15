@@ -5,7 +5,7 @@ type MealWithItems = Meal & { items: Array<MealItem & { food: Food | null; recip
 type TotalsItem = Pick<MealItem, "quantityGrams" | "snapshotKcal" | "snapshotFat" | "snapshotProtein" | "snapshotCarbs" | "snapshotFiber" | "snapshotNetCarbs"> & {
   food: Pick<Food, "kcalPer100g" | "fatPer100g" | "proteinPer100g" | "carbsPer100g" | "fiberPer100g"> | null;
 };
-type MealSummaryInput = Pick<Meal, "id" | "title" | "eatenAt"> & { items: TotalsItem[] };
+type MealSummaryInput = Pick<Meal, "id" | "title" | "eatenAt"> & Partial<Pick<Meal, "mealType" | "mealTypeLabel">> & { items: TotalsItem[] };
 
 export function itemTotals(item: TotalsItem) {
   if (item.snapshotKcal != null && item.snapshotFat != null && item.snapshotProtein != null && item.snapshotCarbs != null && item.snapshotFiber != null) {
@@ -42,6 +42,8 @@ export function serializeMealSummary(meal: MealSummaryInput) {
   return {
     id: meal.id,
     title: meal.title,
+    mealType: meal.mealType ?? null,
+    mealTypeLabel: meal.mealTypeLabel ?? null,
     eatenAt: meal.eatenAt,
     totals: mealTotals(meal)
   };
@@ -51,6 +53,8 @@ export function serializeMeal(meal: MealWithItems) {
   return {
     id: meal.id,
     title: meal.title,
+    mealType: meal.mealType ?? null,
+    mealTypeLabel: meal.mealTypeLabel ?? null,
     eatenAt: meal.eatenAt,
     totals: mealTotals(meal),
     items: meal.items.map((item) => ({ id: item.id, quantityGrams: item.quantityGrams, displayName: item.displayName ?? item.food?.name ?? item.recipe?.title, food: item.food, recipeId: item.recipeId, snapshotNutrients: item.snapshotNutrients, totals: itemTotals(item) }))

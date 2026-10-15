@@ -198,6 +198,8 @@ export async function addRecipeToMeal(prisma: PrismaClient, userId: string, reci
     data: {
       userId,
       title: input.title ?? recipe.title,
+      mealType: input.mealType,
+      mealTypeLabel: input.mealType === "custom" ? input.mealTypeLabel : null,
       items: { create: {
         recipeId: recipe.id,
         quantityGrams,

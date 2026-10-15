@@ -26,7 +26,7 @@ function makeMeal(items: TestItem[]) {
 }
 
 describe("serializeMealSummary", () => {
-  it("returns id, title, eatenAt and totals only (no items array)", () => {
+  it("returns id, title, meal type, eatenAt and totals only (no items array)", () => {
     const meal = makeMeal([
       {
         id: "i1",
@@ -45,6 +45,8 @@ describe("serializeMealSummary", () => {
     expect(out).toEqual({
       id: "meal_1",
       title: "Breakfast",
+      mealType: null,
+      mealTypeLabel: null,
       eatenAt: new Date("2026-08-23T08:00:00Z"),
       totals: { kcal: 200, fat: 10, protein: 5, carbs: 2, fiber: 1, netCarbs: 1 }
     });

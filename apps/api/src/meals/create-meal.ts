@@ -147,6 +147,8 @@ export async function createMeal(prisma: PrismaClient, userId: string, input: Cr
     data: {
       userId,
       title: input.title,
+      mealType: input.mealType,
+      mealTypeLabel: input.mealType === "custom" ? input.mealTypeLabel : null,
       eatenAt: input.eatenAt ? new Date(input.eatenAt) : new Date(),
       items: {
         create: input.items.map((item, index): Prisma.MealItemCreateWithoutMealInput => {

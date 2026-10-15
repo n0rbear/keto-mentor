@@ -61,7 +61,7 @@ function cloneItemData(item: SourceMealItem) {
  * (identity, quantity, nutrition) is read from the trusted source row only;
  * the request body carries none of it.
  */
-export async function repeatMeal(prisma: PrismaClient, userId: string, sourceMealId: string, now: Date = new Date()) {
+export async function repeatMeal(prisma: PrismaClient, userId: string, sourceMealId: string, now: Date = new Date(), type: { mealType?: string; mealTypeLabel?: string } = {}) {
   const source = await prisma.meal.findFirst({ where: { id: sourceMealId, userId }, include: { items: true } });
   if (!source) throw mealNotFoundError();
   if (source.items.length === 0) throw corruptSourceMealError();
@@ -73,6 +73,9 @@ export async function repeatMeal(prisma: PrismaClient, userId: string, sourceMea
     data: {
       userId,
       title: source.title,
+      // Which meal it is now: the chosen type, else the source meal's.
+      mealType: type.mealType ?? source.mealType,
+      mealTypeLabel: (type.mealType ?? source.mealType) === "custom" ? (type.mealType ? type.mealTypeLabel : source.mealTypeLabel) ?? null : null,
       eatenAt: now,
       items: { create: source.items.map(cloneItemData) }
     },
