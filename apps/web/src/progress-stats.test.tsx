@@ -25,7 +25,7 @@ describe("Haladó statisztika", () => {
     fireEvent.click(screen.getByRole("button", { name: "Táblázat" }));
     expect(screen.getByText("3/4 (75%)")).toBeTruthy();
     fireEvent.change(screen.getByLabelText("Testsúly (kg)"), { target: { value: "81,8" } });
-    fireEvent.click(screen.getByRole("button", { name: "Mentés" }));
+    fireEvent.click(screen.getByRole("button", { name: "Testsúly mentése" }));
     await waitFor(() => expect(puts).toEqual([{ date: "2026-10-16", weightKg: 81.8 }]));
     expect(await screen.findByText(/-2,2 kg az első mérés óta/)).toBeTruthy();
   });

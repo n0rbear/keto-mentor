@@ -81,7 +81,7 @@ Focus on real daily usage, bug fixing and UX polish. Complete password reset/ema
   4. Advanced stats and weight log: shipped in beta (2026-10-16).
   5. Export (PDF/CSV): shipped in beta (2026-10-16). CSV (Excel-friendly) and a printable report saved as PDF by the browser.
   6. Micronutrients: shipped in beta (2026-10-16). Daily vitamins and minerals against the EU NRVs (1169/2011 Annex XIII), sodium against the WHO upper guideline.
-  7. Flexible goals (per weekday, carb cycling).
+  7. Flexible goals (per weekday, carb cycling): shipped in beta (2026-10-16). Diary targets, dinner ideas, meal plan and stats use each day's goal.
   8. Reminders.
 
 ## Delivery principles

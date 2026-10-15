@@ -1,4 +1,5 @@
 import express from "express";
+import { effectiveGoals } from "@keto-mentor/shared";
 import { z } from "zod";
 import { getSettings } from "../admin/runtime-settings.js";
 import { hasPremiumFeature, loadDinnerCandidates, type DinnerCandidate, type Lang } from "./dinner-suggestions.js";
@@ -21,8 +22,9 @@ export function mealPlanRouter(deps: Deps) {
     const p = user?.profile;
     const goals: Goals = { kcal: p?.dailyKcal ?? 1800, protein: p?.dailyProtein ?? 110, netCarbs: p?.dailyNetCarbs ?? 25, fat: p?.dailyFat ?? 130 };
     const avoid: string[] = [...(p?.avoidedFoods ?? []), ...(p?.allergies ?? [])];
+    const goalsFor = (date: string): Goals => { const g = effectiveGoals(p, date); return { kcal: g.dailyKcal, protein: g.dailyProtein, netCarbs: g.dailyNetCarbs, fat: g.dailyFat }; };
     const lang = (["hu", "de", "en"].includes(String(req.query.lang)) ? req.query.lang : user?.locale ?? "hu") as Lang;
-    return { allowed, goals, avoid, lang };
+    return { allowed, goals, goalsFor, avoid, lang };
   }
 
   async function respond(res: express.Response, plan: { id: string; startDate: string; days: PlanDay[] } | null, candidates: DinnerCandidate[] | null, ctx: { goals: Goals; lang: Lang }, userId: string) {
@@ -49,7 +51,7 @@ export function mealPlanRouter(deps: Deps) {
       if (!ctx.allowed) return res.status(403).json({ error: "premium_required" });
       const { startDate } = createSchema.parse(req.body);
       const candidates = await loadDinnerCandidates(prisma, req.user!.id);
-      const days = generatePlan({ candidates, goals: ctx.goals, avoid: ctx.avoid, startDate });
+      const days = generatePlan({ candidates, goals: ctx.goals, goalsFor: ctx.goalsFor, avoid: ctx.avoid, startDate });
       const plan = await prisma.mealPlan.upsert({
         where: { userId_startDate: { userId: req.user!.id, startDate } },
         create: { userId: req.user!.id, startDate, days: days as any },
@@ -68,7 +70,7 @@ export function mealPlanRouter(deps: Deps) {
       const plan = await prisma.mealPlan.findFirst({ where: { id: req.params.id, userId: req.user!.id } });
       if (!plan) return res.status(404).json({ error: "not_found" });
       const candidates = await loadDinnerCandidates(prisma, req.user!.id);
-      const days = swapMeal({ days: plan.days as PlanDay[], date, slot: mealType, candidates, goals: ctx.goals, avoid: ctx.avoid });
+      const days = swapMeal({ days: plan.days as PlanDay[], date, slot: mealType, candidates, goals: ctx.goals, goalsFor: ctx.goalsFor, avoid: ctx.avoid });
       await prisma.mealPlan.update({ where: { id: plan.id }, data: { days: days as any } });
       await respond(res, { id: plan.id, startDate: plan.startDate, days }, candidates, ctx, req.user!.id);
     } catch (error) { next(error); }

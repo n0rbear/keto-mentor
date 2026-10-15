@@ -743,3 +743,17 @@ body { padding-left: var(--safe-left); padding-right: var(--safe-right); }
   main[data-mobile-view="micros"] #micros { display: block; padding-top: 1rem; }
   main[data-mobile-view="micros"] #today { display: none; }
 }
+#goals { width: min(1180px, calc(100% - 32px)); margin: 0 auto 1.25rem; }
+@media (max-width: 860px) { #goals { width: min(100% - 24px, 1180px); } }
+.flex-goals-card { display: grid; gap: .6rem; }
+.flex-goals-card > .btn { justify-self: start; }
+.flex-goals-table { display: grid; gap: .3rem; }
+.flex-goals-row { display: grid; grid-template-columns: minmax(5.5rem, 1.2fr) repeat(3, minmax(0, 1fr)); gap: .35rem; align-items: center; }
+.flex-goals-row.is-head span { font-size: .68rem; font-weight: 800; color: rgb(var(--text-muted)); }
+.flex-goals-row span[role="rowheader"] { font-size: .85rem; font-weight: 700; }
+.flex-goals-row .field { min-width: 0; text-align: center; }
+@media (max-width: 860px) {
+  main[data-mobile-view] #goals { display: none; }
+  main[data-mobile-view="goals"] #goals { display: block; padding-top: 1rem; }
+  main[data-mobile-view="goals"] #today { display: none; }
+}

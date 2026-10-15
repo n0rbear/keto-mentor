@@ -1,4 +1,5 @@
 import express from "express";
+import { effectiveGoals } from "@keto-mentor/shared";
 import { z } from "zod";
 import { getSettings } from "../admin/runtime-settings.js";
 import { hasPremiumFeature } from "../meals/dinner-suggestions.js";
@@ -65,13 +66,13 @@ export function progressRouter(deps: { prisma: any; requireAuth: express.Request
       const tzOffsetMinutes = Number.isFinite(tz) && Math.abs(tz) <= 14 * 60 ? tz : 0;
       const weeks = Math.min(Math.max(Number(req.query.weeks ?? 8) || 8, 1), 26);
       const today = localDay(new Date(), tzOffsetMinutes);
-      const profile = await prisma.profile.findUnique({ where: { userId: req.user!.id }, select: { dailyNetCarbs: true } });
+      const profile = await prisma.profile.findUnique({ where: { userId: req.user!.id }, select: { dailyNetCarbs: true, weekdayGoals: true } });
       const since = new Date(Date.now() - (weeks * 7 + 8) * 24 * 60 * 60 * 1000);
       const meals = await prisma.meal.findMany({
         where: { userId: req.user!.id, eatenAt: { gte: since } },
         select: { eatenAt: true, items: { select: { quantityGrams: true, snapshotKcal: true, snapshotFat: true, snapshotProtein: true, snapshotCarbs: true, snapshotFiber: true, snapshotNetCarbs: true, food: { select: { kcalPer100g: true, fatPer100g: true, proteinPer100g: true, carbsPer100g: true, fiberPer100g: true } } } } }
       });
-      const progress = weeklyProgress(meals, { today, weeks, tzOffsetMinutes, goalNetCarbs: profile?.dailyNetCarbs ?? 25 });
+      const progress = weeklyProgress(meals, { today, weeks, tzOffsetMinutes, goalNetCarbs: profile?.dailyNetCarbs ?? 25, goalNetCarbsFor: (day) => effectiveGoals(profile, day).dailyNetCarbs });
       const weights = await prisma.weightEntry.findMany({ where: { userId: req.user!.id }, orderBy: { date: "asc" }, select: { date: true, weightKg: true }, take: 400 });
       res.json({ ...progress, goalNetCarbs: profile?.dailyNetCarbs ?? 25, today, weights });
     } catch (error) { next(error); }

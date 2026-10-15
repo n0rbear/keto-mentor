@@ -16,7 +16,7 @@ const copy = {
   hu: {
     title: "Haladó statisztika", adherence: "Keto-tartás (8 hét)", streak: "Keto-sorozat", days: (n: number) => `${n} nap`,
     weekly: "Keto-napok aránya hetente", weekHint: (w: Week, goal: number) => w.loggedDays ? `${w.ketoDays} / ${w.loggedDays} naplózott nap ≤ ${goal} g nettó CH · átlag ${w.avg!.kcal} kcal, ${w.avg!.protein} g fehérje, ${w.avg!.netCarbs} g nettó CH` : "Nincs naplózott nap",
-    noData: "Még nincs elég naplózott nap a statisztikához.", weight: "Testsúly", weightLabel: "Testsúly (kg)", dateLabel: "Dátum", save: "Mentés",
+    noData: "Még nincs elég naplózott nap a statisztikához.", weight: "Testsúly", weightLabel: "Testsúly (kg)", dateLabel: "Dátum", save: "Testsúly mentése",
     table: "Táblázat", chart: "Grafikon", week: "Hét", ketoDays: "Keto-nap", avg: "Átlag kcal / P / NCH", noWeight: "Még nincs rögzített testsúly. Írd be a mait!",
     change: (d: number) => `${d > 0 ? "+" : ""}${d.toLocaleString("hu-HU", { maximumFractionDigits: 1 })} kg az első mérés óta`, remove: "Törlés",
     premium_required: "A haladó statisztika prémium funkció.", failed: "Most nem sikerült, próbáld újra.", loading: "Betöltés…"
@@ -24,7 +24,7 @@ const copy = {
   de: {
     title: "Erweiterte Statistik", adherence: "Keto-Treue (8 Wochen)", streak: "Keto-Serie", days: (n: number) => `${n} Tage`,
     weekly: "Anteil Keto-Tage pro Woche", weekHint: (w: Week, goal: number) => w.loggedDays ? `${w.ketoDays} / ${w.loggedDays} erfasste Tage ≤ ${goal} g Netto-KH · Ø ${w.avg!.kcal} kcal, ${w.avg!.protein} g Eiweiß, ${w.avg!.netCarbs} g Netto-KH` : "Keine erfassten Tage",
-    noData: "Noch zu wenige erfasste Tage für eine Statistik.", weight: "Gewicht", weightLabel: "Gewicht (kg)", dateLabel: "Datum", save: "Speichern",
+    noData: "Noch zu wenige erfasste Tage für eine Statistik.", weight: "Gewicht", weightLabel: "Gewicht (kg)", dateLabel: "Datum", save: "Gewicht speichern",
     table: "Tabelle", chart: "Diagramm", week: "Woche", ketoDays: "Keto-Tage", avg: "Ø kcal / E / NKH", noWeight: "Noch kein Gewicht eingetragen. Trag das heutige ein!",
     change: (d: number) => `${d > 0 ? "+" : ""}${d.toLocaleString("de-DE", { maximumFractionDigits: 1 })} kg seit der ersten Messung`, remove: "Löschen",
     premium_required: "Die erweiterte Statistik ist eine Premium-Funktion.", failed: "Hat gerade nicht geklappt, bitte erneut versuchen.", loading: "Lädt…"
@@ -32,7 +32,7 @@ const copy = {
   en: {
     title: "Advanced stats", adherence: "Keto adherence (8 weeks)", streak: "Keto streak", days: (n: number) => `${n} days`,
     weekly: "Share of keto days per week", weekHint: (w: Week, goal: number) => w.loggedDays ? `${w.ketoDays} / ${w.loggedDays} logged days ≤ ${goal} g net carbs · avg ${w.avg!.kcal} kcal, ${w.avg!.protein} g protein, ${w.avg!.netCarbs} g net carbs` : "No logged days",
-    noData: "Not enough logged days for statistics yet.", weight: "Weight", weightLabel: "Weight (kg)", dateLabel: "Date", save: "Save",
+    noData: "Not enough logged days for statistics yet.", weight: "Weight", weightLabel: "Weight (kg)", dateLabel: "Date", save: "Save weight",
     table: "Table", chart: "Chart", week: "Week", ketoDays: "Keto days", avg: "Avg kcal / P / NC", noWeight: "No weight logged yet. Add today's!",
     change: (d: number) => `${d > 0 ? "+" : ""}${d.toLocaleString("en-GB", { maximumFractionDigits: 1 })} kg since the first entry`, remove: "Delete",
     premium_required: "Advanced stats is a premium feature.", failed: "That did not work, please try again.", loading: "Loading…"

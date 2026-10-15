@@ -10,7 +10,8 @@ import helmet from "helmet";
 import jwt from "jsonwebtoken";
 import { pinoHttp } from "pino-http";
 import { z } from "zod";
-import { createMealSchema, editMealSchema, editPrivateFoodSchema, repeatMealSchema, loginSchema, localeUpdateSchema, locales, mealInterpretationSchema, onboardingSchema, registerSchema, type Locale } from "@keto-mentor/shared";
+import { createMealSchema, editMealSchema, editPrivateFoodSchema, repeatMealSchema, loginSchema, localeUpdateSchema, locales, mealInterpretationSchema, onboardingSchema, registerSchema, effectiveGoals, weekdayGoalsSchema, type Locale } from "@keto-mentor/shared";
+import { Prisma } from "@prisma/client";
 import { env } from "./config.js";
 import { createLogger } from "./logger.js";
 
@@ -580,6 +581,21 @@ app.put("/me/onboarding", requireAuth, adminOnly, async (req, res, next) => {
 // calls this immediately on every language-selector change so the two never
 // diverge beyond one request round-trip, without duplicating locale state
 // anywhere else (no localStorage copy).
+// Rugalmas célok (premium, in beta for everyone): per-weekday overrides of
+// the daily targets; an empty object goes back to the same goal every day.
+app.put("/me/weekday-goals", requireAuth, adminOnly, async (req, res, next) => {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: req.user!.id }, select: { entitlements: true } });
+    if (!hasPremiumFeature(user?.entitlements ?? [], "flexible_goals", getSettings().premiumAccess)) return res.status(403).json({ error: "premium_required" });
+    const weekdayGoals = weekdayGoalsSchema.parse(req.body?.weekdayGoals ?? {});
+    const empty = Object.values(weekdayGoals).every((day) => !day || Object.keys(day).length === 0);
+    const profile = await prisma.profile.update({ where: { userId: req.user!.id }, data: { weekdayGoals: empty ? Prisma.DbNull : weekdayGoals } });
+    res.json({ profile });
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.patch("/me/locale", requireAuth, async (req, res, next) => {
   try {
     const input = localeUpdateSchema.parse(req.body);
@@ -656,7 +672,8 @@ app.get("/meals/dinner-suggestions", requireAuth, async (req, res, next) => {
     });
     const [day, candidates] = await Promise.all([getMealsForDay(prisma, req.user!.id, range, "detailed"), loadDinnerCandidates(prisma, req.user!.id)]);
     const profile = user?.profile;
-    const goal = { kcal: profile?.dailyKcal ?? 1800, protein: profile?.dailyProtein ?? 110, netCarbs: profile?.dailyNetCarbs ?? 25, fat: profile?.dailyFat ?? 130 };
+    const dayGoals = effectiveGoals(profile, range.date);
+    const goal = { kcal: dayGoals.dailyKcal, protein: dayGoals.dailyProtein, netCarbs: dayGoals.dailyNetCarbs, fat: dayGoals.dailyFat };
     const lang = (["hu", "de", "en"].includes(String(req.query.lang)) ? req.query.lang : user?.locale ?? "hu") as "hu" | "de" | "en";
     const result = rankDinnerSuggestions({
       candidates,

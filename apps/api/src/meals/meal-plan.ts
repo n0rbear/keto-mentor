@@ -12,7 +12,7 @@ import { exclusionTerms, mentions, type DinnerCandidate, type Lang, type Macros 
 export const PLAN_SLOTS = ["breakfast", "lunch", "dinner"] as const;
 export type PlanSlot = (typeof PLAN_SLOTS)[number];
 export type PlanMeal = { mealType: PlanSlot; recipeId: string; dishId: string; source: "own" | "reference"; titles: { hu: string; de: string; en: string }; servingGrams: number | null; macros: Macros; style: string; protein: string };
-export type PlanDay = { date: string; meals: PlanMeal[]; totals: Macros; fits: boolean };
+export type PlanDay = { date: string; meals: PlanMeal[]; totals: Macros; fits: boolean; goal?: Goals };
 export type Goals = { kcal: number; protein: number; netCarbs: number; fat: number };
 
 const TRIES_PER_DAY = 400;
@@ -82,7 +82,7 @@ function pickDay(date: string, pools: Pools, goals: Goals, weekDishes: Map<strin
     if (!best || (fits && !best.fits) || (fits === best.fits && score > best.score)) best = { meals, fits, score };
   }
   const meals = best?.meals ?? [];
-  return { date, meals, totals: sumMacros(meals), fits: best?.fits ?? false };
+  return { date, meals, totals: sumMacros(meals), fits: best?.fits ?? false, goal: goals };
 }
 
 export function addDays(date: string, days: number) {
@@ -102,28 +102,37 @@ function weekCounts(days: PlanDay[], skip?: { date: string; slot?: PlanSlot }) {
   return { dishes, styles };
 }
 
-export function generatePlan(input: { candidates: DinnerCandidate[]; goals: Goals; avoid: string[]; startDate: string; days?: number; random?: () => number }): PlanDay[] {
+// Pools are filtered with the most generous day of the week (flexible goals),
+// each day is then scored against its own targets.
+function poolGoals(goals: Goals, dates: string[], goalsFor?: (date: string) => Goals): Goals {
+  if (!goalsFor) return goals;
+  return dates.map(goalsFor).reduce((a, g) => (g.netCarbs > a.netCarbs ? g : a), goals);
+}
+
+export function generatePlan(input: { candidates: DinnerCandidate[]; goals: Goals; goalsFor?: (date: string) => Goals; avoid: string[]; startDate: string; days?: number; random?: () => number }): PlanDay[] {
   const random = input.random ?? Math.random;
-  const pools = planPools(input.candidates, input.goals, input.avoid);
+  const dates = Array.from({ length: input.days ?? 7 }, (_, i) => addDays(input.startDate, i));
+  const pools = planPools(input.candidates, poolGoals(input.goals, dates, input.goalsFor), input.avoid);
   const days: PlanDay[] = [];
-  for (let i = 0; i < (input.days ?? 7); i++) {
+  for (const date of dates) {
     const { dishes, styles } = weekCounts(days);
-    days.push(pickDay(addDays(input.startDate, i), pools, input.goals, dishes, styles, random));
+    days.push(pickDay(date, pools, input.goalsFor?.(date) ?? input.goals, dishes, styles, random));
   }
   return days;
 }
 
 /** A new dish for one slot ("Másikat kérek"), keeping the day's other meals. */
-export function swapMeal(input: { days: PlanDay[]; date: string; slot: PlanSlot; candidates: DinnerCandidate[]; goals: Goals; avoid: string[]; random?: () => number }): PlanDay[] {
+export function swapMeal(input: { days: PlanDay[]; date: string; slot: PlanSlot; candidates: DinnerCandidate[]; goals: Goals; goalsFor?: (date: string) => Goals; avoid: string[]; random?: () => number }): PlanDay[] {
   const random = input.random ?? Math.random;
-  const pools = planPools(input.candidates, input.goals, input.avoid);
+  const dayGoals = input.goalsFor?.(input.date) ?? input.goals;
+  const pools = planPools(input.candidates, dayGoals, input.avoid);
   const { dishes, styles } = weekCounts(input.days, { date: input.date, slot: input.slot });
   return input.days.map((day) => {
     if (day.date !== input.date) return day;
     const current = day.meals.find((meal) => meal.mealType === input.slot);
     if (current) dishes.set(current.dishId, (dishes.get(current.dishId) ?? 0) + 3); // never hand back the same dish
     const fixed = Object.fromEntries(day.meals.filter((meal) => meal.mealType !== input.slot).map((meal) => [meal.mealType, meal])) as Partial<Record<PlanSlot, PlanMeal>>;
-    return pickDay(day.date, pools, input.goals, dishes, styles, random, fixed);
+    return pickDay(day.date, pools, dayGoals, dishes, styles, random, fixed);
   });
 }
 
