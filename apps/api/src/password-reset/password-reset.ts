@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import express from "express";
 import rateLimit from "express-rate-limit";
-import { emailUpdateSchema, passwordResetConfirmSchema, passwordResetRequestSchema } from "@keto-mentor/shared";
+import { emailUpdateSchema, passwordChangeSchema, passwordResetConfirmSchema, passwordResetRequestSchema } from "@keto-mentor/shared";
 import type { Mailer } from "../mail/mailer.js";
 
 // Password reset by e-mail (owner decision 2026-10-15, tester release).
@@ -108,13 +108,26 @@ export function passwordResetRouter(deps: PasswordResetDeps) {
     } catch (error) { next(error); }
   });
 
+  // Fiókom → Jelszó módosítása (2026-10-16): the current password is required.
+  router.put("/me/password", deps.requireAuth, emailLimiter, async (req, res, next) => {
+    try {
+      const input = passwordChangeSchema.parse(req.body);
+      const user = await deps.prisma.user.findUnique({ where: { id: req.user!.id }, select: { id: true, passwordHash: true } });
+      // 403, not 401: a 401 would make the web client try a token refresh.
+      if (!user || !(await deps.verifyPassword(user.passwordHash, input.currentPassword))) return res.status(403).json({ error: "invalid_credentials" });
+      await deps.prisma.user.update({ where: { id: user.id }, data: { passwordHash: await deps.hashPassword(input.newPassword) } });
+      log("password_change outcome=changed");
+      res.json({ ok: true });
+    } catch (error) { next(error); }
+  });
+
   // An existing username-only account (everyone registered before the
   // tester release) attaches an e-mail so it can reset its password later.
   router.put("/me/email", deps.requireAuth, emailLimiter, async (req, res, next) => {
     try {
       const input = emailUpdateSchema.parse(req.body);
       const user = await deps.prisma.user.findUnique({ where: { id: req.user!.id }, select: { id: true, passwordHash: true } });
-      if (!user || !(await deps.verifyPassword(user.passwordHash, input.currentPassword))) return res.status(401).json({ error: "invalid_credentials" });
+      if (!user || !(await deps.verifyPassword(user.passwordHash, input.currentPassword))) return res.status(403).json({ error: "invalid_credentials" });
       try {
         await deps.prisma.user.update({ where: { id: user.id }, data: { email: input.email, emailVerifiedAt: null } });
       } catch (error: any) {

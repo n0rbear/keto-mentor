@@ -31,6 +31,7 @@ export const loginSchema = z.object({
 });
 
 export const passwordResetRequestSchema = z.object({ email: emailSchema, locale: z.enum(locales).optional() });
+export const passwordChangeSchema = z.object({ currentPassword: z.string().min(1).max(200), newPassword: z.string().min(10).max(200) }).strict();
 export const passwordResetConfirmSchema = z.object({ token: z.string().min(20).max(200), password: z.string().min(10).max(200) });
 // Existing username-only accounts attach an e-mail; the current password
 // proves it is the owner of the account, not someone at an unlocked screen.

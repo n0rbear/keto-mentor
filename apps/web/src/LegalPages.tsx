@@ -114,7 +114,7 @@ const deletion = {
   en: { title: "Delete account", text: "Deletion is permanent: your profile, diary, recipes, plates, meal plans and weight log are deleted at once and cannot be restored.", password: "Current password", confirm: "I understand and permanently delete my account", button: "Permanently delete account", done: "Your account has been deleted." }
 } as const;
 
-function AccountDeletion({ lang, state, onDeleted }: { lang: Lang; state: ApiState; onDeleted: () => void }) {
+export function AccountDeletion({ lang, state, onDeleted }: { lang: Lang; state: ApiState; onDeleted: () => void }) {
   const t = deletion[lang];
   const [confirmed, setConfirmed] = useState(false);
   const [busy, setBusy] = useState(false);

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { Activity, ChevronLeft, ChevronRight, ExternalLink, LogOut, Mail, Megaphone, Pencil, Plus, Repeat, ShieldCheck, Sparkles, Trash2, UtensilsCrossed } from "lucide-react";
+import { Activity, ChevronLeft, ChevronRight, ExternalLink, LogOut, UserRound, Mail, Megaphone, Pencil, Plus, Repeat, ShieldCheck, Sparkles, Trash2, UtensilsCrossed } from "lucide-react";
 
 import { dict, type Lang } from "./i18n";
 import { api, ApiError, streamProgress, type ApiState } from "./api";
@@ -21,6 +21,8 @@ import { ProgressStats } from "./ProgressStats";
 import { ExportCard } from "./ExportCard";
 import { MicrosCard } from "./MicrosCard";
 import { FlexibleGoals } from "./FlexibleGoals";
+import { AccountPage } from "./AccountPage";
+const ACCOUNT_LABEL = { hu: "Fiókom", de: "Mein Konto", en: "My account" } as const;
 import { PalettePicker } from "./PalettePicker";
 import { applyPalette, storedPalette } from "./palette";
 import { effectiveGoals } from "./goals";
@@ -150,6 +152,20 @@ export function App() {
     api<{ reminders: ReminderSettings }>("/me/reminders", {}, state).then((r) => setReminders(r.reminders)).catch(() => undefined);
   }, [user?.id, user?.profile?.onboardingDone]);
   useEffect(() => { const id = window.setInterval(() => setClockTick((n) => n + 1), 60_000); return () => window.clearInterval(id); }, []);
+  // Fiókom (2026-10-16): the user's own account settings.
+  const [accountOpen, setAccountOpen] = useState(false);
+  async function logout() {
+    // Always clear local auth state so the user is never left visually
+    // logged in with a null/invalid token, even if the server call fails.
+    try {
+      await api("/auth/logout", { method: "POST" }, state);
+    } finally {
+      setToken(null);
+      setUser(null);
+      setMyPlatesOpen(false);
+      setAccountOpen(false);
+    }
+  }
   // Phones show one dashboard part at a time (MobileNav.tsx).
   const [mobileView, setMobileViewState] = useState<MobileView>("today");
   function setMobileView(view: MobileView) {
@@ -792,23 +808,13 @@ export function App() {
                 <UtensilsCrossed size={17}/><span>{t.myPlates.open}</span>
               </button>
             )}
-            {user && (
-              <button
-                className="btn ghost"
-                aria-label={t.logout}
-                onClick={async () => {
-                  // Always clear local auth state so the user is never left
-                  // visually logged in with a null/invalid token, even if the
-                  // server-side logout request fails.
-                  try {
-                    await api("/auth/logout", { method: "POST" }, state);
-                  } finally {
-                    setToken(null);
-                    setUser(null);
-                    setMyPlatesOpen(false);
-                  }
-                }}
-              >
+            {user && !adminAccount && (
+              <button type="button" className="btn ghost" aria-label={ACCOUNT_LABEL[lang]} aria-expanded={accountOpen} onClick={() => setAccountOpen(true)}>
+                <UserRound size={17}/><span>{ACCOUNT_LABEL[lang]}</span>
+              </button>
+            )}
+            {user && adminAccount && (
+              <button className="btn ghost" aria-label={t.logout} onClick={() => void logout()}>
                 <LogOut size={17} /><span>{t.logout}</span>
               </button>
             )}
@@ -1043,6 +1049,22 @@ export function App() {
       {deletingMealId && <DeleteMealDialog lang={lang} onCancel={() => setDeletingMealId(null)} onConfirm={confirmDeleteMeal}/>}
       {repeatingMeal && <RepeatMealDialog title={repeatingMeal.title} lang={lang} onCancel={() => setRepeatingMeal(null)} onConfirm={confirmRepeatMeal}/>}
       <LegalFooter lang={lang}/>
+      {accountOpen && user && !adminAccount && createPortal(
+        <div className="legal-overlay">
+          <AccountPage lang={lang} state={state} user={user} onClose={() => setAccountOpen(false)}
+            onUserChange={(patch) => setUser((current) => current ? { ...current, ...patch, profile: patch.profile ? { ...current.profile, ...patch.profile } : current.profile } : current)}
+            onLangChange={changeLang}
+            onShortcut={(target) => {
+              setAccountOpen(false);
+              if (target === "plates") { setMyPlatesOpen(true); document.getElementById("top")?.scrollIntoView?.({ behavior: "smooth" }); return; }
+              setMobileView(target);
+              window.setTimeout(() => document.getElementById(target)?.scrollIntoView?.({ behavior: "smooth" }), 50);
+            }}
+            onLogout={() => void logout()}
+            onDeleted={() => { setAccountOpen(false); setToken(null); setUser(null); setMyPlatesOpen(false); }}/>
+        </div>,
+        document.body
+      )}
       {legalPage && createPortal(
         <div className="legal-overlay">
           <LegalPageView page={legalPage} lang={lang} state={state} signedIn={!!user} onClose={closeLegalPage}

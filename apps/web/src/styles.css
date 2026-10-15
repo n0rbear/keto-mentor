@@ -799,3 +799,11 @@ body { padding-left: var(--safe-left); padding-right: var(--safe-right); }
 .palette-picker select { width: auto; }
 .mobile-menu-palette { padding: .5rem .7rem .3rem; border-top: 1px solid rgb(var(--border) / .15); margin-top: .2rem; }
 .brand-logo-slot.is-keto, .brand-link img { background: #fff; }
+.account-page h2 { display: flex; align-items: center; gap: .5rem; }
+.account-section { display: grid; gap: .55rem; padding: .9rem 0; border-top: 1px solid rgb(var(--border) / .14); }
+.account-section h3 { display: flex; align-items: center; gap: .45rem; margin: 0; }
+.account-section p { margin: 0; }
+.account-section > .btn { justify-self: start; }
+.account-form { display: grid; gap: .55rem; }
+.account-form > .btn { justify-self: start; }
+.account-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: .55rem; }
