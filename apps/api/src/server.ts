@@ -61,7 +61,7 @@ import { configuredTranscriptionProvider } from "./ai/transcription-gateway.js";
 import { TranscriptionProviderError } from "./ai/transcription-provider.js";
 import { feedbackRouter } from "./feedback/feedback.js";
 import { passwordResetRouter, sendPasswordReset } from "./password-reset/password-reset.js";
-import { resendMailer } from "./mail/mailer.js";
+import { preferredWebOrigin, resendMailer } from "./mail/mailer.js";
 import { accountDeletionRouter, deleteAccount } from "./account/account-deletion.js";
 import { startUsageFlusher, usageMiddleware } from "./admin/usage-counters.js";
 import { getSettings, loadSettings } from "./admin/runtime-settings.js";
@@ -287,7 +287,7 @@ app.post("/auth/login", authLimiter, async (req, res, next) => {
 
 // Password reset by e-mail and attaching an e-mail to an existing account.
 const mailer = resendMailer(env.RESEND_API_KEY, env.MAIL_FROM);
-const webAppUrl = env.WEB_APP_URL ?? env.CORS_ORIGIN.split(",")[0].trim();
+const webAppUrl = env.WEB_APP_URL ?? preferredWebOrigin(env.CORS_ORIGIN);
 const verificationDeps = { prisma, mailer, webAppUrl };
 const adminEmails = adminEmailList(env.ADMIN_EMAILS);
 app.use(passwordResetRouter({
