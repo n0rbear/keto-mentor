@@ -34,7 +34,7 @@ import { normalizeSearch } from "./catalog/normalize.js";
 import { DINNER_FEATURE, hasPremiumFeature, loadDinnerCandidates, rankDinnerSuggestions } from "./meals/dinner-suggestions.js";
 import { getWeekOverview } from "./meals/week-query.js";
 import { recipeRouter } from "./recipes/router.js";
-import { interpretMealInput } from "./meal-input/interpret.js";
+import { interpretMealInput, resolveQuantity } from "./meal-input/interpret.js";
 import { attachRecipeDiscoveryFallback } from "./meal-input/recipe-discovery-fallback.js";
 import { timeStage } from "./request-performance.js";
 import { buildDiagnostics } from "./meal-input/diagnostics.js";
@@ -502,6 +502,27 @@ app.get("/meal-input/progress/:operationId", requireAuth, (req, res) => {
     res.write(`${JSON.stringify({ stage })}\n`);
   });
   req.on("close", unsubscribe);
+});
+
+// "2 pár virsli" (owner tickets c289ec, 5d5e3f): when the user picks another
+// candidate in the preview, the stated amount is converted for THAT food the
+// same way the interpreter does (its own serving, the typical unit weight,
+// then the AI estimate) instead of asking for grams.
+const candidateQuantitySchema = z.object({
+  foodId: z.string().min(1).max(100),
+  parsed: z.object({ quantity: z.number().positive().max(10000), quantityUpper: z.number().positive().max(10000).optional(), unit: z.string().min(1).max(30), size: z.enum(["small", "medium", "large"]).optional(), foodQuery: z.string().max(200), preparation: z.string().max(60).optional() })
+});
+app.post("/meal-input/quantity", requireAuth, async (req, res, next) => {
+  try {
+    const input = candidateQuantitySchema.parse(req.body);
+    const food = await prisma.food.findFirst({ where: { id: input.foodId, OR: [{ createdById: null }, { createdById: req.user!.id }] }, include: { servings: true } });
+    if (!food) return res.status(404).json({ error: "food_not_found" });
+    const requestQuantityProvider = { get id() { return quantityProvider.id; }, estimate: (estimateInput: Parameters<typeof quantityProvider.estimate>[0]) => quantityProvider.estimate(estimateInput, undefined, () => foodNlpLimiter.consume(req.user!.id)) };
+    const quantity = await resolveQuantity(input.parsed as any, food as any, requestQuantityProvider);
+    res.json({ quantity });
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.post("/meal-input/interpret", requireAuth, async (req, res, next) => {
