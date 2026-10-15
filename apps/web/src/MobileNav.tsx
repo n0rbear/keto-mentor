@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Bell, BookOpen, CalendarDays, CalendarRange, FileDown, LineChart, Pill, SlidersHorizontal, Crown, Gem, Home, Lightbulb, Menu, Moon, UtensilsCrossed, X } from "lucide-react";
 import type { Lang } from "./i18n";
+import { PalettePicker } from "./PalettePicker";
 
 // Phone layout (owner request 2026-10-15: "ne legyen ennyire hosszan
 // görgetendő"): below the desktop breakpoint the dashboard shows one part at
@@ -55,6 +56,7 @@ export function MobileMenu({ lang, active, onSelect }: { lang: Lang; active: Mob
               </li>
             );
           })}
+          <li role="none" className="mobile-menu-palette"><PalettePicker lang={lang} id="palette-picker-menu"/></li>
         </ul>
       )}
     </div>

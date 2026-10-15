@@ -3,6 +3,7 @@ import { buildSearchText } from "../src/catalog/normalize.js";
 import { USDA_FOOD_IDENTITIES, USDA_SERVING_PROVENANCE, USDA_SR_LEGACY_SOURCE } from "./seed-provenance.js";
 import { upsertSeedServings, type SeedServing } from "./seed-servings.js";
 import { seedReferenceDishes } from "../src/reference-dishes/seed.js";
+import { STARTER_MICRONUTRIENTS } from "./starter-micronutrients.js";
 
 const prisma = new PrismaClient();
 
@@ -298,6 +299,14 @@ async function main() {
 
     await upsertSeedServings(prisma.foodServing, id, servingList);
   }
+
+  // Starter foods' vitamins and minerals (USDA SR Legacy); insert-only, so a
+  // value already present is kept.
+  const nutrientIds = new Map((await prisma.nutrient.findMany({ select: { id: true, key: true } })).map((n) => [n.key, n.id]));
+  const micronutrientRows = Object.entries(STARTER_MICRONUTRIENTS).flatMap(([foodId, entry]) =>
+    Object.entries(entry.values).flatMap(([key, amountPer100g]) => nutrientIds.has(key) ? [{ foodId, nutrientId: nutrientIds.get(key)!, amountPer100g }] : []));
+  const micros = await prisma.foodNutrient.createMany({ data: micronutrientRows, skipDuplicates: true });
+  console.log(`starter_micronutrients created=${micros.count}`);
 
   // Reference dishes (roadmap B): after the catalog, because every variant
   // needs its reviewed catalog records. Idempotent; writes only on a new
