@@ -47,7 +47,9 @@ export default defineConfig({
           // native BarcodeDetector support opens the camera scanner — it
           // must not be silently downloaded in the background for every
           // installed user just because the service worker precaches assets.
-          "**/scanner-zxing-*.js"
+          "**/scanner-zxing-*.js",
+          // The social share image is for crawlers, not the offline app shell.
+          "**/og-image.png"
         ]
       },
       devOptions: { enabled: false }
