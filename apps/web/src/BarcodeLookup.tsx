@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Barcode, Camera } from "lucide-react";
+import { Barcode, Camera, History } from "lucide-react";
 import { api, ApiError, type ApiState } from "./api";
 import { dict, type Lang } from "./i18n";
 import type { Food } from "./main";
@@ -13,6 +13,8 @@ type BarcodeResolution =
   | { status: "incomplete"; product: { name: string; brand?: string; barcode: string } }
   | { status: "not_found" }
   | { status: "external_unavailable" };
+
+const RECENT_LABEL = { hu: "Legutóbbi termékek", de: "Zuletzt verwendete Produkte", en: "Recent products" } as const;
 
 function barcodeErrorText(error: unknown, labels: Record<string, string>) {
   if (!(error instanceof ApiError)) return labels.unknown;
@@ -29,7 +31,7 @@ function barcodeErrorText(error: unknown, labels: Record<string, string>) {
  */
 // compact: only a camera button (the single search field types barcodes);
 // request: a barcode the search field recognized — looked up right away.
-export function BarcodeLookup({ lang, state, onFoodConfirmed, compact = false, request }: { lang: Lang; state: ApiState; onFoodConfirmed: (food: Food) => void; compact?: boolean; request?: { barcode: string; nonce: number } }) {
+export function BarcodeLookup({ lang, state, onFoodConfirmed, compact = false, request, showRecent = false }: { lang: Lang; state: ApiState; onFoodConfirmed: (food: Food) => void; compact?: boolean; request?: { barcode: string; nonce: number }; showRecent?: boolean }) {
   const t = dict[lang].barcode;
   const errors = dict[lang].barcodeErrors;
   const scannerText = dict[lang].barcodeScanner;
@@ -43,6 +45,16 @@ export function BarcodeLookup({ lang, state, onFoodConfirmed, compact = false, r
   const [scanning, setScanning] = useState(false);
 
   useEffect(() => { void preloadScanner().catch(() => undefined); }, []);
+
+  // "Legutóbbi termékek": products logged before, one tap away instead of another scan.
+  const [recent, setRecent] = useState<Food[]>([]);
+  const [recentKey, setRecentKey] = useState(0);
+  useEffect(() => {
+    if (!showRecent || !state.token) return;
+    api<{ foods: Food[] }>("/me/recent-products", {}, state).then((r) => setRecent(Array.isArray(r?.foods) ? r.foods : [])).catch(() => setRecent([]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showRecent, state.token, recentKey]);
+  const productName = (food: Food) => food.names?.[lang] || food.names?.hu || food.name;
 
   useEffect(() => {
     if (!request?.barcode) return;
@@ -112,6 +124,16 @@ export function BarcodeLookup({ lang, state, onFoodConfirmed, compact = false, r
         : <button type="button" className="btn secondary" onClick={() => setExpanded((current) => !current)} aria-expanded={expanded}>
           <Barcode size={16}/>{t.toggleLabel}
         </button>}
+      {recent.length > 0 && (
+        <div className="recent-products" role="group" aria-label={RECENT_LABEL[lang]}>
+          <span className="text-xs text-muted"><History size={13} aria-hidden="true"/> {RECENT_LABEL[lang]}</span>
+          <div className="recent-products-row">
+            {recent.map((food) => (
+              <button key={food.id} type="button" className="chip" onClick={() => { onFoodConfirmed(food); setRecentKey((k) => k + 1); }}>{productName(food)}</button>
+            ))}
+          </div>
+        </div>
+      )}
       {expanded && (
         <div className="barcode-panel">
           {!compact && <label htmlFor="barcode-input">{t.inputLabel}

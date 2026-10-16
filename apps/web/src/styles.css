@@ -854,3 +854,8 @@ body { padding-left: var(--safe-left); padding-right: var(--safe-right); }
 .beta-rank-banner { display: flex; gap: .7rem; align-items: flex-start; padding: .8rem 1rem; border-radius: 14px; border: 1px solid rgb(var(--brand) / .35); background: linear-gradient(135deg, rgb(var(--brand) / .14), rgb(var(--brand) / .04)); }
 .beta-rank-banner svg { flex: none; color: #f4c24d; margin-top: .1rem; }
 .beta-rank-banner p { margin: 0; font-size: .9rem; line-height: 1.45; }
+/* Legutóbbi termékek (BarcodeLookup.tsx): one-tap chips for products logged before. */
+.recent-products { display: grid; gap: .35rem; margin-top: .5rem; }
+.recent-products > span { display: inline-flex; align-items: center; gap: .3rem; }
+.recent-products-row { display: flex; gap: .4rem; overflow-x: auto; padding-bottom: .2rem; scrollbar-width: thin; }
+.recent-products-row .chip { flex: none; max-width: 14rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

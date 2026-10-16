@@ -203,3 +203,24 @@ describe("BarcodeLookup", () => {
     expect(screen.getByText(dict[lang].barcodeScanner.scanButton, { exact: false })).toBeTruthy();
   });
 });
+
+describe("Legutóbbi termékek", () => {
+  it("offers recently logged products as one-tap chips in the meal form", async () => {
+    const cola = { id: "f1", name: "Coca-Cola Zero", names: { hu: "Coca-Cola Zero" }, kcalPer100g: 0.3, fatPer100g: 0, proteinPer100g: 0, carbsPer100g: 0, fiberPer100g: 0, servings: [] };
+    const fetchMock = vi.fn(async (url: string) => new Response(JSON.stringify(String(url).includes("/me/recent-products") ? { foods: [cola] } : {}), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    const onFoodConfirmed = vi.fn();
+    render(<BarcodeLookup lang="hu" state={state} compact showRecent onFoodConfirmed={onFoodConfirmed}/>);
+    fireEvent.click(await screen.findByRole("button", { name: "Coca-Cola Zero" }));
+    expect(onFoodConfirmed).toHaveBeenCalledWith(expect.objectContaining({ id: "f1" }));
+    expect(screen.getByRole("group", { name: "Legutóbbi termékek" })).toBeTruthy();
+  });
+
+  it("shows nothing when there are no recent products or the list is not asked for", async () => {
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ foods: [] }), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    render(<BarcodeLookup lang="hu" state={state} compact onFoodConfirmed={vi.fn()}/>);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(screen.queryByRole("group", { name: "Legutóbbi termékek" })).toBeNull();
+  });
+});
