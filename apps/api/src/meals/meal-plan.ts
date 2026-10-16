@@ -32,17 +32,36 @@ export function sumMacros(meals: Array<{ macros: Macros }>): Macros {
 }
 
 /** Breakfast and main-meal pools, without avoided foods and allergens; each meal at most 60% of the day's net carbs. */
+// How much work a dish is (owner feedback 2026-10-16: "marhagulyás
+// reggelire?"): breakfast only quick dishes, lunch no long-cooked ones.
+export type Effort = "quick" | "medium" | "long";
+const LONG_STYLES = new Set(["stew", "roast", "soup"]);
+const LONG_TAGS = ["stew", "braised", "roast", "boiled", "game", "offal", "soup"];
+const QUICK_STYLES = new Set(["eggs", "salad"]);
+const QUICK_TAGS = ["breakfast", "eggs", "salad", "cold"];
+export function effortOf(c: DinnerCandidate): Effort {
+  if (c.source === "own") return "medium";
+  const tags = c.tags ?? [];
+  if (LONG_STYLES.has(c.style) || tags.some((t) => LONG_TAGS.includes(t)) || c.protein === "lamb_game") return "long";
+  if (QUICK_STYLES.has(c.style) || tags.some((t) => QUICK_TAGS.includes(t))) return "quick";
+  return "medium";
+}
+
+/** Pools per meal, without avoided foods and allergens; each meal at most 60% of the day's net carbs. */
 export function planPools(candidates: DinnerCandidate[], goals: Goals, avoid: string[]) {
   const terms = exclusionTerms(avoid);
   const usable = candidates.filter((c) => c.perServing.kcal >= 120 && c.perServing.netCarbs <= goals.netCarbs * 0.6 && !terms.some((term) => mentions(c.haystack, term)));
-  const isBreakfast = (c: DinnerCandidate) => (c.tags ?? []).includes("breakfast") || c.style === "eggs" || c.protein === "eggs";
-  let breakfast = usable.filter((c) => c.source === "own" || isBreakfast(c));
-  // Only a handful of reference breakfasts are keto (eggs, sausages): lighter
-  // low-carb dishes widen the choice so the week is not one breakfast.
-  if (breakfast.length < 10) breakfast = [...breakfast, ...usable.filter((c) => !breakfast.includes(c) && c.lowCarbFriendly && c.perServing.kcal <= 550)];
+  const breakfastLike = (c: DinnerCandidate) => (c.tags ?? []).includes("breakfast") || c.style === "eggs" || c.protein === "eggs" || (c.tags ?? []).includes("cold");
+  // Breakfast: real breakfast dishes, quick to make; own recipes only when quick-sounding.
+  let breakfast = usable.filter((c) => breakfastLike(c) && effortOf(c) !== "long");
+  if (breakfast.length < 4) breakfast = [...breakfast, ...usable.filter((c) => !breakfast.includes(c) && effortOf(c) === "quick" && c.perServing.kcal <= 550)];
+  const main = usable.filter((c) => c.perServing.kcal >= 150 && (c.source === "own" || !(c.tags ?? []).includes("breakfast")));
   return {
     breakfast,
-    main: usable.filter((c) => c.perServing.kcal >= 150 && (c.source === "own" || !(c.tags ?? []).includes("breakfast")))
+    // Lunch on a working day: nothing that needs hours on the stove.
+    lunch: main.filter((c) => effortOf(c) !== "long"),
+    dinner: main,
+    main
   };
 }
 
@@ -74,11 +93,11 @@ function scoreDay(meals: PlanMeal[], goals: Goals, weekDishes: Map<string, numbe
 function pickDay(date: string, pools: Pools, goals: Goals, weekDishes: Map<string, number>, weekStyles: Map<string, number>, random: () => number, fixed: Partial<Record<PlanSlot, PlanMeal>> = {}): PlanDay {
   const pick = (list: DinnerCandidate[]) => list[Math.floor(random() * list.length)];
   let best: { meals: PlanMeal[]; fits: boolean; score: number } | null = null;
-  if (!pools.main.length || !pools.breakfast.length) return { date, meals: Object.values(fixed) as PlanMeal[], totals: sumMacros(Object.values(fixed) as PlanMeal[]), fits: false };
+  if (!pools.lunch.length || !pools.dinner.length || !pools.breakfast.length) return { date, meals: Object.values(fixed) as PlanMeal[], totals: sumMacros(Object.values(fixed) as PlanMeal[]), fits: false };
   for (let i = 0; i < TRIES_PER_DAY; i++) {
     const b = fixed.breakfast ?? toMeal("breakfast", pick(pools.breakfast));
-    const l = fixed.lunch ?? toMeal("lunch", pick(pools.main));
-    const d = fixed.dinner ?? toMeal("dinner", pick(pools.main));
+    const l = fixed.lunch ?? toMeal("lunch", pick(pools.lunch));
+    const d = fixed.dinner ?? toMeal("dinner", pick(pools.dinner));
     if (l.dishId === d.dishId || b.dishId === l.dishId || b.dishId === d.dishId) continue;
     const meals = [b, l, d];
     const scored = scoreDay(meals, goals, weekDishes, weekStyles);
@@ -163,4 +182,55 @@ export function shoppingList(days: PlanDay[], byRecipeId: Map<string, DinnerCand
   return [...items.values()]
     .map((item) => ({ ...item, grams: Math.round(item.grams) }))
     .sort((a, b) => Number(a.seasoning) - Number(b.seasoning) || b.grams - a.grams || a.name.localeCompare(b.name, lang));
+}
+
+export type PlanAlternative = PlanMeal & { effort: Effort; dayTotals: Macros; fits: boolean };
+
+/**
+ * "Másikat kérek" (owner feedback 2026-10-16): 6-8 dishes the user can pick
+ * from for one meal, from different cooking styles and main proteins, each
+ * keeping the day under the net-carb target with the other two meals.
+ */
+export function planAlternatives(input: { days: PlanDay[]; date: string; slot: PlanSlot; candidates: DinnerCandidate[]; goals: Goals; goalsFor?: (date: string) => Goals; avoid: string[]; limit?: number; random?: () => number }): PlanAlternative[] {
+  const random = input.random ?? Math.random;
+  const goals = input.goalsFor?.(input.date) ?? input.goals;
+  const day = input.days.find((d) => d.date === input.date);
+  if (!day) return [];
+  const pools = planPools(input.candidates, goals, input.avoid);
+  const pool = input.slot === "breakfast" ? pools.breakfast : input.slot === "lunch" ? pools.lunch : pools.dinner;
+  const others = day.meals.filter((m) => m.mealType !== input.slot);
+  const current = day.meals.find((m) => m.mealType === input.slot);
+  const { dishes, styles } = weekCounts(input.days, { date: input.date, slot: input.slot });
+  const scored = pool
+    .filter((c) => c.dishId !== current?.dishId && !others.some((m) => m.dishId === c.dishId))
+    .map((c) => {
+      const meal = toMeal(input.slot, c);
+      const meals = [...others, meal].sort((a, b) => PLAN_SLOTS.indexOf(a.mealType) - PLAN_SLOTS.indexOf(b.mealType));
+      const s = scoreDay(meals, goals, dishes, styles);
+      return { c, meal, totals: sumMacros(meals), fits: s.fits, key: s.score + random() * 0.8 };
+    })
+    .filter((x) => x.fits)
+    .sort((a, b) => b.key - a.key);
+  const limit = input.limit ?? 8;
+  const picked: typeof scored = [];
+  const usedStyle = new Set<string>();
+  const usedProtein = new Set<string>();
+  for (const rule of [(x: typeof scored[number]) => !usedStyle.has(x.c.style) && !usedProtein.has(x.c.protein), (x: typeof scored[number]) => !usedStyle.has(x.c.style) || !usedProtein.has(x.c.protein), () => true]) {
+    for (const x of scored) {
+      if (picked.length >= limit) break;
+      if (picked.includes(x) || !rule(x)) continue;
+      picked.push(x); usedStyle.add(x.c.style); usedProtein.add(x.c.protein);
+    }
+  }
+  return picked.map((x) => ({ ...x.meal, effort: effortOf(x.c), dayTotals: x.totals, fits: x.fits }));
+}
+
+/** Puts the chosen dish into one meal of the plan. */
+export function setPlanMeal(days: PlanDay[], date: string, slot: PlanSlot, candidate: DinnerCandidate, goals: Goals): PlanDay[] {
+  return days.map((day) => {
+    if (day.date !== date) return day;
+    const meals = [...day.meals.filter((m) => m.mealType !== slot), toMeal(slot, candidate)].sort((a, b) => PLAN_SLOTS.indexOf(a.mealType) - PLAN_SLOTS.indexOf(b.mealType));
+    const totals = sumMacros(meals);
+    return { ...day, meals, totals, fits: totals.netCarbs <= goals.netCarbs, goal: goals };
+  });
 }

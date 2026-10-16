@@ -807,3 +807,16 @@ body { padding-left: var(--safe-left); padding-right: var(--safe-right); }
 .account-form { display: grid; gap: .55rem; }
 .account-form > .btn { justify-self: start; }
 .account-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: .55rem; }
+.plan-alternatives { flex-basis: 100%; display: grid; gap: .35rem; margin-top: .3rem; padding-top: .5rem; border-top: 1px dashed rgb(var(--border) / .25); }
+.plan-alternatives ul { display: grid; gap: .35rem; margin: 0; padding: 0; list-style: none; }
+.plan-alternatives li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .4rem; padding: .4rem .5rem; border-radius: 10px; background: rgb(var(--surface-hover) / .6); }
+.plan-alternatives li > div { min-width: 0; overflow-wrap: anywhere; }
+.effort-tag { display: inline-block; margin-left: .3rem; padding: .02rem .45rem; border-radius: 999px; font-size: .64rem; font-weight: 800; vertical-align: middle; }
+.effort-tag.is-quick { background: rgb(var(--success) / .16); color: rgb(var(--success)); }
+.effort-tag.is-medium { background: rgb(var(--info) / .16); color: rgb(var(--info)); }
+.effort-tag.is-long { background: rgb(var(--warning) / .16); color: rgb(var(--warning)); }
+@media print {
+  .print-report .print-checklist { list-style: none; padding: 0; margin: .3rem 0; columns: 2; column-gap: 24pt; }
+  .print-report .print-checklist li { padding: 3pt 0; break-inside: avoid; font-size: 11pt; }
+  .print-report .print-box { display: inline-block; width: 14pt; font-size: 13pt; }
+}

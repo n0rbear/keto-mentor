@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { normalizeSearch } from "../catalog/normalize.js";
 import type { DinnerCandidate } from "./dinner-suggestions.js";
-import { addDays, generatePlan, planPools, shoppingList, swapMeal } from "./meal-plan.js";
+import { addDays, generatePlan, planAlternatives, planPools, setPlanMeal, shoppingList, swapMeal } from "./meal-plan.js";
 
 let seed = 7;
 const random = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
@@ -30,10 +30,15 @@ describe("heti étrendterv", () => {
     expect(new Set(mainIds).size).toBeGreaterThanOrEqual(11);
   });
 
-  it("leaves out avoided foods and widens a thin breakfast pool with light low-carb dishes", () => {
-    const pools = planPools([...breakfasts.slice(0, 1), ...mains, c("light", { kcal: 450 }), c("halas", { kcal: 500 }, { haystack: normalizeSearch("ponty filé") })], goals, ["hal"]);
+  it("leaves out avoided foods; breakfast only quick dishes, lunch nothing long-cooked", () => {
+    const gulyas = c("marhagulyás", { kcal: 480 }, { style: "stew", tags: ["traditional", "stew"] });
+    const salad = c("csirkesaláta", { kcal: 420 }, { style: "salad", tags: ["salad"] });
+    const pools = planPools([...breakfasts.slice(0, 1), ...mains, gulyas, salad, c("halas", { kcal: 500 }, { haystack: normalizeSearch("ponty filé") })], goals, ["hal"]);
     expect(pools.main.some((x) => x.recipeId === "halas")).toBe(false);
-    expect(pools.breakfast.length).toBeGreaterThan(1);
+    expect(pools.breakfast.map((x) => x.recipeId)).toContain("csirkesaláta");
+    expect(pools.breakfast.some((x) => x.recipeId === "marhagulyás")).toBe(false);
+    expect(pools.lunch.some((x) => x.recipeId === "marhagulyás")).toBe(false);
+    expect(pools.dinner.some((x) => x.recipeId === "marhagulyás")).toBe(true);
   });
 
   it("swaps one meal for a different dish and keeps the rest of the day", () => {
@@ -56,5 +61,19 @@ describe("heti étrendterv", () => {
   it("marks a day that cannot stay under the carb target", () => {
     const days = generatePlan({ candidates: [c("b", { netCarbs: 14 }, { tags: ["breakfast"] }), c("x", { netCarbs: 14 }), c("y", { netCarbs: 14 })], goals, avoid: [], startDate: "2026-10-16", days: 1, random });
     expect(days[0].fits).toBe(false);
+  });
+
+  it("offers 6-8 different alternatives for one meal that keep the day under the carb target", () => {
+    const days = generatePlan({ candidates: [...breakfasts, ...mains], goals, avoid: [], startDate: "2026-10-16", random });
+    const alts = planAlternatives({ days, date: days[1].date, slot: "dinner", candidates: [...breakfasts, ...mains], goals, avoid: [], random });
+    expect(alts.length).toBeGreaterThanOrEqual(6);
+    expect(alts.length).toBeLessThanOrEqual(8);
+    expect(new Set(alts.map((a) => a.dishId)).size).toBe(alts.length);
+    expect(alts.every((a) => a.dayTotals.netCarbs <= goals.netCarbs)).toBe(true);
+    expect(alts.some((a) => a.dishId === days[1].meals[2].dishId)).toBe(false);
+    const chosen = [...breakfasts, ...mains].find((x) => x.recipeId === alts[3].recipeId)!;
+    const next = setPlanMeal(days, days[1].date, "dinner", chosen, goals);
+    expect(next[1].meals[2].recipeId).toBe(chosen.recipeId);
+    expect(next[1].meals[0]).toEqual(days[1].meals[0]);
   });
 });
