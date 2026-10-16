@@ -77,6 +77,7 @@ import { progressRouter } from "./stats/progress-router.js";
 import { remindersRouter, startReminders } from "./reminders/reminders.js";
 import { adminRouter } from "./admin/admin-router.js";
 import { betaContestRouter } from "./beta/contest.js";
+import { recentProductsRouter } from "./meals/recent-products.js";
 import { campaignPublicRouter, countCampaign } from "./campaigns/campaign-links.js";
 import { REFERENCE_USERNAME } from "./reference-dishes/seed.js";
 import { platesRouter } from "./meal-input/plates.js";
@@ -323,6 +324,7 @@ app.use(adminRouter({
 
 app.use(campaignPublicRouter({ prisma }));
 app.use(betaContestRouter({ prisma, requireAuth, admins: adminEmails, systemUsername: REFERENCE_USERNAME }));
+app.use(recentProductsRouter({ prisma, requireAuth }));
 app.use(accountDeletionRouter({ prisma, requireAuth, verifyPassword, systemUsername: REFERENCE_USERNAME }));
 
 app.post("/auth/logout", requireAuth, async (req, res, next) => {

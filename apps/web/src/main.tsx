@@ -982,7 +982,7 @@ export function App() {
                 onPickRecipe={(option, statedQuantity) => { setPickedRecipe(option); setPickedRecipeQuantity(statedQuantity); setSelectedFood(null); setInterpretation(null); }}/>}
               <div className="natural-input-methods">
                 <VoiceInput lang={lang} state={state} onTranscribed={(text) => { setNaturalInput(text); setInterpretation(null); setSelectedFood(null); setMealQuantity("1"); setMealMeasure("g"); setGramsOverride(""); }}/>
-                <BarcodeLookup lang={lang} state={state} compact request={barcodeRequest} onFoodConfirmed={(food) => { setSelectedFood(food); setPickedRecipe(null); setMealMeasure("g"); setGramsOverride(""); }}/>
+                <BarcodeLookup lang={lang} state={state} compact showRecent request={barcodeRequest} onFoodConfirmed={(food) => { setSelectedFood(food); setPickedRecipe(null); setMealMeasure("g"); setGramsOverride(""); }}/>
               </div>
               {pickedRecipe && <div className="selected-food-chip"><strong>{pickedRecipe.title}</strong><button type="button" className="btn secondary" onClick={() => setPickedRecipe(null)}>{lang === "hu" ? "Másik" : lang === "de" ? "Andere" : "Change"}</button></div>}
               {pickedRecipe && <LocalRecipePicker key={pickedRecipe.recipeId} discovery={{ status: "local_match", localMatch: pickedRecipe }} labels={t.foodUnderstanding.recipeDiscovery} lang={lang} portionState={state} requestedServings={statedServings(pickedRecipeQuantity)} requestedPlates={statedPlates(pickedRecipeQuantity)}
