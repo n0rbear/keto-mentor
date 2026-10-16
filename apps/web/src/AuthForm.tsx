@@ -82,6 +82,19 @@ export function AuthForm({ mode: initialMode, lang, state, onSuccess, registrati
     }
   }
 
+  // Enter in a field moves on to the next empty field, and signs in once all
+  // are filled (owner request 2026-10-16: "Enterrel is lépjen be"), instead
+  // of the browser's "please fill out this field" bubble on the empty one.
+  function enterToNext(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (event.key !== "Enter") return;
+    const form = event.currentTarget.form;
+    if (!form) return;
+    const fields = Array.from(form.querySelectorAll<HTMLInputElement>("input.field"));
+    const empty = fields.find((field) => field.required && !field.value);
+    if (empty && empty !== event.currentTarget) { event.preventDefault(); empty.focus(); return; }
+    if (!empty) { event.preventDefault(); form.requestSubmit(); }
+  }
+
   const submitLabel = mode === "register" ? t.register : mode === "login" ? t.login : mode === "forgot" ? t.send : t.save;
 
   // method="post" is a defense-in-depth fallback: if this form is ever
@@ -112,16 +125,16 @@ export function AuthForm({ mode: initialMode, lang, state, onSuccess, registrati
         </div>
       )}
       {(mode === "login" || mode === "register") && (
-        <label htmlFor="auth-username">{mode === "login" ? t.loginName : t.username}<input id="auth-username" className="field" name="username" required minLength={3} autoComplete="username" /></label>
+        <label htmlFor="auth-username">{mode === "login" ? t.loginName : t.username}<input id="auth-username" className="field" name="username" required minLength={3} autoComplete="username" enterKeyHint="next" onKeyDown={enterToNext} /></label>
       )}
       {(mode === "register" || mode === "forgot") && (
         <>
-          <label htmlFor="auth-email">{t.email}<input id="auth-email" className="field" name="email" type="email" required autoComplete="email" aria-describedby={mode === "register" ? "auth-email-hint" : undefined} /></label>
+          <label htmlFor="auth-email">{t.email}<input id="auth-email" className="field" name="email" type="email" required autoComplete="email" aria-describedby={mode === "register" ? "auth-email-hint" : undefined} enterKeyHint={mode === "forgot" ? "send" : "next"} onKeyDown={enterToNext} /></label>
           {mode === "register" && <p id="auth-email-hint" className="text-xs text-muted">{t.emailHint}</p>}
         </>
       )}
       {mode !== "forgot" && (
-        <label htmlFor="auth-password">{mode === "reset" ? t.newPassword : t.password}<input id="auth-password" className="field" name="password" required minLength={passwordMinLength} type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} /></label>
+        <label htmlFor="auth-password">{mode === "reset" ? t.newPassword : t.password}<input id="auth-password" className="field" name="password" required minLength={passwordMinLength} type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} enterKeyHint="go" onKeyDown={enterToNext} /></label>
       )}
       {notice && <div className="status success" role="status">{notice}</div>}
       {error && <div className="status error" role="alert">{error}</div>}
