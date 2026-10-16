@@ -38,7 +38,7 @@ function fakeDb() {
       update: async ({ where, data }: any) => { const f = feedback.find((x) => x.id === where.id); if (!f) throw Object.assign(new Error("x"), { code: "P2025" }); Object.assign(f, data); return f; },
       count: async () => feedback.length
     },
-    meal: { count: async () => 0, groupBy: async () => [], findMany: async () => [] },
+    meal: { count: async () => 0, groupBy: async (args: any) => (args._count ? users.map((u) => ({ userId: u.id, _count: { _all: u._count.meals } })) : []), findMany: async () => [] },
     recipe: { count: async () => 0 },
     usageDaily: { findMany: async () => [{ day: new Date("2026-10-15"), kind: "search", count: 5, totalMs: 1000n, promptTokens: 0n, completionTokens: 0n }] },
     appSetting: { findMany: async () => settingsRows, upsert: async ({ where, create, update }: any) => { const r = settingsRows.find((x) => x.key === where.key); if (r) r.value = update.value; else settingsRows.push({ ...create }); } },

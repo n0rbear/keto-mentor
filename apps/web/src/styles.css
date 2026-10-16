@@ -840,3 +840,7 @@ body { padding-left: var(--safe-left); padding-right: var(--safe-right); }
 .admin-top-testers { display: grid; gap: .35rem; }
 .admin-top-testers h3 { margin: 0; }
 .admin-top-list { margin: .25rem 0 0; padding-left: 1.4rem; display: grid; gap: .2rem; }
+/* Beta reward: the tester's current place (BetaRankBanner.tsx). */
+.beta-rank-banner { display: flex; gap: .7rem; align-items: flex-start; padding: .8rem 1rem; border-radius: 14px; border: 1px solid rgb(var(--brand) / .35); background: linear-gradient(135deg, rgb(var(--brand) / .14), rgb(var(--brand) / .04)); }
+.beta-rank-banner svg { flex: none; color: #f4c24d; margin-top: .1rem; }
+.beta-rank-banner p { margin: 0; font-size: .9rem; line-height: 1.45; }

@@ -252,7 +252,7 @@ function TopTesters({ state }: { state: ApiState }) {
   return (
     <div className="card admin-top-testers">
       <h3>Top 10 tesztelő – élethosszig tartó prémium</h3>
-      <p className="text-xs text-muted">A legtöbb naplózott étkezés alapján; admin fiók nem számít.</p>
+      <p className="text-xs text-muted">A legtöbb naplózott étkezés alapján, a béta első körének végéig (november 30.). A saját „norbi” profilod és az admin fiókok nem számítanak.</p>
       {error && <p className="status error" role="alert">{error}</p>}
       {!testers ? !error && <p role="status">Betöltés…</p> : testers.length === 0 ? <p className="text-sm text-muted">Még senki nem naplózott étkezést.</p> : (
         <ol className="admin-top-list">{testers.map((t) => <li key={t.id}><b>{t.username}</b> <span className="text-muted">{t.email ?? "nincs e-mail"}</span> · {t.meals} étkezés</li>)}</ol>
