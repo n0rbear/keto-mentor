@@ -3,12 +3,12 @@ import { effectiveGoals } from "@keto-mentor/shared";
 import { z } from "zod";
 import { getSettings } from "../admin/runtime-settings.js";
 import { hasPremiumFeature, loadDinnerCandidates, type DinnerCandidate, type Lang } from "./dinner-suggestions.js";
-import { addDays, generatePlan, PLAN_SLOTS, shoppingList, swapMeal, type Goals, type PlanDay } from "./meal-plan.js";
+import { addDays, generatePlan, planAlternatives, planPools, PLAN_SLOTS, setPlanMeal, shoppingList, swapMeal, type Goals, type PlanDay } from "./meal-plan.js";
 
 export const MEAL_PLAN_FEATURE = "meal_planner";
 const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const createSchema = z.object({ startDate: dateSchema }).strict();
-const swapSchema = z.object({ date: dateSchema, mealType: z.enum(PLAN_SLOTS) }).strict();
+const swapSchema = z.object({ date: dateSchema, mealType: z.enum(PLAN_SLOTS), recipeId: z.string().min(1).max(100).optional() }).strict();
 
 type Deps = { prisma: any; requireAuth: express.RequestHandler; adminOnly: express.RequestHandler; log?: (obj: object, msg: string) => void };
 
@@ -66,13 +66,37 @@ export function mealPlanRouter(deps: Deps) {
     try {
       const ctx = await context(req);
       if (!ctx.allowed) return res.status(403).json({ error: "premium_required" });
-      const { date, mealType } = swapSchema.parse(req.body);
+      const { date, mealType, recipeId } = swapSchema.parse(req.body);
       const plan = await prisma.mealPlan.findFirst({ where: { id: req.params.id, userId: req.user!.id } });
       if (!plan) return res.status(404).json({ error: "not_found" });
       const candidates = await loadDinnerCandidates(prisma, req.user!.id);
-      const days = swapMeal({ days: plan.days as PlanDay[], date, slot: mealType, candidates, goals: ctx.goals, goalsFor: ctx.goalsFor, avoid: ctx.avoid });
+      let days: PlanDay[];
+      if (recipeId) {
+        // The user picked one of the offered alternatives; it must be a dish this meal may hold.
+        const dayGoals = ctx.goalsFor(date);
+        const pools = planPools(candidates, dayGoals, ctx.avoid);
+        const chosen = (mealType === "breakfast" ? pools.breakfast : mealType === "lunch" ? pools.lunch : pools.dinner).find((c) => c.recipeId === recipeId);
+        if (!chosen) return res.status(400).json({ error: "not_allowed_for_meal" });
+        days = setPlanMeal(plan.days as PlanDay[], date, mealType, chosen, dayGoals);
+      } else {
+        days = swapMeal({ days: plan.days as PlanDay[], date, slot: mealType, candidates, goals: ctx.goals, goalsFor: ctx.goalsFor, avoid: ctx.avoid });
+      }
       await prisma.mealPlan.update({ where: { id: plan.id }, data: { days: days as any } });
       await respond(res, { id: plan.id, startDate: plan.startDate, days }, candidates, ctx, req.user!.id);
+    } catch (error) { next(error); }
+  });
+
+  // "Másikat kérek": 6-8 alternatives for one meal of the plan.
+  router.get("/meal-plans/:id/alternatives", deps.requireAuth, async (req, res, next) => {
+    try {
+      const ctx = await context(req);
+      if (!ctx.allowed) return res.status(403).json({ error: "premium_required" });
+      const date = dateSchema.parse(req.query.date);
+      const slot = z.enum(PLAN_SLOTS).parse(req.query.mealType);
+      const plan = await prisma.mealPlan.findFirst({ where: { id: req.params.id, userId: req.user!.id } });
+      if (!plan) return res.status(404).json({ error: "not_found" });
+      const candidates = await loadDinnerCandidates(prisma, req.user!.id);
+      res.json({ alternatives: planAlternatives({ days: plan.days as PlanDay[], date, slot, candidates, goals: ctx.goals, goalsFor: ctx.goalsFor, avoid: ctx.avoid }) });
     } catch (error) { next(error); }
   });
 

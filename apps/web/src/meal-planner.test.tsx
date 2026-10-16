@@ -22,6 +22,10 @@ describe("Heti étrendterv", () => {
       calls.push({ method, path: url.pathname, body: init?.body ? JSON.parse(String(init.body)) : undefined });
       if (url.pathname === "/meal-plans/current") return json({ plan: null, goals });
       if (url.pathname === "/meal-plans" && method === "POST") return json({ plan: plan(), goals }, 201);
+      if (url.pathname === "/meal-plans/p1/alternatives") return json({ alternatives: [
+        { ...meal("dinner", "Halászlé", "r9"), effort: "long", dayTotals: { kcal: 1600, protein: 100, netCarbs: 14, fat: 110 } },
+        { ...meal("dinner", "Tonhalsaláta", "r10"), effort: "quick", dayTotals: { kcal: 1500, protein: 95, netCarbs: 12, fat: 100 } }
+      ] });
       if (url.pathname === "/meal-plans/p1/swap") return json({ plan: plan("Halászlé"), goals });
       if (url.pathname === "/recipes/r3/meals") return json({ meal: {} }, 201);
       throw new Error(`unexpected ${method} ${url.pathname}`);
@@ -33,8 +37,11 @@ describe("Heti étrendterv", () => {
     expect(calls.find((c) => c.path === "/meal-plans")?.body).toEqual({ startDate: "2026-10-16" });
 
     fireEvent.click(screen.getByRole("button", { name: "Másikat kérek: Vacsora" }));
+    expect(await screen.findByText("Válassz helyette:")).toBeTruthy();
+    expect(screen.getByText("Hosszabb főzés")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Ezt választom: Halászlé" }));
     expect(await screen.findByText("Halászlé")).toBeTruthy();
-    expect(calls.find((c) => c.path === "/meal-plans/p1/swap")?.body).toEqual({ date: "2026-10-16", mealType: "dinner" });
+    expect(calls.find((c) => c.path === "/meal-plans/p1/swap")?.body).toEqual({ date: "2026-10-16", mealType: "dinner", recipeId: "r9" });
 
     fireEvent.click(screen.getByRole("button", { name: "Naplózom: Halászlé" }));
     await waitFor(() => expect(onLogged).toHaveBeenCalled());
@@ -44,6 +51,18 @@ describe("Heti étrendterv", () => {
     expect(screen.getByText("1.2 kg", { exact: false })).toBeTruthy();
     fireEvent.click(screen.getByRole("checkbox", { name: /Sertéskaraj/ }));
     expect(JSON.parse(localStorage.getItem("km_shopping_p1")!)).toEqual({ Sertéskaraj: true });
+    // Share as a checklist note (clipboard fallback when the share sheet is missing).
+    const writeText = vi.fn(async () => undefined);
+    Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
+    fireEvent.click(screen.getByRole("button", { name: /Megosztás telefonra/ }));
+    await waitFor(() => expect(writeText).toHaveBeenCalled());
+    const text = (writeText.mock.calls[0] as unknown as string[])[0];
+    expect(text).toContain("☑ Sertéskaraj – 1.2 kg");
+    expect(text).toContain("☐ só – 10 g");
+    const print = vi.fn(); vi.stubGlobal("print", print);
+    fireEvent.click(screen.getByRole("button", { name: /Nyomtatás \/ PDF/ }));
+    await waitFor(() => expect(print).toHaveBeenCalled());
+    expect(document.querySelector(".print-report")?.textContent).toContain("Sertéskaraj");
   });
 
   it("shows the premium lock", async () => {
