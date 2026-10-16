@@ -113,7 +113,7 @@ describe("external food confirmation", () => {
       labels={{ label: "Food", placeholder: "Search", loading: "Loading", noResults: "None", hint: "Hint", selected: "Selected" }}/>);
 
     fireEvent.click(screen.getByRole("button", { name: /Barcode \/ EAN lookup/ }));
-    fireEvent.click(screen.getByRole("button", { name: /Scan with camera/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Photograph barcode/ }));
     fireEvent.click(screen.getByText("simulate-camera-detect"));
 
     expect((screen.getByLabelText("Barcode (EAN/UPC)") as HTMLInputElement).value).toBe(barcode);
@@ -137,7 +137,7 @@ describe("external food confirmation", () => {
       labels={{ label: "Food", placeholder: "Search", loading: "Loading", noResults: "None", hint: "Hint", selected: "Selected" }}/>);
 
     fireEvent.click(screen.getByRole("button", { name: /Barcode \/ EAN lookup/ }));
-    fireEvent.click(screen.getByRole("button", { name: /Scan with camera/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Photograph barcode/ }));
     fireEvent.click(screen.getByText("simulate-camera-detect"));
 
     await waitFor(() => expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ id: "local-1" })));

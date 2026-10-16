@@ -159,7 +159,7 @@ describe("BarcodeLookup", () => {
     fireEvent.click(screen.getByRole("button", { name: /Barcode \/ EAN lookup/ }));
     expect(lastScannerProps.current).toBeNull();
     expect(screen.getByLabelText("Barcode (EAN/UPC)")).toBeTruthy();
-    expect(screen.getByRole("button", { name: /Scan with camera/ })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Photograph barcode/ })).toBeTruthy();
   });
 
   it("Scan with camera opens the scanner, and a detected barcode feeds the same lookup flow as manual entry", async () => {
@@ -174,7 +174,7 @@ describe("BarcodeLookup", () => {
     const onFoodConfirmed = vi.fn();
     render(<BarcodeLookup lang="en" state={state} onFoodConfirmed={onFoodConfirmed}/>);
     fireEvent.click(screen.getByRole("button", { name: /Barcode \/ EAN lookup/ }));
-    fireEvent.click(screen.getByRole("button", { name: /Scan with camera/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Photograph barcode/ }));
     expect(lastScannerProps.current).not.toBeNull();
     fireEvent.click(screen.getByText("simulate-detect"));
     await waitFor(() => expect(onFoodConfirmed).toHaveBeenCalledWith(localFood));
@@ -188,7 +188,7 @@ describe("BarcodeLookup", () => {
     vi.stubGlobal("fetch", fetchMock);
     render(<BarcodeLookup lang="en" state={state} onFoodConfirmed={vi.fn()}/>);
     fireEvent.click(screen.getByRole("button", { name: /Barcode \/ EAN lookup/ }));
-    fireEvent.click(screen.getByRole("button", { name: /Scan with camera/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Photograph barcode/ }));
     fireEvent.click(screen.getByText("simulate-close"));
     expect(fetchMock).not.toHaveBeenCalled();
     expect(screen.queryByText("simulate-close")).toBeNull();
