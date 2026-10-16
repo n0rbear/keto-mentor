@@ -18,7 +18,7 @@ const copy = {
 
 const line = (m: Macros, t: (typeof copy)[Lang]) => `${m.kcal} kcal · ${t.net} ${m.netCarbs} g · P ${m.protein} g · Z/F ${m.fat} g`;
 
-export function TryWithoutAccount({ lang }: { lang: Lang }) {
+export function TryWithoutAccount({ lang, mobileOpen = true }: { lang: Lang; mobileOpen?: boolean }) {
   const t = copy[lang];
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
@@ -33,7 +33,7 @@ export function TryWithoutAccount({ lang }: { lang: Lang }) {
     finally { setBusy(false); }
   }
   return (
-    <section className="card try-card" aria-labelledby="try-title">
+    <section className={`card try-card ${mobileOpen ? "" : "is-mobile-collapsed"}`} aria-labelledby="try-title">
       <h2 id="try-title" className="section-heading"><Search size={19} aria-hidden="true"/>{t.title}</h2>
       <p className="text-sm text-muted">{t.lead}</p>
       <form className="try-form" onSubmit={submit}>

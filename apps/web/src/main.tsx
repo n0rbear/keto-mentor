@@ -24,6 +24,7 @@ import { FlexibleGoals } from "./FlexibleGoals";
 import { AccountPage } from "./AccountPage";
 import { TryWithoutAccount } from "./TryWithoutAccount";
 const ACCOUNT_LABEL = { hu: "Fiókom", de: "Mein Konto", en: "My account" } as const;
+const TRY_TOGGLE = { hu: "Inkább kipróbálom regisztráció nélkül", de: "Lieber erst ohne Registrierung ausprobieren", en: "Try it first without signing up" } as const;
 import { PalettePicker } from "./PalettePicker";
 import { applyPalette, storedPalette } from "./palette";
 import { effectiveGoals } from "./goals";
@@ -88,7 +89,8 @@ type ProgressStage = "food_understanding" | "local_food_search" | "local_recipe_
 
 export function App() {
   const [lang, setLang] = useState<Lang>("hu");
-  const [token, setToken] = useState(localStorage.getItem("km_token"));
+  // "Bejelentkezve maradok" off keeps the token only for this browser session.
+  const [token, setToken] = useState(() => localStorage.getItem("km_token") ?? sessionStorage.getItem("km_token"));
   const [user, setUser] = useState<User | null>(null);
 
   const [meals, setMeals] = useState<Meal[]>([]);
@@ -153,6 +155,7 @@ export function App() {
     api<{ reminders: ReminderSettings }>("/me/reminders", {}, state).then((r) => setReminders(r.reminders)).catch(() => undefined);
   }, [user?.id, user?.profile?.onboardingDone]);
   useEffect(() => { const id = window.setInterval(() => setClockTick((n) => n + 1), 60_000); return () => window.clearInterval(id); }, []);
+  const [tryOpen, setTryOpen] = useState(false);
   // Fiókom (2026-10-16): the user's own account settings.
   const [accountOpen, setAccountOpen] = useState(false);
   async function logout() {
@@ -209,7 +212,7 @@ export function App() {
         setVerifyNotice({ ok: true, text: texts[0] });
         setUser((current) => current ? { ...current, emailVerified: true } : current);
         // Re-read the account: a confirmed admin address turns on the Admin button at once.
-        const stored = localStorage.getItem("km_token");
+        const stored = localStorage.getItem("km_token") ?? sessionStorage.getItem("km_token");
         if (stored) api<{ user: User }>("/me", {}, { token: stored, setToken }).then((me) => setUser(me.user)).catch(() => undefined);
       })
       .catch(() => setVerifyNotice({ ok: false, text: texts[1] }));
@@ -221,8 +224,9 @@ export function App() {
   const state = useMemo(() => ({ token, setToken }), [token]);
 
   useEffect(() => {
-    if (token) localStorage.setItem("km_token", token);
-    else localStorage.removeItem("km_token");
+    const remember = localStorage.getItem("km_remember") !== "0";
+    if (token) { (remember ? localStorage : sessionStorage).setItem("km_token", token); (remember ? sessionStorage : localStorage).removeItem("km_token"); }
+    else { localStorage.removeItem("km_token"); sessionStorage.removeItem("km_token"); }
   }, [token]);
 
   function fetchMealsForDate(dateStr: string) {
@@ -861,12 +865,16 @@ export function App() {
           <h1 className="hero-title">{t.hero}</h1>
           <p className="hero-lead">{t.lead}</p>
           <p className="health-note"><ShieldCheck size={18}/><span>{t.disclaimer}</span></p>
-          {!user && <TryWithoutAccount lang={lang}/>}
+          {!user && <TryWithoutAccount lang={lang} mobileOpen={tryOpen}/>}
         </div>
 
 
         {!user ? (
-          <AuthForm mode={appConfig?.registrationOpen === false ? "login" : "register"} registrationOpen={appConfig?.registrationOpen !== false} lang={lang} state={state} onSuccess={setUser} />
+          <>
+            <AuthForm mode={appConfig?.registrationOpen === false ? "login" : "register"} registrationOpen={appConfig?.registrationOpen !== false} lang={lang} state={state} onSuccess={setUser} />
+            {/* Phones: sign-in first, trying without an account one tap away. */}
+            {!tryOpen && <button type="button" className="btn secondary mobile-only try-toggle" onClick={() => { setTryOpen(true); window.setTimeout(() => document.getElementById("try-title")?.scrollIntoView?.({ behavior: "smooth", block: "start" }), 30); }}>{TRY_TOGGLE[lang]}</button>}
+          </>
         ) : authBootstrapping ? (
           <div className="card welcome-panel" role="status" aria-busy="true">
             <p className="panel-kicker">{t.loadingProfile}</p>

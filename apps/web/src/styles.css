@@ -830,3 +830,11 @@ body { padding-left: var(--safe-left); padding-right: var(--safe-right); }
 .dinner-item.is-empty-slot { border-style: dashed; }
 .plan-alternatives li.is-over { opacity: .7; }
 .plan-alternatives > .field { width: 100%; }
+.remember-me { font-size: .85rem; }
+/* Phones, signed out: sign-in / registration first, the try card on demand. */
+@media (max-width: 860px) {
+  .hero-shell:not(.is-authenticated) .auth-panel { order: 0; }
+  .hero-shell:not(.is-authenticated) .try-toggle { order: 1; width: 100%; }
+  .hero-shell:not(.is-authenticated) .hero-copy { order: 2; }
+  .try-card.is-mobile-collapsed { display: none; }
+}

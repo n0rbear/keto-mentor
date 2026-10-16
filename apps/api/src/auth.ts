@@ -46,14 +46,21 @@ export function verifyRefreshToken(token: string): RefreshPayload | null {
 }
 
 
-export function setRefreshCookie(res: Response, token: string) {
-  res.cookie("km_refresh", token, {
+// "Bejelentkezve maradok": a persistent 30-day cookie, or a browser-session
+// cookie that ends when the browser closes. The choice rides along in its own
+// cookie so a token refresh keeps it.
+export function setRefreshCookie(res: Response, token: string, persistent = true) {
+  const options = {
     httpOnly: true,
-    sameSite: env.NODE_ENV === "production" ? "none" : "lax",
+    sameSite: (env.NODE_ENV === "production" ? "none" : "lax") as "none" | "lax",
     secure: env.NODE_ENV === "production",
-    maxAge: 30 * 24 * 60 * 60 * 1000
-  });
+    ...(persistent ? { maxAge: 30 * 24 * 60 * 60 * 1000 } : {})
+  };
+  res.cookie("km_refresh", token, options);
+  res.cookie("km_remember", persistent ? "1" : "0", options);
 }
+
+export const rememberFromCookie = (req: Request) => req.cookies?.km_remember !== "0";
 
 
 export function readRefreshToken(req: Request): { sessionId: string; secret: string } | null {
