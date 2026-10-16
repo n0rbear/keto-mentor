@@ -65,6 +65,34 @@ describe("Heti étrendterv", () => {
     expect(document.querySelector(".print-report")?.textContent).toContain("Sertéskaraj");
   });
 
+  it("builds an own plan: empty week, search and pick a dish, remove it", async () => {
+    const calls: Array<{ method: string; path: string; body?: any }> = [];
+    const empty = { id: "p2", startDate: "2026-10-16", days: [{ date: "2026-10-16", fits: true, totals: { kcal: 0, protein: 0, netCarbs: 0, fat: 0 }, meals: [] }], shopping: [] };
+    const withLunch = { ...empty, days: [{ ...empty.days[0], totals: { kcal: 550, protein: 35, netCarbs: 5, fat: 40 }, meals: [meal("lunch", "Cézár saláta", "r20")] }] };
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = new URL(String(input)); const method = init?.method ?? "GET";
+      calls.push({ method, path: url.pathname + (url.pathname.endsWith("/dishes") ? `?q=${url.searchParams.get("q")}` : ""), body: init?.body ? JSON.parse(String(init.body)) : undefined });
+      if (url.pathname === "/meal-plans/current") return json({ plan: null, goals });
+      if (url.pathname === "/meal-plans" && method === "POST") return json({ plan: empty, goals }, 201);
+      if (url.pathname === "/meal-plans/p2/dishes") return json({ dishes: [{ ...meal("lunch", "Cézár saláta", "r20"), effort: "quick", dayTotals: { kcal: 550, protein: 35, netCarbs: 5, fat: 40 }, fits: true }] });
+      if (url.pathname === "/meal-plans/p2/swap") return json({ plan: withLunch, goals });
+      if (url.pathname === "/meal-plans/p2/clear") return json({ plan: empty, goals });
+      throw new Error(`unexpected ${method} ${url.pathname}`);
+    }));
+    render(<MealPlanner lang="hu" state={state} today="2026-10-16" onLogged={() => undefined}/>);
+    fireEvent.click(await screen.findByRole("button", { name: /Saját terv összeállítása/ }));
+    await waitFor(() => expect(screen.getAllByText("Még üres – válassz ételt.")).toHaveLength(3));
+    expect(calls.find((c) => c.path === "/meal-plans")?.body).toEqual({ startDate: "2026-10-16", mode: "empty" });
+    fireEvent.click(screen.getByRole("button", { name: "Étel hozzáadása: Ebéd" }));
+    fireEvent.change(await screen.findByPlaceholderText(/Keress ételt/), { target: { value: "saláta" } });
+    fireEvent.click(await screen.findByRole("button", { name: "Ezt választom: Cézár saláta" }));
+    await waitFor(() => expect(calls.find((c) => c.path === "/meal-plans/p2/swap")?.body).toEqual({ date: "2026-10-16", mealType: "lunch", recipeId: "r20" }));
+    await waitFor(() => expect(screen.getAllByText("Még üres – válassz ételt.")).toHaveLength(2));
+    expect(calls.some((c) => c.path === "/meal-plans/p2/dishes?q=saláta")).toBe(true);
+    fireEvent.click(screen.getByRole("button", { name: "Törlés: Ebéd" }));
+    await waitFor(() => expect(screen.getAllByText("Még üres – válassz ételt.")).toHaveLength(3));
+  });
+
   it("shows the premium lock", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => json({ error: "premium_required" }, 403)));
     render(<MealPlanner lang="hu" state={state} today="2026-10-16" onLogged={() => undefined}/>);

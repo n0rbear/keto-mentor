@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { CalendarRange, Check, Download, Plus, Printer, RefreshCw, Share2, ShoppingCart } from "lucide-react";
+import { CalendarRange, Check, Download, PencilLine, Plus, Printer, RefreshCw, Search, Share2, ShoppingCart, Trash2 } from "lucide-react";
 import { api, ApiError, type ApiState } from "./api";
 import type { Lang } from "./i18n";
 import { PremiumBadge, PremiumNote } from "./PremiumBadge";
@@ -13,7 +13,8 @@ type Macros = { kcal: number; protein: number; netCarbs: number; fat: number };
 type Slot = "breakfast" | "lunch" | "dinner";
 type PlanMeal = { mealType: Slot; recipeId: string; titles: { hu: string; de: string; en: string }; servingGrams: number | null; macros: Macros; source: "own" | "reference" };
 type PlanDay = { date: string; meals: PlanMeal[]; totals: Macros; fits: boolean };
-type Alternative = PlanMeal & { effort: "quick" | "medium" | "long"; dayTotals: Macros };
+type Alternative = PlanMeal & { effort: "quick" | "medium" | "long"; dayTotals: Macros; fits?: boolean };
+const SLOTS: Slot[] = ["breakfast", "lunch", "dinner"];
 type ShoppingItem = { name: string; grams: number; seasoning: boolean; meals: number };
 type Plan = { id: string; startDate: string; days: PlanDay[]; shopping: ShoppingItem[] };
 type Response = { plan: Plan | null; goals: Macros };
@@ -21,7 +22,7 @@ type Response = { plan: Plan | null; goals: Macros };
 const copy = {
   hu: {
     title: "Heti étrendterv", lead: "Egy hét reggeli, ebéd és vacsora, ami belefér a szénhidrát- és kalóriacélodba, sok fehérjével. A saját receptjeidből és a referenciaételekből válogatok.",
-    create: "Heti terv készítése", recreate: "Új terv", creating: "Tervezem…", loading: "Betöltés…",
+    create: "Heti terv készítése", recreate: "Új terv", createEmpty: "Saját terv összeállítása", emptySlot: "Még üres – válassz ételt.", add: "Étel hozzáadása", ownPick: "Saját választás", remove: "Törlés", searchPlaceholder: "Keress ételt, pl. csirke, saláta, tojás", noResults: "Nincs találat.", overCarbs: "túllépi a napi szénhidrátot", creating: "Tervezem…", loading: "Betöltés…",
     slots: { breakfast: "Reggeli", lunch: "Ebéd", dinner: "Vacsora" }, swap: "Másikat kérek", log: "Naplózom", logged: "Naplózva.",
     day: "Napi összesen", goal: "cél", notFits: "Erre a napra nem találtam olyan összeállítást, ami a szénhidrátcél alatt marad. Cserélj egy ételt, vagy vegyél fel saját receptet.",
     pick: "Válassz helyette:", choose: "Ezt választom", noAlternatives: "Most nincs más étel, ami ebbe a napba belefér.", effort: { quick: "Gyors", medium: "Közepes", long: "Hosszabb főzés" }, dayAfter: "a nap így",
@@ -31,7 +32,7 @@ const copy = {
   },
   de: {
     title: "Wochenplan", lead: "Eine Woche Frühstück, Mittag- und Abendessen passend zu deinem Kohlenhydrat- und Kalorienziel, mit viel Eiweiß. Aus deinen Rezepten und den Referenzgerichten.",
-    create: "Wochenplan erstellen", recreate: "Neuer Plan", creating: "Plane…", loading: "Lädt…",
+    create: "Wochenplan erstellen", recreate: "Neuer Plan", createEmpty: "Eigenen Plan zusammenstellen", emptySlot: "Noch leer – Gericht wählen.", add: "Gericht hinzufügen", ownPick: "Selbst wählen", remove: "Entfernen", searchPlaceholder: "Gericht suchen, z. B. Huhn, Salat, Ei", noResults: "Keine Treffer.", overCarbs: "überschreitet die Tages-KH", creating: "Plane…", loading: "Lädt…",
     slots: { breakfast: "Frühstück", lunch: "Mittagessen", dinner: "Abendessen" }, swap: "Etwas anderes", log: "Eintragen", logged: "Eingetragen.",
     day: "Tagessumme", goal: "Ziel", notFits: "Für diesen Tag passt keine Kombination unter dein Kohlenhydratziel. Tausche ein Gericht oder lege ein eigenes Rezept an.",
     pick: "Stattdessen wählen:", choose: "Das nehme ich", noAlternatives: "Gerade passt kein anderes Gericht in diesen Tag.", effort: { quick: "Schnell", medium: "Mittel", long: "Längeres Kochen" }, dayAfter: "Tag damit",
@@ -41,7 +42,7 @@ const copy = {
   },
   en: {
     title: "Weekly meal plan", lead: "A week of breakfasts, lunches and dinners within your carb and calorie targets, high in protein, from your recipes and the reference dishes.",
-    create: "Create weekly plan", recreate: "New plan", creating: "Planning…", loading: "Loading…",
+    create: "Create weekly plan", recreate: "New plan", createEmpty: "Build my own plan", emptySlot: "Empty – pick a dish.", add: "Add a dish", ownPick: "Choose myself", remove: "Remove", searchPlaceholder: "Search a dish, e.g. chicken, salad, egg", noResults: "No results.", overCarbs: "goes over the daily carbs", creating: "Planning…", loading: "Loading…",
     slots: { breakfast: "Breakfast", lunch: "Lunch", dinner: "Dinner" }, swap: "Something else", log: "Log", logged: "Logged.",
     day: "Day total", goal: "target", notFits: "No combination for this day stays under your carb target. Swap a dish or add your own recipe.",
     pick: "Pick one instead:", choose: "Choose this", noAlternatives: "No other dish fits this day right now.", effort: { quick: "Quick", medium: "Medium", long: "Longer cooking" }, dayAfter: "day with it",
@@ -102,6 +103,46 @@ export function MealPlanner({ lang, state, today, onLogged }: { lang: Lang; stat
     await run(`swap:${date}:${mealType}`, () => api<Response>(`/meal-plans/${data!.plan!.id}/swap?lang=${lang}`, { method: "POST", body: JSON.stringify({ date, mealType, recipeId }) }, state));
     setAlternatives(null);
   };
+
+  // Saját étrendterv: search any dish for a slot, or empty a slot.
+  const [search, setSearch] = useState<{ key: string; query: string; list: Alternative[] } | null>(null);
+  const searchSeq = useRef(0);
+  async function runSearch(date: string, mealType: Slot, query: string) {
+    const key = `${date}:${mealType}`;
+    setSearch((cur) => ({ key, query, list: cur?.key === key ? cur.list : [] }));
+    const seq = ++searchSeq.current;
+    try {
+      const r = await api<{ dishes: Alternative[] }>(`/meal-plans/${data!.plan!.id}/dishes?date=${date}&mealType=${mealType}&q=${encodeURIComponent(query)}&lang=${lang}`, {}, state);
+      if (seq === searchSeq.current) setSearch((cur) => cur?.key === key ? { ...cur, list: r.dishes } : cur);
+    } catch (e) { fail(e); }
+  }
+  function openSearch(date: string, mealType: Slot) {
+    const key = `${date}:${mealType}`;
+    if (search?.key === key) { setSearch(null); return; }
+    setAlternatives(null);
+    void runSearch(date, mealType, "");
+  }
+  const clear = (date: string, mealType: Slot) => run(`clear:${date}:${mealType}`, () => api<Response>(`/meal-plans/${data!.plan!.id}/clear?lang=${lang}`, { method: "POST", body: JSON.stringify({ date, mealType }) }, state));
+  const createEmpty = () => {
+    if (data?.plan && !window.confirm(t.confirmRecreate)) return;
+    void run("create", () => api<Response>(`/meal-plans?lang=${lang}`, { method: "POST", body: JSON.stringify({ startDate: today, mode: "empty" }) }, state));
+  };
+  // A plain render helper (not a nested component), so the list is not remounted on every update.
+  function optionList(items: Alternative[], onChoose: (recipeId: string) => void) {
+    return (
+      <ul>
+        {items.map((alt) => (
+          <li key={alt.recipeId} className={alt.fits === false ? "is-over" : ""}>
+            <div>
+              <strong>{alt.titles[lang]}</strong> <span className={`effort-tag is-${alt.effort}`}>{t.effort[alt.effort]}</span>
+              <div className="text-xs text-muted">{macroLine(alt.macros)} · {t.dayAfter}: NCH {alt.dayTotals.netCarbs} g, {alt.dayTotals.kcal} kcal{alt.fits === false ? ` · ${t.overCarbs}` : ""}</div>
+            </div>
+            <button type="button" className="btn ghost" onClick={() => onChoose(alt.recipeId)} disabled={busy !== null} aria-label={`${t.choose}: ${alt.titles[lang]}`}><Check size={15} aria-hidden="true"/>{t.choose}</button>
+          </li>
+        ))}
+      </ul>
+    );
+  }
 
   // Shopping list as a checklist note: share to the phone, download, or print.
   const [printing, setPrinting] = useState(false);
@@ -164,6 +205,7 @@ export function MealPlanner({ lang, state, today, onLogged }: { lang: Lang; stat
       {!plan && <p className="text-sm text-muted">{t.lead}</p>}
       <div className="planner-actions">
         <button type="button" className={`btn ${plan ? "secondary" : "primary"}`} onClick={create} disabled={busy !== null}>{busy === "create" ? t.creating : busy === "load" ? t.loading : plan ? t.recreate : t.create}</button>
+        <button type="button" className="btn ghost" onClick={createEmpty} disabled={busy !== null}><PencilLine size={16} aria-hidden="true"/>{t.createEmpty}</button>
         {plan && <button type="button" className="btn ghost" onClick={() => setShowShopping((v) => !v)} aria-pressed={showShopping}><ShoppingCart size={16} aria-hidden="true"/>{showShopping ? t.hideShopping : t.shopping}</button>}
       </div>
       {error && <p className="status error" role="alert">{error}</p>}
@@ -178,36 +220,38 @@ export function MealPlanner({ lang, state, today, onLogged }: { lang: Lang; stat
           </div>
           {!day.fits && <p className="status" role="status">{t.notFits}</p>}
           <ul className="dinner-list">
-            {day.meals.map((meal) => (
-              <li key={meal.mealType} className="dinner-item">
+            {SLOTS.map((slot) => {
+              const meal = day.meals.find((m) => m.mealType === slot);
+              const key = `${day.date}:${slot}`;
+              return (
+              <li key={slot} className={`dinner-item ${meal ? "" : "is-empty-slot"}`}>
                 <div>
-                  <span className="meal-type-tag">{t.slots[meal.mealType]}</span>
-                  <strong>{meal.titles[lang]}</strong>
-                  <div className="text-sm">{macroLine(meal.macros)}{meal.servingGrams ? ` · ${meal.servingGrams} g` : ""}</div>
+                  <span className="meal-type-tag">{t.slots[slot]}</span>
+                  {meal ? <><strong>{meal.titles[lang]}</strong><div className="text-sm">{macroLine(meal.macros)}{meal.servingGrams ? ` · ${meal.servingGrams} g` : ""}</div></> : <span className="text-sm text-muted">{t.emptySlot}</span>}
                 </div>
                 <div className="planner-meal-actions">
-                  <button type="button" className="btn ghost" onClick={() => openAlternatives(day.date, meal.mealType)} disabled={busy !== null} aria-expanded={alternatives?.key === `${day.date}:${meal.mealType}`} aria-label={`${t.swap}: ${t.slots[meal.mealType]}`}><RefreshCw size={15} aria-hidden="true"/>{t.swap}</button>
-                  {day.date === today && <button type="button" className="btn ghost" onClick={() => log(meal)} disabled={busy !== null} aria-label={`${t.log}: ${meal.titles[lang]}`}><Plus size={15} aria-hidden="true"/>{t.log}</button>}
+                  {meal && <button type="button" className="btn ghost" onClick={() => openAlternatives(day.date, slot)} disabled={busy !== null} aria-expanded={alternatives?.key === key} aria-label={`${t.swap}: ${t.slots[slot]}`}><RefreshCw size={15} aria-hidden="true"/>{t.swap}</button>}
+                  <button type="button" className="btn ghost" onClick={() => openSearch(day.date, slot)} disabled={busy !== null} aria-expanded={search?.key === key} aria-label={`${meal ? t.ownPick : t.add}: ${t.slots[slot]}`}><Search size={15} aria-hidden="true"/>{meal ? t.ownPick : t.add}</button>
+                  {meal && <button type="button" className="btn ghost" onClick={() => clear(day.date, slot)} disabled={busy !== null} aria-label={`${t.remove}: ${t.slots[slot]}`}><Trash2 size={15} aria-hidden="true"/></button>}
+                  {meal && day.date === today && <button type="button" className="btn ghost" onClick={() => log(meal)} disabled={busy !== null} aria-label={`${t.log}: ${meal.titles[lang]}`}><Plus size={15} aria-hidden="true"/>{t.log}</button>}
                 </div>
-                {alternatives?.key === `${day.date}:${meal.mealType}` && (
+                {alternatives?.key === key && (
                   <div className="plan-alternatives">
                     <strong className="text-sm">{t.pick}</strong>
                     {!alternatives.list.length && <p className="text-sm text-muted">{t.noAlternatives}</p>}
-                    <ul>
-                      {alternatives.list.map((alt) => (
-                        <li key={alt.recipeId}>
-                          <div>
-                            <strong>{alt.titles[lang]}</strong> <span className={`effort-tag is-${alt.effort}`}>{t.effort[alt.effort]}</span>
-                            <div className="text-xs text-muted">{macroLine(alt.macros)} · {t.dayAfter}: NCH {alt.dayTotals.netCarbs} g, {alt.dayTotals.kcal} kcal</div>
-                          </div>
-                          <button type="button" className="btn ghost" onClick={() => choose(day.date, meal.mealType, alt.recipeId)} disabled={busy !== null} aria-label={`${t.choose}: ${alt.titles[lang]}`}><Check size={15} aria-hidden="true"/>{t.choose}</button>
-                        </li>
-                      ))}
-                    </ul>
+                    {optionList(alternatives.list, (id) => choose(day.date, slot, id))}
+                  </div>
+                )}
+                {search?.key === key && (
+                  <div className="plan-alternatives">
+                    <input className="field" autoFocus value={search.query} placeholder={t.searchPlaceholder} aria-label={t.searchPlaceholder} onChange={(e) => runSearch(day.date, slot, e.target.value)}/>
+                    {!search.list.length && <p className="text-sm text-muted">{t.noResults}</p>}
+                    {optionList(search.list, (id) => { void choose(day.date, slot, id); setSearch(null); })}
                   </div>
                 )}
               </li>
-            ))}
+              );
+            })}
           </ul>
           {goals && <p className="text-sm"><strong>{t.day}:</strong> {macroLine(day.totals)} <span className="text-muted">({t.goal}: {goals.kcal} kcal · P {goals.protein} g · NCH ≤ {goals.netCarbs} g)</span></p>}
         </>

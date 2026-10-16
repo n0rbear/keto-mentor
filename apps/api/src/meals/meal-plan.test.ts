@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { normalizeSearch } from "../catalog/normalize.js";
 import type { DinnerCandidate } from "./dinner-suggestions.js";
-import { addDays, generatePlan, planAlternatives, planPools, setPlanMeal, shoppingList, swapMeal } from "./meal-plan.js";
+import { addDays, clearPlanMeal, emptyPlan, generatePlan, planAlternatives, planPools, searchPlanDishes, setPlanMeal, shoppingList, swapMeal } from "./meal-plan.js";
 
 let seed = 7;
 const random = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
@@ -75,5 +75,19 @@ describe("heti étrendterv", () => {
     const next = setPlanMeal(days, days[1].date, "dinner", chosen, goals);
     expect(next[1].meals[2].recipeId).toBe(chosen.recipeId);
     expect(next[1].meals[0]).toEqual(days[1].meals[0]);
+  });
+
+  it("builds a plan by hand: empty week, search a dish, set it, clear it", () => {
+    let days = emptyPlan("2026-10-19", () => goals);
+    expect(days).toHaveLength(7);
+    expect(days.every((d) => d.meals.length === 0)).toBe(true);
+    const found = searchPlanDishes({ days, date: "2026-10-20", slot: "lunch", candidates: [...breakfasts, ...mains], goals, avoid: [], query: "main1", lang: "hu" });
+    expect(found.map((f) => f.recipeId)).toEqual(expect.arrayContaining(["main1", "main10"]));
+    const chosen = [...breakfasts, ...mains].find((x) => x.recipeId === "main1")!;
+    days = setPlanMeal(days, "2026-10-20", "lunch", chosen, goals);
+    expect(days[1].meals.map((m) => m.recipeId)).toEqual(["main1"]);
+    expect(days[1].totals.kcal).toBeGreaterThan(0);
+    days = clearPlanMeal(days, "2026-10-20", "lunch", goals);
+    expect(days[1].meals).toEqual([]);
   });
 });

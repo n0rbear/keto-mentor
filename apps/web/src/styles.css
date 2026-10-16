@@ -827,3 +827,6 @@ body { padding-left: var(--safe-left); padding-right: var(--safe-right); }
 .try-result ul { display: grid; gap: .45rem; margin: 0; padding: 0; list-style: none; }
 .try-result li { padding: .5rem .6rem; border-radius: 10px; background: rgb(var(--surface-hover) / .6); overflow-wrap: anywhere; }
 .try-total { margin: 0; }
+.dinner-item.is-empty-slot { border-style: dashed; }
+.plan-alternatives li.is-over { opacity: .7; }
+.plan-alternatives > .field { width: 100%; }
