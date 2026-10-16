@@ -26,7 +26,11 @@ export const settingsSchema = z.object({
   aiLimits: aiLimitsSchema,
   // Premium features while there is no payment yet (2026-10-15): "beta_all"
   // lets every signed-in user try them, "premium_only" needs an entitlement.
-  premiumAccess: z.enum(["beta_all", "premium_only"]).default("beta_all")
+  premiumAccess: z.enum(["beta_all", "premium_only"]).default("beta_all"),
+  // Daily ceiling for reminder e-mails (2026-10-16). Resend's free plan
+  // sends 100 e-mails a day in total; the rest is kept for verification and
+  // password-reset mail.
+  reminderDailyCap: z.number().int().min(0).max(100000).default(70)
 });
 export type AppSettings = z.infer<typeof settingsSchema>;
 
@@ -34,7 +38,8 @@ export const DEFAULT_SETTINGS: AppSettings = Object.freeze({
   registrationOpen: true,
   announcement: { enabled: false, hu: "", de: "", en: "" },
   aiLimits: { perHour: 30, perDay: 100, perRecipe: 8, premiumPerHour: 60, premiumPerDay: 200 },
-  premiumAccess: "beta_all"
+  premiumAccess: "beta_all",
+  reminderDailyCap: 70
 }) as AppSettings;
 
 let current: AppSettings = structuredClone(DEFAULT_SETTINGS);

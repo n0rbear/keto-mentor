@@ -27,6 +27,8 @@ export function countUsage(kind: string, extra: UsageExtra = {}, at = new Date()
 }
 
 export function pendingUsageForTests() { return new Map(pending); }
+/** Count recorded in memory but not yet flushed to the database. */
+export const pendingUsageCount = (kind: string, day = usageDay()) => pending.get(`${day}|${kind}`)?.count ?? 0;
 export function clearPendingUsageForTests() { pending.clear(); }
 
 type UsageDb = { $executeRaw(query: Prisma.Sql): Promise<number> };
