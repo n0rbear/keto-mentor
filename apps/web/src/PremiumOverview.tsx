@@ -20,9 +20,9 @@ export const PREMIUM_FEATURES: Feature[] = [
 ];
 
 const copy = {
-  hu: { title: "Prémium – hamarosan", lead: "Ezek a funkciók a fizetős prémium csomag részei lesznek; minden más az ingyenes alapverzióban marad. A béta alatt a prémiumot is ingyen kipróbálhatod, és a 10 legaktívabb tesztelő élethosszig tartó prémiumot kap.", beta: "Kipróbálható", soon: "Hamarosan" },
-  de: { title: "Premium – demnächst", lead: "Diese Funktionen werden Teil des kostenpflichtigen Premium-Pakets; alles andere bleibt in der kostenlosen Basisversion. Während der Beta kannst du Premium kostenlos testen, und die 10 aktivsten Tester erhalten Premium auf Lebenszeit.", beta: "Testbar", soon: "Demnächst" },
-  en: { title: "Premium – coming soon", lead: "These features will be part of the paid premium plan; everything else stays in the free basic version. During the beta you can try premium for free, and the 10 most active testers get lifetime premium.", beta: "Try it now", soon: "Coming soon" }
+  hu: { title: "Prémium – hamarosan", lead: "Ezek a funkciók a fizetős prémium csomag részei lesznek; minden más az ingyenes alapverzióban marad. A béta alatt a prémiumot is ingyen kipróbálhatod, és a 10 legaktívabb tesztelő (a legtöbb naplózott étkezés alapján) élethosszig tartó prémiumot kap.", beta: "Kipróbálható", soon: "Hamarosan" },
+  de: { title: "Premium – demnächst", lead: "Diese Funktionen werden Teil des kostenpflichtigen Premium-Pakets; alles andere bleibt in der kostenlosen Basisversion. Während der Beta kannst du Premium kostenlos testen, und die 10 aktivsten Tester (nach Anzahl erfasster Mahlzeiten) erhalten Premium auf Lebenszeit.", beta: "Testbar", soon: "Demnächst" },
+  en: { title: "Premium – coming soon", lead: "These features will be part of the paid premium plan; everything else stays in the free basic version. During the beta you can try premium for free, and the 10 most active testers (by number of logged meals) get lifetime premium.", beta: "Try it now", soon: "Coming soon" }
 } as const;
 
 export function PremiumOverview({ lang, statusOverrides = {} }: { lang: Lang; statusOverrides?: Partial<Record<string, Status>> }) {

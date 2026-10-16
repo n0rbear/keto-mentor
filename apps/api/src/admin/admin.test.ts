@@ -106,6 +106,9 @@ describe("admin features", () => {
     const users = (await (await call(t.base, "GET", "/admin/users", "admin")).json()).users;
     expect(users.find((u: any) => u.id === "admin").isAdmin).toBe(true);
     expect(users.find((u: any) => u.id === "u1")).toMatchObject({ meals: 3, recipes: 1, emailVerified: false, isAdmin: false });
+    const top = (await (await call(t.base, "GET", "/admin/top-testers", "admin")).json()).testers;
+    expect(top.some((u: any) => u.id === "admin")).toBe(false);
+    expect(top[0]).toMatchObject({ rank: 1, id: "u1", meals: 3 });
     expect((await call(t.base, "DELETE", "/admin/users/admin", "admin")).status).toBe(400);
     expect((await call(t.base, "DELETE", "/admin/users/u1", "admin")).status).toBe(204);
     expect(t.deleted).toEqual(["u1"]);

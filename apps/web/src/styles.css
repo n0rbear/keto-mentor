@@ -837,3 +837,6 @@ body { padding-left: var(--safe-left); padding-right: var(--safe-right); }
   .hero-shell:not(.is-authenticated) .hero-copy { order: 2; }
   .try-card.is-mobile-collapsed { display: none; }
 }
+.admin-top-testers { display: grid; gap: .35rem; }
+.admin-top-testers h3 { margin: 0; }
+.admin-top-list { margin: .25rem 0 0; padding-left: 1.4rem; display: grid; gap: .2rem; }
