@@ -35,7 +35,7 @@ import { DINNER_FEATURE, hasPremiumFeature, loadDinnerCandidates, rankDinnerSugg
 import { getWeekOverview } from "./meals/week-query.js";
 import { recipeRouter } from "./recipes/router.js";
 import { interpretMealInput, resolveQuantity } from "./meal-input/interpret.js";
-import { tryFromInterpretation, tryReferenceDish } from "./meal-input/public-try.js";
+import { tryFromInterpretation, tryReferenceDish, fillUnclearWithReferenceDishes } from "./meal-input/public-try.js";
 import { attachRecipeDiscoveryFallback } from "./meal-input/recipe-discovery-fallback.js";
 import { timeStage } from "./request-performance.js";
 import { buildDiagnostics } from "./meal-input/diagnostics.js";
@@ -537,6 +537,7 @@ app.post("/public/try", publicTryLimiter, async (req, res, next) => {
     if (!resolved) {
       const dish = await tryReferenceDish(prisma, input.text, input.lang);
       if (dish) return res.json(dish);
+      return res.json(await fillUnclearWithReferenceDishes(prisma, foods, input.lang));
     }
     res.json(foods);
   } catch (error) {

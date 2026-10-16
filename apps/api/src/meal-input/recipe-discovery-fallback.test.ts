@@ -1350,3 +1350,25 @@ describe("reference-dish lookup reads only the matching recipe (egy tányér bra
     expect(await findReferenceDish(prisma, "brassói")).toMatchObject({ status: "found", recipeId: "reseeded" });
   });
 });
+
+// Owner report (2026-10-16): "zabkása mangóval" — the known dish "zabkása"
+// next to a second food was left unresolved; with several items, each
+// unresolved item now gets the zero-cost local dish lookup by its own name.
+describe("a known dish among several items (zabkása mangóval)", () => {
+  const zabkasa = { id: "r-zab", title: "Zabkása", servings: 1, finishedWeightGrams: 261, provenance: { referenceVariantId: "hu_zabkasa" }, ingredients: [] };
+  const recipePrisma = () => ({ ...emptyPrisma(), recipe: { findMany: async ({ where }: any) => where.userId ? [] : [zabkasa] } }) as any;
+  const items = [
+    { originalText: "zabkása", canonicalName: "zabkása", evidence: "explicit" as const, confidence: 0.9 },
+    { originalText: "mangóval", canonicalName: "mangó", evidence: "explicit" as const, confidence: 0.9 }
+  ];
+
+  it.each(["compound_dish", "multiple_foods"] as const)("finds the reference dish for the zabkása item (%s), and never searches the web", async (kind) => {
+    const provider = fakeSearchProvider([]);
+    const understanding: FoodUnderstanding = { language: "hu", kind, ...(kind === "compound_dish" ? { dishName: "zabkása mangóval" } : {}), items, clarificationNeeded: false, confidence: 0.9 };
+    const result = await interpretMealInput(recipePrisma(), "zabkása mangóval", undefined, fakeAiProvider(understanding));
+    const after = await attachRecipeDiscoveryFallback(result, { ...discoveryDeps(provider), prisma: recipePrisma() });
+    const zabItem = after.items?.find((item) => item.semanticItem?.canonicalName === "zabkása");
+    expect(zabItem?.recipeDiscovery).toMatchObject({ status: "local_match", localMatch: { recipeId: "r-zab", source: "reference" } });
+    expect(provider.search).not.toHaveBeenCalled();
+  });
+});

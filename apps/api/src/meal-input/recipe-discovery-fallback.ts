@@ -493,11 +493,45 @@ async function findLocalDish(deps: RecipeDiscoveryFallbackDeps, aiName: string |
   return { status: "not_found" };
 }
 
+/**
+ * Owner report (2026-10-16, "zabkása mangóval"): with several items, an
+ * unresolved one that is a known dish ("zabkása") got no local lookup — the
+ * single-item path above requires exactly one item, and the compound path
+ * requires an item named exactly like the whole dish ("zabkása mangóval").
+ * Each unresolved item still gets the zero-cost own-recipe / reference-dish
+ * lookup by its own name.
+ */
+function findLocalOnlyDishItems(result: InterpretResult): Array<{ index: number; name: string; text?: string }> {
+  if (!result.items?.length || result.semantic?.clarificationNeeded) return [];
+  return result.items.flatMap((item, index) => {
+    if (item.selectedFood || item.recipeDiscovery) return [];
+    if (item.foodResolution !== "unresolved" && item.foodResolution !== "ai_estimate_pending") return [];
+    const name = (item.semanticItem?.canonicalName ?? item.parsed?.foodQuery)?.trim();
+    return name ? [{ index, name, text: item.semanticItem?.originalText }] : [];
+  });
+}
+
+async function attachLocalDishItems(result: InterpretResult, deps: RecipeDiscoveryFallbackDeps): Promise<InterpretResult> {
+  const targets = findLocalOnlyDishItems(result);
+  if (!targets.length) return result;
+  deps.onProgress?.("local_recipe_search");
+  let next = result;
+  for (const { index, name, text } of targets) {
+    const local = await findLocalDish(deps, name, text);
+    if (local.status === "not_found") continue;
+    const base = { searchAttempted: false, resultCount: 0, candidatesAfterRelevanceFilter: 0, candidatesAttempted: 0 };
+    next = applyPreview(next, { location: "item", index }, local.status === "found"
+      ? { ...base, status: "local_match", localMatch: local }
+      : { ...base, status: "confirmation_required", reason: "ambiguous_local_matches", localAlternatives: local.candidates });
+  }
+  return next;
+}
+
 export async function attachRecipeDiscoveryFallback(result: InterpretResult, deps: RecipeDiscoveryFallbackDeps): Promise<InterpretResult> {
   const target = findEligibleDiscoveryTarget(result);
   if (!target) {
     const localOnlyName = findLocalOnlyDishName(result);
-    if (!localOnlyName) return result;
+    if (!localOnlyName) return attachLocalDishItems(result, deps);
     deps.onProgress?.("local_recipe_search");
     const local = await findLocalDish(deps, localOnlyName, result.input);
     if (local.status === "not_found") return result;
