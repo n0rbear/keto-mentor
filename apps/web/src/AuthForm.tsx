@@ -21,6 +21,7 @@ const copy = {
 } as const;
 
 // The admin can pause registration (2026-10-15); existing users still sign in.
+const rememberText: Record<Lang, string> = { hu: "Bejelentkezve maradok", de: "Angemeldet bleiben", en: "Keep me signed in" };
 const closedText: Record<Lang, string> = {
   hu: "Az új regisztráció jelenleg szünetel. Ha már van fiókod, jelentkezz be.",
   de: "Neue Registrierungen sind derzeit pausiert. Wenn du schon ein Konto hast, melde dich an.",
@@ -69,7 +70,9 @@ export function AuthForm({ mode: initialMode, lang, state, onSuccess, registrati
       } else {
         const body = mode === "register"
           ? { username: String(form.get("username")), email: String(form.get("email")), password: String(form.get("password")), locale: lang }
-          : { username: String(form.get("username")), password: String(form.get("password")), locale: lang };
+          : { username: String(form.get("username")), password: String(form.get("password")), locale: lang, remember: form.get("remember") === "on" };
+        // Where the web keeps the access token: across restarts, or only for this browser session.
+        try { localStorage.setItem("km_remember", mode === "login" && form.get("remember") !== "on" ? "0" : "1"); } catch { /* storage unavailable */ }
         const result = await api<{ user: { id: string; username: string; locale: Lang }; accessToken: string }>(`/auth/${mode}`, { method: "POST", body: JSON.stringify(body) });
         state.setToken(result.accessToken);
         onSuccess(result.user);
@@ -135,6 +138,9 @@ export function AuthForm({ mode: initialMode, lang, state, onSuccess, registrati
       )}
       {mode !== "forgot" && (
         <label htmlFor="auth-password">{mode === "reset" ? t.newPassword : t.password}<input id="auth-password" className="field" name="password" required minLength={passwordMinLength} type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} enterKeyHint="go" onKeyDown={enterToNext} /></label>
+      )}
+      {mode === "login" && (
+        <label className="legal-confirm remember-me"><input type="checkbox" name="remember" defaultChecked/>{rememberText[lang]}</label>
       )}
       {notice && <div className="status success" role="status">{notice}</div>}
       {error && <div className="status error" role="alert">{error}</div>}

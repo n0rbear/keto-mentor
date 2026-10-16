@@ -16,7 +16,7 @@ import { env } from "./config.js";
 import { createLogger } from "./logger.js";
 
 
-import { hashPassword, readRefreshToken, requireAuth, setRefreshCookie, signRefreshToken, verifyPassword } from "./auth.js";
+import { hashPassword, readRefreshToken, rememberFromCookie, requireAuth, setRefreshCookie, signRefreshToken, verifyPassword } from "./auth.js";
 import { createSession, rotateSession, revokeActiveSession } from "./session.js";
 import { prisma } from "./db.js";
 import { searchFoods } from "./catalog/food-search.js";
@@ -284,7 +284,7 @@ app.post("/auth/login", authLimiter, async (req, res, next) => {
 
     const user = { id: userWithHash.id, username: userWithHash.username, locale: userWithHash.locale };
     const session = await createSession(prisma, user);
-    setRefreshCookie(res, session.refreshToken);
+    setRefreshCookie(res, session.refreshToken, input.remember !== false);
     res.json({ user, accessToken: session.accessToken });
   } catch (error) {
     next(error);
@@ -326,7 +326,7 @@ app.post("/auth/logout", requireAuth, async (req, res, next) => {
     if (payload) {
       await revokeActiveSession(prisma, payload, req.user!.id);
     }
-    res.clearCookie("km_refresh");
+    res.clearCookie("km_refresh"); res.clearCookie("km_remember");
     res.status(204).end();
   } catch (error) {
     next(error);
@@ -340,15 +340,15 @@ app.post("/auth/refresh", refreshLimiter, async (req, res, next) => {
     // Genuine invalid/malformed/expired/replayed tokens are normal 401s, not
     // infrastructure failures; the refresh cookie is cleared for them.
     if (!payload) {
-      res.clearCookie("km_refresh");
+      res.clearCookie("km_refresh"); res.clearCookie("km_remember");
       return res.status(401).json({ error: "invalid_token" });
     }
     const result = await rotateSession(prisma, payload);
     if (!result.ok) {
-      res.clearCookie("km_refresh");
+      res.clearCookie("km_refresh"); res.clearCookie("km_remember");
       return res.status(401).json({ error: "invalid_token" });
     }
-    setRefreshCookie(res, result.refreshToken);
+    setRefreshCookie(res, result.refreshToken, rememberFromCookie(req));
     res.status(200).json({ accessToken: result.accessToken });
   } catch (error) {
     // Unexpected Prisma/transaction/Argon2/system failures must reach the

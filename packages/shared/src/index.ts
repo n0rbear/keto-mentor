@@ -27,7 +27,9 @@ export const registerSchema = z.object({
 
 export const loginSchema = z.object({
   username: z.string().trim().min(3).max(254),
-  password: z.string().min(1).max(200)
+  password: z.string().min(1).max(200),
+  // "Bejelentkezve maradok" (2026-10-16): false ends the session when the browser closes.
+  remember: z.boolean().optional()
 });
 
 export const passwordResetRequestSchema = z.object({ email: emailSchema, locale: z.enum(locales).optional() });
