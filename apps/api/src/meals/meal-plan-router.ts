@@ -3,11 +3,13 @@ import { effectiveGoals } from "@keto-mentor/shared";
 import { z } from "zod";
 import { getSettings } from "../admin/runtime-settings.js";
 import { hasPremiumFeature, loadDinnerCandidates, type DinnerCandidate, type Lang } from "./dinner-suggestions.js";
-import { addDays, generatePlan, planAlternatives, planPools, PLAN_SLOTS, setPlanMeal, shoppingList, swapMeal, type Goals, type PlanDay } from "./meal-plan.js";
+import { addDays, clearPlanMeal, emptyPlan, generatePlan, planAlternatives, PLAN_SLOTS, searchPlanDishes, setPlanMeal, shoppingList, swapMeal, type Goals, type PlanDay } from "./meal-plan.js";
+import { exclusionTerms, mentions } from "./dinner-suggestions.js";
 
 export const MEAL_PLAN_FEATURE = "meal_planner";
 const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
-const createSchema = z.object({ startDate: dateSchema }).strict();
+const createSchema = z.object({ startDate: dateSchema, mode: z.enum(["auto", "empty"]).default("auto") }).strict();
+const clearSchema = z.object({ date: dateSchema, mealType: z.enum(PLAN_SLOTS) }).strict();
 const swapSchema = z.object({ date: dateSchema, mealType: z.enum(PLAN_SLOTS), recipeId: z.string().min(1).max(100).optional() }).strict();
 
 type Deps = { prisma: any; requireAuth: express.RequestHandler; adminOnly: express.RequestHandler; log?: (obj: object, msg: string) => void };
@@ -49,9 +51,9 @@ export function mealPlanRouter(deps: Deps) {
     try {
       const ctx = await context(req);
       if (!ctx.allowed) return res.status(403).json({ error: "premium_required" });
-      const { startDate } = createSchema.parse(req.body);
+      const { startDate, mode } = createSchema.parse(req.body);
       const candidates = await loadDinnerCandidates(prisma, req.user!.id);
-      const days = generatePlan({ candidates, goals: ctx.goals, goalsFor: ctx.goalsFor, avoid: ctx.avoid, startDate });
+      const days = mode === "empty" ? emptyPlan(startDate, ctx.goalsFor) : generatePlan({ candidates, goals: ctx.goals, goalsFor: ctx.goalsFor, avoid: ctx.avoid, startDate });
       const plan = await prisma.mealPlan.upsert({
         where: { userId_startDate: { userId: req.user!.id, startDate } },
         create: { userId: req.user!.id, startDate, days: days as any },
@@ -72,10 +74,11 @@ export function mealPlanRouter(deps: Deps) {
       const candidates = await loadDinnerCandidates(prisma, req.user!.id);
       let days: PlanDay[];
       if (recipeId) {
-        // The user picked one of the offered alternatives; it must be a dish this meal may hold.
+        // The user picked a dish (an offered alternative or their own search):
+        // any known dish of theirs or the reference set, except avoided foods.
         const dayGoals = ctx.goalsFor(date);
-        const pools = planPools(candidates, dayGoals, ctx.avoid);
-        const chosen = (mealType === "breakfast" ? pools.breakfast : mealType === "lunch" ? pools.lunch : pools.dinner).find((c) => c.recipeId === recipeId);
+        const terms = exclusionTerms(ctx.avoid);
+        const chosen = candidates.find((c) => c.recipeId === recipeId && !terms.some((term) => mentions(c.haystack, term)));
         if (!chosen) return res.status(400).json({ error: "not_allowed_for_meal" });
         days = setPlanMeal(plan.days as PlanDay[], date, mealType, chosen, dayGoals);
       } else {
@@ -83,6 +86,34 @@ export function mealPlanRouter(deps: Deps) {
       }
       await prisma.mealPlan.update({ where: { id: plan.id }, data: { days: days as any } });
       await respond(res, { id: plan.id, startDate: plan.startDate, days }, candidates, ctx, req.user!.id);
+    } catch (error) { next(error); }
+  });
+
+  // Saját étrendterv: search dishes for a slot, and empty a slot.
+  router.get("/meal-plans/:id/dishes", deps.requireAuth, async (req, res, next) => {
+    try {
+      const ctx = await context(req);
+      if (!ctx.allowed) return res.status(403).json({ error: "premium_required" });
+      const date = dateSchema.parse(req.query.date);
+      const slot = z.enum(PLAN_SLOTS).parse(req.query.mealType);
+      const query = z.string().max(80).parse(req.query.q ?? "");
+      const plan = await prisma.mealPlan.findFirst({ where: { id: req.params.id, userId: req.user!.id } });
+      if (!plan) return res.status(404).json({ error: "not_found" });
+      const candidates = await loadDinnerCandidates(prisma, req.user!.id);
+      res.json({ dishes: searchPlanDishes({ days: plan.days as PlanDay[], date, slot, candidates, goals: ctx.goalsFor(date), avoid: ctx.avoid, query, lang: ctx.lang }) });
+    } catch (error) { next(error); }
+  });
+
+  router.post("/meal-plans/:id/clear", deps.requireAuth, deps.adminOnly, async (req, res, next) => {
+    try {
+      const ctx = await context(req);
+      if (!ctx.allowed) return res.status(403).json({ error: "premium_required" });
+      const { date, mealType } = clearSchema.parse(req.body);
+      const plan = await prisma.mealPlan.findFirst({ where: { id: req.params.id, userId: req.user!.id } });
+      if (!plan) return res.status(404).json({ error: "not_found" });
+      const days = clearPlanMeal(plan.days as PlanDay[], date, mealType, ctx.goalsFor(date));
+      await prisma.mealPlan.update({ where: { id: plan.id }, data: { days: days as any } });
+      await respond(res, { id: plan.id, startDate: plan.startDate, days }, null, ctx, req.user!.id);
     } catch (error) { next(error); }
   });
 

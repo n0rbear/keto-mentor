@@ -234,3 +234,39 @@ export function setPlanMeal(days: PlanDay[], date: string, slot: PlanSlot, candi
     return { ...day, meals, totals, fits: totals.netCarbs <= goals.netCarbs, goal: goals };
   });
 }
+
+// Saját étrendterv (owner request 2026-10-16): the user builds the week by hand.
+export function emptyPlan(startDate: string, goalsFor: (date: string) => Goals, days = 7): PlanDay[] {
+  return Array.from({ length: days }, (_, i) => {
+    const date = addDays(startDate, i);
+    return { date, meals: [], totals: { kcal: 0, protein: 0, netCarbs: 0, fat: 0 }, fits: true, goal: goalsFor(date) };
+  });
+}
+
+export function clearPlanMeal(days: PlanDay[], date: string, slot: PlanSlot, goals: Goals): PlanDay[] {
+  return days.map((day) => {
+    if (day.date !== date) return day;
+    const meals = day.meals.filter((m) => m.mealType !== slot);
+    const totals = sumMacros(meals);
+    return { ...day, meals, totals, fits: totals.netCarbs <= goals.netCarbs, goal: goals };
+  });
+}
+
+/** Dishes matching the user's search for one meal of a hand-made plan, with the day's totals if chosen. */
+export function searchPlanDishes(input: { days: PlanDay[]; date: string; slot: PlanSlot; candidates: DinnerCandidate[]; goals: Goals; avoid: string[]; query: string; lang: "hu" | "de" | "en"; limit?: number }): PlanAlternative[] {
+  const day = input.days.find((d) => d.date === input.date);
+  if (!day) return [];
+  const terms = exclusionTerms(input.avoid);
+  const q = normalizeSearch(input.query);
+  const others = day.meals.filter((m) => m.mealType !== input.slot);
+  return input.candidates
+    .filter((c) => !terms.some((term) => mentions(c.haystack, term)))
+    .filter((c) => !q || normalizeSearch(Object.values(c.titles).join(" ")).includes(q))
+    .map((c) => {
+      const meal = toMeal(input.slot, c);
+      const totals = sumMacros([...others, meal]);
+      return { ...meal, effort: effortOf(c), dayTotals: totals, fits: totals.netCarbs <= input.goals.netCarbs };
+    })
+    .sort((a, b) => Number(b.fits) - Number(a.fits) || a.macros.netCarbs - b.macros.netCarbs || a.titles[input.lang].localeCompare(b.titles[input.lang]))
+    .slice(0, input.limit ?? 20);
+}
