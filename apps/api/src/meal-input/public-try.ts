@@ -33,7 +33,8 @@ export async function tryReferenceDish(prisma: Pick<PrismaClient, "recipe">, tex
   const rows = await findReferenceRecipes<any>(prisma, ids, { ingredients: { include: { food: true } } });
   if (!rows.length) return null;
   const parsed = parseNaturalFoodQuery(text);
-  const portions = parsed.quantity && (!parsed.unit || ["portion", "plate", "piece", "bowl"].includes(parsed.unit)) ? parsed.quantity : 1;
+  // Only portions/plates/bowls count as servings of a dish; pieces or grams do not.
+  const portions = parsed.quantity && (!parsed.unit || ["portion", "plate", "bowl"].includes(parsed.unit)) ? parsed.quantity : 1;
   const titleOf = (row: any) => (row.provenance?.titles?.[lang] as string | undefined) ?? row.title;
   const row = rows[0];
   const nutrition = calculateRecipeNutrition({ ...row, servings: row.servings || 1 } as RecipeWithIngredients);
