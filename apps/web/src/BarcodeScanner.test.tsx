@@ -4,13 +4,18 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { BarcodeScanner } from "./BarcodeScanner";
 import { dict, type Lang } from "./i18n";
 
-const { decodeMock } = vi.hoisted(() => ({ decodeMock: vi.fn() }));
-vi.mock("./barcode-scanner", () => ({ decodeBarcodePhoto: decodeMock }));
+const { decodeMock, camera } = vi.hoisted(() => ({ decodeMock: vi.fn(), camera: { available: false } }));
+vi.mock("./barcode-scanner", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("./barcode-scanner")>()),
+  decodeBarcodePhoto: decodeMock,
+  cameraAvailable: () => camera.available,
+  createDecoder: async () => async () => []
+}));
 
 URL.createObjectURL = vi.fn(() => "blob:photo");
 URL.revokeObjectURL = vi.fn();
 
-afterEach(() => { cleanup(); decodeMock.mockReset(); });
+afterEach(() => { cleanup(); decodeMock.mockReset(); camera.available = false; Reflect.deleteProperty(navigator, "mediaDevices"); });
 
 const t = dict.en.barcodeScanner;
 const photo = new File(["x"], "barcode.jpg", { type: "image/jpeg" });
@@ -72,5 +77,29 @@ describe("BarcodeScanner (photo)", () => {
     render(<BarcodeScanner lang={lang} onDetected={vi.fn()} onClose={vi.fn()}/>);
     expect(screen.getByText(dict[lang].barcodeScanner.takePhoto)).toBeTruthy();
     expect(screen.getByText(dict[lang].barcodeScanner.privacyNotice)).toBeTruthy();
+  });
+
+  it("opens the in-app camera with a guide frame, a shutter and the photo routes, and stops the camera on close", async () => {
+    camera.available = true;
+    const stop = vi.fn();
+    Object.defineProperty(navigator, "mediaDevices", { configurable: true, value: { getUserMedia: vi.fn(async () => ({ getTracks: () => [{ stop }], getVideoTracks: () => [{ stop, getCapabilities: () => ({}) }] })) } });
+    HTMLMediaElement.prototype.play = vi.fn(async () => undefined) as any;
+    const { unmount } = render(<BarcodeScanner lang="hu" onDetected={vi.fn()} onClose={vi.fn()}/>);
+    const hu = dict.hu.barcodeScanner;
+    expect(await screen.findByText(hu.liveHint)).toBeTruthy();
+    expect(screen.getByLabelText(hu.videoLabel)).toBeTruthy();
+    expect(screen.getByRole("button", { name: hu.shutter })).toBeTruthy();
+    expect(screen.getByLabelText(hu.nativeCamera).getAttribute("capture")).toBe("environment");
+    expect(screen.getByLabelText(hu.fromGallery)).toBeTruthy();
+    unmount();
+    expect(stop).toHaveBeenCalled();
+  });
+
+  it("falls back to the photo routes with an explanation when camera access is refused", async () => {
+    camera.available = true;
+    Object.defineProperty(navigator, "mediaDevices", { configurable: true, value: { getUserMedia: vi.fn(async () => { throw Object.assign(new Error("no"), { name: "NotAllowedError" }); }) } });
+    render(<BarcodeScanner lang="en" onDetected={vi.fn()} onClose={vi.fn()}/>);
+    expect((await screen.findByRole("alert")).textContent).toContain(t.cameraDenied);
+    expect(screen.getByLabelText(t.takePhoto)).toBeTruthy();
   });
 });
