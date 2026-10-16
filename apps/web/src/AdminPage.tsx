@@ -12,13 +12,14 @@ type Overview = {
   meals: { total: number; last24h: number; last7d: number };
   recipes: { total: number; public: number };
   feedback: { open: number; total: number; ideasOpen?: number; ideasTotal?: number };
+  reminders?: { today: number; cap: number };
   keto?: { loggedDays: number; adherentDays: number; percent: number | null; users: number; usersMostlyAdherent: number; perUser: Array<{ userId: string; username: string; days: number; adherentDays: number; percent: number; avgNetCarbs: number; goal: number }> };
   usageTotals: Record<string, { count: number; avgMs: number | null; promptTokens: number; completionTokens: number }>;
   perDay: Record<string, Record<string, number>>;
 };
 type Ticket = { id: string; kind?: string; message: string; status: string; adminNote: string | null; view: string | null; lang: string | null; build: string | null; lastInput: string | null; createdAt: string; user: { username: string; email: string | null } | null };
 type AdminUser = { id: string; username: string; email: string | null; emailVerified: boolean; locale: string; createdAt: string; meals: number; recipes: number; lastMealAt: string | null; isAdmin: boolean };
-type Settings = { registrationOpen: boolean; announcement: { enabled: boolean; hu: string; de: string; en: string }; aiLimits: { perHour: number; perDay: number; perRecipe: number; premiumPerHour?: number; premiumPerDay?: number }; premiumAccess?: "beta_all" | "premium_only" };
+type Settings = { registrationOpen: boolean; announcement: { enabled: boolean; hu: string; de: string; en: string }; aiLimits: { perHour: number; perDay: number; perRecipe: number; premiumPerHour?: number; premiumPerDay?: number }; premiumAccess?: "beta_all" | "premium_only"; reminderDailyCap?: number };
 type Tab = "overview" | "feedback" | "users" | "settings";
 
 const KIND_LABELS: Record<string, string> = {
@@ -52,6 +53,7 @@ function OverviewTab({ state }: { state: ApiState }) {
         <Kpi label="Nyitott hibajegy" value={data.feedback.open} sub={`összesen: ${data.feedback.total}`}/>
         <Kpi label="Nyitott ötlet" value={data.feedback.ideasOpen ?? 0} sub={`összesen: ${data.feedback.ideasTotal ?? 0}`}/>
         <Kpi label="E-mail cím" value={data.users.withEmail} sub={`megerősítve: ${data.users.verified}`}/>
+        {data.reminders && <Kpi label="Emlékeztető e-mail ma" value={data.reminders.today} sub={`napi plafon: ${data.reminders.cap}${data.reminders.today >= data.reminders.cap ? " – betelt" : ""}`}/>}
       </div>
       {data.keto && (
         <section>
@@ -216,6 +218,10 @@ function SettingsTab({ state }: { state: ApiState }) {
         <h3>Prémium funkciók</h3>
         <label className="legal-confirm"><input type="checkbox" checked={(settings.premiumAccess ?? "beta_all") === "beta_all"} onChange={(e) => set({ premiumAccess: e.target.checked ? "beta_all" : "premium_only" })}/>Béta: minden felhasználó kipróbálhatja (pl. Vacsoraajánló)</label>
         <p className="text-xs text-muted">Kikapcsolva csak a prémium jogosultságú felhasználók érik el.</p>
+      </section>
+      <section>
+        <h3>E-mail emlékeztetők</h3>
+        <label>Napi plafon<input className="field" type="number" min={0} value={settings.reminderDailyCap ?? 70} onChange={(e) => set({ reminderDailyCap: Number(e.target.value) })}/><span className="text-xs text-muted">Naponta (UTC szerint) legfeljebb ennyi emlékeztető e-mail megy ki (alap: 70). A Resend ingyenes csomagja összesen napi 100 e-mailt enged; a maradék a regisztráció-megerősítő és jelszó-visszaállító leveleknek kell. Ha a plafon betelik, aznap a többi emlékeztető kimarad. Fizetős Resend-csomaggal nyugodtan emelheted.</span></label>
       </section>
       {error && <p className="status error" role="alert">{error}</p>}
       {saved && <p className="status success" role="status">Mentve, azonnal érvényes.</p>}

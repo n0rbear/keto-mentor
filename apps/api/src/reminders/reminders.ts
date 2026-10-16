@@ -5,6 +5,7 @@ import { getSettings } from "../admin/runtime-settings.js";
 import { isAdminUser } from "../admin/email-verification.js";
 import { hasPremiumFeature } from "../meals/dinner-suggestions.js";
 import type { Mailer } from "../mail/mailer.js";
+import { countUsage, pendingUsageCount, usageDay } from "../admin/usage-counters.js";
 
 // Emlékeztetők (premium, owner-approved 2026-10-15): "még nem rögzítetted az
 // ebédet / a vacsorát" by e-mail to the confirmed address, at the user's own
@@ -52,6 +53,19 @@ const COPY = {
 
 type Db = any;
 
+export const REMINDER_USAGE_KIND = "reminder_email";
+
+/** Reminder e-mails sent this UTC day: the stored counter plus the not yet flushed tally. */
+export async function remindersSentToday(prisma: Db, at = new Date()): Promise<number> {
+  const day = usageDay(at);
+  let stored = 0;
+  try {
+    const row = await prisma.usageDaily.findUnique({ where: { day_kind: { day: new Date(`${day}T00:00:00Z`), kind: REMINDER_USAGE_KIND } }, select: { count: true } });
+    stored = row?.count ?? 0;
+  } catch { /* counter unreadable: fall back to this process's tally */ }
+  return stored + pendingUsageCount(REMINDER_USAGE_KIND, day);
+}
+
 /** One scheduler pass: sends due reminders and records them. Returns the number sent. */
 export async function runReminders(deps: { prisma: Db; mailer: Mailer; webAppUrl: string; admins: readonly string[]; now?: () => Date; log?: (line: string) => void }) {
   const at = deps.now?.() ?? new Date();
@@ -61,7 +75,11 @@ export async function runReminders(deps: { prisma: Db; mailer: Mailer; webAppUrl
     select: { userId: true, reminders: true, user: { select: { email: true, emailVerifiedAt: true, locale: true, entitlements: true } } }
   });
   let sent = 0;
+  const cap = getSettings().reminderDailyCap;
+  let sentToday = profiles.length ? await remindersSentToday(deps.prisma, at) : 0;
+  let capped = false;
   for (const p of profiles) {
+    if (capped) break;
     const r = p.reminders as Reminders | null;
     const user = p.user;
     if (!r || !user?.email || !user.emailVerifiedAt || isAdminUser(user, deps.admins)) continue;
@@ -75,14 +93,16 @@ export async function runReminders(deps: { prisma: Db; mailer: Mailer; webAppUrl
       const meals = await deps.prisma.meal.findMany({ where: { userId: p.userId, eatenAt: { gte: dayStart } }, select: { eatenAt: true, mealType: true } });
       const today = meals.filter((m: any) => localClock(m.eatenAt, r.timeZone).date === date);
       const logged = today.some((m: any) => m.mealType === kind || (kind === "lunch" && m.mealType !== "breakfast" && m.mealType !== "morning_snack" && localClock(m.eatenAt, r.timeZone).minutes >= 10 * 60) || (kind === "dinner" && m.mealType !== "lunch" && localClock(m.eatenAt, r.timeZone).minutes >= 17 * 60));
+      if (logged) { lastSent[kind] = date; continue; }
+      // Daily ceiling reached: skip (not marked sent) so account e-mails still go out.
+      if (sentToday >= cap) { capped = true; (deps.log ?? console.log)(`reminder_skipped reason=daily_cap cap=${cap}`); break; }
       lastSent[kind] = date;
-      if (logged) continue;
       const c = COPY[(["hu", "de", "en"].includes(user.locale) ? user.locale : "hu") as "hu" | "de" | "en"];
       const [subject, body] = c[kind];
       const link = deps.webAppUrl.replace(/\/+$/, "") + "/";
       const result = await deps.mailer.send({ to: user.email, subject, text: `${body}\n\n${link}\n\n${c.off}\n`, html: `<p>${body}</p><p><a href="${link}">${c.open}</a></p><p style="color:#666">${c.off}</p>` });
       (deps.log ?? console.log)(`reminder_sent kind=${kind} outcome=${result.outcome}`);
-      if (result.outcome === "sent") sent += 1;
+      if (result.outcome === "sent") { sent += 1; sentToday += 1; countUsage(REMINDER_USAGE_KIND, {}, at); }
     }
     await deps.prisma.profile.update({ where: { userId: p.userId }, data: { reminders: { ...r, lastSent } } });
   }

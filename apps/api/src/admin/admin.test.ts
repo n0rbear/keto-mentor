@@ -119,7 +119,7 @@ describe("admin features", () => {
 
   it("saves settings, applies them at once and reloads them after a restart", async () => {
     const t = startAdmin();
-    const next = { registrationOpen: false, announcement: { enabled: true, hu: "Karbantartás 20-kor", de: "Wartung um 20 Uhr", en: "Maintenance at 8 pm" }, aiLimits: { perHour: 5, perDay: 20, perRecipe: 3, premiumPerHour: 50, premiumPerDay: 150 }, premiumAccess: "premium_only" as const };
+    const next = { registrationOpen: false, announcement: { enabled: true, hu: "Karbantartás 20-kor", de: "Wartung um 20 Uhr", en: "Maintenance at 8 pm" }, aiLimits: { perHour: 5, perDay: 20, perRecipe: 3, premiumPerHour: 50, premiumPerDay: 150 }, premiumAccess: "premium_only" as const, reminderDailyCap: 50 };
     expect((await call(t.base, "PUT", "/admin/settings", "admin", next)).status).toBe(200);
     expect(getSettings()).toEqual(next);
     expect(userFallbackWindows().map((w) => w.limit)).toEqual([5, 20]);

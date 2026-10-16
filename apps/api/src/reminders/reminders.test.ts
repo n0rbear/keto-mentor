@@ -38,4 +38,30 @@ describe("emlékeztetők", () => {
     expect(send).toHaveBeenCalledWith(expect.objectContaining({ to: "a@x.hu", subject: "Még nem rögzítetted az ebédet" }));
     expect(updates.map((u) => [u.where.userId, u.data.reminders.lastSent])).toEqual([["a", { lunch: "2026-10-16" }], ["b", { lunch: "2026-10-16" }]]);
   });
+
+  it("stops at the daily ceiling so account e-mails still have room, and counts what it sends", async () => {
+    const { setSettings, getSettings, resetSettingsForTests } = await import("../admin/runtime-settings.js");
+    const { clearPendingUsageForTests, pendingUsageCount } = await import("../admin/usage-counters.js");
+    clearPendingUsageForTests();
+    setSettings({ ...getSettings(), reminderDailyCap: 3 });
+    const users = ["a", "b", "c", "d"].map((id) => ({ userId: id, reminders: r, user: { email: `${id}@x.hu`, emailVerifiedAt: new Date(), locale: "hu", entitlements: [] } }));
+    const updates: any[] = [];
+    const prisma = {
+      profile: { findMany: vi.fn(async () => users), update: vi.fn(async (args: any) => { updates.push(args); }) },
+      meal: { findMany: vi.fn(async () => []) },
+      usageDaily: { findUnique: vi.fn(async () => ({ count: 1 })) } // one already sent earlier today
+    };
+    const send = vi.fn(async () => ({ outcome: "sent" as const }));
+    const logs: string[] = [];
+    const at = new Date("2026-10-16T12:10:00Z");
+    const sent = await runReminders({ prisma, mailer: { send }, webAppUrl: "https://ketomentor.norbapp.com", admins: [], now: () => at, log: (l) => logs.push(l) });
+    expect(sent).toBe(2);
+    expect(send).toHaveBeenCalledTimes(2);
+    expect(pendingUsageCount("reminder_email", "2026-10-16")).toBe(2);
+    expect(logs).toContain("reminder_skipped reason=daily_cap cap=3");
+    // The skipped user is not marked as reminded, the others are.
+    expect(updates.map((u) => [u.where.userId, u.data.reminders.lastSent?.lunch])).toEqual([["a", "2026-10-16"], ["b", "2026-10-16"], ["c", undefined]]);
+    resetSettingsForTests();
+    clearPendingUsageForTests();
+  });
 });

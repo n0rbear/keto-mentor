@@ -5,6 +5,7 @@ import { BETA_CONTEST, contestStandings } from "../beta/contest.js";
 import { getSettings, saveSettings, settingsSchema } from "./runtime-settings.js";
 import { flushUsage } from "./usage-counters.js";
 import { ketoAdherence } from "./keto-adherence.js";
+import { remindersSentToday } from "../reminders/reminders.js";
 
 // Admin screen API (owner request 2026-10-15). Every route checks, on every
 // request and against the database, that the caller's CONFIRMED e-mail is on
@@ -73,6 +74,7 @@ export function adminRouter(deps: AdminDeps) {
       const nameById = new Map(names.map((u: any) => [u.id, u.username]));
       const adherence = ketoAdherence(recentMeals, new Map(profiles.map((p: any) => [p.userId, p.dailyNetCarbs])));
       const keto = { ...adherence, perUser: adherence.perUser.slice(0, 50).map((u) => ({ ...u, username: nameById.get(u.userId) ?? "?" })) };
+      const reminders = { today: await remindersSentToday(deps.prisma, at), cap: getSettings().reminderDailyCap };
       const perDay: Record<string, Record<string, number>> = {};
       const bump = (day: string, key: string, by = 1) => { (perDay[day] ??= {})[key] = (perDay[day][key] ?? 0) + by; };
       for (const row of usage) bump(new Date(row.day).toISOString().slice(0, 10), row.kind, row.count);
@@ -94,6 +96,7 @@ export function adminRouter(deps: AdminDeps) {
         recipes: { total: recipesTotal, public: recipesPublic },
         feedback: { open: feedbackOpen, total: feedbackTotal, ideasOpen, ideasTotal },
         keto,
+        reminders,
         usageTotals: totals,
         perDay
       });
