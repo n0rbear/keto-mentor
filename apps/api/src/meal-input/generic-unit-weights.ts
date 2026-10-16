@@ -32,7 +32,11 @@ export const GENERIC_SLICE_WEIGHTS: readonly SliceWeight[] = [
 // "Rántotta 3 tojásból" (live 2026-09-26): the count is eggs, and an egg
 // dish without its own egg serving still weighs about one egg per egg.
 export const GENERIC_PIECE_WEIGHTS: readonly SliceWeight[] = [
-  { key: "egg", grams: 50, keywords: ["tojas", "rantotta", "omlett", "egg", "eggs", "scrambled", "omelet", "omelette", "ei", "eier", "ruhrei", "spiegelei"] }
+  { key: "egg", grams: 50, keywords: ["tojas", "rantotta", "omlett", "egg", "eggs", "scrambled", "omelet", "omelette", "ei", "eier", "ruhrei", "spiegelei"] },
+  // Ticket 1b3282 (2026-10-16): "0,5 grill csülök". A whole pork knuckle
+  // (Stelze/Haxe) is about 1-1.4 kg with bone; the edible meat, skin and fat
+  // is roughly 600 g. An estimate, so the result stays editable.
+  { key: "pork_knuckle", grams: 600, keywords: ["csulok", "sertescsulok", "grillcsulok", "stelze", "schweinsstelze", "haxe", "schweinshaxe", "hinterhaxe", "vorderhaxe", "eisbein", "hintereisbein", "vordereisbein", "pork knuckle", "pork hock"] }
 ];
 
 const TABLES: Record<string, readonly SliceWeight[]> = {
