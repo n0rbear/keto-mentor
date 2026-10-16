@@ -20,7 +20,7 @@ type Overview = {
 type Ticket = { id: string; kind?: string; message: string; status: string; adminNote: string | null; view: string | null; lang: string | null; build: string | null; lastInput: string | null; createdAt: string; user: { username: string; email: string | null } | null };
 type AdminUser = { id: string; username: string; email: string | null; emailVerified: boolean; locale: string; createdAt: string; meals: number; recipes: number; lastMealAt: string | null; isAdmin: boolean };
 type Settings = { registrationOpen: boolean; announcement: { enabled: boolean; hu: string; de: string; en: string }; aiLimits: { perHour: number; perDay: number; perRecipe: number; premiumPerHour?: number; premiumPerDay?: number }; premiumAccess?: "beta_all" | "premium_only"; reminderDailyCap?: number };
-type Tab = "overview" | "feedback" | "users" | "settings";
+type Tab = "overview" | "feedback" | "users" | "links" | "settings";
 
 const KIND_LABELS: Record<string, string> = {
   search: "Gépelés közbeni keresés", food_search: "Alapanyag-keresés (recept)", interpret: "Értelmezés (Enter)", voice: "Hangbevitel",
@@ -232,7 +232,7 @@ function SettingsTab({ state }: { state: ApiState }) {
 
 export function AdminPage({ state, onClose }: { state: ApiState; onClose?: () => void }) {
   const [tab, setTab] = useState<Tab>("overview");
-  const tabs: Array<[Tab, string]> = [["overview", "Áttekintés"], ["feedback", "Hibajegyek"], ["users", "Felhasználók"], ["settings", "Beállítások"]];
+  const tabs: Array<[Tab, string]> = [["overview", "Áttekintés"], ["feedback", "Hibajegyek"], ["users", "Felhasználók"], ["links", "Linkek"], ["settings", "Beállítások"]];
   return (
     <article className="card legal-page admin-page" aria-labelledby="admin-title">
       {onClose && <button type="button" className="btn ghost" onClick={onClose}><ArrowLeft size={16} aria-hidden="true"/>Vissza az apphoz</button>}
@@ -243,6 +243,7 @@ export function AdminPage({ state, onClose }: { state: ApiState; onClose?: () =>
       {tab === "overview" && <OverviewTab state={state}/>}
       {tab === "feedback" && <FeedbackTab state={state}/>}
       {tab === "users" && <UsersTab state={state}/>}
+      {tab === "links" && <LinksTab state={state}/>}
       {tab === "settings" && <SettingsTab state={state}/>}
     </article>
   );
@@ -262,6 +263,63 @@ function TopTesters({ state }: { state: ApiState }) {
       {error && <p className="status error" role="alert">{error}</p>}
       {!testers ? !error && <p role="status">Betöltés…</p> : testers.length === 0 ? <p className="text-sm text-muted">Még senki nem naplózott étkezést.</p> : (
         <ol className="admin-top-list">{testers.map((t) => <li key={t.id}><b>{t.username}</b> <span className="text-muted">{t.email ?? "nincs e-mail"}</span> · {t.meals} étkezés</li>)}</ol>
+      )}
+    </div>
+  );
+}
+
+type Count = { total: number; last30: number };
+type CampaignLink = { code: string; label: string; createdAt: string; visits: Count; signups: Count };
+const CAMPAIGN_BASE = "https://ketomentor.norbapp.com/?ref=";
+
+// Campaign links: one link per channel; visits and registrations per link
+// (anonymous counts, campaigns/campaign-links.ts on the API).
+function LinksTab({ state }: { state: ApiState }) {
+  const [links, setLinks] = useState<CampaignLink[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [label, setLabel] = useState("");
+  const [copied, setCopied] = useState<string | null>(null);
+  const load = () => api<{ links: CampaignLink[] }>("/admin/campaign-links", {}, state).then((r) => { setLinks(r.links); setError(null); }).catch((e) => setError(errorText(e)));
+  useEffect(() => { void load(); }, []);
+  async function add(e: React.FormEvent) {
+    e.preventDefault();
+    if (!label.trim()) return;
+    try { await api("/admin/campaign-links", { method: "POST", body: JSON.stringify({ label }) }, state); setLabel(""); await load(); }
+    catch (err) { setError(err instanceof ApiError && err.code === "code_taken" ? "Ilyen nevű link már van." : errorText(err)); }
+  }
+  async function remove(l: CampaignLink) {
+    if (!window.confirm(`Törlöd a(z) „${l.label}” linket? A már összegyűlt számok megmaradnak, de itt nem látszanak.`)) return;
+    try { await api(`/admin/campaign-links/${l.code}`, { method: "DELETE" }, state); await load(); } catch (err) { setError(errorText(err)); }
+  }
+  async function copy(l: CampaignLink) {
+    try { await navigator.clipboard.writeText(CAMPAIGN_BASE + l.code); setCopied(l.code); window.setTimeout(() => setCopied(null), 1500); } catch { window.prompt("Másold ki a linket:", CAMPAIGN_BASE + l.code); }
+  }
+  const rate = (l: CampaignLink) => (l.visits.total ? `${Math.round((l.signups.total / l.visits.total) * 100)}%` : "–");
+  return (
+    <div className="admin-stack">
+      <p className="text-sm text-muted">Minden csatornához (csoport, hirdetés, videó) használj külön linket. Egy látogatás böngészőnként és munkamenetenként egyszer számít; a regisztráció akkor is ide számít, ha a látogató 30 napon belül később regisztrál. Csak névtelen darabszámot tárolunk.</p>
+      <form className="admin-actions" onSubmit={add}>
+        <input className="field" placeholder="Új link neve, pl. Keto Magyarország csoport" value={label} maxLength={80} onChange={(e) => setLabel(e.target.value)} aria-label="Új link neve"/>
+        <button type="submit" className="btn primary">Link létrehozása</button>
+      </form>
+      {error && <p className="status error" role="alert">{error}</p>}
+      {!links ? !error && <p role="status">Betöltés…</p> : links.length === 0 ? <p className="text-sm text-muted">Még nincs link.</p> : (
+        <div className="admin-table-wrap"><table className="admin-table">
+          <thead><tr><th>Csatorna</th><th>Link</th><th>Kattintás (30 nap / össz.)</th><th>Regisztráció (30 nap / össz.)</th><th>Arány</th><th></th></tr></thead>
+          <tbody>{links.map((l) => (
+            <tr key={l.code}>
+              <td>{l.label}</td>
+              <td><code className="text-xs">{CAMPAIGN_BASE + l.code}</code></td>
+              <td>{l.visits.last30} / {l.visits.total}</td>
+              <td>{l.signups.last30} / {l.signups.total}</td>
+              <td>{rate(l)}</td>
+              <td className="admin-row-actions">
+                <button type="button" className="btn ghost" onClick={() => copy(l)}>{copied === l.code ? "Másolva ✓" : "Másolás"}</button>
+                <button type="button" className="btn danger" onClick={() => remove(l)}>Törlés</button>
+              </td>
+            </tr>
+          ))}</tbody>
+        </table></div>
       )}
     </div>
   );

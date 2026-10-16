@@ -77,6 +77,7 @@ import { progressRouter } from "./stats/progress-router.js";
 import { remindersRouter, startReminders } from "./reminders/reminders.js";
 import { adminRouter } from "./admin/admin-router.js";
 import { betaContestRouter } from "./beta/contest.js";
+import { campaignPublicRouter, countCampaign } from "./campaigns/campaign-links.js";
 import { REFERENCE_USERNAME } from "./reference-dishes/seed.js";
 import { platesRouter } from "./meal-input/plates.js";
 import { VOICE_TRANSCRIBE_RATE_LIMIT, voiceTranscribeRateLimitKey } from "./meal-input/voice-rate-limit.js";
@@ -265,6 +266,8 @@ app.post("/auth/register", authLimiter, async (req, res, next) => {
     const session = await createSession(prisma, user);
     setRefreshCookie(res, session.refreshToken);
     res.status(201).json({ user, accessToken: session.accessToken });
+    // Campaign link the visitor arrived by (anonymous count only).
+    void countCampaign(prisma, "signup", req.body?.ref).catch(() => undefined);
     // Confirmation link for the new address, after answering (best effort).
     void sendVerification(verificationDeps, user.id).catch(() => undefined);
   } catch (error: any) {
@@ -318,6 +321,7 @@ app.use(adminRouter({
   sendPasswordReset: (user) => sendPasswordReset({ prisma, mailer, webAppUrl }, user)
 }));
 
+app.use(campaignPublicRouter({ prisma }));
 app.use(betaContestRouter({ prisma, requireAuth, admins: adminEmails, systemUsername: REFERENCE_USERNAME }));
 app.use(accountDeletionRouter({ prisma, requireAuth, verifyPassword, systemUsername: REFERENCE_USERNAME }));
 
