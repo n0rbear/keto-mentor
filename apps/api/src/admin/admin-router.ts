@@ -139,6 +139,21 @@ export function adminRouter(deps: AdminDeps) {
     } catch (error) { next(error); }
   });
 
+  // Beta reward (owner, 2026-10-16): the 10 most active testers — most
+  // logged meals — get lifetime premium. Admin accounts never count.
+  router.get("/admin/top-testers", async (_req, res, next) => {
+    try {
+      const rows = await deps.prisma.user.findMany({
+        where: { username: { not: deps.systemUsername } }, orderBy: { meals: { _count: "desc" } }, take: 30,
+        select: { id: true, username: true, email: true, createdAt: true, _count: { select: { meals: true } } }
+      });
+      const testers = rows.filter((u: any) => !isAdminUser(u, deps.admins) && u._count.meals > 0)
+        .sort((a: any, b: any) => b._count.meals - a._count.meals).slice(0, 10)
+        .map((u: any, i: number) => ({ rank: i + 1, id: u.id, username: u.username, email: u.email, createdAt: u.createdAt, meals: u._count.meals }));
+      res.json({ testers });
+    } catch (error) { next(error); }
+  });
+
   router.delete("/admin/users/:id", async (req, res, next) => {
     try {
       if (req.params.id === req.user!.id) return res.status(400).json({ error: "cannot_delete_self" });

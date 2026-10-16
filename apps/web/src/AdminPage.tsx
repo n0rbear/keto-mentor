@@ -147,6 +147,7 @@ function UsersTab({ state }: { state: ApiState }) {
   }
   return (
     <div className="admin-stack">
+      <TopTesters state={state}/>
       <form className="admin-actions" onSubmit={(e) => { e.preventDefault(); load(); }}>
         <input className="field" placeholder="Felhasználónév vagy e-mail" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Felhasználó keresése"/>
         <button type="submit" className="btn ghost">Keresés</button>
@@ -238,5 +239,24 @@ export function AdminPage({ state, onClose }: { state: ApiState; onClose?: () =>
       {tab === "users" && <UsersTab state={state}/>}
       {tab === "settings" && <SettingsTab state={state}/>}
     </article>
+  );
+}
+
+type TopTester = { rank: number; id: string; username: string; email: string | null; createdAt: string; meals: number };
+
+// Beta reward: the 10 testers with the most logged meals get lifetime premium.
+function TopTesters({ state }: { state: ApiState }) {
+  const [testers, setTesters] = useState<TopTester[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => { api<{ testers: TopTester[] }>("/admin/top-testers", {}, state).then((r) => setTesters(r.testers)).catch((e) => setError(errorText(e))); }, []);
+  return (
+    <div className="card admin-top-testers">
+      <h3>Top 10 tesztelő – élethosszig tartó prémium</h3>
+      <p className="text-xs text-muted">A legtöbb naplózott étkezés alapján; admin fiók nem számít.</p>
+      {error && <p className="status error" role="alert">{error}</p>}
+      {!testers ? !error && <p role="status">Betöltés…</p> : testers.length === 0 ? <p className="text-sm text-muted">Még senki nem naplózott étkezést.</p> : (
+        <ol className="admin-top-list">{testers.map((t) => <li key={t.id}><b>{t.username}</b> <span className="text-muted">{t.email ?? "nincs e-mail"}</span> · {t.meals} étkezés</li>)}</ol>
+      )}
+    </div>
   );
 }
