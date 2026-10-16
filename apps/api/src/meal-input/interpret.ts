@@ -354,7 +354,10 @@ export function resolveQuantityLocally(parsed: ParsedNaturalFoodQuery, food: Res
     };
   }
 
-  const generic = genericUnitWeight(parsed.unit, food);
+  // "fél csülök", "fél virsli": half (or a quarter) of the typical piece weight.
+  const fraction = parsed.unit === "half" ? 0.5 : parsed.unit === "quarter" ? 0.25 : 1;
+  const genericFound = genericUnitWeight(fraction === 1 ? parsed.unit : "piece", food);
+  const generic = genericFound && { ...genericFound, grams: genericFound.grams * fraction };
   if (generic) {
     return {
       status: "resolved", grams: parsed.quantity * generic.grams, gramsPerUnit: generic.grams,
