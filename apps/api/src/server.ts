@@ -518,12 +518,19 @@ const publicTrySchema = z.object({ text: z.string().trim().min(2).max(200), lang
 app.post("/public/try", publicTryLimiter, async (req, res, next) => {
   try {
     const input = publicTrySchema.parse(req.body);
-    const dish = await tryReferenceDish(prisma, input.text, input.lang);
-    if (dish) return res.json(dish);
+    // Like the signed-in flow: the interpreter first; a reference dish only
+    // when it could not resolve the phrase ("2 pár virsli" is 4 frankfurters,
+    // not 4 portions of "virsli mustárral").
     const anonAi = rateLimitedFoodNlpProvider(foodNlpProvider, anonymousAiLimiter, "anonymous");
     const anonQuantity = { get id() { return quantityProvider.id; }, estimate: (estimateInput: Parameters<typeof quantityProvider.estimate>[0]) => quantityProvider.estimate(estimateInput, undefined, () => anonymousAiLimiter.consume("anonymous")) };
     const result = await interpretMealInput(prisma, input.text, anonQuantity, anonAi, null);
-    res.json(tryFromInterpretation(result, input.lang));
+    const foods = tryFromInterpretation(result, input.lang);
+    const resolved = (result.items ?? [result]).every((row) => row.foodResolution === "resolved" && row.selectedFood);
+    if (!resolved) {
+      const dish = await tryReferenceDish(prisma, input.text, input.lang);
+      if (dish) return res.json(dish);
+    }
+    res.json(foods);
   } catch (error) {
     next(error);
   }
