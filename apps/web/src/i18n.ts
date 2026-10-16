@@ -188,14 +188,14 @@ export const dict = {
       unknown: "Váratlan hiba történt."
     },
     barcodeScanner: {
-      scanButton: "Beolvasás kamerával", requestingPermission: "Kamera indítása…", scanning: "Irányítsd a vonalkódot a keretbe.",
-      cancel: "Beolvasás megszakítása", cameraDenied: "A kamera-hozzáférés megtagadva. Add meg a vonalkódot kézzel.",
-      cameraUnavailable: "Nem található kamera ezen az eszközön. Add meg a vonalkódot kézzel.",
-      scannerUnsupported: "A böngésződ nem támogatja a kamerás beolvasást. Add meg a vonalkódot kézzel.",
-      scannerFailed: "A beolvasás nem sikerült. Add meg a vonalkódot kézzel.",
-      unsupportedCode: "Ez nem egy támogatott vonalkód-formátum. Próbáld újra.",
-      privacyNotice: "A kamera képét nem töltjük fel; csak a leolvasott vonalkódot használjuk.",
-      detected: "Vonalkód beolvasva.", tryAgain: "Próbáld újra", videoLabel: "Élő kameraelőnézet a vonalkód-kereséshez"
+      scanButton: "Vonalkód lefotózása", takePhoto: "Fotó a vonalkódról", retakePhoto: "Új fotó", fromGallery: "Választás a galériából",
+      photoTip: "Fotózd le a vonalkódot közelről és élesen, hogy kitöltse a kép nagy részét. A számok is legyenek olvashatók.",
+      decoding: "Vonalkód keresése a képen…", photoLabel: "A lefotózott vonalkód",
+      notFound: "Nem találtam vonalkódot a képen. Készíts egy közelebbi, élesebb fotót, jó fényben — vagy írd be a számot kézzel.",
+      unsupportedCode: "Ez nem termék-vonalkód (pl. QR-kód). A csíkos EAN vonalkódot fotózd le.",
+      scannerFailed: "A kép nem olvasható. Próbáld újra, vagy írd be a vonalkódot kézzel.",
+      cancel: "Mégse",
+      privacyNotice: "A fotót nem töltjük fel: a vonalkódot a készüléked olvassa le, csak a számot használjuk."
     },
     voice: {
       micButton: "Mondd hangosan", requestingPermission: "Mikrofon indítása…", recording: "Hallgatlak… ha végeztél, nyomd meg a Kész gombot",
@@ -417,14 +417,14 @@ export const dict = {
       unknown: "Ein unerwarteter Fehler ist aufgetreten."
     },
     barcodeScanner: {
-      scanButton: "Mit Kamera scannen", requestingPermission: "Kamera wird gestartet…", scanning: "Richte den Barcode auf den Rahmen aus.",
-      cancel: "Scannen abbrechen", cameraDenied: "Kamerazugriff verweigert. Bitte den Barcode manuell eingeben.",
-      cameraUnavailable: "Auf diesem Gerät wurde keine Kamera gefunden. Bitte den Barcode manuell eingeben.",
-      scannerUnsupported: "Dein Browser unterstützt das Scannen per Kamera nicht. Bitte den Barcode manuell eingeben.",
-      scannerFailed: "Das Scannen ist fehlgeschlagen. Bitte den Barcode manuell eingeben.",
-      unsupportedCode: "Das ist kein unterstütztes Barcode-Format. Bitte erneut versuchen.",
-      privacyNotice: "Das Kamerabild wird nicht hochgeladen; es wird nur der erkannte Barcode verwendet.",
-      detected: "Barcode erkannt.", tryAgain: "Erneut versuchen", videoLabel: "Live-Kameravorschau für die Barcode-Suche"
+      scanButton: "Barcode fotografieren", takePhoto: "Foto vom Barcode", retakePhoto: "Neues Foto", fromGallery: "Aus der Galerie wählen",
+      photoTip: "Fotografiere den Barcode nah und scharf, sodass er den Großteil des Bildes ausfüllt. Die Ziffern sollten lesbar sein.",
+      decoding: "Barcode wird im Bild gesucht…", photoLabel: "Der fotografierte Barcode",
+      notFound: "Im Bild wurde kein Barcode gefunden. Mach ein näheres, schärferes Foto bei gutem Licht — oder gib die Nummer manuell ein.",
+      unsupportedCode: "Das ist kein Produkt-Barcode (z. B. ein QR-Code). Fotografiere den gestreiften EAN-Barcode.",
+      scannerFailed: "Das Bild konnte nicht gelesen werden. Versuche es erneut oder gib den Barcode manuell ein.",
+      cancel: "Abbrechen",
+      privacyNotice: "Das Foto wird nicht hochgeladen: Dein Gerät liest den Barcode, wir verwenden nur die Nummer."
     },
     voice: {
       micButton: "Sprich es ein", requestingPermission: "Mikrofon wird gestartet…", recording: "Ich höre zu… wenn du fertig bist, tippe auf Fertig",
@@ -646,14 +646,14 @@ export const dict = {
       unknown: "An unexpected error occurred."
     },
     barcodeScanner: {
-      scanButton: "Scan with camera", requestingPermission: "Starting camera…", scanning: "Point the barcode at the frame.",
-      cancel: "Cancel scanning", cameraDenied: "Camera access was denied. Enter the barcode manually.",
-      cameraUnavailable: "No camera was found on this device. Enter the barcode manually.",
-      scannerUnsupported: "Your browser doesn't support camera scanning. Enter the barcode manually.",
-      scannerFailed: "Scanning failed. Enter the barcode manually.",
-      unsupportedCode: "That's not a supported barcode format. Try again.",
-      privacyNotice: "The camera image is never uploaded; only the decoded barcode is used.",
-      detected: "Barcode detected.", tryAgain: "Try again", videoLabel: "Live camera preview for barcode scanning"
+      scanButton: "Photograph barcode", takePhoto: "Photo of the barcode", retakePhoto: "New photo", fromGallery: "Choose from gallery",
+      photoTip: "Take a close, sharp photo of the barcode so it fills most of the picture, with the digits visible.",
+      decoding: "Looking for the barcode in the photo…", photoLabel: "The photographed barcode",
+      notFound: "No barcode found in the photo. Take a closer, sharper photo in good light — or type the number instead.",
+      unsupportedCode: "That isn't a product barcode (e.g. a QR code). Photograph the striped EAN barcode.",
+      scannerFailed: "The photo couldn't be read. Try again or enter the barcode manually.",
+      cancel: "Cancel",
+      privacyNotice: "The photo is never uploaded: your device reads the barcode and only the number is used."
     },
     voice: {
       micButton: "Say it out loud", requestingPermission: "Starting microphone…", recording: "Listening… tap Done when you are finished",
