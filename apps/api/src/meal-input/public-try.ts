@@ -68,3 +68,14 @@ export function tryFromInterpretation(result: InterpretResult, lang: string): Tr
   });
   return { items, totals: sum(items), source: "foods" };
 }
+
+/** "zabkása mangóval": an item the catalog did not know may still be a known dish on its own. */
+export async function fillUnclearWithReferenceDishes(prisma: Pick<PrismaClient, "recipe">, result: TryResult, lang: string): Promise<TryResult> {
+  if (!result.items.some((item) => item.status === "unclear")) return result;
+  const items = await Promise.all(result.items.map(async (item) => {
+    if (item.status !== "unclear") return item;
+    const dish = await tryReferenceDish(prisma, item.name, lang).catch(() => null);
+    return dish?.items[0] ?? item;
+  }));
+  return { ...result, items, totals: sum(items) };
+}
