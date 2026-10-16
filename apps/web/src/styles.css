@@ -820,3 +820,10 @@ body { padding-left: var(--safe-left); padding-right: var(--safe-right); }
   .print-report .print-checklist li { padding: 3pt 0; break-inside: avoid; font-size: 11pt; }
   .print-report .print-box { display: inline-block; width: 14pt; font-size: 13pt; }
 }
+.try-card { display: grid; gap: .55rem; margin-top: 1.1rem; }
+.try-form { display: flex; gap: .5rem; flex-wrap: wrap; }
+.try-form .field { flex: 1 1 14rem; min-width: 0; }
+.try-result { display: grid; gap: .45rem; }
+.try-result ul { display: grid; gap: .45rem; margin: 0; padding: 0; list-style: none; }
+.try-result li { padding: .5rem .6rem; border-radius: 10px; background: rgb(var(--surface-hover) / .6); overflow-wrap: anywhere; }
+.try-total { margin: 0; }
