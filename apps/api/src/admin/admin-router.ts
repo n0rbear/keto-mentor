@@ -1,6 +1,7 @@
 import express from "express";
 import { z } from "zod";
 import { isAdminUser } from "./email-verification.js";
+import { BETA_CONTEST, contestStandings } from "../beta/contest.js";
 import { getSettings, saveSettings, settingsSchema } from "./runtime-settings.js";
 import { flushUsage } from "./usage-counters.js";
 import { ketoAdherence } from "./keto-adherence.js";
@@ -139,18 +140,11 @@ export function adminRouter(deps: AdminDeps) {
     } catch (error) { next(error); }
   });
 
-  // Beta reward (owner, 2026-10-16): the 10 most active testers — most
-  // logged meals — get lifetime premium. Admin accounts never count.
+  // Beta reward: the 10 testers with the most logged meals (beta/contest.ts).
   router.get("/admin/top-testers", async (_req, res, next) => {
     try {
-      const rows = await deps.prisma.user.findMany({
-        where: { username: { not: deps.systemUsername } }, orderBy: { meals: { _count: "desc" } }, take: 30,
-        select: { id: true, username: true, email: true, createdAt: true, _count: { select: { meals: true } } }
-      });
-      const testers = rows.filter((u: any) => !isAdminUser(u, deps.admins) && u._count.meals > 0)
-        .sort((a: any, b: any) => b._count.meals - a._count.meals).slice(0, 10)
-        .map((u: any, i: number) => ({ rank: i + 1, id: u.id, username: u.username, email: u.email, createdAt: u.createdAt, meals: u._count.meals }));
-      res.json({ testers });
+      const standings = await contestStandings(deps);
+      res.json({ endsAt: BETA_CONTEST.endsAt, testers: standings.slice(0, 10).map((s) => ({ rank: s.rank, id: s.userId, username: s.username, email: s.email, meals: s.meals })) });
     } catch (error) { next(error); }
   });
 

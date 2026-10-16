@@ -15,6 +15,7 @@ import { AuthForm } from "./AuthForm";
 import { EmailPrompt, VerifyEmailBand } from "./EmailPrompt";
 import { AdminPage } from "./AdminPage";
 import { DinnerSuggestions } from "./DinnerSuggestions";
+import { BetaRankBanner } from "./BetaRankBanner";
 import { PremiumOverview } from "./PremiumOverview";
 import { MealPlanner } from "./MealPlanner";
 import { ProgressStats } from "./ProgressStats";
@@ -913,6 +914,7 @@ export function App() {
       {user && !adminAccount && profile?.onboardingDone && (
         <section id="today" className="dashboard-shell">
           <div className="dashboard-main">
+            <BetaRankBanner lang={lang} state={state} refreshKey={`${selectedDate}:${meals.length}`}/>
             <div className="macro-grid" aria-label={lang === "hu" ? "Napi makrók" : lang === "de" ? "Tägliche Makros" : "Daily macros"}>
               {/* Net carbs leads — on mobile the grid scrolls horizontally,
                   so the keto-critical metric must be the first tile in DOM

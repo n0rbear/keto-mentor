@@ -76,6 +76,7 @@ import { mealPlanRouter } from "./meals/meal-plan-router.js";
 import { progressRouter } from "./stats/progress-router.js";
 import { remindersRouter, startReminders } from "./reminders/reminders.js";
 import { adminRouter } from "./admin/admin-router.js";
+import { betaContestRouter } from "./beta/contest.js";
 import { REFERENCE_USERNAME } from "./reference-dishes/seed.js";
 import { platesRouter } from "./meal-input/plates.js";
 import { VOICE_TRANSCRIBE_RATE_LIMIT, voiceTranscribeRateLimitKey } from "./meal-input/voice-rate-limit.js";
@@ -317,6 +318,7 @@ app.use(adminRouter({
   sendPasswordReset: (user) => sendPasswordReset({ prisma, mailer, webAppUrl }, user)
 }));
 
+app.use(betaContestRouter({ prisma, requireAuth, admins: adminEmails, systemUsername: REFERENCE_USERNAME }));
 app.use(accountDeletionRouter({ prisma, requireAuth, verifyPassword, systemUsername: REFERENCE_USERNAME }));
 
 app.post("/auth/logout", requireAuth, async (req, res, next) => {
