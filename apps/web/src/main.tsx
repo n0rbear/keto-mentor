@@ -874,7 +874,7 @@ export function App() {
 
         {!user ? (
           <>
-            <AuthForm mode={appConfig?.registrationOpen === false ? "login" : "register"} registrationOpen={appConfig?.registrationOpen !== false} lang={lang} state={state} onSuccess={setUser} />
+            <AuthForm mode="login" registrationOpen={appConfig?.registrationOpen !== false} lang={lang} state={state} onSuccess={setUser} />
             {/* Phones: sign-in first, trying without an account one tap away. */}
             {!tryOpen && <button type="button" className="btn secondary mobile-only try-toggle" onClick={() => { setTryOpen(true); window.setTimeout(() => document.getElementById("try-title")?.scrollIntoView?.({ behavior: "smooth", block: "start" }), 30); }}>{TRY_TOGGLE[lang]}</button>}
           </>
