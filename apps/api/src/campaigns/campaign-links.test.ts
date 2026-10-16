@@ -51,7 +51,7 @@ describe("kampánylinkek", () => {
 
   it("counts visits and sign-ups only for known codes", async () => {
     const db = fakeDb(); const t = await serve(db);
-    await t.call("GET", "/admin/campaign-links");
+    // Counts from the start, before the admin has ever opened the list.
     expect((await t.call("POST", "/public/ref", { code: "tiktok" })).status).toBe(204);
     await t.call("POST", "/public/ref", { code: "ismeretlen" });
     await t.call("POST", "/public/ref", { code: "<script>" });

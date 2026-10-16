@@ -30,7 +30,9 @@ type Db = any;
 
 export async function readLinks(prisma: Db): Promise<CampaignLink[]> {
   const row = await prisma.appSetting.findUnique({ where: { key: KEY } }).catch(() => null);
-  const parsed = z.array(linkSchema).safeParse(row?.value);
+  // Never saved yet: the starting set already counts, before the admin first opens the list.
+  if (!row) return DEFAULT_LINKS.map((l) => ({ ...l, createdAt: "2026-10-16T00:00:00.000Z" }));
+  const parsed = z.array(linkSchema).safeParse(row.value);
   return parsed.success ? parsed.data : [];
 }
 
@@ -66,13 +68,7 @@ export function campaignPublicRouter(deps: { prisma: Db }) {
 export function campaignAdminRoutes(router: express.Router, deps: { prisma: Db; now: () => Date }) {
   router.get("/admin/campaign-links", async (_req, res, next) => {
     try {
-      let links = await readLinks(deps.prisma);
-      const stored = await deps.prisma.appSetting.findUnique({ where: { key: KEY } }).catch(() => null);
-      if (!stored) {
-        const at = deps.now().toISOString();
-        links = DEFAULT_LINKS.map((l) => ({ ...l, createdAt: at }));
-        await writeLinks(deps.prisma, links);
-      }
+      const links = await readLinks(deps.prisma);
       const rows: Array<{ day: Date; kind: string; count: number }> = await deps.prisma.usageDaily.findMany({ where: { kind: { startsWith: "ref_" } } });
       const since30 = deps.now().getTime() - 30 * 24 * 60 * 60 * 1000;
       const today = usageDay(deps.now());
