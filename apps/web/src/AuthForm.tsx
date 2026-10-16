@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { currentCampaignRef } from "./campaign-ref";
 import { api, ApiError, type ApiState } from "./api";
 import { authErrorText } from "./auth-error";
 import type { Lang } from "./i18n";
@@ -69,7 +70,7 @@ export function AuthForm({ mode: initialMode, lang, state, onSuccess, registrati
         setNotice(t.changed);
       } else {
         const body = mode === "register"
-          ? { username: String(form.get("username")), email: String(form.get("email")), password: String(form.get("password")), locale: lang }
+          ? { username: String(form.get("username")), email: String(form.get("email")), password: String(form.get("password")), locale: lang, ref: currentCampaignRef() }
           : { username: String(form.get("username")), password: String(form.get("password")), locale: lang, remember: form.get("remember") === "on" };
         // Where the web keeps the access token: across restarts, or only for this browser session.
         try { localStorage.setItem("km_remember", mode === "login" && form.get("remember") !== "on" ? "0" : "1"); } catch { /* storage unavailable */ }

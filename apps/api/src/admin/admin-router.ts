@@ -6,6 +6,7 @@ import { getSettings, saveSettings, settingsSchema } from "./runtime-settings.js
 import { flushUsage } from "./usage-counters.js";
 import { ketoAdherence } from "./keto-adherence.js";
 import { remindersSentToday } from "../reminders/reminders.js";
+import { campaignAdminRoutes } from "../campaigns/campaign-links.js";
 
 // Admin screen API (owner request 2026-10-15). Every route checks, on every
 // request and against the database, that the caller's CONFIRMED e-mail is on
@@ -37,6 +38,7 @@ export function adminRouter(deps: AdminDeps) {
     } catch (error) { next(error); }
   };
   router.use("/admin", deps.requireAuth, requireAdmin);
+  campaignAdminRoutes(router, { prisma: deps.prisma, now });
 
   router.get("/admin/overview", async (req, res, next) => {
     try {

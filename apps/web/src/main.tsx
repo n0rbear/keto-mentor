@@ -16,6 +16,7 @@ import { EmailPrompt, VerifyEmailBand } from "./EmailPrompt";
 import { AdminPage } from "./AdminPage";
 import { DinnerSuggestions } from "./DinnerSuggestions";
 import { BetaRankBanner } from "./BetaRankBanner";
+import { captureCampaignRef } from "./campaign-ref";
 import { PremiumOverview } from "./PremiumOverview";
 import { MealPlanner } from "./MealPlanner";
 import { ProgressStats } from "./ProgressStats";
@@ -89,6 +90,7 @@ type MealInterpretation = {
 type ProgressStage = "food_understanding" | "local_food_search" | "local_recipe_search" | "recipe_discovery" | "quantity_resolution" | "finalizing";
 
 export function App() {
+  useEffect(() => { captureCampaignRef(); }, []);
   const [lang, setLang] = useState<Lang>("hu");
   // "Bejelentkezve maradok" off keeps the token only for this browser session.
   const [token, setToken] = useState(() => localStorage.getItem("km_token") ?? sessionStorage.getItem("km_token"));
