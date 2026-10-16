@@ -35,6 +35,7 @@ import { DINNER_FEATURE, hasPremiumFeature, loadDinnerCandidates, rankDinnerSugg
 import { getWeekOverview } from "./meals/week-query.js";
 import { recipeRouter } from "./recipes/router.js";
 import { interpretMealInput, resolveQuantity } from "./meal-input/interpret.js";
+import { tryFromInterpretation, tryReferenceDish } from "./meal-input/public-try.js";
 import { attachRecipeDiscoveryFallback } from "./meal-input/recipe-discovery-fallback.js";
 import { timeStage } from "./request-performance.js";
 import { buildDiagnostics } from "./meal-input/diagnostics.js";
@@ -502,6 +503,30 @@ app.get("/meal-input/progress/:operationId", requireAuth, (req, res) => {
     res.write(`${JSON.stringify({ stage })}\n`);
   });
   req.on("close", unsubscribe);
+});
+
+// "Próbáld ki regisztráció nélkül" (tier decision 2026-10-15): no account,
+// nothing stored, nothing tied to anyone. Local catalog and reference dishes
+// only (no external lookups); AI interpretation shares one small global
+// anonymous budget, and each visitor is rate limited by IP.
+const publicTryLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000, limit: 12, standardHeaders: true, legacyHeaders: false,
+  keyGenerator: (req) => req.header("cf-connecting-ip") ?? req.ip ?? "unknown"
+});
+const anonymousAiLimiter = new FoodNlpUserRateLimiter();
+const publicTrySchema = z.object({ text: z.string().trim().min(2).max(200), lang: z.enum(["hu", "de", "en"]).default("hu") });
+app.post("/public/try", publicTryLimiter, async (req, res, next) => {
+  try {
+    const input = publicTrySchema.parse(req.body);
+    const dish = await tryReferenceDish(prisma, input.text, input.lang);
+    if (dish) return res.json(dish);
+    const anonAi = rateLimitedFoodNlpProvider(foodNlpProvider, anonymousAiLimiter, "anonymous");
+    const anonQuantity = { get id() { return quantityProvider.id; }, estimate: (estimateInput: Parameters<typeof quantityProvider.estimate>[0]) => quantityProvider.estimate(estimateInput, undefined, () => anonymousAiLimiter.consume("anonymous")) };
+    const result = await interpretMealInput(prisma, input.text, anonQuantity, anonAi, null);
+    res.json(tryFromInterpretation(result, input.lang));
+  } catch (error) {
+    next(error);
+  }
 });
 
 // "2 pár virsli" (owner tickets c289ec, 5d5e3f): when the user picks another

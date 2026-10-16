@@ -22,6 +22,7 @@ import { ExportCard } from "./ExportCard";
 import { MicrosCard } from "./MicrosCard";
 import { FlexibleGoals } from "./FlexibleGoals";
 import { AccountPage } from "./AccountPage";
+import { TryWithoutAccount } from "./TryWithoutAccount";
 const ACCOUNT_LABEL = { hu: "Fiókom", de: "Mein Konto", en: "My account" } as const;
 import { PalettePicker } from "./PalettePicker";
 import { applyPalette, storedPalette } from "./palette";
@@ -860,6 +861,7 @@ export function App() {
           <h1 className="hero-title">{t.hero}</h1>
           <p className="hero-lead">{t.lead}</p>
           <p className="health-note"><ShieldCheck size={18}/><span>{t.disclaimer}</span></p>
+          {!user && <TryWithoutAccount lang={lang}/>}
         </div>
 
 
