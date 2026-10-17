@@ -1170,6 +1170,52 @@ lebbencsleves,Lebbencsleves,4,potato,burgonya,300,core,bls:K110100,2302.5,0.902,
 lebbencsleves,Lebbencsleves,4,smoked_bacon,füstölt szalonna / bacon,100,fat,bls:W415000,2302.5,0.902,1.01,450
 lebbencsleves,Lebbencsleves,4,onion,vöröshagyma,70,core,bls:G480100,2302.5,0.902,1.01,450
 lebbencsleves,Lebbencsleves,4,paprika_ground,őrölt pirospaprika,2.5,seasoning,usda_fdc:171329,2302.5,0.902,1.01,450
+tonhalsalata_tojassal,Tonhalsaláta tojással,1,tuna_canned,"tonhalkonzerv (sajátlében, lecsepegtetve)",120,core,usda_fdc:334194,335,1.0,0.6,335
+tonhalsalata_tojassal,Tonhalsaláta tojással,1,egg,tojás,100,core,bls:E111100,335,1.0,0.6,335
+tonhalsalata_tojassal,Tonhalsaláta tojással,1,cucumber,kígyóuborka / uborka,80,core,bls:G520100,335,1.0,0.6,335
+tonhalsalata_tojassal,Tonhalsaláta tojással,1,mayonnaise,majonéz,20,fat,bls:Q991000,335,1.0,0.6,335
+tonhalsalata_tojassal,Tonhalsaláta tojással,1,onion,vöröshagyma,15,core,bls:G480100,335,1.0,0.6,335
+caprese,Caprese (paradicsom mozzarellával),1,tomato,paradicsom,200,core,bls:G561100,341,1.0,0.7,341
+caprese,Caprese (paradicsom mozzarellával),1,mozzarella,mozzarella,125,core,bls:M032100,341,1.0,0.7,341
+caprese,Caprese (paradicsom mozzarellával),1,olive_oil,olívaolaj,13,fat,bls:Q120000,341,1.0,0.7,341
+caprese,Caprese (paradicsom mozzarellával),1,basil_fresh,bazsalikom (friss),3,seasoning,bls:G061000,341,1.0,0.7,341
+sonkas_sajtos_tal,Sonkás-sajtos hidegtál zöldséggel,1,ham_cooked,főtt sonka / szendvicssonka,100,core,bls:W424000,340,1.0,0.5,340
+sonkas_sajtos_tal,Sonkás-sajtos hidegtál zöldséggel,1,gouda,gouda sajt,60,core,bls:M402600,340,1.0,0.5,340
+sonkas_sajtos_tal,Sonkás-sajtos hidegtál zöldséggel,1,cucumber,kígyóuborka / uborka,100,core,bls:G520100,340,1.0,0.5,340
+sonkas_sajtos_tal,Sonkás-sajtos hidegtál zöldséggel,1,bell_pepper_red,piros kaliforniai paprika,80,core,bls:G543100,340,1.0,0.5,340
+szalamis_sajtos_tal,"Szalámis-sajtos tál retekkel, olívabogyóval",1,salami,szalámi (német),60,core,bls:W140000,290,1.0,0.5,290
+szalamis_sajtos_tal,"Szalámis-sajtos tál retekkel, olívabogyóval",1,trappista,trappista sajt,60,core,bls:M505600,290,1.0,0.5,290
+szalamis_sajtos_tal,"Szalámis-sajtos tál retekkel, olívabogyóval",1,olives_black,fekete olívabogyó,30,core,bls:H520800,290,1.0,0.5,290
+szalamis_sajtos_tal,"Szalámis-sajtos tál retekkel, olívabogyóval",1,radish,retek (hónapos),60,core,bls:G691100,290,1.0,0.5,290
+szalamis_sajtos_tal,"Szalámis-sajtos tál retekkel, olívabogyóval",1,cucumber,kígyóuborka / uborka,80,core,bls:G520100,290,1.0,0.5,290
+avokados_tojassalata,Avokádós tojássaláta,2,avocado,avokádó,140,core,bls:F502100,375,1.0,0.75,190
+avokados_tojassalata,Avokádós tojássaláta,2,egg,tojás,200,core,bls:E111100,375,1.0,0.75,190
+avokados_tojassalata,Avokádós tojássaláta,2,yogurt_greek_10,görög típusú joghurt (10%),15,core,bls:M141500,375,1.0,0.75,190
+avokados_tojassalata,Avokádós tojássaláta,2,mustard,mustár,5,seasoning,bls:R132000,375,1.0,0.75,190
+avokados_tojassalata,Avokádós tojássaláta,2,spring_onion,újhagyma,15,core,bls:G482100,375,1.0,0.75,190
+sonkas_sajtos_omlett,Sonkás-sajtos omlett,1,egg,tojás,150,core,bls:E111100,220,0.957,0.6,220
+sonkas_sajtos_omlett,Sonkás-sajtos omlett,1,ham_cooked,főtt sonka / szendvicssonka,40,core,bls:W424000,220,0.957,0.6,220
+sonkas_sajtos_omlett,Sonkás-sajtos omlett,1,trappista,trappista sajt,30,core,bls:M505600,220,0.957,0.6,220
+sonkas_sajtos_omlett,Sonkás-sajtos omlett,1,butter,vaj,10,fat,open_database:173430,220,0.957,0.6,220
+tonhalas_avokado,Tonhallal töltött avokádó,1,avocado,avokádó,140,core,bls:F502100,285,1.0,0.7,285
+tonhalas_avokado,Tonhallal töltött avokádó,1,tuna_canned,"tonhalkonzerv (sajátlében, lecsepegtetve)",120,core,usda_fdc:334194,285,1.0,0.7,285
+tonhalas_avokado,Tonhallal töltött avokádó,1,mayonnaise,majonéz,10,fat,bls:Q991000,285,1.0,0.7,285
+tonhalas_avokado,Tonhallal töltött avokádó,1,onion,vöröshagyma,10,core,bls:G480100,285,1.0,0.7,285
+tonhalas_avokado,Tonhallal töltött avokádó,1,lemon_juice,citromlé,5,seasoning,usda_fdc:167747,285,1.0,0.7,285
+majonezes_tojas_retekkel,Főtt tojás majonézzel és retekkel,1,egg,tojás,150,core,bls:E111100,240,1.0,0.6,240
+majonezes_tojas_retekkel,Főtt tojás majonézzel és retekkel,1,mayonnaise,majonéz,25,fat,bls:Q991000,240,1.0,0.6,240
+majonezes_tojas_retekkel,Főtt tojás majonézzel és retekkel,1,mustard,mustár,5,seasoning,bls:R132000,240,1.0,0.6,240
+majonezes_tojas_retekkel,Főtt tojás majonézzel és retekkel,1,radish,retek (hónapos),60,core,bls:G691100,240,1.0,0.6,240
+ujhagymas_turokrem,"Újhagymás túrókrém retekkel, paprikával",1,quark_20,tehéntúró (félzsíros),150,core,bls:M713300,340,1.0,0.8,340
+ujhagymas_turokrem,"Újhagymás túrókrém retekkel, paprikával",1,sour_cream,tejföl (20%),50,core,usda_fdc:2346387,340,1.0,0.8,340
+ujhagymas_turokrem,"Újhagymás túrókrém retekkel, paprikával",1,spring_onion,újhagyma,20,core,bls:G482100,340,1.0,0.8,340
+ujhagymas_turokrem,"Újhagymás túrókrém retekkel, paprikával",1,radish,retek (hónapos),60,core,bls:G691100,340,1.0,0.8,340
+ujhagymas_turokrem,"Újhagymás túrókrém retekkel, paprikával",1,bell_pepper_red,piros kaliforniai paprika,60,core,bls:G543100,340,1.0,0.8,340
+sonkatekercs_mozzarellaval,Sonkatekercs mozzarellával és paradicsommal,1,ham_cooked,főtt sonka / szendvicssonka,100,core,bls:W424000,330,1.0,0.6,330
+sonkatekercs_mozzarellaval,Sonkatekercs mozzarellával és paradicsommal,1,mozzarella,mozzarella,125,core,bls:M032100,330,1.0,0.6,330
+sonkatekercs_mozzarellaval,Sonkatekercs mozzarellával és paradicsommal,1,tomato,paradicsom,100,core,bls:G561100,330,1.0,0.6,330
+sonkatekercs_mozzarellaval,Sonkatekercs mozzarellával és paradicsommal,1,basil_fresh,bazsalikom (friss),3,seasoning,bls:G061000,330,1.0,0.6,330
+sonkatekercs_mozzarellaval,Sonkatekercs mozzarellával és paradicsommal,1,olive_oil,olívaolaj,2,fat,bls:Q120000,330,1.0,0.6,330
 schweinsbraten,Sült sertéslapocka (Schweinsbraten),4,pork_shoulder,sertéslapocka,1250,core,usda_fdc:167843,1306,0.704,1.055,250
 schweinsbraten,Sült sertéslapocka (Schweinsbraten),4,onion,vöröshagyma,160,core,bls:G480100,1306,0.704,1.055,250
 schweinsbraten,Sült sertéslapocka (Schweinsbraten),4,garlic,fokhagyma,12,seasoning,bls:G490100,1306,0.704,1.055,250

@@ -138,6 +138,10 @@ FOOD_KEYS = {
     "yeast_dry":          ("szárított élesztő (porélesztő)", "Trockenbackhefe", "dry yeast", "bls:R458000", "total", 334, 7.61, 40.4, 37.6, 23.3, 0.6, 0.6, None),
     "plum_butter":        ("szilvalekvár", "Pflaumenmus", "plum butter (lekvár)", "bls:S161000", "total", 195, 0.2, 0.94, 47.588, 1.66, 1.3, 1.3, None),
     "pork_back_fat":      ("sertés hátszalonna (nyers)", "Rückenspeck roh", "pork back fat, raw", "bls:W412000", "total", 746, 80.92, 4.41, 0, 0, 0.92, 0.8, None),
+    # hu_hidegtalak (2026-10-17)
+    "tuna_canned":        ("tonhalkonzerv (sajátlében, lecsepegtetve)", "Thunfisch in eigenem Saft, abgetropft", "tuna, canned in water, drained", "usda_fdc:334194", "total", 90, 0.94, 19, 0.08, 0, 1.05, 0.6, "drained"),
+    "avocado":            ("avokádó", "Avocado", "avocado", "bls:F502100", "total", 132, 12.5, 1.37, 5.47, 4.1, 0.95, 0.6, "edible part, without stone and skin"),
+    "radish":             ("retek (hónapos)", "Radieschen", "radish", "bls:G691100", "total", 18, 0.14, 1.05, 3.81, 1.5, 0.95, 0.6, None),
     # hu_hetkoznapi
     "pasta_durum_dry":    ("száraztészta (durum, tojás nélküli)", "Teigwaren eifrei (roh)", "dry pasta, egg-free (durum)", "bls:E401000", "total", 346, 1.6, 12.4, 72.239, 3.406, 1.0, 0.5, "grams = dry weight; spagetti, penne"),
     "couscous_dry":       ("kuszkusz (száraz)", "Couscous (Hartweizen) roh", "couscous, dry", "bls:C119200", "total", 350, 1.7, 11.692, 75.09, 6.17, 1.0, 0.7, "grams = dry weight"),
