@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import { Activity, ChevronLeft, ChevronRight, ExternalLink, LogOut, UserRound, Mail, Megaphone, Pencil, Plus, Repeat, ShieldCheck, Sparkles, Trash2, UtensilsCrossed } from "lucide-react";
 
 import { dict, type Lang } from "./i18n";
-import { api, ApiError, streamProgress, type ApiState } from "./api";
+import { api, ApiError, resumeSession, streamProgress, type ApiState, storeRefreshToken, storedRefreshToken } from "./api";
 import { mondayOf, shiftDate, todayLocalDate } from "./date";
 import "./styles.css";
 import ketoMentorMark from "./assets/ketomentor-mark.png";
@@ -165,8 +165,10 @@ export function App() {
     // Always clear local auth state so the user is never left visually
     // logged in with a null/invalid token, even if the server call fails.
     try {
-      await api("/auth/logout", { method: "POST" }, state);
+      const refreshToken = storedRefreshToken();
+      await api("/auth/logout", { method: "POST", ...(refreshToken ? { body: JSON.stringify({ refreshToken }) } : {}) }, state);
     } finally {
+      storeRefreshToken(null);
       setToken(null);
       setUser(null);
       setMyPlatesOpen(false);
@@ -225,6 +227,9 @@ export function App() {
   const [lastInterpretRequest, setLastInterpretRequest] = useState<{ text: string; operationId: string } | null>(null);
   const t = dict[lang];
   const state = useMemo(() => ({ token, setToken }), [token]);
+  // Stay signed in: no access token yet, but a kept refresh token -> sign back in quietly.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { void resumeSession(state).catch(() => undefined); }, []);
 
   useEffect(() => {
     const remember = localStorage.getItem("km_remember") !== "0";

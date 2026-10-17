@@ -64,3 +64,30 @@ describe("api() automatic token refresh on 401", () => {
     expect(setToken).toHaveBeenCalledWith(null);
   });
 });
+describe("bejelentkezve maradok iPhone-on (sütik nélkül)", () => {
+  it("sends the kept refresh token in the body and keeps the rotated one", async () => {
+    const { api, storeRefreshToken, storedRefreshToken } = await import("./api");
+    storeRefreshToken("old-refresh");
+    const bodies: Array<string | undefined> = [];
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.endsWith("/auth/refresh")) { bodies.push(init?.body as string | undefined); return new Response(JSON.stringify({ accessToken: "fresh", refreshToken: "new-refresh" }), { status: 200 }); }
+      const auth = (init?.headers as Record<string, string>)?.Authorization;
+      return auth === "Bearer fresh" ? new Response(JSON.stringify({ ok: true }), { status: 200 }) : new Response(JSON.stringify({ error: "invalid_token" }), { status: 401 });
+    }));
+    let token: string | null = "expired";
+    const state = { get token() { return token; }, setToken: (t: string | null) => { token = t; } };
+    expect(await api<{ ok: boolean }>("/me", {}, state)).toEqual({ ok: true });
+    expect(JSON.parse(bodies[0]!)).toEqual({ refreshToken: "old-refresh" });
+    expect(storedRefreshToken()).toBe("new-refresh");
+    storeRefreshToken(null);
+  });
+
+  it("forgets the kept token when the server rejects it", async () => {
+    const { api, storeRefreshToken, storedRefreshToken } = await import("./api");
+    storeRefreshToken("revoked");
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ error: "invalid_token" }), { status: 401 })));
+    await expect(api("/me", {}, { token: "expired", setToken: () => undefined })).rejects.toBeTruthy();
+    expect(storedRefreshToken()).toBeNull();
+  });
+});

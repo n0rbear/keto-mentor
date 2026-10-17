@@ -4,7 +4,7 @@ process.env.JWT_ACCESS_SECRET = "a".repeat(32);
 process.env.JWT_REFRESH_SECRET = "b".repeat(32);
 
 import { describe, expect, it } from "vitest";
-const { rememberFromCookie, setRefreshCookie } = await import("./auth.js");
+const { rememberFromCookie, setRefreshCookie, readRefreshToken, signRefreshToken } = await import("./auth.js");
 
 const fakeRes = () => { const cookies: Record<string, { value: string; options: any }> = {}; return { cookies, res: { cookie: (name: string, value: string, options: any) => { cookies[name] = { value, options }; } } as any }; };
 
@@ -21,5 +21,15 @@ describe("Bejelentkezve maradok", () => {
   it("keeps the choice on refresh", () => {
     expect(rememberFromCookie({ cookies: { km_remember: "0" } } as any)).toBe(false);
     expect(rememberFromCookie({ cookies: {} } as any)).toBe(true);
+  });
+
+  it("reads the refresh token from the body when the cookie is blocked (iPhone Safari), preferring the body", () => {
+    const token = signRefreshToken("s1", "secret1");
+    expect(readRefreshToken({ body: { refreshToken: token }, cookies: {} } as any)).toMatchObject({ sessionId: "s1", secret: "secret1" });
+    const cookieToken = signRefreshToken("s2", "secret2");
+    expect(readRefreshToken({ body: {}, cookies: { km_refresh: cookieToken } } as any)).toMatchObject({ sessionId: "s2" });
+    expect(readRefreshToken({ body: { refreshToken: token }, cookies: { km_refresh: cookieToken } } as any)).toMatchObject({ sessionId: "s1" });
+    expect(readRefreshToken({ body: { refreshToken: "x".repeat(5000) }, cookies: {} } as any)).toBeNull();
+    expect(readRefreshToken({ body: { refreshToken: 42 }, cookies: {} } as any)).toBeNull();
   });
 });

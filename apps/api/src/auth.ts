@@ -63,8 +63,14 @@ export function setRefreshCookie(res: Response, token: string, persistent = true
 export const rememberFromCookie = (req: Request) => req.cookies?.km_remember !== "0";
 
 
+// iPhone Safari blocks the km_refresh cookie: the API (onrender.com) is a
+// different site than the app (norbapp.com). A device that chose "stay signed
+// in" also keeps the refresh token and sends it in the body (owner report
+// 2026-10-17: signed out on every visit). The body token, when sent, is the
+// one this device holds; otherwise the cookie is used.
 export function readRefreshToken(req: Request): { sessionId: string; secret: string } | null {
-  const token = req.cookies?.km_refresh;
+  const fromBody = typeof req.body?.refreshToken === "string" && req.body.refreshToken.length < 2048 ? req.body.refreshToken : undefined;
+  const token = fromBody ?? req.cookies?.km_refresh;
   if (!token) return null;
   return verifyRefreshToken(token);
 }
