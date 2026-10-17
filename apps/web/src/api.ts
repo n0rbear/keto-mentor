@@ -8,6 +8,19 @@ export class ApiError extends Error {
   }
 }
 
+// "Stay signed in" (owner report 2026-10-17): iPhone Safari blocks the API's
+// refresh cookie (onrender.com is a different site than norbapp.com), so the
+// access token expired after 15 minutes and the user had to sign in again.
+// A device that chose to stay signed in also keeps the refresh token and
+// sends it with the refresh request; it is rotated on every use.
+const REFRESH_KEY = "km_refresh";
+export function storedRefreshToken(): string | null {
+  try { return localStorage.getItem(REFRESH_KEY); } catch { return null; }
+}
+export function storeRefreshToken(token: string | null | undefined) {
+  try { if (token) localStorage.setItem(REFRESH_KEY, token); else localStorage.removeItem(REFRESH_KEY); } catch { /* storage unavailable */ }
+}
+
 let refreshInFlight: Promise<string | null> | null = null;
 
 async function refreshAccessToken(state: ApiState): Promise<string | null> {
@@ -15,9 +28,14 @@ async function refreshAccessToken(state: ApiState): Promise<string | null> {
   if (refreshInFlight) return refreshInFlight;
   refreshInFlight = (async () => {
     try {
-      const res = await fetch(`${API_URL}/auth/refresh`, { method: "POST", credentials: "include" });
-      if (!res.ok) return null;
-      const data = (await res.json()) as { accessToken: string };
+      const refreshToken = storedRefreshToken();
+      const res = await fetch(`${API_URL}/auth/refresh`, {
+        method: "POST", credentials: "include",
+        ...(refreshToken ? { headers: { "Content-Type": "application/json" }, body: JSON.stringify({ refreshToken }) } : {})
+      });
+      if (!res.ok) { if (res.status === 401) storeRefreshToken(null); return null; }
+      const data = (await res.json()) as { accessToken: string; refreshToken?: string };
+      if (data.refreshToken && refreshToken) storeRefreshToken(data.refreshToken);
       state.setToken(data.accessToken);
       return data.accessToken;
     } catch {
@@ -27,6 +45,12 @@ async function refreshAccessToken(state: ApiState): Promise<string | null> {
     }
   })();
   return refreshInFlight;
+}
+
+/** On app start without an access token: sign back in with the kept refresh token, if any. */
+export async function resumeSession(state: ApiState): Promise<string | null> {
+  if (state.token || !storedRefreshToken()) return state.token;
+  return refreshAccessToken(state);
 }
 
 export async function api<T>(path: string, init: RequestInit = {}, state?: ApiState, retry = true): Promise<T> {

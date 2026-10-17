@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { currentCampaignRef } from "./campaign-ref";
-import { api, ApiError, type ApiState } from "./api";
+import { api, ApiError, type ApiState, storeRefreshToken } from "./api";
 import { authErrorText } from "./auth-error";
 import type { Lang } from "./i18n";
 
@@ -74,7 +74,9 @@ export function AuthForm({ mode: initialMode, lang, state, onSuccess, registrati
           : { username: String(form.get("username")), password: String(form.get("password")), locale: lang, remember: form.get("remember") === "on" };
         // Where the web keeps the access token: across restarts, or only for this browser session.
         try { localStorage.setItem("km_remember", mode === "login" && form.get("remember") !== "on" ? "0" : "1"); } catch { /* storage unavailable */ }
-        const result = await api<{ user: { id: string; username: string; locale: Lang }; accessToken: string }>(`/auth/${mode}`, { method: "POST", body: JSON.stringify(body) });
+        const result = await api<{ user: { id: string; username: string; locale: Lang }; accessToken: string; refreshToken?: string }>(`/auth/${mode}`, { method: "POST", body: JSON.stringify(body) });
+        // Kept only when staying signed in (see api.ts: storeRefreshToken).
+        storeRefreshToken(mode === "login" && form.get("remember") !== "on" ? null : result.refreshToken);
         state.setToken(result.accessToken);
         onSuccess(result.user);
       }

@@ -266,7 +266,7 @@ app.post("/auth/register", authLimiter, async (req, res, next) => {
 
     const session = await createSession(prisma, user);
     setRefreshCookie(res, session.refreshToken);
-    res.status(201).json({ user, accessToken: session.accessToken });
+    res.status(201).json({ user, accessToken: session.accessToken, refreshToken: session.refreshToken });
     // Campaign link the visitor arrived by (anonymous count only).
     void countCampaign(prisma, "signup", req.body?.ref).catch(() => undefined);
     // Confirmation link for the new address, after answering (best effort).
@@ -290,7 +290,7 @@ app.post("/auth/login", authLimiter, async (req, res, next) => {
     const user = { id: userWithHash.id, username: userWithHash.username, locale: userWithHash.locale };
     const session = await createSession(prisma, user);
     setRefreshCookie(res, session.refreshToken, input.remember !== false);
-    res.json({ user, accessToken: session.accessToken });
+    res.json({ user, accessToken: session.accessToken, ...(input.remember !== false ? { refreshToken: session.refreshToken } : {}) });
   } catch (error) {
     next(error);
   }
@@ -356,8 +356,10 @@ app.post("/auth/refresh", refreshLimiter, async (req, res, next) => {
       res.clearCookie("km_refresh"); res.clearCookie("km_remember");
       return res.status(401).json({ error: "invalid_token" });
     }
-    setRefreshCookie(res, result.refreshToken, rememberFromCookie(req));
-    res.status(200).json({ accessToken: result.accessToken });
+    // A token sent in the body comes from a device that chose to stay signed in.
+    const viaBody = typeof req.body?.refreshToken === "string";
+    setRefreshCookie(res, result.refreshToken, viaBody || rememberFromCookie(req));
+    res.status(200).json({ accessToken: result.accessToken, ...(viaBody || rememberFromCookie(req) ? { refreshToken: result.refreshToken } : {}) });
   } catch (error) {
     // Unexpected Prisma/transaction/Argon2/system failures must reach the
     // centralized error handler (next) rather than becoming unhandled rejections.
