@@ -13,6 +13,8 @@ const SPOKEN_VARIANTS: Array<[RegExp, string]> = [
   // "zwei Paar" / "drei Paar" heard as one word (owner screenshot 2026-10-17: "Svajpar Frankfurterwürstchen")
   [/\b(?:sv|cv|zw|tsv|szv)[aáe][ij]\s?p[aá]a?r\b/giu, "zwei Paar"],
   [/\bdr[aá][ij]\s?p[aá]a?r\b/giu, "drei Paar"],
+  // German compounds the catalog knows as two words ("Frankfurterwürstchen" matched a US beef frankfurter without a piece weight)
+  [/\b(frankfurter|wiener)(w[üu]rstchen|w[üu]rstel)\b/giu, "$1 $2"],
   // Kaiserschmarrn: kájzersmarn, kaiserschmarren …
   [/\bk[aá][ij]?[sz]+[eé]rs(?:ch)?m[aá]rr?e?n\b/giu, "Kaiserschmarrn"]
 ];

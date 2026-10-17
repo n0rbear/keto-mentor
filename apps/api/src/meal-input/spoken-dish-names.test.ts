@@ -10,9 +10,10 @@ describe("kiejtés szerint leírt ételnevek", () => {
     ["egy szelet léberkéze", "egy szelet Leberkäse"],
     ["fél svájnszhakszi", "fél Schweinshaxe"],
     ["kájzersmarn", "Kaiserschmarrn"],
-    ["Svajpar Frankfurterwürstchen.", "zwei Paar Frankfurterwürstchen."],
     ["zweipaar Wiener", "zwei Paar Wiener"],
-    ["drajpár virsli", "drei Paar virsli"]
+    ["drajpár virsli", "drei Paar virsli"],
+    ["Svajpar Frankfurterwürstchen.", "zwei Paar Frankfurter würstchen."],
+    ["2 Wienerwürstel", "2 Wiener würstel"]
   ])("%s → %s", (spoken, expected) => {
     expect(normalizeSpokenDishNames(spoken)).toBe(expected);
   });
