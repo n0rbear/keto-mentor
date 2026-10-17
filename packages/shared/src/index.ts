@@ -255,7 +255,7 @@ export const foodUnderstandingLanguageSchema = z.enum(["hu", "de", "en", "unknow
 export const foodUnderstandingKindSchema = z.enum(["single_food", "multiple_foods", "compound_dish"]);
 export const foodUnderstandingUnitSchema = z.enum([
   "g", "kg", "piece", "slice", "portion", "plate", "bowl", "ladle",
-  "tbsp", "tsp", "cup", "handful", "half", "quarter", "unknown"
+  "tbsp", "tsp", "cup", "handful", "half", "quarter", "cm", "ml", "l", "unknown"
 ]);
 export const foodUnderstandingItemSchema = z.object({
   originalText: z.string().trim().min(1).max(160),

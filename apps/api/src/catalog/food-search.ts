@@ -325,6 +325,20 @@ function nutritionCompleteness(food: any) {
     .filter(value => value != null && Number.isFinite(Number(value))).length;
 }
 
+// Ticket 47cccf (2026-10-17): "főtt tojás" ranked "marhaháj, főtt" first —
+// every food sharing either word scored the same, and many foods now carry
+// "főtt"/"cooked" in a localized name. A preparation word says how a food
+// was made, not what it is, so it weighs less than the food's own words.
+const PREPARATION_TOKEN = /^(cooked|boiled|roasted|fried|grilled|steamed|baked|smoked|stewed|braised|raw|fott|sult|parolt|fustolt|rantott|grillezett|nyers|gekocht|gebraten|gedunstet|gerauchert|gegrillt|roh|frittiert|paniert)$/;
+export function weightedTokenCoverage(variant: string, searchable: string): number {
+  const tokens = variant.split(" ").filter(Boolean);
+  if (!tokens.length) return 0;
+  const weight = (token: string) => (PREPARATION_TOKEN.test(token) ? 0.3 : 1);
+  const total = tokens.reduce((sum, token) => sum + weight(token), 0);
+  const matched = tokens.filter((token) => wholePhrase(searchable, token)).reduce((sum, token) => sum + weight(token), 0);
+  return matched / total;
+}
+
 function scoreFood(food: any, variants: readonly string[], aliasesByFood: ReadonlyMap<string, readonly AliasEntry[]>, fuzzyIds: Set<string>, rankingQuery: string): FoodSearchMatch {
   const searchable = normalizeSearch(food.searchText || food.name);
   const names = foodNameRepresentations(food);
@@ -391,7 +405,7 @@ function scoreFood(food: any, variants: readonly string[], aliasesByFood: Readon
     const otherAliasStrings = weakDynamicAlias ? aliasStrings.filter((alias) => alias !== matchingAlias!.normalizedAlias) : aliasStrings;
     const aliasPrefix = otherAliasStrings.some((alias) => alias.startsWith(`${variant} `));
     const aliasContains = otherAliasStrings.some((alias) => wholePhrase(alias, variant));
-    const tokenCoverage = variant.split(" ").filter((token) => wholePhrase(searchable, token)).length / variant.split(" ").length;
+    const tokenCoverage = weightedTokenCoverage(variant, searchable);
     const prefix = variant.length >= 5 && !variant.includes(" ") && searchable.split(" ").some(token => token.startsWith(variant));
     // A weak (untrusted) dynamic_search alias is a MINIMUM fallback signal,
     // never a precedence override: it must not outrank the food's own

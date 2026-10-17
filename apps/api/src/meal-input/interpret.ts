@@ -1063,7 +1063,10 @@ export async function interpretMealInput(
       result.aiUnderstandingFailure = { code };
     }
   }
-  if (!result.semantic?.clarificationNeeded && result.foodResolution !== "compound") {
+  // One unclear item (e.g. an unusual unit) must not stop the other items of a
+  // list from getting their weights (ticket 47cccf: "10 cm kígyóuborka" left
+  // the boiled eggs unestimated too).
+  if ((!result.semantic?.clarificationNeeded || !!result.items?.length) && result.foodResolution !== "compound") {
     const pending = (result.items ?? [result]).filter((item) => item.foodResolution === "resolved" && item.selectedFood && !item.ambiguous && !item.preparationUnavailable && item.nutritionEligible !== false);
     // Only a genuine AI quantity estimate (conversion_missing) is real work
     // worth announcing — an already-resolved trusted serving needs no
