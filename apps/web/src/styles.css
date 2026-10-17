@@ -621,6 +621,7 @@ body { padding-left: var(--safe-left); padding-right: var(--safe-right); }
 .premium-note { margin: 0; border-left: 3px solid rgb(217 160 30 / .7); padding: .1rem 0 .1rem .55rem; color: rgb(var(--text-muted)); font-size: .78rem; }
 .card.is-premium { border-color: rgb(217 160 30 / .45); }
 .dinner-item.is-leftover { border-style: dashed; }
+.dinner-quick { display: inline-flex; align-items: center; gap: .25rem; margin-left: .4rem; padding: .05rem .45rem; border-radius: 999px; background: rgb(var(--success) / .14); color: rgb(var(--success)); font-weight: 600; white-space: nowrap; }
 
 /* Phone layout: one dashboard part at a time (MobileNav.tsx). */
 .mobile-menu, .mobile-only { display: none; }

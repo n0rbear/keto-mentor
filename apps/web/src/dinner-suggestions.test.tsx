@@ -15,7 +15,8 @@ describe("Vacsoraajánló", () => {
       if (url.pathname === "/meals/dinner-suggestions") {
         expect(url.searchParams.get("date")).toBe("2026-10-15");
         return json({ remaining: { kcal: 700, protein: 40, netCarbs: 10, fat: 50 }, status: "ok", suggestions: [
-          { recipeId: "r1", source: "reference", title: "Csirkepaprikás galuska nélkül", servingGrams: 350, perServing: { kcal: 520, protein: 38, netCarbs: 6, fat: 36 }, after: { kcal: 180, protein: 2, netCarbs: 4, fat: 14 } }
+          { recipeId: "r1", source: "reference", title: "Csirkepaprikás galuska nélkül", servingGrams: 350, perServing: { kcal: 520, protein: 38, netCarbs: 6, fat: 36 }, after: { kcal: 180, protein: 2, netCarbs: 4, fat: 14 } },
+          { recipeId: "r2", source: "reference", title: "Rántotta", servingGrams: 150, quick: true, perServing: { kcal: 260, protein: 20, netCarbs: 1, fat: 19 }, after: { kcal: 440, protein: 20, netCarbs: 9, fat: 31 } }
         ] });
       }
       if (url.pathname === "/recipes/r1/meals") { posts.push({ path: url.pathname, body: JSON.parse(String(init?.body)) }); return json({ meal: {} }, 201); }
@@ -26,6 +27,8 @@ describe("Vacsoraajánló", () => {
     fireEvent.click(screen.getByRole("button", { name: "Mit egyek vacsorára?" }));
     expect(await screen.findByText("Csirkepaprikás galuska nélkül")).toBeTruthy();
     expect(screen.getByText(/700 kcal · P 40 g · NCH 10 g/)).toBeTruthy();
+    // Only the quick dish carries the "5–10 perc" badge.
+    expect(screen.getAllByText("Gyors, 5–10 perc a hűtőből")).toHaveLength(1);
     fireEvent.click(screen.getByRole("button", { name: /Naplózom vacsoraként: Csirkepaprikás/ }));
     await waitFor(() => expect(onLogged).toHaveBeenCalled());
     expect(posts[0].body).toEqual({ mealType: "dinner", quantity: 1, unit: "serving" });

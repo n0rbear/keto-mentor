@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Moon, Plus } from "lucide-react";
+import { Moon, Plus, Zap } from "lucide-react";
 import { api, ApiError, type ApiState } from "./api";
 import type { Lang } from "./i18n";
 import { PremiumBadge, PremiumNote } from "./PremiumBadge";
@@ -9,7 +9,7 @@ import { PremiumBadge, PremiumNote } from "./PremiumBadge";
 // and calorie targets. Premium, open to everyone while in beta.
 
 type Macros = { kcal: number; protein: number; netCarbs: number; fat: number };
-type Suggestion = { recipeId: string; source: "own" | "reference"; title: string; servingGrams: number | null; perServing: Macros; after: Macros };
+type Suggestion = { recipeId: string; source: "own" | "reference"; title: string; servingGrams: number | null; quick?: boolean; perServing: Macros; after: Macros };
 type Leftover = { mealId: string; title: string; mealType: string | null; mealTypeLabel: string | null; perServing: Macros; after: Macros };
 type Result = { remaining: Macros; status: "ok" | "carb_budget_used" | "kcal_budget_used" | "nothing_fits"; suggestions: Suggestion[]; leftovers?: Leftover[] };
 
@@ -30,7 +30,7 @@ const copy = {
   hu: {
     title: "Vacsoraajánló", lead: "A nap eddigi étkezései alapján olyan vacsorát ajánl, ami belefér a szénhidrát- és kalóriakeretedbe, és pótolja a hiányzó fehérjét.",
     ask: "Mit egyek vacsorára?", again: "Újraszámolás", loading: "Számolom…", remaining: "Még belefér ma",
-    own: "Saját recept", reference: "Referenciaétel", serving: "1 adag", after: "Utána marad", log: "Naplózom vacsoraként", logged: "Naplózva vacsoraként.",
+    own: "Saját recept", reference: "Referenciaétel", quick: "Gyors, 5–10 perc a hűtőből", serving: "1 adag", after: "Utána marad", log: "Naplózom vacsoraként", logged: "Naplózva vacsoraként.",
     carb_budget_used: "A mai nettó szénhidrátkereted már elfogyott, ezért most nem ajánlok vacsorát. Egy kis zöldsaláta olajjal vagy tojás jöhet, ha éhes vagy.",
     kcal_budget_used: "A mai kalóriakereted már elfogyott, ezért most nem ajánlok vacsorát.",
     nothing_fits: "Most egyik receptem sem fér bele szokásos adagban a maradék keretbe. Próbálj egy könnyű, saját receptet felvenni.",
@@ -40,7 +40,7 @@ const copy = {
   de: {
     title: "Abendessen-Vorschlag", lead: "Schlägt nach deinen bisherigen Mahlzeiten ein Abendessen vor, das in dein Kohlenhydrat- und Kalorienziel passt und fehlendes Eiweiß ergänzt.",
     ask: "Was esse ich zu Abend?", again: "Neu berechnen", loading: "Berechne…", remaining: "Heute noch frei",
-    own: "Eigenes Rezept", reference: "Referenzgericht", serving: "1 Portion", after: "Danach übrig", log: "Als Abendessen eintragen", logged: "Als Abendessen eingetragen.",
+    own: "Eigenes Rezept", reference: "Referenzgericht", quick: "Schnell, 5–10 Min. aus dem Kühlschrank", serving: "1 Portion", after: "Danach übrig", log: "Als Abendessen eintragen", logged: "Als Abendessen eingetragen.",
     carb_budget_used: "Dein Netto-Kohlenhydratziel für heute ist erreicht, deshalb schlage ich kein Abendessen vor.",
     kcal_budget_used: "Dein Kalorienziel für heute ist erreicht, deshalb schlage ich kein Abendessen vor.",
     nothing_fits: "Gerade passt kein Gericht in üblicher Portion in dein Restbudget.",
@@ -50,7 +50,7 @@ const copy = {
   en: {
     title: "Dinner ideas", lead: "Suggests a dinner that fits your remaining net-carb and calorie targets for the day and fills the missing protein.",
     ask: "What should I eat for dinner?", again: "Recalculate", loading: "Calculating…", remaining: "Still fits today",
-    own: "Own recipe", reference: "Reference dish", serving: "1 serving", after: "Left after", log: "Log as dinner", logged: "Logged as dinner.",
+    own: "Own recipe", reference: "Reference dish", quick: "Quick, 5–10 min from the fridge", serving: "1 serving", after: "Left after", log: "Log as dinner", logged: "Logged as dinner.",
     carb_budget_used: "Today's net-carb target is used up, so no dinner suggestion right now.",
     kcal_budget_used: "Today's calorie target is used up, so no dinner suggestion right now.",
     nothing_fits: "No dish fits your remaining targets at a usual serving right now.",
@@ -117,6 +117,7 @@ export function DinnerSuggestions({ lang, state, date, onLogged }: { lang: Lang;
               <li key={s.recipeId} className="dinner-item">
                 <div>
                   <strong>{s.title}</strong>
+                  {s.quick && <span className="dinner-quick text-xs"><Zap size={12} aria-hidden="true"/>{t.quick}</span>}
                   <span className="text-xs text-muted"> · {s.source === "own" ? t.own : t.reference} · {t.serving}{s.servingGrams ? ` (${s.servingGrams} g)` : ""}</span>
                   <div className="text-sm">{macroLine(s.perServing)}</div>
                   <div className="text-xs text-muted">{t.after}: {macroLine(s.after)}</div>

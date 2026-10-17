@@ -83,3 +83,29 @@ describe("premium access while in beta", () => {
     expect(hasPremiumFeature([{ plan: "free", features: ["dinner_recommender"], active: true, expiresAt: new Date(0) }], "dinner_recommender", "premium_only")).toBe(false);
   });
 });
+
+describe("quick dinners from the fridge (owner request 2026-10-17)", () => {
+  // Rich slow dishes that would otherwise fill all five places.
+  const slow = ["porkolt", "gulyas", "sult", "rantott", "leves", "fozelek", "rakott"].map((id, i) => dish(id, { kcal: 650, protein: 45 }, { style: `s${i}`, protein: `p${i}` }));
+  const quick = ["rantotta", "virsli", "gorog"].map((id, i) => dish(id, { kcal: 300, protein: 12 }, { style: `q${i}`, protein: `qp${i}`, quick: true }));
+
+  it("at least two of the five ideas are quick dishes, even when slower dishes fit better", () => {
+    const result = rankDinnerSuggestions({ ...base, candidates: [...slow, ...quick] });
+    expect(result.suggestions).toHaveLength(5);
+    expect(result.suggestions.filter((s) => s.quick)).toHaveLength(2);
+  });
+
+  it("does not force more than fit the day, and works with fewer quick dishes", () => {
+    const result = rankDinnerSuggestions({ ...base, candidates: [...slow, quick[0]] });
+    expect(result.suggestions.filter((s) => s.quick).map((s) => s.recipeId)).toEqual(["rantotta"]);
+    const tooBig = rankDinnerSuggestions({ ...base, candidates: [...slow, dish("big", { kcal: 900 }, { quick: true })] });
+    expect(tooBig.suggestions.some((s) => s.quick)).toBe(false);
+  });
+
+  it("every quick dish id exists among the reference dishes, without a cooked side", async () => {
+    const { QUICK_DISHES } = await import("./dinner-suggestions.js");
+    const { REFERENCE_DATA } = await import("../reference-dishes/reference-data.js");
+    const ids = new Set((REFERENCE_DATA as any).variants.map((v: any) => v.id));
+    for (const id of QUICK_DISHES) { expect(ids.has(id), id).toBe(true); expect(id).not.toContain("__"); }
+  });
+});
