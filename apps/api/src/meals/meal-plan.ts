@@ -43,7 +43,7 @@ export function effortOf(c: DinnerCandidate): Effort {
   if (c.source === "own") return "medium";
   const tags = c.tags ?? [];
   if (LONG_STYLES.has(c.style) || tags.some((t) => LONG_TAGS.includes(t)) || c.protein === "lamb_game") return "long";
-  if (QUICK_STYLES.has(c.style) || tags.some((t) => QUICK_TAGS.includes(t))) return "quick";
+  if (c.quick || QUICK_STYLES.has(c.style) || tags.some((t) => QUICK_TAGS.includes(t))) return "quick";
   return "medium";
 }
 

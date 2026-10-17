@@ -25,6 +25,8 @@ export type DinnerCandidate = {
   // For variety: cooking style (soup, stew, roast, fried…) and main protein.
   style: string;
   protein: string;
+  // Ready in 5-10 minutes from what is usually in the fridge (see QUICK_DISHES).
+  quick?: boolean;
   // For the weekly plan (meal-plan.ts): reference tags and one serving's
   // ingredients for the shopping list.
   tags?: string[];
@@ -41,6 +43,21 @@ export type DinnerResult = {
   suggestions: DinnerSuggestion[];
   leftovers: LeftoverSuggestion[];
 };
+// "Amit az ember 5-10 perc alatt össze tud dobni a hűtőből" (owner request
+// 2026-10-17): at least two of the five ideas are such dishes. Picked by hand
+// from the reference dishes (variant ids, so a version with a cooked side
+// like boiled potatoes does not count): eggs, cold plates, salads without
+// cooking, sausages that only need heating.
+export const QUICK_DISHES = new Set([
+  "xx_eierspeis", "hu_tukortojas", "hu_fott_tojas", "at_ham_and_eggs", "de_strammer_max", "de_eiersalat",
+  "hu_gorog_salata", "at_wurstsalat", "at_gruener_salat",
+  "hu_virsli_mustarral", "hu_debreceni_mustarral", "de_weisswurst",
+  "de_matjes_hausfrauen", "de_heringsstipp", "de_handkaes_musik", "de_obatzda",
+  "hu_sonkas_szendvics", "hu_sajtos_szendvics", "hu_felvagottas_szendvics", "at_schinkensemmel", "at_kaesesemmel",
+  "hu_joghurt_gyumolccsel", "hu_turos_reggeli"
+]);
+export const MIN_QUICK = 2;
+
 const LEFTOVER_TYPES = new Set(["breakfast", "morning_snack", "lunch", "afternoon_snack", "custom"]);
 
 // Reference dishes that are not a dinner main: sweets, bakery, side dishes.
@@ -127,6 +144,7 @@ export function rankDinnerSuggestions(input: {
     .sort((a, b) => b.key - a.key || a.candidate.titles[lang].localeCompare(b.candidate.titles[lang]));
   const limit = input.limit ?? 5;
   const picked: DinnerCandidate[] = [];
+  const order = new Map(jittered.map((entry, index) => [entry.candidate, index]));
   const seenDish = new Set<string>();
   const usedStyle = new Set<string>();
   const usedProtein = new Set<string>();
@@ -135,18 +153,25 @@ export function rankDinnerSuggestions(input: {
     (c) => !usedStyle.has(c.style),
     () => true
   ];
-  for (const rule of rules) {
-    for (const { candidate } of jittered) {
-      if (picked.length >= limit) break;
-      if (seenDish.has(candidate.dishId) || !rule(candidate)) continue;
-      seenDish.add(candidate.dishId); usedStyle.add(candidate.style); usedProtein.add(candidate.protein);
-      picked.push(candidate);
+  const pick = (pool: typeof jittered, max: number) => {
+    for (const rule of rules) {
+      for (const { candidate } of pool) {
+        if (picked.length >= max) return;
+        if (seenDish.has(candidate.dishId) || !rule(candidate)) continue;
+        seenDish.add(candidate.dishId); usedStyle.add(candidate.style); usedProtein.add(candidate.protein);
+        picked.push(candidate);
+      }
     }
-  }
+  };
+  // The quick dishes first claim their places, then the rest fill up as before;
+  // the list is shown in the usual order, so the quick ones are mixed in.
+  pick(jittered.filter((entry) => entry.candidate.quick), Math.min(MIN_QUICK, limit));
+  pick(jittered, limit);
+  picked.sort((a, b) => order.get(a)! - order.get(b)!);
   const suggestions: DinnerSuggestion[] = picked.map((candidate) => {
     const m = candidate.perServing;
     return {
-      recipeId: candidate.recipeId, source: candidate.source, title: candidate.titles[lang], servingGrams: candidate.servingGrams,
+      recipeId: candidate.recipeId, source: candidate.source, title: candidate.titles[lang], servingGrams: candidate.servingGrams, quick: !!candidate.quick,
       perServing: { kcal: Math.round(m.kcal), protein: round(m.protein), netCarbs: round(m.netCarbs), fat: round(m.fat) },
       after: (({ kcal, protein, netCarbs, fat }) => ({ kcal: Math.round(kcal), protein: round(protein), netCarbs: round(netCarbs), fat: round(fat) }))(sub(remaining, m))
     };
@@ -219,6 +244,7 @@ function toCandidate(recipe: any, source: "own" | "reference"): DinnerCandidate 
     perServing: { kcal: perServing.kcal, protein: perServing.protein, netCarbs: perServing.netCarbs, fat: perServing.fat },
     haystack,
     lowCarbFriendly: tags.includes("low-carb-friendly"),
+    quick: source === "reference" && QUICK_DISHES.has(provenance?.referenceVariantId),
     tags,
     ingredients: recipe.ingredients.map((ingredient: any) => ({
       name: ingredient.originalText ?? ingredient.food?.name ?? "",
