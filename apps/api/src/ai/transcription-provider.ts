@@ -91,9 +91,14 @@ const TRANSCRIPTION_PROMPTS: Record<string, string> = {
   de: "Essenstagebuch, auf Deutsch: 2 Eier, 100 g Quark, ein Teller Gulaschsuppe, Salz nach Geschmack.",
   en: "Food log, in English: 2 eggs, 100 g cottage cheese, a bowl of goulash soup, salt to taste."
 };
+// Owner report (2026-10-17): a German dish named on a Hungarian page came out
+// spelled phonetically ("Käsekrainer" -> "koserkréner"), which the food
+// search cannot match. The page language stays binding; these dish names in
+// their usual spelling are listed in every prompt so they are written as such.
+const DISH_VOCABULARY = "Käsekrainer, Leberkäse, Wiener Schnitzel, Schweinshaxe, Stelze, Bratwurst, Weißwurst, Frankfurter, Knödel, Spätzle, Kaiserschmarrn, Sauerkraut, Gulaschsuppe, Tafelspitz, Germknödel, pörkölt, lecsó, lángos, túró, tarhonya, gulyás, virsli, csülök.";
 export function transcriptionPrompt(language?: string): string {
-  if (language && TRANSCRIPTION_PROMPTS[language]) return TRANSCRIPTION_PROMPTS[language];
-  return Object.values(TRANSCRIPTION_PROMPTS).join(" ");
+  const base = language && TRANSCRIPTION_PROMPTS[language] ? TRANSCRIPTION_PROMPTS[language] : Object.values(TRANSCRIPTION_PROMPTS).join(" ");
+  return `${base} ${DISH_VOCABULARY}`;
 }
 
 /**

@@ -151,4 +151,13 @@ describe("OpenAiTranscriptionProvider", () => {
   it("rejects a base URL that isn't HTTPS (except localhost)", () => {
     expect(() => new OpenAiTranscriptionProvider({ apiKey: "sk-test", baseUrl: "http://evil.example/" })).toThrow();
   });
+
+  it("lists common Austrian, German and Hungarian dish names in every prompt, so a German dish on a Hungarian page keeps its spelling", () => {
+    for (const language of ["hu", "de", "en", undefined]) {
+      const prompt = transcriptionPrompt(language);
+      expect(prompt).toContain("Käsekrainer");
+      expect(prompt).toContain("pörkölt");
+    }
+    expect(transcriptionPrompt("hu")).toMatch(/^Ételnapló/);
+  });
 });
