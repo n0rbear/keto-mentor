@@ -45,6 +45,7 @@ import { configuredQuantityAiProvider } from "./meal-input/quantity-ai-gateway.j
 import { configuredSearchIntentProvider } from "./catalog/search-intent-gateway.js";
 import { configuredSemanticRecoveryProvider } from "./catalog/semantic-recovery-gateway.js";
 import { configuredCandidateLocalizationProvider } from "./catalog/candidate-localization-gateway.js";
+import { backfillFoodNames } from "./catalog/backfill-food-names.js";
 import { configuredSemanticCandidateGateProvider } from "./catalog/semantic-candidate-gate-gateway.js";
 import { configuredRecipeSemanticGateProvider } from "./catalog/semantic-candidate-gate-batch-gateway.js";
 import { configuredRecipeIngredientNormalizationProvider } from "./recipes/recipe-ingredient-normalization-gateway.js";
@@ -830,5 +831,7 @@ loadSettings(prisma).catch((error) => logger.warn({ err: error?.message }, "admi
 startUsageFlusher(prisma);
 startPremiumUsersRefresher(prisma);
 if (env.NODE_ENV === "production") startKeepAwake(keepAwakeUrls(env.KEEP_AWAKE_URLS));
+// Missing hu/de/en food names, filled once per start in the background (catalog/backfill-food-names.ts).
+if (env.NODE_ENV === "production") setTimeout(() => { backfillFoodNames({ prisma, provider: candidateLocalizationProvider, pauseMs: 300, log: (line) => logger.info(line) }).catch((error) => logger.warn(`food_names_backfill error=${error?.message ?? error}`)); }, 60_000).unref();
 if (env.NODE_ENV === "production") startReminders({ prisma, mailer, webAppUrl, admins: adminEmails, log: (line) => logger.info(line) });
 app.listen(env.PORT, () => logger.info({ port: env.PORT }, "Keto Mentor API listening"));
