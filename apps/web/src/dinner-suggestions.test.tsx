@@ -64,3 +64,27 @@ describe("Vacsoraajánló", () => {
     expect(await screen.findByText("A Vacsoraajánló prémium funkció.")).toBeTruthy();
   });
 });
+
+describe("DinnerSuggestions: Újraszámolás", () => {
+  it("asks for dishes not shown yet, and explains when old ones had to come back", async () => {
+    const urls: URL[] = [];
+    const item = (id: string) => ({ recipeId: id, source: "reference", title: `Étel ${id}`, servingGrams: 300, perServing: { kcal: 400, protein: 30, netCarbs: 3, fat: 28 }, after: { kcal: 300, protein: 10, netCarbs: 7, fat: 22 } });
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = new URL(String(input)); urls.push(url);
+      const round = urls.length;
+      return json({ remaining: { kcal: 700, protein: 40, netCarbs: 10, fat: 50 }, status: "ok", repeated: round === 3 || undefined,
+        suggestions: round === 1 ? [item("a"), item("b")] : round === 2 ? [item("c")] : [item("a")] });
+    }));
+    render(<DinnerSuggestions lang="hu" state={state} date="2026-10-17" onLogged={vi.fn()}/>);
+    fireEvent.click(screen.getByRole("button", { name: "Mit egyek vacsorára?" }));
+    await screen.findByText("Étel a");
+    expect(urls[0].searchParams.get("shown")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Újraszámolás" }));
+    await screen.findByText("Étel c");
+    expect(urls[1].searchParams.get("shown")).toBe("a,b");
+    fireEvent.click(screen.getByRole("button", { name: "Újraszámolás" }));
+    await screen.findByText("Étel a");
+    expect(urls[2].searchParams.get("shown")).toBe("a,b,c");
+    expect(screen.getByText(/Több új ötletem nincs/)).toBeTruthy();
+  });
+});

@@ -41,6 +41,9 @@ export type DinnerResult = {
   remaining: Macros;
   status: "ok" | "carb_budget_used" | "kcal_budget_used" | "nothing_fits";
   suggestions: DinnerSuggestion[];
+  // "Újraszámolás" asked for new dishes only, but fewer than five new ones fit:
+  // the rest are dishes already shown.
+  repeated?: boolean;
   leftovers: LeftoverSuggestion[];
 };
 // "Amit az ember 5-10 perc alatt össze tud dobni a hűtőből" (owner request
@@ -116,13 +119,17 @@ export function rankDinnerSuggestions(input: {
   // Variety: dishes eaten in the last days and dishes suggested recently.
   recentDishIds?: Set<string>;
   recentlySuggested?: Set<string>;
+  // "Újraszámolás" (owner feedback 2026-10-17: "5 olyan étel kell, ami még
+  // nem volt"): dishes already shown in this round of asking. They come back
+  // only when not enough new dishes fit.
+  exclude?: Set<string>;
 }): DinnerResult {
   const { remaining, lang } = input;
   const rounded = { kcal: Math.round(remaining.kcal), protein: round(remaining.protein), netCarbs: round(remaining.netCarbs), fat: round(remaining.fat) };
   if (remaining.netCarbs <= 0) return { remaining: rounded, status: "carb_budget_used", suggestions: [], leftovers: [] };
   if (remaining.kcal <= 0) return { remaining: rounded, status: "kcal_budget_used", suggestions: [], leftovers: [] };
   const terms = exclusionTerms(input.avoid);
-  const scored: Array<{ candidate: DinnerCandidate; score: number }> = [];
+  const scored: Array<{ candidate: DinnerCandidate; score: number; shown: boolean }> = [];
   for (const candidate of input.candidates) {
     const m = candidate.perServing;
     if (m.netCarbs > remaining.netCarbs || m.kcal > remaining.kcal || m.kcal < 150) continue;
@@ -137,7 +144,7 @@ export function rankDinnerSuggestions(input: {
     const carbUse = m.netCarbs / remaining.netCarbs;
     const score = 1.2 * proteinFit + 0.6 * kcalFit - 0.5 * carbUse + (candidate.source === "own" ? 0.3 : 0) + (candidate.lowCarbFriendly ? 0.15 : 0)
       - (input.recentDishIds?.has(candidate.dishId) ? 0.8 : 0) - (input.recentlySuggested?.has(candidate.dishId) ? 0.9 : 0);
-    scored.push({ candidate, score });
+    scored.push({ candidate, score, shown: !!input.exclude?.has(candidate.dishId) });
   }
   // Variety (owner feedback 2026-10-15: "csak sült húsokat írt"): a little
   // randomness among the good fits, so "Újraszámolás" shows other ideas, and
@@ -168,9 +175,14 @@ export function rankDinnerSuggestions(input: {
   };
   // The quick dishes first claim their places, then the rest fill up as before;
   // the list is shown in the usual order, so the quick ones are mixed in.
-  pick(jittered.filter((entry) => entry.candidate.quick), Math.min(MIN_QUICK, limit));
-  pick(jittered, limit);
-  picked.sort((a, b) => order.get(a)! - order.get(b)!);
+  const fresh = jittered.filter((entry) => !entry.shown);
+  pick(fresh.filter((entry) => entry.candidate.quick), Math.min(MIN_QUICK, limit));
+  pick(fresh, limit);
+  const repeated = picked.length < limit && jittered.some((entry) => entry.shown && !seenDish.has(entry.candidate.dishId));
+  if (repeated) pick(jittered.filter((entry) => entry.shown), limit);
+  // New dishes first, then any already shown ones.
+  const wasShown = (c: DinnerCandidate) => (input.exclude?.has(c.dishId) ? 1 : 0);
+  picked.sort((a, b) => wasShown(a) - wasShown(b) || order.get(a)! - order.get(b)!);
   const suggestions: DinnerSuggestion[] = picked.map((candidate) => {
     const m = candidate.perServing;
     return {
@@ -188,7 +200,7 @@ export function rankDinnerSuggestions(input: {
       perServing: { kcal: Math.round(meal.totals.kcal), protein: round(meal.totals.protein), netCarbs: round(meal.totals.netCarbs), fat: round(meal.totals.fat) },
       after: (({ kcal, protein, netCarbs, fat }) => ({ kcal: Math.round(kcal), protein: round(protein), netCarbs: round(netCarbs), fat: round(fat) }))(sub(remaining, meal.totals))
     }));
-  return { remaining: rounded, status: suggestions.length || leftovers.length ? "ok" : "nothing_fits", suggestions, leftovers };
+  return { remaining: rounded, status: suggestions.length || leftovers.length ? "ok" : "nothing_fits", suggestions, leftovers, ...(repeated ? { repeated: true } : {}) };
 }
 
 const STYLE_TAGS: Array<[string, string]> = [
