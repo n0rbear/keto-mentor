@@ -10,6 +10,9 @@ const SPOKEN_VARIANTS: Array<[RegExp, string]> = [
   [/\bl[eé]b[eöé]rk[eéä]s?z?[eé]?\b/giu, "Leberkäse"],
   // Schweinshaxe: svájnszhakszi, schweinshakse, svajnshaxe …
   [/\b(?:sch|s)(?:w|v)[aá]?[ji]n?s?z?h[aá](?:x|ksz?|kß)[eéi]\b/giu, "Schweinshaxe"],
+  // "zwei Paar" / "drei Paar" heard as one word (owner screenshot 2026-10-17: "Svajpar Frankfurterwürstchen")
+  [/\b(?:sv|cv|zw|tsv|szv)[aáe][ij]\s?p[aá]a?r\b/giu, "zwei Paar"],
+  [/\bdr[aá][ij]\s?p[aá]a?r\b/giu, "drei Paar"],
   // Kaiserschmarrn: kájzersmarn, kaiserschmarren …
   [/\bk[aá][ij]?[sz]+[eé]rs(?:ch)?m[aá]rr?e?n\b/giu, "Kaiserschmarrn"]
 ];

@@ -21,3 +21,14 @@ export function pickDisplayName(food: NamedFood | null | undefined, lang: Lang):
   const names = food.names as Partial<Record<Lang, string>> | undefined;
   return names?.[lang] ?? names?.en ?? food.originalName ?? food.name ?? "";
 }
+
+/**
+ * A reference dish's title in the viewer's language (owner report
+ * 2026-10-17: "virsli mustárral" on a German page). The API sends the
+ * dish's titles in every language next to the stored (Hungarian) title.
+ */
+export function dishTitle(dish: { title: string; titles?: Record<string, string> } | null | undefined, lang: Lang): string {
+  if (!dish) return "";
+  const titles = dish.titles;
+  return titles?.[lang] || (lang === "de" ? titles?.["de-AT"] : undefined) || dish.title;
+}
