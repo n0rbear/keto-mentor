@@ -166,6 +166,16 @@
 | Tejfölös burgonyaleves | 1872 | -100 | 1772 | 0.947 | 1.027 | 53.4 | 2.0 | 1.5 | 7.1 | – |
 | Savanyú tojásleves (buggyantott tojással) | 2202.5 | -150 | 2052.5 | 0.932 | 1.003 | 59.0 | 4.6 | 1.9 | 2.4 | – |
 | Lebbencsleves | 2552.5 | -250 | 2302.5 | 0.902 | 1.01 | 37.2 | 1.2 | 1.5 | 4.9 | – |
+| Tonhalsaláta tojással | 335 | +0 | 335 | 1.0 | 0.6 | 122.7 | 7.9 | 11.1 | 1.0 | – |
+| Caprese (paradicsom mozzarellával) | 341 | +0 | 341 | 1.0 | 0.7 | 142.3 | 11.6 | 6.9 | 1.9 | – |
+| Sonkás-sajtos hidegtál zöldséggel | 340 | +0 | 340 | 1.0 | 0.5 | 118.3 | 6.8 | 11.1 | 2.3 | – |
+| Szalámis-sajtos tál retekkel, olívabogyóval | 290 | +0 | 290 | 1.0 | 0.5 | 171.4 | 13.6 | 10.7 | 1.0 | – |
+| Avokádós tojássaláta | 375 | +0 | 375 | 1.0 | 0.75 | 128.8 | 10.0 | 7.8 | 1.0 | – |
+| Sonkás-sajtos omlett | 230 | -10 | 220 | 0.957 | 0.6 | 195.3 | 14.1 | 16.5 | 0.4 | – |
+| Tonhallal töltött avokádó | 285 | +0 | 285 | 1.0 | 0.7 | 130.6 | 9.4 | 8.8 | 1.1 | – |
+| Főtt tojás majonézzel és retekkel | 240 | +0 | 240 | 1.0 | 0.6 | 169.3 | 14.3 | 8.8 | 1.1 | – |
+| Újhagymás túrókrém retekkel, paprikával | 340 | +0 | 340 | 1.0 | 0.8 | 88.0 | 5.0 | 6.3 | 3.8 | – |
+| Sonkatekercs mozzarellával és paradicsommal | 330 | +0 | 330 | 1.0 | 0.6 | 149.8 | 9.7 | 13.6 | 1.2 | – |
 | Sült sertéslapocka (Schweinsbraten) | 1856 | -550 | 1306 | 0.704 | 1.055 | 252.7 | 19.6 | 16.7 | 0.8 | – |
 | Bécsi szelet (borjú) | 821 | -160 | 661 | 0.805 | 0.8 | 195.5 | 8.0 | 22.7 | 8.0 | – |
 | Bécsi szelet (sertéscombból) | 641 | -125 | 516 | 0.805 | 0.8 | 220.4 | 9.7 | 24.9 | 8.0 | – |
@@ -586,6 +596,16 @@ kivéve ha az ételnél `reference_check.deviation` (átnézett receptkülönbs�
 | tejfölös burgonyaleves | nincs még | – | – | – | – | – | – |
 | savanyú tojásleves | nincs még | – | – | – | – | – | – |
 | lebbencsleves | nincs még | – | – | – | – | – | – |
+| tonhalsaláta tojással | nincs még | – | – | – | – | – | – |
+| caprese saláta | nincs még | – | – | – | – | – | – |
+| sonkás-sajtos hidegtál | nincs még | – | – | – | – | – | – |
+| szalámis-sajtos tál | nincs még | – | – | – | – | – | – |
+| avokádós tojássaláta | nincs még | – | – | – | – | – | – |
+| sonkás-sajtos omlett | nincs még | – | – | – | – | – | – |
+| tonhallal töltött avokádó | nincs még | – | – | – | – | – | – |
+| főtt tojás majonézzel és retekkel | nincs még | – | – | – | – | – | – |
+| újhagymás túrókrém zöldségekkel | nincs még | – | – | – | – | – | – |
+| sonkatekercs mozzarellával | nincs még | – | – | – | – | – | – |
 | Sült sertéslapocka (Schweinsbraten) | bls:Y352212 Schweinebraten ohne Sauce | 253 / 264 | 19.6 / 17.24 | 16.7 / 27.24 | 0.8 / 0.0 | -4% rendben | – |
 | Bécsi szelet (borjú) | nincs még | – | – | – | – | – | – |
 | Bécsi szelet (sertéscombból) | bls:Y332132 Schweineschnitzel paniert, gebraten | 220 / 220 | 9.7 / 10.6 | 24.9 / 22.65 | 8.0 / 7.59 | +0% rendben | – |
@@ -989,6 +1009,16 @@ Mély tányér: kapacitás × töltöttség × sűrűség. Lapos tányér: 0,8 �
 | tejfölös burgonyaleves | HU | traditional | 450 | 347 | 501 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | savanyú tojásleves | HU | traditional | 450 | 339 | 489 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
 | lebbencsleves | HU | traditional | 450 | 341 | 492 | – (mély tányéros étel) | – (mély tányéros étel) | – (mély tányéros étel) |
+| tonhalsaláta tojással | HU, AT, DE | everyday | 335 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| caprese saláta | HU, AT, DE | everyday | 341 | – (lapos tányéros étel) | – (lapos tányéros étel) | 243 | 285 | 331 |
+| sonkás-sajtos hidegtál | HU, AT, DE | everyday | 340 | – (lapos tányéros étel) | – (lapos tányéros étel) | 217 | 255 | 296 |
+| szalámis-sajtos tál | HU, AT, DE | everyday | 290 | – (lapos tányéros étel) | – (lapos tányéros étel) | 199 | 234 | 271 |
+| avokádós tojássaláta | HU, AT, DE | everyday | 190 | – (lapos tányéros étel) | – (lapos tányéros étel) | 293 | 344 | 399 |
+| sonkás-sajtos omlett | HU, AT, DE | everyday | 220 | – (lapos tányéros étel) | – (lapos tányéros étel) | 156 | 183 | 213 |
+| tonhallal töltött avokádó | HU, AT, DE | everyday | 285 | – (lapos tányéros étel) | – (lapos tányéros étel) | 324 | 381 | 441 |
+| főtt tojás majonézzel és retekkel | HU, AT, DE | everyday | 240 | – (lapos tányéros étel) | – (lapos tányéros étel) | 235 | 275 | 319 |
+| újhagymás túrókrém zöldségekkel | HU, AT, DE | everyday | 340 | – (lapos tányéros étel) | – (lapos tányéros étel) | 347 | 408 | 473 |
+| sonkatekercs mozzarellával | HU, AT, DE | everyday | 330 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
 | Sült sertéslapocka (Schweinsbraten) | AT, DE | traditional | 250 | 356 | 514 | 215 | 252 | 293 |
 | Bécsi szelet (borjú) | AT | traditional | 165 | – (lapos tányéros étel) | – (lapos tányéros étel) | 142 | 166 | 193 |
 | Bécsi szelet (sertéscombból) | AT, DE | traditional | 130 | – (lapos tányéros étel) | – (lapos tányéros étel) | 111 | 130 | 151 |

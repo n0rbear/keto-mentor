@@ -1335,6 +1335,41 @@
       "density_intrinsic_g_ml": 0.92,
       "density_bulk_g_ml": 0.8
     },
+    "tuna_canned": {
+      "names": {
+        "hu": "tonhalkonzerv (sajátlében, lecsepegtetve)",
+        "de": "Thunfisch in eigenem Saft, abgetropft",
+        "en": "tuna, canned in water, drained"
+      },
+      "catalog": "usda_fdc:334194",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 1.05,
+      "density_bulk_g_ml": 0.6,
+      "note": "drained"
+    },
+    "avocado": {
+      "names": {
+        "hu": "avokádó",
+        "de": "Avocado",
+        "en": "avocado"
+      },
+      "catalog": "bls:F502100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 0.95,
+      "density_bulk_g_ml": 0.6,
+      "note": "edible part, without stone and skin"
+    },
+    "radish": {
+      "names": {
+        "hu": "retek (hónapos)",
+        "de": "Radieschen",
+        "en": "radish"
+      },
+      "catalog": "bls:G691100",
+      "carb_basis": "total",
+      "density_intrinsic_g_ml": 0.95,
+      "density_bulk_g_ml": 0.6
+    },
     "pasta_durum_dry": {
       "names": {
         "hu": "száraztészta (durum, tojás nélküli)",
@@ -18477,6 +18512,789 @@
           "fat": 1.2,
           "protein": 1.5,
           "net_carbs": 4.9
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "tonhalsalata_tojassal": {
+      "id": "tonhalsalata_tojassal",
+      "names": {
+        "hu": "Tonhalsaláta tojással",
+        "de": "Thunfischsalat mit Ei",
+        "en": "Tuna salad with egg"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "tuna_canned",
+            "raw_g": 120,
+            "role": "core",
+            "note": "1 doboz tonhal sajátlében, lecsepegtetve (~120 g)"
+          },
+          {
+            "food_key": "egg",
+            "raw_g": 100,
+            "role": "core",
+            "note": "2 db keményre főtt tojás (a hűtőből)"
+          },
+          {
+            "food_key": "cucumber",
+            "raw_g": 80,
+            "role": "core",
+            "note": "kb. 7 cm kígyóuborka"
+          },
+          {
+            "food_key": "mayonnaise",
+            "raw_g": 20,
+            "role": "fat",
+            "note": "1 púpos ek majonéz"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 15,
+            "role": "core",
+            "note": "pár karika lilahagyma"
+          }
+        ],
+        "raw_total_g": 335,
+        "cooking": {
+          "method": "assembled, no cooking",
+          "mass_change_g": 0,
+          "note": "the eggs are already boiled; salt and pepper left out"
+        },
+        "finished_weight_g": 335,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 335,
+      "density_g_per_ml": 0.6,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.5,
+        "height_cm": 3.0
+      },
+      "sources": [
+        {
+          "url": "https://www.penzcentrum.hu/otthon/20210909/a-tojasos-tonhalkrem-keszitese-percek-alatt-ilyen-jo-szendvicsfeltetet-meg-nem-ettel-1117543",
+          "retrieved": "2026-10-17",
+          "note": "tojásos tonhalkrém: tonhalkonzerv, főtt tojás, lilahagyma, majonéz, tejföl, mustár"
+        },
+        {
+          "url": "https://www.ah.nl/allerhande/recepten/tonijnsalade",
+          "retrieved": "2026-10-17",
+          "note": "tonijnsalade: tonijn uit blik met mayonaise, snel klaar"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 122.7,
+          "fat": 7.9,
+          "protein": 11.1,
+          "net_carbs": 1.0
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "caprese": {
+      "id": "caprese",
+      "names": {
+        "hu": "Caprese (paradicsom mozzarellával)",
+        "de": "Caprese (Tomate mit Mozzarella)",
+        "en": "Caprese salad"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "tomato",
+            "raw_g": 200,
+            "role": "core",
+            "note": "2 db paradicsom"
+          },
+          {
+            "food_key": "mozzarella",
+            "raw_g": 125,
+            "role": "core",
+            "note": "1 golyó mozzarella (125 g, lecsepegtetve)"
+          },
+          {
+            "food_key": "olive_oil",
+            "raw_g": 13,
+            "role": "fat",
+            "note": "1 ek olívaolaj"
+          },
+          {
+            "food_key": "basil_fresh",
+            "raw_g": 3,
+            "role": "seasoning",
+            "note": "néhány levél bazsalikom"
+          }
+        ],
+        "raw_total_g": 341,
+        "cooking": {
+          "method": "raw, sliced and layered",
+          "mass_change_g": 0,
+          "note": "salt, pepper and the optional balsamic left out"
+        },
+        "finished_weight_g": 341,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 341,
+      "density_g_per_ml": 0.7,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.6,
+        "height_cm": 2.0
+      },
+      "sources": [
+        {
+          "url": "https://www.surlatable.com/print/recipe/caprese-salad/REC-320526",
+          "retrieved": "2026-10-17",
+          "note": "2 large tomatoes, 2 balls fresh mozzarella, 1/4 cup olive oil, basil"
+        },
+        {
+          "url": "https://kookmutsjes.com/en/recipe/caprese-salad-recipe/",
+          "retrieved": "2026-10-17",
+          "note": "tomato and mozzarella sliced 0.5 cm, olive oil, torn basil, salt"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 142.3,
+          "fat": 11.6,
+          "protein": 6.9,
+          "net_carbs": 1.9
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "sonkas_sajtos_tal": {
+      "id": "sonkas_sajtos_tal",
+      "names": {
+        "hu": "Sonkás-sajtos hidegtál zöldséggel",
+        "de": "Schinken-Käse-Teller mit Gemüse",
+        "en": "Ham and cheese plate with vegetables"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "ham_cooked",
+            "raw_g": 100,
+            "role": "core",
+            "note": "10 dkg főtt sonka"
+          },
+          {
+            "food_key": "gouda",
+            "raw_g": 60,
+            "role": "core",
+            "note": "6 dkg gouda"
+          },
+          {
+            "food_key": "cucumber",
+            "raw_g": 100,
+            "role": "core",
+            "note": "kb. 9 cm kígyóuborka"
+          },
+          {
+            "food_key": "bell_pepper_red",
+            "raw_g": 80,
+            "role": "core",
+            "note": "fél kaliforniai paprika"
+          }
+        ],
+        "raw_total_g": 340,
+        "cooking": {
+          "method": "assembled, no cooking",
+          "mass_change_g": 0
+        },
+        "finished_weight_g": 340,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 340,
+      "density_g_per_ml": 0.5,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.6,
+        "height_cm": 2.5
+      },
+      "sources": [
+        {
+          "url": "https://www.wandernundmehr.at/faq/was-darf-auf-einer-wurstplatte-nicht-fehlen",
+          "retrieved": "2026-10-17",
+          "note": "Wurst- und Käseplatte: 60-70 g Wurst und Käse pro Person als Jause, mehr als Hauptmahlzeit"
+        },
+        {
+          "url": "https://www.lecker.de/schlemmerbesen-brettchen-129991.html",
+          "retrieved": "2026-10-17",
+          "note": "Brettchen: Käse, Wurst, Schinken auf einem Brett anrichten"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 118.3,
+          "fat": 6.8,
+          "protein": 11.1,
+          "net_carbs": 2.3
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "szalamis_sajtos_tal": {
+      "id": "szalamis_sajtos_tal",
+      "names": {
+        "hu": "Szalámis-sajtos tál retekkel, olívabogyóval",
+        "de": "Salami-Käse-Teller mit Radieschen und Oliven",
+        "en": "Salami and cheese plate with radish and olives"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "salami",
+            "raw_g": 60,
+            "role": "core",
+            "note": "6 dkg szalámi"
+          },
+          {
+            "food_key": "trappista",
+            "raw_g": 60,
+            "role": "core",
+            "note": "6 dkg trappista"
+          },
+          {
+            "food_key": "olives_black",
+            "raw_g": 30,
+            "role": "core",
+            "note": "kb. 10 szem olívabogyó"
+          },
+          {
+            "food_key": "radish",
+            "raw_g": 60,
+            "role": "core",
+            "note": "5-6 db retek"
+          },
+          {
+            "food_key": "cucumber",
+            "raw_g": 80,
+            "role": "core",
+            "note": "kb. 7 cm kígyóuborka"
+          }
+        ],
+        "raw_total_g": 290,
+        "cooking": {
+          "method": "assembled, no cooking",
+          "mass_change_g": 0
+        },
+        "finished_weight_g": 290,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 290,
+      "density_g_per_ml": 0.5,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.55,
+        "height_cm": 2.5
+      },
+      "sources": [
+        {
+          "url": "https://www.wandernundmehr.at/faq/was-darf-auf-einer-wurstplatte-nicht-fehlen",
+          "retrieved": "2026-10-17",
+          "note": "Wurstplatte: Salami, Käse, Oliven, Radieschen; 60-70 g Wurst und Käse pro Person"
+        },
+        {
+          "url": "https://www.neff-home.com/de/neff-entdecken/the-ingredient/tipps-tricks/charcuterie-board",
+          "retrieved": "2026-10-17",
+          "note": "Charcuterie Board: Salami, Käse, Oliven, Gemüse"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 171.4,
+          "fat": 13.6,
+          "protein": 10.7,
+          "net_carbs": 1.0
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "avokados_tojassalata": {
+      "id": "avokados_tojassalata",
+      "names": {
+        "hu": "Avokádós tojássaláta",
+        "de": "Eiersalat mit Avocado",
+        "en": "Egg salad with avocado"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 2,
+        "ingredients": [
+          {
+            "food_key": "avocado",
+            "raw_g": 140,
+            "role": "core",
+            "note": "1 érett avokádó (ehető rész ~140 g)"
+          },
+          {
+            "food_key": "egg",
+            "raw_g": 200,
+            "role": "core",
+            "note": "4 db keményre főtt tojás (a hűtőből)"
+          },
+          {
+            "food_key": "yogurt_greek_10",
+            "raw_g": 15,
+            "role": "core",
+            "note": "1 ek görög joghurt"
+          },
+          {
+            "food_key": "mustard",
+            "raw_g": 5,
+            "role": "seasoning",
+            "note": "1 tk mustár"
+          },
+          {
+            "food_key": "spring_onion",
+            "raw_g": 15,
+            "role": "core",
+            "note": "1 szál újhagyma"
+          }
+        ],
+        "raw_total_g": 375,
+        "cooking": {
+          "method": "mashed and mixed, no cooking",
+          "mass_change_g": 0,
+          "note": "the eggs are already boiled; salt and pepper left out"
+        },
+        "finished_weight_g": 375,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 190,
+      "density_g_per_ml": 0.75,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.45,
+        "height_cm": 3.0
+      },
+      "sources": [
+        {
+          "url": "https://www.orlandohealth.com/content-hub/avocado-egg-salad",
+          "retrieved": "2026-10-17",
+          "note": "1 ripe avocado, 4 hard-boiled eggs, 1 tbsp Greek yogurt, 1 tsp Dijon mustard, green onion; 2 servings"
+        },
+        {
+          "url": "https://frederikkewaerens.dk/en/?p=42432",
+          "retrieved": "2026-10-17",
+          "note": "egg salad with avocado, sour cream, lemon; mashed together"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 128.8,
+          "fat": 10.0,
+          "protein": 7.8,
+          "net_carbs": 1.0
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "sonkas_sajtos_omlett": {
+      "id": "sonkas_sajtos_omlett",
+      "names": {
+        "hu": "Sonkás-sajtos omlett",
+        "de": "Omelett mit Schinken und Käse",
+        "en": "Ham and cheese omelette"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "egg",
+            "raw_g": 150,
+            "role": "core",
+            "note": "3 db tojás"
+          },
+          {
+            "food_key": "ham_cooked",
+            "raw_g": 40,
+            "role": "core",
+            "note": "2 szelet főtt sonka"
+          },
+          {
+            "food_key": "trappista",
+            "raw_g": 30,
+            "role": "core",
+            "note": "3 dkg reszelt trappista"
+          },
+          {
+            "food_key": "butter",
+            "raw_g": 10,
+            "role": "fat",
+            "note": "1 diónyi vaj a serpenyőbe"
+          }
+        ],
+        "raw_total_g": 230,
+        "cooking": {
+          "method": "pan-fried on low heat for 3-4 minutes, folded",
+          "mass_change_g": -10,
+          "note": "about -10 g water lost while setting (estimate); salt and pepper left out"
+        },
+        "finished_weight_g": 220,
+        "yield_factor": 0.957
+      },
+      "standard_serving_g": 220,
+      "density_g_per_ml": 0.6,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.45,
+        "height_cm": 2.0
+      },
+      "sources": [
+        {
+          "url": "https://www.foodnetwork.com/recipes/food-network-kitchen/omelet-in-a-hole-3-ways-3875843.amp",
+          "retrieved": "2026-10-17",
+          "note": "ham and cheese omelet: eggs cooked in butter, ham and cheese folded in"
+        },
+        {
+          "url": "https://butteryourbiscuit.com/sausage-tomato-cheese-omelet/",
+          "retrieved": "2026-10-17",
+          "note": "3 eggs per omelet, butter, cheese folded in; low heat"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 195.3,
+          "fat": 14.1,
+          "protein": 16.5,
+          "net_carbs": 0.4
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "tonhalas_avokado": {
+      "id": "tonhalas_avokado",
+      "names": {
+        "hu": "Tonhallal töltött avokádó",
+        "de": "Avocado mit Thunfischfüllung",
+        "en": "Tuna-stuffed avocado"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "avocado",
+            "raw_g": 140,
+            "role": "core",
+            "note": "1 avokádó (ehető rész ~140 g), félbevágva"
+          },
+          {
+            "food_key": "tuna_canned",
+            "raw_g": 120,
+            "role": "core",
+            "note": "1 doboz tonhal sajátlében, lecsepegtetve"
+          },
+          {
+            "food_key": "mayonnaise",
+            "raw_g": 10,
+            "role": "fat",
+            "note": "2 tk majonéz"
+          },
+          {
+            "food_key": "onion",
+            "raw_g": 10,
+            "role": "core",
+            "note": "1 ek apróra vágott hagyma"
+          },
+          {
+            "food_key": "lemon_juice",
+            "raw_g": 5,
+            "role": "seasoning",
+            "note": "1 tk citromlé"
+          }
+        ],
+        "raw_total_g": 285,
+        "cooking": {
+          "method": "assembled, no cooking",
+          "mass_change_g": 0,
+          "note": "tuna mixed with mayonnaise and onion, piled into the halved avocado"
+        },
+        "finished_weight_g": 285,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 285,
+      "density_g_per_ml": 0.7,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.4,
+        "height_cm": 4.0
+      },
+      "sources": [
+        {
+          "url": "https://www.aarp.org/home-living/tuna-stuffed-avocados-international-recipe/",
+          "retrieved": "2026-10-17",
+          "note": "6 oz can tuna in water, onion, tomato, 3 tbsp mayonnaise, lemon juice; 3 avocados halved"
+        },
+        {
+          "url": "https://tajin.com/us/recipe/tuna-stuffed-avocado",
+          "retrieved": "2026-10-17",
+          "note": "tuna in water, 2 avocados halved, onion, mayonnaise, olive oil; 12 min, 4 portions"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 130.6,
+          "fat": 9.4,
+          "protein": 8.8,
+          "net_carbs": 1.1
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "majonezes_tojas_retekkel": {
+      "id": "majonezes_tojas_retekkel",
+      "names": {
+        "hu": "Főtt tojás majonézzel és retekkel",
+        "de": "Eier mit Mayonnaise und Radieschen",
+        "en": "Boiled eggs with mayonnaise and radish"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "egg",
+            "raw_g": 150,
+            "role": "core",
+            "note": "3 db keményre főtt tojás (a hűtőből)"
+          },
+          {
+            "food_key": "mayonnaise",
+            "raw_g": 25,
+            "role": "fat",
+            "note": "1 púpos ek majonéz"
+          },
+          {
+            "food_key": "mustard",
+            "raw_g": 5,
+            "role": "seasoning",
+            "note": "1 tk mustár"
+          },
+          {
+            "food_key": "radish",
+            "raw_g": 60,
+            "role": "core",
+            "note": "5-6 db retek"
+          }
+        ],
+        "raw_total_g": 240,
+        "cooking": {
+          "method": "assembled, no cooking",
+          "mass_change_g": 0,
+          "note": "the eggs are already boiled"
+        },
+        "finished_weight_g": 240,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 240,
+      "density_g_per_ml": 0.6,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.45,
+        "height_cm": 3.0
+      },
+      "sources": [
+        {
+          "url": "https://www.rewe.de/rezepte/eiersalat-radieschen-kresse/",
+          "retrieved": "2026-10-17",
+          "note": "hart gekochte Eier, Mayonnaise, Senf, Radieschen"
+        },
+        {
+          "url": "https://www.lidl-kochen.de/print/brot-mit-petersilien-eiersalat-23734",
+          "retrieved": "2026-10-17",
+          "note": "Eier, Senf, Mayonnaise, Radieschen und Gurke zum Abendbrot"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 169.3,
+          "fat": 14.3,
+          "protein": 8.8,
+          "net_carbs": 1.1
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "ujhagymas_turokrem": {
+      "id": "ujhagymas_turokrem",
+      "names": {
+        "hu": "Újhagymás túrókrém retekkel, paprikával",
+        "de": "Quark mit Frühlingszwiebeln, Radieschen und Paprika",
+        "en": "Quark with spring onion, radish and pepper"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "quark_20",
+            "raw_g": 150,
+            "role": "core",
+            "note": "1 kis doboz túró / zsírosabb túró"
+          },
+          {
+            "food_key": "sour_cream",
+            "raw_g": 50,
+            "role": "core",
+            "note": "2-3 ek tejföl"
+          },
+          {
+            "food_key": "spring_onion",
+            "raw_g": 20,
+            "role": "core",
+            "note": "2 szál újhagyma"
+          },
+          {
+            "food_key": "radish",
+            "raw_g": 60,
+            "role": "core",
+            "note": "5-6 db retek"
+          },
+          {
+            "food_key": "bell_pepper_red",
+            "raw_g": 60,
+            "role": "core",
+            "note": "fél kis paprika"
+          }
+        ],
+        "raw_total_g": 340,
+        "cooking": {
+          "method": "mixed, no cooking",
+          "mass_change_g": 0,
+          "note": "salt left out; eaten with the vegetables, without bread"
+        },
+        "finished_weight_g": 340,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 340,
+      "density_g_per_ml": 0.8,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.5,
+        "height_cm": 3.0
+      },
+      "sources": [
+        {
+          "url": "https://www.kifli.hu/en-HU/sef/12422-budapesti-turokrem-kremes-reggeli-finomsag",
+          "retrieved": "2026-10-17",
+          "note": "túrókrém: 250 g túró, újhagymával megszórva"
+        },
+        {
+          "url": "https://www.beko.com/hu-hu/receptek/torm-s-toj-ssal-ta-retekkel--s--jhagym-val",
+          "retrieved": "2026-10-17",
+          "note": "retek és újhagyma tejfölös krémmel"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 88.0,
+          "fat": 5.0,
+          "protein": 6.3,
+          "net_carbs": 3.8
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
+    "sonkatekercs_mozzarellaval": {
+      "id": "sonkatekercs_mozzarellaval",
+      "names": {
+        "hu": "Sonkatekercs mozzarellával és paradicsommal",
+        "de": "Schinkenröllchen mit Mozzarella und Tomate",
+        "en": "Ham rolls with mozzarella and tomato"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "ham_cooked",
+            "raw_g": 100,
+            "role": "core",
+            "note": "5 szelet főtt sonka"
+          },
+          {
+            "food_key": "mozzarella",
+            "raw_g": 125,
+            "role": "core",
+            "note": "1 golyó mozzarella, csíkokra vágva"
+          },
+          {
+            "food_key": "tomato",
+            "raw_g": 100,
+            "role": "core",
+            "note": "1 db paradicsom"
+          },
+          {
+            "food_key": "basil_fresh",
+            "raw_g": 3,
+            "role": "seasoning",
+            "note": "néhány levél bazsalikom"
+          },
+          {
+            "food_key": "olive_oil",
+            "raw_g": 2,
+            "role": "fat",
+            "note": "pár csepp olívaolaj"
+          }
+        ],
+        "raw_total_g": 330,
+        "cooking": {
+          "method": "rolled, no cooking",
+          "mass_change_g": 0
+        },
+        "finished_weight_g": 330,
+        "yield_factor": 1.0
+      },
+      "standard_serving_g": 330,
+      "density_g_per_ml": 0.6,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.5,
+        "height_cm": 3.0
+      },
+      "sources": [
+        {
+          "url": "https://www.lecker.de/zucchini-schinken-roellchen-69903.html",
+          "retrieved": "2026-10-17",
+          "note": "Röllchen mit Mozzarella, Tomaten, Basilikum und Schinken"
+        },
+        {
+          "url": "https://www.lecker.de/schinken-lauch-rollen-mit-mozzarella-1046.html",
+          "retrieved": "2026-10-17",
+          "note": "Schinken mit Mozzarella gerollt"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 149.8,
+          "fat": 9.7,
+          "protein": 13.6,
+          "net_carbs": 1.2
         },
         "incomplete_missing_food_keys": []
       }
@@ -48176,6 +48994,481 @@
           "standard_serving_g": 450
         }
       ]
+    },
+    {
+      "id": "hu_tonhalsalata_tojassal",
+      "countries": [
+        "HU",
+        "AT",
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "tonhalsaláta tojással",
+        "de": "Thunfischsalat mit Ei",
+        "en": "Tuna salad with egg"
+      },
+      "aliases": {
+        "hu": [
+          "tonhalsaláta tojással",
+          "tojásos tonhalsaláta",
+          "tonhalsaláta",
+          "tonhalas saláta"
+        ],
+        "de": [
+          "thunfischsalat mit ei",
+          "thunfischsalat"
+        ],
+        "de-AT": [
+          "thunfischsalat"
+        ],
+        "en": [
+          "tuna salad with egg",
+          "tuna egg salad",
+          "tuna salad"
+        ]
+      },
+      "tags": [
+        "fish",
+        "salad",
+        "cold",
+        "low-carb-friendly"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "tonhalsalata_tojassal",
+          "standard_serving_g": 335
+        }
+      ],
+      "review_note_hu": "Egy vacsoraadag: 1 doboz tonhal, 2 főtt tojás. A tonhal sajátlében (olajos konzervvel több zsír)."
+    },
+    {
+      "id": "hu_caprese",
+      "countries": [
+        "HU",
+        "AT",
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "caprese saláta",
+        "de": "Caprese",
+        "en": "Caprese salad"
+      },
+      "aliases": {
+        "hu": [
+          "caprese",
+          "caprese saláta",
+          "paradicsom mozzarellával",
+          "mozzarellás paradicsom"
+        ],
+        "de": [
+          "caprese",
+          "tomate mozzarella",
+          "tomaten mit mozzarella"
+        ],
+        "de-AT": [
+          "caprese",
+          "paradeiser mit mozzarella"
+        ],
+        "en": [
+          "caprese",
+          "caprese salad",
+          "tomato mozzarella salad"
+        ]
+      },
+      "tags": [
+        "vegetarian",
+        "salad",
+        "cold",
+        "low-carb-friendly"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "caprese",
+          "standard_serving_g": 341
+        }
+      ],
+      "review_note_hu": "Egy vacsoraadag: 2 paradicsom, 1 golyó mozzarella, 1 ek olívaolaj; balzsamecet nélkül."
+    },
+    {
+      "id": "hu_sonkas_sajtos_tal",
+      "countries": [
+        "HU",
+        "AT",
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "sonkás-sajtos hidegtál",
+        "de": "Schinken-Käse-Teller",
+        "en": "Ham and cheese plate"
+      },
+      "aliases": {
+        "hu": [
+          "sonkás-sajtos hidegtál",
+          "sonkás sajtos tál",
+          "sonka sajttal és zöldséggel",
+          "hidegtál"
+        ],
+        "de": [
+          "schinken-käse-teller",
+          "schinken käse platte",
+          "kalte platte"
+        ],
+        "de-AT": [
+          "schinkenteller",
+          "jausenteller"
+        ],
+        "en": [
+          "ham and cheese plate",
+          "cold plate"
+        ]
+      },
+      "tags": [
+        "cold",
+        "low-carb-friendly"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "sonkas_sajtos_tal",
+          "standard_serving_g": 340
+        }
+      ],
+      "review_note_hu": "Kenyér nélkül; 10 dkg sonka, 6 dkg gouda, uborka és paprika."
+    },
+    {
+      "id": "hu_szalamis_sajtos_tal",
+      "countries": [
+        "HU",
+        "AT",
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "szalámis-sajtos tál",
+        "de": "Salami-Käse-Teller",
+        "en": "Salami and cheese plate"
+      },
+      "aliases": {
+        "hu": [
+          "szalámis-sajtos tál",
+          "szalámis sajtos tál",
+          "szalámi sajttal",
+          "szalámis tál"
+        ],
+        "de": [
+          "salami-käse-teller",
+          "salamiteller",
+          "salami mit käse"
+        ],
+        "de-AT": [
+          "salamiteller"
+        ],
+        "en": [
+          "salami and cheese plate",
+          "salami plate"
+        ]
+      },
+      "tags": [
+        "cold",
+        "low-carb-friendly"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "szalamis_sajtos_tal",
+          "standard_serving_g": 290
+        }
+      ],
+      "review_note_hu": "Kenyér nélkül; 6 dkg szalámi, 6 dkg trappista, olívabogyó, retek, uborka."
+    },
+    {
+      "id": "hu_avokados_tojassalata",
+      "countries": [
+        "HU",
+        "AT",
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "avokádós tojássaláta",
+        "de": "Eiersalat mit Avocado",
+        "en": "Egg salad with avocado"
+      },
+      "aliases": {
+        "hu": [
+          "avokádós tojássaláta",
+          "tojássaláta avokádóval",
+          "avokádós tojáskrém"
+        ],
+        "de": [
+          "eiersalat mit avocado",
+          "avocado-eiersalat"
+        ],
+        "de-AT": [
+          "eiersalat mit avocado"
+        ],
+        "en": [
+          "egg salad with avocado",
+          "avocado egg salad"
+        ]
+      },
+      "tags": [
+        "eggs",
+        "vegetarian",
+        "salad",
+        "cold",
+        "low-carb-friendly"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "avokados_tojassalata",
+          "standard_serving_g": 190
+        }
+      ],
+      "review_note_hu": "Fél avokádó és 2 főtt tojás adagonként."
+    },
+    {
+      "id": "hu_sonkas_sajtos_omlett",
+      "countries": [
+        "HU",
+        "AT",
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "sonkás-sajtos omlett",
+        "de": "Omelett mit Schinken und Käse",
+        "en": "Ham and cheese omelette"
+      },
+      "aliases": {
+        "hu": [
+          "sonkás-sajtos omlett",
+          "sonkás sajtos omlett",
+          "sonkás omlett",
+          "sajtos omlett",
+          "omlett"
+        ],
+        "de": [
+          "omelett mit schinken und käse",
+          "schinken-käse-omelett",
+          "omelett"
+        ],
+        "de-AT": [
+          "omelette mit schinken und käse",
+          "omelette"
+        ],
+        "en": [
+          "ham and cheese omelette",
+          "ham and cheese omelet",
+          "omelette",
+          "omelet"
+        ]
+      },
+      "tags": [
+        "eggs",
+        "breakfast",
+        "low-carb-friendly"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "sonkas_sajtos_omlett",
+          "standard_serving_g": 220
+        }
+      ],
+      "review_note_hu": "3 tojásból, 4 dkg sonkával, 3 dkg sajttal; kb. 5 perc."
+    },
+    {
+      "id": "hu_tonhalas_avokado",
+      "countries": [
+        "HU",
+        "AT",
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "tonhallal töltött avokádó",
+        "de": "Avocado mit Thunfisch",
+        "en": "Tuna-stuffed avocado"
+      },
+      "aliases": {
+        "hu": [
+          "tonhallal töltött avokádó",
+          "tonhalas avokádó",
+          "avokádó tonhallal"
+        ],
+        "de": [
+          "avocado mit thunfisch",
+          "gefüllte avocado mit thunfisch"
+        ],
+        "de-AT": [
+          "avocado mit thunfisch"
+        ],
+        "en": [
+          "tuna stuffed avocado",
+          "tuna-stuffed avocado",
+          "avocado with tuna"
+        ]
+      },
+      "tags": [
+        "fish",
+        "salad",
+        "cold",
+        "low-carb-friendly"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "tonhalas_avokado",
+          "standard_serving_g": 285
+        }
+      ],
+      "review_note_hu": "1 avokádó és 1 doboz tonhal egy vacsorára."
+    },
+    {
+      "id": "hu_majonezes_tojas_retekkel",
+      "countries": [
+        "HU",
+        "AT",
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "főtt tojás majonézzel és retekkel",
+        "de": "Eier mit Mayonnaise und Radieschen",
+        "en": "Boiled eggs with mayonnaise and radish"
+      },
+      "aliases": {
+        "hu": [
+          "főtt tojás majonézzel",
+          "majonézes tojás",
+          "tojás majonézzel",
+          "majonézes tojás retekkel"
+        ],
+        "de": [
+          "eier mit mayonnaise",
+          "eier mit mayo"
+        ],
+        "de-AT": [
+          "eier mit mayonnaise"
+        ],
+        "en": [
+          "eggs with mayonnaise",
+          "boiled eggs with mayo"
+        ]
+      },
+      "tags": [
+        "eggs",
+        "vegetarian",
+        "salad",
+        "cold",
+        "low-carb-friendly"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "majonezes_tojas_retekkel",
+          "standard_serving_g": 240
+        }
+      ],
+      "review_note_hu": "3 főtt tojás, 1 púpos ek majonéz, retek."
+    },
+    {
+      "id": "hu_ujhagymas_turokrem",
+      "countries": [
+        "HU",
+        "AT",
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "újhagymás túrókrém zöldségekkel",
+        "de": "Frühlingszwiebel-Quark mit Gemüse",
+        "en": "Spring onion quark with vegetables"
+      },
+      "aliases": {
+        "hu": [
+          "újhagymás túrókrém",
+          "újhagymás túró",
+          "túró újhagymával",
+          "túrókrém retekkel"
+        ],
+        "de": [
+          "frühlingszwiebelquark",
+          "quark mit frühlingszwiebeln"
+        ],
+        "de-AT": [
+          "topfen mit jungzwiebeln"
+        ],
+        "en": [
+          "spring onion quark",
+          "quark with spring onion"
+        ]
+      },
+      "tags": [
+        "vegetarian",
+        "salad",
+        "cold",
+        "low-carb-friendly"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "ujhagymas_turokrem",
+          "standard_serving_g": 340
+        }
+      ],
+      "review_note_hu": "Kenyér nélkül, zöldségekkel. Zsírosabb túró (quark_20)."
+    },
+    {
+      "id": "hu_sonkatekercs_mozzarellaval",
+      "countries": [
+        "HU",
+        "AT",
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "sonkatekercs mozzarellával",
+        "de": "Schinkenröllchen mit Mozzarella",
+        "en": "Ham rolls with mozzarella"
+      },
+      "aliases": {
+        "hu": [
+          "sonkatekercs mozzarellával",
+          "mozzarellás sonkatekercs",
+          "sonkatekercs"
+        ],
+        "de": [
+          "schinkenröllchen mit mozzarella",
+          "schinkenröllchen"
+        ],
+        "de-AT": [
+          "schinkenröllchen"
+        ],
+        "en": [
+          "ham rolls with mozzarella",
+          "ham and mozzarella rolls"
+        ]
+      },
+      "tags": [
+        "cold",
+        "low-carb-friendly"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "sonkatekercs_mozzarellaval",
+          "standard_serving_g": 330
+        }
+      ],
+      "review_note_hu": "5 szelet sonka, 1 golyó mozzarella, 1 paradicsom."
     },
     {
       "id": "at_schweinsbraten",

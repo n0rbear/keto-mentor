@@ -54,7 +54,10 @@ export const QUICK_DISHES = new Set([
   "hu_virsli_mustarral", "hu_debreceni_mustarral", "de_weisswurst",
   "de_matjes_hausfrauen", "de_heringsstipp", "de_handkaes_musik", "de_obatzda",
   "hu_sonkas_szendvics", "hu_sajtos_szendvics", "hu_felvagottas_szendvics", "at_schinkensemmel", "at_kaesesemmel",
-  "hu_joghurt_gyumolccsel", "hu_turos_reggeli"
+  "hu_joghurt_gyumolccsel", "hu_turos_reggeli",
+  // Cold plates added for this (hu_hidegtalak.py).
+  "hu_tonhalsalata_tojassal", "hu_caprese", "hu_sonkas_sajtos_tal", "hu_szalamis_sajtos_tal", "hu_avokados_tojassalata",
+  "hu_sonkas_sajtos_omlett", "hu_tonhalas_avokado", "hu_majonezes_tojas_retekkel", "hu_ujhagymas_turokrem", "hu_sonkatekercs_mozzarellaval"
 ]);
 export const MIN_QUICK = 2;
 
