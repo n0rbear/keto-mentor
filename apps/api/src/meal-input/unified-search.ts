@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@prisma/client";
+import { referenceTitles } from "./local-recipe-lookup.js";
 import { normalizeSearch } from "../catalog/normalize.js";
 import { isTrustedLocalMatch, searchFoods } from "../catalog/food-search.js";
 import type { SearchIntentProvider } from "../catalog/search-intent.js";
@@ -16,7 +17,7 @@ import { resolveQuantityLocally } from "./interpret.js";
  * reference dish. Typing never calls an AI; the meaning-based retry (E4)
  * runs only when the client asks for it after a lexical miss.
  */
-export type UnifiedRecipeItem = { type: "recipe"; recipeId: string; title: string; source: "own" | "reference"; servings: number | null; servingGrams: number | null };
+export type UnifiedRecipeItem = { type: "recipe"; recipeId: string; title: string; titles?: Record<string, string>; source: "own" | "reference"; servings: number | null; servingGrams: number | null };
 // amount: what the sentence said, already in this food's units ("négy
 // tojás" -> 4 x the egg serving; "3 szelet sonka" -> 45 g), so picking the
 // food needs no further input.
@@ -148,6 +149,6 @@ async function findRecipes(prisma: PrismaClient, query: string, normalized: stri
   for (const { ids } of ranked.sort((a, b) => a.rank - b.rank)) for (const id of ids) if (!variantIds.includes(id)) variantIds.push(id);
   const referenceRows = await findReferenceRecipes<RecipeRow>(prisma, variantIds, {});
   const referenceHits = referenceRows.slice(0, MAX_RECIPES - Math.min(ownHits.length, MAX_RECIPES - 2))
-    .map((row) => ({ type: "recipe" as const, recipeId: row.id, title: row.title, source: "reference" as const, servings: row.servings, servingGrams: servingGramsOf(row) }));
+    .map((row) => ({ type: "recipe" as const, recipeId: row.id, title: row.title, ...(referenceTitles(row.provenance) ? { titles: referenceTitles(row.provenance) } : {}), source: "reference" as const, servings: row.servings, servingGrams: servingGramsOf(row) }));
   return [...ownHits, ...referenceHits];
 }

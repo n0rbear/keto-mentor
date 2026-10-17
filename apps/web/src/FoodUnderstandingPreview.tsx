@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Lang } from "./i18n";
 import { CheckCircle2, CircleDashed, Sparkles } from "lucide-react";
-import { pickDisplayName } from "./food-display-name";
+import { dishTitle, pickDisplayName } from "./food-display-name";
 import { api, type ApiState } from "./api";
 import { PlatePortion } from "./PlatePortion";
 
@@ -166,7 +166,7 @@ async function platePortionGrams(state: ApiState, recipeId: string, kind: "plate
 
 // A saved recipe the dish matched without any web search: the user's own
 // ("own") or a curated Keto Mentor reference dish ("reference").
-export type LocalRecipeOption = { recipeId: string; title: string; source?: "own" | "reference"; servings?: number | null; servingGrams?: number | null };
+export type LocalRecipeOption = { recipeId: string; title: string; titles?: Record<string, string>; source?: "own" | "reference"; servings?: number | null; servingGrams?: number | null };
 
 type PreviewItem = {
   parsed: { quantity?: number; unit?: string; foodQuery: string; preparation?: string };
@@ -307,8 +307,8 @@ export type FoodUnderstandingLabels = {
   };
 };
 
-function recipeDiscoveryText(discovery: RecipeDiscoveryPreviewValue, labels: FoodUnderstandingLabels): string | null {
-  if (discovery.status === "local_match") return `${discovery.localMatch?.source === "reference" ? labels.recipeDiscovery.referenceMatch : labels.recipeDiscovery.localMatch} ${discovery.localMatch?.title ?? ""}`.trim();
+function recipeDiscoveryText(discovery: RecipeDiscoveryPreviewValue, labels: FoodUnderstandingLabels, lang: Lang): string | null {
+  if (discovery.status === "local_match") return `${discovery.localMatch?.source === "reference" ? labels.recipeDiscovery.referenceMatch : labels.recipeDiscovery.localMatch} ${dishTitle(discovery.localMatch, lang)}`.trim();
   if (discovery.status === "confirmation_required") {
     if (discovery.reason === "ambiguous_local_matches") return discovery.localAlternatives?.some((option) => option.source === "reference") ? labels.recipeDiscovery.ambiguousReference : labels.recipeDiscovery.ambiguousLocal;
     return `${labels.recipeDiscovery.webFound} ${discovery.candidate?.title ?? ""}`.trim();
@@ -702,7 +702,7 @@ export function LocalRecipePicker({ discovery, labels, busy, onConfirm, lang, po
   requestedPlates?: { count: number; kind: "plate" | "bowl" };
   onConfirm: (option: LocalRecipeOption, quantity: number, unit: "g" | "serving") => void;
 }) {
-  const options = discovery.status === "local_match" && discovery.localMatch ? [discovery.localMatch] : discovery.localAlternatives ?? [];
+  const options = (discovery.status === "local_match" && discovery.localMatch ? [discovery.localMatch] : discovery.localAlternatives ?? []).map((option) => ({ ...option, title: dishTitle(option, lang) }));
   const servingCount = requestedServings ?? requestedPlates?.count ?? 1;
   const [picked, setPicked] = useState<LocalRecipeOption | null>(options.length === 1 ? options[0] : null);
   const [quantity, setQuantity] = useState(picked && !picked.servings ? 100 : servingCount);
@@ -786,7 +786,7 @@ function PreviewRow({ item, lang, labels, busy, confirmingId, onConfirmExternal,
     {item.semanticItem?.evidence === "inferred_common" && <small className="inferred-label">{labels.inferred}</small>}
     {!isAiEstimatePending && <small className="understanding-resolution">{isTrusted ? <CheckCircle2 aria-hidden="true" size={13}/> : <CircleDashed aria-hidden="true" size={13}/>} {isTrusted ? labels.trusted : labels.unresolved}</small>}
     {item.quantity?.status === "resolved" && <small>{item.quantity.estimated ? "≈" : "="} {Math.round((item.quantity.grams ?? 0) * 10) / 10} g</small>}
-    {item.recipeDiscovery && <small className="recipe-discovery-note">{recipeDiscoveryText(item.recipeDiscovery, labels)}</small>}
+    {item.recipeDiscovery && <small className="recipe-discovery-note">{recipeDiscoveryText(item.recipeDiscovery, labels, lang)}</small>}
     {item.recipeDiscovery?.candidate && <RecipeCandidateReview candidate={item.recipeDiscovery.candidate} lang={lang} labels={labels} busy={busy} onConfirm={onConfirmRecipe} services={recipeFixServices} requestedServings={statedServings(item.parsed) ?? statedPlates(item.parsed)?.count}/>}
     {item.recipeDiscovery && onConfirmLocalRecipe && isLocalRecipeDiscovery(item.recipeDiscovery) && <LocalRecipePicker discovery={item.recipeDiscovery} labels={labels.recipeDiscovery} busy={busy} onConfirm={onConfirmLocalRecipe} lang={lang} portionState={recipeFixServices?.portionState} requestedServings={statedServings(item.parsed)} requestedPlates={statedPlates(item.parsed)}/>}
     {hasCatalogCandidates && onSelectCandidate && <CatalogCandidateList candidates={item.candidates!} lang={lang} labels={labels} busy={busy} onSelect={onSelectCandidate}/>}

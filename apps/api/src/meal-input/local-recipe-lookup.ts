@@ -9,10 +9,10 @@ import { findReferenceRecipes, referenceVariantIdsFor } from "../reference-dishe
 // Mentor reference dish (reference-dishes/), offered only when the user has
 // no own recipe for the dish.
 export type LocalRecipeSource = "own" | "reference";
-export type LocalRecipeCandidate = { recipeId: string; title: string; source: LocalRecipeSource; servings: number | null; servingGrams: number | null };
+export type LocalRecipeCandidate = { recipeId: string; title: string; titles?: Record<string, string>; source: LocalRecipeSource; servings: number | null; servingGrams: number | null };
 
 export type LocalRecipeLookupResult =
-  | { status: "found"; recipeId: string; title: string; source: LocalRecipeSource; servings: number | null; servingGrams: number | null; ingredientCount: number; nutritionPer100g: MacroTotals | null; nutritionPer100gBasis: "finished_weight" | null; nutritionCalculable: boolean }
+  | { status: "found"; recipeId: string; title: string; titles?: Record<string, string>; source: LocalRecipeSource; servings: number | null; servingGrams: number | null; ingredientCount: number; nutritionPer100g: MacroTotals | null; nutritionPer100gBasis: "finished_weight" | null; nutritionCalculable: boolean }
   | { status: "ambiguous"; candidates: LocalRecipeCandidate[] }
   | { status: "not_found" };
 
@@ -134,8 +134,16 @@ export async function findTrustedLocalRecipe(prisma: Pick<PrismaClient, "recipe"
 
 type LookupRow = Awaited<ReturnType<PrismaClient["recipe"]["findMany"]>>[number] & { ingredients: unknown[] };
 
+/** A reference dish's title in every language (provenance.titles), so the web shows the viewer's own. */
+export function referenceTitles(provenance: unknown): Record<string, string> | undefined {
+  const titles = (provenance as { titles?: unknown } | null | undefined)?.titles;
+  if (!titles || typeof titles !== "object") return undefined;
+  const entries = Object.entries(titles as Record<string, unknown>).filter((entry): entry is [string, string] => typeof entry[1] === "string" && !!entry[1]);
+  return entries.length ? Object.fromEntries(entries) : undefined;
+}
+
 function candidateOf(row: LookupRow, source: LocalRecipeSource): LocalRecipeCandidate {
-  return { recipeId: row.id, title: row.title, source, servings: row.servings ?? null, servingGrams: row.servings && row.finishedWeightGrams ? row.finishedWeightGrams / row.servings : null };
+  return { recipeId: row.id, title: row.title, ...(source === "reference" && referenceTitles((row as { provenance?: unknown }).provenance) ? { titles: referenceTitles((row as { provenance?: unknown }).provenance) } : {}), source, servings: row.servings ?? null, servingGrams: row.servings && row.finishedWeightGrams ? row.finishedWeightGrams / row.servings : null };
 }
 
 function foundOf(recipe: LookupRow, source: LocalRecipeSource): LocalRecipeLookupResult {

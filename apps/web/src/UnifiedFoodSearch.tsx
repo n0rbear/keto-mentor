@@ -3,7 +3,7 @@ import { BookOpen, Sparkles } from "lucide-react";
 import { api, type ApiState } from "./api";
 import type { Lang } from "./i18n";
 import type { Food } from "./main";
-import { pickDisplayName } from "./food-display-name";
+import { dishTitle, pickDisplayName } from "./food-display-name";
 import type { LocalRecipeOption } from "./FoodUnderstandingPreview";
 
 // One search field (owner goal 2026-09-26, roadmap G2): barcode, ingredient,
@@ -11,7 +11,7 @@ import type { LocalRecipeOption } from "./FoodUnderstandingPreview";
 // (no AI). If the name finds nothing, one meaning-based retry is made
 // (E4). Enter keeps the full natural-language interpretation.
 
-type RecipeItem = { type: "recipe"; recipeId: string; title: string; source: "own" | "reference"; servings: number | null; servingGrams: number | null };
+type RecipeItem = { type: "recipe"; recipeId: string; title: string; titles?: Record<string, string>; source: "own" | "reference"; servings: number | null; servingGrams: number | null };
 // amount: the sentence's quantity in this food's units ("négy tojás" -> 4
 // egg servings), so picking the food keeps what the user already said.
 export type FoodAmount = { quantity: number; servingId?: string; grams: number };
@@ -86,8 +86,8 @@ export function UnifiedFoodSearch({ lang, state, value, disabled, onPickFood, on
       {items.length === 0 && <li className="unified-search-empty">{t.none}</li>}
       {items.map((item) => item.type === "recipe"
         ? <li key={`r-${item.recipeId}`} role="option" aria-selected="false">
-          <button type="button" onClick={() => { close(); onPickRecipe({ recipeId: item.recipeId, title: item.title, source: item.source, servings: item.servings, servingGrams: item.servingGrams }, statedQuantity); }}>
-            <BookOpen aria-hidden="true" size={15}/> <span>{item.title}</span>
+          <button type="button" onClick={() => { close(); onPickRecipe({ recipeId: item.recipeId, title: dishTitle(item, lang), source: item.source, servings: item.servings, servingGrams: item.servingGrams }, statedQuantity); }}>
+            <BookOpen aria-hidden="true" size={15}/> <span>{dishTitle(item, lang)}</span>
             <small>{item.source === "own" ? t.own : t.reference}{item.servingGrams ? ` · ${t.serving.replace("{g}", String(Math.round(item.servingGrams)))}` : ""}</small>
           </button>
         </li>
