@@ -109,3 +109,24 @@ describe("quick dinners from the fridge (owner request 2026-10-17)", () => {
     for (const id of QUICK_DISHES) { expect(ids.has(id), id).toBe(true); expect(id).not.toContain("__"); }
   });
 });
+
+describe("Újraszámolás: five dishes not shown yet (owner feedback 2026-10-17)", () => {
+  const many = Array.from({ length: 12 }, (_, i) => dish(`d${i}`, { kcal: 400 + i * 10, protein: 30 }));
+
+  it("never repeats an already shown dish while enough new ones fit", () => {
+    const first = rankDinnerSuggestions({ ...base, candidates: many });
+    const shown = new Set(first.suggestions.map((s) => s.recipeId));
+    const second = rankDinnerSuggestions({ ...base, candidates: many, exclude: shown });
+    expect(second.suggestions).toHaveLength(5);
+    expect(second.suggestions.some((s) => shown.has(s.recipeId))).toBe(false);
+    expect(second.repeated).toBeUndefined();
+  });
+
+  it("fills up with shown dishes only when not enough new ones fit, and says so", () => {
+    const shown = new Set(many.slice(0, 9).map((c) => c.dishId));
+    const result = rankDinnerSuggestions({ ...base, candidates: many, exclude: shown });
+    expect(result.suggestions).toHaveLength(5);
+    expect(result.suggestions.slice(0, 3).map((s) => s.recipeId).sort()).toEqual(["d10", "d11", "d9"]);
+    expect(result.repeated).toBe(true);
+  });
+});

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Moon, Plus, Zap } from "lucide-react";
 import { api, ApiError, type ApiState } from "./api";
 import type { Lang } from "./i18n";
@@ -11,7 +11,7 @@ import { PremiumBadge, PremiumNote } from "./PremiumBadge";
 type Macros = { kcal: number; protein: number; netCarbs: number; fat: number };
 type Suggestion = { recipeId: string; source: "own" | "reference"; title: string; servingGrams: number | null; quick?: boolean; perServing: Macros; after: Macros };
 type Leftover = { mealId: string; title: string; mealType: string | null; mealTypeLabel: string | null; perServing: Macros; after: Macros };
-type Result = { remaining: Macros; status: "ok" | "carb_budget_used" | "kcal_budget_used" | "nothing_fits"; suggestions: Suggestion[]; leftovers?: Leftover[] };
+type Result = { remaining: Macros; status: "ok" | "carb_budget_used" | "kcal_budget_used" | "nothing_fits"; suggestions: Suggestion[]; leftovers?: Leftover[]; repeated?: boolean };
 
 // "Ha maradt az ebédből…": the meal names in the right grammatical case.
 const LEFTOVER_FROM: Record<Lang, Record<string, string>> = {
@@ -35,6 +35,7 @@ const copy = {
     kcal_budget_used: "A mai kalóriakereted már elfogyott, ezért most nem ajánlok vacsorát.",
     nothing_fits: "Most egyik receptem sem fér bele szokásos adagban a maradék keretbe. Próbálj egy könnyű, saját receptet felvenni.",
     leftoverNote: "Ugyanekkora adag még belefér a mai keretedbe.",
+    repeated: "Több új ötletem nincs, ami belefér a mai keretbe, ezért a lista végén már látott ételek is vannak.",
     premium_required: "A Vacsoraajánló prémium funkció.", failed: "Az ajánlás most nem sikerült, próbáld újra."
   },
   de: {
@@ -45,6 +46,7 @@ const copy = {
     kcal_budget_used: "Dein Kalorienziel für heute ist erreicht, deshalb schlage ich kein Abendessen vor.",
     nothing_fits: "Gerade passt kein Gericht in üblicher Portion in dein Restbudget.",
     leftoverNote: "Die gleiche Portion passt heute noch in dein Budget.",
+    repeated: "Mehr neue Ideen passen heute nicht in dein Budget, deshalb stehen am Ende schon gezeigte Gerichte.",
     premium_required: "Der Abendessen-Vorschlag ist eine Premium-Funktion.", failed: "Der Vorschlag hat nicht geklappt, bitte erneut versuchen."
   },
   en: {
@@ -55,6 +57,7 @@ const copy = {
     kcal_budget_used: "Today's calorie target is used up, so no dinner suggestion right now.",
     nothing_fits: "No dish fits your remaining targets at a usual serving right now.",
     leftoverNote: "The same portion still fits today's targets.",
+    repeated: "No more new ideas fit today's targets, so the end of the list has dishes you have already seen.",
     premium_required: "Dinner ideas is a premium feature.", failed: "The suggestion failed, please try again."
   }
 } as const;
@@ -68,11 +71,17 @@ export function DinnerSuggestions({ lang, state, date, onLogged }: { lang: Lang;
   const [error, setError] = useState<string | null>(null);
   const [logging, setLogging] = useState<string | null>(null);
   const [logged, setLogged] = useState(false);
+  // "Újraszámolás" means none of these suit: it asks for dishes not shown yet.
+  const shown = useRef<{ date: string; ids: Set<string> }>({ date, ids: new Set() });
 
   async function load() {
     setLoading(true); setError(null); setLogged(false);
+    if (!result || shown.current.date !== date) shown.current = { date, ids: new Set() };
+    const exclude = [...shown.current.ids].slice(-150).join(",");
     try {
-      setResult(await api<Result>(`/meals/dinner-suggestions?date=${date}&tzOffsetMinutes=${new Date().getTimezoneOffset()}&lang=${lang}`, {}, state));
+      const next = await api<Result>(`/meals/dinner-suggestions?date=${date}&tzOffsetMinutes=${new Date().getTimezoneOffset()}&lang=${lang}${exclude ? `&shown=${encodeURIComponent(exclude)}` : ""}`, {}, state);
+      for (const s of next.suggestions) shown.current.ids.add(s.recipeId);
+      setResult(next);
     } catch (e) {
       setResult(null);
       setError(e instanceof ApiError && e.code === "premium_required" ? t.premium_required : t.failed);
@@ -112,6 +121,7 @@ export function DinnerSuggestions({ lang, state, date, onLogged }: { lang: Lang;
         <div className="dinner-result">
           <p className="text-sm"><strong>{t.remaining}:</strong> {macroLine(result.remaining)}</p>
           {result.status !== "ok" && <p className="status" role="status">{t[result.status]}</p>}
+          {result.repeated && <p className="text-xs text-muted" role="status">{t.repeated}</p>}
           <ul className="dinner-list">
             {result.suggestions.map((s) => (
               <li key={s.recipeId} className="dinner-item">

@@ -749,6 +749,8 @@ app.get("/meals/dinner-suggestions", requireAuth, async (req, res, next) => {
       candidates,
       recentDishIds,
       recentlySuggested: recentlyShown(req.user!.id),
+      // ?shown=<recipeId,...>: what "Újraszámolás" already showed in this session.
+      exclude: new Set(String(req.query.shown ?? "").split(",").filter(Boolean).slice(0, 200).map((id) => dishOf.get(id) ?? id)),
       remaining: { kcal: goal.kcal - day.totals.kcal, protein: goal.protein - day.totals.protein, netCarbs: goal.netCarbs - day.totals.netCarbs, fat: goal.fat - day.totals.fat },
       avoid: [...(profile?.avoidedFoods ?? []), ...(profile?.allergies ?? [])],
       eatenRecipeIds: new Set(day.meals.flatMap((meal: any) => meal.items.map((item: any) => item.recipeId).filter(Boolean))),
