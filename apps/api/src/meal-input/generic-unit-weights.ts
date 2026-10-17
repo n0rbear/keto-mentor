@@ -39,9 +39,21 @@ export const GENERIC_PIECE_WEIGHTS: readonly SliceWeight[] = [
   { key: "pork_knuckle", grams: 600, keywords: ["csulok", "sertescsulok", "grillcsulok", "stelze", "schweinsstelze", "haxe", "schweinshaxe", "hinterhaxe", "vorderhaxe", "eisbein", "hintereisbein", "vordereisbein", "pork knuckle", "pork hock"] }
 ];
 
+// Ticket 47cccf (2026-10-17): "10 cm kígyóuborka". Typical weight per
+// centimetre of long vegetables (an English cucumber is about 35 cm and
+// 380 g). Estimates, so the result stays editable. Sausages keep their own
+// AI length-to-grams estimate (thickness varies too much for one number).
+export const GENERIC_CM_WEIGHTS: readonly SliceWeight[] = [
+  { key: "cucumber_cm", grams: 11, keywords: ["uborka", "kigyouborka", "salatauborka", "gurke", "salatgurke", "cucumber"] },
+  { key: "zucchini_cm", grams: 12, keywords: ["cukkini", "zucchini", "courgette"] },
+  { key: "carrot_cm", grams: 6, keywords: ["sargarepa", "repa", "karotte", "mohre", "carrot"] },
+  { key: "leek_cm", grams: 8, keywords: ["porehagyma", "lauch", "leek"] }
+];
+
 const TABLES: Record<string, readonly SliceWeight[]> = {
   slice: [...GENERIC_SLICE_WEIGHTS, ...(GENERATED_UNIT_WEIGHTS.slice ?? [])],
-  piece: [...GENERIC_PIECE_WEIGHTS, ...(GENERATED_UNIT_WEIGHTS.piece ?? [])]
+  piece: [...GENERIC_PIECE_WEIGHTS, ...(GENERATED_UNIT_WEIGHTS.piece ?? [])],
+  cm: GENERIC_CM_WEIGHTS
 };
 
 export function genericUnitWeight(unit: string, food: { name: string; searchText?: string; names?: Record<string, string> }): SliceWeight | null {

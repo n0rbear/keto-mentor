@@ -1362,9 +1362,9 @@ describe("a known dish among several items (zabkása mangóval)", () => {
     { originalText: "mangóval", canonicalName: "mangó", evidence: "explicit" as const, confidence: 0.9 }
   ];
 
-  it.each(["compound_dish", "multiple_foods"] as const)("finds the reference dish for the zabkása item (%s), and never searches the web", async (kind) => {
+  it.each([["compound_dish", false], ["multiple_foods", false], ["multiple_foods", true]] as const)("finds the reference dish for the zabkása item (%s, another item unclear: %s), and never searches the web", async (kind, clarificationNeeded) => {
     const provider = fakeSearchProvider([]);
-    const understanding: FoodUnderstanding = { language: "hu", kind, ...(kind === "compound_dish" ? { dishName: "zabkása mangóval" } : {}), items, clarificationNeeded: false, confidence: 0.9 };
+    const understanding: FoodUnderstanding = { language: "hu", kind, ...(kind === "compound_dish" ? { dishName: "zabkása mangóval" } : {}), items, clarificationNeeded, ...(clarificationNeeded ? { clarificationReason: "unclear unit" } : {}), confidence: 0.9 };
     const result = await interpretMealInput(recipePrisma(), "zabkása mangóval", undefined, fakeAiProvider(understanding));
     const after = await attachRecipeDiscoveryFallback(result, { ...discoveryDeps(provider), prisma: recipePrisma() });
     const zabItem = after.items?.find((item) => item.semanticItem?.canonicalName === "zabkása");

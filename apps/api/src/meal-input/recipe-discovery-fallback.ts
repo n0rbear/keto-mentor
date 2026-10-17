@@ -502,7 +502,9 @@ async function findLocalDish(deps: RecipeDiscoveryFallbackDeps, aiName: string |
  * lookup by its own name.
  */
 function findLocalOnlyDishItems(result: InterpretResult): Array<{ index: number; name: string; text?: string }> {
-  if (!result.items?.length || result.semantic?.clarificationNeeded) return [];
+  // A clarification for one item (ticket 47cccf: "10 cm kígyóuborka") must not
+  // stop the own-recipe lookup for another ("1 adag csirkeszárny pörkölt").
+  if (!result.items?.length) return [];
   return result.items.flatMap((item, index) => {
     if (item.selectedFood || item.recipeDiscovery) return [];
     if (item.foodResolution !== "unresolved" && item.foodResolution !== "ai_estimate_pending") return [];
