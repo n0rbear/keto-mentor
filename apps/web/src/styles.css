@@ -622,6 +622,12 @@ body { padding-left: var(--safe-left); padding-right: var(--safe-right); }
 .card.is-premium { border-color: rgb(217 160 30 / .45); }
 .dinner-item.is-leftover { border-style: dashed; }
 .dinner-quick { display: inline-flex; align-items: center; gap: .25rem; margin-left: .4rem; padding: .05rem .45rem; border-radius: 999px; background: rgb(var(--success) / .14); color: rgb(var(--success)); font-weight: 600; white-space: nowrap; }
+.dinner-fridge-toggle { align-self: flex-start; }
+.dinner-fridge-toggle.is-active { color: rgb(var(--brand-bright)); }
+.dinner-fridge { display: grid; gap: .5rem; padding: .6rem .75rem; border: 1px dashed rgb(var(--border) / .35); border-radius: 12px; }
+.dinner-fridge-chips { display: flex; flex-wrap: wrap; gap: .4rem; }
+.dinner-fridge-chips .chip { display: inline-flex; align-items: center; gap: .25rem; }
+.dinner-have-all { color: rgb(var(--success)); font-weight: 600; }
 
 /* Phone layout: one dashboard part at a time (MobileNav.tsx). */
 .mobile-menu, .mobile-only { display: none; }

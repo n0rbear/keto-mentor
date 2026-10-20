@@ -88,3 +88,26 @@ describe("DinnerSuggestions: Újraszámolás", () => {
     expect(screen.getByText(/Több új ötletem nincs/)).toBeTruthy();
   });
 });
+
+describe("DinnerSuggestions: Nézz be a hűtőbe", () => {
+  it("sends the ticked items, remembers them, and shows what is missing", async () => {
+    localStorage.clear();
+    const urls: URL[] = [];
+    const item = (id: string, missing: string[]) => ({ recipeId: id, source: "reference", title: `Étel ${id}`, servingGrams: 300, missing, perServing: { kcal: 400, protein: 30, netCarbs: 3, fat: 28 }, after: { kcal: 300, protein: 10, netCarbs: 7, fat: 22 } });
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = new URL(String(input)); urls.push(url);
+      if (url.pathname === "/meals/fridge-items") return json({ items: [{ key: "egg", label: "Tojás" }, { key: "ham", label: "Sonka, felvágott" }] });
+      return json({ remaining: { kcal: 700, protein: 40, netCarbs: 10, fat: 50 }, status: "ok", suggestions: [item("a", []), item("b", ["majonéz"])] });
+    }));
+    render(<DinnerSuggestions lang="hu" state={state} date="2026-10-20" onLogged={vi.fn()}/>);
+    fireEvent.click(screen.getByRole("button", { name: /Nézz be a hűtőbe/ }));
+    fireEvent.click(await screen.findByRole("button", { name: "Tojás" }));
+    expect(screen.getByRole("button", { name: /Tojás/ }).getAttribute("aria-pressed")).toBe("true");
+    expect(JSON.parse(localStorage.getItem("km_fridge")!)).toEqual(["egg"]);
+    fireEvent.click(screen.getByRole("button", { name: "Mit egyek vacsorára?" }));
+    await screen.findByText("Étel a");
+    expect(urls.find((u) => u.pathname === "/meals/dinner-suggestions")!.searchParams.get("have")).toBe("egg");
+    expect(screen.getByText("✓ Minden megvan hozzá")).toBeTruthy();
+    expect(screen.getByText("Hiányzik: majonéz")).toBeTruthy();
+  });
+});
