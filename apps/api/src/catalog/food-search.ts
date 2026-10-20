@@ -473,7 +473,7 @@ export function rankFoodCandidates(candidates: any[], variants: readonly string[
       // transitive and can make sorting depend on input order).
       const identityKey = (food: typeof a) => isTrustedLocalMatch(food.match) ? food.match.query : normalizeSearch(food.originalName || food.name);
       const identityOrder = identityKey(a).localeCompare(identityKey(b));
-      return rank(b) - rank(a) || rankingPenalty(a, rankingQuery) - rankingPenalty(b, rankingQuery) || nutritionCompleteness(b) - nutritionCompleteness(a) || identityOrder || extraWords(a, rankingQuery) - extraWords(b, rankingQuery) || Number(b.source === "bls") - Number(a.source === "bls") || a.name.localeCompare(b.name) || a.id.localeCompare(b.id);
+      return rank(b) - rank(a) || rankingPenalty(a, rankingQuery) - rankingPenalty(b, rankingQuery) || nutritionCompleteness(b) - nutritionCompleteness(a) || identityOrder || Number(b.source === "bls") - Number(a.source === "bls") || extraWords(a, rankingQuery) - extraWords(b, rankingQuery) || a.name.localeCompare(b.name) || a.id.localeCompare(b.id);
     });
 }
 
