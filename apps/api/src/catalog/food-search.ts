@@ -299,9 +299,12 @@ function isQueryHeadedHyphenCompound(food: any, query: string) {
     .some(segment => normalizeSearch(segment).split(" ").at(-1) === query));
 }
 
+// A plain modifier names the basic food itself, not a special one
+// ("búzazsemle" is the ordinary roll, ticket 90f2d5).
+const PLAIN_PREFIX = /^(buza|feher|sima|natur|hagyomanyos|klasszikus)$/;
 function isModifierPrefixedCompound(food: any, query: string) {
   if (!query || query.includes(" ")) return false;
-  return foodNameRepresentations(food).some((name) => name.split(" ").some((token) => token !== query && token.endsWith(query)));
+  return foodNameRepresentations(food).some((name) => name.split(" ").some((token) => token !== query && token.endsWith(query) && !PLAIN_PREFIX.test(token.slice(0, -query.length))));
 }
 
 function rankingPenalty(food: any, query: string) {
@@ -318,6 +321,17 @@ function rankingPenalty(food: any, query: string) {
   const compound = !COMPOUND_FOOD.test(query) && !names.includes(query) && (menuComponent || names.some(name => COMPOUND_FOOD.test(name)) || isQueryHeadedHyphenCompound(food, query));
   const specializedCompound = isModifierPrefixedCompound(food, query);
   return (form ? 30 : 0) + (compound ? 40 : 0) + (specializedCompound ? 20 : 0);
+}
+
+// Ticket 90f2d5 (2026-10-20): many rolls share the reviewed alias "zsemle",
+// and the tie went to the alphabet ("Mehrkornbrötchen" before
+// "Weizenbrötchen"). On a tie, the food whose own name adds the fewest words
+// to the query comes first ("búzazsemle", not "magvas péksütemény (Kornspitz)").
+function extraWords(food: any, query: string) {
+  const asked = new Set(normalizeSearch(query).split(" ").filter(Boolean));
+  const counts = foodNameRepresentations(food).map((name) => name.split(" ").filter((token) => token && !asked.has(token)).length);
+  // Summed over its names (all locales), so one short German name alone does not decide.
+  return counts.length ? counts.reduce((sum, count) => sum + count, 0) : 99;
 }
 
 function nutritionCompleteness(food: any) {
@@ -459,7 +473,7 @@ export function rankFoodCandidates(candidates: any[], variants: readonly string[
       // transitive and can make sorting depend on input order).
       const identityKey = (food: typeof a) => isTrustedLocalMatch(food.match) ? food.match.query : normalizeSearch(food.originalName || food.name);
       const identityOrder = identityKey(a).localeCompare(identityKey(b));
-      return rank(b) - rank(a) || rankingPenalty(a, rankingQuery) - rankingPenalty(b, rankingQuery) || nutritionCompleteness(b) - nutritionCompleteness(a) || identityOrder || Number(b.source === "bls") - Number(a.source === "bls") || a.name.localeCompare(b.name) || a.id.localeCompare(b.id);
+      return rank(b) - rank(a) || rankingPenalty(a, rankingQuery) - rankingPenalty(b, rankingQuery) || nutritionCompleteness(b) - nutritionCompleteness(a) || identityOrder || extraWords(a, rankingQuery) - extraWords(b, rankingQuery) || Number(b.source === "bls") - Number(a.source === "bls") || a.name.localeCompare(b.name) || a.id.localeCompare(b.id);
     });
 }
 

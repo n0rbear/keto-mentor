@@ -54,7 +54,7 @@ export const dict = {
       inferred: "Szokásos összetevő – megerősítés szükséges", trusted: "Megbízható ételadathoz kapcsolva",
       unresolved: "A tápérték még nincs megbízható ételadathoz kapcsolva", needsDetail: "Pontosítás szükséges.",
       conversionMissing: "Az étel megvan, de ehhez a mértékhez nincs hiteles grammsúly. Add meg kézzel a grammot.",
-      review: "Nem találtam elég biztos egyezést. Keress rá kézzel, vagy próbáld pontosabban megadni az ételt.", verified: "ellenőrzött", estimated: "becsült", logAll: "Összes naplózása",
+      review: "Nem találtam elég biztos egyezést. Keress rá kézzel, vagy próbáld pontosabban megadni az ételt.", verified: "ellenőrzött", estimated: "becsült", logAll: "Összes naplózása", pendingItems: "Naplózás előtt még döntés kell ezeknél",
       candidatesHeading: "Ezeket találtam — válaszd ki a megfelelőt.", candidateSelect: "Ez az",
       preparationValues: {
         scrambled: "rántotta", fried: "sült", boiled: "főtt", roasted: "sült/pirított", steamed: "párolt",
@@ -288,7 +288,7 @@ export const dict = {
       inferred: "Übliche Zutat – Bestätigung erforderlich", trusted: "Mit verlässlichen Lebensmitteldaten verknüpft",
       unresolved: "Nährwerte noch nicht mit verlässlichen Lebensmitteldaten verknüpft", needsDetail: "Präzisierung erforderlich.",
       conversionMissing: "Lebensmittel gefunden, aber kein verlässliches Grammgewicht. Bitte Gramm eingeben.",
-      review: "Keine ausreichend sichere Übereinstimmung gefunden. Bitte manuell suchen oder das Lebensmittel genauer angeben.", verified: "geprüft", estimated: "geschätzt", logAll: "Alle eintragen",
+      review: "Keine ausreichend sichere Übereinstimmung gefunden. Bitte manuell suchen oder das Lebensmittel genauer angeben.", verified: "geprüft", estimated: "geschätzt", logAll: "Alle eintragen", pendingItems: "Vor dem Eintragen fehlt noch eine Entscheidung bei",
       candidatesHeading: "Das habe ich gefunden — bitte das richtige auswählen.", candidateSelect: "Das ist es",
       unitValues: {
         piece: "Stück", slice: "Scheibe", portion: "Portion", plate: "Teller", bowl: "Schüssel", ladle: "Kelle",
@@ -522,7 +522,7 @@ export const dict = {
       inferred: "Common ingredient – confirmation required", trusted: "Linked to trusted food data",
       unresolved: "Nutrition is not yet linked to trusted food data", needsDetail: "Clarification needed.",
       conversionMissing: "Food found, but no reliable gram conversion exists. Enter grams manually.",
-      review: "No confident match was found. Search manually, or try describing the food more precisely.", verified: "verified", estimated: "estimated", logAll: "Log all",
+      review: "No confident match was found. Search manually, or try describing the food more precisely.", verified: "verified", estimated: "estimated", logAll: "Log all", pendingItems: "Before logging, still to decide",
       candidatesHeading: "Here's what I found — pick the right one.", candidateSelect: "This one",
       unitValues: {
         piece: "piece", slice: "slice", portion: "portion", plate: "plate", bowl: "bowl", ladle: "ladle",

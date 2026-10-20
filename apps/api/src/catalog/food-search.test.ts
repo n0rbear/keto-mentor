@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { PrismaClient } from "@prisma/client";
-import { expandFoodQuery, hasIdentityCoverage, hasSemanticCoverage, isTrustedLocalMatch, localFormMismatch, searchFoods } from "./food-search.js";
+import { expandFoodQuery, hasIdentityCoverage, hasSemanticCoverage, isTrustedLocalMatch, localFormMismatch, rankFoodCandidates, searchFoods } from "./food-search.js";
 import { normalizeSearch } from "./normalize.js";
 
 const records = [
@@ -408,5 +408,18 @@ describe("localFormMismatch: a stale local cache must not permanently outrank re
     // it is external-food.test.ts's semantic-gate responsibility, not this
     // cheap textual heuristic's.
     expect(localFormMismatch("Bread, potato", { rawIngredient: "500 g krumpli" }, dynamicSearchAlias)).toBe(false);
+  });
+});
+
+describe("ticket 90f2d5: a tie on a shared alias", () => {
+  it("puts the plain roll before the specialised ones", () => {
+    const roll = (id: string, name: string, hu: string, en: string) => ({ id, name, originalName: name, names: { hu, de: name, en }, source: "bls", sourceId: id, kcalPer100g: 280, proteinPer100g: 10, fatPer100g: 2, carbsPer100g: 57 });
+    const foods = [
+      roll("B1", "Mehrkornbrötchen", "magvas péksütemény (Kornspitz)", "multigrain roll"),
+      roll("B2", "Weizenbrötchen mit Kümmel und Salz", "sós-köményes zsemle (Salzstangerl)", "wheat roll with salt and caraway"),
+      roll("B3", "Weizenbrötchen", "búzazsemle", "white wheat roll")
+    ];
+    const aliases = new Map(foods.map((f) => [f.id, [{ alias: "zsemle", normalizedAlias: "zsemle", kind: "reviewed", confidence: 1, locale: "hu" }]])) as any;
+    expect(rankFoodCandidates(foods, ["zsemle"], aliases, new Set(), "zsemle")[0].id).toBe("B3");
   });
 });
