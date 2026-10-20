@@ -421,5 +421,9 @@ describe("ticket 90f2d5: a tie on a shared alias", () => {
     ];
     const aliases = new Map(foods.map((f) => [f.id, [{ alias: "zsemle", normalizedAlias: "zsemle", kind: "reviewed", confidence: 1, locale: "hu" }]])) as any;
     expect(rankFoodCandidates(foods, ["zsemle"], aliases, new Set(), "zsemle")[0].id).toBe("B3");
+    // A baguette roll ties on words too; the plain roll has the piece weight.
+    const withBaguette = [roll("B0", "Weizenbaguettebrötchen", "bagett zsemle", "baguette roll"), ...foods.map((f) => (f.id === "B3" ? { ...f, servings: [{ key: "piece_at", grams: 62.5 }] } : f))];
+    const aliases2 = new Map(withBaguette.map((f) => [f.id, [{ alias: "zsemle", normalizedAlias: "zsemle", kind: "reviewed", confidence: 1, locale: "hu" }]])) as any;
+    expect(rankFoodCandidates(withBaguette, ["zsemle"], aliases2, new Set(), "zsemle")[0].id).toBe("B3");
   });
 });

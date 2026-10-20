@@ -334,6 +334,10 @@ function extraWords(food: any, query: string) {
   return counts.length ? counts.reduce((sum, count) => sum + count, 0) : 99;
 }
 
+// On a tie, a food with a reviewed unit weight (a roll's piece weight) is the
+// everyday one the catalog was curated for (ticket 90f2d5: "2 zsemle").
+const hasUnitWeight = (food: any) => (Array.isArray(food.servings) && food.servings.length ? 1 : 0);
+
 function nutritionCompleteness(food: any) {
   return [food.kcalPer100g, food.proteinPer100g, food.fatPer100g, food.carbsPer100g]
     .filter(value => value != null && Number.isFinite(Number(value))).length;
@@ -473,7 +477,7 @@ export function rankFoodCandidates(candidates: any[], variants: readonly string[
       // transitive and can make sorting depend on input order).
       const identityKey = (food: typeof a) => isTrustedLocalMatch(food.match) ? food.match.query : normalizeSearch(food.originalName || food.name);
       const identityOrder = identityKey(a).localeCompare(identityKey(b));
-      return rank(b) - rank(a) || rankingPenalty(a, rankingQuery) - rankingPenalty(b, rankingQuery) || nutritionCompleteness(b) - nutritionCompleteness(a) || identityOrder || Number(b.source === "bls") - Number(a.source === "bls") || extraWords(a, rankingQuery) - extraWords(b, rankingQuery) || a.name.localeCompare(b.name) || a.id.localeCompare(b.id);
+      return rank(b) - rank(a) || rankingPenalty(a, rankingQuery) - rankingPenalty(b, rankingQuery) || nutritionCompleteness(b) - nutritionCompleteness(a) || identityOrder || Number(b.source === "bls") - Number(a.source === "bls") || hasUnitWeight(b) - hasUnitWeight(a) || extraWords(a, rankingQuery) - extraWords(b, rankingQuery) || a.name.localeCompare(b.name) || a.id.localeCompare(b.id);
     });
 }
 
