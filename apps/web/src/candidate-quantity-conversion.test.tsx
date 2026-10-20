@@ -41,3 +41,40 @@ describe("picking another candidate keeps the stated amount (\"2 pár virsli\")"
     await waitFor(() => expect((screen.getByLabelText(/Quantity/i) as HTMLInputElement).value).toBe("238"));
   });
 });
+
+describe("ticket 5732ac: \"6 tojás, 2 szelet jagdwurst, 2 szelet gouda\"", () => {
+  it("logs an item converted with a typical slice weight instead of doing nothing", async () => {
+    const egg = { ...wiener, id: "bls-egg", name: "Scrambled egg", names: { en: "Scrambled egg" }, sourceId: "E1" };
+    const jagd = { ...wiener, id: "bls-W254000", name: "Jagdwurst/Schinkenwurst grob", names: { en: "Jagdwurst" }, sourceId: "W254000" };
+    const meals: any[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = new URL(String(input));
+      if (url.pathname === "/me") return new Response(JSON.stringify({ user }));
+      if (url.pathname === "/meals/week") return new Response(JSON.stringify({ weekStart: "2026-10-19", weekEnd: "2026-10-25", days: [], summary: { mealCount: 0, loggedDays: 0 } }));
+      if (url.pathname === "/meals/today") return new Response(JSON.stringify({ date: "2026-10-20", meals: [], totals: emptyTotals }));
+      if (url.pathname === "/meal-input/interpret") return new Response(JSON.stringify({
+        input: "6 tojás, 2 szelet jagdwurst", parsed: { foodQuery: "6 tojás, 2 szelet jagdwurst" }, foodResolution: "multi", canConfirm: false, confidence: 0.9, interpretationSource: "ai_assisted",
+        items: [
+          { input: "6 tojás", parsed: { quantity: 6, unit: "piece", foodQuery: "tojás" }, foodResolution: "resolved", selectedFood: egg, candidates: [egg], canConfirm: true, confidence: 0.9, interpretationSource: "ai_assisted", nutritionEligible: true,
+            quantity: { status: "resolved", grams: 300, servingId: "s-egg", estimated: false, requiresConfirmation: false } },
+          { input: "2 szelet jagdwurst", parsed: { quantity: 2, unit: "slice", foodQuery: "jagdwurst" }, foodResolution: "confirmation_required", selectedFood: null, candidates: [jagd], canConfirm: false, confidence: 0.4, interpretationSource: "ai_assisted", nutritionEligible: false, quantity: null }
+        ]
+      }));
+      if (url.pathname === "/meal-input/quantity") return new Response(JSON.stringify({ quantity: { status: "resolved", grams: 30, gramsPerUnit: 15, method: "curated", estimated: true, requiresConfirmation: false } }));
+      if (url.pathname === "/meals" && init?.method === "POST") { meals.push(JSON.parse(String(init.body))); return new Response(JSON.stringify({ meal: {} }), { status: 201 }); }
+      return new Response(JSON.stringify({ error: "not_found" }), { status: 404 });
+    }));
+    render(<App/>);
+    const input = await screen.findByPlaceholderText("For example: 5 eggs");
+    fireEvent.change(input, { target: { value: "6 tojás, 2 szelet jagdwurst" } });
+    fireEvent.click(screen.getByText("Interpret"));
+    fireEvent.click(await screen.findByText("This one"));
+    await waitFor(() => expect((screen.getByText("Log all") as HTMLButtonElement).disabled).toBe(false));
+    fireEvent.click(screen.getByText("Log all"));
+    await waitFor(() => expect(meals).toHaveLength(1));
+    expect(meals[0].items).toEqual([
+      { foodId: "bls-egg", quantity: 6, unit: "serving", servingId: "s-egg" },
+      { foodId: "bls-W254000", quantity: 30, unit: "g", quantityConfirmation: { method: "estimated", accepted: true, grams: 30 } }
+    ]);
+  });
+});
