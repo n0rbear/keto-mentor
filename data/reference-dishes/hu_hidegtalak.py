@@ -78,7 +78,7 @@ PARTS = {
         cooking=dict(method="assembled, no cooking", mass_change_g=0, note="the eggs are already boiled"),
         flat_plate=dict(coverage=0.45, height_cm=3.0),
         sources=[src("https://www.rewe.de/rezepte/eiersalat-radieschen-kresse/", R, "hart gekochte Eier, Mayonnaise, Senf, Radieschen"),
-                 src("https://www.lidl-kochen.de/print/brot-mit-petersilien-eiersalat-23734", R, "Eier, Senf, Mayonnaise, Radieschen und Gurke zum Abendbrot")]),
+                 src("https://www.lecker.de/eier-radieschen-salat-131060.html", R, "Eier-Radieschen-Salat: gekochte Eier, Radieschen, Mayonnaise-Dressing")]),
     "ujhagymas_turokrem": dict(
         names={"hu": "Újhagymás túrókrém retekkel, paprikával", "de": "Quark mit Frühlingszwiebeln, Radieschen und Paprika", "en": "Quark with spring onion, radish and pepper"},
         matrix="dry", bulk_density_g_ml=0.8, servings_source=1, standard_serving_g=340,

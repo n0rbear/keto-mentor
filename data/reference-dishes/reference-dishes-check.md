@@ -176,6 +176,137 @@
 | Főtt tojás majonézzel és retekkel | 240 | +0 | 240 | 1.0 | 0.6 | 169.3 | 14.3 | 8.8 | 1.1 | – |
 | Újhagymás túrókrém retekkel, paprikával | 340 | +0 | 340 | 1.0 | 0.8 | 88.0 | 5.0 | 6.3 | 3.8 | – |
 | Sonkatekercs mozzarellával és paradicsommal | 330 | +0 | 330 | 1.0 | 0.6 | 149.8 | 9.7 | 13.6 | 1.2 | – |
+| Sonkás-sajtos szendvics kenyér nélkül, salátalevélbe tekerve | 225 | +0 | 225 | 1.0 | 0.6 | 141.0 | 8.6 | 13.6 | 1.4 | – |
+| Sonkával és sajttal töltött paprikatekercs | 280 | +0 | 280 | 1.0 | 0.6 | 118.0 | 5.9 | 11.5 | 3.5 | – |
+| Krémsajtos sonkatekercs | 243 | +0 | 243 | 1.0 | 0.6 | 121.3 | 7.3 | 11.3 | 1.9 | – |
+| Sonkával töltött uborkatekercs | 320 | +0 | 320 | 1.0 | 0.6 | 74.0 | 4.0 | 7.1 | 1.9 | – |
+| Szalámi sajttal és mustárral | 230 | +0 | 230 | 1.0 | 0.6 | 208.2 | 16.7 | 12.7 | 1.0 | – |
+| Pulykasonka sajtkockákkal és friss zöldségekkel | 370 | +0 | 370 | 1.0 | 0.6 | 94.3 | 4.5 | 10.5 | 2.3 | – |
+| Sonkatekercs tojáskrémmel töltve | 203 | +0 | 203 | 1.0 | 0.6 | 176.3 | 12.1 | 15.6 | 0.7 | – |
+| Szalámitekercs natúr krémsajttal | 220 | +0 | 220 | 1.0 | 0.6 | 178.0 | 14.9 | 8.7 | 1.9 | – |
+| Hideg sült csirkemell majonézes uborkával | 340 | +0 | 340 | 1.0 | 0.6 | 123.0 | 6.6 | 14.3 | 1.3 | – |
+| Hideg sült csirkemell avokádókrémmel | 317 | +0 | 317 | 1.0 | 0.6 | 111.6 | 4.7 | 15.2 | 1.2 | – |
+| Pulykasonkás salátatekercs | 280 | +0 | 280 | 1.0 | 0.6 | 76.4 | 3.2 | 9.4 | 2.3 | – |
+| Serrano sonka mozzarellával | 310 | +0 | 310 | 1.0 | 0.6 | 154.1 | 10.5 | 12.9 | 1.1 | – |
+| Pármai sonka parmezánnal és rukkolával | 200 | +0 | 200 | 1.0 | 0.6 | 206.5 | 15.8 | 14.4 | 1.0 | – |
+| Mortadella sajttal és olívabogyóval | 240 | +0 | 240 | 1.0 | 0.6 | 189.8 | 16.2 | 9.6 | 0.7 | – |
+| Hideg marhasült mustárral és friss salátával | 350 | +0 | 350 | 1.0 | 0.6 | 115.6 | 6.3 | 13.1 | 1.3 | – |
+| Hideg sertéssült tormás krémsajttal | 310 | +0 | 310 | 1.0 | 0.6 | 153.0 | 10.3 | 12.9 | 1.7 | – |
+| Sonkás-avokádós saláta | 320 | +0 | 320 | 1.0 | 0.6 | 103.2 | 6.7 | 7.9 | 1.6 | – |
+| Csirkés cézársaláta hideg hússal | 288 | +0 | 288 | 1.0 | 0.6 | 153.0 | 8.0 | 19.1 | 0.9 | – |
+| Currys csirkesaláta majonézzel | 260 | +0 | 260 | 1.0 | 0.6 | 155.3 | 8.3 | 18.6 | 1.1 | – |
+| Sonkás tojássaláta | 248 | +0 | 248 | 1.0 | 0.6 | 152.8 | 11.3 | 11.3 | 1.1 | – |
+| Felvágottas káposztasaláta | 270 | +0 | 270 | 1.0 | 0.6 | 134.6 | 10.6 | 5.6 | 3.1 | – |
+| Sajtos-szalámis salátatekercs | 240 | +0 | 240 | 1.0 | 0.6 | 148.4 | 11.0 | 9.7 | 2.2 | – |
+| Hideg hússzeletek fűszeres túrókrémmel | 295 | +0 | 295 | 1.0 | 0.6 | 150.5 | 8.9 | 14.0 | 3.0 | – |
+| Klasszikus tojáskrém zöldséggel | 350 | +0 | 350 | 1.0 | 0.6 | 111.9 | 8.6 | 6.4 | 2.1 | – |
+| Mustáros tojáskrém | 295 | +0 | 295 | 1.0 | 0.6 | 127.6 | 10.0 | 7.6 | 1.4 | – |
+| Tojáskrém friss paprikába töltve | 285 | +0 | 285 | 1.0 | 0.6 | 117.9 | 8.6 | 5.5 | 3.8 | – |
+| Tojással töltött avokádó | 257 | +0 | 257 | 1.0 | 0.6 | 154.3 | 13.5 | 6.0 | 1.1 | – |
+| Sonkás tojáskrém | 290 | +0 | 290 | 1.0 | 0.6 | 115.6 | 7.8 | 9.8 | 1.3 | – |
+| Sajtos tojáskrém | 250 | +0 | 250 | 1.0 | 0.6 | 177.3 | 13.9 | 9.9 | 2.6 | – |
+| Fokhagymás tojáskrém | 294 | +0 | 294 | 1.0 | 0.6 | 120.8 | 9.3 | 7.5 | 1.5 | – |
+| Metélőhagymás tojáskrém | 263 | +0 | 263 | 1.0 | 0.6 | 121.7 | 8.9 | 8.8 | 1.5 | – |
+| Tojáskrémes uborkahajók | 371 | +0 | 371 | 1.0 | 0.6 | 79.7 | 6.0 | 4.4 | 1.6 | – |
+| Kaszinótojás egyszerűen | 215 | +0 | 215 | 1.0 | 0.6 | 203.2 | 17.8 | 9.7 | 0.8 | – |
+| Főtt tojás majonézzel és mustárral | 285 | +0 | 285 | 1.0 | 0.6 | 147.9 | 12.2 | 7.7 | 1.4 | – |
+| Főtt tojás avokádóval és paradicsommal | 305 | +0 | 305 | 1.0 | 0.6 | 109.5 | 8.7 | 5.1 | 1.6 | – |
+| Tojásos tonhalkrém | 265 | +0 | 265 | 1.0 | 0.6 | 136.7 | 8.4 | 14.0 | 0.9 | – |
+| Tojásos fetasaláta | 350 | +0 | 350 | 1.0 | 0.6 | 122.5 | 9.6 | 7.0 | 1.4 | – |
+| Tojásos mozzarellasaláta | 350 | +0 | 350 | 1.0 | 0.6 | 151.0 | 11.5 | 10.3 | 1.0 | – |
+| Tojásos csirkesaláta | 330 | +0 | 330 | 1.0 | 0.6 | 130.4 | 7.8 | 13.9 | 1.0 | – |
+| Tojással töltött sonkatekercs | 223 | +0 | 223 | 1.0 | 0.6 | 141.8 | 7.8 | 16.6 | 0.8 | – |
+| Főtt tojás fűszeres túrókrémmel | 292 | +0 | 292 | 1.0 | 0.6 | 107.6 | 6.2 | 9.3 | 3.1 | – |
+| Tojásos olívabogyó-saláta | 350 | +0 | 350 | 1.0 | 0.6 | 91.0 | 7.2 | 4.5 | 1.5 | – |
+| Tojáskrém salátalevélbe töltve | 195 | +0 | 195 | 1.0 | 0.6 | 149.0 | 12.4 | 7.5 | 1.9 | – |
+| Tojásos sajtsaláta | 240 | +0 | 240 | 1.0 | 0.6 | 211.8 | 17.3 | 12.8 | 0.9 | – |
+| Főtt tojás sonkával és krémsajttal | 300 | +0 | 300 | 1.0 | 0.6 | 117.5 | 7.1 | 11.6 | 1.3 | – |
+| Tojásos zöldségsaláta tejfölös öntettel | 380 | +0 | 380 | 1.0 | 0.6 | 67.4 | 4.4 | 4.5 | 2.1 | – |
+| Feta uborkával és olívabogyóval | 290 | +0 | 290 | 1.0 | 0.6 | 151.7 | 13.4 | 6.0 | 1.0 | – |
+| Gouda sajtos-zöldséges saláta | 360 | +0 | 360 | 1.0 | 0.6 | 125.6 | 9.9 | 5.8 | 2.3 | – |
+| Camembert dióval és uborkával | 295 | +0 | 295 | 1.0 | 0.6 | 165.9 | 13.3 | 9.9 | 1.2 | – |
+| Brie sajttál rukkolával és paradicsommal | 250 | +0 | 250 | 1.0 | 0.6 | 153.7 | 12.0 | 9.4 | 1.3 | – |
+| Kecskesajtos saláta | 255 | +0 | 255 | 1.0 | 0.6 | 178.3 | 14.6 | 8.7 | 2.1 | – |
+| Parmezános rukkolasaláta | 215 | +0 | 215 | 1.0 | 0.6 | 151.6 | 12.2 | 8.1 | 1.5 | – |
+| Sajtos-sonkás salátatekercs | 260 | +0 | 260 | 1.0 | 0.6 | 138.2 | 9.0 | 12.2 | 1.8 | – |
+| Krémsajttal töltött kaliforniai paprika | 233 | +0 | 233 | 1.0 | 0.6 | 110.1 | 8.1 | 3.0 | 5.3 | – |
+| Krémsajtos uborkahajók | 363 | +0 | 363 | 1.0 | 0.6 | 68.3 | 5.3 | 2.3 | 2.4 | – |
+| Fűszeres krémsajt zöldséghasábokkal | 324 | +0 | 324 | 1.0 | 0.6 | 80.3 | 5.9 | 2.5 | 3.4 | – |
+| Feta-avokádókrém | 287 | +0 | 287 | 1.0 | 0.6 | 121.2 | 10.3 | 4.3 | 1.4 | – |
+| Mozzarella olívaolajjal és bazsalikommal | 223 | +0 | 223 | 1.0 | 0.6 | 220.8 | 18.6 | 11.8 | 0.9 | – |
+| Kéksajt dióval és zellerszárral | 210 | +0 | 210 | 1.0 | 0.6 | 188.0 | 16.1 | 8.4 | 1.1 | – |
+| Sajtkockák olívabogyóval és szalámival | 230 | +0 | 230 | 1.0 | 0.6 | 210.1 | 17.6 | 11.5 | 0.7 | – |
+| Körözött friss paprikával | 309 | +0 | 309 | 1.0 | 0.6 | 119.3 | 8.0 | 6.7 | 4.4 | – |
+| Túrókrémes sajtos saláta | 340 | +0 | 340 | 1.0 | 0.6 | 94.2 | 5.8 | 7.4 | 2.4 | – |
+| Krémsajtos retekfalatok | 303 | +0 | 303 | 1.0 | 0.6 | 71.6 | 5.5 | 2.4 | 2.5 | – |
+| Sajtos avokádósaláta | 300 | +0 | 300 | 1.0 | 0.6 | 138.8 | 11.6 | 5.6 | 1.8 | – |
+| Mozzarellás-sonkás saláta | 350 | +0 | 350 | 1.0 | 0.6 | 143.2 | 9.8 | 11.7 | 1.2 | – |
+| Kétféle sajtból készült zöldfűszeres sajtsaláta | 308 | +0 | 308 | 1.0 | 0.6 | 152.0 | 12.4 | 6.9 | 2.2 | – |
+| Fokhagymás túrókrém uborkával | 334 | +0 | 334 | 1.0 | 0.6 | 75.1 | 4.0 | 6.3 | 2.8 | – |
+| Metélőhagymás túrókrém retekkel | 288 | +0 | 288 | 1.0 | 0.6 | 84.4 | 4.6 | 7.1 | 3.0 | – |
+| Kapros túrókrém kígyóuborkával | 330 | +0 | 330 | 1.0 | 0.6 | 74.8 | 4.0 | 6.3 | 2.8 | – |
+| Csípős körözött kaliforniai paprikával | 308 | +0 | 308 | 1.0 | 0.6 | 107.3 | 6.6 | 6.6 | 4.4 | – |
+| Fetás túrókrém olívabogyóval | 295 | +0 | 295 | 1.0 | 0.6 | 114.9 | 8.3 | 7.4 | 2.0 | – |
+| Mustáros túrókrém sonkával | 285 | +0 | 285 | 1.0 | 0.6 | 93.6 | 4.1 | 11.3 | 2.2 | – |
+| Tojásos túrókrém | 298 | +0 | 298 | 1.0 | 0.6 | 101.9 | 5.7 | 9.0 | 3.1 | – |
+| Zöldfűszeres túrókrém salátalevéllel | 330 | +0 | 330 | 1.0 | 0.6 | 75.8 | 4.1 | 6.5 | 2.7 | – |
+| Paprikába töltött körözött | 298 | +0 | 298 | 1.0 | 0.6 | 102.7 | 6.4 | 5.7 | 4.7 | – |
+| Uborkába töltött túrókrém | 396 | +0 | 396 | 1.0 | 0.6 | 53.9 | 2.6 | 4.6 | 2.5 | – |
+| Túrókrémes sonkatekercs | 278 | +0 | 278 | 1.0 | 0.6 | 93.7 | 3.8 | 12.1 | 2.0 | – |
+| Diós túrókrém zellerszárral | 280 | +0 | 280 | 1.0 | 0.6 | 119.7 | 8.6 | 7.1 | 2.6 | – |
+| Olívás krémsajt uborkával | 300 | +0 | 300 | 1.0 | 0.6 | 83.5 | 7.0 | 2.3 | 2.2 | – |
+| Fokhagymás tejfölös mártogatós zöldségekkel | 344 | +0 | 344 | 1.0 | 0.6 | 73.1 | 5.4 | 1.7 | 3.9 | – |
+| Tzatziki zöldséghasábokkal | 379 | +0 | 379 | 1.0 | 0.6 | 74.4 | 5.4 | 2.0 | 3.6 | – |
+| Guacamole friss paprikával és uborkával | 417 | +0 | 417 | 1.0 | 0.6 | 61.6 | 4.3 | 1.2 | 3.2 | – |
+| Avokádókrém főtt tojással | 307 | +0 | 307 | 1.0 | 0.6 | 109.5 | 8.7 | 5.1 | 1.5 | – |
+| Fűszeres krémsajt sonkaszeletekkel | 236 | +0 | 236 | 1.0 | 0.6 | 136.3 | 8.6 | 11.9 | 2.0 | – |
+| Körözött sajtkockákkal és retekkel | 252 | +0 | 252 | 1.0 | 0.6 | 156.6 | 11.7 | 9.8 | 2.3 | – |
+| Tonhalkrém majonézzel | 315 | +0 | 315 | 1.0 | 0.6 | 96.7 | 5.7 | 8.0 | 2.2 | – |
+| Tonhalkrém főtt tojással | 330 | +0 | 330 | 1.0 | 0.6 | 111.9 | 6.7 | 11.4 | 1.0 | – |
+| Tonhalas avokádósaláta | 330 | +0 | 330 | 1.0 | 0.6 | 93.3 | 5.7 | 7.7 | 1.5 | – |
+| Tonhalas uborkasaláta | 365 | +0 | 365 | 1.0 | 0.6 | 67.4 | 3.3 | 7.1 | 1.7 | – |
+| Tonhalas fetasaláta | 340 | +0 | 340 | 1.0 | 0.6 | 111.9 | 7.7 | 8.4 | 1.3 | – |
+| Tonhalas salátalevél-tekercs | 305 | +0 | 305 | 1.0 | 0.6 | 81.9 | 4.4 | 8.1 | 1.7 | – |
+| Tonhalas krémsajt uborkával | 303 | +0 | 303 | 1.0 | 0.6 | 79.5 | 4.3 | 7.9 | 1.6 | – |
+| Tonhalas olívabogyó-saláta | 315 | +0 | 315 | 1.0 | 0.6 | 90.5 | 5.5 | 7.9 | 1.3 | – |
+| Szardínia friss paradicsommal | 273 | +0 | 273 | 1.0 | 0.6 | 112.1 | 7.0 | 9.4 | 2.1 | – |
+| Szardíniás tojássaláta | 300 | +0 | 300 | 1.0 | 0.6 | 135.4 | 9.5 | 11.3 | 0.9 | – |
+| Füstölt makréla uborkával és retekkel | 350 | +0 | 350 | 1.0 | 0.6 | 118.6 | 9.5 | 6.3 | 1.7 | – |
+| Füstölt pisztráng tormás krémsajttal | 310 | +0 | 310 | 1.0 | 0.6 | 95.7 | 5.2 | 9.8 | 1.7 | – |
+| Füstölt lazac krémsajttal és kaporral | 260 | +0 | 260 | 1.0 | 0.6 | 120.8 | 8.1 | 9.9 | 1.7 | – |
+| Lazacos tojássaláta | 273 | +0 | 273 | 1.0 | 0.6 | 144.7 | 10.3 | 11.6 | 1.1 | – |
+| Füstölt lazacos avokádósaláta | 280 | +0 | 280 | 1.0 | 0.6 | 117.8 | 9.0 | 7.2 | 1.1 | – |
+| Halkrémes uborkahajók | 378 | +0 | 378 | 1.0 | 0.6 | 67.5 | 3.8 | 6.0 | 1.9 | – |
+| Makrélakrém salátalevélben | 225 | +0 | 225 | 1.0 | 0.6 | 206.8 | 17.7 | 9.8 | 2.3 | – |
+| Tonhalas mozzarellasaláta | 352 | +0 | 352 | 1.0 | 0.6 | 137.5 | 9.2 | 11.9 | 1.0 | – |
+| Paradicsomos-uborkás fetasaláta | 405 | +0 | 405 | 1.0 | 0.6 | 93.6 | 7.3 | 3.9 | 2.2 | – |
+| Avokádós paradicsomsaláta | 315 | +0 | 315 | 1.0 | 0.6 | 85.4 | 7.2 | 1.1 | 2.5 | – |
+| Jégsaláta sajttal és tojással | 360 | +0 | 360 | 1.0 | 0.6 | 113.7 | 8.4 | 7.5 | 2.0 | – |
+| Zellerszár krémsajttal töltve | 290 | +0 | 290 | 1.0 | 0.6 | 106.1 | 8.9 | 3.2 | 2.2 | – |
+| Avokádókrémes zöldségtál | 487 | +0 | 487 | 1.0 | 0.6 | 60.9 | 4.3 | 1.3 | 2.9 | – |
+| Feta olívabogyóval és paradicsommal | 300 | +0 | 300 | 1.0 | 0.6 | 154.3 | 13.4 | 5.8 | 1.6 | – |
+| Káposztasaláta majonézzel | 260 | +0 | 260 | 1.0 | 0.6 | 119.4 | 10.0 | 1.6 | 4.4 | – |
+| Tojásos céklasaláta előfőzött céklából | 245 | +0 | 245 | 1.0 | 0.6 | 105.5 | 6.0 | 6.6 | 5.8 | – |
+| Retek-uborka saláta túrókrémmel | 393 | +0 | 393 | 1.0 | 0.6 | 54.3 | 2.6 | 4.6 | 2.6 | – |
+| Vegyes leveles saláta tojással és olívaolajjal | 300 | +0 | 300 | 1.0 | 0.6 | 102.2 | 8.1 | 5.4 | 1.3 | – |
+| Uborkás-avokádósaláta | 305 | +0 | 305 | 1.0 | 0.6 | 73.7 | 6.2 | 1.3 | 2.1 | – |
+| Paradicsomos tonhalsaláta | 348 | +0 | 348 | 1.0 | 0.6 | 71.3 | 3.3 | 7.2 | 2.2 | – |
+| Zöldséghasábok fokhagymás krémsajttal | 383 | +0 | 383 | 1.0 | 0.6 | 65.4 | 4.4 | 2.1 | 3.4 | – |
+| Olívás mediterrán saláta | 405 | +0 | 405 | 1.0 | 0.6 | 91.5 | 7.4 | 2.8 | 2.5 | – |
+| Sonkás-tojásos avokádótál | 340 | +0 | 340 | 1.0 | 0.6 | 113.0 | 7.2 | 9.7 | 1.3 | – |
+| Szalámis-fetás saláta | 315 | +0 | 315 | 1.0 | 0.6 | 139.8 | 11.2 | 7.5 | 1.5 | – |
+| Pulykasonka körözöttel és paprikával | 352 | +0 | 352 | 1.0 | 0.6 | 93.7 | 4.1 | 9.9 | 3.6 | – |
+| Mozzarellás tojáskrém salátával | 325 | +0 | 325 | 1.0 | 0.6 | 129.8 | 10.0 | 7.9 | 1.5 | – |
+| Tonhalkrémes paprikafelek | 350 | +0 | 350 | 1.0 | 0.6 | 90.3 | 4.7 | 6.7 | 4.1 | – |
+| Sonkával töltött sajtos tekercsek | 240 | +0 | 240 | 1.0 | 0.6 | 185.2 | 13.5 | 14.0 | 1.1 | – |
+| Csirkés-avokádós tojássaláta | 335 | +0 | 335 | 1.0 | 0.6 | 122.1 | 6.8 | 13.8 | 0.9 | – |
+| Serrano sonka fetával és uborkával | 295 | +0 | 295 | 1.0 | 0.6 | 128.5 | 8.7 | 10.6 | 1.0 | – |
+| Krémsajtos salátatekercs sonkával és tojással | 310 | +0 | 310 | 1.0 | 0.6 | 106.6 | 6.7 | 9.8 | 1.7 | – |
+| Tojásos-fetás avokádókrém | 355 | +0 | 355 | 1.0 | 0.6 | 126.6 | 10.2 | 6.6 | 1.1 | – |
+| Hideg sült hús mustáros uborkasalátával | 320 | +0 | 320 | 1.0 | 0.6 | 129.1 | 8.5 | 11.2 | 1.7 | – |
+| Szalámis tojáskrém zöldséghasábokkal | 345 | +0 | 345 | 1.0 | 0.6 | 125.6 | 9.4 | 7.3 | 2.4 | – |
+| Mediterrán tonhalas-avokádósaláta | 325 | +0 | 325 | 1.0 | 0.6 | 97.9 | 6.6 | 6.6 | 1.5 | – |
+| Vegyes hidegvacsora felvágottal, sajttal, tojással és friss zöldségekkel | 370 | +0 | 370 | 1.0 | 0.6 | 100.6 | 6.9 | 6.9 | 2.1 | – |
 | Sült sertéslapocka (Schweinsbraten) | 1856 | -550 | 1306 | 0.704 | 1.055 | 252.7 | 19.6 | 16.7 | 0.8 | – |
 | Bécsi szelet (borjú) | 821 | -160 | 661 | 0.805 | 0.8 | 195.5 | 8.0 | 22.7 | 8.0 | – |
 | Bécsi szelet (sertéscombból) | 641 | -125 | 516 | 0.805 | 0.8 | 220.4 | 9.7 | 24.9 | 8.0 | – |
@@ -606,6 +737,137 @@ kivéve ha az ételnél `reference_check.deviation` (átnézett receptkülönbs�
 | főtt tojás majonézzel és retekkel | nincs még | – | – | – | – | – | – |
 | újhagymás túrókrém zöldségekkel | nincs még | – | – | – | – | – | – |
 | sonkatekercs mozzarellával | nincs még | – | – | – | – | – | – |
+| sonkás-sajtos szendvics kenyér nélkül, salátalevélbe tekerve | nincs még | – | – | – | – | – | – |
+| sonkával és sajttal töltött paprikatekercs | nincs még | – | – | – | – | – | – |
+| krémsajtos sonkatekercs | nincs még | – | – | – | – | – | – |
+| sonkával töltött uborkatekercs | nincs még | – | – | – | – | – | – |
+| szalámi sajttal és mustárral | nincs még | – | – | – | – | – | – |
+| pulykasonka sajtkockákkal és friss zöldségekkel | nincs még | – | – | – | – | – | – |
+| sonkatekercs tojáskrémmel töltve | nincs még | – | – | – | – | – | – |
+| szalámitekercs natúr krémsajttal | nincs még | – | – | – | – | – | – |
+| hideg sült csirkemell majonézes uborkával | nincs még | – | – | – | – | – | – |
+| hideg sült csirkemell avokádókrémmel | nincs még | – | – | – | – | – | – |
+| pulykasonkás salátatekercs | nincs még | – | – | – | – | – | – |
+| serrano sonka mozzarellával | nincs még | – | – | – | – | – | – |
+| pármai sonka parmezánnal és rukkolával | nincs még | – | – | – | – | – | – |
+| mortadella sajttal és olívabogyóval | nincs még | – | – | – | – | – | – |
+| hideg marhasült mustárral és friss salátával | nincs még | – | – | – | – | – | – |
+| hideg sertéssült tormás krémsajttal | nincs még | – | – | – | – | – | – |
+| sonkás-avokádós saláta | nincs még | – | – | – | – | – | – |
+| csirkés cézársaláta hideg hússal | nincs még | – | – | – | – | – | – |
+| currys csirkesaláta majonézzel | nincs még | – | – | – | – | – | – |
+| sonkás tojássaláta | nincs még | – | – | – | – | – | – |
+| felvágottas káposztasaláta | nincs még | – | – | – | – | – | – |
+| sajtos-szalámis salátatekercs | nincs még | – | – | – | – | – | – |
+| hideg hússzeletek fűszeres túrókrémmel | nincs még | – | – | – | – | – | – |
+| klasszikus tojáskrém zöldséggel | nincs még | – | – | – | – | – | – |
+| mustáros tojáskrém | nincs még | – | – | – | – | – | – |
+| tojáskrém friss paprikába töltve | nincs még | – | – | – | – | – | – |
+| tojással töltött avokádó | nincs még | – | – | – | – | – | – |
+| sonkás tojáskrém | nincs még | – | – | – | – | – | – |
+| sajtos tojáskrém | nincs még | – | – | – | – | – | – |
+| fokhagymás tojáskrém | nincs még | – | – | – | – | – | – |
+| metélőhagymás tojáskrém | nincs még | – | – | – | – | – | – |
+| tojáskrémes uborkahajók | nincs még | – | – | – | – | – | – |
+| kaszinótojás egyszerűen | nincs még | – | – | – | – | – | – |
+| főtt tojás majonézzel és mustárral | nincs még | – | – | – | – | – | – |
+| főtt tojás avokádóval és paradicsommal | nincs még | – | – | – | – | – | – |
+| tojásos tonhalkrém | nincs még | – | – | – | – | – | – |
+| tojásos fetasaláta | nincs még | – | – | – | – | – | – |
+| tojásos mozzarellasaláta | nincs még | – | – | – | – | – | – |
+| tojásos csirkesaláta | nincs még | – | – | – | – | – | – |
+| tojással töltött sonkatekercs | nincs még | – | – | – | – | – | – |
+| főtt tojás fűszeres túrókrémmel | nincs még | – | – | – | – | – | – |
+| tojásos olívabogyó-saláta | nincs még | – | – | – | – | – | – |
+| tojáskrém salátalevélbe töltve | nincs még | – | – | – | – | – | – |
+| tojásos sajtsaláta | nincs még | – | – | – | – | – | – |
+| főtt tojás sonkával és krémsajttal | nincs még | – | – | – | – | – | – |
+| tojásos zöldségsaláta tejfölös öntettel | nincs még | – | – | – | – | – | – |
+| feta uborkával és olívabogyóval | nincs még | – | – | – | – | – | – |
+| gouda sajtos-zöldséges saláta | nincs még | – | – | – | – | – | – |
+| camembert dióval és uborkával | nincs még | – | – | – | – | – | – |
+| brie sajttál rukkolával és paradicsommal | nincs még | – | – | – | – | – | – |
+| kecskesajtos saláta | nincs még | – | – | – | – | – | – |
+| parmezános rukkolasaláta | nincs még | – | – | – | – | – | – |
+| sajtos-sonkás salátatekercs | nincs még | – | – | – | – | – | – |
+| krémsajttal töltött kaliforniai paprika | nincs még | – | – | – | – | – | – |
+| krémsajtos uborkahajók | nincs még | – | – | – | – | – | – |
+| fűszeres krémsajt zöldséghasábokkal | nincs még | – | – | – | – | – | – |
+| feta-avokádókrém | nincs még | – | – | – | – | – | – |
+| mozzarella olívaolajjal és bazsalikommal | nincs még | – | – | – | – | – | – |
+| kéksajt dióval és zellerszárral | nincs még | – | – | – | – | – | – |
+| sajtkockák olívabogyóval és szalámival | nincs még | – | – | – | – | – | – |
+| körözött friss paprikával | nincs még | – | – | – | – | – | – |
+| túrókrémes sajtos saláta | nincs még | – | – | – | – | – | – |
+| krémsajtos retekfalatok | nincs még | – | – | – | – | – | – |
+| sajtos avokádósaláta | nincs még | – | – | – | – | – | – |
+| mozzarellás-sonkás saláta | nincs még | – | – | – | – | – | – |
+| kétféle sajtból készült zöldfűszeres sajtsaláta | nincs még | – | – | – | – | – | – |
+| fokhagymás túrókrém uborkával | nincs még | – | – | – | – | – | – |
+| metélőhagymás túrókrém retekkel | nincs még | – | – | – | – | – | – |
+| kapros túrókrém kígyóuborkával | nincs még | – | – | – | – | – | – |
+| csípős körözött kaliforniai paprikával | nincs még | – | – | – | – | – | – |
+| fetás túrókrém olívabogyóval | nincs még | – | – | – | – | – | – |
+| mustáros túrókrém sonkával | nincs még | – | – | – | – | – | – |
+| tojásos túrókrém | nincs még | – | – | – | – | – | – |
+| zöldfűszeres túrókrém salátalevéllel | nincs még | – | – | – | – | – | – |
+| paprikába töltött körözött | nincs még | – | – | – | – | – | – |
+| uborkába töltött túrókrém | nincs még | – | – | – | – | – | – |
+| túrókrémes sonkatekercs | nincs még | – | – | – | – | – | – |
+| diós túrókrém zellerszárral | nincs még | – | – | – | – | – | – |
+| olívás krémsajt uborkával | nincs még | – | – | – | – | – | – |
+| fokhagymás tejfölös mártogatós zöldségekkel | nincs még | – | – | – | – | – | – |
+| tzatziki zöldséghasábokkal | nincs még | – | – | – | – | – | – |
+| guacamole friss paprikával és uborkával | nincs még | – | – | – | – | – | – |
+| avokádókrém főtt tojással | nincs még | – | – | – | – | – | – |
+| fűszeres krémsajt sonkaszeletekkel | nincs még | – | – | – | – | – | – |
+| körözött sajtkockákkal és retekkel | nincs még | – | – | – | – | – | – |
+| tonhalkrém majonézzel | nincs még | – | – | – | – | – | – |
+| tonhalkrém főtt tojással | nincs még | – | – | – | – | – | – |
+| tonhalas avokádósaláta | nincs még | – | – | – | – | – | – |
+| tonhalas uborkasaláta | nincs még | – | – | – | – | – | – |
+| tonhalas fetasaláta | nincs még | – | – | – | – | – | – |
+| tonhalas salátalevél-tekercs | nincs még | – | – | – | – | – | – |
+| tonhalas krémsajt uborkával | nincs még | – | – | – | – | – | – |
+| tonhalas olívabogyó-saláta | nincs még | – | – | – | – | – | – |
+| szardínia friss paradicsommal | nincs még | – | – | – | – | – | – |
+| szardíniás tojássaláta | nincs még | – | – | – | – | – | – |
+| füstölt makréla uborkával és retekkel | nincs még | – | – | – | – | – | – |
+| füstölt pisztráng tormás krémsajttal | nincs még | – | – | – | – | – | – |
+| füstölt lazac krémsajttal és kaporral | nincs még | – | – | – | – | – | – |
+| lazacos tojássaláta | nincs még | – | – | – | – | – | – |
+| füstölt lazacos avokádósaláta | nincs még | – | – | – | – | – | – |
+| halkrémes uborkahajók | nincs még | – | – | – | – | – | – |
+| makrélakrém salátalevélben | nincs még | – | – | – | – | – | – |
+| tonhalas mozzarellasaláta | nincs még | – | – | – | – | – | – |
+| paradicsomos-uborkás fetasaláta | nincs még | – | – | – | – | – | – |
+| avokádós paradicsomsaláta | nincs még | – | – | – | – | – | – |
+| jégsaláta sajttal és tojással | nincs még | – | – | – | – | – | – |
+| zellerszár krémsajttal töltve | nincs még | – | – | – | – | – | – |
+| avokádókrémes zöldségtál | nincs még | – | – | – | – | – | – |
+| feta olívabogyóval és paradicsommal | nincs még | – | – | – | – | – | – |
+| káposztasaláta majonézzel | nincs még | – | – | – | – | – | – |
+| tojásos céklasaláta előfőzött céklából | nincs még | – | – | – | – | – | – |
+| retek-uborka saláta túrókrémmel | nincs még | – | – | – | – | – | – |
+| vegyes leveles saláta tojással és olívaolajjal | nincs még | – | – | – | – | – | – |
+| uborkás-avokádósaláta | nincs még | – | – | – | – | – | – |
+| paradicsomos tonhalsaláta | nincs még | – | – | – | – | – | – |
+| zöldséghasábok fokhagymás krémsajttal | nincs még | – | – | – | – | – | – |
+| olívás mediterrán saláta | nincs még | – | – | – | – | – | – |
+| sonkás-tojásos avokádótál | nincs még | – | – | – | – | – | – |
+| szalámis-fetás saláta | nincs még | – | – | – | – | – | – |
+| pulykasonka körözöttel és paprikával | nincs még | – | – | – | – | – | – |
+| mozzarellás tojáskrém salátával | nincs még | – | – | – | – | – | – |
+| tonhalkrémes paprikafelek | nincs még | – | – | – | – | – | – |
+| sonkával töltött sajtos tekercsek | nincs még | – | – | – | – | – | – |
+| csirkés-avokádós tojássaláta | nincs még | – | – | – | – | – | – |
+| serrano sonka fetával és uborkával | nincs még | – | – | – | – | – | – |
+| krémsajtos salátatekercs sonkával és tojással | nincs még | – | – | – | – | – | – |
+| tojásos-fetás avokádókrém | nincs még | – | – | – | – | – | – |
+| hideg sült hús mustáros uborkasalátával | nincs még | – | – | – | – | – | – |
+| szalámis tojáskrém zöldséghasábokkal | nincs még | – | – | – | – | – | – |
+| mediterrán tonhalas-avokádósaláta | nincs még | – | – | – | – | – | – |
+| vegyes hidegvacsora felvágottal, sajttal, tojással és friss zöldségekkel | nincs még | – | – | – | – | – | – |
 | Sült sertéslapocka (Schweinsbraten) | bls:Y352212 Schweinebraten ohne Sauce | 253 / 264 | 19.6 / 17.24 | 16.7 / 27.24 | 0.8 / 0.0 | -4% rendben | – |
 | Bécsi szelet (borjú) | nincs még | – | – | – | – | – | – |
 | Bécsi szelet (sertéscombból) | bls:Y332132 Schweineschnitzel paniert, gebraten | 220 / 220 | 9.7 / 10.6 | 24.9 / 22.65 | 8.0 / 7.59 | +0% rendben | – |
@@ -1019,6 +1281,137 @@ Mély tányér: kapacitás × töltöttség × sűrűség. Lapos tányér: 0,8 �
 | főtt tojás majonézzel és retekkel | HU, AT, DE | everyday | 240 | – (lapos tányéros étel) | – (lapos tányéros étel) | 235 | 275 | 319 |
 | újhagymás túrókrém zöldségekkel | HU, AT, DE | everyday | 340 | – (lapos tányéros étel) | – (lapos tányéros étel) | 347 | 408 | 473 |
 | sonkatekercs mozzarellával | HU, AT, DE | everyday | 330 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| sonkás-sajtos szendvics kenyér nélkül, salátalevélbe tekerve | HU, AT, DE | everyday | 225 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| sonkával és sajttal töltött paprikatekercs | HU, AT, DE | everyday | 280 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| krémsajtos sonkatekercs | HU, AT, DE | everyday | 243 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| sonkával töltött uborkatekercs | HU, AT, DE | everyday | 320 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| szalámi sajttal és mustárral | HU, AT, DE | everyday | 230 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| pulykasonka sajtkockákkal és friss zöldségekkel | HU, AT, DE | everyday | 370 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| sonkatekercs tojáskrémmel töltve | HU, AT, DE | everyday | 203 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| szalámitekercs natúr krémsajttal | HU, AT, DE | everyday | 220 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| hideg sült csirkemell majonézes uborkával | HU, AT, DE | everyday | 340 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| hideg sült csirkemell avokádókrémmel | HU, AT, DE | everyday | 317 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| pulykasonkás salátatekercs | HU, AT, DE | everyday | 280 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| serrano sonka mozzarellával | HU, AT, DE | everyday | 310 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| pármai sonka parmezánnal és rukkolával | HU, AT, DE | everyday | 200 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| mortadella sajttal és olívabogyóval | HU, AT, DE | everyday | 240 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| hideg marhasült mustárral és friss salátával | HU, AT, DE | everyday | 350 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| hideg sertéssült tormás krémsajttal | HU, AT, DE | everyday | 310 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| sonkás-avokádós saláta | HU, AT, DE | everyday | 320 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| csirkés cézársaláta hideg hússal | HU, AT, DE | everyday | 288 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| currys csirkesaláta majonézzel | HU, AT, DE | everyday | 260 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| sonkás tojássaláta | HU, AT, DE | everyday | 248 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| felvágottas káposztasaláta | HU, AT, DE | everyday | 270 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| sajtos-szalámis salátatekercs | HU, AT, DE | everyday | 240 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| hideg hússzeletek fűszeres túrókrémmel | HU, AT, DE | everyday | 295 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| klasszikus tojáskrém zöldséggel | HU, AT, DE | everyday | 350 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| mustáros tojáskrém | HU, AT, DE | everyday | 295 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| tojáskrém friss paprikába töltve | HU, AT, DE | everyday | 285 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| tojással töltött avokádó | HU, AT, DE | everyday | 257 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| sonkás tojáskrém | HU, AT, DE | everyday | 290 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| sajtos tojáskrém | HU, AT, DE | everyday | 250 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| fokhagymás tojáskrém | HU, AT, DE | everyday | 294 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| metélőhagymás tojáskrém | HU, AT, DE | everyday | 263 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| tojáskrémes uborkahajók | HU, AT, DE | everyday | 371 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| kaszinótojás egyszerűen | HU, AT, DE | everyday | 215 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| főtt tojás majonézzel és mustárral | HU, AT, DE | everyday | 285 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| főtt tojás avokádóval és paradicsommal | HU, AT, DE | everyday | 305 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| tojásos tonhalkrém | HU, AT, DE | everyday | 265 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| tojásos fetasaláta | HU, AT, DE | everyday | 350 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| tojásos mozzarellasaláta | HU, AT, DE | everyday | 350 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| tojásos csirkesaláta | HU, AT, DE | everyday | 330 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| tojással töltött sonkatekercs | HU, AT, DE | everyday | 223 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| főtt tojás fűszeres túrókrémmel | HU, AT, DE | everyday | 292 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| tojásos olívabogyó-saláta | HU, AT, DE | everyday | 350 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| tojáskrém salátalevélbe töltve | HU, AT, DE | everyday | 195 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| tojásos sajtsaláta | HU, AT, DE | everyday | 240 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| főtt tojás sonkával és krémsajttal | HU, AT, DE | everyday | 300 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| tojásos zöldségsaláta tejfölös öntettel | HU, AT, DE | everyday | 380 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| feta uborkával és olívabogyóval | HU, AT, DE | everyday | 290 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| gouda sajtos-zöldséges saláta | HU, AT, DE | everyday | 360 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| camembert dióval és uborkával | HU, AT, DE | everyday | 295 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| brie sajttál rukkolával és paradicsommal | HU, AT, DE | everyday | 250 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| kecskesajtos saláta | HU, AT, DE | everyday | 255 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| parmezános rukkolasaláta | HU, AT, DE | everyday | 215 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| sajtos-sonkás salátatekercs | HU, AT, DE | everyday | 260 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| krémsajttal töltött kaliforniai paprika | HU, AT, DE | everyday | 233 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| krémsajtos uborkahajók | HU, AT, DE | everyday | 363 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| fűszeres krémsajt zöldséghasábokkal | HU, AT, DE | everyday | 324 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| feta-avokádókrém | HU, AT, DE | everyday | 287 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| mozzarella olívaolajjal és bazsalikommal | HU, AT, DE | everyday | 223 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| kéksajt dióval és zellerszárral | HU, AT, DE | everyday | 210 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| sajtkockák olívabogyóval és szalámival | HU, AT, DE | everyday | 230 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| körözött friss paprikával | HU, AT, DE | everyday | 309 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| túrókrémes sajtos saláta | HU, AT, DE | everyday | 340 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| krémsajtos retekfalatok | HU, AT, DE | everyday | 303 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| sajtos avokádósaláta | HU, AT, DE | everyday | 300 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| mozzarellás-sonkás saláta | HU, AT, DE | everyday | 350 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| kétféle sajtból készült zöldfűszeres sajtsaláta | HU, AT, DE | everyday | 308 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| fokhagymás túrókrém uborkával | HU, AT, DE | everyday | 334 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| metélőhagymás túrókrém retekkel | HU, AT, DE | everyday | 288 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| kapros túrókrém kígyóuborkával | HU, AT, DE | everyday | 330 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| csípős körözött kaliforniai paprikával | HU, AT, DE | everyday | 308 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| fetás túrókrém olívabogyóval | HU, AT, DE | everyday | 295 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| mustáros túrókrém sonkával | HU, AT, DE | everyday | 285 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| tojásos túrókrém | HU, AT, DE | everyday | 298 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| zöldfűszeres túrókrém salátalevéllel | HU, AT, DE | everyday | 330 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| paprikába töltött körözött | HU, AT, DE | everyday | 298 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| uborkába töltött túrókrém | HU, AT, DE | everyday | 396 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| túrókrémes sonkatekercs | HU, AT, DE | everyday | 278 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| diós túrókrém zellerszárral | HU, AT, DE | everyday | 280 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| olívás krémsajt uborkával | HU, AT, DE | everyday | 300 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| fokhagymás tejfölös mártogatós zöldségekkel | HU, AT, DE | everyday | 344 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| tzatziki zöldséghasábokkal | HU, AT, DE | everyday | 379 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| guacamole friss paprikával és uborkával | HU, AT, DE | everyday | 417 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| avokádókrém főtt tojással | HU, AT, DE | everyday | 307 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| fűszeres krémsajt sonkaszeletekkel | HU, AT, DE | everyday | 236 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| körözött sajtkockákkal és retekkel | HU, AT, DE | everyday | 252 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| tonhalkrém majonézzel | HU, AT, DE | everyday | 315 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| tonhalkrém főtt tojással | HU, AT, DE | everyday | 330 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| tonhalas avokádósaláta | HU, AT, DE | everyday | 330 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| tonhalas uborkasaláta | HU, AT, DE | everyday | 365 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| tonhalas fetasaláta | HU, AT, DE | everyday | 340 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| tonhalas salátalevél-tekercs | HU, AT, DE | everyday | 305 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| tonhalas krémsajt uborkával | HU, AT, DE | everyday | 303 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| tonhalas olívabogyó-saláta | HU, AT, DE | everyday | 315 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| szardínia friss paradicsommal | HU, AT, DE | everyday | 273 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| szardíniás tojássaláta | HU, AT, DE | everyday | 300 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| füstölt makréla uborkával és retekkel | HU, AT, DE | everyday | 350 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| füstölt pisztráng tormás krémsajttal | HU, AT, DE | everyday | 310 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| füstölt lazac krémsajttal és kaporral | HU, AT, DE | everyday | 260 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| lazacos tojássaláta | HU, AT, DE | everyday | 273 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| füstölt lazacos avokádósaláta | HU, AT, DE | everyday | 280 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| halkrémes uborkahajók | HU, AT, DE | everyday | 378 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| makrélakrém salátalevélben | HU, AT, DE | everyday | 225 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| tonhalas mozzarellasaláta | HU, AT, DE | everyday | 352 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| paradicsomos-uborkás fetasaláta | HU, AT, DE | everyday | 405 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| avokádós paradicsomsaláta | HU, AT, DE | everyday | 315 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| jégsaláta sajttal és tojással | HU, AT, DE | everyday | 360 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| zellerszár krémsajttal töltve | HU, AT, DE | everyday | 290 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| avokádókrémes zöldségtál | HU, AT, DE | everyday | 487 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| feta olívabogyóval és paradicsommal | HU, AT, DE | everyday | 300 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| káposztasaláta majonézzel | HU, AT, DE | everyday | 260 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| tojásos céklasaláta előfőzött céklából | HU, AT, DE | everyday | 245 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| retek-uborka saláta túrókrémmel | HU, AT, DE | everyday | 393 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| vegyes leveles saláta tojással és olívaolajjal | HU, AT, DE | everyday | 300 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| uborkás-avokádósaláta | HU, AT, DE | everyday | 305 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| paradicsomos tonhalsaláta | HU, AT, DE | everyday | 348 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| zöldséghasábok fokhagymás krémsajttal | HU, AT, DE | everyday | 383 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| olívás mediterrán saláta | HU, AT, DE | everyday | 405 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| sonkás-tojásos avokádótál | HU, AT, DE | everyday | 340 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| szalámis-fetás saláta | HU, AT, DE | everyday | 315 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| pulykasonka körözöttel és paprikával | HU, AT, DE | everyday | 352 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| mozzarellás tojáskrém salátával | HU, AT, DE | everyday | 325 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| tonhalkrémes paprikafelek | HU, AT, DE | everyday | 350 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| sonkával töltött sajtos tekercsek | HU, AT, DE | everyday | 240 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| csirkés-avokádós tojássaláta | HU, AT, DE | everyday | 335 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| serrano sonka fetával és uborkával | HU, AT, DE | everyday | 295 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| krémsajtos salátatekercs sonkával és tojással | HU, AT, DE | everyday | 310 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| tojásos-fetás avokádókrém | HU, AT, DE | everyday | 355 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| hideg sült hús mustáros uborkasalátával | HU, AT, DE | everyday | 320 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| szalámis tojáskrém zöldséghasábokkal | HU, AT, DE | everyday | 345 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| mediterrán tonhalas-avokádósaláta | HU, AT, DE | everyday | 325 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
+| vegyes hidegvacsora felvágottal, sajttal, tojással és friss zöldségekkel | HU, AT, DE | everyday | 370 | – (lapos tányéros étel) | – (lapos tányéros étel) | 261 | 306 | 355 |
 | Sült sertéslapocka (Schweinsbraten) | AT, DE | traditional | 250 | 356 | 514 | 215 | 252 | 293 |
 | Bécsi szelet (borjú) | AT | traditional | 165 | – (lapos tányéros étel) | – (lapos tányéros étel) | 142 | 166 | 193 |
 | Bécsi szelet (sertéscombból) | AT, DE | traditional | 130 | – (lapos tányéros étel) | – (lapos tányéros étel) | 111 | 130 | 151 |

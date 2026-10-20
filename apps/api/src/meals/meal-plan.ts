@@ -58,8 +58,9 @@ export function planPools(candidates: DinnerCandidate[], goals: Goals, avoid: st
   const main = usable.filter((c) => c.perServing.kcal >= 150 && (c.source === "own" || !(c.tags ?? []).includes("breakfast")));
   return {
     breakfast,
-    // Lunch on a working day: nothing that needs hours on the stove.
-    lunch: main.filter((c) => effortOf(c) !== "long"),
+    // Lunch on a working day: nothing that needs hours on the stove. The cold
+    // plates (owner request 2026-10-20) are for breakfast and dinner only.
+    lunch: main.filter((c) => effortOf(c) !== "long" && !(c.tags ?? []).includes("cold")),
     dinner: main,
     main
   };

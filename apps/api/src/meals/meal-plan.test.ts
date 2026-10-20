@@ -91,3 +91,22 @@ describe("heti étrendterv", () => {
     expect(days[1].meals).toEqual([]);
   });
 });
+
+describe("cold dinners (owner request 2026-10-20)", () => {
+  it("go to breakfast and dinner, never to lunch", () => {
+    const cold = c("tonhalkrem", { kcal: 380, protein: 30, netCarbs: 3 }, { tags: ["fish", "cold", "low-carb-friendly"], style: "other", protein: "fish" });
+    const pools = planPools([...breakfasts, ...mains, cold], goals, []);
+    expect(pools.breakfast).toContain(cold);
+    expect(pools.dinner).toContain(cold);
+    expect(pools.lunch).not.toContain(cold);
+  });
+});
+
+describe("all 131 cold dinners are reference dishes counted as quick", () => {
+  it("are tagged cold in the generated data", async () => {
+    const { REFERENCE_DATA } = await import("../reference-dishes/reference-data.js");
+    const cold = (REFERENCE_DATA as any).variants.filter((v: any) => v.id.startsWith("hu_hv_"));
+    expect(cold).toHaveLength(131);
+    expect(cold.every((v: any) => v.tags.includes("cold"))).toBe(true);
+  });
+});
