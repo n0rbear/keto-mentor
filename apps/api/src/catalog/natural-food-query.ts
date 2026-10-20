@@ -1,3 +1,4 @@
+import { EGG_DISH_PREPARATION, EGG_WORDS } from "../meal-input/egg-dishes.js";
 import { normalizeSearch } from "./normalize.js";
 
 export type NaturalQuantityUnit = "g" | "kg" | "ml" | "l" | "piece" | "slice" | "portion" | "plate" | "bowl" | "ladle" | "tbsp" | "tsp" | "cup" | "handful" | "quarter" | "unknown" | "cm" | "bite" | "splash" | "half" | "head" | "clove" | "bunch" | "stalk" | "pinch";
@@ -409,6 +410,14 @@ function parseSegment(normalized: string): ParsedNaturalFoodQuery {
     if (token.length >= 2) literalTokens.push(token);
   }
 
+  // "3 tojás omlett", "3 Eier Rührei": next to an egg word the dish word is
+  // how the eggs were made, not a second food (see egg-dishes.ts).
+  if (foodTokens.some((token) => EGG_WORDS.has(token))) {
+    for (let i = foodTokens.length - 1; i >= 0; i--) {
+      const prep = EGG_DISH_PREPARATION[foodTokens[i]];
+      if (prep && !EGG_WORDS.has(foodTokens[i])) { preparations.unshift(prep); foodTokens.splice(i, 1); }
+    }
+  }
   const foodQuery = restorePercent([...new Set(foodTokens)].join(" ").trim()) || normalized;
   const literalFoodQuery = restorePercent([...new Set(literalTokens)].join(" ").trim());
   const preparation = preparations[0];

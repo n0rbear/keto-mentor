@@ -59494,24 +59494,18 @@
         "hu": [
           "sonkás-sajtos omlett",
           "sonkás sajtos omlett",
-          "sonkás omlett",
-          "sajtos omlett",
-          "omlett"
+          "sajtos-sonkás omlett"
         ],
         "de": [
           "omelett mit schinken und käse",
-          "schinken-käse-omelett",
-          "omelett"
+          "schinken-käse-omelett"
         ],
         "de-AT": [
-          "omelette mit schinken und käse",
-          "omelette"
+          "omelette mit schinken und käse"
         ],
         "en": [
           "ham and cheese omelette",
-          "ham and cheese omelet",
-          "omelette",
-          "omelet"
+          "ham and cheese omelet"
         ]
       },
       "tags": [

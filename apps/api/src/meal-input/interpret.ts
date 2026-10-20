@@ -1,5 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
 import { normalizeSpokenDishNames } from "./spoken-dish-names.js";
+import { mergeEggDishItems, normalizeEggDishPhrases } from "./egg-dishes.js";
 import type { FoodUnderstanding, FoodUnderstandingItem, Locale, QuantityClarification } from "@keto-mentor/shared";
 import { isBarePreparationToken, parseNaturalFoodQuery, type ParsedNaturalFoodQuery } from "../catalog/natural-food-query.js";
 import { hasSemanticCoverage, isTrustedLocalMatch, localFormMismatch, searchFoods } from "../catalog/food-search.js";
@@ -1033,7 +1034,7 @@ export async function interpretMealInput(
   dynamic: DynamicResolutionDeps = null,
   onProgress?: (stage: ProgressStage) => void
 ): Promise<InterpretResult> {
-  text = normalizeSpokenDishNames(text);
+  text = normalizeEggDishPhrases(normalizeSpokenDishNames(text));
   const requestStartedAt = performance.now();
   // Resolve food semantics before allowing any external weight estimation.
   const disabled = new DisabledQuantityEstimationProvider();
@@ -1048,7 +1049,7 @@ export async function interpretMealInput(
     try {
       onProgress?.("food_understanding");
       const understanding = await timeStage("food_understanding_ai", () => understandFood(aiProvider, { text }));
-      result = await timeStage("ai_assisted_items", () => interpretAiUnderstanding(prisma, text, understanding, disabled, aiProvider, dynamic, deterministic));
+      result = await timeStage("ai_assisted_items", () => interpretAiUnderstanding(prisma, text, mergeEggDishItems(understanding), disabled, aiProvider, dynamic, deterministic));
       result = preserveAiEstimatePendingChildren(deterministic, result);
     } catch (error) {
       // Owner-beta (2026-09-12): previously silent — indistinguishable from
