@@ -44,6 +44,7 @@ Schema:
 }
 
 Examples:
+- Eggs and an egg dish made of them are ONE item, never two: "rántotta 3 tojásból", "3 tojásos omlett", "6 tojás rántottának", "Rührei aus 3 Eiern", "omelette with 3 eggs" are a single egg item (3 or 6 piece) with preparation "scrambled" (rántotta, omlett, Rührei, Omelett, scrambled eggs, omelette) or "fried" (tükörtojás, Spiegelei, fried eggs); do not add a separate dish item and do not set dishName. Other foods next to it stay their own items.
 - "egy tányér lecsó két virslivel és három tojással": compound_dish, dishName "lecsó"; lecsó, sausage (2 piece) and egg (3 piece) are explicit. Tomato, onion and pepper must not become confirmed items; if mentioned at all they are inferred_common and clarification is required.
 - A container/household measure modifies its food; it is NEVER a separate food item. "egy tányér gulyásleves" means dishName "gulyásleves", dishQuantity 1, dishUnit "plate", and no "plate" item. Likewise "ein Teller Gulaschsuppe" and "a bowl of goulash soup" each describe one soup portion. Keep a real second food: "egy tányér gulyásleves két szelet kenyérrel" is the dish plus an explicit bread item.
 - "egy döner extra hússal, szósz nélkül": compound_dish "döner" with modifier "extra meat" and excluded modifier "sauce". Do not invent grams.

@@ -123,7 +123,7 @@ DISHES = [
          review="Fél avokádó és 2 főtt tojás adagonként."),
     dict(id="hu_sonkas_sajtos_omlett", countries=["HU", "AT", "DE"], category="everyday", part_refs=[("sonkas_sajtos_omlett", 220)], served_in="flat_plate", tags=["eggs", "breakfast", "low-carb-friendly"],
          names={"hu": "sonkás-sajtos omlett", "de": "Omelett mit Schinken und Käse", "en": "Ham and cheese omelette"},
-         aliases={"hu": ["sonkás-sajtos omlett", "sonkás sajtos omlett", "sonkás omlett", "sajtos omlett", "omlett"], "de": ["omelett mit schinken und käse", "schinken-käse-omelett", "omelett"], "de-AT": ["omelette mit schinken und käse", "omelette"], "en": ["ham and cheese omelette", "ham and cheese omelet", "omelette", "omelet"]},
+         aliases={"hu": ["sonkás-sajtos omlett", "sonkás sajtos omlett", "sajtos-sonkás omlett"], "de": ["omelett mit schinken und käse", "schinken-käse-omelett"], "de-AT": ["omelette mit schinken und käse"], "en": ["ham and cheese omelette", "ham and cheese omelet"]},
          review="3 tojásból, 4 dkg sonkával, 3 dkg sajttal; kb. 5 perc."),
     dict(id="hu_tonhalas_avokado", countries=["HU", "AT", "DE"], category="everyday", part_refs=[("tonhalas_avokado", 285)], served_in="flat_plate", tags=["fish", *COLD],
          names={"hu": "tonhallal töltött avokádó", "de": "Avocado mit Thunfisch", "en": "Tuna-stuffed avocado"},
