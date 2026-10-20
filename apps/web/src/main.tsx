@@ -766,7 +766,9 @@ export function App() {
     item.canConfirm = true;
     next.canConfirm = rows.every((row) => row.canConfirm);
     next.clarification = undefined;
-    const index = rows.findIndex((row) => !row.canConfirm);
+    // Ticket 90f2d5: the next amount to confirm, not just the next unfinished
+    // row (one still waiting for a food choice used to hide every later estimate).
+    const index = rows.findIndex((row) => !row.canConfirm && row.foodResolution === "resolved" && !!row.selectedFood && row.nutritionEligible !== false);
     if (index >= 0) {
       const row = rows[index];
       if (row.foodResolution === "resolved" && row.selectedFood && row.nutritionEligible !== false) {

@@ -1193,6 +1193,8 @@ avokados_tojassalata,Avokádós tojássaláta,2,egg,tojás,200,core,bls:E111100,
 avokados_tojassalata,Avokádós tojássaláta,2,yogurt_greek_10,görög típusú joghurt (10%),15,core,bls:M141500,375,1.0,0.75,190
 avokados_tojassalata,Avokádós tojássaláta,2,mustard,mustár,5,seasoning,bls:R132000,375,1.0,0.75,190
 avokados_tojassalata,Avokádós tojássaláta,2,spring_onion,újhagyma,15,core,bls:G482100,375,1.0,0.75,190
+natur_omlett,Natúr omlett,1,egg,tojás,150,core,bls:E111100,150,0.938,0.6,150
+natur_omlett,Natúr omlett,1,butter,vaj,10,fat,open_database:173430,150,0.938,0.6,150
 sonkas_sajtos_omlett,Sonkás-sajtos omlett,1,egg,tojás,150,core,bls:E111100,220,0.957,0.6,220
 sonkas_sajtos_omlett,Sonkás-sajtos omlett,1,ham_cooked,főtt sonka / szendvicssonka,40,core,bls:W424000,220,0.957,0.6,220
 sonkas_sajtos_omlett,Sonkás-sajtos omlett,1,trappista,trappista sajt,30,core,bls:M505600,220,0.957,0.6,220

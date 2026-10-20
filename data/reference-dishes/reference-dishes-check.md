@@ -171,6 +171,7 @@
 | Sonkás-sajtos hidegtál zöldséggel | 340 | +0 | 340 | 1.0 | 0.5 | 118.3 | 6.8 | 11.1 | 2.3 | – |
 | Szalámis-sajtos tál retekkel, olívabogyóval | 290 | +0 | 290 | 1.0 | 0.5 | 171.4 | 13.6 | 10.7 | 1.0 | – |
 | Avokádós tojássaláta | 375 | +0 | 375 | 1.0 | 0.75 | 128.8 | 10.0 | 7.8 | 1.0 | – |
+| Natúr omlett | 160 | -10 | 150 | 0.938 | 0.6 | 182.8 | 14.4 | 13.2 | 0.3 | – |
 | Sonkás-sajtos omlett | 230 | -10 | 220 | 0.957 | 0.6 | 195.3 | 14.1 | 16.5 | 0.4 | – |
 | Tonhallal töltött avokádó | 285 | +0 | 285 | 1.0 | 0.7 | 130.6 | 9.4 | 8.8 | 1.1 | – |
 | Főtt tojás majonézzel és retekkel | 240 | +0 | 240 | 1.0 | 0.6 | 169.3 | 14.3 | 8.8 | 1.1 | – |
@@ -732,6 +733,7 @@ kivéve ha az ételnél `reference_check.deviation` (átnézett receptkülönbs�
 | sonkás-sajtos hidegtál | nincs még | – | – | – | – | – | – |
 | szalámis-sajtos tál | nincs még | – | – | – | – | – | – |
 | avokádós tojássaláta | nincs még | – | – | – | – | – | – |
+| natúr omlett | nincs még | – | – | – | – | – | – |
 | sonkás-sajtos omlett | nincs még | – | – | – | – | – | – |
 | tonhallal töltött avokádó | nincs még | – | – | – | – | – | – |
 | főtt tojás majonézzel és retekkel | nincs még | – | – | – | – | – | – |
@@ -1276,6 +1278,7 @@ Mély tányér: kapacitás × töltöttség × sűrűség. Lapos tányér: 0,8 �
 | sonkás-sajtos hidegtál | HU, AT, DE | everyday | 340 | – (lapos tányéros étel) | – (lapos tányéros étel) | 217 | 255 | 296 |
 | szalámis-sajtos tál | HU, AT, DE | everyday | 290 | – (lapos tányéros étel) | – (lapos tányéros étel) | 199 | 234 | 271 |
 | avokádós tojássaláta | HU, AT, DE | everyday | 190 | – (lapos tányéros étel) | – (lapos tányéros étel) | 293 | 344 | 399 |
+| natúr omlett | HU, AT, DE | everyday | 150 | – (lapos tányéros étel) | – (lapos tányéros étel) | 139 | 163 | 189 |
 | sonkás-sajtos omlett | HU, AT, DE | everyday | 220 | – (lapos tányéros étel) | – (lapos tányéros étel) | 156 | 183 | 213 |
 | tonhallal töltött avokádó | HU, AT, DE | everyday | 285 | – (lapos tányéros étel) | – (lapos tányéros étel) | 324 | 381 | 441 |
 | főtt tojás majonézzel és retekkel | HU, AT, DE | everyday | 240 | – (lapos tányéros étel) | – (lapos tányéros étel) | 235 | 275 | 319 |

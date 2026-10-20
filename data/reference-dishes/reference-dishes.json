@@ -19110,6 +19110,69 @@
         "incomplete_missing_food_keys": []
       }
     },
+    "natur_omlett": {
+      "id": "natur_omlett",
+      "names": {
+        "hu": "Natúr omlett",
+        "de": "Omelett natur",
+        "en": "Plain omelette"
+      },
+      "matrix": "dry",
+      "batch": {
+        "servings_source": 1,
+        "ingredients": [
+          {
+            "food_key": "egg",
+            "raw_g": 150,
+            "role": "core",
+            "note": "3 db tojás"
+          },
+          {
+            "food_key": "butter",
+            "raw_g": 10,
+            "role": "fat",
+            "note": "1 diónyi vaj a serpenyőbe"
+          }
+        ],
+        "raw_total_g": 160,
+        "cooking": {
+          "method": "pan-fried on low heat for 3-4 minutes, folded",
+          "mass_change_g": -10,
+          "note": "about -10 g water lost while setting (estimate); salt and pepper left out"
+        },
+        "finished_weight_g": 150,
+        "yield_factor": 0.938
+      },
+      "standard_serving_g": 150,
+      "density_g_per_ml": 0.6,
+      "density_method": "cooked bulk density (loose pieces)",
+      "flat_plate": {
+        "coverage": 0.4,
+        "height_cm": 2.0
+      },
+      "sources": [
+        {
+          "url": "https://www.foodnetwork.com/recipes/food-network-kitchen/omelet-in-a-hole-3-ways-3875843.amp",
+          "retrieved": "2026-10-17",
+          "note": "omelet: eggs cooked in butter, folded"
+        },
+        {
+          "url": "https://butteryourbiscuit.com/sausage-tomato-cheese-omelet/",
+          "retrieved": "2026-10-17",
+          "note": "3 eggs per omelet, butter; low heat"
+        }
+      ],
+      "derived_check": {
+        "note": "Cross-check only, computed from the linked catalog records; the app must compute nutrition from the catalog, not from this block.",
+        "per_100g": {
+          "kcal": 182.8,
+          "fat": 14.4,
+          "protein": 13.2,
+          "net_carbs": 0.3
+        },
+        "incomplete_missing_food_keys": []
+      }
+    },
     "sonkas_sajtos_omlett": {
       "id": "sonkas_sajtos_omlett",
       "names": {
@@ -59476,6 +59539,58 @@
         }
       ],
       "review_note_hu": "Fél avokádó és 2 főtt tojás adagonként."
+    },
+    {
+      "id": "hu_natur_omlett",
+      "countries": [
+        "HU",
+        "AT",
+        "DE"
+      ],
+      "category": "everyday",
+      "names": {
+        "hu": "natúr omlett",
+        "de": "Omelett natur",
+        "en": "Plain omelette"
+      },
+      "aliases": {
+        "hu": [
+          "omlett",
+          "natúr omlett",
+          "sima omlett",
+          "tojásomlett",
+          "tojás omlett"
+        ],
+        "de": [
+          "omelett",
+          "omelette",
+          "omelett natur"
+        ],
+        "de-AT": [
+          "omelette",
+          "omelett"
+        ],
+        "en": [
+          "omelette",
+          "omelet",
+          "plain omelette",
+          "plain omelet"
+        ]
+      },
+      "tags": [
+        "eggs",
+        "breakfast",
+        "vegetarian",
+        "low-carb-friendly"
+      ],
+      "served_in": "flat_plate",
+      "parts": [
+        {
+          "part": "natur_omlett",
+          "standard_serving_g": 150
+        }
+      ],
+      "review_note_hu": "3 tojásból, kevés vajjal; kb. 5 perc. Owner request 2026-10-20."
     },
     {
       "id": "hu_sonkas_sajtos_omlett",

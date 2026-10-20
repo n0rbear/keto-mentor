@@ -18,7 +18,8 @@ export function QuantityClarification({ value, foodName, quantity, unit, lang, o
   onResolve: (grams: number, corrected: boolean) => void;
 }) {
   const [editing, setEditing] = useState(value.type !== "estimate_confirmation");
-  const [grams, setGrams] = useState("");
+  // Ticket 90f2d5: the estimate is offered, also when changing it.
+  const [grams, setGrams] = useState(value.suggestedGrams ? String(value.suggestedGrams) : "");
   const labels = quantityLabels[lang];
   const valid = Number.isFinite(Number(grams)) && Number(grams) > 0 && Number(grams) <= 5000;
   return <div className="quantity-clarification" aria-live="polite">
@@ -30,7 +31,7 @@ export function QuantityClarification({ value, foodName, quantity, unit, lang, o
       {value.confidence != null && <small>{labels.confidence}: {Math.round(value.confidence * 100)}%</small>}
     </> : <span>{value.type === "quantity_missing" ? labels.missing : labels.gramsRequired}</span>}
     {!editing ? <div className="quantity-actions">
-      <button type="button" className="btn primary" disabled={!value.suggestedGrams || value.suggestedGrams > 5000} onClick={() => onResolve(value.suggestedGrams!, false)}>{labels.accept}</button>
+      <button type="button" className="btn primary" disabled={!value.suggestedGrams || value.suggestedGrams > 5000} onClick={() => onResolve(value.suggestedGrams!, false)}>{labels.accept}{value.suggestedGrams ? ` (${value.suggestedGrams.toLocaleString(lang)} g)` : ""}</button>
       <button type="button" className="btn secondary" onClick={() => setEditing(true)}>{labels.change}</button>
       {apiState && <PlatePortion lang={lang} state={apiState} onEstimate={(g) => { setGrams(String(g)); setEditing(true); }}/>}
     </div> : <div className="quantity-actions">

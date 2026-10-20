@@ -227,6 +227,7 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
 .understanding-item small { display: block; }
 .understanding-resolution { display: flex !important; align-items: center; gap: .3rem; }
 .understanding-resolution svg { flex: 0 0 auto; color: rgb(var(--brand)); }
+.understanding-pending { display: block; color: rgb(var(--warning)); }
 .inferred-label { color: rgb(var(--warning)); font-style: normal; }
 .clarification-note { margin-top: .1rem; border-left: 2px solid rgb(var(--warning)); padding-left: .55rem; color: rgb(var(--text-muted)); }
 

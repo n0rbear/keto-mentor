@@ -12,8 +12,15 @@ it.each(["hu", "de", "en"] as const)("shows localized estimate and accepts only 
   render(<QuantityClarification value={estimate} foodName="Peanuts" lang={lang} onResolve={resolve}/>);
   expect(screen.getByText(/25–35 g/)).toBeTruthy();
   expect(resolve).not.toHaveBeenCalled();
-  fireEvent.click(screen.getByText(quantityLabels[lang].accept));
+  // Ticket 90f2d5: the suggested amount is on the button.
+  fireEvent.click(screen.getByText(`${quantityLabels[lang].accept} (30 g)`));
   expect(resolve).toHaveBeenCalledWith(30, false);
+});
+
+it("offers the estimate in the field when changing it (ticket 90f2d5)", () => {
+  render(<QuantityClarification value={{ ...estimate, suggestedGrams: 112 }} foodName="Zsemle" lang="hu" onResolve={vi.fn()}/>);
+  fireEvent.click(screen.getByText(quantityLabels.hu.change));
+  expect((screen.getByLabelText(quantityLabels.hu.grams) as HTMLInputElement).value).toBe("112");
 });
 it("changes estimate to explicit meal-only grams", () => {
   const resolve = vi.fn();
@@ -62,7 +69,7 @@ describe("QuantityClarification: volume-model basis explanation", () => {
   it("Accept/Modify stay available for a volume-class estimate exactly as for any AI estimate", () => {
     const onResolve = vi.fn();
     render(<QuantityClarification value={volumeEstimate} foodName="Spenót" lang="en" onResolve={onResolve}/>);
-    expect(screen.getByText(quantityLabels.en.accept)).toBeTruthy();
+    expect(screen.getByText(new RegExp(`^${quantityLabels.en.accept}`))).toBeTruthy();
     expect(screen.getByText(quantityLabels.en.change)).toBeTruthy();
   });
 });

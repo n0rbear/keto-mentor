@@ -180,6 +180,7 @@ type PreviewItem = {
     excludedModifiers?: string[];
   };
   nutritionEligible?: boolean;
+  canConfirm?: boolean;
   // Present only after a genuine local catalog miss triggered dynamic
   // external resolution and produced a bounded set of authoritative
   // candidates needing the user's choice — never nutrition-first.
@@ -233,6 +234,7 @@ export type FoodUnderstandingLabels = {
   verified: string;
   estimated: string;
   logAll: string;
+  pendingItems: string;
   preparationValues: Record<string, string>;
   unitValues: Record<string, string>;
   externalSingleHeading: string;
@@ -864,6 +866,7 @@ export function FoodUnderstandingPreview({ value, lang, labels, busy, onConfirmA
         here would duplicate the note AND, worse, offer two independent
         confirm forms for the exact same recipe. */}
     {(value.semantic?.clarificationNeeded || value.semantic?.clarificationReason) && <div className="clarification-note"><strong>{labels.needsDetail}</strong>{value.semantic.clarificationReason ? ` ${value.semantic.clarificationReason}` : ""}</div>}
+    {!!value.items?.length && !value.canConfirm && <small className="understanding-pending">{labels.pendingItems}: {value.items.filter((item) => !item.canConfirm).map((item) => itemName(item, lang)).join(", ")}</small>}
     {!!value.items?.length && <button type="button" className="btn primary" disabled={!value.canConfirm || busy} onClick={onConfirmAll}>{busy ? "…" : labels.logAll}</button>}
   </div>;
 }

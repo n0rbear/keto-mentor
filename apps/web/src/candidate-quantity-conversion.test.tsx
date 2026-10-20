@@ -78,3 +78,35 @@ describe("ticket 5732ac: \"6 tojás, 2 szelet jagdwurst, 2 szelet gouda\"", () =
     ]);
   });
 });
+
+describe("ticket 90f2d5: several amounts to confirm", () => {
+  it("after one estimate, the next estimate is shown even if an item between them still waits for a choice", async () => {
+    const lyoner = { ...wiener, id: "bls-lyoner", name: "Lyoner", names: { en: "Lyoner" }, sourceId: "W2" };
+    const roll = { ...wiener, id: "bls-roll", name: "Weizenbrötchen", names: { en: "Wheat roll" }, sourceId: "B511000" };
+    const egg = { ...wiener, id: "bls-egg", name: "Egg", names: { en: "Egg" }, sourceId: "E1" };
+    const est = (grams: number) => ({ status: "resolved", grams, method: "ai_estimated", estimated: true, requiresConfirmation: true, rangeGrams: { min: grams - 10, max: grams + 20 } });
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = new URL(String(input));
+      if (url.pathname === "/me") return new Response(JSON.stringify({ user }));
+      if (url.pathname === "/meals/week") return new Response(JSON.stringify({ weekStart: "2026-10-19", weekEnd: "2026-10-25", days: [], summary: { mealCount: 0, loggedDays: 0 } }));
+      if (url.pathname === "/meals/today") return new Response(JSON.stringify({ date: "2026-10-20", meals: [], totals: emptyTotals }));
+      if (url.pathname === "/meal-input/interpret") return new Response(JSON.stringify({
+        input: "3 tojás, 2 szelet lyoner, 2 zsemle", parsed: { foodQuery: "x" }, foodResolution: "multi", canConfirm: false, confidence: 0.9, interpretationSource: "ai_assisted",
+        clarification: { type: "estimate_confirmation", itemIndex: 0, allowCustomGrams: true, suggestedGrams: 150, method: "ai_estimated" },
+        items: [
+          { input: "3 tojás", parsed: { quantity: 3, unit: "piece", foodQuery: "tojás" }, foodResolution: "resolved", selectedFood: egg, candidates: [egg], canConfirm: false, confidence: 0.9, interpretationSource: "ai_assisted", nutritionEligible: true, quantity: est(150) },
+          { input: "2 szelet lyoner", parsed: { quantity: 2, unit: "slice", foodQuery: "lyoner" }, foodResolution: "confirmation_required", selectedFood: null, candidates: [lyoner], canConfirm: false, confidence: 0.4, interpretationSource: "ai_assisted", nutritionEligible: false, quantity: null },
+          { input: "2 zsemle", parsed: { quantity: 2, unit: "piece", foodQuery: "zsemle" }, foodResolution: "resolved", selectedFood: roll, candidates: [roll], canConfirm: false, confidence: 0.9, interpretationSource: "ai_assisted", nutritionEligible: true, quantity: est(112) }
+        ]
+      }));
+      return new Response(JSON.stringify({ error: "not_found" }), { status: 404 });
+    }));
+    render(<App/>);
+    const input = await screen.findByPlaceholderText("For example: 5 eggs");
+    fireEvent.change(input, { target: { value: "3 tojás, 2 szelet lyoner, 2 zsemle" } });
+    fireEvent.click(screen.getByText("Interpret"));
+    fireEvent.click(await screen.findByText("Accept (150 g)"));
+    expect(await screen.findByText("Accept (112 g)")).toBeTruthy();
+    expect(screen.getByText(/Before logging, still to decide/).textContent).toMatch(/Lyoner|lyoner/);
+  });
+});
