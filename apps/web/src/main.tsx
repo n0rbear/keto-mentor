@@ -728,7 +728,15 @@ export function App() {
       if (it.quantityConfirmation) items.push({ foodId: it.selectedFood.id, quantity: q.grams, unit: "g", quantityConfirmation: it.quantityConfirmation });
       else if (q.servingId) items.push({ foodId: it.selectedFood.id, quantity: it.parsed.quantity ?? 1, unit: "serving", servingId: q.servingId });
       else if (it.parsed.unit === "g" || it.parsed.unit === "kg") items.push({ foodId: it.selectedFood.id, quantity: it.parsed.quantity ?? 0, unit: it.parsed.unit });
-      else return;
+      // Owner ticket 5732ac (2026-10-20): "2 szelet jagdwurst" converted with
+      // a typical slice weight (no serving row) used to stop here silently,
+      // so "Log all" did nothing. It is logged in grams, marked as estimated.
+      else {
+        const grams = Math.round(q.grams * 10) / 10;
+        items.push(q.estimated
+          ? { foodId: it.selectedFood.id, quantity: grams, unit: "g", quantityConfirmation: { method: q.method === "ai_estimated" ? "ai_estimated" : "estimated", accepted: true, grams } }
+          : { foodId: it.selectedFood.id, quantity: grams, unit: "g" });
+      }
     }
     if (!items.length) return;
     setMealSaving(true);
