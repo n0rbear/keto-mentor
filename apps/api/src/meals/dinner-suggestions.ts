@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@prisma/client";
+import { fridgeItems } from "@keto-mentor/shared";
 import { normalizeSearch } from "../catalog/normalize.js";
 import { calculateRecipeNutrition } from "../recipes/nutrition.js";
 import { REFERENCE_USERNAME } from "../reference-dishes/seed.js";
@@ -32,7 +33,11 @@ export type DinnerCandidate = {
   tags?: string[];
   ingredients?: Array<{ name: string; names?: Record<string, string> | null; grams: number | null; seasoning: boolean }>;
 };
-export type DinnerSuggestion = Omit<DinnerCandidate, "haystack" | "lowCarbFriendly" | "dishId" | "titles" | "style" | "protein" | "tags" | "ingredients"> & { title: string; after: Macros };
+export type DinnerSuggestion = Omit<DinnerCandidate, "haystack" | "lowCarbFriendly" | "dishId" | "titles" | "style" | "protein" | "tags" | "ingredients"> & {
+  title: string; after: Macros;
+  // "Nézz be a hűtőbe": what this dish needs that was not ticked (only when something was).
+  missing?: string[];
+};
 // "Ha maradt az ebédből…" (owner idea 2026-10-15): an earlier meal of the
 // day that would fit again, offered as an extra at the same portion.
 export type EatenMeal = { id: string; title: string; mealType: string | null; mealTypeLabel: string | null; totals: Macros };
@@ -99,6 +104,34 @@ export function exclusionTerms(entries: string[]): string[] {
 const escape = (term: string) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 export const mentions = (haystack: string, term: string) => new RegExp(`(^|\\s)${escape(term)}`).test(haystack);
 
+// "Nézz be a hűtőbe" (owner idea 02261c, 2026-10-20). Seasonings and what
+// every kitchen has (oil, salt, flour, butter, mustard...) are not asked for.
+const PANTRY = ["*olaj", "*olivenol", "*sonnenblumenol", "*rapsol", "oil", "=so", "salz", "salt", "bors", "pfeffer", "black pepper", "*ecet", "essig", "vinegar",
+  "=viz", "wasser", "water", "*cukor", "zucker", "sugar", "*liszt", "mehl", "flour", "=vaj", "butter", "*zsir", "schmalz", "lard", "margarin", "*alaple", "*fond",
+  "petrezselyemzold", "torma", "meerrettich", "lekvar", "*kakao", "*csokolade", "pudingpor", "=mez", "honig", "honey", "mazsola", "rosinen", "raisins", "zselatin", "gelatine",
+  "fondan", "*maz", "=sor", "bier", "beer", "=rum", "*palinka", "brandy", "=bor", "vorosbor", "feherbor", "wein", "wine", "kave", "kaffee", "coffee", "*szosz", "sauce", "jam", "konfiture",
+  "leveskocka", "*bouillon", "*bruhe", "broth", "mustar", "senf", "mustard", "ketchup", "citromle", "zitronensaft", "lemon juice", "fuszer", "gewurz", "spice",
+  "szodabikarbona", "sutopor", "backpulver", "baking", "eleszto", "hefe", "yeast", "zsemlemorzsa", "paniermehl", "breadcrumbs", "kemenyito", "starke", "starch"];
+const termMatches = (text: string, term: string) => term.startsWith("*") ? text.includes(normalizeSearch(term.slice(1)))
+  : term.startsWith("=") ? new RegExp(`(^|\\s)${escape(normalizeSearch(term.slice(1)))}(\\s|$)`).test(text)
+  : mentions(text, normalizeSearch(term));
+const FRIDGE = new Map<string, readonly string[]>(fridgeItems.map((item) => [item.key, item.terms]));
+export const fridgeKeys = (value: unknown) => new Set(String(value ?? "").split(",").map((key) => key.trim()).filter((key) => FRIDGE.has(key)));
+
+/** The main ingredients of a dish that none of the ticked fridge items covers. */
+export function missingFromFridge(candidate: DinnerCandidate, have: Set<string>, lang: Lang): string[] {
+  const missing: string[] = [];
+  for (const ingredient of candidate.ingredients ?? []) {
+    if (ingredient.seasoning) continue;
+    const text = normalizeSearch([ingredient.name, ...Object.values(ingredient.names ?? {})].join(" "));
+    if (!text || PANTRY.some((term) => termMatches(text, term))) continue;
+    if ([...have].some((key) => FRIDGE.get(key)!.some((term) => termMatches(text, term)))) continue;
+    const label = (ingredient.names?.[lang] ?? ingredient.name).split(/[,(]/)[0].trim();
+    if (label && !missing.includes(label)) missing.push(label);
+  }
+  return missing;
+}
+
 const round = (value: number) => Math.round(value * 10) / 10;
 const sub = (a: Macros, b: Macros): Macros => ({ kcal: a.kcal - b.kcal, protein: a.protein - b.protein, netCarbs: a.netCarbs - b.netCarbs, fat: a.fat - b.fat });
 
@@ -123,13 +156,17 @@ export function rankDinnerSuggestions(input: {
   // nem volt"): dishes already shown in this round of asking. They come back
   // only when not enough new dishes fit.
   exclude?: Set<string>;
+  // "Nézz be a hűtőbe": ticked fridge items (fridgeItems keys). Dishes that
+  // need at most one more thing come first.
+  have?: Set<string>;
 }): DinnerResult {
   const { remaining, lang } = input;
   const rounded = { kcal: Math.round(remaining.kcal), protein: round(remaining.protein), netCarbs: round(remaining.netCarbs), fat: round(remaining.fat) };
   if (remaining.netCarbs <= 0) return { remaining: rounded, status: "carb_budget_used", suggestions: [], leftovers: [] };
   if (remaining.kcal <= 0) return { remaining: rounded, status: "kcal_budget_used", suggestions: [], leftovers: [] };
   const terms = exclusionTerms(input.avoid);
-  const scored: Array<{ candidate: DinnerCandidate; score: number; shown: boolean }> = [];
+  const scored: Array<{ candidate: DinnerCandidate; score: number; shown: boolean; missing?: string[] }> = [];
+  const fridge = input.have?.size ? input.have : null;
   for (const candidate of input.candidates) {
     const m = candidate.perServing;
     if (m.netCarbs > remaining.netCarbs || m.kcal > remaining.kcal || m.kcal < 150) continue;
@@ -144,7 +181,8 @@ export function rankDinnerSuggestions(input: {
     const carbUse = m.netCarbs / remaining.netCarbs;
     const score = 1.2 * proteinFit + 0.6 * kcalFit - 0.5 * carbUse + (candidate.source === "own" ? 0.3 : 0) + (candidate.lowCarbFriendly ? 0.15 : 0)
       - (input.recentDishIds?.has(candidate.dishId) ? 0.8 : 0) - (input.recentlySuggested?.has(candidate.dishId) ? 0.9 : 0);
-    scored.push({ candidate, score, shown: !!input.exclude?.has(candidate.dishId) });
+    const missing = fridge ? missingFromFridge(candidate, fridge, lang) : undefined;
+    scored.push({ candidate, score: score + (missing ? (missing.length === 0 ? 1.2 : missing.length === 1 ? 0.6 : 0) : 0), shown: !!input.exclude?.has(candidate.dishId), missing });
   }
   // Variety (owner feedback 2026-10-15: "csak sült húsokat írt"): a little
   // randomness among the good fits, so "Újraszámolás" shows other ideas, and
@@ -176,17 +214,24 @@ export function rankDinnerSuggestions(input: {
   // The quick dishes first claim their places, then the rest fill up as before;
   // the list is shown in the usual order, so the quick ones are mixed in.
   const fresh = jittered.filter((entry) => !entry.shown);
-  pick(fresh.filter((entry) => entry.candidate.quick), Math.min(MIN_QUICK, limit));
+  // With ticked fridge items, dishes missing at most one thing go first.
+  const fits = (entry: (typeof jittered)[number]) => !entry.missing || entry.missing.length <= 1;
+  pick(fresh.filter((entry) => entry.candidate.quick && fits(entry)), Math.min(MIN_QUICK, limit));
+  pick(fresh.filter(fits), limit);
+  if (fridge) pick(fresh.filter((entry) => entry.candidate.quick), Math.min(MIN_QUICK, limit));
   pick(fresh, limit);
   const repeated = picked.length < limit && jittered.some((entry) => entry.shown && !seenDish.has(entry.candidate.dishId));
   if (repeated) pick(jittered.filter((entry) => entry.shown), limit);
   // New dishes first, then any already shown ones.
   const wasShown = (c: DinnerCandidate) => (input.exclude?.has(c.dishId) ? 1 : 0);
-  picked.sort((a, b) => wasShown(a) - wasShown(b) || order.get(a)! - order.get(b)!);
+  const missingOf = new Map(jittered.map((entry) => [entry.candidate, entry.missing]));
+  const needs = (c: DinnerCandidate) => Math.min(2, missingOf.get(c)?.length ?? 0);
+  picked.sort((a, b) => wasShown(a) - wasShown(b) || needs(a) - needs(b) || order.get(a)! - order.get(b)!);
   const suggestions: DinnerSuggestion[] = picked.map((candidate) => {
     const m = candidate.perServing;
     return {
       recipeId: candidate.recipeId, source: candidate.source, title: candidate.titles[lang], servingGrams: candidate.servingGrams, quick: !!candidate.quick,
+      ...(fridge ? { missing: missingOf.get(candidate) ?? [] } : {}),
       perServing: { kcal: Math.round(m.kcal), protein: round(m.protein), netCarbs: round(m.netCarbs), fat: round(m.fat) },
       after: (({ kcal, protein, netCarbs, fat }) => ({ kcal: Math.round(kcal), protein: round(protein), netCarbs: round(netCarbs), fat: round(fat) }))(sub(remaining, m))
     };

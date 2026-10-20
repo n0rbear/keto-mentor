@@ -10,7 +10,7 @@ import helmet from "helmet";
 import jwt from "jsonwebtoken";
 import { pinoHttp } from "pino-http";
 import { z } from "zod";
-import { createMealSchema, editMealSchema, editPrivateFoodSchema, repeatMealSchema, loginSchema, localeUpdateSchema, locales, mealInterpretationSchema, onboardingSchema, registerSchema, effectiveGoals, weekdayGoalsSchema, type Locale } from "@keto-mentor/shared";
+import { createMealSchema, editMealSchema, editPrivateFoodSchema, repeatMealSchema, loginSchema, localeUpdateSchema, locales, mealInterpretationSchema, onboardingSchema, registerSchema, effectiveGoals, weekdayGoalsSchema, fridgeItems, type Locale } from "@keto-mentor/shared";
 import { Prisma } from "@prisma/client";
 import { env } from "./config.js";
 import { createLogger } from "./logger.js";
@@ -31,7 +31,7 @@ import { repeatMeal } from "./meals/repeat-meal.js";
 import { resolveDiaryDateRange, resolveWeekRange } from "./meals/diary-date.js";
 import { getMealsForDay } from "./meals/diary-query.js";
 import { normalizeSearch } from "./catalog/normalize.js";
-import { DINNER_FEATURE, hasPremiumFeature, loadDinnerCandidates, rankDinnerSuggestions, recentlyShown, rememberShown } from "./meals/dinner-suggestions.js";
+import { DINNER_FEATURE, fridgeKeys, hasPremiumFeature, loadDinnerCandidates, rankDinnerSuggestions, recentlyShown, rememberShown } from "./meals/dinner-suggestions.js";
 import { getWeekOverview } from "./meals/week-query.js";
 import { recipeRouter } from "./recipes/router.js";
 import { interpretMealInput, resolveQuantity } from "./meal-input/interpret.js";
@@ -728,6 +728,11 @@ app.get("/meals/week", requireAuth, async (req, res, next) => {
 // to eat for dinner so the selected day stays inside the user's targets.
 // Same ?date/?tzOffsetMinutes convention as /meals/today. Registered before
 // /meals/:mealId.
+// "Nézz be a hűtőbe" (owner idea 02261c): the items the dinner ideas can be ticked with.
+app.get("/meals/fridge-items", requireAuth, (req, res) => {
+  const lang = (["hu", "de", "en"].includes(String(req.query.lang)) ? req.query.lang : "hu") as "hu" | "de" | "en";
+  res.json({ items: fridgeItems.map((item) => ({ key: item.key, label: item[lang] })) });
+});
 app.get("/meals/dinner-suggestions", requireAuth, async (req, res, next) => {
   try {
     const user = await prisma.user.findUnique({ where: { id: req.user!.id }, select: { locale: true, profile: true, entitlements: true } });
@@ -751,6 +756,8 @@ app.get("/meals/dinner-suggestions", requireAuth, async (req, res, next) => {
       recentlySuggested: recentlyShown(req.user!.id),
       // ?shown=<recipeId,...>: what "Újraszámolás" already showed in this session.
       exclude: new Set(String(req.query.shown ?? "").split(",").filter(Boolean).slice(0, 200).map((id) => dishOf.get(id) ?? id)),
+      // ?have=egg,ham,...: "Nézz be a hűtőbe", what the user has at home.
+      have: fridgeKeys(req.query.have),
       remaining: { kcal: goal.kcal - day.totals.kcal, protein: goal.protein - day.totals.protein, netCarbs: goal.netCarbs - day.totals.netCarbs, fat: goal.fat - day.totals.fat },
       avoid: [...(profile?.avoidedFoods ?? []), ...(profile?.allergies ?? [])],
       eatenRecipeIds: new Set(day.meals.flatMap((meal: any) => meal.items.map((item: any) => item.recipeId).filter(Boolean))),

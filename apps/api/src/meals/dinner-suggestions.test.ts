@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { classifyDish, hasPremiumFeature, rankDinnerSuggestions, type DinnerCandidate } from "./dinner-suggestions.js";
+import { classifyDish, hasPremiumFeature, missingFromFridge, rankDinnerSuggestions, type DinnerCandidate } from "./dinner-suggestions.js";
 import { normalizeSearch } from "../catalog/normalize.js";
 
 const dish = (id: string, m: Partial<DinnerCandidate["perServing"]>, extra: Partial<DinnerCandidate> = {}): DinnerCandidate => ({
@@ -128,5 +128,26 @@ describe("Újraszámolás: five dishes not shown yet (owner feedback 2026-10-17)
     expect(result.suggestions).toHaveLength(5);
     expect(result.suggestions.slice(0, 3).map((s) => s.recipeId).sort()).toEqual(["d10", "d11", "d9"]);
     expect(result.repeated).toBe(true);
+  });
+});
+
+describe("Nézz be a hűtőbe (owner idea 02261c)", () => {
+  const ing = (name: string, hu: string, seasoning = false) => ({ name, names: { hu, de: name, en: name }, grams: 50, seasoning });
+  const omelette = dish("omlett", { kcal: 420 }, { titles: { hu: "sonkás omlett", de: "o", en: "o" }, ingredients: [ing("Hühnerei", "tojás"), ing("Kochschinken", "főtt sonka"), ing("Butter", "vaj"), ing("Salz", "só", true)] });
+  const salad = dish("tonhal", { kcal: 400 }, { titles: { hu: "tonhalsaláta", de: "t", en: "t" }, ingredients: [ing("Thunfisch", "tonhalkonzerv"), ing("Gurke", "kígyóuborka"), ing("Mayonnaise", "majonéz"), ing("Olivenöl", "olívaolaj")] });
+  const roast = dish("sult", { kcal: 600, protein: 45 }, { titles: { hu: "sült kacsa káposztával", de: "k", en: "k" }, ingredients: [ing("Ente", "kacsa"), ing("Rotkohl", "vöröskáposzta"), ing("Kartoffeln", "burgonya")] });
+
+  it("knows what is missing, and leaves out seasonings and pantry items", () => {
+    expect(missingFromFridge(omelette, new Set(["egg"]), "hu")).toEqual(["főtt sonka"]);
+    expect(missingFromFridge(omelette, new Set(["egg", "ham"]), "hu")).toEqual([]);
+    expect(missingFromFridge(salad, new Set(["fish", "cucumber"]), "hu")).toEqual(["majonéz"]);
+    expect(missingFromFridge(roast, new Set(["egg"]), "hu")).toEqual(["kacsa", "vöröskáposzta", "burgonya"]);
+  });
+
+  it("puts dishes that need at most one more thing first, and says what is missing", () => {
+    const result = rankDinnerSuggestions({ ...base, candidates: [roast, salad, omelette], have: new Set(["egg", "ham", "fish", "cucumber"]) });
+    expect(result.suggestions.map((s) => s.recipeId)).toEqual(["omlett", "tonhal", "sult"]);
+    expect(result.suggestions.map((s) => s.missing)).toEqual([[], ["majonéz"], ["kacsa", "vöröskáposzta", "burgonya"]]);
+    expect(rankDinnerSuggestions({ ...base, candidates: [salad] }).suggestions[0].missing).toBeUndefined();
   });
 });

@@ -424,3 +424,49 @@ export function effectiveGoals(profile: Partial<BaseGoals> & { weekdayGoals?: un
   if (!day) return base;
   return { ...base, dailyKcal: day.kcal ?? base.dailyKcal, dailyProtein: day.protein ?? base.dailyProtein, dailyNetCarbs: day.netCarbs ?? base.dailyNetCarbs, dailyFat: day.fat ?? base.dailyFat };
 }
+
+// "Nézz be a hűtőbe" (owner idea 02261c, 2026-10-20): what the user has at
+// home, ticked in the dinner ideas. Terms are matched against normalized
+// ingredient names (hu/de/en, accents removed): a plain term must start a
+// word, a "*term" may sit inside a compound word ("kígyóuborka"), a "=term"
+// must be the whole word ("ei", not "Eisbergsalat").
+export const fridgeItems = [
+  { key: "egg", hu: "Tojás", de: "Eier", en: "Eggs", terms: ["tojas", "=ei", "eier", "huhnerei", "egg", "eggs", "*tojas"] },
+  { key: "ham", hu: "Sonka, felvágott", de: "Schinken, Aufschnitt", en: "Ham, cold cuts", terms: ["*sonka", "felvagott", "parizsi", "mortadella", "*schinken", "aufschnitt", "fleischwurst", "jagdwurst", "ham", "bologna", "husalata", "fleischsalat"] },
+  { key: "salami", hu: "Szalámi, kolbász", de: "Salami, Wurst", en: "Salami, sausage", terms: ["*szalami", "*kolbasz", "debreceni", "salami", "*wurst", "sausage", "chorizo"] },
+  { key: "frankfurter", hu: "Virsli", de: "Würstchen", en: "Frankfurters", terms: ["virsli", "wurstchen", "frankfurter", "wiener", "frankfurt"] },
+  { key: "bacon", hu: "Szalonna, bacon", de: "Speck", en: "Bacon", terms: ["*szalonna", "bacon", "speck", "*speck"] },
+  { key: "chicken", hu: "Csirke, pulyka", de: "Hähnchen, Pute", en: "Chicken, turkey", terms: ["*csirke", "*pulyka", "*hahnchen", "huhn", "*pute", "chicken", "turkey", "broiler", "*tyuk", "kacsa", "liba", "ente", "gans", "duck", "goose"] },
+  { key: "pork", hu: "Sertéshús", de: "Schweinefleisch", en: "Pork", terms: ["*sertes", "karaj", "tarja", "*schwein", "pork", "birka", "barany", "vaddisznohus", "vadhus", "lamm", "wild", "lamb", "mutton"] },
+  { key: "beef", hu: "Marhahús", de: "Rindfleisch", en: "Beef", terms: ["*marha", "*rind", "beef", "roastbeef", "borju", "kalb", "veal"] },
+  { key: "minced", hu: "Darált hús", de: "Hackfleisch", en: "Minced meat", terms: ["daralt", "*hackfleisch", "ground", "minced"] },
+  { key: "fish", hu: "Hal, tonhal", de: "Fisch, Thunfisch", en: "Fish, tuna", terms: ["hal", "tonhal", "lazac", "makrela", "pisztrang", "szardinia", "hering", "harcsa", "ponty", "fisch", "*thunfisch", "lachs", "makrele", "forelle", "sardine", "fish", "tuna", "salmon", "trout", "mackerel", "herring", "matjes", "*hal", "hekk", "suger", "*fisch", "cod", "pollock"] },
+  { key: "cheese", hu: "Sajt", de: "Käse", en: "Cheese", terms: ["*sajt", "gouda", "trappista", "edami", "emmentali", "emmentaler", "mozzarella", "feta", "parmezan", "parmesan", "camembert", "brie", "keksajt", "*kase", "cheese", "cheddar"] },
+  { key: "quark", hu: "Túró, krémsajt", de: "Quark, Frischkäse", en: "Quark, cream cheese", terms: ["turo", "*kremsajt", "quark", "topfen", "*frischkase", "cottage", "ricotta", "*turo"] },
+  { key: "sour_cream", hu: "Tejföl, joghurt", de: "Sauerrahm, Joghurt", en: "Sour cream, yogurt", terms: ["tejfol", "joghurt", "kefir", "sauerrahm", "*saure sahne", "schmand", "joghurt", "yogurt", "yoghurt", "sour cream", "creme fraiche"] },
+  { key: "cream", hu: "Tejszín", de: "Sahne", en: "Cream", terms: ["tejszin", "sahne", "cream", "*tejszin"] },
+  { key: "mayonnaise", hu: "Majonéz", de: "Mayonnaise", en: "Mayonnaise", terms: ["majonez", "mayonnaise", "salatmayonnaise", "mayo", "*majonez", "remulad"] },
+  { key: "cucumber", hu: "Uborka", de: "Gurke", en: "Cucumber", terms: ["*uborka", "*gurke", "cucumber", "pickle", "pickles", "gherkin"] },
+  { key: "tomato", hu: "Paradicsom", de: "Tomaten", en: "Tomatoes", terms: ["*paradicsom", "*tomate", "tomaten", "tomato", "paradeiser"] },
+  { key: "pepper", hu: "Paprika (friss)", de: "Paprika (frisch)", en: "Bell pepper", terms: ["*kaliforniai paprika", "zoldpaprika", "tv paprika", "gemusepaprika", "bell pepper", "wax pepper", "paprika piros", "paprika sarga", "peppers"] },
+  { key: "onion", hu: "Hagyma", de: "Zwiebeln", en: "Onions", terms: ["*hagyma", "*zwiebel", "onion", "onions", "shallot", "schalotte", "lauch", "leek"] },
+  { key: "salad", hu: "Saláta, rukkola", de: "Salat, Rucola", en: "Lettuce, rocket", terms: ["fejes salata", "jegsalata", "salatalevel", "romai", "rukkola", "galambbegy", "kopfsalat", "eisbergsalat", "feldsalat", "rucola", "romaine", "lettuce", "arugula", "rocket", "zsazsa", "soska", "kresse", "cress"] },
+  { key: "avocado", hu: "Avokádó", de: "Avocado", en: "Avocado", terms: ["avokado", "avocado"] },
+  { key: "radish", hu: "Retek", de: "Radieschen", en: "Radish", terms: ["retek", "radieschen", "radish", "rettich"] },
+  { key: "zucchini", hu: "Cukkini, padlizsán", de: "Zucchini, Aubergine", en: "Zucchini, aubergine", terms: ["cukkini", "padlizsan", "zucchini", "aubergine", "courgette", "eggplant", "sutotok"] },
+  { key: "mushroom", hu: "Gomba", de: "Pilze", en: "Mushrooms", terms: ["*gomba", "champignon", "pilz", "pilze", "mushroom", "mushrooms", "pfifferling", "varganya"] },
+  { key: "cabbage", hu: "Káposzta, savanyú káposzta", de: "Kohl, Sauerkraut", en: "Cabbage, sauerkraut", terms: ["*kaposzta", "*kohl", "sauerkraut", "weisskraut", "rotkraut", "cabbage", "sauerkraut", "kelkaposzta", "wirsing"] },
+  { key: "greens", hu: "Spenót, brokkoli, karfiol", de: "Spinat, Brokkoli, Blumenkohl", en: "Spinach, broccoli, cauliflower", terms: ["spenot", "brokkoli", "karfiol", "spinat", "*blumenkohl", "broccoli", "cauliflower", "spinach", "sparga", "kelkaposzta", "kale", "spargel", "asparagus"] },
+  { key: "green_bean", hu: "Zöldbab, zöldborsó", de: "Grüne Bohnen, Erbsen", en: "Green beans, peas", terms: ["zoldbab", "zoldborso", "*bohnen", "erbsen", "green bean", "green beans", "peas", "fisolen", "*kukorica", "maiskorn", "corn"] },
+  { key: "root_veg", hu: "Répa, zeller, gyökér", de: "Karotten, Sellerie, Wurzeln", en: "Carrot, celery, roots", terms: ["*repa", "zeller", "*gyoker", "karotte", "mohre", "sellerie", "*wurzel", "carrot", "celery", "celeriac", "parsnip", "pastinake", "petrezselyemgyoker", "*zeller", "karalabe", "kohlrabi", "paszternak"] },
+  { key: "beetroot", hu: "Cékla", de: "Rote Bete", en: "Beetroot", terms: ["cekla", "rote bete", "rote rube", "beetroot", "beet"] },
+  { key: "olives", hu: "Olívabogyó", de: "Oliven", en: "Olives", terms: ["oliva", "olivabogyo", "oliven", "olive", "olives", "kapribogyo", "kapern", "capers"] },
+  { key: "nuts", hu: "Dió, mag", de: "Nüsse, Kerne", en: "Nuts, seeds", terms: ["dio", "mogyoro", "mandula", "tokmag", "napraforgomag", "lenmag", "szezammag", "walnuss", "*nuss", "mandel", "kerne", "nut", "nuts", "almond", "walnut", "walnuts", "seeds", "gesztenye", "fenyomag", "pinienkerne", "chestnut"] },
+  { key: "milk", hu: "Tej", de: "Milch", en: "Milk", terms: ["=tej", "*milch", "milk"] },
+  { key: "bread", hu: "Kenyér, péksütemény", de: "Brot, Gebäck", en: "Bread, rolls", terms: ["*kenyer", "zsemle", "kifli", "kalacs", "pita", "tortilla", "perec", "bagett", "croissant", "*brot", "*brotchen", "*semmel", "brezel", "bread", "roll", "toast", "baguette"] },
+  { key: "fruit", hu: "Gyümölcs", de: "Obst", en: "Fruit", terms: ["alma", "korte", "banan", "meggy", "cseresznye", "eper", "malna", "afonya", "szilva", "*barack", "ananasz", "kivi", "mango", "*dinnye", "nektarin", "szolo", "apfel", "birne", "kirsch", "erdbeer", "himbeer", "pflaume", "pfirsich", "aprikose", "apple", "pear", "cherry", "strawberr", "raspberr", "plum", "peach", "apricot", "pineapple", "banana", "nectarine", "melon"] },
+  { key: "potato", hu: "Burgonya", de: "Kartoffeln", en: "Potatoes", terms: ["*burgonya", "krumpli", "*kartoffel", "erdapfel", "potato", "potatoes"] },
+  { key: "rice_pasta", hu: "Rizs, tészta", de: "Reis, Nudeln", en: "Rice, pasta", terms: ["rizs", "teszta", "nokedli", "galuska", "reis", "nudel", "nudeln", "*teigwaren", "spatzle", "rice", "pasta", "spaghetti", "noodles", "dara", "*dara", "zabpehely", "muzli", "granola", "*pehely", "kuszkusz", "couscous", "haferflocken", "griess"] },
+  { key: "legumes", hu: "Bab, lencse, csicseriborsó", de: "Bohnen, Linsen, Kichererbsen", en: "Beans, lentils, chickpeas", terms: ["bab", "lencse", "csicseri", "*linsen", "kichererbsen", "*bohnen", "beans", "lentils", "chickpeas", "hummus", "*bab", "*borso", "humusz"] }
+] as const;
+export type FridgeItemKey = (typeof fridgeItems)[number]["key"];

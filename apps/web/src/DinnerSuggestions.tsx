@@ -1,5 +1,5 @@
-import { useRef, useState } from "react";
-import { Moon, Plus, Zap } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Check, Moon, Plus, Refrigerator, Zap } from "lucide-react";
 import { api, ApiError, type ApiState } from "./api";
 import type { Lang } from "./i18n";
 import { PremiumBadge, PremiumNote } from "./PremiumBadge";
@@ -9,7 +9,7 @@ import { PremiumBadge, PremiumNote } from "./PremiumBadge";
 // and calorie targets. Premium, open to everyone while in beta.
 
 type Macros = { kcal: number; protein: number; netCarbs: number; fat: number };
-type Suggestion = { recipeId: string; source: "own" | "reference"; title: string; servingGrams: number | null; quick?: boolean; perServing: Macros; after: Macros };
+type Suggestion = { recipeId: string; source: "own" | "reference"; title: string; servingGrams: number | null; quick?: boolean; missing?: string[]; perServing: Macros; after: Macros };
 type Leftover = { mealId: string; title: string; mealType: string | null; mealTypeLabel: string | null; perServing: Macros; after: Macros };
 type Result = { remaining: Macros; status: "ok" | "carb_budget_used" | "kcal_budget_used" | "nothing_fits"; suggestions: Suggestion[]; leftovers?: Leftover[]; repeated?: boolean };
 
@@ -28,7 +28,7 @@ function leftoverHeading(lang: Lang, l: Leftover) {
 
 const copy = {
   hu: {
-    title: "Vacsoraajánló", lead: "A nap eddigi étkezései alapján olyan vacsorát ajánl, ami belefér a szénhidrát- és kalóriakeretedbe, és pótolja a hiányzó fehérjét.",
+    title: "Vacsoraajánló", fridge: "Nézz be a hűtőbe", fridgeLead: "Pipáld ki, mi van otthon, és olyan vacsorát ajánlok, amihez minden megvan, vagy legfeljebb egy dolog hiányzik.", fridgeCount: "kiválasztva", fridgeClear: "Törlés", haveAll: "Minden megvan hozzá", missing: "Hiányzik", lead: "A nap eddigi étkezései alapján olyan vacsorát ajánl, ami belefér a szénhidrát- és kalóriakeretedbe, és pótolja a hiányzó fehérjét.",
     ask: "Mit egyek vacsorára?", again: "Újraszámolás", loading: "Számolom…", remaining: "Még belefér ma",
     own: "Saját recept", reference: "Referenciaétel", quick: "Gyors, 5–10 perc a hűtőből", serving: "1 adag", after: "Utána marad", log: "Naplózom vacsoraként", logged: "Naplózva vacsoraként.",
     carb_budget_used: "A mai nettó szénhidrátkereted már elfogyott, ezért most nem ajánlok vacsorát. Egy kis zöldsaláta olajjal vagy tojás jöhet, ha éhes vagy.",
@@ -39,7 +39,7 @@ const copy = {
     premium_required: "A Vacsoraajánló prémium funkció.", failed: "Az ajánlás most nem sikerült, próbáld újra."
   },
   de: {
-    title: "Abendessen-Vorschlag", lead: "Schlägt nach deinen bisherigen Mahlzeiten ein Abendessen vor, das in dein Kohlenhydrat- und Kalorienziel passt und fehlendes Eiweiß ergänzt.",
+    title: "Abendessen-Vorschlag", fridge: "Blick in den Kühlschrank", fridgeLead: "Hake an, was du zu Hause hast: Ich schlage Gerichte vor, für die alles da ist oder höchstens eine Zutat fehlt.", fridgeCount: "ausgewählt", fridgeClear: "Zurücksetzen", haveAll: "Alles da", missing: "Es fehlt", lead: "Schlägt nach deinen bisherigen Mahlzeiten ein Abendessen vor, das in dein Kohlenhydrat- und Kalorienziel passt und fehlendes Eiweiß ergänzt.",
     ask: "Was esse ich zu Abend?", again: "Neu berechnen", loading: "Berechne…", remaining: "Heute noch frei",
     own: "Eigenes Rezept", reference: "Referenzgericht", quick: "Schnell, 5–10 Min. aus dem Kühlschrank", serving: "1 Portion", after: "Danach übrig", log: "Als Abendessen eintragen", logged: "Als Abendessen eingetragen.",
     carb_budget_used: "Dein Netto-Kohlenhydratziel für heute ist erreicht, deshalb schlage ich kein Abendessen vor.",
@@ -50,7 +50,7 @@ const copy = {
     premium_required: "Der Abendessen-Vorschlag ist eine Premium-Funktion.", failed: "Der Vorschlag hat nicht geklappt, bitte erneut versuchen."
   },
   en: {
-    title: "Dinner ideas", lead: "Suggests a dinner that fits your remaining net-carb and calorie targets for the day and fills the missing protein.",
+    title: "Dinner ideas", fridge: "Look in the fridge", fridgeLead: "Tick what you have at home and I will suggest dinners you have everything for, or miss one thing at most.", fridgeCount: "selected", fridgeClear: "Clear", haveAll: "You have everything", missing: "Missing", lead: "Suggests a dinner that fits your remaining net-carb and calorie targets for the day and fills the missing protein.",
     ask: "What should I eat for dinner?", again: "Recalculate", loading: "Calculating…", remaining: "Still fits today",
     own: "Own recipe", reference: "Reference dish", quick: "Quick, 5–10 min from the fridge", serving: "1 serving", after: "Left after", log: "Log as dinner", logged: "Logged as dinner.",
     carb_budget_used: "Today's net-carb target is used up, so no dinner suggestion right now.",
@@ -61,6 +61,15 @@ const copy = {
     premium_required: "Dinner ideas is a premium feature.", failed: "The suggestion failed, please try again."
   }
 } as const;
+
+// "Nézz be a hűtőbe" (owner idea 02261c): ticked items stay on this device.
+const FRIDGE_KEY = "km_fridge";
+function readFridge(): string[] {
+  try { const value = JSON.parse(localStorage.getItem(FRIDGE_KEY) ?? "[]"); return Array.isArray(value) ? value.filter((v) => typeof v === "string") : []; } catch { return []; }
+}
+function saveFridge(keys: string[]) {
+  try { localStorage.setItem(FRIDGE_KEY, JSON.stringify(keys)); } catch { /* private mode: keep it for this visit only */ }
+}
 
 const macroLine = (m: Macros) => `${m.kcal} kcal · P ${m.protein} g · NCH ${m.netCarbs} g`;
 
@@ -73,13 +82,28 @@ export function DinnerSuggestions({ lang, state, date, onLogged }: { lang: Lang;
   const [logged, setLogged] = useState(false);
   // "Újraszámolás" means none of these suit: it asks for dishes not shown yet.
   const shown = useRef<{ date: string; ids: Set<string> }>({ date, ids: new Set() });
+  const [fridgeOpen, setFridgeOpen] = useState(false);
+  const [fridgeItems, setFridgeItems] = useState<Array<{ key: string; label: string }>>([]);
+  const [have, setHave] = useState<string[]>(readFridge);
+
+  useEffect(() => {
+    if (!fridgeOpen || fridgeItems.length) return;
+    api<{ items: Array<{ key: string; label: string }> }>(`/meals/fridge-items?lang=${lang}`, {}, state).then((r) => setFridgeItems(r.items)).catch(() => undefined);
+  }, [fridgeOpen, fridgeItems.length, lang, state]);
+
+  function toggleHave(key: string) {
+    const next = have.includes(key) ? have.filter((k) => k !== key) : [...have, key];
+    setHave(next); saveFridge(next);
+    // Other ingredients at home: start the round of ideas again.
+    shown.current = { date, ids: new Set() };
+  }
 
   async function load() {
     setLoading(true); setError(null); setLogged(false);
     if (!result || shown.current.date !== date) shown.current = { date, ids: new Set() };
     const exclude = [...shown.current.ids].slice(-150).join(",");
     try {
-      const next = await api<Result>(`/meals/dinner-suggestions?date=${date}&tzOffsetMinutes=${new Date().getTimezoneOffset()}&lang=${lang}${exclude ? `&shown=${encodeURIComponent(exclude)}` : ""}`, {}, state);
+      const next = await api<Result>(`/meals/dinner-suggestions?date=${date}&tzOffsetMinutes=${new Date().getTimezoneOffset()}&lang=${lang}${exclude ? `&shown=${encodeURIComponent(exclude)}` : ""}${have.length ? `&have=${encodeURIComponent(have.join(","))}` : ""}`, {}, state);
       for (const s of next.suggestions) shown.current.ids.add(s.recipeId);
       setResult(next);
     } catch (e) {
@@ -114,6 +138,22 @@ export function DinnerSuggestions({ lang, state, date, onLogged }: { lang: Lang;
       </div>
       <PremiumNote lang={lang}/>
       <p className="text-sm text-muted">{t.lead}</p>
+      <button type="button" className={`btn ghost dinner-fridge-toggle ${have.length ? "is-active" : ""}`} aria-expanded={fridgeOpen} onClick={() => setFridgeOpen(!fridgeOpen)}>
+        <Refrigerator size={16} aria-hidden="true"/>{t.fridge}{have.length ? ` · ${have.length} ${t.fridgeCount}` : ""}
+      </button>
+      {fridgeOpen && (
+        <div className="dinner-fridge">
+          <p className="text-xs text-muted">{t.fridgeLead}</p>
+          <div className="dinner-fridge-chips" role="group" aria-label={t.fridge}>
+            {fridgeItems.map((item) => (
+              <button key={item.key} type="button" className={`chip ${have.includes(item.key) ? "active" : ""}`} aria-pressed={have.includes(item.key)} onClick={() => toggleHave(item.key)}>
+                {have.includes(item.key) && <Check size={12} aria-hidden="true"/>}{item.label}
+              </button>
+            ))}
+          </div>
+          {!!have.length && <button type="button" className="btn ghost text-xs" onClick={() => { setHave([]); saveFridge([]); shown.current = { date, ids: new Set() }; }}>{t.fridgeClear}</button>}
+        </div>
+      )}
       <button type="button" className="btn primary" onClick={load} disabled={loading}>{loading ? t.loading : result ? t.again : t.ask}</button>
       {logged && <p className="status success" role="status">{t.logged}</p>}
       {error && <p className="status error" role="alert">{error}</p>}
@@ -128,6 +168,7 @@ export function DinnerSuggestions({ lang, state, date, onLogged }: { lang: Lang;
                 <div>
                   <strong>{s.title}</strong>
                   {s.quick && <span className="dinner-quick text-xs"><Zap size={12} aria-hidden="true"/>{t.quick}</span>}
+                  {s.missing && <div className={`text-xs ${s.missing.length ? "text-muted" : "dinner-have-all"}`}>{s.missing.length ? `${t.missing}: ${s.missing.slice(0, 3).join(", ")}${s.missing.length > 3 ? "…" : ""}` : `✓ ${t.haveAll}`}</div>}
                   <span className="text-xs text-muted"> · {s.source === "own" ? t.own : t.reference} · {t.serving}{s.servingGrams ? ` (${s.servingGrams} g)` : ""}</span>
                   <div className="text-sm">{macroLine(s.perServing)}</div>
                   <div className="text-xs text-muted">{t.after}: {macroLine(s.after)}</div>
