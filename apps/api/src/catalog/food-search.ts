@@ -523,8 +523,11 @@ export async function searchFoods(prisma: CatalogPrisma, rawQuery: string, limit
       orderBy: { id: "asc" }
     });
     const byId = new Map(full.map(food => [food.id, food]));
+    // The same winners ranked once more with their servings loaded, so the
+    // unit-weight tie-break applies here too (ticket 90f2d5).
+    const loaded = rankFoodCandidates(winners.filter(food => byId.has(food.id)).map(food => ({ ...byId.get(food.id)! })), variants, aliasesByFood, fuzzyIds, rankingQuery);
     // A drink is never offered its powder/beans (see prepared-drink-guard.ts).
-    return withoutDryFormsForDrink(drinkIdentities, winners.filter(food => byId.has(food.id)).map(food => ({ ...byId.get(food.id)!, match: food.match })));
+    return withoutDryFormsForDrink(drinkIdentities, loaded);
   }
 
   // Compatibility for the existing non-SQL projected catalog and unit-test

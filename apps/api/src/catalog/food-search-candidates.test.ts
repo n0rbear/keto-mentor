@@ -106,3 +106,17 @@ describe("bounded DB candidate discovery", () => {
     });
   });
 });
+
+describe("ticket 90f2d5: the unit-weight tie-break also applies to the SQL path", () => {
+  it("puts the plain roll with a piece weight first on a shared-alias tie", async () => {
+    const alias = [{ normalizedAlias: "zsemle", kind: "synonym", confidence: 1 }];
+    const baguette = { ...row("bls-B781300", "Weizenbaguettebrötchen"), names: { hu: "bagett zsemle", de: "Weizenbaguettebrötchen", en: "baguette roll" }, _aliases: alias };
+    const plain = { ...row("bls-B511000", "Weizenbrötchen"), names: { hu: "búzazsemle", de: "Weizenbrötchen", en: "white wheat roll" }, _aliases: alias };
+    const db = {
+      $queryRaw: vi.fn(async () => [baguette, plain]),
+      foodAlias: { findMany: vi.fn() },
+      food: { findMany: vi.fn(async () => [{ ...baguette, servings: [] }, { ...plain, servings: [{ key: "piece_at", grams: 62.5 }] }]) }
+    } as any;
+    expect((await searchFoods(db, "zsemle")).map((f: any) => f.id)).toEqual(["bls-B511000", "bls-B781300"]);
+  });
+});
