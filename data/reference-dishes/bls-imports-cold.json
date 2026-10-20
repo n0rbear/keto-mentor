@@ -1,0 +1,12 @@
+[
+  {"sourceId": "W561000", "names": {"hu": "pulykasonka (füstölt pulykamell)", "en": "smoked turkey breast (turkey ham)"}, "synonyms": {"hu": ["pulykasonka", "pulykamellsonka", "füstölt pulykamell"], "de": ["putenschinken", "putenbrust aufschnitt"], "en": ["turkey ham", "deli turkey"]}},
+  {"sourceId": "T410600", "names": {"hu": "füstölt lazac", "en": "smoked salmon"}, "synonyms": {"hu": ["füstölt lazac", "lazac füstölt"], "de": ["räucherlachs"], "en": ["smoked salmon", "lox"]}},
+  {"sourceId": "T422600", "names": {"hu": "füstölt pisztráng", "en": "smoked trout"}, "synonyms": {"hu": ["füstölt pisztráng"], "de": ["räucherforelle"], "en": ["smoked trout"]}},
+  {"sourceId": "T107600", "names": {"hu": "füstölt makréla", "en": "smoked mackerel"}, "synonyms": {"hu": ["füstölt makréla"], "de": ["räuchermakrele"], "en": ["smoked mackerel"]}},
+  {"sourceId": "T105702", "names": {"hu": "szardínia olajban (konzerv, lecsepegtetve)", "en": "sardines in oil, canned, drained"}, "synonyms": {"hu": ["szardínia", "szardíniakonzerv", "olajos szardínia"], "de": ["sardinen in öl", "ölsardinen"], "en": ["sardines", "canned sardines"]}},
+  {"sourceId": "M7A1600", "names": {"hu": "kecske-krémsajt", "en": "fresh goat cheese"}, "synonyms": {"hu": ["kecskesajt", "kecske krémsajt", "friss kecskesajt"], "de": ["ziegenfrischkäse", "ziegenkäse"], "en": ["goat cheese", "chèvre"]}},
+  {"sourceId": "M601600", "names": {"hu": "brie sajt", "en": "Brie cheese"}, "synonyms": {"hu": ["brie", "brie sajt"], "de": ["brie"], "en": ["brie"]}},
+  {"sourceId": "U681700", "names": {"hu": "nyers sonka (pácolt, füstölt, sovány)", "en": "cured raw ham, lean"}, "synonyms": {"hu": ["nyers sonka", "serrano sonka", "serrano"], "de": ["rohschinken", "serranoschinken"], "en": ["serrano ham", "cured ham"]}},
+  {"sourceId": "V416182", "names": {"hu": "sült csirkemell (zsiradék nélkül)", "en": "chicken breast fillet, pan-fried without fat"}, "synonyms": {"hu": ["sült csirkemell", "grillezett csirkemell"], "de": ["hähnchenbrust gebraten"], "en": ["cooked chicken breast", "grilled chicken breast"]}},
+  {"sourceId": "Y131132", "names": {"hu": "sült marhahús (roastbeef)", "en": "roast beef, oven-roasted"}, "synonyms": {"hu": ["roastbeef", "hideg marhasült", "marhasült"], "de": ["roastbeef"], "en": ["roast beef"]}}
+]

@@ -1216,6 +1216,678 @@ sonkatekercs_mozzarellaval,Sonkatekercs mozzarellával és paradicsommal,1,mozza
 sonkatekercs_mozzarellaval,Sonkatekercs mozzarellával és paradicsommal,1,tomato,paradicsom,100,core,bls:G561100,330,1.0,0.6,330
 sonkatekercs_mozzarellaval,Sonkatekercs mozzarellával és paradicsommal,1,basil_fresh,bazsalikom (friss),3,seasoning,bls:G061000,330,1.0,0.6,330
 sonkatekercs_mozzarellaval,Sonkatekercs mozzarellával és paradicsommal,1,olive_oil,olívaolaj,2,fat,bls:Q120000,330,1.0,0.6,330
+hv_sonkas_sajtos_salatatekercs,"Sonkás-sajtos szendvics kenyér nélkül, salátalevélbe tekerve",1,ham_cooked,főtt sonka / szendvicssonka,80,core,bls:W424000,225,1.0,0.6,225
+hv_sonkas_sajtos_salatatekercs,"Sonkás-sajtos szendvics kenyér nélkül, salátalevélbe tekerve",1,gouda,gouda sajt,50,core,bls:M402600,225,1.0,0.6,225
+hv_sonkas_sajtos_salatatekercs,"Sonkás-sajtos szendvics kenyér nélkül, salátalevélbe tekerve",1,lettuce,fejes saláta,40,core,bls:G105100,225,1.0,0.6,225
+hv_sonkas_sajtos_salatatekercs,"Sonkás-sajtos szendvics kenyér nélkül, salátalevélbe tekerve",1,tomato,paradicsom,50,core,bls:G561100,225,1.0,0.6,225
+hv_sonkas_sajtos_salatatekercs,"Sonkás-sajtos szendvics kenyér nélkül, salátalevélbe tekerve",1,mustard,mustár,5,seasoning,bls:R132000,225,1.0,0.6,225
+hv_sonkas_sajtos_paprikatekercs,Sonkával és sajttal töltött paprikatekercs,1,bell_pepper_red,piros kaliforniai paprika,150,core,bls:G543100,280,1.0,0.6,280
+hv_sonkas_sajtos_paprikatekercs,Sonkával és sajttal töltött paprikatekercs,1,ham_cooked,főtt sonka / szendvicssonka,80,core,bls:W424000,280,1.0,0.6,280
+hv_sonkas_sajtos_paprikatekercs,Sonkával és sajttal töltött paprikatekercs,1,trappista,trappista sajt,50,core,bls:M505600,280,1.0,0.6,280
+hv_kremsajtos_sonkatekercs,Krémsajtos sonkatekercs,1,ham_cooked,főtt sonka / szendvicssonka,100,core,bls:W424000,243,1.0,0.6,243
+hv_kremsajtos_sonkatekercs,Krémsajtos sonkatekercs,1,cream_cheese_double,krémsajt (dupla krém),60,core,bls:M710800,243,1.0,0.6,243
+hv_kremsajtos_sonkatekercs,Krémsajtos sonkatekercs,1,cucumber,kígyóuborka / uborka,80,core,bls:G520100,243,1.0,0.6,243
+hv_kremsajtos_sonkatekercs,Krémsajtos sonkatekercs,1,chives,metélőhagyma,3,seasoning,bls:G081100,243,1.0,0.6,243
+hv_sonkas_uborkatekercs,Sonkával töltött uborkatekercs,1,cucumber,kígyóuborka / uborka,200,core,bls:G520100,320,1.0,0.6,320
+hv_sonkas_uborkatekercs,Sonkával töltött uborkatekercs,1,ham_cooked,főtt sonka / szendvicssonka,80,core,bls:W424000,320,1.0,0.6,320
+hv_sonkas_uborkatekercs,Sonkával töltött uborkatekercs,1,cream_cheese_double,krémsajt (dupla krém),40,core,bls:M710800,320,1.0,0.6,320
+hv_szalami_sajttal_mustarral,Szalámi sajttal és mustárral,1,salami,szalámi (német),60,core,bls:W140000,230,1.0,0.6,230
+hv_szalami_sajttal_mustarral,Szalámi sajttal és mustárral,1,gouda,gouda sajt,60,core,bls:M402600,230,1.0,0.6,230
+hv_szalami_sajttal_mustarral,Szalámi sajttal és mustárral,1,mustard,mustár,10,seasoning,bls:R132000,230,1.0,0.6,230
+hv_szalami_sajttal_mustarral,Szalámi sajttal és mustárral,1,cucumber,kígyóuborka / uborka,100,core,bls:G520100,230,1.0,0.6,230
+hv_pulykasonka_sajtkockakkal,Pulykasonka sajtkockákkal és friss zöldségekkel,1,turkey_ham,pulykasonka (füstölt pulykamell),100,core,bls:W561000,370,1.0,0.6,370
+hv_pulykasonka_sajtkockakkal,Pulykasonka sajtkockákkal és friss zöldségekkel,1,emmentaler,ementáli sajt,50,core,bls:M304600,370,1.0,0.6,370
+hv_pulykasonka_sajtkockakkal,Pulykasonka sajtkockákkal és friss zöldségekkel,1,bell_pepper_red,piros kaliforniai paprika,80,core,bls:G543100,370,1.0,0.6,370
+hv_pulykasonka_sajtkockakkal,Pulykasonka sajtkockákkal és friss zöldségekkel,1,cucumber,kígyóuborka / uborka,80,core,bls:G520100,370,1.0,0.6,370
+hv_pulykasonka_sajtkockakkal,Pulykasonka sajtkockákkal és friss zöldségekkel,1,tomato,paradicsom,60,core,bls:G561100,370,1.0,0.6,370
+hv_sonkatekercs_tojaskremmel,Sonkatekercs tojáskrémmel töltve,1,ham_cooked,főtt sonka / szendvicssonka,80,core,bls:W424000,203,1.0,0.6,203
+hv_sonkatekercs_tojaskremmel,Sonkatekercs tojáskrémmel töltve,1,egg,tojás,100,core,bls:E111100,203,1.0,0.6,203
+hv_sonkatekercs_tojaskremmel,Sonkatekercs tojáskrémmel töltve,1,mayonnaise,majonéz,15,fat,bls:Q991000,203,1.0,0.6,203
+hv_sonkatekercs_tojaskremmel,Sonkatekercs tojáskrémmel töltve,1,mustard,mustár,5,seasoning,bls:R132000,203,1.0,0.6,203
+hv_sonkatekercs_tojaskremmel,Sonkatekercs tojáskrémmel töltve,1,chives,metélőhagyma,3,seasoning,bls:G081100,203,1.0,0.6,203
+hv_szalamitekercs_kremsajttal,Szalámitekercs natúr krémsajttal,1,salami,szalámi (német),60,core,bls:W140000,220,1.0,0.6,220
+hv_szalamitekercs_kremsajttal,Szalámitekercs natúr krémsajttal,1,cream_cheese_double,krémsajt (dupla krém),60,core,bls:M710800,220,1.0,0.6,220
+hv_szalamitekercs_kremsajttal,Szalámitekercs natúr krémsajttal,1,cucumber,kígyóuborka / uborka,100,core,bls:G520100,220,1.0,0.6,220
+hv_csirkemell_majonezes_uborkaval,Hideg sült csirkemell majonézes uborkával,1,chicken_breast_cooked,sült csirkemell (hidegen is),150,core,bls:V416182,340,1.0,0.6,340
+hv_csirkemell_majonezes_uborkaval,Hideg sült csirkemell majonézes uborkával,1,cucumber,kígyóuborka / uborka,150,core,bls:G520100,340,1.0,0.6,340
+hv_csirkemell_majonezes_uborkaval,Hideg sült csirkemell majonézes uborkával,1,mayonnaise,majonéz,20,fat,bls:Q991000,340,1.0,0.6,340
+hv_csirkemell_majonezes_uborkaval,Hideg sült csirkemell majonézes uborkával,1,sour_cream,tejföl (20%),20,core,usda_fdc:2346387,340,1.0,0.6,340
+hv_csirkemell_avokadokremmel,Hideg sült csirkemell avokádókrémmel,1,chicken_breast_cooked,sült csirkemell (hidegen is),150,core,bls:V416182,317,1.0,0.6,317
+hv_csirkemell_avokadokremmel,Hideg sült csirkemell avokádókrémmel,1,avocado,avokádó,100,core,bls:F502100,317,1.0,0.6,317
+hv_csirkemell_avokadokremmel,Hideg sült csirkemell avokádókrémmel,1,lemon_juice,citromlé,5,seasoning,usda_fdc:167747,317,1.0,0.6,317
+hv_csirkemell_avokadokremmel,Hideg sült csirkemell avokádókrémmel,1,garlic,fokhagyma,2,seasoning,bls:G490100,317,1.0,0.6,317
+hv_csirkemell_avokadokremmel,Hideg sült csirkemell avokádókrémmel,1,tomato,paradicsom,60,core,bls:G561100,317,1.0,0.6,317
+hv_pulykasonkas_salatatekercs,Pulykasonkás salátatekercs,1,turkey_ham,pulykasonka (füstölt pulykamell),100,core,bls:W561000,280,1.0,0.6,280
+hv_pulykasonkas_salatatekercs,Pulykasonkás salátatekercs,1,iceberg,jégsaláta,50,core,usda_fdc:2346388,280,1.0,0.6,280
+hv_pulykasonkas_salatatekercs,Pulykasonkás salátatekercs,1,cream_cheese_double,krémsajt (dupla krém),30,core,bls:M710800,280,1.0,0.6,280
+hv_pulykasonkas_salatatekercs,Pulykasonkás salátatekercs,1,cucumber,kígyóuborka / uborka,60,core,bls:G520100,280,1.0,0.6,280
+hv_pulykasonkas_salatatekercs,Pulykasonkás salátatekercs,1,bell_pepper_red,piros kaliforniai paprika,40,core,bls:G543100,280,1.0,0.6,280
+hv_serrano_mozzarellaval,Serrano sonka mozzarellával,1,cured_ham_lean,nyers sonka (serrano típusú),60,core,bls:U681700,310,1.0,0.6,310
+hv_serrano_mozzarellaval,Serrano sonka mozzarellával,1,mozzarella,mozzarella,125,core,bls:M032100,310,1.0,0.6,310
+hv_serrano_mozzarellaval,Serrano sonka mozzarellával,1,tomato,paradicsom,100,core,bls:G561100,310,1.0,0.6,310
+hv_serrano_mozzarellaval,Serrano sonka mozzarellával,1,arugula,rukkola,20,core,bls:G130100,310,1.0,0.6,310
+hv_serrano_mozzarellaval,Serrano sonka mozzarellával,1,olive_oil,olívaolaj,5,fat,bls:Q120000,310,1.0,0.6,310
+hv_parmai_sonka_parmezannal,Pármai sonka parmezánnal és rukkolával,1,parma_ham,pármai sonka,60,core,bls:W441000,200,1.0,0.6,200
+hv_parmai_sonka_parmezannal,Pármai sonka parmezánnal és rukkolával,1,parmesan,parmezán,30,core,bls:M306400,200,1.0,0.6,200
+hv_parmai_sonka_parmezannal,Pármai sonka parmezánnal és rukkolával,1,arugula,rukkola,40,core,bls:G130100,200,1.0,0.6,200
+hv_parmai_sonka_parmezannal,Pármai sonka parmezánnal és rukkolával,1,tomato,paradicsom,60,core,bls:G561100,200,1.0,0.6,200
+hv_parmai_sonka_parmezannal,Pármai sonka parmezánnal és rukkolával,1,olive_oil,olívaolaj,10,fat,bls:Q120000,200,1.0,0.6,200
+hv_mortadella_sajttal_olivaval,Mortadella sajttal és olívabogyóval,1,mortadella,mortadella,80,core,bls:W231200,240,1.0,0.6,240
+hv_mortadella_sajttal_olivaval,Mortadella sajttal és olívabogyóval,1,gouda,gouda sajt,50,core,bls:M402600,240,1.0,0.6,240
+hv_mortadella_sajttal_olivaval,Mortadella sajttal és olívabogyóval,1,olives_black,fekete olívabogyó,30,core,bls:H520800,240,1.0,0.6,240
+hv_mortadella_sajttal_olivaval,Mortadella sajttal és olívabogyóval,1,cucumber,kígyóuborka / uborka,80,core,bls:G520100,240,1.0,0.6,240
+hv_marhasult_mustarral_salataval,Hideg marhasült mustárral és friss salátával,1,roast_beef,sült marhahús (roastbeef),150,core,bls:Y131132,350,1.0,0.6,350
+hv_marhasult_mustarral_salataval,Hideg marhasült mustárral és friss salátával,1,mustard,mustár,10,seasoning,bls:R132000,350,1.0,0.6,350
+hv_marhasult_mustarral_salataval,Hideg marhasült mustárral és friss salátával,1,lettuce,fejes saláta,60,core,bls:G105100,350,1.0,0.6,350
+hv_marhasult_mustarral_salataval,Hideg marhasült mustárral és friss salátával,1,tomato,paradicsom,60,core,bls:G561100,350,1.0,0.6,350
+hv_marhasult_mustarral_salataval,Hideg marhasült mustárral és friss salátával,1,cucumber,kígyóuborka / uborka,60,core,bls:G520100,350,1.0,0.6,350
+hv_marhasult_mustarral_salataval,Hideg marhasült mustárral és friss salátával,1,olive_oil,olívaolaj,10,fat,bls:Q120000,350,1.0,0.6,350
+hv_sertessult_tormas_kremsajttal,Hideg sertéssült tormás krémsajttal,1,pork_roast,sült sertéshús (hidegen),130,core,bls:Y352212,310,1.0,0.6,310
+hv_sertessult_tormas_kremsajttal,Hideg sertéssült tormás krémsajttal,1,cream_cheese_double,krémsajt (dupla krém),40,core,bls:M710800,310,1.0,0.6,310
+hv_sertessult_tormas_kremsajttal,Hideg sertéssült tormás krémsajttal,1,horseradish,torma,10,seasoning,bls:G630100,310,1.0,0.6,310
+hv_sertessult_tormas_kremsajttal,Hideg sertéssült tormás krémsajttal,1,cucumber,kígyóuborka / uborka,80,core,bls:G520100,310,1.0,0.6,310
+hv_sertessult_tormas_kremsajttal,Hideg sertéssült tormás krémsajttal,1,radish,retek (hónapos),50,core,bls:G691100,310,1.0,0.6,310
+hv_sonkas_avokados_salata,Sonkás-avokádós saláta,1,ham_cooked,főtt sonka / szendvicssonka,100,core,bls:W424000,320,1.0,0.6,320
+hv_sonkas_avokados_salata,Sonkás-avokádós saláta,1,avocado,avokádó,100,core,bls:F502100,320,1.0,0.6,320
+hv_sonkas_avokados_salata,Sonkás-avokádós saláta,1,lettuce,fejes saláta,50,core,bls:G105100,320,1.0,0.6,320
+hv_sonkas_avokados_salata,Sonkás-avokádós saláta,1,tomato,paradicsom,60,core,bls:G561100,320,1.0,0.6,320
+hv_sonkas_avokados_salata,Sonkás-avokádós saláta,1,olive_oil,olívaolaj,5,fat,bls:Q120000,320,1.0,0.6,320
+hv_sonkas_avokados_salata,Sonkás-avokádós saláta,1,lemon_juice,citromlé,5,seasoning,usda_fdc:167747,320,1.0,0.6,320
+hv_cezarsalata_hideg_csirkevel,Csirkés cézársaláta hideg hússal,1,chicken_breast_cooked,sült csirkemell (hidegen is),150,core,bls:V416182,288,1.0,0.6,288
+hv_cezarsalata_hideg_csirkevel,Csirkés cézársaláta hideg hússal,1,romaine,római saláta,80,core,bls:G107100,288,1.0,0.6,288
+hv_cezarsalata_hideg_csirkevel,Csirkés cézársaláta hideg hússal,1,parmesan,parmezán,20,core,bls:M306400,288,1.0,0.6,288
+hv_cezarsalata_hideg_csirkevel,Csirkés cézársaláta hideg hússal,1,mayonnaise,majonéz,15,fat,bls:Q991000,288,1.0,0.6,288
+hv_cezarsalata_hideg_csirkevel,Csirkés cézársaláta hideg hússal,1,sour_cream,tejföl (20%),15,core,usda_fdc:2346387,288,1.0,0.6,288
+hv_cezarsalata_hideg_csirkevel,Csirkés cézársaláta hideg hússal,1,lemon_juice,citromlé,5,seasoning,usda_fdc:167747,288,1.0,0.6,288
+hv_cezarsalata_hideg_csirkevel,Csirkés cézársaláta hideg hússal,1,mustard,mustár,3,seasoning,bls:R132000,288,1.0,0.6,288
+hv_currys_csirkesalata,Currys csirkesaláta majonézzel,1,chicken_breast_cooked,sült csirkemell (hidegen is),150,core,bls:V416182,260,1.0,0.6,260
+hv_currys_csirkesalata,Currys csirkesaláta majonézzel,1,mayonnaise,majonéz,20,fat,bls:Q991000,260,1.0,0.6,260
+hv_currys_csirkesalata,Currys csirkesaláta majonézzel,1,yogurt_greek_10,görög típusú joghurt (10%),30,core,bls:M141500,260,1.0,0.6,260
+hv_currys_csirkesalata,Currys csirkesaláta majonézzel,1,celery_stalk,szárzeller,50,core,bls:G220100,260,1.0,0.6,260
+hv_currys_csirkesalata,Currys csirkesaláta majonézzel,1,spring_onion,újhagyma,10,core,bls:G482100,260,1.0,0.6,260
+hv_sonkas_tojassalata,Sonkás tojássaláta,1,ham_cooked,főtt sonka / szendvicssonka,60,core,bls:W424000,248,1.0,0.6,248
+hv_sonkas_tojassalata,Sonkás tojássaláta,1,egg,tojás,100,core,bls:E111100,248,1.0,0.6,248
+hv_sonkas_tojassalata,Sonkás tojássaláta,1,mayonnaise,majonéz,20,fat,bls:Q991000,248,1.0,0.6,248
+hv_sonkas_tojassalata,Sonkás tojássaláta,1,mustard,mustár,5,seasoning,bls:R132000,248,1.0,0.6,248
+hv_sonkas_tojassalata,Sonkás tojássaláta,1,cucumber,kígyóuborka / uborka,60,core,bls:G520100,248,1.0,0.6,248
+hv_sonkas_tojassalata,Sonkás tojássaláta,1,chives,metélőhagyma,3,seasoning,bls:G081100,248,1.0,0.6,248
+hv_felvagottas_kaposztasalata,Felvágottas káposztasaláta,1,felvagott,felvágott (olasz/bécsi típusú),80,core,bls:W254000,270,1.0,0.6,270
+hv_felvagottas_kaposztasalata,Felvágottas káposztasaláta,1,white_cabbage,fejes káposzta,150,core,bls:G342100,270,1.0,0.6,270
+hv_felvagottas_kaposztasalata,Felvágottas káposztasaláta,1,mayonnaise,majonéz,15,fat,bls:Q991000,270,1.0,0.6,270
+hv_felvagottas_kaposztasalata,Felvágottas káposztasaláta,1,sour_cream,tejföl (20%),20,core,usda_fdc:2346387,270,1.0,0.6,270
+hv_felvagottas_kaposztasalata,Felvágottas káposztasaláta,1,vinegar,ecet (10%-os),5,seasoning,bls:R122000,270,1.0,0.6,270
+hv_sajtos_szalamis_salatatekercs,Sajtos-szalámis salátatekercs,1,salami,szalámi (német),50,core,bls:W140000,240,1.0,0.6,240
+hv_sajtos_szalamis_salatatekercs,Sajtos-szalámis salátatekercs,1,trappista,trappista sajt,40,core,bls:M505600,240,1.0,0.6,240
+hv_sajtos_szalamis_salatatekercs,Sajtos-szalámis salátatekercs,1,iceberg,jégsaláta,50,core,usda_fdc:2346388,240,1.0,0.6,240
+hv_sajtos_szalamis_salatatekercs,Sajtos-szalámis salátatekercs,1,cucumber,kígyóuborka / uborka,60,core,bls:G520100,240,1.0,0.6,240
+hv_sajtos_szalamis_salatatekercs,Sajtos-szalámis salátatekercs,1,bell_pepper_red,piros kaliforniai paprika,40,core,bls:G543100,240,1.0,0.6,240
+hv_hideg_husszeletek_turokremmel,Hideg hússzeletek fűszeres túrókrémmel,1,pork_roast,sült sertéshús (hidegen),100,core,bls:Y352212,295,1.0,0.6,295
+hv_hideg_husszeletek_turokremmel,Hideg hússzeletek fűszeres túrókrémmel,1,quark_20,tehéntúró (félzsíros),100,core,bls:M713300,295,1.0,0.6,295
+hv_hideg_husszeletek_turokremmel,Hideg hússzeletek fűszeres túrókrémmel,1,sour_cream,tejföl (20%),20,core,usda_fdc:2346387,295,1.0,0.6,295
+hv_hideg_husszeletek_turokremmel,Hideg hússzeletek fűszeres túrókrémmel,1,paprika_ground,őrölt pirospaprika,2,seasoning,usda_fdc:171329,295,1.0,0.6,295
+hv_hideg_husszeletek_turokremmel,Hideg hússzeletek fűszeres túrókrémmel,1,chives,metélőhagyma,3,seasoning,bls:G081100,295,1.0,0.6,295
+hv_hideg_husszeletek_turokremmel,Hideg hússzeletek fűszeres túrókrémmel,1,onion,vöröshagyma,10,core,bls:G480100,295,1.0,0.6,295
+hv_hideg_husszeletek_turokremmel,Hideg hússzeletek fűszeres túrókrémmel,1,bell_pepper_red,piros kaliforniai paprika,60,core,bls:G543100,295,1.0,0.6,295
+hv_klasszikus_tojaskrem,Klasszikus tojáskrém zöldséggel,1,egg,tojás,150,core,bls:E111100,350,1.0,0.6,350
+hv_klasszikus_tojaskrem,Klasszikus tojáskrém zöldséggel,1,butter,vaj,15,fat,open_database:173430,350,1.0,0.6,350
+hv_klasszikus_tojaskrem,Klasszikus tojáskrém zöldséggel,1,sour_cream,tejföl (20%),20,core,usda_fdc:2346387,350,1.0,0.6,350
+hv_klasszikus_tojaskrem,Klasszikus tojáskrém zöldséggel,1,mustard,mustár,5,seasoning,bls:R132000,350,1.0,0.6,350
+hv_klasszikus_tojaskrem,Klasszikus tojáskrém zöldséggel,1,cucumber,kígyóuborka / uborka,100,core,bls:G520100,350,1.0,0.6,350
+hv_klasszikus_tojaskrem,Klasszikus tojáskrém zöldséggel,1,bell_pepper_red,piros kaliforniai paprika,60,core,bls:G543100,350,1.0,0.6,350
+hv_mustaros_tojaskrem,Mustáros tojáskrém,1,egg,tojás,150,core,bls:E111100,295,1.0,0.6,295
+hv_mustaros_tojaskrem,Mustáros tojáskrém,1,mustard,mustár,15,seasoning,bls:R132000,295,1.0,0.6,295
+hv_mustaros_tojaskrem,Mustáros tojáskrém,1,mayonnaise,majonéz,15,fat,bls:Q991000,295,1.0,0.6,295
+hv_mustaros_tojaskrem,Mustáros tojáskrém,1,sour_cream,tejföl (20%),15,core,usda_fdc:2346387,295,1.0,0.6,295
+hv_mustaros_tojaskrem,Mustáros tojáskrém,1,cucumber,kígyóuborka / uborka,100,core,bls:G520100,295,1.0,0.6,295
+hv_tojaskrem_paprikaba_toltve,Tojáskrém friss paprikába töltve,1,bell_pepper_red,piros kaliforniai paprika,150,core,bls:G543100,285,1.0,0.6,285
+hv_tojaskrem_paprikaba_toltve,Tojáskrém friss paprikába töltve,1,egg,tojás,100,core,bls:E111100,285,1.0,0.6,285
+hv_tojaskrem_paprikaba_toltve,Tojáskrém friss paprikába töltve,1,mayonnaise,majonéz,15,fat,bls:Q991000,285,1.0,0.6,285
+hv_tojaskrem_paprikaba_toltve,Tojáskrém friss paprikába töltve,1,sour_cream,tejföl (20%),15,core,usda_fdc:2346387,285,1.0,0.6,285
+hv_tojaskrem_paprikaba_toltve,Tojáskrém friss paprikába töltve,1,mustard,mustár,5,seasoning,bls:R132000,285,1.0,0.6,285
+hv_tojassal_toltott_avokado,Tojással töltött avokádó,1,avocado,avokádó,140,core,bls:F502100,257,1.0,0.6,257
+hv_tojassal_toltott_avokado,Tojással töltött avokádó,1,egg,tojás,100,core,bls:E111100,257,1.0,0.6,257
+hv_tojassal_toltott_avokado,Tojással töltött avokádó,1,mayonnaise,majonéz,10,fat,bls:Q991000,257,1.0,0.6,257
+hv_tojassal_toltott_avokado,Tojással töltött avokádó,1,lemon_juice,citromlé,5,seasoning,usda_fdc:167747,257,1.0,0.6,257
+hv_tojassal_toltott_avokado,Tojással töltött avokádó,1,chives,metélőhagyma,2,seasoning,bls:G081100,257,1.0,0.6,257
+hv_sonkas_tojaskrem,Sonkás tojáskrém,1,egg,tojás,100,core,bls:E111100,290,1.0,0.6,290
+hv_sonkas_tojaskrem,Sonkás tojáskrém,1,ham_cooked,főtt sonka / szendvicssonka,60,core,bls:W424000,290,1.0,0.6,290
+hv_sonkas_tojaskrem,Sonkás tojáskrém,1,butter,vaj,10,fat,open_database:173430,290,1.0,0.6,290
+hv_sonkas_tojaskrem,Sonkás tojáskrém,1,sour_cream,tejföl (20%),15,core,usda_fdc:2346387,290,1.0,0.6,290
+hv_sonkas_tojaskrem,Sonkás tojáskrém,1,mustard,mustár,5,seasoning,bls:R132000,290,1.0,0.6,290
+hv_sonkas_tojaskrem,Sonkás tojáskrém,1,cucumber,kígyóuborka / uborka,100,core,bls:G520100,290,1.0,0.6,290
+hv_sajtos_tojaskrem,Sajtos tojáskrém,1,egg,tojás,100,core,bls:E111100,250,1.0,0.6,250
+hv_sajtos_tojaskrem,Sajtos tojáskrém,1,trappista,trappista sajt,40,core,bls:M505600,250,1.0,0.6,250
+hv_sajtos_tojaskrem,Sajtos tojáskrém,1,mayonnaise,majonéz,15,fat,bls:Q991000,250,1.0,0.6,250
+hv_sajtos_tojaskrem,Sajtos tojáskrém,1,sour_cream,tejföl (20%),15,core,usda_fdc:2346387,250,1.0,0.6,250
+hv_sajtos_tojaskrem,Sajtos tojáskrém,1,bell_pepper_red,piros kaliforniai paprika,80,core,bls:G543100,250,1.0,0.6,250
+hv_fokhagymas_tojaskrem,Fokhagymás tojáskrém,1,egg,tojás,150,core,bls:E111100,294,1.0,0.6,294
+hv_fokhagymas_tojaskrem,Fokhagymás tojáskrém,1,sour_cream,tejföl (20%),30,core,usda_fdc:2346387,294,1.0,0.6,294
+hv_fokhagymas_tojaskrem,Fokhagymás tojáskrém,1,mayonnaise,majonéz,10,fat,bls:Q991000,294,1.0,0.6,294
+hv_fokhagymas_tojaskrem,Fokhagymás tojáskrém,1,garlic,fokhagyma,4,seasoning,bls:G490100,294,1.0,0.6,294
+hv_fokhagymas_tojaskrem,Fokhagymás tojáskrém,1,cucumber,kígyóuborka / uborka,100,core,bls:G520100,294,1.0,0.6,294
+hv_metelohagymas_tojaskrem,Metélőhagymás tojáskrém,1,egg,tojás,150,core,bls:E111100,263,1.0,0.6,263
+hv_metelohagymas_tojaskrem,Metélőhagymás tojáskrém,1,cream_cheese_double,krémsajt (dupla krém),30,core,bls:M710800,263,1.0,0.6,263
+hv_metelohagymas_tojaskrem,Metélőhagymás tojáskrém,1,sour_cream,tejföl (20%),15,core,usda_fdc:2346387,263,1.0,0.6,263
+hv_metelohagymas_tojaskrem,Metélőhagymás tojáskrém,1,chives,metélőhagyma,8,seasoning,bls:G081100,263,1.0,0.6,263
+hv_metelohagymas_tojaskrem,Metélőhagymás tojáskrém,1,radish,retek (hónapos),60,core,bls:G691100,263,1.0,0.6,263
+hv_tojaskremes_uborkahajok,Tojáskrémes uborkahajók,1,cucumber,kígyóuborka / uborka,250,core,bls:G520100,371,1.0,0.6,371
+hv_tojaskremes_uborkahajok,Tojáskrémes uborkahajók,1,egg,tojás,100,core,bls:E111100,371,1.0,0.6,371
+hv_tojaskremes_uborkahajok,Tojáskrémes uborkahajók,1,mayonnaise,majonéz,15,fat,bls:Q991000,371,1.0,0.6,371
+hv_tojaskremes_uborkahajok,Tojáskrémes uborkahajók,1,mustard,mustár,5,seasoning,bls:R132000,371,1.0,0.6,371
+hv_tojaskremes_uborkahajok,Tojáskrémes uborkahajók,1,paprika_ground,őrölt pirospaprika,1,seasoning,usda_fdc:171329,371,1.0,0.6,371
+hv_kaszinotojas_egyszeruen,Kaszinótojás egyszerűen,1,egg,tojás,150,core,bls:E111100,215,1.0,0.6,215
+hv_kaszinotojas_egyszeruen,Kaszinótojás egyszerűen,1,mayonnaise,majonéz,25,fat,bls:Q991000,215,1.0,0.6,215
+hv_kaszinotojas_egyszeruen,Kaszinótojás egyszerűen,1,mustard,mustár,5,seasoning,bls:R132000,215,1.0,0.6,215
+hv_kaszinotojas_egyszeruen,Kaszinótojás egyszerűen,1,butter,vaj,5,fat,open_database:173430,215,1.0,0.6,215
+hv_kaszinotojas_egyszeruen,Kaszinótojás egyszerűen,1,lettuce,fejes saláta,30,core,bls:G105100,215,1.0,0.6,215
+hv_fott_tojas_majonezzel_mustarral,Főtt tojás majonézzel és mustárral,1,egg,tojás,150,core,bls:E111100,285,1.0,0.6,285
+hv_fott_tojas_majonezzel_mustarral,Főtt tojás majonézzel és mustárral,1,mayonnaise,majonéz,25,fat,bls:Q991000,285,1.0,0.6,285
+hv_fott_tojas_majonezzel_mustarral,Főtt tojás majonézzel és mustárral,1,mustard,mustár,10,seasoning,bls:R132000,285,1.0,0.6,285
+hv_fott_tojas_majonezzel_mustarral,Főtt tojás majonézzel és mustárral,1,lettuce,fejes saláta,40,core,bls:G105100,285,1.0,0.6,285
+hv_fott_tojas_majonezzel_mustarral,Főtt tojás majonézzel és mustárral,1,tomato,paradicsom,60,core,bls:G561100,285,1.0,0.6,285
+hv_tojas_avokadoval_paradicsommal,Főtt tojás avokádóval és paradicsommal,1,egg,tojás,100,core,bls:E111100,305,1.0,0.6,305
+hv_tojas_avokadoval_paradicsommal,Főtt tojás avokádóval és paradicsommal,1,avocado,avokádó,100,core,bls:F502100,305,1.0,0.6,305
+hv_tojas_avokadoval_paradicsommal,Főtt tojás avokádóval és paradicsommal,1,tomato,paradicsom,100,core,bls:G561100,305,1.0,0.6,305
+hv_tojas_avokadoval_paradicsommal,Főtt tojás avokádóval és paradicsommal,1,olive_oil,olívaolaj,5,fat,bls:Q120000,305,1.0,0.6,305
+hv_tojasos_tonhalkrem,Tojásos tonhalkrém,1,tuna_canned,"tonhalkonzerv (sajátlében, lecsepegtetve)",120,core,usda_fdc:334194,265,1.0,0.6,265
+hv_tojasos_tonhalkrem,Tojásos tonhalkrém,1,egg,tojás,100,core,bls:E111100,265,1.0,0.6,265
+hv_tojasos_tonhalkrem,Tojásos tonhalkrém,1,butter,vaj,10,fat,open_database:173430,265,1.0,0.6,265
+hv_tojasos_tonhalkrem,Tojásos tonhalkrém,1,sour_cream,tejföl (20%),20,core,usda_fdc:2346387,265,1.0,0.6,265
+hv_tojasos_tonhalkrem,Tojásos tonhalkrém,1,mustard,mustár,5,seasoning,bls:R132000,265,1.0,0.6,265
+hv_tojasos_tonhalkrem,Tojásos tonhalkrém,1,onion,vöröshagyma,10,core,bls:G480100,265,1.0,0.6,265
+hv_tojasos_fetasalata,Tojásos fetasaláta,1,egg,tojás,100,core,bls:E111100,350,1.0,0.6,350
+hv_tojasos_fetasalata,Tojásos fetasaláta,1,feta,feta sajt,60,core,bls:M012200,350,1.0,0.6,350
+hv_tojasos_fetasalata,Tojásos fetasaláta,1,cucumber,kígyóuborka / uborka,100,core,bls:G520100,350,1.0,0.6,350
+hv_tojasos_fetasalata,Tojásos fetasaláta,1,tomato,paradicsom,80,core,bls:G561100,350,1.0,0.6,350
+hv_tojasos_fetasalata,Tojásos fetasaláta,1,olive_oil,olívaolaj,10,fat,bls:Q120000,350,1.0,0.6,350
+hv_tojasos_mozzarellasalata,Tojásos mozzarellasaláta,1,egg,tojás,100,core,bls:E111100,350,1.0,0.6,350
+hv_tojasos_mozzarellasalata,Tojásos mozzarellasaláta,1,mozzarella,mozzarella,125,core,bls:M032100,350,1.0,0.6,350
+hv_tojasos_mozzarellasalata,Tojásos mozzarellasaláta,1,tomato,paradicsom,80,core,bls:G561100,350,1.0,0.6,350
+hv_tojasos_mozzarellasalata,Tojásos mozzarellasaláta,1,lettuce,fejes saláta,40,core,bls:G105100,350,1.0,0.6,350
+hv_tojasos_mozzarellasalata,Tojásos mozzarellasaláta,1,olive_oil,olívaolaj,5,fat,bls:Q120000,350,1.0,0.6,350
+hv_tojasos_csirkesalata,Tojásos csirkesaláta,1,chicken_breast_cooked,sült csirkemell (hidegen is),100,core,bls:V416182,330,1.0,0.6,330
+hv_tojasos_csirkesalata,Tojásos csirkesaláta,1,egg,tojás,100,core,bls:E111100,330,1.0,0.6,330
+hv_tojasos_csirkesalata,Tojásos csirkesaláta,1,mayonnaise,majonéz,15,fat,bls:Q991000,330,1.0,0.6,330
+hv_tojasos_csirkesalata,Tojásos csirkesaláta,1,sour_cream,tejföl (20%),15,core,usda_fdc:2346387,330,1.0,0.6,330
+hv_tojasos_csirkesalata,Tojásos csirkesaláta,1,cucumber,kígyóuborka / uborka,60,core,bls:G520100,330,1.0,0.6,330
+hv_tojasos_csirkesalata,Tojásos csirkesaláta,1,lettuce,fejes saláta,40,core,bls:G105100,330,1.0,0.6,330
+hv_tojassal_toltott_sonkatekercs,Tojással töltött sonkatekercs,1,ham_cooked,főtt sonka / szendvicssonka,100,core,bls:W424000,223,1.0,0.6,223
+hv_tojassal_toltott_sonkatekercs,Tojással töltött sonkatekercs,1,egg,tojás,100,core,bls:E111100,223,1.0,0.6,223
+hv_tojassal_toltott_sonkatekercs,Tojással töltött sonkatekercs,1,cream_cheese_double,krémsajt (dupla krém),20,core,bls:M710800,223,1.0,0.6,223
+hv_tojassal_toltott_sonkatekercs,Tojással töltött sonkatekercs,1,chives,metélőhagyma,3,seasoning,bls:G081100,223,1.0,0.6,223
+hv_tojas_fuszeres_turokremmel,Főtt tojás fűszeres túrókrémmel,1,egg,tojás,100,core,bls:E111100,292,1.0,0.6,292
+hv_tojas_fuszeres_turokremmel,Főtt tojás fűszeres túrókrémmel,1,quark_20,tehéntúró (félzsíros),100,core,bls:M713300,292,1.0,0.6,292
+hv_tojas_fuszeres_turokremmel,Főtt tojás fűszeres túrókrémmel,1,sour_cream,tejföl (20%),20,core,usda_fdc:2346387,292,1.0,0.6,292
+hv_tojas_fuszeres_turokremmel,Főtt tojás fűszeres túrókrémmel,1,paprika_ground,őrölt pirospaprika,2,seasoning,usda_fdc:171329,292,1.0,0.6,292
+hv_tojas_fuszeres_turokremmel,Főtt tojás fűszeres túrókrémmel,1,onion,vöröshagyma,10,core,bls:G480100,292,1.0,0.6,292
+hv_tojas_fuszeres_turokremmel,Főtt tojás fűszeres túrókrémmel,1,bell_pepper_red,piros kaliforniai paprika,60,core,bls:G543100,292,1.0,0.6,292
+hv_tojasos_olivabogyo_salata,Tojásos olívabogyó-saláta,1,egg,tojás,100,core,bls:E111100,350,1.0,0.6,350
+hv_tojasos_olivabogyo_salata,Tojásos olívabogyó-saláta,1,olives_black,fekete olívabogyó,40,core,bls:H520800,350,1.0,0.6,350
+hv_tojasos_olivabogyo_salata,Tojásos olívabogyó-saláta,1,tomato,paradicsom,80,core,bls:G561100,350,1.0,0.6,350
+hv_tojasos_olivabogyo_salata,Tojásos olívabogyó-saláta,1,cucumber,kígyóuborka / uborka,80,core,bls:G520100,350,1.0,0.6,350
+hv_tojasos_olivabogyo_salata,Tojásos olívabogyó-saláta,1,lettuce,fejes saláta,40,core,bls:G105100,350,1.0,0.6,350
+hv_tojasos_olivabogyo_salata,Tojásos olívabogyó-saláta,1,olive_oil,olívaolaj,10,fat,bls:Q120000,350,1.0,0.6,350
+hv_tojaskrem_salatalevelbe,Tojáskrém salátalevélbe töltve,1,egg,tojás,100,core,bls:E111100,195,1.0,0.6,195
+hv_tojaskrem_salatalevelbe,Tojáskrém salátalevélbe töltve,1,mayonnaise,majonéz,15,fat,bls:Q991000,195,1.0,0.6,195
+hv_tojaskrem_salatalevelbe,Tojáskrém salátalevélbe töltve,1,sour_cream,tejföl (20%),15,core,usda_fdc:2346387,195,1.0,0.6,195
+hv_tojaskrem_salatalevelbe,Tojáskrém salátalevélbe töltve,1,mustard,mustár,5,seasoning,bls:R132000,195,1.0,0.6,195
+hv_tojaskrem_salatalevelbe,Tojáskrém salátalevélbe töltve,1,iceberg,jégsaláta,60,core,usda_fdc:2346388,195,1.0,0.6,195
+hv_tojasos_sajtsalata,Tojásos sajtsaláta,1,egg,tojás,100,core,bls:E111100,240,1.0,0.6,240
+hv_tojasos_sajtsalata,Tojásos sajtsaláta,1,emmentaler,ementáli sajt,60,core,bls:M304600,240,1.0,0.6,240
+hv_tojasos_sajtsalata,Tojásos sajtsaláta,1,mayonnaise,majonéz,15,fat,bls:Q991000,240,1.0,0.6,240
+hv_tojasos_sajtsalata,Tojásos sajtsaláta,1,sour_cream,tejföl (20%),15,core,usda_fdc:2346387,240,1.0,0.6,240
+hv_tojasos_sajtsalata,Tojásos sajtsaláta,1,pickled_gherkin,csemegeuborka (savanyú),40,core,usda_fdc:324653,240,1.0,0.6,240
+hv_tojasos_sajtsalata,Tojásos sajtsaláta,1,spring_onion,újhagyma,10,core,bls:G482100,240,1.0,0.6,240
+hv_tojas_sonkaval_kremsajttal,Főtt tojás sonkával és krémsajttal,1,egg,tojás,100,core,bls:E111100,300,1.0,0.6,300
+hv_tojas_sonkaval_kremsajttal,Főtt tojás sonkával és krémsajttal,1,ham_cooked,főtt sonka / szendvicssonka,80,core,bls:W424000,300,1.0,0.6,300
+hv_tojas_sonkaval_kremsajttal,Főtt tojás sonkával és krémsajttal,1,cream_cheese_double,krémsajt (dupla krém),40,core,bls:M710800,300,1.0,0.6,300
+hv_tojas_sonkaval_kremsajttal,Főtt tojás sonkával és krémsajttal,1,cucumber,kígyóuborka / uborka,80,core,bls:G520100,300,1.0,0.6,300
+hv_tojasos_zoldsegsalata_tejfolos,Tojásos zöldségsaláta tejfölös öntettel,1,egg,tojás,100,core,bls:E111100,380,1.0,0.6,380
+hv_tojasos_zoldsegsalata_tejfolos,Tojásos zöldségsaláta tejfölös öntettel,1,lettuce,fejes saláta,60,core,bls:G105100,380,1.0,0.6,380
+hv_tojasos_zoldsegsalata_tejfolos,Tojásos zöldségsaláta tejfölös öntettel,1,cucumber,kígyóuborka / uborka,80,core,bls:G520100,380,1.0,0.6,380
+hv_tojasos_zoldsegsalata_tejfolos,Tojásos zöldségsaláta tejfölös öntettel,1,tomato,paradicsom,60,core,bls:G561100,380,1.0,0.6,380
+hv_tojasos_zoldsegsalata_tejfolos,Tojásos zöldségsaláta tejfölös öntettel,1,radish,retek (hónapos),40,core,bls:G691100,380,1.0,0.6,380
+hv_tojasos_zoldsegsalata_tejfolos,Tojásos zöldségsaláta tejfölös öntettel,1,sour_cream,tejföl (20%),40,core,usda_fdc:2346387,380,1.0,0.6,380
+hv_feta_uborkaval_olivaval,Feta uborkával és olívabogyóval,1,feta,feta sajt,100,core,bls:M012200,290,1.0,0.6,290
+hv_feta_uborkaval_olivaval,Feta uborkával és olívabogyóval,1,cucumber,kígyóuborka / uborka,150,core,bls:G520100,290,1.0,0.6,290
+hv_feta_uborkaval_olivaval,Feta uborkával és olívabogyóval,1,olives_black,fekete olívabogyó,30,core,bls:H520800,290,1.0,0.6,290
+hv_feta_uborkaval_olivaval,Feta uborkával és olívabogyóval,1,olive_oil,olívaolaj,10,fat,bls:Q120000,290,1.0,0.6,290
+hv_gouda_zoldseges_salata,Gouda sajtos-zöldséges saláta,1,gouda,gouda sajt,80,core,bls:M402600,360,1.0,0.6,360
+hv_gouda_zoldseges_salata,Gouda sajtos-zöldséges saláta,1,lettuce,fejes saláta,60,core,bls:G105100,360,1.0,0.6,360
+hv_gouda_zoldseges_salata,Gouda sajtos-zöldséges saláta,1,tomato,paradicsom,80,core,bls:G561100,360,1.0,0.6,360
+hv_gouda_zoldseges_salata,Gouda sajtos-zöldséges saláta,1,cucumber,kígyóuborka / uborka,80,core,bls:G520100,360,1.0,0.6,360
+hv_gouda_zoldseges_salata,Gouda sajtos-zöldséges saláta,1,bell_pepper_red,piros kaliforniai paprika,50,core,bls:G543100,360,1.0,0.6,360
+hv_gouda_zoldseges_salata,Gouda sajtos-zöldséges saláta,1,olive_oil,olívaolaj,10,fat,bls:Q120000,360,1.0,0.6,360
+hv_camembert_dioval_uborkaval,Camembert dióval és uborkával,1,camembert,camembert (45%),125,core,bls:M602600,295,1.0,0.6,295
+hv_camembert_dioval_uborkaval,Camembert dióval és uborkával,1,walnut,dióbél,20,core,bls:H120100,295,1.0,0.6,295
+hv_camembert_dioval_uborkaval,Camembert dióval és uborkával,1,cucumber,kígyóuborka / uborka,150,core,bls:G520100,295,1.0,0.6,295
+hv_brie_rukkolaval_paradicsommal,Brie sajttál rukkolával és paradicsommal,1,brie,brie sajt,100,core,bls:M601600,250,1.0,0.6,250
+hv_brie_rukkolaval_paradicsommal,Brie sajttál rukkolával és paradicsommal,1,arugula,rukkola,40,core,bls:G130100,250,1.0,0.6,250
+hv_brie_rukkolaval_paradicsommal,Brie sajttál rukkolával és paradicsommal,1,tomato,paradicsom,100,core,bls:G561100,250,1.0,0.6,250
+hv_brie_rukkolaval_paradicsommal,Brie sajttál rukkolával és paradicsommal,1,olive_oil,olívaolaj,10,fat,bls:Q120000,250,1.0,0.6,250
+hv_kecskesajtos_salata,Kecskesajtos saláta,1,goat_cheese_fresh,kecske-krémsajt,100,core,bls:M7A1600,255,1.0,0.6,255
+hv_kecskesajtos_salata,Kecskesajtos saláta,1,lambs_lettuce,galambbegysaláta (Vogerlsalat),50,core,bls:G104100,255,1.0,0.6,255
+hv_kecskesajtos_salata,Kecskesajtos saláta,1,tomato,paradicsom,80,core,bls:G561100,255,1.0,0.6,255
+hv_kecskesajtos_salata,Kecskesajtos saláta,1,walnut,dióbél,15,core,bls:H120100,255,1.0,0.6,255
+hv_kecskesajtos_salata,Kecskesajtos saláta,1,olive_oil,olívaolaj,10,fat,bls:Q120000,255,1.0,0.6,255
+hv_parmezanos_rukkolasalata,Parmezános rukkolasaláta,1,arugula,rukkola,60,core,bls:G130100,215,1.0,0.6,215
+hv_parmezanos_rukkolasalata,Parmezános rukkolasaláta,1,parmesan,parmezán,40,core,bls:M306400,215,1.0,0.6,215
+hv_parmezanos_rukkolasalata,Parmezános rukkolasaláta,1,tomato,paradicsom,100,core,bls:G561100,215,1.0,0.6,215
+hv_parmezanos_rukkolasalata,Parmezános rukkolasaláta,1,olive_oil,olívaolaj,15,fat,bls:Q120000,215,1.0,0.6,215
+hv_sajtos_sonkas_salatatekercs,Sajtos-sonkás salátatekercs,1,emmentaler,ementáli sajt,60,core,bls:M304600,260,1.0,0.6,260
+hv_sajtos_sonkas_salatatekercs,Sajtos-sonkás salátatekercs,1,ham_cooked,főtt sonka / szendvicssonka,60,core,bls:W424000,260,1.0,0.6,260
+hv_sajtos_sonkas_salatatekercs,Sajtos-sonkás salátatekercs,1,iceberg,jégsaláta,60,core,usda_fdc:2346388,260,1.0,0.6,260
+hv_sajtos_sonkas_salatatekercs,Sajtos-sonkás salátatekercs,1,cucumber,kígyóuborka / uborka,60,core,bls:G520100,260,1.0,0.6,260
+hv_sajtos_sonkas_salatatekercs,Sajtos-sonkás salátatekercs,1,sour_cream,tejföl (20%),20,core,usda_fdc:2346387,260,1.0,0.6,260
+hv_kremsajttal_toltott_paprika,Krémsajttal töltött kaliforniai paprika,1,bell_pepper_red,piros kaliforniai paprika,150,core,bls:G543100,233,1.0,0.6,233
+hv_kremsajttal_toltott_paprika,Krémsajttal töltött kaliforniai paprika,1,cream_cheese_double,krémsajt (dupla krém),80,core,bls:M710800,233,1.0,0.6,233
+hv_kremsajttal_toltott_paprika,Krémsajttal töltött kaliforniai paprika,1,chives,metélőhagyma,3,seasoning,bls:G081100,233,1.0,0.6,233
+hv_kremsajtos_uborkahajok,Krémsajtos uborkahajók,1,cucumber,kígyóuborka / uborka,250,core,bls:G520100,363,1.0,0.6,363
+hv_kremsajtos_uborkahajok,Krémsajtos uborkahajók,1,cream_cheese_double,krémsajt (dupla krém),80,core,bls:M710800,363,1.0,0.6,363
+hv_kremsajtos_uborkahajok,Krémsajtos uborkahajók,1,chives,metélőhagyma,3,seasoning,bls:G081100,363,1.0,0.6,363
+hv_kremsajtos_uborkahajok,Krémsajtos uborkahajók,1,radish,retek (hónapos),30,core,bls:G691100,363,1.0,0.6,363
+hv_fuszeres_kremsajt_zoldseghasabokkal,Fűszeres krémsajt zöldséghasábokkal,1,cream_cheese_double,krémsajt (dupla krém),80,core,bls:M710800,324,1.0,0.6,324
+hv_fuszeres_kremsajt_zoldseghasabokkal,Fűszeres krémsajt zöldséghasábokkal,1,chives,metélőhagyma,3,seasoning,bls:G081100,324,1.0,0.6,324
+hv_fuszeres_kremsajt_zoldseghasabokkal,Fűszeres krémsajt zöldséghasábokkal,1,paprika_ground,őrölt pirospaprika,1,seasoning,usda_fdc:171329,324,1.0,0.6,324
+hv_fuszeres_kremsajt_zoldseghasabokkal,Fűszeres krémsajt zöldséghasábokkal,1,cucumber,kígyóuborka / uborka,100,core,bls:G520100,324,1.0,0.6,324
+hv_fuszeres_kremsajt_zoldseghasabokkal,Fűszeres krémsajt zöldséghasábokkal,1,bell_pepper_red,piros kaliforniai paprika,80,core,bls:G543100,324,1.0,0.6,324
+hv_fuszeres_kremsajt_zoldseghasabokkal,Fűszeres krémsajt zöldséghasábokkal,1,celery_stalk,szárzeller,60,core,bls:G220100,324,1.0,0.6,324
+hv_feta_avokadokrem,Feta-avokádókrém,1,feta,feta sajt,60,core,bls:M012200,287,1.0,0.6,287
+hv_feta_avokadokrem,Feta-avokádókrém,1,avocado,avokádó,120,core,bls:F502100,287,1.0,0.6,287
+hv_feta_avokadokrem,Feta-avokádókrém,1,lemon_juice,citromlé,5,seasoning,usda_fdc:167747,287,1.0,0.6,287
+hv_feta_avokadokrem,Feta-avokádókrém,1,garlic,fokhagyma,2,seasoning,bls:G490100,287,1.0,0.6,287
+hv_feta_avokadokrem,Feta-avokádókrém,1,cucumber,kígyóuborka / uborka,100,core,bls:G520100,287,1.0,0.6,287
+hv_mozzarella_olivaolajjal_bazsalikommal,Mozzarella olívaolajjal és bazsalikommal,1,mozzarella,mozzarella,150,core,bls:M032100,223,1.0,0.6,223
+hv_mozzarella_olivaolajjal_bazsalikommal,Mozzarella olívaolajjal és bazsalikommal,1,olive_oil,olívaolaj,10,fat,bls:Q120000,223,1.0,0.6,223
+hv_mozzarella_olivaolajjal_bazsalikommal,Mozzarella olívaolajjal és bazsalikommal,1,basil_fresh,bazsalikom (friss),3,seasoning,bls:G061000,223,1.0,0.6,223
+hv_mozzarella_olivaolajjal_bazsalikommal,Mozzarella olívaolajjal és bazsalikommal,1,tomato,paradicsom,60,core,bls:G561100,223,1.0,0.6,223
+hv_keksajt_dioval_zellerszarral,Kéksajt dióval és zellerszárral,1,blue_cheese,kéksajt (nemespenészes),70,core,bls:M502600,210,1.0,0.6,210
+hv_keksajt_dioval_zellerszarral,Kéksajt dióval és zellerszárral,1,walnut,dióbél,20,core,bls:H120100,210,1.0,0.6,210
+hv_keksajt_dioval_zellerszarral,Kéksajt dióval és zellerszárral,1,celery_stalk,szárzeller,120,core,bls:G220100,210,1.0,0.6,210
+hv_sajtkockak_olivaval_szalamival,Sajtkockák olívabogyóval és szalámival,1,gouda,gouda sajt,60,core,bls:M402600,230,1.0,0.6,230
+hv_sajtkockak_olivaval_szalamival,Sajtkockák olívabogyóval és szalámival,1,olives_black,fekete olívabogyó,40,core,bls:H520800,230,1.0,0.6,230
+hv_sajtkockak_olivaval_szalamival,Sajtkockák olívabogyóval és szalámival,1,salami,szalámi (német),50,core,bls:W140000,230,1.0,0.6,230
+hv_sajtkockak_olivaval_szalamival,Sajtkockák olívabogyóval és szalámival,1,cucumber,kígyóuborka / uborka,80,core,bls:G520100,230,1.0,0.6,230
+hv_korozott_friss_paprikaval,Körözött friss paprikával,1,quark_20,tehéntúró (félzsíros),150,core,bls:M713300,309,1.0,0.6,309
+hv_korozott_friss_paprikaval,Körözött friss paprikával,1,butter,vaj,20,fat,open_database:173430,309,1.0,0.6,309
+hv_korozott_friss_paprikaval,Körözött friss paprikával,1,onion,vöröshagyma,15,core,bls:G480100,309,1.0,0.6,309
+hv_korozott_friss_paprikaval,Körözött friss paprikával,1,paprika_ground,őrölt pirospaprika,3,seasoning,usda_fdc:171329,309,1.0,0.6,309
+hv_korozott_friss_paprikaval,Körözött friss paprikával,1,caraway_seed,kömény (egész/őrölt),1,seasoning,usda_fdc:170918,309,1.0,0.6,309
+hv_korozott_friss_paprikaval,Körözött friss paprikával,1,bell_pepper_red,piros kaliforniai paprika,120,core,bls:G543100,309,1.0,0.6,309
+hv_turokremes_sajtos_salata,Túrókrémes sajtos saláta,1,quark_20,tehéntúró (félzsíros),100,core,bls:M713300,340,1.0,0.6,340
+hv_turokremes_sajtos_salata,Túrókrémes sajtos saláta,1,trappista,trappista sajt,40,core,bls:M505600,340,1.0,0.6,340
+hv_turokremes_sajtos_salata,Túrókrémes sajtos saláta,1,lettuce,fejes saláta,60,core,bls:G105100,340,1.0,0.6,340
+hv_turokremes_sajtos_salata,Túrókrémes sajtos saláta,1,tomato,paradicsom,60,core,bls:G561100,340,1.0,0.6,340
+hv_turokremes_sajtos_salata,Túrókrémes sajtos saláta,1,cucumber,kígyóuborka / uborka,60,core,bls:G520100,340,1.0,0.6,340
+hv_turokremes_sajtos_salata,Túrókrémes sajtos saláta,1,sour_cream,tejföl (20%),20,core,usda_fdc:2346387,340,1.0,0.6,340
+hv_kremsajtos_retekfalatok,Krémsajtos retekfalatok,1,radish,retek (hónapos),150,core,bls:G691100,303,1.0,0.6,303
+hv_kremsajtos_retekfalatok,Krémsajtos retekfalatok,1,cream_cheese_double,krémsajt (dupla krém),70,core,bls:M710800,303,1.0,0.6,303
+hv_kremsajtos_retekfalatok,Krémsajtos retekfalatok,1,chives,metélőhagyma,3,seasoning,bls:G081100,303,1.0,0.6,303
+hv_kremsajtos_retekfalatok,Krémsajtos retekfalatok,1,cucumber,kígyóuborka / uborka,80,core,bls:G520100,303,1.0,0.6,303
+hv_sajtos_avokadosalata,Sajtos avokádósaláta,1,avocado,avokádó,120,core,bls:F502100,300,1.0,0.6,300
+hv_sajtos_avokadosalata,Sajtos avokádósaláta,1,emmentaler,ementáli sajt,50,core,bls:M304600,300,1.0,0.6,300
+hv_sajtos_avokadosalata,Sajtos avokádósaláta,1,tomato,paradicsom,80,core,bls:G561100,300,1.0,0.6,300
+hv_sajtos_avokadosalata,Sajtos avokádósaláta,1,lettuce,fejes saláta,40,core,bls:G105100,300,1.0,0.6,300
+hv_sajtos_avokadosalata,Sajtos avokádósaláta,1,lemon_juice,citromlé,5,seasoning,usda_fdc:167747,300,1.0,0.6,300
+hv_sajtos_avokadosalata,Sajtos avokádósaláta,1,olive_oil,olívaolaj,5,fat,bls:Q120000,300,1.0,0.6,300
+hv_mozzarellas_sonkas_salata,Mozzarellás-sonkás saláta,1,mozzarella,mozzarella,125,core,bls:M032100,350,1.0,0.6,350
+hv_mozzarellas_sonkas_salata,Mozzarellás-sonkás saláta,1,ham_cooked,főtt sonka / szendvicssonka,80,core,bls:W424000,350,1.0,0.6,350
+hv_mozzarellas_sonkas_salata,Mozzarellás-sonkás saláta,1,lettuce,fejes saláta,60,core,bls:G105100,350,1.0,0.6,350
+hv_mozzarellas_sonkas_salata,Mozzarellás-sonkás saláta,1,tomato,paradicsom,80,core,bls:G561100,350,1.0,0.6,350
+hv_mozzarellas_sonkas_salata,Mozzarellás-sonkás saláta,1,olive_oil,olívaolaj,5,fat,bls:Q120000,350,1.0,0.6,350
+hv_ketsajtos_zoldfuszeres_salata,Kétféle sajtból készült zöldfűszeres sajtsaláta,1,gouda,gouda sajt,50,core,bls:M402600,308,1.0,0.6,308
+hv_ketsajtos_zoldfuszeres_salata,Kétféle sajtból készült zöldfűszeres sajtsaláta,1,feta,feta sajt,50,core,bls:M012200,308,1.0,0.6,308
+hv_ketsajtos_zoldfuszeres_salata,Kétféle sajtból készült zöldfűszeres sajtsaláta,1,cucumber,kígyóuborka / uborka,80,core,bls:G520100,308,1.0,0.6,308
+hv_ketsajtos_zoldfuszeres_salata,Kétféle sajtból készült zöldfűszeres sajtsaláta,1,tomato,paradicsom,60,core,bls:G561100,308,1.0,0.6,308
+hv_ketsajtos_zoldfuszeres_salata,Kétféle sajtból készült zöldfűszeres sajtsaláta,1,bell_pepper_red,piros kaliforniai paprika,50,core,bls:G543100,308,1.0,0.6,308
+hv_ketsajtos_zoldfuszeres_salata,Kétféle sajtból készült zöldfűszeres sajtsaláta,1,parsley_leaf,petrezselyemzöld,5,seasoning,usda_fdc:170416,308,1.0,0.6,308
+hv_ketsajtos_zoldfuszeres_salata,Kétféle sajtból készült zöldfűszeres sajtsaláta,1,chives,metélőhagyma,3,seasoning,bls:G081100,308,1.0,0.6,308
+hv_ketsajtos_zoldfuszeres_salata,Kétféle sajtból készült zöldfűszeres sajtsaláta,1,olive_oil,olívaolaj,10,fat,bls:Q120000,308,1.0,0.6,308
+hv_fokhagymas_turokrem_uborkaval,Fokhagymás túrókrém uborkával,1,quark_20,tehéntúró (félzsíros),150,core,bls:M713300,334,1.0,0.6,334
+hv_fokhagymas_turokrem_uborkaval,Fokhagymás túrókrém uborkával,1,sour_cream,tejföl (20%),30,core,usda_fdc:2346387,334,1.0,0.6,334
+hv_fokhagymas_turokrem_uborkaval,Fokhagymás túrókrém uborkával,1,garlic,fokhagyma,4,seasoning,bls:G490100,334,1.0,0.6,334
+hv_fokhagymas_turokrem_uborkaval,Fokhagymás túrókrém uborkával,1,cucumber,kígyóuborka / uborka,150,core,bls:G520100,334,1.0,0.6,334
+hv_metelohagymas_turokrem_retekkel,Metélőhagymás túrókrém retekkel,1,quark_20,tehéntúró (félzsíros),150,core,bls:M713300,288,1.0,0.6,288
+hv_metelohagymas_turokrem_retekkel,Metélőhagymás túrókrém retekkel,1,sour_cream,tejföl (20%),30,core,usda_fdc:2346387,288,1.0,0.6,288
+hv_metelohagymas_turokrem_retekkel,Metélőhagymás túrókrém retekkel,1,chives,metélőhagyma,8,seasoning,bls:G081100,288,1.0,0.6,288
+hv_metelohagymas_turokrem_retekkel,Metélőhagymás túrókrém retekkel,1,radish,retek (hónapos),100,core,bls:G691100,288,1.0,0.6,288
+hv_kapros_turokrem_kigyouborkaval,Kapros túrókrém kígyóuborkával,1,quark_20,tehéntúró (félzsíros),150,core,bls:M713300,330,1.0,0.6,330
+hv_kapros_turokrem_kigyouborkaval,Kapros túrókrém kígyóuborkával,1,sour_cream,tejföl (20%),30,core,usda_fdc:2346387,330,1.0,0.6,330
+hv_kapros_turokrem_kigyouborkaval,Kapros túrókrém kígyóuborkával,1,cucumber,kígyóuborka / uborka,150,core,bls:G520100,330,1.0,0.6,330
+hv_csipos_korozott_paprikaval,Csípős körözött kaliforniai paprikával,1,quark_20,tehéntúró (félzsíros),150,core,bls:M713300,308,1.0,0.6,308
+hv_csipos_korozott_paprikaval,Csípős körözött kaliforniai paprikával,1,butter,vaj,15,fat,open_database:173430,308,1.0,0.6,308
+hv_csipos_korozott_paprikaval,Csípős körözött kaliforniai paprikával,1,onion,vöröshagyma,15,core,bls:G480100,308,1.0,0.6,308
+hv_csipos_korozott_paprikaval,Csípős körözött kaliforniai paprikával,1,paprika_ground,őrölt pirospaprika,3,seasoning,usda_fdc:171329,308,1.0,0.6,308
+hv_csipos_korozott_paprikaval,Csípős körözött kaliforniai paprikával,1,hot_pepper_fresh,cseresznyepaprika (erős),5,seasoning,usda_fdc:2747660,308,1.0,0.6,308
+hv_csipos_korozott_paprikaval,Csípős körözött kaliforniai paprikával,1,bell_pepper_red,piros kaliforniai paprika,120,core,bls:G543100,308,1.0,0.6,308
+hv_fetas_turokrem_olivaval,Fetás túrókrém olívabogyóval,1,quark_20,tehéntúró (félzsíros),100,core,bls:M713300,295,1.0,0.6,295
+hv_fetas_turokrem_olivaval,Fetás túrókrém olívabogyóval,1,feta,feta sajt,50,core,bls:M012200,295,1.0,0.6,295
+hv_fetas_turokrem_olivaval,Fetás túrókrém olívabogyóval,1,olives_black,fekete olívabogyó,30,core,bls:H520800,295,1.0,0.6,295
+hv_fetas_turokrem_olivaval,Fetás túrókrém olívabogyóval,1,sour_cream,tejföl (20%),15,core,usda_fdc:2346387,295,1.0,0.6,295
+hv_fetas_turokrem_olivaval,Fetás túrókrém olívabogyóval,1,cucumber,kígyóuborka / uborka,100,core,bls:G520100,295,1.0,0.6,295
+hv_mustaros_turokrem_sonkaval,Mustáros túrókrém sonkával,1,quark_20,tehéntúró (félzsíros),100,core,bls:M713300,285,1.0,0.6,285
+hv_mustaros_turokrem_sonkaval,Mustáros túrókrém sonkával,1,mustard,mustár,10,seasoning,bls:R132000,285,1.0,0.6,285
+hv_mustaros_turokrem_sonkaval,Mustáros túrókrém sonkával,1,sour_cream,tejföl (20%),15,core,usda_fdc:2346387,285,1.0,0.6,285
+hv_mustaros_turokrem_sonkaval,Mustáros túrókrém sonkával,1,ham_cooked,főtt sonka / szendvicssonka,80,core,bls:W424000,285,1.0,0.6,285
+hv_mustaros_turokrem_sonkaval,Mustáros túrókrém sonkával,1,cucumber,kígyóuborka / uborka,80,core,bls:G520100,285,1.0,0.6,285
+hv_tojasos_turokrem,Tojásos túrókrém,1,quark_20,tehéntúró (félzsíros),100,core,bls:M713300,298,1.0,0.6,298
+hv_tojasos_turokrem,Tojásos túrókrém,1,egg,tojás,100,core,bls:E111100,298,1.0,0.6,298
+hv_tojasos_turokrem,Tojásos túrókrém,1,sour_cream,tejföl (20%),15,core,usda_fdc:2346387,298,1.0,0.6,298
+hv_tojasos_turokrem,Tojásos túrókrém,1,chives,metélőhagyma,3,seasoning,bls:G081100,298,1.0,0.6,298
+hv_tojasos_turokrem,Tojásos túrókrém,1,bell_pepper_red,piros kaliforniai paprika,80,core,bls:G543100,298,1.0,0.6,298
+hv_zoldfuszeres_turokrem_salatalevellel,Zöldfűszeres túrókrém salátalevéllel,1,quark_20,tehéntúró (félzsíros),150,core,bls:M713300,330,1.0,0.6,330
+hv_zoldfuszeres_turokrem_salatalevellel,Zöldfűszeres túrókrém salátalevéllel,1,sour_cream,tejföl (20%),30,core,usda_fdc:2346387,330,1.0,0.6,330
+hv_zoldfuszeres_turokrem_salatalevellel,Zöldfűszeres túrókrém salátalevéllel,1,parsley_leaf,petrezselyemzöld,5,seasoning,usda_fdc:170416,330,1.0,0.6,330
+hv_zoldfuszeres_turokrem_salatalevellel,Zöldfűszeres túrókrém salátalevéllel,1,chives,metélőhagyma,5,seasoning,bls:G081100,330,1.0,0.6,330
+hv_zoldfuszeres_turokrem_salatalevellel,Zöldfűszeres túrókrém salátalevéllel,1,lettuce,fejes saláta,80,core,bls:G105100,330,1.0,0.6,330
+hv_zoldfuszeres_turokrem_salatalevellel,Zöldfűszeres túrókrém salátalevéllel,1,cucumber,kígyóuborka / uborka,60,core,bls:G520100,330,1.0,0.6,330
+hv_paprikaba_toltott_korozott,Paprikába töltött körözött,1,bell_pepper_red,piros kaliforniai paprika,150,core,bls:G543100,298,1.0,0.6,298
+hv_paprikaba_toltott_korozott,Paprikába töltött körözött,1,quark_20,tehéntúró (félzsíros),120,core,bls:M713300,298,1.0,0.6,298
+hv_paprikaba_toltott_korozott,Paprikába töltött körözött,1,butter,vaj,15,fat,open_database:173430,298,1.0,0.6,298
+hv_paprikaba_toltott_korozott,Paprikába töltött körözött,1,onion,vöröshagyma,10,core,bls:G480100,298,1.0,0.6,298
+hv_paprikaba_toltott_korozott,Paprikába töltött körözött,1,paprika_ground,őrölt pirospaprika,2,seasoning,usda_fdc:171329,298,1.0,0.6,298
+hv_paprikaba_toltott_korozott,Paprikába töltött körözött,1,caraway_seed,kömény (egész/őrölt),1,seasoning,usda_fdc:170918,298,1.0,0.6,298
+hv_uborkaba_toltott_turokrem,Uborkába töltött túrókrém,1,cucumber,kígyóuborka / uborka,250,core,bls:G520100,396,1.0,0.6,396
+hv_uborkaba_toltott_turokrem,Uborkába töltött túrókrém,1,quark_20,tehéntúró (félzsíros),120,core,bls:M713300,396,1.0,0.6,396
+hv_uborkaba_toltott_turokrem,Uborkába töltött túrókrém,1,sour_cream,tejföl (20%),20,core,usda_fdc:2346387,396,1.0,0.6,396
+hv_uborkaba_toltott_turokrem,Uborkába töltött túrókrém,1,chives,metélőhagyma,4,seasoning,bls:G081100,396,1.0,0.6,396
+hv_uborkaba_toltott_turokrem,Uborkába töltött túrókrém,1,garlic,fokhagyma,2,seasoning,bls:G490100,396,1.0,0.6,396
+hv_turokremes_sonkatekercs,Túrókrémes sonkatekercs,1,ham_cooked,főtt sonka / szendvicssonka,100,core,bls:W424000,278,1.0,0.6,278
+hv_turokremes_sonkatekercs,Túrókrémes sonkatekercs,1,quark_20,tehéntúró (félzsíros),80,core,bls:M713300,278,1.0,0.6,278
+hv_turokremes_sonkatekercs,Túrókrémes sonkatekercs,1,sour_cream,tejföl (20%),15,core,usda_fdc:2346387,278,1.0,0.6,278
+hv_turokremes_sonkatekercs,Túrókrémes sonkatekercs,1,chives,metélőhagyma,3,seasoning,bls:G081100,278,1.0,0.6,278
+hv_turokremes_sonkatekercs,Túrókrémes sonkatekercs,1,cucumber,kígyóuborka / uborka,80,core,bls:G520100,278,1.0,0.6,278
+hv_dios_turokrem_zellerszarral,Diós túrókrém zellerszárral,1,quark_20,tehéntúró (félzsíros),120,core,bls:M713300,280,1.0,0.6,280
+hv_dios_turokrem_zellerszarral,Diós túrókrém zellerszárral,1,walnut,dióbél,20,core,bls:H120100,280,1.0,0.6,280
+hv_dios_turokrem_zellerszarral,Diós túrókrém zellerszárral,1,sour_cream,tejföl (20%),20,core,usda_fdc:2346387,280,1.0,0.6,280
+hv_dios_turokrem_zellerszarral,Diós túrókrém zellerszárral,1,celery_stalk,szárzeller,120,core,bls:G220100,280,1.0,0.6,280
+hv_olivas_kremsajt_uborkaval,Olívás krémsajt uborkával,1,cream_cheese_double,krémsajt (dupla krém),70,core,bls:M710800,300,1.0,0.6,300
+hv_olivas_kremsajt_uborkaval,Olívás krémsajt uborkával,1,olives_black,fekete olívabogyó,30,core,bls:H520800,300,1.0,0.6,300
+hv_olivas_kremsajt_uborkaval,Olívás krémsajt uborkával,1,cucumber,kígyóuborka / uborka,200,core,bls:G520100,300,1.0,0.6,300
+hv_fokhagymas_tejfolos_martogatos,Fokhagymás tejfölös mártogatós zöldségekkel,1,sour_cream,tejföl (20%),100,core,usda_fdc:2346387,344,1.0,0.6,344
+hv_fokhagymas_tejfolos_martogatos,Fokhagymás tejfölös mártogatós zöldségekkel,1,garlic,fokhagyma,4,seasoning,bls:G490100,344,1.0,0.6,344
+hv_fokhagymas_tejfolos_martogatos,Fokhagymás tejfölös mártogatós zöldségekkel,1,cucumber,kígyóuborka / uborka,100,core,bls:G520100,344,1.0,0.6,344
+hv_fokhagymas_tejfolos_martogatos,Fokhagymás tejfölös mártogatós zöldségekkel,1,bell_pepper_red,piros kaliforniai paprika,80,core,bls:G543100,344,1.0,0.6,344
+hv_fokhagymas_tejfolos_martogatos,Fokhagymás tejfölös mártogatós zöldségekkel,1,celery_stalk,szárzeller,60,core,bls:G220100,344,1.0,0.6,344
+hv_tzatziki_zoldseghasabokkal,Tzatziki zöldséghasábokkal,1,yogurt_greek_10,görög típusú joghurt (10%),150,core,bls:M141500,379,1.0,0.6,379
+hv_tzatziki_zoldseghasabokkal,Tzatziki zöldséghasábokkal,1,cucumber,kígyóuborka / uborka,160,core,bls:G520100,379,1.0,0.6,379
+hv_tzatziki_zoldseghasabokkal,Tzatziki zöldséghasábokkal,1,garlic,fokhagyma,4,seasoning,bls:G490100,379,1.0,0.6,379
+hv_tzatziki_zoldseghasabokkal,Tzatziki zöldséghasábokkal,1,olive_oil,olívaolaj,5,fat,bls:Q120000,379,1.0,0.6,379
+hv_tzatziki_zoldseghasabokkal,Tzatziki zöldséghasábokkal,1,bell_pepper_red,piros kaliforniai paprika,60,core,bls:G543100,379,1.0,0.6,379
+hv_guacamole_paprikaval_uborkaval,Guacamole friss paprikával és uborkával,1,avocado,avokádó,140,core,bls:F502100,417,1.0,0.6,417
+hv_guacamole_paprikaval_uborkaval,Guacamole friss paprikával és uborkával,1,tomato,paradicsom,50,core,bls:G561100,417,1.0,0.6,417
+hv_guacamole_paprikaval_uborkaval,Guacamole friss paprikával és uborkával,1,onion,vöröshagyma,15,core,bls:G480100,417,1.0,0.6,417
+hv_guacamole_paprikaval_uborkaval,Guacamole friss paprikával és uborkával,1,lemon_juice,citromlé,10,seasoning,usda_fdc:167747,417,1.0,0.6,417
+hv_guacamole_paprikaval_uborkaval,Guacamole friss paprikával és uborkával,1,garlic,fokhagyma,2,seasoning,bls:G490100,417,1.0,0.6,417
+hv_guacamole_paprikaval_uborkaval,Guacamole friss paprikával és uborkával,1,bell_pepper_red,piros kaliforniai paprika,100,core,bls:G543100,417,1.0,0.6,417
+hv_guacamole_paprikaval_uborkaval,Guacamole friss paprikával és uborkával,1,cucumber,kígyóuborka / uborka,100,core,bls:G520100,417,1.0,0.6,417
+hv_avokadokrem_fott_tojassal,Avokádókrém főtt tojással,1,avocado,avokádó,140,core,bls:F502100,307,1.0,0.6,307
+hv_avokadokrem_fott_tojassal,Avokádókrém főtt tojással,1,lemon_juice,citromlé,5,seasoning,usda_fdc:167747,307,1.0,0.6,307
+hv_avokadokrem_fott_tojassal,Avokádókrém főtt tojással,1,garlic,fokhagyma,2,seasoning,bls:G490100,307,1.0,0.6,307
+hv_avokadokrem_fott_tojassal,Avokádókrém főtt tojással,1,egg,tojás,100,core,bls:E111100,307,1.0,0.6,307
+hv_avokadokrem_fott_tojassal,Avokádókrém főtt tojással,1,tomato,paradicsom,60,core,bls:G561100,307,1.0,0.6,307
+hv_fuszeres_kremsajt_sonkaszeletekkel,Fűszeres krémsajt sonkaszeletekkel,1,cream_cheese_double,krémsajt (dupla krém),70,core,bls:M710800,236,1.0,0.6,236
+hv_fuszeres_kremsajt_sonkaszeletekkel,Fűszeres krémsajt sonkaszeletekkel,1,garlic,fokhagyma,2,seasoning,bls:G490100,236,1.0,0.6,236
+hv_fuszeres_kremsajt_sonkaszeletekkel,Fűszeres krémsajt sonkaszeletekkel,1,chives,metélőhagyma,3,seasoning,bls:G081100,236,1.0,0.6,236
+hv_fuszeres_kremsajt_sonkaszeletekkel,Fűszeres krémsajt sonkaszeletekkel,1,paprika_ground,őrölt pirospaprika,1,seasoning,usda_fdc:171329,236,1.0,0.6,236
+hv_fuszeres_kremsajt_sonkaszeletekkel,Fűszeres krémsajt sonkaszeletekkel,1,ham_cooked,főtt sonka / szendvicssonka,100,core,bls:W424000,236,1.0,0.6,236
+hv_fuszeres_kremsajt_sonkaszeletekkel,Fűszeres krémsajt sonkaszeletekkel,1,cucumber,kígyóuborka / uborka,60,core,bls:G520100,236,1.0,0.6,236
+hv_korozott_sajtkockakkal_retekkel,Körözött sajtkockákkal és retekkel,1,quark_20,tehéntúró (félzsíros),100,core,bls:M713300,252,1.0,0.6,252
+hv_korozott_sajtkockakkal_retekkel,Körözött sajtkockákkal és retekkel,1,butter,vaj,10,fat,open_database:173430,252,1.0,0.6,252
+hv_korozott_sajtkockakkal_retekkel,Körözött sajtkockákkal és retekkel,1,onion,vöröshagyma,10,core,bls:G480100,252,1.0,0.6,252
+hv_korozott_sajtkockakkal_retekkel,Körözött sajtkockákkal és retekkel,1,paprika_ground,őrölt pirospaprika,2,seasoning,usda_fdc:171329,252,1.0,0.6,252
+hv_korozott_sajtkockakkal_retekkel,Körözött sajtkockákkal és retekkel,1,gouda,gouda sajt,50,core,bls:M402600,252,1.0,0.6,252
+hv_korozott_sajtkockakkal_retekkel,Körözött sajtkockákkal és retekkel,1,radish,retek (hónapos),80,core,bls:G691100,252,1.0,0.6,252
+hv_tonhalkrem_majonezzel,Tonhalkrém majonézzel,1,tuna_canned,"tonhalkonzerv (sajátlében, lecsepegtetve)",120,core,usda_fdc:334194,315,1.0,0.6,315
+hv_tonhalkrem_majonezzel,Tonhalkrém majonézzel,1,mayonnaise,majonéz,20,fat,bls:Q991000,315,1.0,0.6,315
+hv_tonhalkrem_majonezzel,Tonhalkrém majonézzel,1,mustard,mustár,5,seasoning,bls:R132000,315,1.0,0.6,315
+hv_tonhalkrem_majonezzel,Tonhalkrém majonézzel,1,onion,vöröshagyma,10,core,bls:G480100,315,1.0,0.6,315
+hv_tonhalkrem_majonezzel,Tonhalkrém majonézzel,1,cucumber,kígyóuborka / uborka,100,core,bls:G520100,315,1.0,0.6,315
+hv_tonhalkrem_majonezzel,Tonhalkrém majonézzel,1,bell_pepper_red,piros kaliforniai paprika,60,core,bls:G543100,315,1.0,0.6,315
+hv_tonhalkrem_fott_tojassal,Tonhalkrém főtt tojással,1,tuna_canned,"tonhalkonzerv (sajátlében, lecsepegtetve)",120,core,usda_fdc:334194,330,1.0,0.6,330
+hv_tonhalkrem_fott_tojassal,Tonhalkrém főtt tojással,1,sour_cream,tejföl (20%),20,core,usda_fdc:2346387,330,1.0,0.6,330
+hv_tonhalkrem_fott_tojassal,Tonhalkrém főtt tojással,1,mayonnaise,majonéz,10,fat,bls:Q991000,330,1.0,0.6,330
+hv_tonhalkrem_fott_tojassal,Tonhalkrém főtt tojással,1,egg,tojás,100,core,bls:E111100,330,1.0,0.6,330
+hv_tonhalkrem_fott_tojassal,Tonhalkrém főtt tojással,1,cucumber,kígyóuborka / uborka,80,core,bls:G520100,330,1.0,0.6,330
+hv_tonhalas_avokadosalata,Tonhalas avokádósaláta,1,tuna_canned,"tonhalkonzerv (sajátlében, lecsepegtetve)",120,core,usda_fdc:334194,330,1.0,0.6,330
+hv_tonhalas_avokadosalata,Tonhalas avokádósaláta,1,avocado,avokádó,100,core,bls:F502100,330,1.0,0.6,330
+hv_tonhalas_avokadosalata,Tonhalas avokádósaláta,1,tomato,paradicsom,60,core,bls:G561100,330,1.0,0.6,330
+hv_tonhalas_avokadosalata,Tonhalas avokádósaláta,1,onion,vöröshagyma,10,core,bls:G480100,330,1.0,0.6,330
+hv_tonhalas_avokadosalata,Tonhalas avokádósaláta,1,lemon_juice,citromlé,5,seasoning,usda_fdc:167747,330,1.0,0.6,330
+hv_tonhalas_avokadosalata,Tonhalas avokádósaláta,1,olive_oil,olívaolaj,5,fat,bls:Q120000,330,1.0,0.6,330
+hv_tonhalas_avokadosalata,Tonhalas avokádósaláta,1,lettuce,fejes saláta,30,core,bls:G105100,330,1.0,0.6,330
+hv_tonhalas_uborkasalata,Tonhalas uborkasaláta,1,tuna_canned,"tonhalkonzerv (sajátlében, lecsepegtetve)",120,core,usda_fdc:334194,365,1.0,0.6,365
+hv_tonhalas_uborkasalata,Tonhalas uborkasaláta,1,cucumber,kígyóuborka / uborka,200,core,bls:G520100,365,1.0,0.6,365
+hv_tonhalas_uborkasalata,Tonhalas uborkasaláta,1,sour_cream,tejföl (20%),30,core,usda_fdc:2346387,365,1.0,0.6,365
+hv_tonhalas_uborkasalata,Tonhalas uborkasaláta,1,onion,vöröshagyma,10,core,bls:G480100,365,1.0,0.6,365
+hv_tonhalas_uborkasalata,Tonhalas uborkasaláta,1,olive_oil,olívaolaj,5,fat,bls:Q120000,365,1.0,0.6,365
+hv_tonhalas_fetasalata,Tonhalas fetasaláta,1,tuna_canned,"tonhalkonzerv (sajátlében, lecsepegtetve)",100,core,usda_fdc:334194,340,1.0,0.6,340
+hv_tonhalas_fetasalata,Tonhalas fetasaláta,1,feta,feta sajt,50,core,bls:M012200,340,1.0,0.6,340
+hv_tonhalas_fetasalata,Tonhalas fetasaláta,1,tomato,paradicsom,80,core,bls:G561100,340,1.0,0.6,340
+hv_tonhalas_fetasalata,Tonhalas fetasaláta,1,cucumber,kígyóuborka / uborka,80,core,bls:G520100,340,1.0,0.6,340
+hv_tonhalas_fetasalata,Tonhalas fetasaláta,1,olives_black,fekete olívabogyó,20,core,bls:H520800,340,1.0,0.6,340
+hv_tonhalas_fetasalata,Tonhalas fetasaláta,1,olive_oil,olívaolaj,10,fat,bls:Q120000,340,1.0,0.6,340
+hv_tonhalas_salatalevel_tekercs,Tonhalas salátalevél-tekercs,1,tuna_canned,"tonhalkonzerv (sajátlében, lecsepegtetve)",120,core,usda_fdc:334194,305,1.0,0.6,305
+hv_tonhalas_salatalevel_tekercs,Tonhalas salátalevél-tekercs,1,mayonnaise,majonéz,15,fat,bls:Q991000,305,1.0,0.6,305
+hv_tonhalas_salatalevel_tekercs,Tonhalas salátalevél-tekercs,1,iceberg,jégsaláta,60,core,usda_fdc:2346388,305,1.0,0.6,305
+hv_tonhalas_salatalevel_tekercs,Tonhalas salátalevél-tekercs,1,cucumber,kígyóuborka / uborka,60,core,bls:G520100,305,1.0,0.6,305
+hv_tonhalas_salatalevel_tekercs,Tonhalas salátalevél-tekercs,1,tomato,paradicsom,50,core,bls:G561100,305,1.0,0.6,305
+hv_tonhalas_kremsajt_uborkaval,Tonhalas krémsajt uborkával,1,tuna_canned,"tonhalkonzerv (sajátlében, lecsepegtetve)",100,core,usda_fdc:334194,303,1.0,0.6,303
+hv_tonhalas_kremsajt_uborkaval,Tonhalas krémsajt uborkával,1,cream_cheese_double,krémsajt (dupla krém),50,core,bls:M710800,303,1.0,0.6,303
+hv_tonhalas_kremsajt_uborkaval,Tonhalas krémsajt uborkával,1,cucumber,kígyóuborka / uborka,150,core,bls:G520100,303,1.0,0.6,303
+hv_tonhalas_kremsajt_uborkaval,Tonhalas krémsajt uborkával,1,chives,metélőhagyma,3,seasoning,bls:G081100,303,1.0,0.6,303
+hv_tonhalas_olivabogyo_salata,Tonhalas olívabogyó-saláta,1,tuna_canned,"tonhalkonzerv (sajátlében, lecsepegtetve)",120,core,usda_fdc:334194,315,1.0,0.6,315
+hv_tonhalas_olivabogyo_salata,Tonhalas olívabogyó-saláta,1,olives_black,fekete olívabogyó,40,core,bls:H520800,315,1.0,0.6,315
+hv_tonhalas_olivabogyo_salata,Tonhalas olívabogyó-saláta,1,tomato,paradicsom,80,core,bls:G561100,315,1.0,0.6,315
+hv_tonhalas_olivabogyo_salata,Tonhalas olívabogyó-saláta,1,lettuce,fejes saláta,50,core,bls:G105100,315,1.0,0.6,315
+hv_tonhalas_olivabogyo_salata,Tonhalas olívabogyó-saláta,1,onion,vöröshagyma,10,core,bls:G480100,315,1.0,0.6,315
+hv_tonhalas_olivabogyo_salata,Tonhalas olívabogyó-saláta,1,olive_oil,olívaolaj,10,fat,bls:Q120000,315,1.0,0.6,315
+hv_tonhalas_olivabogyo_salata,Tonhalas olívabogyó-saláta,1,capers,kapribogyó,5,seasoning,bls:G012902,315,1.0,0.6,315
+hv_szardinia_paradicsommal,Szardínia friss paradicsommal,1,sardines_oil,szardínia olajban (lecsepegtetve),100,core,bls:T105702,273,1.0,0.6,273
+hv_szardinia_paradicsommal,Szardínia friss paradicsommal,1,tomato,paradicsom,150,core,bls:G561100,273,1.0,0.6,273
+hv_szardinia_paradicsommal,Szardínia friss paradicsommal,1,onion,vöröshagyma,15,core,bls:G480100,273,1.0,0.6,273
+hv_szardinia_paradicsommal,Szardínia friss paradicsommal,1,olive_oil,olívaolaj,5,fat,bls:Q120000,273,1.0,0.6,273
+hv_szardinia_paradicsommal,Szardínia friss paradicsommal,1,parsley_leaf,petrezselyemzöld,3,seasoning,usda_fdc:170416,273,1.0,0.6,273
+hv_szardinias_tojassalata,Szardíniás tojássaláta,1,sardines_oil,szardínia olajban (lecsepegtetve),80,core,bls:T105702,300,1.0,0.6,300
+hv_szardinias_tojassalata,Szardíniás tojássaláta,1,egg,tojás,100,core,bls:E111100,300,1.0,0.6,300
+hv_szardinias_tojassalata,Szardíniás tojássaláta,1,mayonnaise,majonéz,10,fat,bls:Q991000,300,1.0,0.6,300
+hv_szardinias_tojassalata,Szardíniás tojássaláta,1,lettuce,fejes saláta,50,core,bls:G105100,300,1.0,0.6,300
+hv_szardinias_tojassalata,Szardíniás tojássaláta,1,cucumber,kígyóuborka / uborka,60,core,bls:G520100,300,1.0,0.6,300
+hv_fustolt_makrela_uborkaval_retekkel,Füstölt makréla uborkával és retekkel,1,smoked_mackerel,füstölt makréla,100,core,bls:T107600,350,1.0,0.6,350
+hv_fustolt_makrela_uborkaval_retekkel,Füstölt makréla uborkával és retekkel,1,cucumber,kígyóuborka / uborka,150,core,bls:G520100,350,1.0,0.6,350
+hv_fustolt_makrela_uborkaval_retekkel,Füstölt makréla uborkával és retekkel,1,radish,retek (hónapos),80,core,bls:G691100,350,1.0,0.6,350
+hv_fustolt_makrela_uborkaval_retekkel,Füstölt makréla uborkával és retekkel,1,sour_cream,tejföl (20%),20,core,usda_fdc:2346387,350,1.0,0.6,350
+hv_fustolt_pisztrang_tormas_kremsajttal,Füstölt pisztráng tormás krémsajttal,1,smoked_trout,füstölt pisztráng,120,core,bls:T422600,310,1.0,0.6,310
+hv_fustolt_pisztrang_tormas_kremsajttal,Füstölt pisztráng tormás krémsajttal,1,cream_cheese_double,krémsajt (dupla krém),40,core,bls:M710800,310,1.0,0.6,310
+hv_fustolt_pisztrang_tormas_kremsajttal,Füstölt pisztráng tormás krémsajttal,1,horseradish,torma,10,seasoning,bls:G630100,310,1.0,0.6,310
+hv_fustolt_pisztrang_tormas_kremsajttal,Füstölt pisztráng tormás krémsajttal,1,cucumber,kígyóuborka / uborka,100,core,bls:G520100,310,1.0,0.6,310
+hv_fustolt_pisztrang_tormas_kremsajttal,Füstölt pisztráng tormás krémsajttal,1,lettuce,fejes saláta,40,core,bls:G105100,310,1.0,0.6,310
+hv_fustolt_lazac_kremsajttal,Füstölt lazac krémsajttal és kaporral,1,smoked_salmon,füstölt lazac,100,core,bls:T410600,260,1.0,0.6,260
+hv_fustolt_lazac_kremsajttal,Füstölt lazac krémsajttal és kaporral,1,cream_cheese_double,krémsajt (dupla krém),50,core,bls:M710800,260,1.0,0.6,260
+hv_fustolt_lazac_kremsajttal,Füstölt lazac krémsajttal és kaporral,1,cucumber,kígyóuborka / uborka,100,core,bls:G520100,260,1.0,0.6,260
+hv_fustolt_lazac_kremsajttal,Füstölt lazac krémsajttal és kaporral,1,lemon_juice,citromlé,5,seasoning,usda_fdc:167747,260,1.0,0.6,260
+hv_fustolt_lazac_kremsajttal,Füstölt lazac krémsajttal és kaporral,1,capers,kapribogyó,5,seasoning,bls:G012902,260,1.0,0.6,260
+hv_lazacos_tojassalata,Lazacos tojássaláta,1,smoked_salmon,füstölt lazac,80,core,bls:T410600,273,1.0,0.6,273
+hv_lazacos_tojassalata,Lazacos tojássaláta,1,egg,tojás,100,core,bls:E111100,273,1.0,0.6,273
+hv_lazacos_tojassalata,Lazacos tojássaláta,1,sour_cream,tejföl (20%),20,core,usda_fdc:2346387,273,1.0,0.6,273
+hv_lazacos_tojassalata,Lazacos tojássaláta,1,mayonnaise,majonéz,10,fat,bls:Q991000,273,1.0,0.6,273
+hv_lazacos_tojassalata,Lazacos tojássaláta,1,cucumber,kígyóuborka / uborka,60,core,bls:G520100,273,1.0,0.6,273
+hv_lazacos_tojassalata,Lazacos tojássaláta,1,chives,metélőhagyma,3,seasoning,bls:G081100,273,1.0,0.6,273
+hv_fustolt_lazacos_avokadosalata,Füstölt lazacos avokádósaláta,1,smoked_salmon,füstölt lazac,80,core,bls:T410600,280,1.0,0.6,280
+hv_fustolt_lazacos_avokadosalata,Füstölt lazacos avokádósaláta,1,avocado,avokádó,100,core,bls:F502100,280,1.0,0.6,280
+hv_fustolt_lazacos_avokadosalata,Füstölt lazacos avokádósaláta,1,arugula,rukkola,30,core,bls:G130100,280,1.0,0.6,280
+hv_fustolt_lazacos_avokadosalata,Füstölt lazacos avokádósaláta,1,cucumber,kígyóuborka / uborka,60,core,bls:G520100,280,1.0,0.6,280
+hv_fustolt_lazacos_avokadosalata,Füstölt lazacos avokádósaláta,1,lemon_juice,citromlé,5,seasoning,usda_fdc:167747,280,1.0,0.6,280
+hv_fustolt_lazacos_avokadosalata,Füstölt lazacos avokádósaláta,1,olive_oil,olívaolaj,5,fat,bls:Q120000,280,1.0,0.6,280
+hv_halkremes_uborkahajok,Halkrémes uborkahajók,1,cucumber,kígyóuborka / uborka,250,core,bls:G520100,378,1.0,0.6,378
+hv_halkremes_uborkahajok,Halkrémes uborkahajók,1,smoked_trout,füstölt pisztráng,80,core,bls:T422600,378,1.0,0.6,378
+hv_halkremes_uborkahajok,Halkrémes uborkahajók,1,cream_cheese_double,krémsajt (dupla krém),40,core,bls:M710800,378,1.0,0.6,378
+hv_halkremes_uborkahajok,Halkrémes uborkahajók,1,horseradish,torma,5,seasoning,bls:G630100,378,1.0,0.6,378
+hv_halkremes_uborkahajok,Halkrémes uborkahajók,1,lemon_juice,citromlé,3,seasoning,usda_fdc:167747,378,1.0,0.6,378
+hv_makrelakrem_salatalevelben,Makrélakrém salátalevélben,1,smoked_mackerel,füstölt makréla,100,core,bls:T107600,225,1.0,0.6,225
+hv_makrelakrem_salatalevelben,Makrélakrém salátalevélben,1,cream_cheese_double,krémsajt (dupla krém),30,core,bls:M710800,225,1.0,0.6,225
+hv_makrelakrem_salatalevelben,Makrélakrém salátalevélben,1,sour_cream,tejföl (20%),20,core,usda_fdc:2346387,225,1.0,0.6,225
+hv_makrelakrem_salatalevelben,Makrélakrém salátalevélben,1,lemon_juice,citromlé,5,seasoning,usda_fdc:167747,225,1.0,0.6,225
+hv_makrelakrem_salatalevelben,Makrélakrém salátalevélben,1,onion,vöröshagyma,10,core,bls:G480100,225,1.0,0.6,225
+hv_makrelakrem_salatalevelben,Makrélakrém salátalevélben,1,iceberg,jégsaláta,60,core,usda_fdc:2346388,225,1.0,0.6,225
+hv_tonhalas_mozzarellasalata,Tonhalas mozzarellasaláta,1,tuna_canned,"tonhalkonzerv (sajátlében, lecsepegtetve)",100,core,usda_fdc:334194,352,1.0,0.6,352
+hv_tonhalas_mozzarellasalata,Tonhalas mozzarellasaláta,1,mozzarella,mozzarella,125,core,bls:M032100,352,1.0,0.6,352
+hv_tonhalas_mozzarellasalata,Tonhalas mozzarellasaláta,1,tomato,paradicsom,80,core,bls:G561100,352,1.0,0.6,352
+hv_tonhalas_mozzarellasalata,Tonhalas mozzarellasaláta,1,lettuce,fejes saláta,40,core,bls:G105100,352,1.0,0.6,352
+hv_tonhalas_mozzarellasalata,Tonhalas mozzarellasaláta,1,olive_oil,olívaolaj,5,fat,bls:Q120000,352,1.0,0.6,352
+hv_tonhalas_mozzarellasalata,Tonhalas mozzarellasaláta,1,basil_fresh,bazsalikom (friss),2,seasoning,bls:G061000,352,1.0,0.6,352
+hv_paradicsomos_uborkas_fetasalata,Paradicsomos-uborkás fetasaláta,1,tomato,paradicsom,150,core,bls:G561100,405,1.0,0.6,405
+hv_paradicsomos_uborkas_fetasalata,Paradicsomos-uborkás fetasaláta,1,cucumber,kígyóuborka / uborka,150,core,bls:G520100,405,1.0,0.6,405
+hv_paradicsomos_uborkas_fetasalata,Paradicsomos-uborkás fetasaláta,1,feta,feta sajt,80,core,bls:M012200,405,1.0,0.6,405
+hv_paradicsomos_uborkas_fetasalata,Paradicsomos-uborkás fetasaláta,1,onion,vöröshagyma,15,core,bls:G480100,405,1.0,0.6,405
+hv_paradicsomos_uborkas_fetasalata,Paradicsomos-uborkás fetasaláta,1,olive_oil,olívaolaj,10,fat,bls:Q120000,405,1.0,0.6,405
+hv_avokados_paradicsomsalata,Avokádós paradicsomsaláta,1,avocado,avokádó,140,core,bls:F502100,315,1.0,0.6,315
+hv_avokados_paradicsomsalata,Avokádós paradicsomsaláta,1,tomato,paradicsom,150,core,bls:G561100,315,1.0,0.6,315
+hv_avokados_paradicsomsalata,Avokádós paradicsomsaláta,1,onion,vöröshagyma,15,core,bls:G480100,315,1.0,0.6,315
+hv_avokados_paradicsomsalata,Avokádós paradicsomsaláta,1,lemon_juice,citromlé,5,seasoning,usda_fdc:167747,315,1.0,0.6,315
+hv_avokados_paradicsomsalata,Avokádós paradicsomsaláta,1,olive_oil,olívaolaj,5,fat,bls:Q120000,315,1.0,0.6,315
+hv_jegsalata_sajttal_tojassal,Jégsaláta sajttal és tojással,1,iceberg,jégsaláta,120,core,usda_fdc:2346388,360,1.0,0.6,360
+hv_jegsalata_sajttal_tojassal,Jégsaláta sajttal és tojással,1,gouda,gouda sajt,50,core,bls:M402600,360,1.0,0.6,360
+hv_jegsalata_sajttal_tojassal,Jégsaláta sajttal és tojással,1,egg,tojás,100,core,bls:E111100,360,1.0,0.6,360
+hv_jegsalata_sajttal_tojassal,Jégsaláta sajttal és tojással,1,sour_cream,tejföl (20%),30,core,usda_fdc:2346387,360,1.0,0.6,360
+hv_jegsalata_sajttal_tojassal,Jégsaláta sajttal és tojással,1,cucumber,kígyóuborka / uborka,60,core,bls:G520100,360,1.0,0.6,360
+hv_zellerszar_kremsajttal,Zellerszár krémsajttal töltve,1,celery_stalk,szárzeller,200,core,bls:G220100,290,1.0,0.6,290
+hv_zellerszar_kremsajttal,Zellerszár krémsajttal töltve,1,cream_cheese_double,krémsajt (dupla krém),80,core,bls:M710800,290,1.0,0.6,290
+hv_zellerszar_kremsajttal,Zellerszár krémsajttal töltve,1,walnut,dióbél,10,core,bls:H120100,290,1.0,0.6,290
+hv_avokadokremes_zoldsegtal,Avokádókrémes zöldségtál,1,avocado,avokádó,140,core,bls:F502100,487,1.0,0.6,487
+hv_avokadokremes_zoldsegtal,Avokádókrémes zöldségtál,1,lemon_juice,citromlé,5,seasoning,usda_fdc:167747,487,1.0,0.6,487
+hv_avokadokremes_zoldsegtal,Avokádókrémes zöldségtál,1,garlic,fokhagyma,2,seasoning,bls:G490100,487,1.0,0.6,487
+hv_avokadokremes_zoldsegtal,Avokádókrémes zöldségtál,1,yogurt_greek_10,görög típusú joghurt (10%),30,core,bls:M141500,487,1.0,0.6,487
+hv_avokadokremes_zoldsegtal,Avokádókrémes zöldségtál,1,cucumber,kígyóuborka / uborka,100,core,bls:G520100,487,1.0,0.6,487
+hv_avokadokremes_zoldsegtal,Avokádókrémes zöldségtál,1,bell_pepper_red,piros kaliforniai paprika,100,core,bls:G543100,487,1.0,0.6,487
+hv_avokadokremes_zoldsegtal,Avokádókrémes zöldségtál,1,radish,retek (hónapos),60,core,bls:G691100,487,1.0,0.6,487
+hv_avokadokremes_zoldsegtal,Avokádókrémes zöldségtál,1,celery_stalk,szárzeller,50,core,bls:G220100,487,1.0,0.6,487
+hv_feta_olivaval_paradicsommal,Feta olívabogyóval és paradicsommal,1,feta,feta sajt,100,core,bls:M012200,300,1.0,0.6,300
+hv_feta_olivaval_paradicsommal,Feta olívabogyóval és paradicsommal,1,olives_black,fekete olívabogyó,40,core,bls:H520800,300,1.0,0.6,300
+hv_feta_olivaval_paradicsommal,Feta olívabogyóval és paradicsommal,1,tomato,paradicsom,150,core,bls:G561100,300,1.0,0.6,300
+hv_feta_olivaval_paradicsommal,Feta olívabogyóval és paradicsommal,1,olive_oil,olívaolaj,10,fat,bls:Q120000,300,1.0,0.6,300
+hv_kaposztasalata_majonezzel,Káposztasaláta majonézzel,1,white_cabbage,fejes káposzta,200,core,bls:G342100,260,1.0,0.6,260
+hv_kaposztasalata_majonezzel,Káposztasaláta majonézzel,1,mayonnaise,majonéz,25,fat,bls:Q991000,260,1.0,0.6,260
+hv_kaposztasalata_majonezzel,Káposztasaláta majonézzel,1,sour_cream,tejföl (20%),30,core,usda_fdc:2346387,260,1.0,0.6,260
+hv_kaposztasalata_majonezzel,Káposztasaláta majonézzel,1,vinegar,ecet (10%-os),5,seasoning,bls:R122000,260,1.0,0.6,260
+hv_tojasos_ceklasalata,Tojásos céklasaláta előfőzött céklából,1,beetroot_cooked,főtt cékla,100,core,bls:G613132,245,1.0,0.6,245
+hv_tojasos_ceklasalata,Tojásos céklasaláta előfőzött céklából,1,egg,tojás,100,core,bls:E111100,245,1.0,0.6,245
+hv_tojasos_ceklasalata,Tojásos céklasaláta előfőzött céklából,1,sour_cream,tejföl (20%),30,core,usda_fdc:2346387,245,1.0,0.6,245
+hv_tojasos_ceklasalata,Tojásos céklasaláta előfőzött céklából,1,horseradish,torma,5,seasoning,bls:G630100,245,1.0,0.6,245
+hv_tojasos_ceklasalata,Tojásos céklasaláta előfőzött céklából,1,onion,vöröshagyma,10,core,bls:G480100,245,1.0,0.6,245
+hv_retek_uborka_salata_turokremmel,Retek-uborka saláta túrókrémmel,1,radish,retek (hónapos),100,core,bls:G691100,393,1.0,0.6,393
+hv_retek_uborka_salata_turokremmel,Retek-uborka saláta túrókrémmel,1,cucumber,kígyóuborka / uborka,150,core,bls:G520100,393,1.0,0.6,393
+hv_retek_uborka_salata_turokremmel,Retek-uborka saláta túrókrémmel,1,quark_20,tehéntúró (félzsíros),120,core,bls:M713300,393,1.0,0.6,393
+hv_retek_uborka_salata_turokremmel,Retek-uborka saláta túrókrémmel,1,sour_cream,tejföl (20%),20,core,usda_fdc:2346387,393,1.0,0.6,393
+hv_retek_uborka_salata_turokremmel,Retek-uborka saláta túrókrémmel,1,chives,metélőhagyma,3,seasoning,bls:G081100,393,1.0,0.6,393
+hv_vegyes_leveles_salata_tojassal,Vegyes leveles saláta tojással és olívaolajjal,1,lettuce,fejes saláta,60,core,bls:G105100,300,1.0,0.6,300
+hv_vegyes_leveles_salata_tojassal,Vegyes leveles saláta tojással és olívaolajjal,1,arugula,rukkola,30,core,bls:G130100,300,1.0,0.6,300
+hv_vegyes_leveles_salata_tojassal,Vegyes leveles saláta tojással és olívaolajjal,1,lambs_lettuce,galambbegysaláta (Vogerlsalat),30,core,bls:G104100,300,1.0,0.6,300
+hv_vegyes_leveles_salata_tojassal,Vegyes leveles saláta tojással és olívaolajjal,1,egg,tojás,100,core,bls:E111100,300,1.0,0.6,300
+hv_vegyes_leveles_salata_tojassal,Vegyes leveles saláta tojással és olívaolajjal,1,tomato,paradicsom,60,core,bls:G561100,300,1.0,0.6,300
+hv_vegyes_leveles_salata_tojassal,Vegyes leveles saláta tojással és olívaolajjal,1,olive_oil,olívaolaj,15,fat,bls:Q120000,300,1.0,0.6,300
+hv_vegyes_leveles_salata_tojassal,Vegyes leveles saláta tojással és olívaolajjal,1,lemon_juice,citromlé,5,seasoning,usda_fdc:167747,300,1.0,0.6,300
+hv_uborkas_avokadosalata,Uborkás-avokádósaláta,1,cucumber,kígyóuborka / uborka,150,core,bls:G520100,305,1.0,0.6,305
+hv_uborkas_avokadosalata,Uborkás-avokádósaláta,1,avocado,avokádó,120,core,bls:F502100,305,1.0,0.6,305
+hv_uborkas_avokadosalata,Uborkás-avokádósaláta,1,sour_cream,tejföl (20%),20,core,usda_fdc:2346387,305,1.0,0.6,305
+hv_uborkas_avokadosalata,Uborkás-avokádósaláta,1,lemon_juice,citromlé,5,seasoning,usda_fdc:167747,305,1.0,0.6,305
+hv_uborkas_avokadosalata,Uborkás-avokádósaláta,1,spring_onion,újhagyma,10,core,bls:G482100,305,1.0,0.6,305
+hv_paradicsomos_tonhalsalata,Paradicsomos tonhalsaláta,1,tuna_canned,"tonhalkonzerv (sajátlében, lecsepegtetve)",120,core,usda_fdc:334194,348,1.0,0.6,348
+hv_paradicsomos_tonhalsalata,Paradicsomos tonhalsaláta,1,tomato,paradicsom,200,core,bls:G561100,348,1.0,0.6,348
+hv_paradicsomos_tonhalsalata,Paradicsomos tonhalsaláta,1,onion,vöröshagyma,15,core,bls:G480100,348,1.0,0.6,348
+hv_paradicsomos_tonhalsalata,Paradicsomos tonhalsaláta,1,olive_oil,olívaolaj,10,fat,bls:Q120000,348,1.0,0.6,348
+hv_paradicsomos_tonhalsalata,Paradicsomos tonhalsaláta,1,parsley_leaf,petrezselyemzöld,3,seasoning,usda_fdc:170416,348,1.0,0.6,348
+hv_zoldseghasabok_fokhagymas_kremsajttal,Zöldséghasábok fokhagymás krémsajttal,1,cream_cheese_double,krémsajt (dupla krém),70,core,bls:M710800,383,1.0,0.6,383
+hv_zoldseghasabok_fokhagymas_kremsajttal,Zöldséghasábok fokhagymás krémsajttal,1,garlic,fokhagyma,3,seasoning,bls:G490100,383,1.0,0.6,383
+hv_zoldseghasabok_fokhagymas_kremsajttal,Zöldséghasábok fokhagymás krémsajttal,1,cucumber,kígyóuborka / uborka,100,core,bls:G520100,383,1.0,0.6,383
+hv_zoldseghasabok_fokhagymas_kremsajttal,Zöldséghasábok fokhagymás krémsajttal,1,bell_pepper_red,piros kaliforniai paprika,100,core,bls:G543100,383,1.0,0.6,383
+hv_zoldseghasabok_fokhagymas_kremsajttal,Zöldséghasábok fokhagymás krémsajttal,1,celery_stalk,szárzeller,60,core,bls:G220100,383,1.0,0.6,383
+hv_zoldseghasabok_fokhagymas_kremsajttal,Zöldséghasábok fokhagymás krémsajttal,1,radish,retek (hónapos),50,core,bls:G691100,383,1.0,0.6,383
+hv_olivas_mediterran_salata,Olívás mediterrán saláta,1,olives_black,fekete olívabogyó,50,core,bls:H520800,405,1.0,0.6,405
+hv_olivas_mediterran_salata,Olívás mediterrán saláta,1,tomato,paradicsom,120,core,bls:G561100,405,1.0,0.6,405
+hv_olivas_mediterran_salata,Olívás mediterrán saláta,1,cucumber,kígyóuborka / uborka,100,core,bls:G520100,405,1.0,0.6,405
+hv_olivas_mediterran_salata,Olívás mediterrán saláta,1,feta,feta sajt,50,core,bls:M012200,405,1.0,0.6,405
+hv_olivas_mediterran_salata,Olívás mediterrán saláta,1,bell_pepper_red,piros kaliforniai paprika,60,core,bls:G543100,405,1.0,0.6,405
+hv_olivas_mediterran_salata,Olívás mediterrán saláta,1,onion,vöröshagyma,10,core,bls:G480100,405,1.0,0.6,405
+hv_olivas_mediterran_salata,Olívás mediterrán saláta,1,olive_oil,olívaolaj,10,fat,bls:Q120000,405,1.0,0.6,405
+hv_olivas_mediterran_salata,Olívás mediterrán saláta,1,capers,kapribogyó,5,seasoning,bls:G012902,405,1.0,0.6,405
+hv_sonkas_tojasos_avokadotal,Sonkás-tojásos avokádótál,1,ham_cooked,főtt sonka / szendvicssonka,80,core,bls:W424000,340,1.0,0.6,340
+hv_sonkas_tojasos_avokadotal,Sonkás-tojásos avokádótál,1,egg,tojás,100,core,bls:E111100,340,1.0,0.6,340
+hv_sonkas_tojasos_avokadotal,Sonkás-tojásos avokádótál,1,avocado,avokádó,100,core,bls:F502100,340,1.0,0.6,340
+hv_sonkas_tojasos_avokadotal,Sonkás-tojásos avokádótál,1,tomato,paradicsom,60,core,bls:G561100,340,1.0,0.6,340
+hv_szalamis_fetas_salata,Szalámis-fetás saláta,1,salami,szalámi (német),50,core,bls:W140000,315,1.0,0.6,315
+hv_szalamis_fetas_salata,Szalámis-fetás saláta,1,feta,feta sajt,60,core,bls:M012200,315,1.0,0.6,315
+hv_szalamis_fetas_salata,Szalámis-fetás saláta,1,lettuce,fejes saláta,60,core,bls:G105100,315,1.0,0.6,315
+hv_szalamis_fetas_salata,Szalámis-fetás saláta,1,tomato,paradicsom,80,core,bls:G561100,315,1.0,0.6,315
+hv_szalamis_fetas_salata,Szalámis-fetás saláta,1,cucumber,kígyóuborka / uborka,60,core,bls:G520100,315,1.0,0.6,315
+hv_szalamis_fetas_salata,Szalámis-fetás saláta,1,olive_oil,olívaolaj,5,fat,bls:Q120000,315,1.0,0.6,315
+hv_pulykasonka_korozottel_paprikaval,Pulykasonka körözöttel és paprikával,1,turkey_ham,pulykasonka (füstölt pulykamell),100,core,bls:W561000,352,1.0,0.6,352
+hv_pulykasonka_korozottel_paprikaval,Pulykasonka körözöttel és paprikával,1,quark_20,tehéntúró (félzsíros),80,core,bls:M713300,352,1.0,0.6,352
+hv_pulykasonka_korozottel_paprikaval,Pulykasonka körözöttel és paprikával,1,butter,vaj,10,fat,open_database:173430,352,1.0,0.6,352
+hv_pulykasonka_korozottel_paprikaval,Pulykasonka körözöttel és paprikával,1,onion,vöröshagyma,10,core,bls:G480100,352,1.0,0.6,352
+hv_pulykasonka_korozottel_paprikaval,Pulykasonka körözöttel és paprikával,1,paprika_ground,őrölt pirospaprika,2,seasoning,usda_fdc:171329,352,1.0,0.6,352
+hv_pulykasonka_korozottel_paprikaval,Pulykasonka körözöttel és paprikával,1,bell_pepper_red,piros kaliforniai paprika,150,core,bls:G543100,352,1.0,0.6,352
+hv_mozzarellas_tojaskrem_salataval,Mozzarellás tojáskrém salátával,1,egg,tojás,100,core,bls:E111100,325,1.0,0.6,325
+hv_mozzarellas_tojaskrem_salataval,Mozzarellás tojáskrém salátával,1,mozzarella,mozzarella,60,core,bls:M032100,325,1.0,0.6,325
+hv_mozzarellas_tojaskrem_salataval,Mozzarellás tojáskrém salátával,1,mayonnaise,majonéz,10,fat,bls:Q991000,325,1.0,0.6,325
+hv_mozzarellas_tojaskrem_salataval,Mozzarellás tojáskrém salátával,1,sour_cream,tejföl (20%),15,core,usda_fdc:2346387,325,1.0,0.6,325
+hv_mozzarellas_tojaskrem_salataval,Mozzarellás tojáskrém salátával,1,lettuce,fejes saláta,80,core,bls:G105100,325,1.0,0.6,325
+hv_mozzarellas_tojaskrem_salataval,Mozzarellás tojáskrém salátával,1,tomato,paradicsom,60,core,bls:G561100,325,1.0,0.6,325
+hv_tonhalkremes_paprikafelek,Tonhalkrémes paprikafelek,1,bell_pepper_red,piros kaliforniai paprika,200,core,bls:G543100,350,1.0,0.6,350
+hv_tonhalkremes_paprikafelek,Tonhalkrémes paprikafelek,1,tuna_canned,"tonhalkonzerv (sajátlében, lecsepegtetve)",100,core,usda_fdc:334194,350,1.0,0.6,350
+hv_tonhalkremes_paprikafelek,Tonhalkrémes paprikafelek,1,cream_cheese_double,krémsajt (dupla krém),30,core,bls:M710800,350,1.0,0.6,350
+hv_tonhalkremes_paprikafelek,Tonhalkrémes paprikafelek,1,mayonnaise,majonéz,10,fat,bls:Q991000,350,1.0,0.6,350
+hv_tonhalkremes_paprikafelek,Tonhalkrémes paprikafelek,1,onion,vöröshagyma,10,core,bls:G480100,350,1.0,0.6,350
+hv_sonkaval_toltott_sajtos_tekercs,Sonkával töltött sajtos tekercsek,1,gouda,gouda sajt,80,core,bls:M402600,240,1.0,0.6,240
+hv_sonkaval_toltott_sajtos_tekercs,Sonkával töltött sajtos tekercsek,1,ham_cooked,főtt sonka / szendvicssonka,60,core,bls:W424000,240,1.0,0.6,240
+hv_sonkaval_toltott_sajtos_tekercs,Sonkával töltött sajtos tekercsek,1,cream_cheese_double,krémsajt (dupla krém),20,core,bls:M710800,240,1.0,0.6,240
+hv_sonkaval_toltott_sajtos_tekercs,Sonkával töltött sajtos tekercsek,1,cucumber,kígyóuborka / uborka,80,core,bls:G520100,240,1.0,0.6,240
+hv_csirkes_avokados_tojassalata,Csirkés-avokádós tojássaláta,1,chicken_breast_cooked,sült csirkemell (hidegen is),100,core,bls:V416182,335,1.0,0.6,335
+hv_csirkes_avokados_tojassalata,Csirkés-avokádós tojássaláta,1,avocado,avokádó,80,core,bls:F502100,335,1.0,0.6,335
+hv_csirkes_avokados_tojassalata,Csirkés-avokádós tojássaláta,1,egg,tojás,100,core,bls:E111100,335,1.0,0.6,335
+hv_csirkes_avokados_tojassalata,Csirkés-avokádós tojássaláta,1,yogurt_greek_10,görög típusú joghurt (10%),20,core,bls:M141500,335,1.0,0.6,335
+hv_csirkes_avokados_tojassalata,Csirkés-avokádós tojássaláta,1,lemon_juice,citromlé,5,seasoning,usda_fdc:167747,335,1.0,0.6,335
+hv_csirkes_avokados_tojassalata,Csirkés-avokádós tojássaláta,1,lettuce,fejes saláta,30,core,bls:G105100,335,1.0,0.6,335
+hv_serrano_fetaval_uborkaval,Serrano sonka fetával és uborkával,1,cured_ham_lean,nyers sonka (serrano típusú),60,core,bls:U681700,295,1.0,0.6,295
+hv_serrano_fetaval_uborkaval,Serrano sonka fetával és uborkával,1,feta,feta sajt,80,core,bls:M012200,295,1.0,0.6,295
+hv_serrano_fetaval_uborkaval,Serrano sonka fetával és uborkával,1,cucumber,kígyóuborka / uborka,150,core,bls:G520100,295,1.0,0.6,295
+hv_serrano_fetaval_uborkaval,Serrano sonka fetával és uborkával,1,olive_oil,olívaolaj,5,fat,bls:Q120000,295,1.0,0.6,295
+hv_kremsajtos_salatatekercs_sonkaval_tojassal,Krémsajtos salátatekercs sonkával és tojással,1,iceberg,jégsaláta,60,core,usda_fdc:2346388,310,1.0,0.6,310
+hv_kremsajtos_salatatekercs_sonkaval_tojassal,Krémsajtos salátatekercs sonkával és tojással,1,cream_cheese_double,krémsajt (dupla krém),40,core,bls:M710800,310,1.0,0.6,310
+hv_kremsajtos_salatatekercs_sonkaval_tojassal,Krémsajtos salátatekercs sonkával és tojással,1,ham_cooked,főtt sonka / szendvicssonka,60,core,bls:W424000,310,1.0,0.6,310
+hv_kremsajtos_salatatekercs_sonkaval_tojassal,Krémsajtos salátatekercs sonkával és tojással,1,egg,tojás,100,core,bls:E111100,310,1.0,0.6,310
+hv_kremsajtos_salatatekercs_sonkaval_tojassal,Krémsajtos salátatekercs sonkával és tojással,1,cucumber,kígyóuborka / uborka,50,core,bls:G520100,310,1.0,0.6,310
+hv_tojasos_fetas_avokadokrem,Tojásos-fetás avokádókrém,1,avocado,avokádó,120,core,bls:F502100,355,1.0,0.6,355
+hv_tojasos_fetas_avokadokrem,Tojásos-fetás avokádókrém,1,feta,feta sajt,50,core,bls:M012200,355,1.0,0.6,355
+hv_tojasos_fetas_avokadokrem,Tojásos-fetás avokádókrém,1,egg,tojás,100,core,bls:E111100,355,1.0,0.6,355
+hv_tojasos_fetas_avokadokrem,Tojásos-fetás avokádókrém,1,lemon_juice,citromlé,5,seasoning,usda_fdc:167747,355,1.0,0.6,355
+hv_tojasos_fetas_avokadokrem,Tojásos-fetás avokádókrém,1,cucumber,kígyóuborka / uborka,80,core,bls:G520100,355,1.0,0.6,355
+hv_hideg_sult_hus_mustaros_uborkasalataval,Hideg sült hús mustáros uborkasalátával,1,pork_roast,sült sertéshús (hidegen),120,core,bls:Y352212,320,1.0,0.6,320
+hv_hideg_sult_hus_mustaros_uborkasalataval,Hideg sült hús mustáros uborkasalátával,1,cucumber,kígyóuborka / uborka,150,core,bls:G520100,320,1.0,0.6,320
+hv_hideg_sult_hus_mustaros_uborkasalataval,Hideg sült hús mustáros uborkasalátával,1,mustard,mustár,10,seasoning,bls:R132000,320,1.0,0.6,320
+hv_hideg_sult_hus_mustaros_uborkasalataval,Hideg sült hús mustáros uborkasalátával,1,sour_cream,tejföl (20%),30,core,usda_fdc:2346387,320,1.0,0.6,320
+hv_hideg_sult_hus_mustaros_uborkasalataval,Hideg sült hús mustáros uborkasalátával,1,onion,vöröshagyma,10,core,bls:G480100,320,1.0,0.6,320
+hv_szalamis_tojaskrem_zoldseghasabokkal,Szalámis tojáskrém zöldséghasábokkal,1,egg,tojás,100,core,bls:E111100,345,1.0,0.6,345
+hv_szalamis_tojaskrem_zoldseghasabokkal,Szalámis tojáskrém zöldséghasábokkal,1,salami,szalámi (német),40,core,bls:W140000,345,1.0,0.6,345
+hv_szalamis_tojaskrem_zoldseghasabokkal,Szalámis tojáskrém zöldséghasábokkal,1,mayonnaise,majonéz,10,fat,bls:Q991000,345,1.0,0.6,345
+hv_szalamis_tojaskrem_zoldseghasabokkal,Szalámis tojáskrém zöldséghasábokkal,1,sour_cream,tejföl (20%),15,core,usda_fdc:2346387,345,1.0,0.6,345
+hv_szalamis_tojaskrem_zoldseghasabokkal,Szalámis tojáskrém zöldséghasábokkal,1,cucumber,kígyóuborka / uborka,100,core,bls:G520100,345,1.0,0.6,345
+hv_szalamis_tojaskrem_zoldseghasabokkal,Szalámis tojáskrém zöldséghasábokkal,1,bell_pepper_red,piros kaliforniai paprika,80,core,bls:G543100,345,1.0,0.6,345
+hv_mediterran_tonhalas_avokadosalata,Mediterrán tonhalas-avokádósaláta,1,tuna_canned,"tonhalkonzerv (sajátlében, lecsepegtetve)",100,core,usda_fdc:334194,325,1.0,0.6,325
+hv_mediterran_tonhalas_avokadosalata,Mediterrán tonhalas-avokádósaláta,1,avocado,avokádó,100,core,bls:F502100,325,1.0,0.6,325
+hv_mediterran_tonhalas_avokadosalata,Mediterrán tonhalas-avokádósaláta,1,tomato,paradicsom,80,core,bls:G561100,325,1.0,0.6,325
+hv_mediterran_tonhalas_avokadosalata,Mediterrán tonhalas-avokádósaláta,1,olives_black,fekete olívabogyó,20,core,bls:H520800,325,1.0,0.6,325
+hv_mediterran_tonhalas_avokadosalata,Mediterrán tonhalas-avokádósaláta,1,onion,vöröshagyma,10,core,bls:G480100,325,1.0,0.6,325
+hv_mediterran_tonhalas_avokadosalata,Mediterrán tonhalas-avokádósaláta,1,olive_oil,olívaolaj,5,fat,bls:Q120000,325,1.0,0.6,325
+hv_mediterran_tonhalas_avokadosalata,Mediterrán tonhalas-avokádósaláta,1,lemon_juice,citromlé,5,seasoning,usda_fdc:167747,325,1.0,0.6,325
+hv_mediterran_tonhalas_avokadosalata,Mediterrán tonhalas-avokádósaláta,1,capers,kapribogyó,5,seasoning,bls:G012902,325,1.0,0.6,325
+hv_vegyes_hidegvacsora,"Vegyes hidegvacsora felvágottal, sajttal, tojással és friss zöldségekkel",1,felvagott,felvágott (olasz/bécsi típusú),50,core,bls:W254000,370,1.0,0.6,370
+hv_vegyes_hidegvacsora,"Vegyes hidegvacsora felvágottal, sajttal, tojással és friss zöldségekkel",1,gouda,gouda sajt,40,core,bls:M402600,370,1.0,0.6,370
+hv_vegyes_hidegvacsora,"Vegyes hidegvacsora felvágottal, sajttal, tojással és friss zöldségekkel",1,egg,tojás,50,core,bls:E111100,370,1.0,0.6,370
+hv_vegyes_hidegvacsora,"Vegyes hidegvacsora felvágottal, sajttal, tojással és friss zöldségekkel",1,cucumber,kígyóuborka / uborka,80,core,bls:G520100,370,1.0,0.6,370
+hv_vegyes_hidegvacsora,"Vegyes hidegvacsora felvágottal, sajttal, tojással és friss zöldségekkel",1,tomato,paradicsom,60,core,bls:G561100,370,1.0,0.6,370
+hv_vegyes_hidegvacsora,"Vegyes hidegvacsora felvágottal, sajttal, tojással és friss zöldségekkel",1,bell_pepper_red,piros kaliforniai paprika,50,core,bls:G543100,370,1.0,0.6,370
+hv_vegyes_hidegvacsora,"Vegyes hidegvacsora felvágottal, sajttal, tojással és friss zöldségekkel",1,radish,retek (hónapos),40,core,bls:G691100,370,1.0,0.6,370
 schweinsbraten,Sült sertéslapocka (Schweinsbraten),4,pork_shoulder,sertéslapocka,1250,core,usda_fdc:167843,1306,0.704,1.055,250
 schweinsbraten,Sült sertéslapocka (Schweinsbraten),4,onion,vöröshagyma,160,core,bls:G480100,1306,0.704,1.055,250
 schweinsbraten,Sült sertéslapocka (Schweinsbraten),4,garlic,fokhagyma,12,seasoning,bls:G490100,1306,0.704,1.055,250

@@ -259,7 +259,8 @@ function toCandidate(recipe: any, source: "own" | "reference"): DinnerCandidate 
     perServing: { kcal: perServing.kcal, protein: perServing.protein, netCarbs: perServing.netCarbs, fat: perServing.fat },
     haystack,
     lowCarbFriendly: tags.includes("low-carb-friendly"),
-    quick: source === "reference" && QUICK_DISHES.has(provenance?.referenceVariantId),
+    // The cold dinners (hu_hideg_vacsorak.py) are all tagged "cold".
+    quick: source === "reference" && (QUICK_DISHES.has(provenance?.referenceVariantId) || tags.includes("cold")),
     tags,
     ingredients: recipe.ingredients.map((ingredient: any) => ({
       name: ingredient.originalText ?? ingredient.food?.name ?? "",

@@ -238,7 +238,7 @@ DISHES += [
 
 # Phase-2 dishes live in one module per group (hu_*.py), each with the same
 # PARTS / DISHES / MISSING layout as above.
-PHASE2_MODULES = ('hu_street_food', 'hu_hetkoznapi', 'hu_reggeli_pekaru', 'hu_husetelek', 'hu_tesztak_edessegek', 'hu_levesek', 'hu_hidegtalak', )
+PHASE2_MODULES = ('hu_street_food', 'hu_hetkoznapi', 'hu_reggeli_pekaru', 'hu_husetelek', 'hu_tesztak_edessegek', 'hu_levesek', 'hu_hidegtalak', 'hu_hideg_vacsorak', )
 for _name in PHASE2_MODULES:
     _m = __import__(_name)
     _clash = PARTS.keys() & _m.PARTS.keys()
