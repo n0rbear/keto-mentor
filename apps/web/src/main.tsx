@@ -17,6 +17,7 @@ import { AdminPage } from "./AdminPage";
 import { DinnerSuggestions } from "./DinnerSuggestions";
 import { BetaRankBanner } from "./BetaRankBanner";
 import { captureCampaignRef } from "./campaign-ref";
+import { reportPageView } from "./page-view";
 import { PremiumOverview } from "./PremiumOverview";
 import { MealPlanner } from "./MealPlanner";
 import { ProgressStats } from "./ProgressStats";
@@ -90,7 +91,7 @@ type MealInterpretation = {
 type ProgressStage = "food_understanding" | "local_food_search" | "local_recipe_search" | "recipe_discovery" | "quantity_resolution" | "finalizing";
 
 export function App() {
-  useEffect(() => { captureCampaignRef(); }, []);
+  useEffect(() => { captureCampaignRef(); reportPageView(`megnyitás${window.location.hash ? ` ${window.location.hash.slice(0, 30)}` : ""}`); }, []);
   const [lang, setLang] = useState<Lang>("hu");
   // "Bejelentkezve maradok" off keeps the token only for this browser session.
   const [token, setToken] = useState(() => localStorage.getItem("km_token") ?? sessionStorage.getItem("km_token"));
@@ -179,6 +180,7 @@ export function App() {
   const [mobileView, setMobileViewState] = useState<MobileView>("today");
   function setMobileView(view: MobileView) {
     setMobileViewState(view);
+    reportPageView(view);
     window.scrollTo?.({ top: 0 });
   }
   // Public runtime settings: registration open? announcement for everyone?

@@ -42,3 +42,13 @@ describe("registerWithHub", () => {
     expect(body.events[0]).toEqual({ event: "signup", label: "Új regisztráció", default: true });
   });
 });
+
+describe("visitorDevice", () => {
+  it("classifies people and skips robots", async () => {
+    const { visitorDevice } = await import("./notify-hub.js");
+    expect(visitorDevice("Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Mobile/15E148")).toBe("telefon");
+    expect(visitorDevice("Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) Safari/605.1.15")).toBe("számítógép");
+    expect(visitorDevice("Googlebot/2.1")).toBeNull();
+    expect(visitorDevice(undefined)).toBeNull();
+  });
+});
