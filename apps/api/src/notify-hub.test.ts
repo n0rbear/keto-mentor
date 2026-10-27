@@ -26,3 +26,19 @@ describe("hubNotifier", () => {
     expect(log).toHaveBeenCalledWith("notify_hub event=feedback failed=TimeoutError");
   });
 });
+
+describe("registerWithHub", () => {
+  it("announces every event type and retries while the hub is down", async () => {
+    const { registerWithHub, KETO_EVENTS } = await import("./notify-hub.js");
+    const fetchImpl = vi.fn().mockRejectedValueOnce(new Error("asleep")).mockResolvedValue(new Response(null, { status: 200 }));
+    registerWithHub({ token: "t", url: "https://hub.example/api/notify" }, { fetchImpl: fetchImpl as any, log: () => undefined, retryMs: 1 });
+    await new Promise((resolve) => setTimeout(resolve, 30));
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+    const [url, init] = fetchImpl.mock.calls[1];
+    expect(url).toBe("https://hub.example/api/notify/register");
+    const body = JSON.parse(init.body);
+    expect(body.site).toBe("keto");
+    expect(body.events).toHaveLength(KETO_EVENTS.length);
+    expect(body.events[0]).toEqual({ event: "signup", label: "Új regisztráció", default: true });
+  });
+});
