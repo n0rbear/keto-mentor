@@ -14,7 +14,8 @@ export const KETO_EVENTS: ReadonlyArray<{ event: string; label: string; on: bool
   { event: "signup", label: "Új regisztráció", on: true },
   { event: "feedback", label: "Visszajelzés (hiba vagy ötlet)", on: true },
   { event: "account_deleted", label: "Fiók törölve", on: true },
-  { event: "login", label: "Bejelentkezés", on: false },
+  { event: "login", label: "Bejelentkezés", on: true },
+  { event: "pageview", label: "Oldalmegtekintés", on: true },
   { event: "public_try", label: "Kipróbálás regisztráció nélkül", on: false },
   { event: "email_verified", label: "E-mail megerősítve", on: false },
 ];
@@ -78,3 +79,12 @@ export function hubNotifier(
 }
 
 export const notifyOwner = hubNotifier();
+
+const BOT = /bot|crawl|spider|slurp|preview|facebookexternalhit|headless|lighthouse|curl|wget|python|monitor|uptime/i;
+
+/** "telefon" / "tablet" / "számítógép" from a User-Agent, or null for a robot or none. */
+export function visitorDevice(userAgent: string | undefined): string | null {
+  const ua = userAgent ?? "";
+  if (!ua || BOT.test(ua)) return null;
+  return /iPad|Tablet/i.test(ua) ? "tablet" : /Mobi|iPhone|Android/i.test(ua) ? "telefon" : "számítógép";
+}

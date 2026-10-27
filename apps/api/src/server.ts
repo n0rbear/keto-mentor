@@ -81,7 +81,7 @@ import { betaContestRouter } from "./beta/contest.js";
 import { recentProductsRouter } from "./meals/recent-products.js";
 import { campaignPublicRouter, countCampaign } from "./campaigns/campaign-links.js";
 import { REFERENCE_USERNAME } from "./reference-dishes/seed.js";
-import { notifyOwner, registerWithHub } from "./notify-hub.js";
+import { notifyOwner, registerWithHub, visitorDevice } from "./notify-hub.js";
 import { platesRouter } from "./meal-input/plates.js";
 import { VOICE_TRANSCRIBE_RATE_LIMIT, voiceTranscribeRateLimitKey } from "./meal-input/voice-rate-limit.js";
 
@@ -335,6 +335,15 @@ app.use(adminRouter({
 }));
 
 app.use(campaignPublicRouter({ prisma }));
+// Page views for the owner's push notifications (owner request 2026-10-27):
+// the web reports the shown view; nothing is stored, robots are skipped.
+const pageViewLimiter = rateLimit({ windowMs: 10 * 60 * 1000, limit: 60, standardHeaders: true, legacyHeaders: false, keyGenerator: (req) => req.header("cf-connecting-ip") ?? req.ip ?? "unknown" });
+app.post("/public/pageview", pageViewLimiter, (req, res) => {
+  const view = typeof req.body?.view === "string" ? req.body.view.trim().slice(0, 60) : "";
+  const device = visitorDevice(req.header("user-agent"));
+  if (view && device) notifyOwner({ event: "pageview", label: "Oldalmegtekintés", on: true, message: `${view} · ${device}`, tags: ["eyes"] });
+  res.status(204).end();
+});
 app.use(betaContestRouter({ prisma, requireAuth, admins: adminEmails, systemUsername: REFERENCE_USERNAME }));
 app.use(recentProductsRouter({ prisma, requireAuth }));
 app.use(accountDeletionRouter({
