@@ -5,7 +5,12 @@
 // event type the hub has not seen yet. Without NOTIFY_HUB_TOKEN nothing is
 // sent (local, tests, staging). Fire and forget: never throws, never delays.
 
-export type HubEvent = { event: string; label: string; on: boolean; title?: string; message: string; tags?: string[]; click?: string };
+// ip: the visitor's address, only so the hub can add the country to the
+// message; the hub does not keep it and nothing here stores it.
+export type HubEvent = { event: string; label: string; on: boolean; title?: string; message: string; tags?: string[]; click?: string; ip?: string };
+
+/** The visitor's IP behind Cloudflare/Render, for the hub's country lookup. */
+export const visitorIp = (cfConnectingIp: string | undefined, reqIp: string | undefined) => cfConnectingIp || reqIp || undefined;
 
 const DEFAULT_URL = "https://fuel.norbapp.com/api/notify";
 
@@ -63,7 +68,7 @@ export function hubNotifier(
   const log = deps.log ?? console.log;
   return (e: HubEvent): void => {
     if (!token) return;
-    const body = { site: "keto", siteLabel: "Keto Mentor", event: e.event, label: e.label, default: e.on, title: e.title, message: e.message.slice(0, 1000), tags: e.tags, click: e.click };
+    const body = { site: "keto", siteLabel: "Keto Mentor", event: e.event, label: e.label, default: e.on, title: e.title, message: e.message.slice(0, 1000), tags: e.tags, click: e.click, ip: e.ip };
     void fetchImpl(url, {
       method: "POST",
       headers: { "content-type": "application/json", authorization: `Bearer ${token}` },

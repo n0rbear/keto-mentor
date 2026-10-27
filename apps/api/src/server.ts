@@ -81,7 +81,7 @@ import { betaContestRouter } from "./beta/contest.js";
 import { recentProductsRouter } from "./meals/recent-products.js";
 import { campaignPublicRouter, countCampaign } from "./campaigns/campaign-links.js";
 import { REFERENCE_USERNAME } from "./reference-dishes/seed.js";
-import { notifyOwner, registerWithHub, visitorDevice } from "./notify-hub.js";
+import { notifyOwner, registerWithHub, visitorDevice, visitorIp } from "./notify-hub.js";
 import { platesRouter } from "./meal-input/plates.js";
 import { VOICE_TRANSCRIBE_RATE_LIMIT, voiceTranscribeRateLimitKey } from "./meal-input/voice-rate-limit.js";
 
@@ -275,7 +275,7 @@ app.post("/auth/register", authLimiter, async (req, res, next) => {
     void sendVerification(verificationDeps, user.id).catch(() => undefined);
     // Push notification to the owner through the NorbApp hub (switchable there).
     const ref = typeof req.body?.ref === "string" ? req.body.ref.slice(0, 40) : "";
-    notifyOwner({ event: "signup", label: "Új regisztráció", on: true, message: `@${user.username} · ${user.locale}${ref ? ` · kampány: ${ref}` : ""}`, tags: ["tada"], click: webAppUrl });
+    notifyOwner({ event: "signup", label: "Új regisztráció", on: true, message: `@${user.username} · ${user.locale}${ref ? ` · kampány: ${ref}` : ""}`, tags: ["tada"], click: webAppUrl, ip: visitorIp(req.header("cf-connecting-ip"), req.ip) });
   } catch (error: any) {
     if (error?.code === "P2002") return res.status(409).json({ error: String(error?.meta?.target ?? "").includes("email") ? "email_taken" : "username_taken" });
     next(error);
@@ -296,7 +296,7 @@ app.post("/auth/login", authLimiter, async (req, res, next) => {
     const session = await createSession(prisma, user);
     setRefreshCookie(res, session.refreshToken, input.remember !== false);
     res.json({ user, accessToken: session.accessToken, ...(input.remember !== false ? { refreshToken: session.refreshToken } : {}) });
-    notifyOwner({ event: "login", label: "Bejelentkezés", on: false, message: `@${user.username}` });
+    notifyOwner({ event: "login", label: "Bejelentkezés", on: true, message: `@${user.username}`, ip: visitorIp(req.header("cf-connecting-ip"), req.ip) });
   } catch (error) {
     next(error);
   }
@@ -341,7 +341,7 @@ const pageViewLimiter = rateLimit({ windowMs: 10 * 60 * 1000, limit: 60, standar
 app.post("/public/pageview", pageViewLimiter, (req, res) => {
   const view = typeof req.body?.view === "string" ? req.body.view.trim().slice(0, 60) : "";
   const device = visitorDevice(req.header("user-agent"));
-  if (view && device) notifyOwner({ event: "pageview", label: "Oldalmegtekintés", on: true, message: `${view} · ${device}`, tags: ["eyes"] });
+  if (view && device) notifyOwner({ event: "pageview", label: "Oldalmegtekintés", on: true, message: `${view} · ${device}`, tags: ["eyes"], ip: visitorIp(req.header("cf-connecting-ip"), req.ip) });
   res.status(204).end();
 });
 app.use(betaContestRouter({ prisma, requireAuth, admins: adminEmails, systemUsername: REFERENCE_USERNAME }));
@@ -563,7 +563,7 @@ const publicTrySchema = z.object({ text: z.string().trim().min(2).max(200), lang
 app.post("/public/try", publicTryLimiter, async (req, res, next) => {
   try {
     const input = publicTrySchema.parse(req.body);
-    notifyOwner({ event: "public_try", label: "Kipróbálás regisztráció nélkül", on: false, message: `„${input.text}” · ${input.lang}` });
+    notifyOwner({ event: "public_try", label: "Kipróbálás regisztráció nélkül", on: false, message: `„${input.text}” · ${input.lang}`, ip: visitorIp(req.header("cf-connecting-ip"), req.ip) });
     // Like the signed-in flow: the interpreter first; a reference dish only
     // when it could not resolve the phrase ("2 pár virsli" is 4 frankfurters,
     // not 4 portions of "virsli mustárral").
