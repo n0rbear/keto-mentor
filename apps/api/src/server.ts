@@ -81,6 +81,7 @@ import { betaContestRouter } from "./beta/contest.js";
 import { recentProductsRouter } from "./meals/recent-products.js";
 import { campaignPublicRouter, countCampaign } from "./campaigns/campaign-links.js";
 import { REFERENCE_USERNAME } from "./reference-dishes/seed.js";
+import { notifyOwner } from "./notify-hub.js";
 import { platesRouter } from "./meal-input/plates.js";
 import { VOICE_TRANSCRIBE_RATE_LIMIT, voiceTranscribeRateLimitKey } from "./meal-input/voice-rate-limit.js";
 
@@ -272,6 +273,9 @@ app.post("/auth/register", authLimiter, async (req, res, next) => {
     void countCampaign(prisma, "signup", req.body?.ref).catch(() => undefined);
     // Confirmation link for the new address, after answering (best effort).
     void sendVerification(verificationDeps, user.id).catch(() => undefined);
+    // Push notification to the owner through the NorbApp hub (switchable there).
+    const ref = typeof req.body?.ref === "string" ? req.body.ref.slice(0, 40) : "";
+    notifyOwner({ event: "signup", label: "Új regisztráció", on: true, message: `@${user.username} · ${user.locale}${ref ? ` · kampány: ${ref}` : ""}`, tags: ["tada"], click: webAppUrl });
   } catch (error: any) {
     if (error?.code === "P2002") return res.status(409).json({ error: String(error?.meta?.target ?? "").includes("email") ? "email_taken" : "username_taken" });
     next(error);
@@ -292,6 +296,7 @@ app.post("/auth/login", authLimiter, async (req, res, next) => {
     const session = await createSession(prisma, user);
     setRefreshCookie(res, session.refreshToken, input.remember !== false);
     res.json({ user, accessToken: session.accessToken, ...(input.remember !== false ? { refreshToken: session.refreshToken } : {}) });
+    notifyOwner({ event: "login", label: "Bejelentkezés", on: false, message: `@${user.username}` });
   } catch (error) {
     next(error);
   }
@@ -303,7 +308,13 @@ app.post("/auth/login", authLimiter, async (req, res, next) => {
 // Password reset by e-mail and attaching an e-mail to an existing account.
 const mailer = resendMailer(env.RESEND_API_KEY, env.MAIL_FROM);
 const webAppUrl = env.WEB_APP_URL ?? preferredWebOrigin(env.CORS_ORIGIN);
-const verificationDeps = { prisma, mailer, webAppUrl };
+const verificationDeps = {
+  prisma, mailer, webAppUrl,
+  log: (line: string) => {
+    console.log(line);
+    if (line === "email_verification outcome=confirmed") notifyOwner({ event: "email_verified", label: "E-mail megerősítve", on: false, message: "Egy felhasználó megerősítette az e-mail címét." });
+  }
+};
 const adminEmails = adminEmailList(env.ADMIN_EMAILS);
 // The admin account logs nothing (owner decision 2026-10-15).
 const adminOnly = forbidAdminAccountWrites({ prisma, admins: adminEmails });
@@ -326,7 +337,13 @@ app.use(adminRouter({
 app.use(campaignPublicRouter({ prisma }));
 app.use(betaContestRouter({ prisma, requireAuth, admins: adminEmails, systemUsername: REFERENCE_USERNAME }));
 app.use(recentProductsRouter({ prisma, requireAuth }));
-app.use(accountDeletionRouter({ prisma, requireAuth, verifyPassword, systemUsername: REFERENCE_USERNAME }));
+app.use(accountDeletionRouter({
+  prisma, requireAuth, verifyPassword, systemUsername: REFERENCE_USERNAME,
+  log: (line) => {
+    console.log(line);
+    if (line.startsWith("account_deleted")) notifyOwner({ event: "account_deleted", label: "Fiók törölve", on: true, message: "Egy felhasználó törölte a fiókját.", tags: ["wave"] });
+  }
+}));
 
 app.post("/auth/logout", requireAuth, async (req, res, next) => {
   try {
@@ -487,10 +504,18 @@ app.post(
 // error response rather than Express's default HTML error page.
 app.use(platesRouter(prisma, requireAuth));
 // In-app bug reports: one searchable `user_feedback` log line each — see feedback/feedback.ts.
-app.use(feedbackRouter(requireAuth, console.log, (record) => prisma.feedback.create({ data: {
-  id: record.id, userId: record.userId, kind: record.kind, message: record.message, view: record.view, lang: record.lang, build: record.build,
-  lastInput: record.lastInput, operationId: record.operationId, clientTime: record.clientTime
-} })));
+app.use(feedbackRouter(requireAuth, console.log, async (record) => {
+  notifyOwner({
+    event: "feedback", label: "Visszajelzés", on: true,
+    title: record.kind === "idea" ? "Új ötlet" : "Új hibajelentés",
+    message: [record.message, record.view ? `nézet: ${record.view}` : null, `#${record.id}`].filter(Boolean).join("\n"),
+    tags: [record.kind === "idea" ? "bulb" : "bug"], click: webAppUrl
+  });
+  return prisma.feedback.create({ data: {
+    id: record.id, userId: record.userId, kind: record.kind, message: record.message, view: record.view, lang: record.lang, build: record.build,
+    lastInput: record.lastInput, operationId: record.operationId, clientTime: record.clientTime
+  } });
+}));
 app.use("/meal-input/transcribe", (error: any, _req: express.Request, res: express.Response, next: express.NextFunction) => {
   if (error?.type === "entity.too.large") return res.status(413).json({ error: "audio_too_large" });
   next(error);
@@ -529,6 +554,7 @@ const publicTrySchema = z.object({ text: z.string().trim().min(2).max(200), lang
 app.post("/public/try", publicTryLimiter, async (req, res, next) => {
   try {
     const input = publicTrySchema.parse(req.body);
+    notifyOwner({ event: "public_try", label: "Kipróbálás regisztráció nélkül", on: false, message: `„${input.text}” · ${input.lang}` });
     // Like the signed-in flow: the interpreter first; a reference dish only
     // when it could not resolve the phrase ("2 pár virsli" is 4 frankfurters,
     // not 4 portions of "virsli mustárral").
