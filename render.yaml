@@ -17,6 +17,9 @@ services:
         generateValue: true
       - key: CORS_ORIGIN
         value: https://ketomentor.norbapp.com,https://keto-mentor-web.onrender.com
+      # Push notifications to the owner via the NorbApp hub (Fuel /api/notify).
+      - key: NOTIFY_HUB_TOKEN
+        sync: false
   - type: web
     name: keto-mentor-web
     runtime: static
