@@ -81,7 +81,7 @@ import { betaContestRouter } from "./beta/contest.js";
 import { recentProductsRouter } from "./meals/recent-products.js";
 import { campaignPublicRouter, countCampaign } from "./campaigns/campaign-links.js";
 import { REFERENCE_USERNAME } from "./reference-dishes/seed.js";
-import { notifyOwner } from "./notify-hub.js";
+import { notifyOwner, registerWithHub } from "./notify-hub.js";
 import { platesRouter } from "./meal-input/plates.js";
 import { VOICE_TRANSCRIBE_RATE_LIMIT, voiceTranscribeRateLimitKey } from "./meal-input/voice-rate-limit.js";
 
@@ -866,6 +866,8 @@ loadSettings(prisma).catch((error) => logger.warn({ err: error?.message }, "admi
 startUsageFlusher(prisma);
 startPremiumUsersRefresher(prisma);
 if (env.NODE_ENV === "production") startKeepAwake(keepAwakeUrls(env.KEEP_AWAKE_URLS));
+// Owner notifications: every event type is switchable before it first happens.
+registerWithHub();
 // Missing hu/de/en food names, filled once per start in the background (catalog/backfill-food-names.ts).
 if (env.NODE_ENV === "production") setTimeout(() => { backfillFoodNames({ prisma, provider: candidateLocalizationProvider, pauseMs: 300, log: (line) => logger.info(line) }).catch((error) => logger.warn(`food_names_backfill error=${error?.message ?? error}`)); }, 60_000).unref();
 if (env.NODE_ENV === "production") startReminders({ prisma, mailer, webAppUrl, admins: adminEmails, log: (line) => logger.info(line) });
