@@ -6,4 +6,4 @@ export const LEGAL_CONTROLLER: { name: string | null; email: string | null; coun
   country: { hu: "Németország", de: "Deutschland", en: "Germany" }
 };
 
-export const LEGAL_LAST_UPDATED = "2026-10-16";
+export const LEGAL_LAST_UPDATED = "2026-10-28";
