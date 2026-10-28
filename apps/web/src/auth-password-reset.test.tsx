@@ -19,14 +19,18 @@ describe("password reset UI", () => {
   it("sends the e-mail on registration and links the privacy notice", async () => {
     const calls = stub(() => new Response(JSON.stringify({ user: { id: "u", username: "anna", locale: "hu" }, accessToken: "t" }), { status: 201 }));
     renderForm("register");
-    expect(screen.getByRole("link", { name: "Adatvédelmi tájékoztatót" }).getAttribute("href")).toBe("#adatvedelem");
+    expect(screen.getByRole("link", { name: "Adatvédelmi tájékoztató" }).getAttribute("href")).toBe("#adatvedelem");
     fireEvent.change(screen.getByLabelText("Felhasználónév"), { target: { value: "anna" } });
     fireEvent.change(screen.getByLabelText("E-mail cím"), { target: { value: "anna@example.com" } });
     fireEvent.change(screen.getByLabelText("Jelszó"), { target: { value: "supersecret1" } });
+    // Without the health-data consent the form is not sent
+    fireEvent.click(screen.getByTestId("auth-submit"));
+    expect(calls).toHaveLength(0);
+    fireEvent.click(screen.getByTestId("health-consent"));
     fireEvent.click(screen.getByTestId("auth-submit"));
     await waitFor(() => expect(calls).toHaveLength(1));
     expect(calls[0].url).toMatch(/\/auth\/register$/);
-    expect(calls[0].body).toMatchObject({ username: "anna", email: "anna@example.com", locale: "hu" });
+    expect(calls[0].body).toMatchObject({ username: "anna", email: "anna@example.com", locale: "hu", healthConsent: true });
   });
 
   it("asks for the e-mail and shows the same neutral answer", async () => {

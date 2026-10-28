@@ -64,6 +64,7 @@ describe("AuthForm submitting state and double-submit prevention", () => {
 
     fireEvent.change(username, { target: { value: "alice" } });
     fireEvent.change(password, { target: { value: "supersecret" } });
+    if (screen.queryByTestId("health-consent")) fireEvent.click(screen.getByTestId("health-consent"));
     fireEvent.click(submit);
 
     await waitFor(() => expect(submit.disabled).toBe(true));
@@ -90,6 +91,7 @@ describe("AuthForm submitting state and double-submit prevention", () => {
 
     fireEvent.change(username, { target: { value: "alice" } });
     fireEvent.change(password, { target: { value: "supersecret" } });
+    if (screen.queryByTestId("health-consent")) fireEvent.click(screen.getByTestId("health-consent"));
 
     fireEvent.click(submit);
     fireEvent.click(submit); // immediate second click
@@ -110,6 +112,7 @@ describe("AuthForm invalid credentials UX", () => {
 
     fireEvent.change(username, { target: { value: "alice" } });
     fireEvent.change(password, { target: { value: "supersecret" } });
+    if (screen.queryByTestId("health-consent")) fireEvent.click(screen.getByTestId("health-consent"));
     fireEvent.click(submit);
 
     const alert = await screen.findByRole("alert");
@@ -128,6 +131,7 @@ describe("AuthForm invalid credentials UX", () => {
 
     fireEvent.change(username, { target: { value: "alice" } });
     fireEvent.change(password, { target: { value: "supersecret" } });
+    if (screen.queryByTestId("health-consent")) fireEvent.click(screen.getByTestId("health-consent"));
     fireEvent.click(submit);
 
     const alert = await screen.findByRole("alert");
