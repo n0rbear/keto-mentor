@@ -3,7 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { api, type ApiState } from "./api";
 import { authErrorText } from "./auth-error";
 import type { Lang } from "./i18n";
-import { LEGAL_CONTROLLER, LEGAL_LAST_UPDATED } from "./legal-info";
+import { LEGAL_ADDRESS, LEGAL_CONTROLLER, LEGAL_LAST_UPDATED } from "./legal-info";
 
 // Tester release (2026-10-15): the source attribution the data licences
 // require (BLS CC BY 4.0 above all) and the privacy notice, reachable from
@@ -64,9 +64,9 @@ const sources: Record<Lang, { intro: string; sections: Section[] }> = {
 function controllerLines(lang: Lang): string[] {
   const missing = ui[lang].missing;
   const { name, email, country } = LEGAL_CONTROLLER;
-  const label = lang === "hu" ? ["Név", "E-mail", "Ország"] : lang === "de" ? ["Name", "E-Mail", "Land"] : ["Name", "E-mail", "Country"];
+  const label = lang === "hu" ? ["Név", "E-mail", "Ország", "Cím"] : lang === "de" ? ["Name", "E-Mail", "Land", "Anschrift"] : ["Name", "E-mail", "Country", "Address"];
   const role = lang === "hu" ? " (magánszemély, NorbApp néven)" : lang === "de" ? " (Privatperson, tätig unter dem Namen NorbApp)" : " (private individual, operating under the name NorbApp)";
-  return [`${label[0]}: ${name ? name + role : missing}`, `${label[1]}: ${email ?? missing}`, `${label[2]}: ${country?.[lang] ?? missing}`];
+  return [`${label[0]}: ${name ? name + role : missing}`, `${label[3]}: ${LEGAL_ADDRESS}`, `${label[2]}: ${country?.[lang] ?? missing}`, `${label[1]}: ${email ?? missing}`];
 }
 
 function privacy(lang: Lang): { intro: string; sections: Section[] } {
