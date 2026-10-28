@@ -34,6 +34,7 @@ import { effectiveGoals } from "./goals";
 import { dueReminder, ReminderBand, RemindersCard, type ReminderSettings } from "./Reminders";
 import { MealTypePicker, mealTypeFields, mealTypeText, rememberCustomMealType, suggestedChoice, type MealChoice } from "./MealTypePicker";
 import { LegalFooter, LegalPageView, legalPageFromHash, type LegalPage } from "./LegalPages";
+import { HealthConsentGate } from "./HealthConsent";
 import { createPortal } from "react-dom";
 import { FoodUnderstandingPreview, type ExternalCandidate, type RecipeDiscoveryPreviewValue, type RecipeDiscoveryCandidateValue, type AiEstimateValue, type AiEstimateOverridePayload, type CandidateFood, type RecipeIngredientOverride, type LocalRecipeOption, LocalRecipePicker, statedServings, statedPlates } from "./FoodUnderstandingPreview";
 import { pickDisplayName } from "./food-display-name";
@@ -51,7 +52,7 @@ import { FeedbackReport } from "./FeedbackReport";
 import { MyPlates, PlateSetup, plateSetupPending } from "./PlateSetup";
 import type { QuantityClarification as Clarification } from "@keto-mentor/shared";
 
-type User = { id: string; username: string; email?: string | null; emailVerified?: boolean; isAdmin?: boolean; locale: Lang; profile?: any; _count?: { plates?: number } };
+type User = { id: string; username: string; email?: string | null; emailVerified?: boolean; healthConsent?: boolean; isAdmin?: boolean; locale: Lang; profile?: any; _count?: { plates?: number } };
 export type Totals = { kcal: number; fat: number; protein: number; carbs: number; fiber: number; netCarbs: number };
 type Meal = { id: string; title: string; mealType?: string | null; mealTypeLabel?: string | null; eatenAt: string; totals: Totals };
 export type FoodServing = { id: string; key: string; unit: string; labels?: Partial<Record<Lang, string>>; grams: number; isEstimated: boolean; confidence: number; provenance?: unknown };
@@ -865,6 +866,9 @@ export function App() {
         <div className="card announcement-band" role="status"><Megaphone size={18} aria-hidden="true"/><span>{announcementText}</span></div>
       )}
       {verifyNotice && <div className={`card announcement-band ${verifyNotice.ok ? "" : "is-error"}`} role="status"><Mail size={18} aria-hidden="true"/><span>{verifyNotice.text}</span></div>}
+      {user && !adminAccount && user.healthConsent === false && !legalPage && (
+        <HealthConsentGate lang={lang} state={state} onGiven={() => setUser((current) => current ? { ...current, healthConsent: true } : current)} onLogout={() => void logout()}/>
+      )}
       {user && !adminAccount && profile?.onboardingDone && user.email === null && (
         <EmailPrompt lang={lang} state={state} onSaved={(email) => setUser((current) => current ? { ...current, email, emailVerified: false } : current)}/>
       )}

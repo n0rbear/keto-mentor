@@ -22,7 +22,9 @@ export const registerSchema = z.object({
   username: z.string().trim().min(3).max(32).regex(/^[a-zA-Z0-9_.-]+$/),
   email: emailSchema,
   password: z.string().min(10).max(200),
-  locale: z.enum(locales).default("hu")
+  locale: z.enum(locales).default("hu"),
+  // Explicit consent to health data (GDPR Art. 9); the route refuses false or missing.
+  healthConsent: z.boolean().optional()
 });
 
 export const loginSchema = z.object({
