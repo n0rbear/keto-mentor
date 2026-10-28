@@ -32,6 +32,7 @@ describe("forms never fall back to a native GET that leaks fields into the URL",
     fireEvent.change(screen.getByLabelText("Felhasználónév"), { target: { value: "newuser" } });
     fireEvent.change(screen.getByLabelText("E-mail cím"), { target: { value: "newuser@example.com" } });
     fireEvent.change(screen.getByLabelText("Jelszó"), { target: { value: "supersecret1" } });
+    fireEvent.click(screen.getByTestId("health-consent"));
     fireEvent.click(screen.getByTestId("auth-submit"));
 
     await waitFor(() => expect(screen.getByText("Kezdő beállítások")).toBeTruthy());

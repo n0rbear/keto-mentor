@@ -67,6 +67,7 @@ describe("plate question after registration (Milyen tányérjaid vannak?)", () =
     fireEvent.change(screen.getByLabelText("Felhasználónév"), { target: { value: "newuser" } });
     fireEvent.change(screen.getByLabelText("E-mail cím"), { target: { value: "newuser@example.com" } });
     fireEvent.change(screen.getByLabelText("Jelszó"), { target: { value: "supersecret1" } });
+    fireEvent.click(screen.getByTestId("health-consent"));
     fireEvent.click(screen.getByTestId("auth-submit"));
     const form = (await screen.findByText("Kezdő beállítások")).closest("form")!;
     profile = { ...onboarded, plateSetup: null };

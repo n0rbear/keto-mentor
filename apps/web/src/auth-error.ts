@@ -4,6 +4,7 @@ import type { Lang } from "./i18n";
 const messages: Record<Lang, Record<string, string>> = {
 
   hu: {
+    health_consent_required: "A regisztrációhoz jelöld be az egészségügyi adatokra vonatkozó hozzájárulást.",
     invalid_credentials: "Hibás felhasználónév, e-mail cím vagy jelszó.",
     username_taken: "Ez a felhasználónév már foglalt.",
     email_taken: "Ezzel az e-mail címmel már van fiók.",
@@ -15,6 +16,7 @@ const messages: Record<Lang, Record<string, string>> = {
     unknown: "A belépés nem sikerült. Próbáld újra."
   },
   de: {
+    health_consent_required: "Für die Registrierung brauchen wir deine Einwilligung zu den Gesundheitsdaten.",
     invalid_credentials: "Benutzername, E-Mail oder Passwort ist falsch.",
     username_taken: "Dieser Benutzername ist bereits vergeben.",
     email_taken: "Mit dieser E-Mail-Adresse gibt es bereits ein Konto.",
@@ -26,6 +28,7 @@ const messages: Record<Lang, Record<string, string>> = {
     unknown: "Die Anmeldung ist fehlgeschlagen. Bitte versuche es erneut."
   },
   en: {
+    health_consent_required: "To register, please tick the consent to health data.",
     invalid_credentials: "Incorrect username, e-mail or password.",
     username_taken: "This username is already taken.",
     email_taken: "An account with this e-mail address already exists.",

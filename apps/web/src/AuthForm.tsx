@@ -3,6 +3,7 @@ import { currentCampaignRef } from "./campaign-ref";
 import { api, ApiError, type ApiState, storeRefreshToken } from "./api";
 import { authErrorText } from "./auth-error";
 import type { Lang } from "./i18n";
+import { HealthConsentCheckbox } from "./HealthConsent";
 
 // "forgot" asks for the e-mail address; "reset" is opened by the link in the
 // reset e-mail (#reset=<token>) and sets a new password (tester release,
@@ -16,9 +17,9 @@ const loadingText: Record<Lang, string> = {
 };
 
 const copy = {
-  hu: { register: "Regisztráció", login: "Bejelentkezés", username: "Felhasználónév", loginName: "Felhasználónév vagy e-mail", email: "E-mail cím", password: "Jelszó", newPassword: "Új jelszó (legalább 10 karakter)", forgot: "Elfelejtett jelszó?", forgotTitle: "Új jelszó kérése", forgotIntro: "Add meg a fiókodhoz tartozó e-mail címet, és küldünk egy linket az új jelszóhoz.", send: "Link küldése", sent: "Ha ez az e-mail cím regisztrálva van, néhány percen belül megérkezik a link (nézd meg a spam mappát is). A link 1 óráig érvényes.", resetTitle: "Új jelszó beállítása", save: "Jelszó mentése", changed: "Az új jelszó elmentve. Most jelentkezz be vele.", back: "Vissza a bejelentkezéshez", privacy: "A regisztrációval elfogadod az", privacyLink: "Adatvédelmi tájékoztatót", emailHint: "Ezzel tudod visszaállítani a jelszavad, ha elfelejted." },
-  de: { register: "Registrieren", login: "Anmelden", username: "Benutzername", loginName: "Benutzername oder E-Mail", email: "E-Mail-Adresse", password: "Passwort", newPassword: "Neues Passwort (mindestens 10 Zeichen)", forgot: "Passwort vergessen?", forgotTitle: "Neues Passwort anfordern", forgotIntro: "Gib die E-Mail-Adresse deines Kontos ein, wir schicken dir einen Link für ein neues Passwort.", send: "Link senden", sent: "Wenn diese E-Mail-Adresse registriert ist, kommt der Link in wenigen Minuten (sieh auch im Spam-Ordner nach). Er ist 1 Stunde gültig.", resetTitle: "Neues Passwort festlegen", save: "Passwort speichern", changed: "Das neue Passwort ist gespeichert. Melde dich jetzt damit an.", back: "Zurück zur Anmeldung", privacy: "Mit der Registrierung akzeptierst du die", privacyLink: "Datenschutzerklärung", emailHint: "Damit kannst du dein Passwort zurücksetzen, wenn du es vergisst." },
-  en: { register: "Register", login: "Login", username: "Username", loginName: "Username or e-mail", email: "E-mail address", password: "Password", newPassword: "New password (at least 10 characters)", forgot: "Forgot your password?", forgotTitle: "Request a new password", forgotIntro: "Enter your account's e-mail address and we will send you a link to set a new password.", send: "Send link", sent: "If this e-mail address is registered, the link arrives within a few minutes (check your spam folder too). It is valid for 1 hour.", resetTitle: "Set a new password", save: "Save password", changed: "Your new password is saved. Sign in with it now.", back: "Back to login", privacy: "By registering you accept the", privacyLink: "privacy notice", emailHint: "You need it to reset your password if you forget it." }
+  hu: { register: "Regisztráció", login: "Bejelentkezés", username: "Felhasználónév", loginName: "Felhasználónév vagy e-mail", email: "E-mail cím", password: "Jelszó", newPassword: "Új jelszó (legalább 10 karakter)", forgot: "Elfelejtett jelszó?", forgotTitle: "Új jelszó kérése", forgotIntro: "Add meg a fiókodhoz tartozó e-mail címet, és küldünk egy linket az új jelszóhoz.", send: "Link küldése", sent: "Ha ez az e-mail cím regisztrálva van, néhány percen belül megérkezik a link (nézd meg a spam mappát is). A link 1 óráig érvényes.", resetTitle: "Új jelszó beállítása", save: "Jelszó mentése", changed: "Az új jelszó elmentve. Most jelentkezz be vele.", back: "Vissza a bejelentkezéshez", privacy: "Részletek:", privacyLink: "Adatvédelmi tájékoztató", emailHint: "Ezzel tudod visszaállítani a jelszavad, ha elfelejted." },
+  de: { register: "Registrieren", login: "Anmelden", username: "Benutzername", loginName: "Benutzername oder E-Mail", email: "E-Mail-Adresse", password: "Passwort", newPassword: "Neues Passwort (mindestens 10 Zeichen)", forgot: "Passwort vergessen?", forgotTitle: "Neues Passwort anfordern", forgotIntro: "Gib die E-Mail-Adresse deines Kontos ein, wir schicken dir einen Link für ein neues Passwort.", send: "Link senden", sent: "Wenn diese E-Mail-Adresse registriert ist, kommt der Link in wenigen Minuten (sieh auch im Spam-Ordner nach). Er ist 1 Stunde gültig.", resetTitle: "Neues Passwort festlegen", save: "Passwort speichern", changed: "Das neue Passwort ist gespeichert. Melde dich jetzt damit an.", back: "Zurück zur Anmeldung", privacy: "Details:", privacyLink: "Datenschutzerklärung", emailHint: "Damit kannst du dein Passwort zurücksetzen, wenn du es vergisst." },
+  en: { register: "Register", login: "Login", username: "Username", loginName: "Username or e-mail", email: "E-mail address", password: "Password", newPassword: "New password (at least 10 characters)", forgot: "Forgot your password?", forgotTitle: "Request a new password", forgotIntro: "Enter your account's e-mail address and we will send you a link to set a new password.", send: "Send link", sent: "If this e-mail address is registered, the link arrives within a few minutes (check your spam folder too). It is valid for 1 hour.", resetTitle: "Set a new password", save: "Save password", changed: "Your new password is saved. Sign in with it now.", back: "Back to login", privacy: "Details:", privacyLink: "privacy notice", emailHint: "You need it to reset your password if you forget it." }
 } as const;
 
 // The admin can pause registration (2026-10-15); existing users still sign in.
@@ -70,7 +71,7 @@ export function AuthForm({ mode: initialMode, lang, state, onSuccess, registrati
         setNotice(t.changed);
       } else {
         const body = mode === "register"
-          ? { username: String(form.get("username")), email: String(form.get("email")), password: String(form.get("password")), locale: lang, ref: currentCampaignRef() }
+          ? { username: String(form.get("username")), email: String(form.get("email")), password: String(form.get("password")), locale: lang, ref: currentCampaignRef(), healthConsent: form.get("healthConsent") === "on" }
           : { username: String(form.get("username")), password: String(form.get("password")), locale: lang, remember: form.get("remember") === "on" };
         // Where the web keeps the access token: across restarts, or only for this browser session.
         try { localStorage.setItem("km_remember", mode === "login" && form.get("remember") !== "on" ? "0" : "1"); } catch { /* storage unavailable */ }
@@ -145,6 +146,7 @@ export function AuthForm({ mode: initialMode, lang, state, onSuccess, registrati
       {mode === "login" && (
         <label className="legal-confirm remember-me"><input type="checkbox" name="remember" defaultChecked/>{rememberText[lang]}</label>
       )}
+      {mode === "register" && <HealthConsentCheckbox lang={lang}/>}
       {notice && <div className="status success" role="status">{notice}</div>}
       {error && <div className="status error" role="alert">{error}</div>}
       {!(mode === "forgot" && notice) && (

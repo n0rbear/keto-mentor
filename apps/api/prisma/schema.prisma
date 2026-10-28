@@ -63,6 +63,8 @@ model User {
   locale       String        @default("hu")
   email        String?       @unique
   emailVerifiedAt DateTime?
+  /// Explicit consent to health data (GDPR Art. 9), owner 2026-10-28.
+  healthConsentAt DateTime?
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   profile      Profile?

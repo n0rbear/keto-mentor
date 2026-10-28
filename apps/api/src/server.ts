@@ -253,6 +253,7 @@ app.post("/auth/register", authLimiter, async (req, res, next) => {
     // The admin can close registration (admin/runtime-settings.ts).
     if (!getSettings().registrationOpen) return res.status(403).json({ error: "registration_closed" });
     const input = registerSchema.parse(req.body);
+    if (input.healthConsent !== true) return res.status(400).json({ error: "health_consent_required" });
     const passwordHash = await hashPassword(input.password);
     const user = await prisma.user.create({
       data: {
@@ -260,6 +261,7 @@ app.post("/auth/register", authLimiter, async (req, res, next) => {
         email: input.email,
         passwordHash,
         locale: input.locale,
+        healthConsentAt: new Date(),
         profile: { create: { onboardingDone: false } },
         entitlements: { create: { plan: "free", features: ["meal_tracking", "basic_goals"] } }
       },
@@ -275,7 +277,7 @@ app.post("/auth/register", authLimiter, async (req, res, next) => {
     void sendVerification(verificationDeps, user.id).catch(() => undefined);
     // Push notification to the owner through the NorbApp hub (switchable there).
     const ref = typeof req.body?.ref === "string" ? req.body.ref.slice(0, 40) : "";
-    notifyOwner({ event: "signup", label: "Új regisztráció", on: true, message: `@${user.username} · ${user.locale}${ref ? ` · kampány: ${ref}` : ""}`, tags: ["tada"], click: webAppUrl, ip: visitorIp(req.header("cf-connecting-ip"), req.ip) });
+    notifyOwner({ event: "signup", label: "Új regisztráció", on: true, message: `Nyelv: ${user.locale}${ref ? ` · kampány: ${ref}` : ""}`, tags: ["tada"], click: webAppUrl, ip: visitorIp(req.header("cf-connecting-ip"), req.ip) });
   } catch (error: any) {
     if (error?.code === "P2002") return res.status(409).json({ error: String(error?.meta?.target ?? "").includes("email") ? "email_taken" : "username_taken" });
     next(error);
@@ -296,7 +298,7 @@ app.post("/auth/login", authLimiter, async (req, res, next) => {
     const session = await createSession(prisma, user);
     setRefreshCookie(res, session.refreshToken, input.remember !== false);
     res.json({ user, accessToken: session.accessToken, ...(input.remember !== false ? { refreshToken: session.refreshToken } : {}) });
-    notifyOwner({ event: "login", label: "Bejelentkezés", on: true, message: `@${user.username}`, ip: visitorIp(req.header("cf-connecting-ip"), req.ip) });
+    notifyOwner({ event: "login", label: "Bejelentkezés", on: true, message: "Egy felhasználó belépett", ip: visitorIp(req.header("cf-connecting-ip"), req.ip) });
   } catch (error) {
     next(error);
   }
@@ -399,9 +401,20 @@ app.get("/me", requireAuth, async (req, res) => {
     where: { id: req.user!.id },
     // _count.plates: the web shows the one-time plate question only while the
     // user has no saved plate and never answered it (profile.plateSetup).
-    select: { id: true, username: true, email: true, emailVerifiedAt: true, locale: true, profile: true, entitlements: true, _count: { select: { plates: true } } }
+    select: { id: true, username: true, email: true, emailVerifiedAt: true, healthConsentAt: true, locale: true, profile: true, entitlements: true, _count: { select: { plates: true } } }
   });
-  res.json({ user: user && { ...user, emailVerified: !!user.emailVerifiedAt, isAdmin: isAdminUser(user, adminEmails) } });
+  res.json({ user: user && { ...user, emailVerified: !!user.emailVerifiedAt, healthConsent: !!user.healthConsentAt, isAdmin: isAdminUser(user, adminEmails) } });
+});
+
+// Explicit consent to health data for accounts created before the sign-up box (2026-10-28).
+app.post("/me/health-consent", requireAuth, async (req, res, next) => {
+  try {
+    if (req.body?.consent !== true) return res.status(400).json({ error: "health_consent_required" });
+    const user = await prisma.user.update({ where: { id: req.user!.id }, data: { healthConsentAt: new Date() }, select: { healthConsentAt: true } });
+    res.json({ healthConsent: true, at: user.healthConsentAt });
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.get("/foods", requireAuth, async (req, res, next) => {
@@ -517,7 +530,7 @@ app.use(feedbackRouter(requireAuth, console.log, async (record) => {
   notifyOwner({
     event: "feedback", label: "Visszajelzés", on: true,
     title: record.kind === "idea" ? "Új ötlet" : "Új hibajelentés",
-    message: [record.message, record.view ? `nézet: ${record.view}` : null, `#${record.id}`].filter(Boolean).join("\n"),
+    message: [record.view ? `nézet: ${record.view}` : null, `#${record.id} – a szöveg az admin felületen`].filter(Boolean).join("\n"),
     tags: [record.kind === "idea" ? "bulb" : "bug"], click: webAppUrl
   });
   return prisma.feedback.create({ data: {
@@ -563,7 +576,7 @@ const publicTrySchema = z.object({ text: z.string().trim().min(2).max(200), lang
 app.post("/public/try", publicTryLimiter, async (req, res, next) => {
   try {
     const input = publicTrySchema.parse(req.body);
-    notifyOwner({ event: "public_try", label: "Kipróbálás regisztráció nélkül", on: false, message: `„${input.text}” · ${input.lang}`, ip: visitorIp(req.header("cf-connecting-ip"), req.ip) });
+    notifyOwner({ event: "public_try", label: "Kipróbálás regisztráció nélkül", on: false, message: `Nyelv: ${input.lang}`, ip: visitorIp(req.header("cf-connecting-ip"), req.ip) });
     // Like the signed-in flow: the interpreter first; a reference dish only
     // when it could not resolve the phrase ("2 pár virsli" is 4 frankfurters,
     // not 4 portions of "virsli mustárral").
